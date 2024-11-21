@@ -108,11 +108,15 @@ class Util:
         
         if isinstance(data, dict):
             alignment = Util.alignment_string(data['alignment'])
-            chance = data['chance']
-            return f"{alignment} ({chance}\\%)"
+            chance = data.get('chance')
+            if chance:
+                return f"{alignment} ({chance}\\%)"
+            else:
+                return alignment
             
         if len(data) == 1:
-            return ALIGN_FULL[data[0]]
+            logging.debug("Data: %s", data)
+            return Util.alignment_string(data[0])
 
         if len(data) == 2:
             if type(data[0]) is dict:
@@ -162,27 +166,66 @@ class Util:
                 return(creature)
             
     @staticmethod
-    def findItemData(name, source):
-        if not source: source = "dmg"
-        file_name = "data/items.json"
+    def _loadItemsFromJSON(file_name):
         try:
             fh = open(file_name, 'r', encoding='utf8')
-            json_data = json.load(fh).get("item")
+            json_data = json.load(fh)
         except FileNotFoundError:
             logging.warning(f"File not found: {file_name}")
             return None
         fh.close()
-        for item in json_data:
-            if item['name'].lower() == name.lower() and item['source'].lower() == source.lower():
+        return json_data
+
+    @staticmethod
+    def _itemMatch(item, name, source):
+        result = item['name'].lower() == name.lower() and item['source'].lower() == source.lower()
+        # logging.debug("%s/%s == %s/%s %s", name, source, item['name'], item['source'], result)
+        return result
+
+    @staticmethod
+    def findItemData(name, source):
+        if not source: source = "xdmg"
+        base_item = Util.findBaseItemData(name, source)
+        file_name = "data/items.json"
+        json_data = Util._loadItemsFromJSON(file_name)                                                 
+        data = json_data['item']
+        if 'itemGroup' in json_data:
+            data += json_data['itemGroup']
+            
+        logging.debug("Searching for item %s (%s)", name, source)
+        for item in data:
+            if Util._itemMatch(item, name, source):
                 if "_copy" in item:
                     name = item['_copy']['name']
                     source = item['_copy']['source']
                     logging.warning("Item data has _copy material - not implemented")
                     return Util.findItemData(name, source)
+
+                if base_item:
+                    logging.warning("Oh I have a base_item!")
+                    item['entries'] = base_item['entriesTemplate']
+                
                 return(item)
             
         logging.warning("Failed to find %s (%s)", name, source)
 
+    @staticmethod
+    def findBaseItemData(name, source):
+        if not source: source = "xdmg"
+        file_name = "data/items-base.json"
+        json_data = Util._loadItemsFromJSON(file_name)
+        data = json_data['itemEntry']
+            
+        logging.debug("Searching for base item %s (%s)", name, source)
+        for item in data:
+            if Util._itemMatch(item, name, source):
+                if "_copy" in item:
+                    name = item['_copy']['name']
+                    source = item['_copy']['source']
+                    logging.warning("Item %s has _copy material - not implemented", name)
+                    return Util.findBaseItemData(name, source)                
+                return(item)
+            
     @staticmethod
     def findDeityData(name, pantheon, source):
         file_name = "data/deities.json"
@@ -453,10 +496,19 @@ class Item:
 
         self.entries = data.get('entries')
 
-        typeRarity = ', '.join(data.get('rarity'))
-
-        
-        self.typeRarity = f"{typeRarity} {data.get('_attunement')}" if data.get('reqAttune') else typeRarity
+        typeRarity = data.get('rarity').title()
+        if typeRarity == 'None': # This isn't a python None, the JSON contains "none" as a word
+            typeRarity = ''
+        if data.get('wondrous'):
+            typeRarity = f"Wondrous item, {typeRarity}"
+        if data.get('reqAttune'):
+            attunement = data.get('reqAttune')
+            if type(attunement) is str:
+                attunement = f"requires attunement {attunement}" 
+            else:
+                attunement = "requires attunement"
+            typeRarity =  f"{typeRarity} ({attunement})" 
+        self.typeRarity = typeRarity
         self.tierText = f"{data.get('tier')} tier" if data.get('tier') else ""
         
 
@@ -471,7 +523,8 @@ class Item:
         if not self._data:
             logging.warning("No data to render")
             return []
-        logging.debug("Rending item %s", self._data)
+        if not self.entries: return []
+        
         lines = [f"\\DndItemHeader{{{self.name}}}{{{self.typeRarity}}}"]
         if "entries" in self._data:
             lines += renderer.renderRecursive(3, self._data['entries'])
@@ -754,13 +807,13 @@ class Creature:
             lines.append("\\begin{multicols}{2}")
         lines.append(f"\\DndMonsterType{{{c.size} {c.kind}, {c.alignment}}}")
         
-        lines.append("\DndMonsterBasics[") 
+        lines.append("\\DndMonsterBasics[") 
         lines.append(f"armor-class = {{{c.ac}}},")
-        lines.append(f"hit-points = {{\DndDice{{{c.hp}}}}},")
+        lines.append(f"hit-points = {{\\DndDice{{{c.hp}}}}},")
         lines.append(f"speed = {{{c.speed}}}")
         lines.append("]")      
         
-        lines.append("\DndMonsterAbilityScores[")
+        lines.append("\\DndMonsterAbilityScores[")
         lines.append(f" str = {c.str},")
         lines.append(f" dex = {c.dex},")
         lines.append(f" con = {c.con},")
@@ -769,7 +822,7 @@ class Creature:
         lines.append(f" cha = {c.cha}")
         lines.append("]")
         
-        lines.append("\DndMonsterDetails[")
+        lines.append("\\DndMonsterDetails[")
         if c.saves:
             lines.append(f"saving-throws = {{{c.saves}}},")
         if c.skills:

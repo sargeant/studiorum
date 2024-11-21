@@ -14,39 +14,37 @@ class InTextTagRenderer:
     @staticmethod
     def renderLine(line, renderer):
         # special case, single tag on one line?
-        OneLineTagPattern = r"^\{@(.*?) (.*?)\}$"
+        OneLineTagPattern = r"^\{(?P<type>[@#])(?P<tag>.*?) (?P<args>.*?)\}$"
         standalone_tag = re.search(OneLineTagPattern, line)
         if standalone_tag:
-            tag_name = standalone_tag.group(1)
-            tag_args = standalone_tag.group(2)
+            tag_name = standalone_tag.group('tag')
+            tag_args = standalone_tag.group('args')
             if tag_name == "optfeature":
                 return "\\paragraph{Optional Feature}\n" + tag_args
             elif tag_name == "deity":
                 parts = tag_args.split('|')
                 deityData = Util.findDeityData(parts[0], parts[1], parts[2])
                 return renderer.renderDeity(deityData)
-            else:
-                logging.info(f"We found a standalone tag, but ignored it: {tag_name}({tag_args})")
-            
-
                 
-        TagPattern = r"\{@.*?\}"
+        TagPattern = r"\{[@#].*?\}"
         tags = re.findall(TagPattern, line)
         while tags:
             for tag_string in tags:
                 if not isinstance(tag_string, str):
                     logging.error("Searching tag_string but it's a dict? %s", tag_string)
-                match = re.search("{@(.*?) (.*?)}", tag_string)
+                match = re.search(r"\{(?P<type>[@#])(?P<name>.*?) (?P<args>.*?)\}", tag_string)
                 if not match:
-                    match = re.search("{@(.*?)}", tag_string)
+                    match = re.search(r"\{(?P<type>[@#])(?P<name>.*?)\}", tag_string)
                     if not match:
                         raise DndTexError(f"Failed to handle tag: '{tag_string}'")
                     tag_arguments = None
                 else:
-                    tag_arguments = match.group(2).split('|')
-                tag_name = match.group(1)
+                    # logging.debug("Got line: %s", line)
+                    # logging.debug("Matched: %s %s %s", match.group('type'), match.group('name'), match.group('args'))
+                    tag_arguments = match.group('args').split('|')
+                tag_name = match.group('name')
                 if tag_name not in globals():
-                    logging.warning("Tag is not implemented: %s(%s)", tag_name, tag_arguments)
+                    logging.warning("Tag %s is not implemented: %s(%s)", match.group('type'), tag_name, tag_arguments)
                     tag_name = 'unknown'
                 tag = globals()[tag_name](tag_arguments, creatureList=InTextTagRenderer.creatureList,
                                           spellList=InTextTagRenderer.spellList, renderer=renderer,

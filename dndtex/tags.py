@@ -258,20 +258,20 @@ class creatureList(DndTag):
                 token_lines += [
                     "\\newpage",
                     f"\\numcols={columns}",
-                    f"\\setlength{{\\columnwidth}}{{\Size{size}}}",
+                    f"\\setlength{{\\columnwidth}}{{\\Size{size}}}",
                     "\\setcounter{currentcol}{0}",
                 ]
 
                 for img in images:
                     token_lines += [
                         f"%%\n%%%%\n%%%%%%\n%%%%%%%% {size} {img}",
-                        "\setcounter{tokencount}{ 1 }",
-                        "\\foreach \i in {1,...,\\thetokencount}",
+                        "\\setcounter{tokencount}{ 1 }",
+                        "\\foreach \\i in {1,...,\\thetokencount}",
                         " \\ifnum\\value{currentcol}=0\\noindent\\fi",
-                        "\\begin{minipage}[t]{\columnwidth}",
-                        f" \\begin{{tikzonimage}}[width=\columnwidth]{{{img}}}[inner sep=0pt]%[tsx/show help lines]",
+                        "\\begin{minipage}[t]{\\columnwidth}",
+                        f" \\begin{{tikzonimage}}[width=\\columnwidth]{{{img}}}[inner sep=0pt]%[tsx/show help lines]",
                         "\\ifnum\\value{tokencount}>1",
-                        "  \\node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};",
+                        "  \\node[at={( 0.666,0.245 )},text=white]{\\contour{black}{\\large\\dndsans{\\i}}};",
                         "\\fi",
                         "\\end{tikzonimage}",
                         "\\end{minipage}",
@@ -300,10 +300,7 @@ class itemList(DndTag):
             if not i:
                 warnings.warn(f"Failed to locate item: {name} ({source})", UserWarning)
             else:
-                try:
-                    lines += i.render(self.renderer)
-                except(AttributeError):
-                    warnings.warn(f"Failed to find referenced item: {name} ({source})",UserWarning)
+                lines += i.render(self.renderer)
         for line in lines:
             if not isinstance(line, str):
                 logging.warning("Not a string: %s", line)
@@ -344,7 +341,17 @@ class variantrule(DndTag):
         name = self.args[0].strip()
         return name
     
-    
+class itemEntry (DndTag):
+    def get_content(self):
+        # Load named item
+        # Return entries of that item
+        logging.debug("itemEntry: %s", self.args[0])
+        itemData = Util.findBaseItemData(self.args[0], self.args[1])
+        if not itemData:
+            logging.warning("Failed to lookup itemEntry for %s (%s)", self.args[0], self.args[1])
+            return ""
+        return "\n\n".join(itemData['entriesTemplate'])
+       
 class condition (DndTag): pass
 class action    (DndTag): pass
 class skill     (DndTag): pass

@@ -132,7 +132,8 @@ class Renderer():
                 if not data.startswith("{@"): # Skip the tag at the start
                     if self.useDropCap:
                         data = self.addDropCap(data)
-            lines.append(self.escapeTex(data))
+            tag_expanded_data = InTextTagRenderer.renderLine(data, self)
+            lines.append(self.escapeTex(tag_expanded_data))
             lines.append("")
         elif isinstance(data, int):
             return self.renderRecursive(depth, str(data))
@@ -392,7 +393,7 @@ class Renderer():
             lines.append(f"\\item{{{name}{append}}}")
 
         if "entry" in item:
-            lines.append(item.get("entry"))
+            lines.append(self.escapeTex(item.get("entry")))
         elif "entries" in item:
             for entry in item.get("entries"):
                 lines += self.renderRecursive(depth, entry)    
@@ -495,7 +496,7 @@ class Renderer():
     def escapeTex(self, input):
         if input is None: 
             return ''
-        return input.replace("&", "\\&").replace("&quot;", "\"").replace("_", "\\_").replace("%","\\%").replace("#","\\#")
+        return input.replace('&', "\\&").replace("&quot;", "\"").replace("_", "\\_").replace("%","\\%").replace("#","\\#")
 
 
                 

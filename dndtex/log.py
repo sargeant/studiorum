@@ -14,7 +14,7 @@ import logging
 import logging.config
 from colorlog import ColoredFormatter
 
-LOG_LEVEL = "DEBUG"
+LOG_LEVEL = "INFO"
 logging.root.setLevel(LOG_LEVEL)
 
 LOG_PARTS = (
