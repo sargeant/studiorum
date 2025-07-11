@@ -1,13 +1,13 @@
 """LaTeX-specific renderers."""
 
+from .content import LaTeXCreatureRenderer, LaTeXItemRenderer, LaTeXSpellRenderer
 from .document import LaTeXDocumentRenderer
-from .content import LaTeXSpellRenderer, LaTeXCreatureRenderer, LaTeXItemRenderer
 from .templates import LaTeXTemplateEngine
 
 __all__ = [
     "LaTeXDocumentRenderer",
-    "LaTeXSpellRenderer", 
+    "LaTeXSpellRenderer",
     "LaTeXCreatureRenderer",
     "LaTeXItemRenderer",
-    "LaTeXTemplateEngine"
+    "LaTeXTemplateEngine",
 ]

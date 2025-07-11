@@ -1,14 +1,14 @@
 """JSON data loader with Pydantic validation."""
 
 import json
-import asyncio
-from typing import List, Type, Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Type
+
 from pydantic import ValidationError
 
-from .base import DataLoader, T
-from ..models.content import ContentType, BaseContent, Source
 from ..config.settings import get_logger
+from ..models.content import ContentType
+from .base import DataLoader, T
 
 logger = get_logger(__name__)
 
@@ -26,7 +26,7 @@ class JsonDataLoader(DataLoader[T]):
             logger.info(f"Loading {self.content_type.value} data from {path}")
 
             # Read JSON file
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 data = json.load(f)
 
             # Extract content based on file structure

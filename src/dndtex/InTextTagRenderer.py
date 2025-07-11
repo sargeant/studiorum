@@ -1,8 +1,8 @@
 import re
-from dndtex.tags import *
-from dndtex import DndTexError
+
+from dndtex import DndTexError, Util
 from dndtex.log import logging
-from dndtex import Util
+from dndtex.tags import *
 
 
 class InTextTagRenderer:

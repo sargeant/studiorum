@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import sys
 import json
+import sys
 
 from dndtex import Util
 
@@ -22,7 +22,7 @@ def clean(input):
 def main():
     filename = sys.argv[1]
 
-    fh = open(filename, "r", encoding="utf8")
+    fh = open(filename, encoding="utf8")
     data = json.load(fh)
     fh.close()
     print(

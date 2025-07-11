@@ -1,13 +1,14 @@
 """Render json from 5e.tools into LaTeX for printing"""
 
 import json
-import re
-import requests
 import os
+import re
+
+import requests
 
 from dndtex import *
-from dndtex.log import logging
 from dndtex.InTextTagRenderer import InTextTagRenderer
+from dndtex.log import logging
 
 
 class Renderer:
@@ -42,7 +43,7 @@ class Renderer:
         ]
 
         self.init_document()
-        fh = open(path, "r", encoding="utf8")
+        fh = open(path, encoding="utf8")
         json_data = json.load(fh)
         fh.close()
         if "data" in json_data:

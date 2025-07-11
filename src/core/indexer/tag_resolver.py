@@ -1,12 +1,12 @@
 """Tag resolution system for processing {@type name|source|display} tags."""
 
 import re
-from typing import Dict, Any, Optional, List, Callable, Union
 from dataclasses import dataclass
+from typing import Callable, Dict, Optional
 
+from ..config.settings import get_logger
 from ..loaders.omnidexer import Omnidexer
 from ..models.content import ContentType
-from ..config.settings import get_logger
 
 logger = get_logger(__name__)
 

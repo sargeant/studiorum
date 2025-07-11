@@ -1,11 +1,11 @@
 """Reference indexing system for cross-references and citations."""
 
-from typing import Dict, List, Set, Optional, Any
 from collections import defaultdict
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Set
 
-from ..models.content import ContentType, BaseContent
 from ..config.settings import get_logger
+from ..models.content import BaseContent, ContentType
 
 logger = get_logger(__name__)
 

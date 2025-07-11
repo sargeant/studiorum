@@ -2,8 +2,8 @@
 
 from .base import DataLoader, SourceManager
 from .json_loader import JsonDataLoader
+from .omnidexer import IndexEntry, Omnidexer
 from .source_manager import FileSystemSourceManager
-from .omnidexer import Omnidexer, IndexEntry
 
 __all__ = [
     "DataLoader",

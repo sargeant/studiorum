@@ -1,19 +1,19 @@
 """LaTeX template engine for D&D-style documents."""
 
-from typing import Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 class LaTeXTemplateEngine:
     """Template engine for LaTeX document generation.
-    
+
     Provides built-in templates for D&D-style documents and supports
     custom template loading from files.
     """
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize template engine.
-        
+
         Args:
             config: Configuration options
         """
@@ -21,11 +21,12 @@ class LaTeXTemplateEngine:
         self.templates_dir = Path(self.config.get("templates_dir", "templates"))
         self._template_cache = {}
         self._load_builtin_templates()
-    
+
     def _load_builtin_templates(self):
         """Load built-in LaTeX templates."""
-        
-        self._template_cache["document_header"] = r"""
+
+        self._template_cache["document_header"] = (
+            r"""
 \documentclass[{font_size},{page_size}]{{book}}
 
 % D&D 5e styling packages
@@ -105,17 +106,23 @@ class LaTeXTemplateEngine:
 \thispagestyle{{empty}}
 \clearpage
 """.strip()
-        
-        self._template_cache["document_footer"] = r"""
+        )
+
+        self._template_cache["document_footer"] = (
+            r"""
 \end{document}
 """.strip()
-        
-        self._template_cache["table_of_contents"] = r"""
+        )
+
+        self._template_cache["table_of_contents"] = (
+            r"""
 \tableofcontents
 \clearpage
 """.strip()
-        
-        self._template_cache["index"] = r"""
+        )
+
+        self._template_cache["index"] = (
+            r"""
 \chapter*{{{title}}}
 \addcontentsline{{toc}}{{chapter}}{{{title}}}
 
@@ -125,9 +132,11 @@ class LaTeXTemplateEngine:
 {{% endfor %}}
 \end{{multicols}}
 """.strip()
-        
+        )
+
         # Content-specific templates
-        self._template_cache["spell"] = r"""
+        self._template_cache["spell"] = (
+            r"""
 \subsection{{{name}}} 
 \textit{{{level_text}}}
 
@@ -142,8 +151,10 @@ class LaTeXTemplateEngine:
 \textbf{{At Higher Levels.}} {higher_levels}
 {{% endif %}}
 """.strip()
-        
-        self._template_cache["creature"] = r"""
+        )
+
+        self._template_cache["creature"] = (
+            r"""
 \subsection{{{name}}}
 \textit{{{size_text} {type_text}, {alignment_text}}}
 
@@ -194,8 +205,10 @@ class LaTeXTemplateEngine:
 {{% endfor %}}
 {{% endif %}}
 """.strip()
-        
-        self._template_cache["item"] = r"""
+        )
+
+        self._template_cache["item"] = (
+            r"""
 \subsection{{{name}}}
 \textit{{{type_text}{rarity_text}}}
 
@@ -205,117 +218,120 @@ class LaTeXTemplateEngine:
 \textbf{{Properties:}} {properties}
 {{% endif %}}
 """.strip()
-    
+        )
+
     def render_template(self, template_name: str, variables: Dict[str, Any]) -> str:
         """Render a template with the given variables.
-        
+
         Args:
             template_name: Name of template to render
             variables: Variables to substitute in template
-            
+
         Returns:
             Rendered template content
         """
         template = self._get_template(template_name)
         if not template:
             raise ValueError(f"Template '{template_name}' not found")
-        
+
         return self._substitute_variables(template, variables)
-    
+
     def _get_template(self, template_name: str) -> Optional[str]:
         """Get template content by name.
-        
+
         Args:
             template_name: Name of template
-            
+
         Returns:
             Template content or None if not found
         """
         # Check cache first
         if template_name in self._template_cache:
             return self._template_cache[template_name]
-        
+
         # Try to load from file
         template_file = self.templates_dir / f"{template_name}.tex"
         if template_file.exists():
-            content = template_file.read_text(encoding='utf-8')
+            content = template_file.read_text(encoding="utf-8")
             self._template_cache[template_name] = content
             return content
-        
+
         return None
-    
+
     def _substitute_variables(self, template: str, variables: Dict[str, Any]) -> str:
         """Substitute variables in template using simple string formatting.
-        
+
         Args:
             template: Template content
             variables: Variables to substitute
-            
+
         Returns:
             Template with variables substituted
         """
         # Simple template variable substitution
         # For more complex templating, could use Jinja2 or similar
         result = template
-        
+
         # First substitute variables
         for key, value in variables.items():
             placeholder = "{" + key + "}"
             if placeholder in result:
-                result = result.replace(placeholder, str(value) if value is not None else "")
-        
+                result = result.replace(
+                    placeholder, str(value) if value is not None else ""
+                )
+
         # Handle conditional blocks (basic implementation)
         result = self._process_conditionals(result, variables)
-        
+
         # Convert double braces to single braces for LaTeX
         result = result.replace("{{", "{").replace("}}", "}")
-        
+
         return result
-    
+
     def _process_conditionals(self, template: str, variables: Dict[str, Any]) -> str:
         """Process basic conditional blocks in templates.
-        
+
         Args:
             template: Template content
             variables: Variables for conditions
-            
+
         Returns:
             Template with conditionals processed
         """
         import re
-        
+
         # Handle {% if var %} blocks
         def replace_if_block(match):
             condition = match.group(1).strip()
             content = match.group(2)
-            
+
             # Simple truthiness check
             if condition in variables and variables[condition]:
                 return content
             return ""
-        
+
         # Process if blocks
-        pattern = r'{%\s*if\s+(\w+)\s*%}(.*?){%\s*endif\s*%}'
+        pattern = r"{%\s*if\s+(\w+)\s*%}(.*?){%\s*endif\s*%}"
         template = re.sub(pattern, replace_if_block, template, flags=re.DOTALL)
-        
+
         # Handle {% for item in items %} blocks (basic implementation)
         def replace_for_block(match):
             var_name = match.group(1).strip()
             list_name = match.group(2).strip()
             content = match.group(3)
-            
+
             if list_name not in variables:
                 return ""
-            
+
             items = variables[list_name]
             if not isinstance(items, (list, tuple)):
                 return ""
-            
+
             result_parts = []
             for item in items:
                 # Create temporary variables for this iteration
                 item_content = content
-                if hasattr(item, '__dict__'):
+                if hasattr(item, "__dict__"):
                     # Object with attributes
                     for attr_name, attr_value in item.__dict__.items():
                         placeholder = f"{var_name}.{attr_name}"
@@ -329,13 +345,13 @@ class LaTeXTemplateEngine:
                         item_content = item_content.replace(
                             "{" + placeholder + "}", str(value)
                         )
-                
+
                 result_parts.append(item_content)
-            
+
             return "\n".join(result_parts)
-        
+
         # Process for blocks
-        pattern = r'{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}(.*?){%\s*endfor\s*%}'
+        pattern = r"{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}(.*?){%\s*endfor\s*%}"
         template = re.sub(pattern, replace_for_block, template, flags=re.DOTALL)
-        
+
         return template

@@ -1,16 +1,16 @@
 """Pytest configuration and fixtures."""
 
-import pytest
 import asyncio
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
-from src.core.models.spells import Spell
-from src.core.models.creatures import Creature
-from src.core.models.content import Source
+import pytest
+
+from src.core.indexer.tag_resolver import TagResolver
 from src.core.loaders.omnidexer import Omnidexer
 from src.core.loaders.source_manager import FileSystemSourceManager
-from src.core.indexer.tag_resolver import TagResolver
+from src.core.models.creatures import Creature
+from src.core.models.spells import Spell
 
 
 @pytest.fixture
@@ -26,20 +26,20 @@ def sample_spell_data() -> Dict[str, Any]:
     """Sample spell data for testing."""
     return {
         "name": "Fireball",
-        "source": {
-            "abbreviation": "PHB",
-            "name": "Player's Handbook",
-            "page": 241
-        },
+        "source": {"abbreviation": "PHB", "name": "Player's Handbook", "page": 241},
         "level": 3,
         "school": "V",
         "time": [{"number": 1, "unit": "action"}],
         "range": {"type": "point", "distance": {"type": "feet", "amount": 150}},
-        "components": {"v": True, "s": True, "m": "a tiny ball of bat guano and sulfur"},
+        "components": {
+            "v": True,
+            "s": True,
+            "m": "a tiny ball of bat guano and sulfur",
+        },
         "duration": [{"type": "instant"}],
         "entries": [
             "A bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame."
-        ]
+        ],
     }
 
 
@@ -48,11 +48,7 @@ def sample_creature_data() -> Dict[str, Any]:
     """Sample creature data for testing."""
     return {
         "name": "Ancient Red Dragon",
-        "source": {
-            "abbreviation": "MM",
-            "name": "Monster Manual",
-            "page": 98
-        },
+        "source": {"abbreviation": "MM", "name": "Monster Manual", "page": 98},
         "size": ["G"],
         "type": "dragon",
         "alignment": ["C", "E"],
@@ -65,7 +61,7 @@ def sample_creature_data() -> Dict[str, Any]:
         "int": 18,
         "wis": 15,
         "cha": 23,
-        "cr": "24"
+        "cr": "24",
     }
 
 
@@ -86,34 +82,36 @@ def temp_data_dir(tmp_path) -> Path:
     """Create a temporary data directory with sample files."""
     data_dir = tmp_path / "data"
     data_dir.mkdir()
-    
+
     # Create subdirectories
     (data_dir / "spells").mkdir()
     (data_dir / "bestiary").mkdir()
-    
+
     return data_dir
 
 
 @pytest.fixture
-async def loaded_omnidexer(temp_data_dir, sample_spell_data, sample_creature_data) -> Omnidexer:
+async def loaded_omnidexer(
+    temp_data_dir, sample_spell_data, sample_creature_data
+) -> Omnidexer:
     """Create an omnidexer with loaded test data."""
     import json
-    
+
     # Create test data files
     spell_file = temp_data_dir / "spells" / "test-spells.json"
     spell_file.write_text(json.dumps({"spell": [sample_spell_data]}))
-    
+
     creature_file = temp_data_dir / "bestiary" / "test-creatures.json"
     creature_file.write_text(json.dumps({"monster": [sample_creature_data]}))
-    
+
     # Create source manager pointing to temp directory
     source_manager = FileSystemSourceManager(temp_data_dir.parent)
     source_manager.path_config.data_path = temp_data_dir
-    
+
     # Create and load omnidexer
     omnidexer = Omnidexer(source_manager)
     await omnidexer.load_all_data()
-    
+
     return omnidexer
 
 

@@ -1,12 +1,12 @@
 """File system-based source manager."""
 
-from typing import Dict, List, Optional, Any
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from .base import SourceManager
-from ..models.content import ContentType
 from ..config.paths import get_path_config
 from ..config.settings import get_logger
+from ..models.content import ContentType
+from .base import SourceManager
 
 logger = get_logger(__name__)
 

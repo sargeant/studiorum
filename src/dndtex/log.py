@@ -13,6 +13,7 @@ Usage:
 
 import logging
 import logging.config
+
 from colorlog import ColoredFormatter
 
 LOG_LEVEL = "INFO"

@@ -2,11 +2,12 @@
 
 import asyncio
 from typing import Optional
+
 import typer
+from rich import print as rprint
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress
-from rich import print as rprint
 
 from src.core.loaders.omnidexer import Omnidexer
 from src.core.models.content import ContentType
@@ -18,28 +19,32 @@ console = Console()
 @app.command("content")
 def show_content_info(
     name: str = typer.Argument(..., help="Name of the content item"),
-    content_type: Optional[str] = typer.Option(None, "--type", "-t", 
-                                              help="Content type (spell, creature, item)"),
+    content_type: Optional[str] = typer.Option(
+        None, "--type", "-t", help="Content type (spell, creature, item)"
+    ),
     source: Optional[str] = typer.Option(None, "--source", "-s", help="Source book"),
 ):
     """
     🔍 Show detailed information about a specific content item
-    
+
     Displays comprehensive details about spells, creatures, items, etc.
     including all attributes and formatted descriptions.
     """
+
     async def _show_info():
         try:
             # Load omnidexer
             with Progress() as progress:
-                load_task = progress.add_task("[cyan]Loading content data...", total=None)
+                load_task = progress.add_task(
+                    "[cyan]Loading content data...", total=None
+                )
                 omnidexer = Omnidexer()
                 await omnidexer.load_all_data()
                 progress.update(load_task, completed=100)
-            
+
             # Find content
             content_item = None
-            
+
             if content_type:
                 try:
                     ct = ContentType(content_type.lower())
@@ -53,20 +58,20 @@ def show_content_info(
                     content_item = omnidexer.find(ct, name, source)
                     if content_item:
                         break
-            
+
             if not content_item:
                 rprint(f"[red]Error:[/red] Content not found: {name}")
                 if source:
                     rprint(f"Searched in source: {source}")
                 return
-            
+
             # Display detailed information
             _display_content_details(content_item)
-            
+
         except Exception as e:
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
-    
+
     asyncio.run(_show_info())
 
 
@@ -76,27 +81,27 @@ def show_file_info(
 ):
     """
     📄 Show information about a JSON file
-    
+
     Analyzes a JSON file and shows what content it contains,
     structure, and statistics.
     """
-    from pathlib import Path
     import json
-    
+    from pathlib import Path
+
     try:
         file_path_obj = Path(file_path)
         if not file_path_obj.exists():
             rprint(f"[red]Error:[/red] File not found: {file_path}")
             raise typer.Exit(1)
-        
+
         # Load JSON
         with open(file_path_obj) as f:
             data = json.load(f)
-        
+
         # Analyze structure
         content_stats = {}
         total_items = 0
-        
+
         for key, value in data.items():
             if isinstance(value, list):
                 content_stats[key] = len(value)
@@ -104,7 +109,7 @@ def show_file_info(
             elif isinstance(value, dict):
                 content_stats[key] = 1
                 total_items += 1
-        
+
         # Display info
         panel_content = f"""
 [green]File:[/green] {file_path_obj.name}
@@ -113,16 +118,16 @@ def show_file_info(
 
 [cyan]Content Breakdown:[/cyan]
 """
-        
+
         for content_type, count in sorted(content_stats.items()):
             panel_content += f"  • {content_type}: {count} items\n"
-        
-        console.print(Panel(
-            panel_content.strip(),
-            title=f"📄 File Information",
-            border_style="blue"
-        ))
-        
+
+        console.print(
+            Panel(
+                panel_content.strip(), title="📄 File Information", border_style="blue"
+            )
+        )
+
         # Show sample items
         if content_stats:
             rprint("\n[cyan]Sample Content:[/cyan]")
@@ -130,10 +135,10 @@ def show_file_info(
             for key, items in data.items():
                 if isinstance(items, list) and items and sample_count < 3:
                     sample_item = items[0]
-                    if isinstance(sample_item, dict) and 'name' in sample_item:
+                    if isinstance(sample_item, dict) and "name" in sample_item:
                         rprint(f"  • {key}: {sample_item['name']}")
                         sample_count += 1
-        
+
     except json.JSONDecodeError as e:
         rprint(f"[red]Error:[/red] Invalid JSON file: {e}")
         raise typer.Exit(1)
@@ -144,12 +149,12 @@ def show_file_info(
 
 def _display_content_details(item):
     """Display detailed information about a content item."""
-    from src.core.models.spells import Spell
     from src.core.models.creatures import Creature
     from src.core.models.items import Item
-    
+    from src.core.models.spells import Spell
+
     content_type = ContentType.from_content(item)
-    
+
     # Basic info panel
     basic_info = f"""
 [green]Name:[/green] {item.name}
@@ -158,13 +163,11 @@ def _display_content_details(item):
 """
     if item.source.page:
         basic_info += f"[green]Page:[/green] {item.source.page}\n"
-    
-    console.print(Panel(
-        basic_info.strip(),
-        title=f"📋 {item.name}",
-        border_style="green"
-    ))
-    
+
+    console.print(
+        Panel(basic_info.strip(), title=f"📋 {item.name}", border_style="green")
+    )
+
     # Type-specific details
     if isinstance(item, Spell):
         _display_spell_details(item)
@@ -184,25 +187,27 @@ def _display_spell_details(spell):
 [cyan]Components:[/cyan] {spell.get_components_text()}
 [cyan]Duration:[/cyan] {spell.get_duration_text()}
 """
-    
+
     console.print(Panel(details.strip(), title="⚡ Spell Details", border_style="blue"))
-    
+
     # Description
     if spell.entries:
         description = "\n".join(spell.entries)
         console.print(Panel(description, title="📖 Description", border_style="yellow"))
-    
+
     # Higher levels
     if spell.higher_level:
         higher_text = " ".join(spell.higher_level)
-        console.print(Panel(higher_text, title="📈 At Higher Levels", border_style="magenta"))
+        console.print(
+            Panel(higher_text, title="📈 At Higher Levels", border_style="magenta")
+        )
 
 
 def _display_creature_details(creature):
     """Display detailed creature information."""
     size = creature.size[0] if creature.size else "Medium"
-    cr = getattr(creature, 'cr', 'Unknown')
-    
+    cr = getattr(creature, "cr", "Unknown")
+
     details = f"""
 [cyan]Size:[/cyan] {size}
 [cyan]Type:[/cyan] {creature.type}
@@ -211,9 +216,11 @@ def _display_creature_details(creature):
 [cyan]Hit Points:[/cyan] {creature.hp if creature.hp else 'Unknown'}
 [cyan]Speed:[/cyan] {creature.speed if creature.speed else 'Unknown'}
 """
-    
-    console.print(Panel(details.strip(), title="🐉 Creature Details", border_style="red"))
-    
+
+    console.print(
+        Panel(details.strip(), title="🐉 Creature Details", border_style="red")
+    )
+
     # Ability scores
     abilities = f"""
 [cyan]STR:[/cyan] {creature.strength} ({(creature.strength-10)//2:+d})
@@ -223,23 +230,27 @@ def _display_creature_details(creature):
 [cyan]WIS:[/cyan] {creature.wisdom} ({(creature.wisdom-10)//2:+d})
 [cyan]CHA:[/cyan] {creature.charisma} ({(creature.charisma-10)//2:+d})
 """
-    
-    console.print(Panel(abilities.strip(), title="💪 Ability Scores", border_style="green"))
+
+    console.print(
+        Panel(abilities.strip(), title="💪 Ability Scores", border_style="green")
+    )
 
 
 def _display_item_details(item):
     """Display detailed item information."""
-    item_type = getattr(item, 'type', 'Item')
-    rarity = getattr(item, 'rarity', None)
-    
+    item_type = getattr(item, "type", "Item")
+    rarity = getattr(item, "rarity", None)
+
     details = f"[cyan]Type:[/cyan] {item_type}\n"
     if rarity:
         details += f"[cyan]Rarity:[/cyan] {rarity}\n"
-    
-    console.print(Panel(details.strip(), title="🎒 Item Details", border_style="yellow"))
-    
+
+    console.print(
+        Panel(details.strip(), title="🎒 Item Details", border_style="yellow")
+    )
+
     # Description
-    if hasattr(item, 'entries') and item.entries:
+    if hasattr(item, "entries") and item.entries:
         description = "\n".join(str(entry) for entry in item.entries)
         console.print(Panel(description, title="📖 Description", border_style="blue"))
 

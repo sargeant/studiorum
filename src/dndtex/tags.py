@@ -1,7 +1,7 @@
-from dndtex import Util
+import warnings
 
 import dndtex
-import warnings
+from dndtex import Util
 from dndtex.log import logging
 
 

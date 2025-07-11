@@ -1,13 +1,12 @@
 import json
-import re
-import sys
 import os
+import re
 import subprocess
+import sys
 import unicodedata
+from pprint import pprint
 
 from dndtex.log import logging
-
-from pprint import pprint
 
 
 class DndTexError(Exception):
@@ -94,7 +93,7 @@ class Util:
             "searching for extra data from %s for %s (%s)", file_name, name, source
         )
         try:
-            fh = open(file_name, "r", encoding="utf8")
+            fh = open(file_name, encoding="utf8")
             json_data = json.load(fh)
         except FileNotFoundError:
             logging.warning(f"File not found: {file_name}")
@@ -177,7 +176,7 @@ class Util:
             file_name = source_file_map[source]
 
         try:
-            fh = open(file_name, "r", encoding="utf8")
+            fh = open(file_name, encoding="utf8")
             json_data = json.load(fh).get("monster")
         except FileNotFoundError:
             logging.warning(f"File not found: {file_name}")
@@ -199,7 +198,7 @@ class Util:
     @staticmethod
     def _loadItemsFromJSON(file_name):
         try:
-            fh = open(file_name, "r", encoding="utf8")
+            fh = open(file_name, encoding="utf8")
             json_data = json.load(fh)
         except FileNotFoundError:
             logging.warning(f"File not found: {file_name}")
@@ -269,7 +268,7 @@ class Util:
         file_name = "data/deities.json"
         logging.debug("Loading deity %s", name)
         try:
-            fh = open(file_name, "r", encoding="utf8")
+            fh = open(file_name, encoding="utf8")
             json_data = json.load(fh).get("deity")
         except FileNotFoundError:
             logging.warning(f"File not found: {file_name}")
@@ -292,7 +291,7 @@ class Util:
             source = "phb"
         file_name = f"data/spells/spells-{source.lower()}.json"
         try:
-            fh = open(file_name, "r", encoding="utf8")
+            fh = open(file_name, encoding="utf8")
             json_data = json.load(fh).get("spell")
         except FileNotFoundError:
             logging.warning("File not found %s", file_name)
@@ -689,7 +688,7 @@ class Creature:
         if "legendaryGroup" in data:
             self.wide = True
             groups = json.load(
-                open("data/bestiary/legendarygroups.json", "r", encoding="utf8")
+                open("data/bestiary/legendarygroups.json", encoding="utf8")
             )
             for group in groups.get("legendaryGroup"):
                 if data["name"] == group["name"] and data["source"] == group["source"]:
@@ -727,7 +726,7 @@ class Creature:
 
     def _loadFluff(self):
         file_name = f"data/bestiary/fluff-bestiary-{self.source.lower()}.json"
-        fh = open(file_name, "r", encoding="utf8")
+        fh = open(file_name, encoding="utf8")
         fluffData = json.load(fh)
         fh.close()
 

@@ -1,7 +1,9 @@
 """Spell data models."""
 
-from typing import List, Dict, Any, Optional, Union, Literal
+from typing import Any, Dict, List, Literal, Optional, Union
+
 from pydantic import BaseModel, Field, field_validator
+
 from .content import BaseContent
 
 

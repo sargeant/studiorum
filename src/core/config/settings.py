@@ -1,11 +1,12 @@
 """Application settings and configuration."""
 
 import logging
-import colorlog
 from pathlib import Path
-from typing import Dict, Any, Optional
-from pydantic_settings import BaseSettings
+from typing import Optional
+
+import colorlog
 from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):

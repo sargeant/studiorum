@@ -1,10 +1,10 @@
 """Abstract base classes for data loading."""
 
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, List, Optional, Dict, Any
 from pathlib import Path
+from typing import Any, Dict, Generic, List, Optional, TypeVar
 
-from ..models.content import ContentType, BaseContent
+from ..models.content import BaseContent, ContentType
 
 T = TypeVar("T", bound=BaseContent)
 
