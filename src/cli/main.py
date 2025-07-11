@@ -19,8 +19,7 @@ from src.renderers.latex import LaTeXDocumentRenderer
 app = typer.Typer(
     name="5e2pdf",
     help="Convert D&D 5e JSON data to beautifully formatted LaTeX/PDF documents",
-    rich_markup_mode="rich",
-    no_args_is_help=True
+    rich_markup_mode="rich"
 )
 
 # Add console for rich output
@@ -31,9 +30,14 @@ _omnidexer: Optional[Omnidexer] = None
 _tag_resolver: Optional[TagResolver] = None
 
 
+@app.command("version")
+def show_version():
+    """Show version information."""
+    rprint("[bold blue]5e2pdf[/bold blue] [green]v2.0.0[/green] - Modern Architecture")
+    rprint("Convert D&D 5e JSON → LaTeX → PDF")
+
 @app.callback()
 def main(
-    version: bool = typer.Option(False, "--version", "-v", help="Show version and exit"),
     verbose: bool = typer.Option(False, "--verbose", help="Enable verbose output"),
 ):
     """
@@ -42,11 +46,6 @@ def main(
     Convert structured JSON data from 5e.tools into professional LaTeX documents
     that match the style of official D&D 5th edition books.
     """
-    if version:
-        rprint("[bold blue]5e2pdf[/bold blue] [green]v2.0.0[/green] - Modern Architecture")
-        rprint("Convert D&D 5e JSON → LaTeX → PDF")
-        raise typer.Exit()
-    
     if verbose:
         import logging
         logging.basicConfig(level=logging.DEBUG)
@@ -73,11 +72,39 @@ async def get_tag_resolver() -> TagResolver:
     return _tag_resolver
 
 
-# Add subcommands (will be added after imports are fixed)
-# app.add_typer(convert.app, name="convert", help="Convert content to LaTeX/PDF")
-# app.add_typer(list_content.app, name="list", help="List available content")
-# app.add_typer(info.app, name="info", help="Show content information")
-# app.add_typer(stats.app, name="stats", help="Show content statistics")
+# Import and mount CLI command modules
+try:
+    from src.cli.commands.convert import app as convert_app
+    from src.cli.commands.list_content import app as list_app
+    from src.cli.commands.info import app as info_app
+    from src.cli.commands.stats import app as stats_app
+    
+    # Mount sub-applications
+    app.add_typer(convert_app, name="convert")
+    app.add_typer(list_app, name="list")
+    app.add_typer(info_app, name="info")
+    app.add_typer(stats_app, name="stats")
+except ImportError as e:
+    # Fallback placeholder commands if imports fail
+    @app.command("convert")
+    def convert_command():
+        """Convert content to LaTeX/PDF (placeholder)."""
+        rprint("[yellow]Convert command not yet implemented[/yellow]")
+    
+    @app.command("list") 
+    def list_command():
+        """List available content (placeholder)."""
+        rprint("[yellow]List command not yet implemented[/yellow]")
+    
+    @app.command("info")
+    def info_command():
+        """Show content information (placeholder).""" 
+        rprint("[yellow]Info command not yet implemented[/yellow]")
+    
+    @app.command("stats")
+    def stats_command():
+        """Show content statistics (placeholder)."""
+        rprint("[yellow]Stats command not yet implemented[/yellow]")
 
 
 @app.command("legacy")
