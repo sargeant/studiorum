@@ -16,7 +16,10 @@
       "Bash(sed:*)",
       "Bash(python:*)",
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(chmod:*)",
+      "Bash(./bin/5e2pdf:*)",
+      "Bash(uv run:*)"
     ],
     "deny": []
   }

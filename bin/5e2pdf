@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""
+5e2pdf - Modern CLI entry point
+"""
+
+import sys
+import os
+from pathlib import Path
+
+# Add src directory to Python path
+script_dir = Path(__file__).parent.parent
+src_dir = script_dir / "src"
+sys.path.insert(0, str(src_dir))
+
+try:
+    from cli.main import app
+    
+    if __name__ == "__main__":
+        app()
+        
+except ImportError as e:
+    print(f"Error: Failed to import 5e2pdf CLI: {e}", file=sys.stderr)
+    print("Please ensure all dependencies are installed:", file=sys.stderr)
+    print("  uv sync", file=sys.stderr)
+    sys.exit(1)
+except Exception as e:
+    print(f"Error: {e}", file=sys.stderr)
+    sys.exit(1)

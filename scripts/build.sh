@@ -48,6 +48,7 @@ usage() {
     echo "  list                      List available JSON files"
     echo "  clean                     Clean build artifacts"
     echo "  setup                     Setup dependencies"
+    echo "  modern                    Use modern CLI (Phase 3 architecture)"
     echo ""
     echo "Options (for build commands):"
     echo "  --with-images             Include images in the output"
@@ -56,11 +57,19 @@ usage() {
     echo "  --no-spells               Don't add spell lists"
     echo "  --output <dir>            Specify output directory"
     echo "  --no-compile              Generate LaTeX only, don't compile PDF"
+    echo "  --modern                  Use modern CLI (faster, more features)"
+    echo "  --legacy                  Use legacy system (default for compatibility)"
     echo ""
     echo "Examples:"
     echo "  $0 adventure json_data/adventures/cos.json"
     echo "  $0 book json_data/books/book-egw.json --with-images"
     echo "  $0 article json_data/supplements/items.json --no-compile"
+    echo "  $0 modern adventure json_data/adventures/cos.json --pdf"
+    echo ""
+    echo "Modern CLI:"
+    echo "  ./bin/5e2pdf convert adventure <file> --pdf"
+    echo "  ./bin/5e2pdf list files"
+    echo "  ./bin/5e2pdf stats overview"
     echo ""
     echo "Workflow from CLAUDE.md:"
     echo "  git clone https://github.com/5etools-mirror-3/5etools-src"
@@ -293,6 +302,16 @@ case $COMMAND in
             exit 1
         fi
         build_document "$COMMAND" "$@"
+        ;;
+    modern)
+        # Use modern CLI for all operations
+        print_status "Using modern CLI (Phase 3 architecture)"
+        cd "$PROJECT_DIR"
+        if [ ! -x "bin/5e2pdf" ]; then
+            print_error "Modern CLI not found. Run './scripts/build.sh setup' first."
+            exit 1
+        fi
+        exec "./bin/5e2pdf" "$@"
         ;;
     list)
         list_files
