@@ -1,0 +1,15 @@
+{
+	"data": [
+		{
+			"type": "section",
+			"name": "Hacks",
+			"entries": [
+						"{@creature war priest|mpmm}",
+						"{@creature champion|mpmm}",
+						"{@creature Xorannox|fleemortals}",
+						"{@creature Nothic}",
+						"{@creature Orc}"
+					]
+				}
+			]
+		}

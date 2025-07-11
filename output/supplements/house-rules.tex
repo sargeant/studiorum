@@ -1,0 +1,104 @@
+\documentclass[a4paper,10pt,twoside,twocolumn,openany,bg=none,nodeprecatedcode]{dndarticle}
+
+\usepackage[utf8]{inputenc}
+\setcounter{tocdepth}{1}
+\cftsetindents{section}{0em}{0em}
+\cftsetindents{subsection}{0.3em}{0em}
+\cftsetindents{subsubsection}{0.4em}{0em}
+
+\begin{document}
+
+\pagestyle{empty}
+
+\section*{House Rules}
+
+\DndQuote{Rules help us run a smooth game.}
+{I am happy to make DM rulings on the fly whenever needed, but it is uncool to surprise players with detailed rule logic. Optional or homebrew rules in use should be clear to everyone, which is the purpose of this document. These are a mix of house rules along with optional or lesser-known rules from the Players Handbook, Dungeon Masters Guide, and Xanathar's Guide to Everything.}{DM Sam, April 2024}
+
+\section{Rapid Quaffing}
+
+You can use a bonus action to drink a healing potion. It still requires an action to administer a healing potion to another creature. This only applies to potions of healing and their variants (potion of greater healing, etc.). You can consume a potion that restores hit points as a bonus action, but all other potions still require you to use your action.
+
+\section{Level up hit points}
+
+If you roll 1 for hit-points when gaining a level, you can reroll and must use the new roll. You can instead choose, before you roll, to take the average for your hit die.
+
+\section{Resurrection}
+
+If magic is used to bring a character back from the dead (except for the revivify spell; see below), everyone present becomes part of a resurrection ritual. Up to three characters present for the ritual---typically members of the deceased's adventuring party---can contribute to the ritual by attempting to call their ally's spirit back. This could involve delivering a stirring speech, playing a song from their shared childhood, goading a rival back with a display of sword skills, confessing undying love for them, or anything else that the players or the DM consider emotionally stirring.
+
+\subparagraph{Participating in the Ritual} Each of the participating characters makes an ability check. A player can tell the DM what kind of check they want to make, but ultimately the DM decides what check is appropriate based on the character's contribution to the ritual. The baseline DC of this check is 15, but the DM can raise or lower the DC (typically anywhere between 10 and 20) if the contribution seems particularly appropriate or particularly insincere.
+
+For example, praying to a fallen paladin's god for mercy might require a participant to make a DC 10 Intelligence (Religion) check, whereas shouting at a dead friend's corpse to get back up and stop lazing around might require a DC 20 Charisma (Intimidation) check. If the contribution is roleplayed in a particularly touching way, the DM can grant advantage on the check---even if the check's DC remains high.
+
+\subparagraph{Resurrection Check} After all the characters' contributions are completed, the GM rolls a single, final resurrection check with no modifier. The base DC of this check is 10, but it is modified in three ways:
+\begin{itemize}
+\item The DC is increased by 1 for every time the character has returned to life before, as the soul's connection to this world is slowly eroded by repeatedly dying and returning.
+\item The DC is reduced by 3 for each successful contribution from the other participants in this ritual.
+\item The DC is increased by 1 for each failed contribution to the ritual.
+\end{itemize}
+
+If the resurrection check is successful, the character's soul is returned to their body (if the soul is willing, as usual). If the check fails, the soul does not return---and the character is permanently unable to be raised from the dead.
+
+\subparagraph{True Miracles} If a character is brought back from the dead by the \emph{true resurrection} or the \emph{wish} spell, or by a god, they instantly return to life without the need for a resurrection ritual. Additionally, if a character has been permanently lost due to a failed resurrection ritual, the GM can allow a casting of true resurrection or wish to begin a last-chance resurrection ritual---one that can't be repeated if failed.
+
+\subparagraph{Revivify} If a spell with a casting time of 1 action is used to restore life to a creature (including the revivify spell), no one but the caster can participate in the resurrection ritual. The caster makes a quick resurrection check by rolling a d20 and adding their spellcasting ability modifier, against a DC equal to 10 + 1 for every time the character has returned to life before. On a failure, the character's soul is not lost, but the resurrection fails and increases the DC of any future resurrection checks by 1. Further attempts to bring the character back to life must involve a spell with a casting time longer than 1 action (including \emph{raise dead} or \emph{resurrection}).
+
+\section{Underwater}
+
+\subsection{Swimming}
+
+Unless aided by magic, a character without a swimming speed can't swim indefinitely. After each hour of swimming, a character must succeed on a DC 10 Constitution saving throw or gain 1 level of exhaustion.
+
+A creature with a swimming speed---including a character with a ring of swimming or similar magic---can swim all day without penalty and uses the normal forced march rules in the Player's Handbook.
+
+Swimming through deep water is similar to traveling at high altitudes because of the water's pressure and cold temperature. For a creature without a swimming speed, each hour spent swimming at a depth greater than 100 feet counts as 2 hours for the purpose of determining exhaustion, and swimming for an hour at a depth greater than 200 feet counts as 4 hours.
+
+\subsection{Underwater Combat}
+
+When making a \emph{melee weapon attack}, a creature that doesn't have a swimming speed (either natural or granted by magic) has disadvantage on the attack roll unless the weapon is a dagger, javelin, shortsword, spear, or trident.
+
+A \emph{ranged weapon attack} automatically misses a target beyond the weapon's normal range. Even against a target within normal range, the attack roll has disadvantage unless the weapon is a crossbow, a net, or a weapon that is thrown like a javelin (including a spear, trident, or dart).
+
+Creatures and objects that are fully immersed in water have resistance to fire damage.
+
+\section{Sleep}
+
+\subsection{Waking Someone}
+
+A creature that is naturally sleeping, as opposed to being in a magically or chemically induced sleep, wakes up if it takes any damage or if someone else uses an action to shake or slap the creature awake. A sudden loud noise—such as yelling, thunder, or a ringing bell—also awakens someone that is sleeping naturally.
+
+Whispers don't disturb sleep, unless a sleeper's passive Wisdom (Perception) score is 20 or higher and the whispers are within 10 feet of the sleeper. Speech at a normal volume awakens a sleeper if the environment is otherwise silent (no wind, birdsong, crickets, street sounds, or the like) and the sleeper has a passive Wisdom (Perception) score of 15 or higher.
+
+\subsection{Sleeping in Armor}
+
+Sleeping in light armor has no adverse effect on the wearer, but sleeping in medium or heavy armor makes it difficult to recover fully during a long rest. When you finish a long rest during which you slept in medium or heavy armor, you regain only one quarter of your spent Hit Dice (minimum of one die). If you have any levels of exhaustion, the rest doesn't reduce your exhaustion level.
+
+\subsection{Going without a Long Rest}
+
+A long rest is never mandatory, but going without sleep does have its consequences. Whenever you end a 24-hour period without finishing a long rest, you must succeed on a DC 10 Constitution saving throw or suffer one level of exhaustion.
+
+It becomes harder to fight off exhaustion if you stay awake for multiple days. After the first 24 hours, the DC increases by 5 for each consecutive 24-hour period without a long rest. The DC resets to 10 when you finish a long rest.
+
+\vfill
+\section{Spellcasting}
+\subsection{Material Components}
+Casting some spells requires particular objects, specified in parentheses in the component entry. A character can use a component pouch or a spellcasting focus (chapter 5 of the PHB) in place of the components specified for a spell. But if a cost is indicated for a component, a character must have that specific component before they can cast the spell.
+
+If a spell states that a material component is consumed by the spell, the caster must provide this component for each casting of the spell.
+
+A spellcaster must have a hand free to access a spell's material components—or to hold a spellcasting focus—but it can be the same hand that he or she uses to perform somatic components.
+
+\subsection{Perceiving a Caster at Work}
+To be perceptible, the casting of a spell must involve a verbal, somatic, or material component. The form of a material component doesn't matter for the purposes of perception, whether it's an object specified in the spell's description, a component pouch, or a spellcasting focus.
+
+If the need for a spell's components has been removed by a special ability, such as the sorcerer's Subtle Spell feature or the Innate Spellcasting trait possessed by many creatures, the casting of the spell is imperceptible. If an imperceptible casting produces a perceptible effect, it's normally impossible to determine who cast the spell in the absence of other evidence.
+
+\subsection{Identifying a Spell}
+If the character perceived the casting, the spell's effect, or both, the character can make an Intelligence (Arcana) check with their reaction or action. The DC equals 15 + the spell's level. If the spell is cast as a class spell and the character is a member of that class, the check is made with advantage. For example, if the spellcaster casts a spell as a cleric, another cleric has advantage on the check to identify the spell. Some spells aren't associated with any class when they're cast, such as when a monster uses its Innate Spellcasting trait.
+
+\subsection{Invalid Spell Targets}
+
+If you cast a spell on someone or something that can't be affected by the spell, nothing happens to that target, but if you used a spell slot to cast the spell, the slot is still expended. If the spell normally has no effect on a target that succeeds on a saving throw, the invalid target appears to have succeeded on its saving throw, even though it didn't attempt one (giving no hint that the creature is in fact an invalid target). Otherwise, you perceive that the spell did nothing to the target.
+
+\end{document}

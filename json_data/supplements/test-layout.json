@@ -1,0 +1,22 @@
+{
+	"data": [
+		{
+			"type": "section",
+			"name": "Introduction",
+			"page": 2,
+			"id": "000",
+			"entries": [
+				"This book is for testing only.",
+				{
+					"type": "entries",
+					"name": "Mention some things",
+					"page": 2,
+					"id": "001",
+					"entries": [
+						"I want {@b bold} and {@i italics} to work properly."
+					]
+				}
+			]
+		}
+	]
+}

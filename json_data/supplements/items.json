@@ -1,0 +1,23 @@
+{
+	"data": [
+		{
+			"type": "section",
+			"name": "Items",
+			"page": 2,
+			"id": "000",
+			"entries": [
+				"This document is for generating item cards.",
+				{
+					"type": "entries",
+					"name": "Items!",
+					"page": 2,
+					"id": "001",
+					"entries": [
+						"{@item Staff of Frost|XDMG}",
+						"{@item Staff of Power|XDMG}"
+					]
+				}
+			]
+		}
+	]
+}

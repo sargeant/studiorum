@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(rmdir:*)",
+      "Bash(rm:*)",
+      "Bash(true)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(uv sync:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(sed:*)",
+      "Bash(python:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}

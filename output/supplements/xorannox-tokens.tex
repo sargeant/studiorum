@@ -1,0 +1,69 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{pgffor}
+\usepackage{tikz}
+\usepackage[a4paper, margin=0.4cm]{geometry} 
+\usepackage{onimage}
+\usepackage{contour}
+\usepackage{fontspec}
+\geometry{left=0.5cm, right=0.5cm, top=0.5cm, bottom=0.5cm}
+\newfontfamily{\dndsans}{scala-sans-regular.otf}[%
+    BoldFont=scala-sans-bold.otf,%
+    ItalicFont=scala-sans-regular-italic.otf,%
+    BoldItalicFont=scala-sans-bold-italic.otf
+]
+\begin{document}
+\raggedbottom 
+\newcounter{tokencount}
+\noindent
+\begin{tikzonimage}[height=2.05in]{images/xorannox.png}[inner sep=0pt]%[tsx/show help lines]
+\end{tikzonimage}
+
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MPMM/War Priest.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+{ \noindent
+\begin{tikzonimage}[height=1.05in]{images/5eimages/bestiary/tokens/MPMM/War Priest.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\vspace{3pt}
+}
+
+% images/5eimages/bestiary/tokens/VGM/Champion.png
+\begin{tikzonimage}[height=1.05in]{images/5eimages/bestiary/tokens/VGM/Champion.png}[inner sep=0pt]%[tsx/show help lines]
+\node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{Bob}}};
+\end{tikzonimage}
+\vspace{3pt}
+\begin{tikzonimage}[height=1.05in]{images/5eimages/bestiary/tokens/VGM/Champion.png}[inner sep=0pt]%[tsx/show help lines]
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{Tom}}};
+  \end{tikzonimage}
+  \vspace{3pt}
+  \begin{tikzonimage}[height=1.05in]{images/5eimages/bestiary/tokens/VGM/Champion.png}[inner sep=0pt]%[tsx/show help lines]
+    \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{Haz}}};
+    \end{tikzonimage}
+    \vspace{3pt}
+      
+
+\setcounter{tokencount}{ 8 }
+\foreach \i in {1,...,\thetokencount}
+ \begin{tikzonimage}[width=1.05in]{images/5eimages/bestiary/tokens/MM/Nothic.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+
+
+\setcounter{tokencount}{ 8 }
+\foreach \i in {1,...,\thetokencount}
+ \begin{tikzonimage}[width=1.05in]{images/5eimages/bestiary/tokens/MM/Orc.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+
+% dwarven hexblade, a rogue and a sword n board fighter
+\end{document}
+

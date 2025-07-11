@@ -1,0 +1,157 @@
+\documentclass[10pt,a4paper,twoside,bg=print,twocolumn,openany,nodeprecatedcode]{dndbook}
+\usepackage[utf8]{inputenc}
+\usepackage{tabulary}
+\usepackage[normalem]{ulem}
+\usepackage{color,soul}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{wrapfig}
+\usepackage{tocloft}
+\usepackage[hidelinks]{hyperref}
+\raggedbottom
+\extrafloats{2000}
+\cftsetindents{section}{1em}{0em}
+\cftsetindents{subsection}{2em}{0em}
+\cftsetindents{subsubsection}{3em}{0em}
+\setcounter{tocdepth}{1}
+\definecolor {mytable} {HTML} {f4edd8}
+\definecolor {mycomment} {HTML} {d0cfc2}
+\definecolor {mysidebar} {HTML} {d0cfc2}
+\definecolor {myreadaloud} {HTML} {d9e8f1}
+\definecolor {myreadaloudborder} {HTML} {5a6173}
+\definecolor {mypagenum} {HTML} {2a2d2e}
+\DndSetComplexThemeColor[mytable][mycomment][mysidebar][myreadaloud][myreadaloudborder][titlered][titlegold][mypagenum]
+\begin{document}
+\chapter{Introduction}
+\DndDropCapLine{T}{}his book is for spell testing only.
+
+\section{Mention some spells}
+Thunderwave, symbol, hallow, magic circle, Animal Shapes, and Beacon of Hope
+
+\begin{DndSidebar}{This is the title}
+    Once upon a time, there was a nerd who spent a lot of time typesetting PDFs of books he already owned.
+\end{DndSidebar}
+
+
+\chapter{Spells}
+\addcontentsline{toc}{section}{Animal Shapes}
+
+
+\DndSpellHeader%
+{Animal Shapes}
+{8th level Transmutation}
+{1 action}
+{30 feet}
+{V, S}
+{Concentration, up to 24 hours}
+Your magic turns others into beasts. Choose any number of willing creatures that you can see within range. You transform each target into the form of a Large or smaller beast with a challenge rating of 4 or lower. On subsequent turns, you can use your action to transform affected creatures into new forms.
+The transformation lasts for the duration for each target, or until the target drops to 0 hit points or dies. You can choose a different form for each target. A target's game statistics are replaced by the statistics of the chosen beast, though the target retains its alignment and Intelligence, Wisdom, and Charisma scores. The target assumes the hit points of its new form, and when it reverts to its normal form, it returns to the number of hit points it had before it transformed. If it reverts as a result of dropping to 0 hit points, any excess damage carries over to its normal form. As long as the excess damage doesn't reduce the creature's normal form to 0 hit points, it isn't knocked unconscious. The creature is limited in the actions it can perform by the nature of its new form, and it can't speak or cast spells.
+The target's gear melds into the new form. The target can't activate, wield, or otherwise benefit from any of its equipment.
+\addcontentsline{toc}{section}{Beacon of Hope}
+
+
+\DndSpellHeader%
+{Beacon of Hope}
+{3rd level Abjuration}
+{1 action}
+{30 feet}
+{V, S}
+{Concentration, up to 1 minute}
+This spell bestows hope and vitality. Choose any number of creatures within range. For the duration, each target has advantage on Wisdom saving throws and death saving throws, and regains the maximum number of hit points possible from any healing.
+\addcontentsline{toc}{section}{Hallow}
+
+
+\DndSpellHeader%
+{Hallow}
+{5th level Evocation}
+{24 hour}
+{Touch}
+{V, S, herbs, oils, and incense worth at least 1,000 gp, which the spell consumes}
+{Until dispelled}
+You touch a point and infuse an area around it with holy (or unholy) power. The area can have a radius up to 60 feet, and the spell fails if the radius includes an area already under the effect a hallow spell. The affected area is subject to the following effects.
+First, celestials, elementals, fey, fiends, and undead can't enter the area, nor can such creatures charm, frighten, or possess creatures within it. Any creature charmed, frightened, or possessed by such a creature is no longer charmed, frightened, or possessed upon entering the area. You can exclude one or more of those types of creatures from this effect.
+Second, you can bind an extra effect to the area. Choose the effect from the following list, or choose an effect offered by the DM. Some of these effects apply to creatures in the area; you can designate whether the effect applies to all creatures, creatures that follow a specific deity or leader, or creatures of a specific sort, such as orcs or trolls. When a creature that would be affected enters the spell's area for the first time on a turn or starts its turn there, it can make a Charisma saving throw. On a success, the creature ignores the extra effect until it leaves the area.
+\subparagraph{Courage}
+Affected creatures can't be frightened while in the area.
+\subparagraph{Darkness}
+Darkness fills the area. Normal light, as well as magical light created by spells of a lower level than the slot you used to cast this spell, can't illuminate the area.
+\subparagraph{Daylight}
+Bright light fills the area. Magical darkness created by spells of a lower level than the slot you used to cast this spell can't extinguish the light.
+\subparagraph{Energy Protection}
+Affected creatures in the area have resistance to one damage type of your choice, except for bludgeoning, piercing, or slashing.
+\subparagraph{Energy Vulnerability}
+Affected creatures in the area have vulnerability to one damage type of your choice, except for bludgeoning, piercing, or slashing.
+\subparagraph{Everlasting Rest}
+Dead bodies interred in the area can't be turned into undead.
+\subparagraph{Extradimensional Interference}
+Affected creatures can't move or travel using teleportation or by extradimensional or interplanar means.
+\subparagraph{Fear}
+Affected creatures are frightened while in the area.
+\subparagraph{Silence}
+No sound can emanate from within the area, and no sound can reach into it.
+\subparagraph{Tongues}
+Affected creatures can communicate with any other creature in the area, even if they don't share a common language.
+\addcontentsline{toc}{section}{Magic Circle}
+
+
+\DndSpellHeader%
+{Magic Circle}
+{3rd level Abjuration}
+{1 minute}
+{10 feet}
+{V, S, holy water or powdered silver and iron worth at least 100 gp, which the spell consumes}
+{1 hour}
+You create a 10-foot-radius, 20-foot-tall cylinder of magical energy centered on a point on the ground that you can see within range. Glowing runes appear wherever the cylinder intersects with the floor or other surface.
+Choose one or more of the following types of creatures: celestials, elementals, fey, fiends, or undead. The circle affects a creature of the chosen type in the following ways:
+
+\begin{itemize}
+\item The creature can't willingly enter the cylinder by nonmagical means. If the creature tries to use teleportation or interplanar travel to do so, it must first succeed on a Charisma saving throw.
+\item The creature has disadvantage on attack rolls against targets within the cylinder.
+\item Targets within the cylinder can't be charmed, frightened, or possessed by the creature.
+\end{itemize}
+
+When you cast this spell, you can elect to cause its magic to operate in the reverse direction, preventing a creature of the specified type from leaving the cylinder and protecting targets outside it.
+\addcontentsline{toc}{section}{Symbol}
+
+
+\DndSpellHeader%
+{Symbol}
+{7th level Abjuration}
+{1 minute}
+{Touch}
+{V, S, mercury, phosphorus, and powdered diamond and opal with a total value of at least 1,000 gp, which the spell consumes}
+{Until dispelled or triggered}
+When you cast this spell, you inscribe a harmful glyph either on a surface (such as a section of floor, a wall, or a table) or within an object that can be closed to conceal the glyph (such as a book, a scroll, or a treasure chest). If you choose a surface, the glyph can cover an area of the surface no larger than 10 feet in diameter. If you choose an object, that object must remain in its place; if the object is moved more than 10 feet from where you cast this spell, the glyph is broken, and the spell ends without being triggered.
+The glyph is nearly invisible, requiring an Intelligence (Investigation) check against your spell save DC to find it.
+You decide what triggers the glyph when you cast the spell. For glyphs inscribed on a surface, the most typical triggers include touching or stepping on the glyph, removing another object covering it, approaching within a certain distance of it, or manipulating the object that holds it. For glyphs inscribed within an object, the most common triggers are opening the object, approaching within a certain distance of it, or seeing or reading the glyph.
+You can further refine the trigger so the spell is activated only under certain circumstances or according to a creature's physical characteristics (such as height or weight), or physical kind (for example, the ward could be set to affect hags or shapechangers). You can also specify creatures that don't trigger the glyph, such as those who say a certain password.
+When you inscribe the glyph, choose one of the options below for its effect. Once triggered, the glyph glows, filling a 60-foot-radius sphere with dim light for 10 minutes, after which time the spell ends. Each creature in the sphere when the glyph activates is targeted by its effect, as is a creature that enters the sphere for the first time on a turn or ends its turn there.
+\subparagraph{Death}
+Each target must make a Constitution saving throw, taking 10d10 necrotic damage on a failed save, or half as much damage on a successful save.
+\subparagraph{Discord}
+Each target must make a Constitution saving throw. On a failed save, a target bickers and argues with other creatures for 1 minute. During this time, it is incapable of meaningful communication and has disadvantage on attack rolls and ability checks.
+\subparagraph{Fear}
+Each target must make a Wisdom saving throw and becomes frightened for 1 minute on a failed save. While frightened, the target drops whatever it is holding and must move at least 30 feet away from the glyph on each of its turns, if able.
+\subparagraph{Hopelessness}
+Each target must make a Charisma saving throw. On a failed save, the target is overwhelmed with despair for 1 minute. During this time, it can't attack or target any creature with harmful abilities, spells, or other magical effects.
+\subparagraph{Insanity}
+Each target must make an Intelligence saving throw. On a failed save, the target is driven insane for 1 minute. An insane creature can't take actions, can't understand what other creatures say, can't read, and speaks only in gibberish. The DM controls its movement, which is erratic.
+\subparagraph{Pain}
+Each target must make a Constitution saving throw and becomes incapacitated with excruciating pain for 1 minute on a failed save.
+\subparagraph{Sleep}
+Each target must make a Wisdom saving throw and falls unconscious for 10 minutes on a failed save. A creature awakens if it takes damage or if someone uses an action to shake or slap it awake.
+\subparagraph{Stunning}
+Each target must make a Wisdom saving throw and becomes stunned for 1 minute on a failed save.
+\addcontentsline{toc}{section}{Thunderwave}
+
+
+\DndSpellHeader%
+{Thunderwave}
+{1st level Evocation}
+{1 action}
+{Self (15 feet cube)}
+{V, S}
+{Instantaneous}
+A wave of thunderous force sweeps out from you. Each creature in a 15-foot cube originating from you must make a Constitution saving throw. On a failed save, a creature takes 2d8 thunder damage and is pushed 10 feet away from you. On a successful save, the creature takes half as much damage and isn't pushed.
+In addition, unsecured objects that are completely within the area of effect are automatically pushed 10 feet away from you by the spell's effect, and the spell emits a thunderous boom audible out to 300 feet.
+\end{document}

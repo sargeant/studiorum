@@ -1,0 +1,24 @@
+\documentclass[10pt,a4paper]{article}\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{pgffor}
+\usepackage{tikz}
+\usepackage{geometry}
+\usepackage{onimage}
+\usepackage{contour}
+\usepackage{fontspec}
+
+\geometry{left=0.5cm, right=0.5cm, top=0.5cm, bottom=0.5cm}
+
+\newfontfamily{\dndsans}{scala-sans-regular.otf}[%
+    BoldFont=scala-sans-bold.otf,%
+    ItalicFont=scala-sans-regular-italic.otf,%
+    BoldItalicFont=scala-sans-bold-italic.otf
+]
+
+\begin{document}
+\foreach \i in {1,...,99} {
+    \begin{tikzonimage}[width=1in]{images/5eimages/bestiary/tokens/MM/Aarakocra.png}%[tsx/show help lines]
+        \node[at={(0.666,0.25)},text=white]{\contour{black}{\dndsans{\small{\i}}}};
+    \end{tikzonimage}
+}
+\end{document}

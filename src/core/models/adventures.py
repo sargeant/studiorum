@@ -1,0 +1,113 @@
+"""Adventure data models."""
+
+from typing import List, Dict, Any, Optional, Union
+from pydantic import BaseModel, Field
+from .content import BaseContent
+
+
+class AdventureChapter(BaseModel):
+    """Represents a chapter within an adventure."""
+
+    name: str = Field(..., description="Chapter name")
+    ordinal: Optional[Dict[str, Any]] = Field(None, description="Chapter numbering")
+    headers: Optional[List[str]] = Field(None, description="Section headers")
+    entries: List[Any] = Field(default_factory=list, description="Chapter content")
+
+    def get_chapter_number(self) -> str:
+        """Get formatted chapter number."""
+        if self.ordinal:
+            if isinstance(self.ordinal, dict):
+                ordinal_type = self.ordinal.get("type", "chapter")
+                identifier = self.ordinal.get("identifier", "")
+                if ordinal_type == "chapter" and identifier:
+                    return f"Chapter {identifier}"
+                elif ordinal_type == "appendix" and identifier:
+                    return f"Appendix {identifier}"
+                elif identifier:
+                    return str(identifier)
+            return str(self.ordinal)
+        return ""
+
+
+class AdventureMetadata(BaseModel):
+    """Adventure metadata and publishing information."""
+
+    id: Optional[str] = Field(None, description="Adventure ID")
+    published: Optional[str] = Field(None, description="Publication date")
+    storyline: Optional[str] = Field(None, description="Storyline/campaign")
+    level: Optional[Dict[str, Any]] = Field(None, description="Level range")
+    group: Optional[str] = Field(None, description="Adventure group")
+    cover: Optional[Dict[str, Any]] = Field(None, description="Cover image")
+
+    def get_level_range(self) -> str:
+        """Get formatted level range."""
+        if not self.level:
+            return ""
+
+        if isinstance(self.level, dict):
+            start = self.level.get("start", 1)
+            end = self.level.get("end", start)
+            if start == end:
+                return f"Level {start}"
+            return f"Levels {start}-{end}"
+
+        return str(self.level)
+
+
+class Adventure(BaseContent):
+    """Represents a D&D adventure."""
+
+    id: Optional[str] = Field(None, description="Adventure identifier")
+    contents: List[AdventureChapter] = Field(
+        default_factory=list, description="Adventure chapters"
+    )
+    metadata: Optional[AdventureMetadata] = Field(
+        None, description="Adventure metadata"
+    )
+
+    # Adventure-specific fields
+    published: Optional[str] = Field(None, description="Publication date")
+    storyline: Optional[str] = Field(None, description="Storyline")
+    level: Optional[Dict[str, Any]] = Field(None, description="Level range")
+    group: Optional[str] = Field(None, description="Adventure group")
+    cover: Optional[Dict[str, Any]] = Field(None, description="Cover image")
+
+    def model_post_init(self, __context) -> None:
+        """Post-process parsed data."""
+        # Create metadata from individual fields if not present
+        if not self.metadata and any(
+            [
+                self.id,
+                self.published,
+                self.storyline,
+                self.level,
+                self.group,
+                self.cover,
+            ]
+        ):
+            self.metadata = AdventureMetadata(
+                id=self.id,
+                published=self.published,
+                storyline=self.storyline,
+                level=self.level,
+                group=self.group,
+                cover=self.cover,
+            )
+
+    def get_chapter_count(self) -> int:
+        """Get number of chapters."""
+        return len(self.contents)
+
+    def get_level_range(self) -> str:
+        """Get formatted level range."""
+        if self.metadata:
+            return self.metadata.get_level_range()
+        elif self.level:
+            return AdventureMetadata(level=self.level).get_level_range()
+        return ""
+
+    def get_storyline_text(self) -> str:
+        """Get storyline text."""
+        if self.metadata and self.metadata.storyline:
+            return self.metadata.storyline
+        return self.storyline or ""

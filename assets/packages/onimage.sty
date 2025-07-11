@@ -1,0 +1,132 @@
+%%
+%% This is file `onimage.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% onimage.dtx  (with options: `onimage')
+%% Copyright (C) 2011 by Clemens Koppensteiner
+%% -------------------------------------------
+%% 
+%% This file may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at
+%%  your option) any later version.
+%% The latest version of this license is in:
+%% 
+%%    http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2005/12/01 or later.
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+\ProvidesPackage{onimage}
+   [2011/07/05 v0.3 Drawing on images in TikZ]
+\RequirePackage{tikz}
+\RequirePackage{xstring}
+
+\newif\iftsx@scalecs@x
+\newif\iftsx@scalecs@y
+\tikzset{
+    tsx/scale cs/.is choice,
+    tsx/scale cs/x/.code={\tsx@scalecs@xtrue\tsx@scalecs@yfalse},
+    tsx/scale cs/y/.code={\tsx@scalecs@xfalse\tsx@scalecs@ytrue},
+    tsx/scale cs/both/.code={\tsx@scalecs@xtrue\tsx@scalecs@ytrue},
+    tsx/scale cs/none/.code={\tsx@scalecs@xfalse\tsx@scalecs@yfalse},
+    tsx/scale cs=both
+}
+
+\tikzset{
+    tsx/show help lines/.initial=0,
+    tsx/show help lines/.default=10
+}
+\def\tikzonnode#1{%
+    \pgfutil@ifnextchar[{\tikzonnode@opt#1}{\tikzonnode@opt#1[]}%
+}
+\def\tikzonnode@opt#1[#2]{%
+    \pgfpointanchor{#1}{south west}%
+    \pgfgetlastxy\tse@tikz@shift@x\tse@tikz@shift@y
+    \begin{scope}[
+            shift={(\tse@tikz@shift@x,\tse@tikz@shift@y)},
+            #2]%
+        \iftsx@scalecs@x
+            \tikzset{x={(#1.south east)}}
+            \iftsx@scalecs@y\else
+                \pgf@yx=\pgf@xy
+                \pgf@yy=\pgf@xx
+            \fi
+        \fi
+        \iftsx@scalecs@y
+            \tikzset{y={(#1.north west)}}
+            \iftsx@scalecs@x\else
+                \pgf@xx=\pgf@yy
+                \pgf@xy=\pgf@yx
+            \fi
+        \fi
+        \begingroup
+            \pgfkeys{/pgf/number format/.cd,fixed,precision=2}
+            \tikzset{tsx/show help lines/.get=\tsx@helplines}
+            \IfInteger\tsx@helplines{
+                \ifnum\tsx@helplines>1
+                    \pgfmathsetmacro\tsx@stepsize{1/\tsx@helplines}
+                    \draw[help lines,xstep=\tsx@stepsize,ystep=\tsx@stepsize] (0,0) grid (1,1);
+                    \pgfmathsetmacro\tsx@numlines{\tsx@helplines - 1}
+                    \foreach \i in {1,...,\tsx@numlines} {
+                        \pgfmathsetmacro\tsx@step{\i*\tsx@stepsize}
+                        \node [help lines, anchor=west,rotate=-90] at (\tsx@step,0) {\pgfmathprintnumber{\tsx@step}};
+                        \node [help lines, anchor=east] at (0,\tsx@step) {\pgfmathprintnumber{\tsx@step}};
+                    }
+                \fi
+            }{
+                \let\tsx@stepsize\tsx@helplines
+
+                \pgfpointanchor{#1}{south west}
+                \pgfgetlastxy\tsx@sw@x\tsx@sw@y
+                \pgfpointanchor{#1}{north east}
+                \pgfgetlastxy\tsx@ne@x\tsx@ne@y
+                \pgfmathsetmacro\tsx@width{\tsx@ne@x-\tsx@sw@x}
+                \pgfmathsetmacro\tsx@height{\tsx@ne@y-\tsx@sw@y}
+
+                \IfDecimal{\tsx@stepsize}{
+                    \let\tsx@stepsize@multx=\pgf@xx
+                    \let\tsx@stepsize@multy=\pgf@yy
+                }{
+                    \def\tsx@stepsize@multx{1}
+                    \def\tsx@stepsize@multy{1}
+                }
+                \pgfmathsetmacro\tsx@numlinesx{floor(\tsx@width/(\tsx@stepsize*\tsx@stepsize@multx))}
+                \pgfmathsetmacro\tsx@numlinesy{floor(\tsx@height/(\tsx@stepsize*\tsx@stepsize@multy))}
+
+                \ifdim\tsx@numlinesx pt>0pt
+                \ifdim\tsx@numlinesy pt>0pt
+                    \draw[help lines,xstep=\tsx@stepsize,ystep=\tsx@stepsize] (0,0) grid (\tsx@width pt,\tsx@height pt);
+                    \foreach \x in {1,...,\tsx@numlinesx} {
+                        \pgfmathsetmacro\tsx@step{\x*\tsx@stepsize*\tsx@stepsize@multx}
+                        \node [help lines, anchor=west,rotate=-90] at (\tsx@step pt,0) {\x};
+                    }
+                \foreach \y in {1,...,\tsx@numlinesy} {
+                    \pgfmathsetmacro\tsx@step{\y*\tsx@stepsize*\tsx@stepsize@multy}
+                    \node [help lines, anchor=east] at (0,\tsx@step pt) {\y};
+                }
+                \fi
+                \fi
+                }
+        \endgroup
+}
+\def\endtikzonnode{%
+    \end{scope}%
+}
+\def\tikzonimage{%
+    \pgfutil@ifnextchar[{\tikzonimage@opt}{\tikzonimage@opt[]}%
+}
+\def\tikzonimage@opt[#1]#2{%
+    \begin{tikzpicture}
+        \node[inner sep=0] (image) {\includegraphics[#1]{#2}};
+        \begin{tikzonnode}{image}%
+}
+\def\endtikzonimage{%
+        \end{tikzonnode}
+    \end{tikzpicture}%
+}
+\endinput
+%%
+%% End of file `onimage.sty'.

@@ -1,0 +1,365 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{pgffor}
+\usepackage{tikz}
+\usepackage[a4paper, margin=0.4cm]{geometry} 
+\usepackage{onimage}
+\usepackage{contour}
+\usepackage{fontspec}
+\geometry{left=0.5cm, right=0.5cm, top=0.5cm, bottom=0.5cm}
+\newfontfamily{\dndsans}{scala-sans-regular.otf}[%
+    BoldFont=scala-sans-bold.otf,%
+    ItalicFont=scala-sans-regular-italic.otf,%
+    BoldItalicFont=scala-sans-bold-italic.otf
+]
+\begin{document}
+\newcounter{tokencount}
+\newcounter{currentcol}
+\newcount\numcols
+\newlength{\SizeTiny}
+\setlength{\SizeTiny}{1.05in}
+\newlength{\SizeMedium}
+\setlength{\SizeMedium}{1.05in}
+\newlength{\SizeLarge}
+\setlength{\SizeLarge}{2.05in}
+\newlength{\SizeHuge}
+\setlength{\SizeHuge}{3.05in}
+\newlength{\SizeGargantuan}
+\setlength{\SizeGargantuan}{4.05in}
+\setlength{\columnsep}{10pt}
+
+                
+\newpage
+\numcols=7
+\setlength{\columnwidth}{\SizeMedium}
+\setcounter{currentcol}{0}
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Archmage.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Archmage.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Azer.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Azer.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Cambion.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Cambion.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Deva.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Deva.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Duodrone.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Duodrone.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Erinyes.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Erinyes.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Gray Slaad.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Gray Slaad.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Imp.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Imp.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Mage.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Mage.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Mind Flayer.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Mind Flayer.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Monodrone.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Monodrone.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Noble.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Noble.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Quadrone.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Quadrone.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Medium images/5eimages/bestiary/tokens/MM/Tridrone.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Tridrone.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+\newpage
+\numcols=3
+\setlength{\columnwidth}{\SizeLarge}
+\setcounter{currentcol}{0}
+%%
+%%%%
+%%%%%%
+%%%%%%%% Large images/5eimages/bestiary/tokens/MM/Nycaloth.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Nycaloth.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Large images/5eimages/bestiary/tokens/MM/Pentadrone.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Pentadrone.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Large images/5eimages/bestiary/tokens/MM/Shield Guardian.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Shield Guardian.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+%%
+%%%%
+%%%%%%
+%%%%%%%% Large images/5eimages/bestiary/tokens/MM/Solar.png
+\setcounter{tokencount}{ 1 }
+\foreach \i in {1,...,\thetokencount}
+ \ifnum\value{currentcol}=0\noindent\fi
+\begin{minipage}[t]{\columnwidth}
+ \begin{tikzonimage}[width=\columnwidth]{images/5eimages/bestiary/tokens/MM/Solar.png}[inner sep=0pt]%[tsx/show help lines]
+\ifnum\value{tokencount}>1
+  \node[at={( 0.666,0.245 )},text=white]{\contour{black}{\large\dndsans{\i}}};
+\fi
+\end{tikzonimage}
+\end{minipage}
+\stepcounter{currentcol}
+\ifnum\value{currentcol}=\numexpr\numcols\relax
+  \setcounter{currentcol}{0} \par
+\fi
+\end{document}

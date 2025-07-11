@@ -1,0 +1,47 @@
+"""Abstract base classes for data loading."""
+
+from abc import ABC, abstractmethod
+from typing import TypeVar, Generic, List, Optional, Dict, Any
+from pathlib import Path
+
+from ..models.content import ContentType, BaseContent
+
+T = TypeVar("T", bound=BaseContent)
+
+
+class DataLoader(ABC, Generic[T]):
+    """Abstract base class for data loaders."""
+
+    @abstractmethod
+    async def load(self, path: Path) -> List[T]:
+        """Load data from file and return validated content objects."""
+        pass
+
+    @abstractmethod
+    def get_content_type(self) -> ContentType:
+        """Return the content type this loader handles."""
+        pass
+
+    @abstractmethod
+    def get_model_class(self) -> type[T]:
+        """Return the Pydantic model class for validation."""
+        pass
+
+
+class SourceManager(ABC):
+    """Abstract base class for managing multiple data sources."""
+
+    @abstractmethod
+    def get_data_paths(self) -> Dict[ContentType, List[Path]]:
+        """Return paths to data files organized by content type."""
+        pass
+
+    @abstractmethod
+    def resolve_source(self, source_abbrev: str) -> Optional[Dict[str, Any]]:
+        """Resolve source abbreviation to full source information."""
+        pass
+
+    @abstractmethod
+    def get_source_priority(self, source_abbrev: str) -> int:
+        """Get priority for a source (lower numbers = higher priority)."""
+        pass

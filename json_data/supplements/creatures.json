@@ -1,0 +1,20 @@
+{
+	"data": [
+		{
+			"type": "section",
+			"name": "Creatures",
+			"page": 2,
+			"id": "000",
+			"entries": [
+				"This document is for generating stat blocks.",
+				{
+					"type": "entries",
+					"name": "Creatures",
+					"entries": [
+						"{@creature Draconic Spirit|FTD}"
+					]
+				}
+			]
+		}
+	]
+}
