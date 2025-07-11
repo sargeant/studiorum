@@ -93,13 +93,13 @@ git clone https://github.com/5etools-mirror-3/5etools-src
 ### 4. Use the Modern CLI ⚡
 ```bash
 # Quick conversion (new way)
-uv run python -m src.cli.main quick spell-data.json --pdf
+uv run 5e2pdf quick spell-data.json --pdf
 
 # Modern CLI help
-uv run python -m src.cli.main --help
+uv run 5e2pdf --help
 
 # Legacy compatibility (old commands still work)
-uv run python -m src.cli.main legacy --adventure --no-images adventure.json
+uv run 5e2pdf legacy --adventure --no-images adventure.json
 ```
 
 ### 5. Test the architecture
@@ -144,33 +144,33 @@ cd build && xelatex adventure-cos.tex
 ### **Quick Convert** ⚡
 ```bash
 # Convert any JSON file to LaTeX/PDF
-uv run python -m src.cli.main quick spell-data.json --pdf
+uv run 5e2pdf quick spell-data.json --pdf
 
 # Convert with custom title and images
-uv run python -m src.cli.main quick adventure.json --title "My Adventure" --images --pdf
+uv run 5e2pdf quick adventure.json --title "My Adventure" --images --pdf
 ```
 
 ### **Advanced Commands** 🔧
 ```bash
 # List available content
-uv run python -m src.cli.main list files
-uv run python -m src.cli.main list content --type spell --limit 10
+uv run 5e2pdf list files
+uv run 5e2pdf list content --type spell --limit 10
 
 # Show content information  
-uv run python -m src.cli.main info content "Fireball" --type spell
-uv run python -m src.cli.main info file adventure.json
+uv run 5e2pdf info content "Fireball" --type spell
+uv run 5e2pdf info file adventure.json
 
 # Statistics and analysis
-uv run python -m src.cli.main stats overview
-uv run python -m src.cli.main stats content spell
-uv run python -m src.cli.main stats sources
+uv run 5e2pdf stats overview
+uv run 5e2pdf stats content spell
+uv run 5e2pdf stats sources
 ```
 
 ### **Legacy Compatibility** 🔄
 ```bash
 # All old commands still work through legacy mode
-uv run python -m src.cli.main legacy --adventure --no-images data.json > output.tex
-uv run python -m src.cli.main legacy --book --with-images book.json > book.tex
+uv run 5e2pdf legacy --adventure --no-images data.json > output.tex
+uv run 5e2pdf legacy --book --with-images book.json > book.tex
 
 # Or use the wrapper script
 ./json2tex.py --adventure --no-images data.json > output.tex
