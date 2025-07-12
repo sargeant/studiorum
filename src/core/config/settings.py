@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     """Application settings with environment variable support."""
 
     # Logging configuration
-    log_level: str = Field(default="INFO", env="LOG_LEVEL")
+    log_level: str = Field(default="WARNING", env="LOG_LEVEL")
     log_format: str = Field(
         default="%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(name)s%(reset)s: %(message)s"
     )

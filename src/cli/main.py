@@ -1,6 +1,7 @@
 """Main CLI application for 5e2pdf."""
 
 import asyncio
+import logging
 from pathlib import Path
 from typing import List, Optional
 
@@ -9,6 +10,7 @@ from rich import print as rprint
 from rich.console import Console
 from rich.progress import Progress
 
+from src.core.config.settings import get_settings
 from src.core.indexer.tag_resolver import TagResolver
 from src.core.loaders.omnidexer import Omnidexer
 from src.renderers.base import RenderContext
@@ -47,9 +49,11 @@ def main(
     that match the style of official D&D 5th edition books.
     """
     if verbose:
-        import logging
-
-        logging.basicConfig(level=logging.DEBUG)
+        # Override the default log level for verbose mode
+        settings = get_settings()
+        settings.log_level = "INFO"
+        # Update the root logger level
+        logging.getLogger().setLevel(logging.INFO)
         logging.info("Enabled verbose mode")
 
 
