@@ -164,16 +164,29 @@ class TagResolver:
 
     def _handle_adventure_tag(self, tag: TagMatch) -> str:
         """Handle {@adventure} tags."""
+        # For adventure tags, use display_text if provided, otherwise name
         display = tag.display_text or tag.name
-        if tag.page:
-            return f"{self._escape_latex(display)} (p. {tag.page})"
+        page_num = tag.page
+        
+        if page_num:
+            return f"{self._escape_latex(display)} (p. {page_num})"
         return self._escape_latex(display)
 
     def _handle_book_tag(self, tag: TagMatch) -> str:
         """Handle {@book} tags."""
-        display = tag.display_text or tag.name
-        if tag.page:
-            return f"{self._escape_latex(display)}, p. {tag.page}"
+        # For book tags, if display_text is numeric, treat it as page number
+        page_num = tag.page
+        display = tag.name
+        
+        # Check if display_text looks like a page number
+        if tag.display_text and tag.display_text.isdigit():
+            page_num = tag.display_text
+        elif tag.display_text:
+            # If display_text is not numeric, use it as the display name
+            display = tag.display_text
+            
+        if page_num:
+            return f"{self._escape_latex(display)}, p. {page_num}"
         return self._escape_latex(display)
 
     def _handle_class_tag(self, tag: TagMatch) -> str:
@@ -271,10 +284,13 @@ class TagResolver:
         if not text:
             return ""
 
-        # LaTeX special characters that need escaping
+        # Must escape backslashes first to avoid double-escaping
+        result = text.replace("\\", "\\textbackslash{}")
+        
+        # Then escape other special characters
         latex_chars = {
             "&": "\\&",
-            "%": "\\%",
+            "%": "\\%", 
             "$": "\\$",
             "#": "\\#",
             "^": "\\textasciicircum{}",
@@ -282,10 +298,8 @@ class TagResolver:
             "{": "\\{",
             "}": "\\}",
             "~": "\\textasciitilde{}",
-            "\\": "\\textbackslash{}",
         }
 
-        result = text
         for char, escape in latex_chars.items():
             result = result.replace(char, escape)
 
