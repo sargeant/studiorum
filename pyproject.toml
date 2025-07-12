@@ -31,6 +31,12 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
 ]
+docs = [
+    "sphinx>=8.0.0",
+    "sphinx-autobuild>=2024.0.0",
+    "sphinx-rtd-theme>=3.0.0",
+    "myst-parser>=4.0.0",
+]
 images = [
     "Pillow>=9.0.0",
 ]
@@ -72,3 +78,16 @@ python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=6.2.1",
+]
+docs = [
+    "myst-parser>=4.0.1",
+    "sphinx>=8.2.3",
+    "sphinx-autobuild>=2024.10.3",
+    "sphinx-rtd-theme>=3.0.2",
+]
