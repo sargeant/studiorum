@@ -1,0 +1,388 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.renderers.latex.document &mdash; 5e2pdf 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=4f7980c1" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            5e2pdf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/cli-reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/renderers.html">Rendering System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/models.html">Data Models Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/contributing.html">Contributing to 5e2pdf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/testing.html">Testing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/legacy.html">Legacy System Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">5e2pdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.renderers.latex.document</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.renderers.latex.document</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;LaTeX document renderer implementation.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.models.content</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseContent</span><span class="p">,</span> <span class="n">ContentType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.renderers.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentRenderer</span><span class="p">,</span> <span class="n">RenderContext</span><span class="p">,</span> <span class="n">RenderingError</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.content</span><span class="w"> </span><span class="kn">import</span> <span class="n">LaTeXContentRendererRegistry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.templates</span><span class="w"> </span><span class="kn">import</span> <span class="n">LaTeXTemplateEngine</span>
+
+
+<div class="viewcode-block" id="LaTeXDocumentRenderer">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.document.LaTeXDocumentRenderer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LaTeXDocumentRenderer</span><span class="p">(</span><span class="n">DocumentRenderer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LaTeX document renderer that creates complete D&amp;D-style documents.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LaTeXDocumentRenderer.__init__">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.document.LaTeXDocumentRenderer.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize LaTeX document renderer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            config: Configuration options</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">template_engine</span> <span class="o">=</span> <span class="n">LaTeXTemplateEngine</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content_registry</span> <span class="o">=</span> <span class="n">LaTeXContentRendererRegistry</span><span class="p">()</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">output_format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the output format.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;latex&quot;</span>
+
+<div class="viewcode-block" id="LaTeXDocumentRenderer.render">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.document.LaTeXDocumentRenderer.render">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">BaseContent</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render a single content item as a minimal document.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content: Content to render</span>
+<span class="sd">            context: Optional rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Complete LaTeX document</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">render_context</span> <span class="o">=</span> <span class="n">RenderContext</span><span class="p">(</span><span class="o">**</span><span class="p">(</span><span class="n">context</span> <span class="ow">or</span> <span class="p">{}))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_document</span><span class="p">([</span><span class="n">content</span><span class="p">],</span> <span class="n">render_context</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LaTeXDocumentRenderer.render_document">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.document.LaTeXDocumentRenderer.render_document">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_document</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">content_items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseContent</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render a complete LaTeX document.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content_items: List of content to include</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Complete LaTeX document</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Build document sections</span>
+            <span class="n">sections</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="c1"># Document header</span>
+            <span class="n">sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render_document_header</span><span class="p">(</span><span class="n">context</span><span class="p">))</span>
+
+            <span class="c1"># Table of contents (if enabled)</span>
+            <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">include_toc</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">content_items</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render_table_of_contents</span><span class="p">(</span><span class="n">content_items</span><span class="p">,</span> <span class="n">context</span><span class="p">))</span>
+
+            <span class="c1"># Main content</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">content_items</span><span class="p">:</span>
+                <span class="n">sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render_content_item</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">context</span><span class="p">))</span>
+
+            <span class="c1"># Index (if enabled)</span>
+            <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">include_index</span><span class="p">:</span>
+                <span class="n">sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render_index</span><span class="p">(</span><span class="n">content_items</span><span class="p">,</span> <span class="n">context</span><span class="p">))</span>
+
+            <span class="c1"># Document footer</span>
+            <span class="n">sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render_document_footer</span><span class="p">(</span><span class="n">context</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">sections</span><span class="p">))</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RenderingError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to render LaTeX document: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+<div class="viewcode-block" id="LaTeXDocumentRenderer.render_document_header">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.document.LaTeXDocumentRenderer.render_document_header">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_document_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render LaTeX document preamble and begin document.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LaTeX document header</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">template_vars</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;D&amp;D 5e Content&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;subtitle&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">subtitle</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">author</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">date</span> <span class="ow">or</span> <span class="sa">r</span><span class="s2">&quot;\today&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;page_size&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">page_size</span><span class="p">,</span>
+            <span class="s2">&quot;font_size&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
+            <span class="s2">&quot;include_images&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">include_images</span><span class="p">,</span>
+            <span class="s2">&quot;fonts_dir&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">fonts_dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">fonts_dir</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_engine</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;document_header&quot;</span><span class="p">,</span> <span class="n">template_vars</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LaTeXDocumentRenderer.render_document_footer">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.document.LaTeXDocumentRenderer.render_document_footer">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_document_footer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render LaTeX document footer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LaTeX document footer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_engine</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;document_footer&quot;</span><span class="p">,</span> <span class="p">{})</span></div>
+
+
+<div class="viewcode-block" id="LaTeXDocumentRenderer.render_table_of_contents">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.document.LaTeXDocumentRenderer.render_table_of_contents">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_table_of_contents</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">content_items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseContent</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render table of contents.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content_items: Content items to include</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LaTeX table of contents</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">context</span><span class="o">.</span><span class="n">include_toc</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">template_vars</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;content_items&quot;</span><span class="p">:</span> <span class="n">content_items</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Table of Contents&quot;</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_engine</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;table_of_contents&quot;</span><span class="p">,</span> <span class="n">template_vars</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LaTeXDocumentRenderer.render_index">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.document.LaTeXDocumentRenderer.render_index">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_index</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">content_items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseContent</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render document index.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content_items: Content items to index</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LaTeX index</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">context</span><span class="o">.</span><span class="n">include_index</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="c1"># Build index entries</span>
+        <span class="n">index_entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">content_items</span><span class="p">:</span>
+            <span class="n">index_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">from_content</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                    <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">source</span><span class="p">),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+
+        <span class="n">template_vars</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;index_entries&quot;</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">index_entries</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()),</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Index&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_engine</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="n">template_vars</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LaTeXDocumentRenderer.render_content_item">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.document.LaTeXDocumentRenderer.render_content_item">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_content_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">BaseContent</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render an individual content item.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content: Content to render</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Rendered content</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">content_type</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">from_content</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+
+        <span class="c1"># Check if content should be included</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">context</span><span class="o">.</span><span class="n">should_include_content_type</span><span class="p">(</span><span class="n">content_type</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="c1"># Get appropriate renderer</span>
+        <span class="n">renderer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_registry</span><span class="o">.</span><span class="n">get_renderer</span><span class="p">(</span><span class="n">content_type</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">renderer</span><span class="p">:</span>
+            <span class="c1"># Fallback to basic rendering</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_render_basic_content</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">renderer</span><span class="o">.</span><span class="n">render_content</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_render_basic_content</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">BaseContent</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render content using basic fallback formatting.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content: Content to render</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Basic rendered content</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">escaped_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_escape_latex</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">source_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_escape_latex</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">source</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="se">\\</span><span class="s2">subsection</span><span class="se">{{</span><span class="si">{</span><span class="n">escaped_name</span><span class="si">}</span><span class="se">}}</span>
+<span class="se">\\</span><span class="s2">textit</span><span class="se">{{</span><span class="s2">Source: </span><span class="si">{</span><span class="n">source_text</span><span class="si">}</span><span class="se">}}</span>
+
+<span class="s2">This content type is not yet fully supported by the rendering system.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_escape_latex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Escape LaTeX special characters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            text: Text to escape</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LaTeX-safe text</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">replacements</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\textbackslash</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;{&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\{&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;}&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\}&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;$&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\$&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&amp;&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\&amp;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;%&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\%&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\#&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;^&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\textasciicircum</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\_&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;~&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\textasciitilde</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="k">for</span> <span class="n">char</span><span class="p">,</span> <span class="n">replacement</span> <span class="ow">in</span> <span class="n">replacements</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">char</span><span class="p">,</span> <span class="n">replacement</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, 5e2pdf Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

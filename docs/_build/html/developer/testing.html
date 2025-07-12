@@ -1,0 +1,702 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Testing Guide &mdash; 5e2pdf 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=4f7980c1" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Legacy System Documentation" href="legacy.html" />
+    <link rel="prev" title="Contributing to 5e2pdf" href="contributing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            5e2pdf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/cli-reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/renderers.html">Rendering System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models.html">Data Models Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to 5e2pdf</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Testing Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#testing-philosophy">Testing Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-structure">Test Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-tests">Running Tests</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-test-execution">Basic Test Execution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-categories">Test Categories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coverage-reporting">Coverage Reporting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#unit-testing-guidelines">Unit Testing Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#model-testing">Model Testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cli-testing">CLI Testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#renderer-testing">Renderer Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mocking-and-fixtures">Mocking and Fixtures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#common-fixtures">Common Fixtures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mocking-external-dependencies">Mocking External Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#integration-testing">Integration Testing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#testing-component-interactions">Testing Component Interactions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-testing">Performance Testing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#benchmarking-critical-paths">Benchmarking Critical Paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memory-usage-testing">Memory Usage Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#test-data-management">Test Data Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sample-data-creation">Sample Data Creation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#continuous-integration">Continuous Integration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#github-actions-configuration">GitHub Actions Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#test-maintenance">Test Maintenance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#keeping-tests-current">Keeping Tests Current</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-performance">Test Performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">Legacy System Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">5e2pdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Testing Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/developer/testing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="testing-guide">
+<h1>Testing Guide<a class="headerlink" href="#testing-guide" title="Link to this heading"></a></h1>
+<p>Comprehensive testing strategy for 5e2pdf development.</p>
+<section id="testing-philosophy">
+<h2>Testing Philosophy<a class="headerlink" href="#testing-philosophy" title="Link to this heading"></a></h2>
+<p>5e2pdf follows a multi-layered testing approach:</p>
+<ul class="simple">
+<li><p><strong>Unit Tests</strong>: Test individual components in isolation</p></li>
+<li><p><strong>Integration Tests</strong>: Test component interactions</p></li>
+<li><p><strong>End-to-End Tests</strong>: Test complete workflows</p></li>
+<li><p><strong>Performance Tests</strong>: Ensure acceptable performance characteristics</p></li>
+</ul>
+</section>
+<section id="test-structure">
+<h2>Test Structure<a class="headerlink" href="#test-structure" title="Link to this heading"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>tests/
+├── unit/                    # Fast, isolated tests
+│   ├── test_models.py       # Pydantic model tests
+│   ├── test_omnidexer.py    # Content loading tests
+│   ├── test_cli.py          # CLI command tests
+│   ├── test_renderers.py    # Rendering tests
+│   └── test_tag_resolver.py # Tag resolution tests
+├── integration/             # Component interaction tests
+│   ├── test_cli_integration.py
+│   └── test_rendering_pipeline.py
+├── fixtures/                # Test data and utilities
+│   ├── sample_data/         # Sample JSON files
+│   ├── expected_output/     # Expected LaTeX output
+│   └── conftest.py          # Shared fixtures
+└── performance/             # Performance benchmarks
+    └── test_benchmarks.py
+</pre></div>
+</div>
+</section>
+<section id="running-tests">
+<h2>Running Tests<a class="headerlink" href="#running-tests" title="Link to this heading"></a></h2>
+<section id="basic-test-execution">
+<h3>Basic Test Execution<a class="headerlink" href="#basic-test-execution" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run all tests</span>
+pytest
+
+<span class="c1"># Run with verbose output</span>
+pytest<span class="w"> </span>-v
+
+<span class="c1"># Run specific test file</span>
+pytest<span class="w"> </span>tests/unit/test_models.py
+
+<span class="c1"># Run specific test</span>
+pytest<span class="w"> </span>tests/unit/test_models.py::test_spell_validation
+</pre></div>
+</div>
+</section>
+<section id="test-categories">
+<h3>Test Categories<a class="headerlink" href="#test-categories" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run only unit tests (fast)</span>
+pytest<span class="w"> </span>tests/unit/
+
+<span class="c1"># Run only integration tests</span>
+pytest<span class="w"> </span>tests/integration/
+
+<span class="c1"># Run tests with specific markers</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not slow&quot;</span>
+
+<span class="c1"># Run tests matching pattern</span>
+pytest<span class="w"> </span>-k<span class="w"> </span><span class="s2">&quot;spell&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="coverage-reporting">
+<h3>Coverage Reporting<a class="headerlink" href="#coverage-reporting" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run with coverage</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>src
+
+<span class="c1"># Generate HTML coverage report</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>src<span class="w"> </span>--cov-report<span class="o">=</span>html
+
+<span class="c1"># Coverage with missing lines</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>src<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
+</pre></div>
+</div>
+</section>
+</section>
+<section id="unit-testing-guidelines">
+<h2>Unit Testing Guidelines<a class="headerlink" href="#unit-testing-guidelines" title="Link to this heading"></a></h2>
+<section id="model-testing">
+<h3>Model Testing<a class="headerlink" href="#model-testing" title="Link to this heading"></a></h3>
+<p>Test Pydantic models thoroughly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">TestSpellModel</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tests for Spell data model.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_valid_spell_creation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test creating a valid spell from JSON data.&quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Magic Missile&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;school&quot;</span><span class="p">:</span> <span class="s2">&quot;V&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;action&quot;</span><span class="p">}],</span>
+            <span class="s2">&quot;range&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;point&quot;</span><span class="p">,</span> <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;feet&quot;</span><span class="p">,</span> <span class="s2">&quot;amount&quot;</span><span class="p">:</span> <span class="mi">120</span><span class="p">}},</span>
+            <span class="s2">&quot;components&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;v&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;instant&quot;</span><span class="p">}],</span>
+            <span class="s2">&quot;entries&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Three darts of magical force...&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;abbreviation&quot;</span><span class="p">:</span> <span class="s2">&quot;PHB&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Player&#39;s Handbook&quot;</span><span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="n">spell</span> <span class="o">=</span> <span class="n">Spell</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">spell</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Magic Missile&quot;</span>
+        <span class="k">assert</span> <span class="n">spell</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="n">spell</span><span class="o">.</span><span class="n">school</span> <span class="o">==</span> <span class="s2">&quot;V&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_spell_validation_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test that invalid data raises validation errors.&quot;&quot;&quot;</span>
+        <span class="n">invalid_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid Spell&quot;</span><span class="p">}</span>  <span class="c1"># Missing required fields</span>
+
+        <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc_info</span><span class="p">:</span>
+            <span class="n">Spell</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">invalid_data</span><span class="p">)</span>
+
+        <span class="n">errors</span> <span class="o">=</span> <span class="n">exc_info</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span><span class="p">()</span>
+        <span class="n">required_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">error</span><span class="p">[</span><span class="s2">&quot;loc&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="n">errors</span> <span class="k">if</span> <span class="n">error</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;missing&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="s2">&quot;level&quot;</span> <span class="ow">in</span> <span class="n">required_fields</span>
+        <span class="k">assert</span> <span class="s2">&quot;school&quot;</span> <span class="ow">in</span> <span class="n">required_fields</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_spell_computed_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test computed property methods.&quot;&quot;&quot;</span>
+        <span class="n">spell_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c1"># ... complete spell data</span>
+        <span class="p">}</span>
+        <span class="n">spell</span> <span class="o">=</span> <span class="n">Spell</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">spell_data</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">spell</span><span class="o">.</span><span class="n">get_level_text</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;1st level&quot;</span>
+        <span class="k">assert</span> <span class="s2">&quot;120 feet&quot;</span> <span class="ow">in</span> <span class="n">spell</span><span class="o">.</span><span class="n">get_range_text</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="s2">&quot;V, S&quot;</span> <span class="ow">in</span> <span class="n">spell</span><span class="o">.</span><span class="n">get_components_text</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="cli-testing">
+<h3>CLI Testing<a class="headerlink" href="#cli-testing" title="Link to this heading"></a></h3>
+<p>Test CLI commands with Typer’s testing utilities:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typer.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">CliRunner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.cli.main</span><span class="w"> </span><span class="kn">import</span> <span class="n">app</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestCLICommands</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tests for CLI command functionality.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up test fixtures.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">CliRunner</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_version_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test version command output.&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">])</span>
+
+        <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">exit_code</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="s2">&quot;5e2pdf&quot;</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span>
+        <span class="k">assert</span> <span class="s2">&quot;v2.0.0&quot;</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_help_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test help command output.&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;--help&quot;</span><span class="p">])</span>
+
+        <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">exit_code</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="s2">&quot;5e2pdf&quot;</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span>
+        <span class="k">assert</span> <span class="s2">&quot;Convert D&amp;D 5e JSON data&quot;</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="nd">@patch</span><span class="p">(</span><span class="s1">&#39;src.cli.main.get_omnidexer&#39;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_list_content_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_omnidexer</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test list content command with mocked dependencies.&quot;&quot;&quot;</span>
+        <span class="c1"># Setup mock</span>
+        <span class="n">mock_omni</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">()</span>
+        <span class="n">mock_omni</span><span class="o">.</span><span class="n">get_all_by_type</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Mock</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Fireball&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">Mock</span><span class="p">(</span><span class="n">abbreviation</span><span class="o">=</span><span class="s2">&quot;PHB&quot;</span><span class="p">))</span>
+        <span class="p">]</span>
+        <span class="n">mock_omnidexer</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="n">mock_omni</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="s2">&quot;--type&quot;</span><span class="p">,</span> <span class="s2">&quot;spell&quot;</span><span class="p">])</span>
+
+        <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">exit_code</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="s2">&quot;Fireball&quot;</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span>
+</pre></div>
+</div>
+</section>
+<section id="renderer-testing">
+<h3>Renderer Testing<a class="headerlink" href="#renderer-testing" title="Link to this heading"></a></h3>
+<p>Test rendering components with expected output:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">TestLaTeXRenderer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tests for LaTeX rendering functionality.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_spell_rendering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_spell</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test that spell renders to expected LaTeX.&quot;&quot;&quot;</span>
+        <span class="n">renderer</span> <span class="o">=</span> <span class="n">SpellRenderer</span><span class="p">()</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">RenderContext</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Test Document&quot;</span><span class="p">)</span>
+
+        <span class="n">latex_output</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">sample_spell</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">spell{&quot;</span> <span class="ow">in</span> <span class="n">latex_output</span>
+        <span class="k">assert</span> <span class="n">sample_spell</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">latex_output</span>
+        <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">sample_spell</span><span class="o">.</span><span class="n">level</span><span class="p">)</span> <span class="ow">in</span> <span class="n">latex_output</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_document_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_content_items</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test complete document rendering structure.&quot;&quot;&quot;</span>
+        <span class="n">renderer</span> <span class="o">=</span> <span class="n">LaTeXDocumentRenderer</span><span class="p">()</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">RenderContext</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Test Document&quot;</span><span class="p">)</span>
+
+        <span class="n">document</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">render_document</span><span class="p">(</span><span class="n">sample_content_items</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">document</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">documentclass&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">begin</span><span class="si">{document}</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">document</span>
+        <span class="k">assert</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">end</span><span class="si">{document}</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">document</span>
+        <span class="k">assert</span> <span class="s2">&quot;Test Document&quot;</span> <span class="ow">in</span> <span class="n">document</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="mocking-and-fixtures">
+<h2>Mocking and Fixtures<a class="headerlink" href="#mocking-and-fixtures" title="Link to this heading"></a></h2>
+<section id="common-fixtures">
+<h3>Common Fixtures<a class="headerlink" href="#common-fixtures" title="Link to this heading"></a></h3>
+<p>Create reusable test fixtures:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># tests/conftest.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">unittest.mock</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mock</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sample_spell_data</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sample spell data for testing.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Test Spell&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;school&quot;</span><span class="p">:</span> <span class="s2">&quot;V&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;action&quot;</span><span class="p">}],</span>
+        <span class="s2">&quot;range&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;point&quot;</span><span class="p">,</span> <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;feet&quot;</span><span class="p">,</span> <span class="s2">&quot;amount&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">}},</span>
+        <span class="s2">&quot;components&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;v&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+        <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;instant&quot;</span><span class="p">}],</span>
+        <span class="s2">&quot;entries&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;A test spell for unit testing.&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;abbreviation&quot;</span><span class="p">:</span> <span class="s2">&quot;TEST&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Test Source&quot;</span><span class="p">}</span>
+    <span class="p">}</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sample_spell</span><span class="p">(</span><span class="n">sample_spell_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sample Spell model instance.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">src.core.models.spells</span><span class="w"> </span><span class="kn">import</span> <span class="n">Spell</span>
+    <span class="k">return</span> <span class="n">Spell</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">sample_spell_data</span><span class="p">)</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mock_omnidexer</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mock omnidexer for testing.&quot;&quot;&quot;</span>
+    <span class="n">omnidexer</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">()</span>
+    <span class="n">omnidexer</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">omnidexer</span><span class="o">.</span><span class="n">get_all_by_type</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">omnidexer</span><span class="o">.</span><span class="n">get_statistics</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">omnidexer</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">temp_json_file</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">,</span> <span class="n">sample_spell_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Temporary JSON file for testing.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">tmp_path</span> <span class="o">/</span> <span class="s2">&quot;test_spell.json&quot;</span>
+    <span class="n">file_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;spell&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">sample_spell_data</span><span class="p">]}))</span>
+    <span class="k">return</span> <span class="n">file_path</span>
+</pre></div>
+</div>
+</section>
+<section id="mocking-external-dependencies">
+<h3>Mocking External Dependencies<a class="headerlink" href="#mocking-external-dependencies" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">unittest.mock</span><span class="w"> </span><span class="kn">import</span> <span class="n">patch</span><span class="p">,</span> <span class="n">Mock</span><span class="p">,</span> <span class="n">mock_open</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestFileOperations</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test file I/O operations.&quot;&quot;&quot;</span>
+
+    <span class="nd">@patch</span><span class="p">(</span><span class="s1">&#39;builtins.open&#39;</span><span class="p">,</span> <span class="n">new_callable</span><span class="o">=</span><span class="n">mock_open</span><span class="p">,</span> <span class="n">read_data</span><span class="o">=</span><span class="s1">&#39;{&quot;spell&quot;: []}&#39;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_json_loading</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_file</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test JSON file loading with mocked file system.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">src.core.loaders.json_loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">JSONLoader</span>
+
+        <span class="n">loader</span> <span class="o">=</span> <span class="n">JSONLoader</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span><span class="s2">&quot;fake_file.json&quot;</span><span class="p">)</span>
+
+        <span class="n">mock_file</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="s2">&quot;fake_file.json&quot;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;spell&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+    <span class="nd">@patch</span><span class="p">(</span><span class="s1">&#39;subprocess.run&#39;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_latex_compilation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_subprocess</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test LaTeX compilation with mocked subprocess.&quot;&quot;&quot;</span>
+        <span class="n">mock_subprocess</span><span class="o">.</span><span class="n">return_value</span><span class="o">.</span><span class="n">returncode</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">src.renderers.latex.document</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_pdf</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">compile_pdf</span><span class="p">(</span><span class="s2">&quot;test.tex&quot;</span><span class="p">)</span>
+
+        <span class="n">mock_subprocess</span><span class="o">.</span><span class="n">assert_called_once</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span> <span class="ow">is</span> <span class="kc">True</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="integration-testing">
+<h2>Integration Testing<a class="headerlink" href="#integration-testing" title="Link to this heading"></a></h2>
+<section id="testing-component-interactions">
+<h3>Testing Component Interactions<a class="headerlink" href="#testing-component-interactions" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">TestRenderingPipeline</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Integration tests for the complete rendering pipeline.&quot;&quot;&quot;</span>
+
+    <span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">integration</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_complete_spell_conversion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp_json_file</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test complete conversion from JSON to LaTeX.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">src.core.loaders.omnidexer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Omnidexer</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">src.renderers.latex.document</span><span class="w"> </span><span class="kn">import</span> <span class="n">LaTeXDocumentRenderer</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">src.renderers.base.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">RenderContext</span>
+
+        <span class="c1"># Load content</span>
+        <span class="n">omnidexer</span> <span class="o">=</span> <span class="n">Omnidexer</span><span class="p">()</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">omnidexer</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span><span class="n">temp_json_file</span><span class="p">))</span>
+
+        <span class="c1"># Get loaded content</span>
+        <span class="n">spells</span> <span class="o">=</span> <span class="n">omnidexer</span><span class="o">.</span><span class="n">get_all_by_type</span><span class="p">(</span><span class="n">ContentType</span><span class="o">.</span><span class="n">SPELL</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">spells</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+
+        <span class="c1"># Render to LaTeX</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">RenderContext</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Test Document&quot;</span><span class="p">)</span>
+        <span class="n">renderer</span> <span class="o">=</span> <span class="n">LaTeXDocumentRenderer</span><span class="p">()</span>
+        <span class="n">latex_output</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">render_document</span><span class="p">(</span><span class="n">spells</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+        <span class="c1"># Verify output</span>
+        <span class="k">assert</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">documentclass&quot;</span> <span class="ow">in</span> <span class="n">latex_output</span>
+        <span class="k">assert</span> <span class="n">spells</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">latex_output</span>
+
+    <span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">integration</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_cli_to_output_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp_json_file</span><span class="p">,</span> <span class="n">tmp_path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test complete CLI workflow.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">typer.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">CliRunner</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">src.cli.main</span><span class="w"> </span><span class="kn">import</span> <span class="n">app</span>
+
+        <span class="n">runner</span> <span class="o">=</span> <span class="n">CliRunner</span><span class="p">()</span>
+        <span class="n">output_file</span> <span class="o">=</span> <span class="n">tmp_path</span> <span class="o">/</span> <span class="s2">&quot;output.tex&quot;</span>
+
+        <span class="c1"># Run CLI command</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="p">[</span>
+            <span class="s2">&quot;quick&quot;</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">temp_json_file</span><span class="p">),</span>
+            <span class="s2">&quot;--output&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+        <span class="p">])</span>
+
+        <span class="c1"># Verify success</span>
+        <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">exit_code</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="n">output_file</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+
+        <span class="c1"># Verify output content</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">output_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">documentclass&quot;</span> <span class="ow">in</span> <span class="n">content</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-testing">
+<h2>Performance Testing<a class="headerlink" href="#performance-testing" title="Link to this heading"></a></h2>
+<section id="benchmarking-critical-paths">
+<h3>Benchmarking Critical Paths<a class="headerlink" href="#benchmarking-critical-paths" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestPerformance</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Performance tests for critical operations.&quot;&quot;&quot;</span>
+
+    <span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">slow</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_omnidexer_loading_performance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">large_dataset</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test omnidexer loading performance with large dataset.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">src.core.loaders.omnidexer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Omnidexer</span>
+
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">omnidexer</span> <span class="o">=</span> <span class="n">Omnidexer</span><span class="p">()</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">omnidexer</span><span class="o">.</span><span class="n">load_all_data</span><span class="p">())</span>
+
+        <span class="n">load_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+        <span class="c1"># Performance assertion (adjust based on requirements)</span>
+        <span class="k">assert</span> <span class="n">load_time</span> <span class="o">&lt;</span> <span class="mf">10.0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Loading took </span><span class="si">{</span><span class="n">load_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, expected &lt; 10s&quot;</span>
+
+    <span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">slow</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_rendering_performance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">large_content_set</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test rendering performance with large content set.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">src.renderers.latex.document</span><span class="w"> </span><span class="kn">import</span> <span class="n">LaTeXDocumentRenderer</span>
+
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">renderer</span> <span class="o">=</span> <span class="n">LaTeXDocumentRenderer</span><span class="p">()</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">RenderContext</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Performance Test&quot;</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">render_document</span><span class="p">(</span><span class="n">large_content_set</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+        <span class="n">render_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+        <span class="k">assert</span> <span class="n">render_time</span> <span class="o">&lt;</span> <span class="mf">5.0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Rendering took </span><span class="si">{</span><span class="n">render_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, expected &lt; 5s&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span>  <span class="c1"># Ensure actual content was generated</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-usage-testing">
+<h3>Memory Usage Testing<a class="headerlink" href="#memory-usage-testing" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_memory_usage_during_loading</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test memory usage stays within acceptable bounds.&quot;&quot;&quot;</span>
+    <span class="n">process</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span>
+    <span class="n">initial_memory</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span><span class="o">.</span><span class="n">rss</span>
+
+    <span class="c1"># Perform memory-intensive operation</span>
+    <span class="n">omnidexer</span> <span class="o">=</span> <span class="n">Omnidexer</span><span class="p">()</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">omnidexer</span><span class="o">.</span><span class="n">load_all_data</span><span class="p">())</span>
+
+    <span class="n">peak_memory</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span><span class="o">.</span><span class="n">rss</span>
+    <span class="n">memory_increase</span> <span class="o">=</span> <span class="n">peak_memory</span> <span class="o">-</span> <span class="n">initial_memory</span>
+
+    <span class="c1"># Assert memory increase is reasonable (adjust threshold as needed)</span>
+    <span class="n">max_increase_mb</span> <span class="o">=</span> <span class="mi">500</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c1"># 500 MB</span>
+    <span class="k">assert</span> <span class="n">memory_increase</span> <span class="o">&lt;</span> <span class="n">max_increase_mb</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="test-data-management">
+<h2>Test Data Management<a class="headerlink" href="#test-data-management" title="Link to this heading"></a></h2>
+<section id="sample-data-creation">
+<h3>Sample Data Creation<a class="headerlink" href="#sample-data-creation" title="Link to this heading"></a></h3>
+<p>Create realistic test data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># tests/fixtures/data_generators.py</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_spell_data</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Test Spell&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">overrides</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate valid spell data for testing.&quot;&quot;&quot;</span>
+    <span class="n">base_data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="n">level</span><span class="p">,</span>
+        <span class="s2">&quot;school&quot;</span><span class="p">:</span> <span class="s2">&quot;V&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;action&quot;</span><span class="p">}],</span>
+        <span class="s2">&quot;range&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;point&quot;</span><span class="p">,</span> <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;feet&quot;</span><span class="p">,</span> <span class="s2">&quot;amount&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">}},</span>
+        <span class="s2">&quot;components&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;v&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+        <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;instant&quot;</span><span class="p">}],</span>
+        <span class="s2">&quot;entries&quot;</span><span class="p">:</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;A test spell named </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;abbreviation&quot;</span><span class="p">:</span> <span class="s2">&quot;TEST&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Test Source&quot;</span><span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">base_data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">overrides</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">base_data</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_adventure_data</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Test Adventure&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate valid adventure data for testing.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;abbreviation&quot;</span><span class="p">:</span> <span class="s2">&quot;TEST&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Test Source&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
+        <span class="s2">&quot;contents&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Introduction&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;entries&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;This is a test adventure.&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="continuous-integration">
+<h2>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Link to this heading"></a></h2>
+<section id="github-actions-configuration">
+<h3>GitHub Actions Configuration<a class="headerlink" href="#github-actions-configuration" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># .github/workflows/test.yml</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Tests</span>
+
+<span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">push</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">pull_request</span><span class="p p-Indicator">]</span>
+
+<span class="nt">jobs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">test</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+<span class="w">    </span><span class="nt">strategy</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">matrix</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">3.11</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3.12</span><span class="p p-Indicator">]</span>
+
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v3</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Set up Python ${{ matrix.python-version }}</span>
+<span class="w">      </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
+<span class="w">      </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ matrix.python-version }}</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install dependencies</span>
+<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">        </span><span class="no">pip install -e &quot;.[dev,test]&quot;</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run linting</span>
+<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">        </span><span class="no">black --check src/ tests/</span>
+<span class="w">        </span><span class="no">ruff check src/ tests/</span>
+<span class="w">        </span><span class="no">mypy src/</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run tests</span>
+<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">        </span><span class="no">pytest --cov=src --cov-report=xml</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Upload coverage</span>
+<span class="w">      </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">codecov/codecov-action@v3</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="test-maintenance">
+<h2>Test Maintenance<a class="headerlink" href="#test-maintenance" title="Link to this heading"></a></h2>
+<section id="keeping-tests-current">
+<h3>Keeping Tests Current<a class="headerlink" href="#keeping-tests-current" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Review test coverage</strong> regularly</p></li>
+<li><p><strong>Update tests</strong> when changing APIs</p></li>
+<li><p><strong>Remove obsolete tests</strong> for removed features</p></li>
+<li><p><strong>Add regression tests</strong> for fixed bugs</p></li>
+</ul>
+</section>
+<section id="test-performance">
+<h3>Test Performance<a class="headerlink" href="#test-performance" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Keep unit tests fast</strong> (&lt; 1 second each)</p></li>
+<li><p><strong>Use integration test markers</strong> for slower tests</p></li>
+<li><p><strong>Mock external dependencies</strong> in unit tests</p></li>
+<li><p><strong>Profile slow tests</strong> and optimize</p></li>
+</ul>
+</section>
+<section id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Document complex test scenarios</strong></p></li>
+<li><p><strong>Explain mock usage</strong> and test data</p></li>
+<li><p><strong>Keep test names descriptive</strong></p></li>
+<li><p><strong>Add docstrings</strong> for test classes and complex tests</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="contributing.html" class="btn btn-neutral float-left" title="Contributing to 5e2pdf" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="legacy.html" class="btn btn-neutral float-right" title="Legacy System Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, 5e2pdf Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

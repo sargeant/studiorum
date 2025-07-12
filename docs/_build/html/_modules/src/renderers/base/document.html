@@ -1,0 +1,249 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.renderers.base.document &mdash; 5e2pdf 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=4f7980c1" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            5e2pdf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/cli-reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/renderers.html">Rendering System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/models.html">Data Models Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/contributing.html">Contributing to 5e2pdf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/testing.html">Testing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/legacy.html">Legacy System Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">5e2pdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.renderers.base.document</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.renderers.base.document</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Document-level renderer interface.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.models.content</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseContent</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">RenderContext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.renderer</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRenderer</span>
+
+
+<div class="viewcode-block" id="DocumentRenderer">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.base.document.DocumentRenderer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DocumentRenderer</span><span class="p">(</span><span class="n">BaseRenderer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for document-level renderers.</span>
+
+<span class="sd">    Handles rendering complete documents with multiple content items,</span>
+<span class="sd">    including document structure, table of contents, and cross-references.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DocumentRenderer.render_document">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.base.document.DocumentRenderer.render_document">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_document</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">content_items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseContent</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render a complete document from multiple content items.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content_items: List of content to include in document</span>
+<span class="sd">            context: Rendering context with options and utilities</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Complete rendered document as string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DocumentRenderer.render_document_header">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.base.document.DocumentRenderer.render_document_header">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_document_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render document header/preamble.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            context: Rendering context with metadata</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Document header content</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DocumentRenderer.render_document_footer">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.base.document.DocumentRenderer.render_document_footer">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_document_footer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render document footer/closing.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Document footer content</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DocumentRenderer.render_table_of_contents">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.base.document.DocumentRenderer.render_table_of_contents">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_table_of_contents</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">content_items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseContent</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render table of contents.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content_items: Content items to include in ToC</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Table of contents markup</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># Default implementation returns empty string</span></div>
+
+
+<div class="viewcode-block" id="DocumentRenderer.render_index">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.base.document.DocumentRenderer.render_index">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_index</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">content_items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseContent</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render document index.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content_items: Content items to index</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Index markup</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># Default implementation returns empty string</span></div>
+
+
+<div class="viewcode-block" id="DocumentRenderer.render_document_to_file">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.base.document.DocumentRenderer.render_document_to_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_document_to_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">content_items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseContent</span><span class="p">],</span>
+        <span class="n">output_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+        <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render complete document and write to file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content_items: Content to include in document</span>
+<span class="sd">            output_path: Path to write document</span>
+<span class="sd">            context: Rendering context</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">document</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_document</span><span class="p">(</span><span class="n">content_items</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+            <span class="n">output_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">output_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.renderer</span><span class="w"> </span><span class="kn">import</span> <span class="n">RenderingError</span>
+
+            <span class="k">raise</span> <span class="n">RenderingError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Failed to render document to </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, 5e2pdf Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

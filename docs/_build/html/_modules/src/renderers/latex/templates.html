@@ -1,0 +1,485 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.renderers.latex.templates &mdash; 5e2pdf 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=4f7980c1" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            5e2pdf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/cli-reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/renderers.html">Rendering System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/models.html">Data Models Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/contributing.html">Contributing to 5e2pdf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/testing.html">Testing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/legacy.html">Legacy System Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">5e2pdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.renderers.latex.templates</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.renderers.latex.templates</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;LaTeX template engine for D&amp;D-style documents.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+
+
+<div class="viewcode-block" id="LaTeXTemplateEngine">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.templates.LaTeXTemplateEngine">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LaTeXTemplateEngine</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Template engine for LaTeX document generation.</span>
+
+<span class="sd">    Provides built-in templates for D&amp;D-style documents and supports</span>
+<span class="sd">    custom template loading from files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LaTeXTemplateEngine.__init__">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.templates.LaTeXTemplateEngine.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize template engine.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            config: Configuration options</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">templates_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;templates_dir&quot;</span><span class="p">,</span> <span class="s2">&quot;templates&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_template_cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_builtin_templates</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_builtin_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load built-in LaTeX templates.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_template_cache</span><span class="p">[</span><span class="s2">&quot;document_header&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+<span class="w">            </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">\documentclass[{font_size},{page_size}]{{book}}</span>
+
+<span class="sd">% D&amp;D 5e styling packages</span>
+<span class="sd">\usepackage[utf8]{{inputenc}}</span>
+<span class="sd">\usepackage[T1]{{fontenc}}</span>
+<span class="sd">\usepackage{{geometry}}</span>
+<span class="sd">\usepackage{{multicol}}</span>
+<span class="sd">\usepackage{{xcolor}}</span>
+<span class="sd">\usepackage{{graphicx}}</span>
+<span class="sd">\usepackage{{float}}</span>
+<span class="sd">\usepackage{{array}}</span>
+<span class="sd">\usepackage{{longtable}}</span>
+<span class="sd">\usepackage{{booktabs}}</span>
+<span class="sd">\usepackage{{enumitem}}</span>
+<span class="sd">\usepackage{{fancyhdr}}</span>
+<span class="sd">\usepackage{{titling}}</span>
+<span class="sd">\usepackage{{titlesec}}</span>
+
+<span class="sd">% Page geometry for D&amp;D style</span>
+<span class="sd">\geometry{{</span>
+<span class="sd">    margin=0.75in,</span>
+<span class="sd">    top=1in,</span>
+<span class="sd">    bottom=1in</span>
+<span class="sd">}}</span>
+
+<span class="sd">% Colors (D&amp;D 5e style)</span>
+<span class="sd">\definecolor{{dndred}}{{RGB}}{{158, 0, 0}}</span>
+<span class="sd">\definecolor{{dndgold}}{{RGB}}{{255, 215, 0}}</span>
+<span class="sd">\definecolor{{dndbeige}}{{RGB}}{{250, 241, 224}}</span>
+
+<span class="sd">% Custom fonts (if available)</span>
+<span class="sd">{{% if fonts_dir %}}</span>
+<span class="sd">\usepackage{{fontspec}}</span>
+<span class="sd">\setmainfont{{BookSanity}}[</span>
+<span class="sd">    Path = {fonts_dir}/,</span>
+<span class="sd">    Extension = .otf,</span>
+<span class="sd">    UprightFont = *,</span>
+<span class="sd">    BoldFont = *-Bold,</span>
+<span class="sd">    ItalicFont = *-Italic,</span>
+<span class="sd">    BoldItalicFont = *-BoldItalic</span>
+<span class="sd">]</span>
+<span class="sd">{{% endif %}}</span>
+
+<span class="sd">% Header styling</span>
+<span class="sd">\pagestyle{{fancy}}</span>
+<span class="sd">\fancyhf{{}}</span>
+<span class="sd">\fancyhead[LE,RO]{{\thepage}}</span>
+<span class="sd">\fancyhead[LO]{{\rightmark}}</span>
+<span class="sd">\fancyhead[RE]{{\leftmark}}</span>
+<span class="sd">\renewcommand{{\headrulewidth}}{{0.4pt}}</span>
+
+<span class="sd">% Title formatting</span>
+<span class="sd">\titleformat{{\chapter}}[display]</span>
+<span class="sd">  {{\normalfont\huge\bfseries\color{{dndred}}}}</span>
+<span class="sd">  {{\chaptertitlename\ \thechapter}}{{20pt}}{{\Huge}}</span>
+<span class="sd">\titleformat{{\section}}</span>
+<span class="sd">  {{\normalfont\Large\bfseries\color{{dndred}}}}</span>
+<span class="sd">  {{\thesection}}{{1em}}{{}}</span>
+<span class="sd">\titleformat{{\subsection}}</span>
+<span class="sd">  {{\normalfont\large\bfseries}}</span>
+<span class="sd">  {{\thesubsection}}{{1em}}{{}}</span>
+
+<span class="sd">% Document metadata</span>
+<span class="sd">\title{{{title}}}</span>
+<span class="sd">{{% if subtitle %}}</span>
+<span class="sd">\subtitle{{{subtitle}}}</span>
+<span class="sd">{{% endif %}}</span>
+<span class="sd">{{% if author %}}</span>
+<span class="sd">\author{{{author}}}</span>
+<span class="sd">{{% endif %}}</span>
+<span class="sd">\date{{{date}}}</span>
+
+<span class="sd">\begin{{document}}</span>
+
+<span class="sd">% Title page</span>
+<span class="sd">\maketitle</span>
+<span class="sd">\thispagestyle{{empty}}</span>
+<span class="sd">\clearpage</span>
+<span class="sd">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_template_cache</span><span class="p">[</span><span class="s2">&quot;document_footer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+<span class="w">            </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">\end{document}</span>
+<span class="sd">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_template_cache</span><span class="p">[</span><span class="s2">&quot;table_of_contents&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+<span class="w">            </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">\tableofcontents</span>
+<span class="sd">\clearpage</span>
+<span class="sd">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_template_cache</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+<span class="w">            </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">\chapter*{{{title}}}</span>
+<span class="sd">\addcontentsline{{toc}}{{chapter}}{{{title}}}</span>
+
+<span class="sd">\begin{{multicols}}{{2}}</span>
+<span class="sd">{{% for entry in index_entries %}}</span>
+<span class="sd">\textbf{{{entry.name}}} ({entry.type}) \dotfill {entry.source} \\</span>
+<span class="sd">{{% endfor %}}</span>
+<span class="sd">\end{{multicols}}</span>
+<span class="sd">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Content-specific templates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_template_cache</span><span class="p">[</span><span class="s2">&quot;spell&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+<span class="w">            </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">\subsection{{{name}}} </span>
+<span class="sd">\textit{{{level_text}}}</span>
+
+<span class="sd">\textbf{{Casting Time:}} {casting_time} \\</span>
+<span class="sd">\textbf{{Range:}} {range_text} \\</span>
+<span class="sd">\textbf{{Components:}} {components_text} \\</span>
+<span class="sd">\textbf{{Duration:}} {duration_text}</span>
+
+<span class="sd">{description}</span>
+
+<span class="sd">{{% if higher_levels %}}</span>
+<span class="sd">\textbf{{At Higher Levels.}} {higher_levels}</span>
+<span class="sd">{{% endif %}}</span>
+<span class="sd">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_template_cache</span><span class="p">[</span><span class="s2">&quot;creature&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+<span class="w">            </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">\subsection{{{name}}}</span>
+<span class="sd">\textit{{{size_text} {type_text}, {alignment_text}}}</span>
+
+<span class="sd">\textbf{{Armor Class}} {ac_text} \\</span>
+<span class="sd">\textbf{{Hit Points}} {hp_text} \\</span>
+<span class="sd">\textbf{{Speed}} {speed_text}</span>
+
+<span class="sd">\begin{{center}}</span>
+<span class="sd">\begin{{tabular}}{{|c|c|c|c|c|c|}}</span>
+<span class="sd">\hline</span>
+<span class="sd">\textbf{{STR}} &amp; \textbf{{DEX}} &amp; \textbf{{CON}} &amp; \textbf{{INT}} &amp; \textbf{{WIS}} &amp; \textbf{{CHA}} \\</span>
+<span class="sd">\hline</span>
+<span class="sd">{str_text} &amp; {dex_text} &amp; {con_text} &amp; {int_text} &amp; {wis_text} &amp; {cha_text} \\</span>
+<span class="sd">\hline</span>
+<span class="sd">\end{{tabular}}</span>
+<span class="sd">\end{{center}}</span>
+
+<span class="sd">{{% if skills %}}</span>
+<span class="sd">\textbf{{Skills}} {skills} \\</span>
+<span class="sd">{{% endif %}}</span>
+<span class="sd">{{% if damage_resistances %}}</span>
+<span class="sd">\textbf{{Damage Resistances}} {damage_resistances} \\</span>
+<span class="sd">{{% endif %}}</span>
+<span class="sd">{{% if damage_immunities %}}</span>
+<span class="sd">\textbf{{Damage Immunities}} {damage_immunities} \\</span>
+<span class="sd">{{% endif %}}</span>
+<span class="sd">{{% if condition_immunities %}}</span>
+<span class="sd">\textbf{{Condition Immunities}} {condition_immunities} \\</span>
+<span class="sd">{{% endif %}}</span>
+<span class="sd">{{% if senses %}}</span>
+<span class="sd">\textbf{{Senses}} {senses} \\</span>
+<span class="sd">{{% endif %}}</span>
+<span class="sd">{{% if languages %}}</span>
+<span class="sd">\textbf{{Languages}} {languages} \\</span>
+<span class="sd">{{% endif %}}</span>
+<span class="sd">\textbf{{Challenge}} {cr_text} \\</span>
+
+<span class="sd">{{% if traits %}}</span>
+<span class="sd">{{% for trait in traits %}}</span>
+<span class="sd">\textbf{{{trait.name}.}} {trait.description}</span>
+<span class="sd">{{% endfor %}}</span>
+<span class="sd">{{% endif %}}</span>
+
+<span class="sd">{{% if actions %}}</span>
+<span class="sd">\subsubsection*{{Actions}}</span>
+<span class="sd">{{% for action in actions %}}</span>
+<span class="sd">\textbf{{{action.name}.}} {action.description}</span>
+<span class="sd">{{% endfor %}}</span>
+<span class="sd">{{% endif %}}</span>
+<span class="sd">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_template_cache</span><span class="p">[</span><span class="s2">&quot;item&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+<span class="w">            </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">\subsection{{{name}}}</span>
+<span class="sd">\textit{{{type_text}{rarity_text}}}</span>
+
+<span class="sd">{description}</span>
+
+<span class="sd">{{% if properties %}}</span>
+<span class="sd">\textbf{{Properties:}} {properties}</span>
+<span class="sd">{{% endif %}}</span>
+<span class="sd">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="LaTeXTemplateEngine.render_template">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.templates.LaTeXTemplateEngine.render_template">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render a template with the given variables.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            template_name: Name of template to render</span>
+<span class="sd">            variables: Variables to substitute in template</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Rendered template content</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_template</span><span class="p">(</span><span class="n">template_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">template</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Template &#39;</span><span class="si">{</span><span class="n">template_name</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_substitute_variables</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get template content by name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            template_name: Name of template</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Template content or None if not found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check cache first</span>
+        <span class="k">if</span> <span class="n">template_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_template_cache</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_template_cache</span><span class="p">[</span><span class="n">template_name</span><span class="p">]</span>
+
+        <span class="c1"># Try to load from file</span>
+        <span class="n">template_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">template_name</span><span class="si">}</span><span class="s2">.tex&quot;</span>
+        <span class="k">if</span> <span class="n">template_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">template_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_template_cache</span><span class="p">[</span><span class="n">template_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">content</span>
+            <span class="k">return</span> <span class="n">content</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_substitute_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Substitute variables in template using simple string formatting.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            template: Template content</span>
+<span class="sd">            variables: Variables to substitute</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Template with variables substituted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Simple template variable substitution</span>
+        <span class="c1"># For more complex templating, could use Jinja2 or similar</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">template</span>
+
+        <span class="c1"># First substitute variables</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">placeholder</span> <span class="o">=</span> <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span>
+            <span class="k">if</span> <span class="n">placeholder</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                    <span class="n">placeholder</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Handle conditional blocks (basic implementation)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_conditionals</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span>
+
+        <span class="c1"># Convert double braces to single braces for LaTeX</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{{&quot;</span><span class="p">,</span> <span class="s2">&quot;{&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;}}&quot;</span><span class="p">,</span> <span class="s2">&quot;}&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_conditionals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process basic conditional blocks in templates.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            template: Template content</span>
+<span class="sd">            variables: Variables for conditions</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Template with conditionals processed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+        <span class="c1"># Handle {% if var %} blocks</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">replace_if_block</span><span class="p">(</span><span class="n">match</span><span class="p">):</span>
+            <span class="n">condition</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+            <span class="c1"># Simple truthiness check</span>
+            <span class="k">if</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">variables</span> <span class="ow">and</span> <span class="n">variables</span><span class="p">[</span><span class="n">condition</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">content</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="c1"># Process if blocks</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;{%\s*if\s+(\w+)\s*%}(.*?){%\s*endif\s*%}&quot;</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">replace_if_block</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+
+        <span class="c1"># Handle {% for item in items %} blocks (basic implementation)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">replace_for_block</span><span class="p">(</span><span class="n">match</span><span class="p">):</span>
+            <span class="n">var_name</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">list_name</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">list_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+            <span class="n">items</span> <span class="o">=</span> <span class="n">variables</span><span class="p">[</span><span class="n">list_name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+            <span class="n">result_parts</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                <span class="c1"># Create temporary variables for this iteration</span>
+                <span class="n">item_content</span> <span class="o">=</span> <span class="n">content</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s2">&quot;__dict__&quot;</span><span class="p">):</span>
+                    <span class="c1"># Object with attributes</span>
+                    <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">placeholder</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">attr_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="n">item_content</span> <span class="o">=</span> <span class="n">item_content</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                            <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="n">placeholder</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">attr_value</span><span class="p">)</span>
+                        <span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="c1"># Dictionary</span>
+                    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">placeholder</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="n">item_content</span> <span class="o">=</span> <span class="n">item_content</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                            <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="n">placeholder</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                        <span class="p">)</span>
+
+                <span class="n">result_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item_content</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result_parts</span><span class="p">)</span>
+
+        <span class="c1"># Process for blocks</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}(.*?){%\s*endfor\s*%}&quot;</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">replace_for_block</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">template</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, 5e2pdf Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture Overview &mdash; 5e2pdf 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=4f7980c1" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing to 5e2pdf" href="contributing.html" />
+    <link rel="prev" title="Data Models Reference" href="../api/models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            5e2pdf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/cli-reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/renderers.html">Rendering System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models.html">Data Models Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#system-overview">System Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#core-components">Core Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data-models-src-core-models">Data Models (src/core/models/)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#omnidexer-system-src-core-loaders">Omnidexer System (src/core/loaders/)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tag-resolution-system-src-core-indexer">Tag Resolution System (src/core/indexer/)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#rendering-architecture">Rendering Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#base-renderer-framework-src-renderers-base">Base Renderer Framework (src/renderers/base/)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#latex-implementation-src-renderers-latex">LaTeX Implementation (src/renderers/latex/)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cli-architecture">CLI Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#command-structure-src-cli">Command Structure (src/cli/)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#legacy-compatibility-src-cli-compat-py">Legacy Compatibility (src/cli/compat.py)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#design-principles">Design Principles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#modularity">Modularity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#async-first-design">Async-First Design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#type-safety">Type Safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#caching-strategy">Caching Strategy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#extension-points">Extension Points</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#content-types">Content Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-formats">Output Formats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-sources">Data Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-considerations">Performance Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing-strategy">Testing Strategy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to 5e2pdf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">Legacy System Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">5e2pdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Architecture Overview</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/developer/architecture.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="architecture-overview">
+<h1>Architecture Overview<a class="headerlink" href="#architecture-overview" title="Link to this heading"></a></h1>
+<p>This document provides a high-level overview of the 5e2pdf architecture and design principles.</p>
+<section id="system-overview">
+<h2>System Overview<a class="headerlink" href="#system-overview" title="Link to this heading"></a></h2>
+<p>5e2pdf follows a modular, layered architecture designed for extensibility and maintainability:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>┌─────────────────────────────────────────────────────────────┐
+│                    CLI Layer (Typer)                       │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
+│  │   Convert   │ │    List     │ │    Info     │  ...      │
+│  └─────────────┘ └─────────────┘ └─────────────┘           │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                  Application Layer                          │
+│  ┌─────────────────────────────┐ ┌─────────────────────────┐ │
+│  │     Rendering System        │ │    Content System       │ │
+│  │  ┌─────────┐ ┌────────────┐ │ │ ┌─────────┐ ┌─────────┐ │ │
+│  │  │ LaTeX   │ │  Template  │ │ │ │ Omnidx  │ │   Tag   │ │ │
+│  │  │Renderer │ │  System    │ │ │ │ System  │ │Resolver │ │ │
+│  │  └─────────┘ └────────────┘ │ │ └─────────┘ └─────────┘ │ │
+│  └─────────────────────────────┘ └─────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     Core Layer                              │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
+│  │    Models   │ │   Loaders   │ │    Cache    │  ...      │
+│  │ (Pydantic)  │ │    (JSON)   │ │   System    │           │
+│  └─────────────┘ └─────────────┘ └─────────────┘           │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     Data Layer                              │
+│           5etools JSON Data + User Content                  │
+└─────────────────────────────────────────────────────────────┘
+</pre></div>
+</div>
+</section>
+<section id="core-components">
+<h2>Core Components<a class="headerlink" href="#core-components" title="Link to this heading"></a></h2>
+<section id="data-models-src-core-models">
+<h3>Data Models (src/core/models/)<a class="headerlink" href="#data-models-src-core-models" title="Link to this heading"></a></h3>
+<p>Built using Pydantic for robust data validation and serialization:</p>
+<ul class="simple">
+<li><p><strong>Content Models</strong>: Spell, Creature, Item, Adventure, Book</p></li>
+<li><p><strong>Base Types</strong>: ContentType, Source, ContentItem</p></li>
+<li><p><strong>Validation</strong>: Automatic JSON validation with helpful error messages</p></li>
+<li><p><strong>Type Safety</strong>: Full type hints and runtime validation</p></li>
+</ul>
+<p>Key Features:</p>
+<ul class="simple">
+<li><p>Flexible field handling for varying 5etools JSON structures</p></li>
+<li><p>Computed properties for formatted output</p></li>
+<li><p>Source tracking and validation</p></li>
+<li><p>Cross-reference support</p></li>
+</ul>
+</section>
+<section id="omnidexer-system-src-core-loaders">
+<h3>Omnidexer System (src/core/loaders/)<a class="headerlink" href="#omnidexer-system-src-core-loaders" title="Link to this heading"></a></h3>
+<p>The omnidexer is the central content management system:</p>
+<ul class="simple">
+<li><p><strong>Async Loading</strong>: Parallel loading of JSON files for performance</p></li>
+<li><p><strong>Content Indexing</strong>: Fast lookup by name, type, and source</p></li>
+<li><p><strong>Cross-Reference Resolution</strong>: Links between content items</p></li>
+<li><p><strong>Caching</strong>: Intelligent caching of loaded content</p></li>
+</ul>
+<p>Components:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Omnidexer</span></code>: Main coordinator class</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">JSONLoader</span></code>: Handles JSON file parsing and validation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SourceManager</span></code>: Manages source book metadata</p></li>
+</ul>
+</section>
+<section id="tag-resolution-system-src-core-indexer">
+<h3>Tag Resolution System (src/core/indexer/)<a class="headerlink" href="#tag-resolution-system-src-core-indexer" title="Link to this heading"></a></h3>
+<p>Handles inline references and cross-links in D&amp;D content:</p>
+<ul class="simple">
+<li><p><strong>Tag Parsing</strong>: Extracts <code class="docutils literal notranslate"><span class="pre">{&#64;spell</span> <span class="pre">fireball}</span></code> style tags</p></li>
+<li><p><strong>Reference Resolution</strong>: Finds target content items</p></li>
+<li><p><strong>LaTeX Generation</strong>: Converts tags to appropriate LaTeX commands</p></li>
+<li><p><strong>Fallback Handling</strong>: Graceful handling of missing references</p></li>
+</ul>
+</section>
+</section>
+<section id="rendering-architecture">
+<h2>Rendering Architecture<a class="headerlink" href="#rendering-architecture" title="Link to this heading"></a></h2>
+<section id="base-renderer-framework-src-renderers-base">
+<h3>Base Renderer Framework (src/renderers/base/)<a class="headerlink" href="#base-renderer-framework-src-renderers-base" title="Link to this heading"></a></h3>
+<p>Abstract framework for document generation:</p>
+<ul class="simple">
+<li><p><strong>Renderer Interface</strong>: Abstract base for all renderers</p></li>
+<li><p><strong>Context System</strong>: Manages rendering configuration and state</p></li>
+<li><p><strong>Content Dispatch</strong>: Routes content types to appropriate handlers</p></li>
+<li><p><strong>Template System</strong>: Pluggable template management</p></li>
+</ul>
+</section>
+<section id="latex-implementation-src-renderers-latex">
+<h3>LaTeX Implementation (src/renderers/latex/)<a class="headerlink" href="#latex-implementation-src-renderers-latex" title="Link to this heading"></a></h3>
+<p>Concrete LaTeX document generation:</p>
+<ul class="simple">
+<li><p><strong>Document Structure</strong>: Handles preamble, body, and postamble</p></li>
+<li><p><strong>Content Renderers</strong>: Specialized rendering for each content type</p></li>
+<li><p><strong>Template Management</strong>: LaTeX template system with inheritance</p></li>
+<li><p><strong>Style Integration</strong>: D&amp;D-style formatting and layout</p></li>
+</ul>
+</section>
+</section>
+<section id="cli-architecture">
+<h2>CLI Architecture<a class="headerlink" href="#cli-architecture" title="Link to this heading"></a></h2>
+<section id="command-structure-src-cli">
+<h3>Command Structure (src/cli/)<a class="headerlink" href="#command-structure-src-cli" title="Link to this heading"></a></h3>
+<p>Built using Typer for modern CLI development:</p>
+<ul class="simple">
+<li><p><strong>Modular Commands</strong>: Separate modules for different command groups</p></li>
+<li><p><strong>Rich Output</strong>: Colored, formatted terminal output</p></li>
+<li><p><strong>Progress Tracking</strong>: Visual progress bars for long operations</p></li>
+<li><p><strong>Error Handling</strong>: User-friendly error messages</p></li>
+</ul>
+</section>
+<section id="legacy-compatibility-src-cli-compat-py">
+<h3>Legacy Compatibility (src/cli/compat.py)<a class="headerlink" href="#legacy-compatibility-src-cli-compat-py" title="Link to this heading"></a></h3>
+<p>Backwards compatibility layer:</p>
+<ul class="simple">
+<li><p><strong>Argument Translation</strong>: Maps old json2tex arguments to new system</p></li>
+<li><p><strong>Command Emulation</strong>: Reproduces old behavior exactly</p></li>
+<li><p><strong>Migration Path</strong>: Helps users transition to new CLI</p></li>
+</ul>
+</section>
+</section>
+<section id="design-principles">
+<h2>Design Principles<a class="headerlink" href="#design-principles" title="Link to this heading"></a></h2>
+<section id="modularity">
+<h3>Modularity<a class="headerlink" href="#modularity" title="Link to this heading"></a></h3>
+<p>Each component has a single, well-defined responsibility:</p>
+<ul class="simple">
+<li><p>Models handle data validation and representation</p></li>
+<li><p>Loaders manage data acquisition and parsing</p></li>
+<li><p>Renderers handle output generation</p></li>
+<li><p>CLI provides user interface</p></li>
+</ul>
+<p>This allows for:</p>
+<ul class="simple">
+<li><p>Easy testing of individual components</p></li>
+<li><p>Pluggable architectures (e.g., different output formats)</p></li>
+<li><p>Clear separation of concerns</p></li>
+</ul>
+</section>
+<section id="async-first-design">
+<h3>Async-First Design<a class="headerlink" href="#async-first-design" title="Link to this heading"></a></h3>
+<p>Heavy operations use async/await for performance:</p>
+<ul class="simple">
+<li><p>Parallel JSON file loading</p></li>
+<li><p>Non-blocking I/O operations</p></li>
+<li><p>Responsive CLI during long operations</p></li>
+</ul>
+</section>
+<section id="type-safety">
+<h3>Type Safety<a class="headerlink" href="#type-safety" title="Link to this heading"></a></h3>
+<p>Comprehensive type hints throughout:</p>
+<ul class="simple">
+<li><p>Pydantic models for runtime validation</p></li>
+<li><p>mypy compatibility for static analysis</p></li>
+<li><p>IDE support with full autocomplete</p></li>
+</ul>
+</section>
+<section id="caching-strategy">
+<h3>Caching Strategy<a class="headerlink" href="#caching-strategy" title="Link to this heading"></a></h3>
+<p>Multi-level caching for performance:</p>
+<ul class="simple">
+<li><p><strong>Memory Cache</strong>: In-process caching of loaded content</p></li>
+<li><p><strong>Disk Cache</strong>: Persistent caching of processed data</p></li>
+<li><p><strong>Smart Invalidation</strong>: Cache invalidation based on file timestamps</p></li>
+</ul>
+</section>
+<section id="error-handling">
+<h3>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading"></a></h3>
+<p>Graceful error handling at all levels:</p>
+<ul class="simple">
+<li><p><strong>Validation Errors</strong>: Clear messages for malformed JSON</p></li>
+<li><p><strong>Missing Content</strong>: Fallbacks for broken references</p></li>
+<li><p><strong>System Errors</strong>: User-friendly error reporting</p></li>
+</ul>
+</section>
+</section>
+<section id="extension-points">
+<h2>Extension Points<a class="headerlink" href="#extension-points" title="Link to this heading"></a></h2>
+<p>The architecture provides several extension points:</p>
+<section id="content-types">
+<h3>Content Types<a class="headerlink" href="#content-types" title="Link to this heading"></a></h3>
+<p>Add new content types by:</p>
+<ol class="arabic simple">
+<li><p>Creating a new Pydantic model in <code class="docutils literal notranslate"><span class="pre">src/core/models/</span></code></p></li>
+<li><p>Adding the type to <code class="docutils literal notranslate"><span class="pre">ContentType</span></code> enum</p></li>
+<li><p>Implementing rendering logic in <code class="docutils literal notranslate"><span class="pre">src/renderers/</span></code></p></li>
+</ol>
+</section>
+<section id="output-formats">
+<h3>Output Formats<a class="headerlink" href="#output-formats" title="Link to this heading"></a></h3>
+<p>Add new output formats by:</p>
+<ol class="arabic simple">
+<li><p>Implementing the <code class="docutils literal notranslate"><span class="pre">BaseRenderer</span></code> interface</p></li>
+<li><p>Creating format-specific templates</p></li>
+<li><p>Adding CLI commands for the new format</p></li>
+</ol>
+</section>
+<section id="data-sources">
+<h3>Data Sources<a class="headerlink" href="#data-sources" title="Link to this heading"></a></h3>
+<p>Support new data sources by:</p>
+<ol class="arabic simple">
+<li><p>Implementing the <code class="docutils literal notranslate"><span class="pre">BaseLoader</span></code> interface</p></li>
+<li><p>Adding source detection logic</p></li>
+<li><p>Integrating with the omnidexer system</p></li>
+</ol>
+</section>
+</section>
+<section id="performance-considerations">
+<h2>Performance Considerations<a class="headerlink" href="#performance-considerations" title="Link to this heading"></a></h2>
+<p>The system is designed for performance at scale:</p>
+<ul class="simple">
+<li><p><strong>Lazy Loading</strong>: Content loaded only when needed</p></li>
+<li><p><strong>Parallel Processing</strong>: Multiple files processed simultaneously</p></li>
+<li><p><strong>Efficient Indexing</strong>: Fast lookups using Python dictionaries</p></li>
+<li><p><strong>Caching</strong>: Multiple levels of caching to avoid repeated work</p></li>
+</ul>
+<p>Memory usage is managed through:</p>
+<ul class="simple">
+<li><p><strong>Streaming</strong>: Large files processed in chunks</p></li>
+<li><p><strong>Weak References</strong>: Automatic cleanup of unused content</p></li>
+<li><p><strong>Cache Limits</strong>: Configurable cache size limits</p></li>
+</ul>
+</section>
+<section id="testing-strategy">
+<h2>Testing Strategy<a class="headerlink" href="#testing-strategy" title="Link to this heading"></a></h2>
+<p>The architecture supports comprehensive testing:</p>
+<ul class="simple">
+<li><p><strong>Unit Tests</strong>: Each component tested in isolation</p></li>
+<li><p><strong>Integration Tests</strong>: Full workflow testing</p></li>
+<li><p><strong>Mock Data</strong>: Synthetic test data for reliable testing</p></li>
+<li><p><strong>Performance Tests</strong>: Benchmarks for critical paths</p></li>
+</ul>
+<p>See <a class="reference internal" href="testing.html"><span class="doc">Testing Guide</span></a> for detailed testing guidelines.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../api/models.html" class="btn btn-neutral float-left" title="Data Models Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="contributing.html" class="btn btn-neutral float-right" title="Contributing to 5e2pdf" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, 5e2pdf Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

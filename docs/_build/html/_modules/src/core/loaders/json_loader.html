@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.core.loaders.json_loader &mdash; 5e2pdf 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=4f7980c1" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            5e2pdf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/cli-reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/renderers.html">Rendering System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/models.html">Data Models Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/contributing.html">Contributing to 5e2pdf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/testing.html">Testing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/legacy.html">Legacy System Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">5e2pdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.core.loaders.json_loader</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.core.loaders.json_loader</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;JSON data loader with Pydantic validation.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Type</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..config.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..models.content</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">T</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="JsonDataLoader">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.loaders.json_loader.JsonDataLoader">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JsonDataLoader</span><span class="p">(</span><span class="n">DataLoader</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Loads and validates JSON data using Pydantic models.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="JsonDataLoader.__init__">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.loaders.json_loader.JsonDataLoader.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_class</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">content_type</span><span class="p">:</span> <span class="n">ContentType</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_class</span> <span class="o">=</span> <span class="n">model_class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="n">content_type</span></div>
+
+
+<div class="viewcode-block" id="JsonDataLoader.load">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.loaders.json_loader.JsonDataLoader.load">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load JSON file and validate against Pydantic model.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">content_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> data from </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Read JSON file</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+            <span class="c1"># Extract content based on file structure</span>
+            <span class="n">content_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_content</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+            <span class="c1"># Validate each item</span>
+            <span class="n">validated_content</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">content_list</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># Ensure source information is present</span>
+                    <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_source_info</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+                    <span class="n">validated_item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_class</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                    <span class="n">validated_content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">validated_item</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Validation failed for item </span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;unknown&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected error validating item in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Successfully loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">validated_content</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">content_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> items from </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">validated_content</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="JsonDataLoader.get_content_type">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.loaders.json_loader.JsonDataLoader.get_content_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_content_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ContentType</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span></div>
+
+
+<div class="viewcode-block" id="JsonDataLoader.get_model_class">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.loaders.json_loader.JsonDataLoader.get_model_class">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_model_class</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_class</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_content</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract content list from various JSON structures.&quot;&quot;&quot;</span>
+        <span class="c1"># Handle different JSON structures from 5etools</span>
+
+        <span class="c1"># Direct content arrays</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">SPELL</span> <span class="ow">and</span> <span class="s2">&quot;spell&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;spell&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">CREATURE</span> <span class="ow">and</span> <span class="s2">&quot;monster&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;monster&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">ITEM</span> <span class="ow">and</span> <span class="s2">&quot;item&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;item&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">ADVENTURE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;adventure&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;adventure&quot;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="s2">&quot;adventureData&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="c1"># Handle adventure data format</span>
+                <span class="n">adventure_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;adventureData&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">adventure_data</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">adventure_data</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">adventure_data</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">BOOK</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;book&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;book&quot;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="s2">&quot;bookData&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="c1"># Handle book data format</span>
+                <span class="n">book_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;bookData&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">book_data</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">book_data</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">book_data</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="c1"># Generic fallbacks</span>
+        <span class="n">content_type_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="n">content_type_name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="n">content_type_name</span><span class="p">]</span>
+
+        <span class="c1"># Try plural forms</span>
+        <span class="n">plural_name</span> <span class="o">=</span> <span class="n">content_type_name</span> <span class="o">+</span> <span class="s2">&quot;s&quot;</span>
+        <span class="k">if</span> <span class="n">plural_name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="n">plural_name</span><span class="p">]</span>
+
+        <span class="c1"># If the data itself is a list, use it directly</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">data</span>
+
+        <span class="c1"># Look for any list in the data as a fallback</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Using &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; array as content for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">content_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="n">value</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No content found for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">content_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_source_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure item has source information.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;source&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+            <span class="c1"># Try to infer source from filename</span>
+            <span class="n">source_abbrev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_source_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">item</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;abbreviation&quot;</span><span class="p">:</span> <span class="n">source_abbrev</span><span class="p">,</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">source_abbrev</span><span class="p">,</span>  <span class="c1"># Will be resolved later by source manager</span>
+            <span class="p">}</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="c1"># Convert string source to proper format</span>
+            <span class="n">source_abbrev</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span>
+            <span class="n">item</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;abbreviation&quot;</span><span class="p">:</span> <span class="n">source_abbrev</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">source_abbrev</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">item</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_infer_source_from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Infer source abbreviation from file path.&quot;&quot;&quot;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="c1"># Common source patterns in filenames</span>
+        <span class="n">source_patterns</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;phb&quot;</span><span class="p">:</span> <span class="s2">&quot;PHB&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;mm&quot;</span><span class="p">:</span> <span class="s2">&quot;MM&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dmg&quot;</span><span class="p">:</span> <span class="s2">&quot;DMG&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;scag&quot;</span><span class="p">:</span> <span class="s2">&quot;SCAG&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;vgm&quot;</span><span class="p">:</span> <span class="s2">&quot;VGM&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;xge&quot;</span><span class="p">:</span> <span class="s2">&quot;XGE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;mtf&quot;</span><span class="p">:</span> <span class="s2">&quot;MTF&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;tce&quot;</span><span class="p">:</span> <span class="s2">&quot;TCE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;cos&quot;</span><span class="p">:</span> <span class="s2">&quot;CoS&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;player&quot;</span><span class="p">:</span> <span class="s2">&quot;PHB&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;monster&quot;</span><span class="p">:</span> <span class="s2">&quot;MM&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dungeon&quot;</span><span class="p">:</span> <span class="s2">&quot;DMG&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">source_patterns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">source</span>
+
+        <span class="c1"># Fallback: use filename as source</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span></div>
+
+
+
+<span class="c1"># Factory functions for common loaders</span>
+<div class="viewcode-block" id="create_spell_loader">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.loaders.json_loader.create_spell_loader">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_spell_loader</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">JsonDataLoader</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a spell data loader.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..models.spells</span><span class="w"> </span><span class="kn">import</span> <span class="n">Spell</span>
+
+    <span class="k">return</span> <span class="n">JsonDataLoader</span><span class="p">(</span><span class="n">Spell</span><span class="p">,</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">SPELL</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_creature_loader">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.loaders.json_loader.create_creature_loader">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_creature_loader</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">JsonDataLoader</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a creature data loader.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..models.creatures</span><span class="w"> </span><span class="kn">import</span> <span class="n">Creature</span>
+
+    <span class="k">return</span> <span class="n">JsonDataLoader</span><span class="p">(</span><span class="n">Creature</span><span class="p">,</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">CREATURE</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_item_loader">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.loaders.json_loader.create_item_loader">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_item_loader</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">JsonDataLoader</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an item data loader.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..models.items</span><span class="w"> </span><span class="kn">import</span> <span class="n">Item</span>
+
+    <span class="k">return</span> <span class="n">JsonDataLoader</span><span class="p">(</span><span class="n">Item</span><span class="p">,</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">ITEM</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_adventure_loader">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.loaders.json_loader.create_adventure_loader">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_adventure_loader</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">JsonDataLoader</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an adventure data loader.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..models.adventures</span><span class="w"> </span><span class="kn">import</span> <span class="n">Adventure</span>
+
+    <span class="k">return</span> <span class="n">JsonDataLoader</span><span class="p">(</span><span class="n">Adventure</span><span class="p">,</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">ADVENTURE</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_book_loader">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.loaders.json_loader.create_book_loader">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_book_loader</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">JsonDataLoader</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a book data loader.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..models.books</span><span class="w"> </span><span class="kn">import</span> <span class="n">Book</span>
+
+    <span class="k">return</span> <span class="n">JsonDataLoader</span><span class="p">(</span><span class="n">Book</span><span class="p">,</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">BOOK</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, 5e2pdf Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

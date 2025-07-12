@@ -1,0 +1,937 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.renderers.latex.content &mdash; 5e2pdf 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=4f7980c1" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            5e2pdf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/cli-reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/renderers.html">Rendering System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/models.html">Data Models Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/contributing.html">Contributing to 5e2pdf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/testing.html">Testing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/legacy.html">Legacy System Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">5e2pdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.renderers.latex.content</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.renderers.latex.content</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;LaTeX content-specific renderers.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.models.content</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseContent</span><span class="p">,</span> <span class="n">ContentType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.models.creatures</span><span class="w"> </span><span class="kn">import</span> <span class="n">Creature</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.models.items</span><span class="w"> </span><span class="kn">import</span> <span class="n">Item</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.models.spells</span><span class="w"> </span><span class="kn">import</span> <span class="n">Spell</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.renderers.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentRenderer</span><span class="p">,</span> <span class="n">RenderContext</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.templates</span><span class="w"> </span><span class="kn">import</span> <span class="n">LaTeXTemplateEngine</span>
+
+
+<div class="viewcode-block" id="LaTeXContentRenderer">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXContentRenderer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LaTeXContentRenderer</span><span class="p">(</span><span class="n">ContentRenderer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base LaTeX content renderer with common functionality.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LaTeXContentRenderer.__init__">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXContentRenderer.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize LaTeX content renderer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            config: Configuration options</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">template_engine</span> <span class="o">=</span> <span class="n">LaTeXTemplateEngine</span><span class="p">(</span><span class="n">config</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">output_format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the output format.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;latex&quot;</span>
+
+<div class="viewcode-block" id="LaTeXContentRenderer.escape_latex">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXContentRenderer.escape_latex">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">escape_latex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Escape LaTeX special characters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            text: Text to escape</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LaTeX-safe text</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="c1"># LaTeX special characters</span>
+        <span class="n">replacements</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\textbackslash</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;{&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\{&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;}&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\}&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;$&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\$&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&amp;&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\&amp;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;%&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\%&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\#&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;^&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\textasciicircum</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\_&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;~&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;\textasciitilde</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="k">for</span> <span class="n">char</span><span class="p">,</span> <span class="n">replacement</span> <span class="ow">in</span> <span class="n">replacements</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">char</span><span class="p">,</span> <span class="n">replacement</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="LaTeXContentRenderer.process_text_with_tags">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXContentRenderer.process_text_with_tags">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_text_with_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process text containing 5etools tags.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            text: Text that may contain tags</span>
+<span class="sd">            context: Rendering context with tag resolver</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Text with tags processed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">context</span><span class="o">.</span><span class="n">tag_resolver</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">tag_resolver</span><span class="o">.</span><span class="n">process_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LaTeXSpellRenderer">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXSpellRenderer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LaTeXSpellRenderer</span><span class="p">(</span><span class="n">LaTeXContentRenderer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LaTeX renderer for spell content.&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">supported_content_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="n">ContentType</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return supported content types.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">ContentType</span><span class="o">.</span><span class="n">SPELL</span><span class="p">}</span>
+
+<div class="viewcode-block" id="LaTeXSpellRenderer.render_content">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXSpellRenderer.render_content">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">BaseContent</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render spell content to LaTeX.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content: Spell to render</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LaTeX representation of spell</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">Spell</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected Spell, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">content</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Build template variables</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+            <span class="s2">&quot;level_text&quot;</span><span class="p">:</span> <span class="n">content</span><span class="o">.</span><span class="n">get_level_text</span><span class="p">(),</span>
+            <span class="s2">&quot;school&quot;</span><span class="p">:</span> <span class="n">content</span><span class="o">.</span><span class="n">school</span><span class="p">,</span>
+            <span class="s2">&quot;casting_time&quot;</span><span class="p">:</span> <span class="n">content</span><span class="o">.</span><span class="n">get_casting_time_text</span><span class="p">(),</span>
+            <span class="s2">&quot;range_text&quot;</span><span class="p">:</span> <span class="n">content</span><span class="o">.</span><span class="n">get_range_text</span><span class="p">(),</span>
+            <span class="s2">&quot;components_text&quot;</span><span class="p">:</span> <span class="n">content</span><span class="o">.</span><span class="n">get_components_text</span><span class="p">(),</span>
+            <span class="s2">&quot;duration_text&quot;</span><span class="p">:</span> <span class="n">content</span><span class="o">.</span><span class="n">get_duration_text</span><span class="p">(),</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_entries</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">entries</span><span class="p">,</span> <span class="n">context</span><span class="p">),</span>
+            <span class="s2">&quot;higher_levels&quot;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_format_higher_levels</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">content</span><span class="o">.</span><span class="n">higher_level</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">),</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_engine</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;spell&quot;</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_casting_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format casting time data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            time_data: Time data from spell</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted casting time string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">time_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Unknown&quot;</span>
+
+        <span class="n">time_parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">time_entry</span> <span class="ow">in</span> <span class="n">time_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;number&quot;</span> <span class="ow">in</span> <span class="n">time_entry</span> <span class="ow">and</span> <span class="s2">&quot;unit&quot;</span> <span class="ow">in</span> <span class="n">time_entry</span><span class="p">:</span>
+                <span class="n">number</span> <span class="o">=</span> <span class="n">time_entry</span><span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">]</span>
+                <span class="n">unit</span> <span class="o">=</span> <span class="n">time_entry</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">number</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">time_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;1 </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">time_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">number</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">time_parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">time_parts</span> <span class="k">else</span> <span class="s2">&quot;Unknown&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">range_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format range data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            range_data: Range data from spell</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted range string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">range_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Unknown&quot;</span>
+
+        <span class="n">range_type</span> <span class="o">=</span> <span class="n">range_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">range_type</span> <span class="o">==</span> <span class="s2">&quot;point&quot;</span><span class="p">:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="n">range_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">if</span> <span class="n">distance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;self&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;Self&quot;</span>
+            <span class="k">elif</span> <span class="n">distance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;touch&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;Touch&quot;</span>
+            <span class="k">elif</span> <span class="n">distance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;feet&quot;</span><span class="p">:</span>
+                <span class="n">amount</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;amount&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">amount</span><span class="si">}</span><span class="s2"> feet&quot;</span>
+        <span class="k">elif</span> <span class="n">range_type</span> <span class="o">==</span> <span class="s2">&quot;sphere&quot;</span><span class="p">:</span>
+            <span class="n">radius</span> <span class="o">=</span> <span class="n">range_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;amount&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Self (</span><span class="si">{</span><span class="n">radius</span><span class="si">}</span><span class="s2">-foot radius)&quot;</span>
+        <span class="k">elif</span> <span class="n">range_type</span> <span class="o">==</span> <span class="s2">&quot;cone&quot;</span><span class="p">:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="n">range_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;amount&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Self (</span><span class="si">{</span><span class="n">distance</span><span class="si">}</span><span class="s2">-foot cone)&quot;</span>
+        <span class="k">elif</span> <span class="n">range_type</span> <span class="o">==</span> <span class="s2">&quot;line&quot;</span><span class="p">:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="n">range_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;amount&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Self (</span><span class="si">{</span><span class="n">distance</span><span class="si">}</span><span class="s2">-foot line)&quot;</span>
+
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">range_data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format components data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            components: Components data from spell</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted components string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">components</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;None&quot;</span>
+
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">components</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;v&quot;</span><span class="p">):</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;V&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">components</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;s&quot;</span><span class="p">):</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;S&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">components</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;m&quot;</span><span class="p">):</span>
+            <span class="n">material</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;m&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;M (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">(</span><span class="n">material</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;M&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">parts</span> <span class="k">else</span> <span class="s2">&quot;None&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format duration data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            duration_data: Duration data from spell</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted duration string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">duration_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Unknown&quot;</span>
+
+        <span class="n">duration_parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">duration_entry</span> <span class="ow">in</span> <span class="n">duration_data</span><span class="p">:</span>
+            <span class="n">duration_type</span> <span class="o">=</span> <span class="n">duration_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">duration_type</span> <span class="o">==</span> <span class="s2">&quot;instant&quot;</span><span class="p">:</span>
+                <span class="n">duration_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Instantaneous&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">duration_type</span> <span class="o">==</span> <span class="s2">&quot;timed&quot;</span><span class="p">:</span>
+                <span class="n">amount</span> <span class="o">=</span> <span class="n">duration_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;amount&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">unit</span> <span class="o">=</span> <span class="n">duration_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;minute&quot;</span><span class="p">)</span>
+                <span class="n">concentration</span> <span class="o">=</span> <span class="n">duration_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;concentration&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+                <span class="n">duration_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">amount</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">if</span> <span class="n">amount</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">duration_text</span> <span class="o">+=</span> <span class="s2">&quot;s&quot;</span>
+
+                <span class="k">if</span> <span class="n">concentration</span><span class="p">:</span>
+                    <span class="n">duration_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Concentration, up to </span><span class="si">{</span><span class="n">duration_text</span><span class="si">}</span><span class="s2">&quot;</span>
+
+                <span class="n">duration_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">duration_text</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">duration_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">duration_type</span><span class="o">.</span><span class="n">title</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">duration_parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">duration_parts</span> <span class="k">else</span> <span class="s2">&quot;Unknown&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_entries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entries</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format spell description entries.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            entries: List of description text</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted description</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">entries</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">formatted_entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">formatted_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process_text_with_tags</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">context</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Handle complex entry structures</span>
+                <span class="n">formatted_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">formatted_entries</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_higher_levels</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">spell</span><span class="p">:</span> <span class="n">Spell</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format higher levels text.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            spell: Spell object</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted higher levels text or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">spell</span><span class="o">.</span><span class="n">higher_level</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Handle higher level entries</span>
+        <span class="n">higher_entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">spell</span><span class="o">.</span><span class="n">higher_level</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">higher_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process_text_with_tags</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">context</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;entries&quot;</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">sub_entry</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;entries&quot;</span><span class="p">]:</span>
+                    <span class="n">higher_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">process_text_with_tags</span><span class="p">(</span><span class="n">sub_entry</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+                    <span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">higher_entries</span><span class="p">)</span> <span class="k">if</span> <span class="n">higher_entries</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="LaTeXCreatureRenderer">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXCreatureRenderer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LaTeXCreatureRenderer</span><span class="p">(</span><span class="n">LaTeXContentRenderer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LaTeX renderer for creature content.&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">supported_content_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="n">ContentType</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return supported content types.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">ContentType</span><span class="o">.</span><span class="n">CREATURE</span><span class="p">}</span>
+
+<div class="viewcode-block" id="LaTeXCreatureRenderer.render_content">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXCreatureRenderer.render_content">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">BaseContent</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render creature content to LaTeX.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content: Creature to render</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LaTeX representation of creature</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">Creature</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected Creature, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">content</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Build template variables</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+            <span class="s2">&quot;size_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_size</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+            <span class="s2">&quot;type_text&quot;</span><span class="p">:</span> <span class="n">content</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+            <span class="s2">&quot;alignment_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_alignment</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">alignment</span><span class="p">),</span>
+            <span class="s2">&quot;ac_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_ac</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">ac</span><span class="p">),</span>
+            <span class="s2">&quot;hp_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_hp</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">hp</span><span class="p">),</span>
+            <span class="s2">&quot;speed_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_speed</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">speed</span><span class="p">),</span>
+            <span class="s2">&quot;str_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_ability_score</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">strength</span><span class="p">),</span>
+            <span class="s2">&quot;dex_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_ability_score</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">dexterity</span><span class="p">),</span>
+            <span class="s2">&quot;con_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_ability_score</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">constitution</span><span class="p">),</span>
+            <span class="s2">&quot;int_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_ability_score</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">intelligence</span><span class="p">),</span>
+            <span class="s2">&quot;wis_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_ability_score</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">wisdom</span><span class="p">),</span>
+            <span class="s2">&quot;cha_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_ability_score</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">charisma</span><span class="p">),</span>
+            <span class="s2">&quot;cr_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_cr</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">cr</span><span class="p">),</span>
+            <span class="s2">&quot;skills&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_skills</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;skill&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+            <span class="s2">&quot;damage_resistances&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_damage_list</span><span class="p">(</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;resist&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;damage_immunities&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_damage_list</span><span class="p">(</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;immune&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;condition_immunities&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_condition_list</span><span class="p">(</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;conditionImmune&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;senses&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_senses</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;senses&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+            <span class="s2">&quot;languages&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_languages</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;languages&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+            <span class="s2">&quot;traits&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_traits</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;trait&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">context</span><span class="p">),</span>
+            <span class="s2">&quot;actions&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_actions</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">context</span><span class="p">),</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_engine</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;creature&quot;</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format creature size.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size_data: Size data from creature</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted size string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">size_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Medium&quot;</span>
+
+        <span class="n">size_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;T&quot;</span><span class="p">:</span> <span class="s2">&quot;Tiny&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;S&quot;</span><span class="p">:</span> <span class="s2">&quot;Small&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;M&quot;</span><span class="p">:</span> <span class="s2">&quot;Medium&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="s2">&quot;Large&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="s2">&quot;Huge&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="s2">&quot;Gargantuan&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">size_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">size_data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">size_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_alignment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alignment</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format creature alignment.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            alignment: Alignment data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted alignment string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">alignment</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;unaligned&quot;</span>
+
+        <span class="n">alignment_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="s2">&quot;lawful&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="s2">&quot;neutral&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="s2">&quot;chaotic&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="s2">&quot;good&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="s2">&quot;evil&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">align</span> <span class="ow">in</span> <span class="n">alignment</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">align</span> <span class="ow">in</span> <span class="n">alignment_map</span><span class="p">:</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">alignment_map</span><span class="p">[</span><span class="n">align</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">align</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">parts</span> <span class="k">else</span> <span class="s2">&quot;unaligned&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_ac</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ac_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format armor class.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ac_data: AC data from creature</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted AC string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ac_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;10&quot;</span>
+
+        <span class="n">ac_entry</span> <span class="o">=</span> <span class="n">ac_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ac_entry</span><span class="p">,</span> <span class="s2">&quot;ac&quot;</span><span class="p">):</span>
+            <span class="c1"># Pydantic ArmorClass model</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">ac_entry</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ac_entry</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1"># Dictionary format</span>
+            <span class="n">ac_value</span> <span class="o">=</span> <span class="n">ac_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ac&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="n">ac_from</span> <span class="o">=</span> <span class="n">ac_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;from&quot;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">if</span> <span class="n">ac_from</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ac_value</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ac_from</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">ac_value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">ac_entry</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_hp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hp_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format hit points.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            hp_data: HP data from creature</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted HP string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">hp_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;1 (1d4)&quot;</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">hp_data</span><span class="p">,</span> <span class="s2">&quot;average&quot;</span><span class="p">):</span>
+            <span class="c1"># Pydantic HitPoints model</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hp_data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hp_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1"># Dictionary format</span>
+            <span class="n">average</span> <span class="o">=</span> <span class="n">hp_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;average&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">formula</span> <span class="o">=</span> <span class="n">hp_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;formula&quot;</span><span class="p">,</span> <span class="s2">&quot;1d4&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">average</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">formula</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hp_data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_speed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format speed.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            speed_data: Speed data from creature</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted speed string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">speed_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;30 ft.&quot;</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">speed_data</span><span class="p">,</span> <span class="s2">&quot;walk&quot;</span><span class="p">):</span>
+            <span class="c1"># Pydantic Speed model</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">speed_data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">speed_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1"># Dictionary format</span>
+            <span class="n">speed_parts</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">speed_type</span><span class="p">,</span> <span class="n">speed_value</span> <span class="ow">in</span> <span class="n">speed_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">speed_type</span> <span class="o">==</span> <span class="s2">&quot;walk&quot;</span><span class="p">:</span>
+                    <span class="n">speed_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">speed_value</span><span class="si">}</span><span class="s2"> ft.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">speed_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">speed_type</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">speed_value</span><span class="si">}</span><span class="s2"> ft.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">speed_parts</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">speed_data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_ability_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format ability score with modifier.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            score: Ability score value</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted score with modifier</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">modifier</span> <span class="o">=</span> <span class="p">(</span><span class="n">score</span> <span class="o">-</span> <span class="mi">10</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">sign</span> <span class="o">=</span> <span class="s2">&quot;+&quot;</span> <span class="k">if</span> <span class="n">modifier</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">score</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">sign</span><span class="si">}{</span><span class="n">modifier</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_cr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format challenge rating.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cr: Challenge rating</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted CR string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cr</span><span class="si">}</span><span class="s2"> (XP varies)&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_skills</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">skills</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format skills list.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            skills: Skills data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted skills string or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">skills</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">skill_parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">skill</span><span class="p">,</span> <span class="n">bonus</span> <span class="ow">in</span> <span class="n">skills</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="s2">&quot;+&quot;</span> <span class="k">if</span> <span class="n">bonus</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">skill_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">skill</span><span class="o">.</span><span class="n">title</span><span class="p">()</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">sign</span><span class="si">}{</span><span class="n">bonus</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">skill_parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">skill_parts</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_damage_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">damage_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format damage resistance/immunity list.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            damage_data: Damage data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted damage list or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">damage_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">damage_parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">damage_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">damage_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="c1"># Handle complex damage structures</span>
+                <span class="n">damage_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">damage_parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">damage_parts</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_condition_list</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">condition_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format condition immunity list.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            condition_data: Condition data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted condition list or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">condition_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">condition_data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_senses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">senses_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format senses list.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            senses_data: Senses data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted senses string or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">senses_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">senses_data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_languages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">languages_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format languages list.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            languages_data: Languages data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted languages string or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">languages_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">languages_data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_traits</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">traits_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format creature traits.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            traits_data: Traits data</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of formatted trait dicts or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">traits_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">formatted_traits</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">trait</span> <span class="ow">in</span> <span class="n">traits_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trait</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">trait</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">entries</span> <span class="o">=</span> <span class="n">trait</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entries&quot;</span><span class="p">,</span> <span class="p">[])</span>
+
+                <span class="n">description_parts</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                        <span class="n">description_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">process_text_with_tags</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+                        <span class="p">)</span>
+
+                <span class="n">formatted_traits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
+                        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">description_parts</span><span class="p">),</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">formatted_traits</span> <span class="k">if</span> <span class="n">formatted_traits</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_actions</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">actions_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format creature actions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            actions_data: Actions data</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of formatted action dicts or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">actions_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">formatted_actions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">actions_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">entries</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entries&quot;</span><span class="p">,</span> <span class="p">[])</span>
+
+                <span class="n">description_parts</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                        <span class="n">description_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">process_text_with_tags</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+                        <span class="p">)</span>
+
+                <span class="n">formatted_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
+                        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">description_parts</span><span class="p">),</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">formatted_actions</span> <span class="k">if</span> <span class="n">formatted_actions</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="LaTeXItemRenderer">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXItemRenderer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LaTeXItemRenderer</span><span class="p">(</span><span class="n">LaTeXContentRenderer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LaTeX renderer for item content.&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">supported_content_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="n">ContentType</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return supported content types.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">ContentType</span><span class="o">.</span><span class="n">ITEM</span><span class="p">}</span>
+
+<div class="viewcode-block" id="LaTeXItemRenderer.render_content">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXItemRenderer.render_content">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">BaseContent</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render item content to LaTeX.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content: Item to render</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LaTeX representation of item</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">Item</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected Item, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">content</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Build template variables</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+            <span class="s2">&quot;type_text&quot;</span><span class="p">:</span> <span class="n">content</span><span class="o">.</span><span class="n">type</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;Item&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;rarity_text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_rarity</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;rarity&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_entries</span><span class="p">(</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;entries&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">context</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_properties</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;property&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_engine</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;item&quot;</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_rarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rarity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format item rarity.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rarity: Rarity value</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted rarity string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rarity</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;, </span><span class="si">{</span><span class="n">rarity</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_entries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entries</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format item description entries.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            entries: List of description entries</span>
+<span class="sd">            context: Rendering context</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted description</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">entries</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">formatted_entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">formatted_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process_text_with_tags</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">context</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">formatted_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">formatted_entries</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">properties</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format item properties.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            properties: List of properties</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted properties string or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">properties</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LaTeXContentRendererRegistry">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXContentRendererRegistry">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LaTeXContentRendererRegistry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Registry for LaTeX content renderers.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LaTeXContentRendererRegistry.__init__">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXContentRendererRegistry.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize renderer registry.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_renderers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">ContentType</span><span class="p">,</span> <span class="n">ContentRenderer</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_register_default_renderers</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_register_default_renderers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register default content renderers.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_renderer</span><span class="p">(</span><span class="n">ContentType</span><span class="o">.</span><span class="n">SPELL</span><span class="p">,</span> <span class="n">LaTeXSpellRenderer</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_renderer</span><span class="p">(</span><span class="n">ContentType</span><span class="o">.</span><span class="n">CREATURE</span><span class="p">,</span> <span class="n">LaTeXCreatureRenderer</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_renderer</span><span class="p">(</span><span class="n">ContentType</span><span class="o">.</span><span class="n">ITEM</span><span class="p">,</span> <span class="n">LaTeXItemRenderer</span><span class="p">())</span>
+
+<div class="viewcode-block" id="LaTeXContentRendererRegistry.register_renderer">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXContentRendererRegistry.register_renderer">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_renderer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content_type</span><span class="p">:</span> <span class="n">ContentType</span><span class="p">,</span> <span class="n">renderer</span><span class="p">:</span> <span class="n">ContentRenderer</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register a renderer for a content type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content_type: Content type to handle</span>
+<span class="sd">            renderer: Renderer instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_renderers</span><span class="p">[</span><span class="n">content_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">renderer</span></div>
+
+
+<div class="viewcode-block" id="LaTeXContentRendererRegistry.get_renderer">
+<a class="viewcode-back" href="../../../../api/renderers.html#src.renderers.latex.content.LaTeXContentRendererRegistry.get_renderer">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_renderer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content_type</span><span class="p">:</span> <span class="n">ContentType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ContentRenderer</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get renderer for content type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            content_type: Content type to get renderer for</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Renderer instance or None if not found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_renderers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">content_type</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, 5e2pdf Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

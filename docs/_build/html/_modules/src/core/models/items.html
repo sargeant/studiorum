@@ -1,0 +1,389 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.core.models.items &mdash; 5e2pdf 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=4f7980c1" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            5e2pdf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/cli-reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user-guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/renderers.html">Rendering System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/models.html">Data Models Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/contributing.html">Contributing to 5e2pdf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/testing.html">Testing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/legacy.html">Legacy System Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">5e2pdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.core.models.items</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.core.models.items</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Item data models.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.content</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseContent</span>
+
+
+<div class="viewcode-block" id="ItemType">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.models.items.ItemType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ItemType</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enumeration of item types.&quot;&quot;&quot;</span>
+
+    <span class="n">WEAPON</span> <span class="o">=</span> <span class="s2">&quot;weapon&quot;</span>
+    <span class="n">ARMOR</span> <span class="o">=</span> <span class="s2">&quot;armor&quot;</span>
+    <span class="n">SHIELD</span> <span class="o">=</span> <span class="s2">&quot;shield&quot;</span>
+    <span class="n">ADVENTURING_GEAR</span> <span class="o">=</span> <span class="s2">&quot;adventuring gear&quot;</span>
+    <span class="n">TOOL</span> <span class="o">=</span> <span class="s2">&quot;tool&quot;</span>
+    <span class="n">MOUNT</span> <span class="o">=</span> <span class="s2">&quot;mount&quot;</span>
+    <span class="n">VEHICLE</span> <span class="o">=</span> <span class="s2">&quot;vehicle&quot;</span>
+    <span class="n">TREASURE</span> <span class="o">=</span> <span class="s2">&quot;treasure&quot;</span>
+    <span class="n">WONDROUS_ITEM</span> <span class="o">=</span> <span class="s2">&quot;wondrous item&quot;</span>
+    <span class="n">POTION</span> <span class="o">=</span> <span class="s2">&quot;potion&quot;</span>
+    <span class="n">SCROLL</span> <span class="o">=</span> <span class="s2">&quot;scroll&quot;</span>
+    <span class="n">RING</span> <span class="o">=</span> <span class="s2">&quot;ring&quot;</span>
+    <span class="n">ROD</span> <span class="o">=</span> <span class="s2">&quot;rod&quot;</span>
+    <span class="n">STAFF</span> <span class="o">=</span> <span class="s2">&quot;staff&quot;</span>
+    <span class="n">WAND</span> <span class="o">=</span> <span class="s2">&quot;wand&quot;</span>
+    <span class="n">AMMUNITION</span> <span class="o">=</span> <span class="s2">&quot;ammunition&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ItemRarity">
+<a class="viewcode-back" href="../../../../api/models.html#src.core.models.items.ItemRarity">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ItemRarity</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enumeration of item rarities.&quot;&quot;&quot;</span>
+
+    <span class="n">COMMON</span> <span class="o">=</span> <span class="s2">&quot;common&quot;</span>
+    <span class="n">UNCOMMON</span> <span class="o">=</span> <span class="s2">&quot;uncommon&quot;</span>
+    <span class="n">RARE</span> <span class="o">=</span> <span class="s2">&quot;rare&quot;</span>
+    <span class="n">VERY_RARE</span> <span class="o">=</span> <span class="s2">&quot;very rare&quot;</span>
+    <span class="n">LEGENDARY</span> <span class="o">=</span> <span class="s2">&quot;legendary&quot;</span>
+    <span class="n">ARTIFACT</span> <span class="o">=</span> <span class="s2">&quot;artifact&quot;</span>
+    <span class="n">VARIES</span> <span class="o">=</span> <span class="s2">&quot;varies&quot;</span>
+    <span class="n">UNKNOWN</span> <span class="o">=</span> <span class="s2">&quot;unknown&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ItemProperty">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.models.items.ItemProperty">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ItemProperty</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents an item property.&quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Property name&quot;</span><span class="p">)</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Property description&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WeaponData">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.models.items.WeaponData">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WeaponData</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Weapon-specific data.&quot;&quot;&quot;</span>
+
+    <span class="n">damage</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Damage dice&quot;</span><span class="p">)</span>
+    <span class="n">damage_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;damageType&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Damage type&quot;</span>
+    <span class="p">)</span>
+    <span class="n">properties</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Weapon properties&quot;</span><span class="p">)</span>
+    <span class="nb">range</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Weapon range&quot;</span><span class="p">)</span>
+    <span class="n">weapon_category</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;weaponCategory&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Weapon category&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ArmorData">
+<a class="viewcode-back" href="../../../../api/core.html#src.core.models.items.ArmorData">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ArmorData</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Armor-specific data.&quot;&quot;&quot;</span>
+
+    <span class="n">ac</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Base armor class&quot;</span><span class="p">)</span>
+    <span class="n">ac_from</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;acFrom&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;AC calculation method&quot;</span>
+    <span class="p">)</span>
+    <span class="n">strength</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Strength requirement&quot;</span><span class="p">)</span>
+    <span class="n">stealth</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Stealth disadvantage&quot;</span><span class="p">)</span>
+    <span class="n">armor_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;armorType&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Armor type&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Item">
+<a class="viewcode-back" href="../../../../api/models.html#src.core.models.items.Item">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Item</span><span class="p">(</span><span class="n">BaseContent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a D&amp;D item.&quot;&quot;&quot;</span>
+
+    <span class="nb">type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ItemType</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Item type&quot;</span><span class="p">)</span>
+    <span class="n">rarity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ItemRarity</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Item rarity&quot;</span><span class="p">)</span>
+    <span class="n">weight</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Item weight in pounds&quot;</span>
+    <span class="p">)</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Item value&quot;</span><span class="p">)</span>
+    <span class="n">entries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Item description&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Optional item-specific data</span>
+    <span class="n">weapon_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">WeaponData</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Weapon-specific properties&quot;</span>
+    <span class="p">)</span>
+    <span class="n">armor_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ArmorData</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Armor-specific properties&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Magic item properties</span>
+    <span class="n">requires_attunement</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;reqAttune&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Attunement requirement&quot;</span>
+    <span class="p">)</span>
+    <span class="n">charges</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Item charges&quot;</span>
+    <span class="p">)</span>
+    <span class="n">recharge</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Recharge conditions&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Weapon properties (for backwards compatibility)</span>
+    <span class="n">damage</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Weapon damage&quot;</span><span class="p">)</span>
+    <span class="n">damage_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;damageType&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Weapon damage type&quot;</span>
+    <span class="p">)</span>
+    <span class="n">properties</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Weapon properties&quot;</span><span class="p">)</span>
+    <span class="nb">range</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Weapon range&quot;</span><span class="p">)</span>
+    <span class="n">weapon_category</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;weaponCategory&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Weapon category&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Armor properties (for backwards compatibility)</span>
+    <span class="n">ac</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Armor class&quot;</span><span class="p">)</span>
+    <span class="n">ac_from</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;acFrom&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;AC sources&quot;</span><span class="p">)</span>
+    <span class="n">strength</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Strength requirement&quot;</span><span class="p">)</span>
+    <span class="n">stealth</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Stealth disadvantage&quot;</span><span class="p">)</span>
+    <span class="n">armor_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;armorType&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Armor type&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Item.model_post_init">
+<a class="viewcode-back" href="../../../../api/models.html#src.core.models.items.Item.model_post_init">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">model_post_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Post-process parsed data.&quot;&quot;&quot;</span>
+        <span class="c1"># Create weapon_data from individual weapon fields</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">damage</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">damage_type</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">range</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weapon_category</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weapon_data</span> <span class="o">=</span> <span class="n">WeaponData</span><span class="p">(</span>
+                <span class="n">damage</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">damage</span><span class="p">,</span>
+                <span class="n">damage_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">damage_type</span><span class="p">,</span>
+                <span class="n">properties</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">,</span>
+                <span class="nb">range</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">range</span><span class="p">,</span>
+                <span class="n">weapon_category</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weapon_category</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Create armor_data from individual armor fields</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">ac</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ac_from</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">strength</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stealth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">armor_type</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">armor_data</span> <span class="o">=</span> <span class="n">ArmorData</span><span class="p">(</span>
+                <span class="n">ac</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ac</span><span class="p">,</span>
+                <span class="n">ac_from</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ac_from</span><span class="p">,</span>
+                <span class="n">strength</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">strength</span><span class="p">,</span>
+                <span class="n">stealth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stealth</span><span class="p">,</span>
+                <span class="n">armor_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">armor_type</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Item.is_magic_item">
+<a class="viewcode-back" href="../../../../api/models.html#src.core.models.items.Item.is_magic_item">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_magic_item</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if this is a magic item.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rarity</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">rarity</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ItemRarity</span><span class="o">.</span><span class="n">COMMON</span><span class="p">,</span> <span class="n">ItemRarity</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">requires_attunement</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">charges</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Item.is_weapon">
+<a class="viewcode-back" href="../../../../api/models.html#src.core.models.items.Item.is_weapon">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_weapon</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if this is a weapon.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ItemType</span><span class="o">.</span><span class="n">WEAPON</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">weapon_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">or</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">damage</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Item.is_armor">
+<a class="viewcode-back" href="../../../../api/models.html#src.core.models.items.Item.is_armor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_armor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if this is armor.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ItemType</span><span class="o">.</span><span class="n">ARMOR</span><span class="p">,</span> <span class="n">ItemType</span><span class="o">.</span><span class="n">SHIELD</span><span class="p">]</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">armor_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">ac</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Item.get_type_text">
+<a class="viewcode-back" href="../../../../api/models.html#src.core.models.items.Item.get_type_text">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_type_text</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get formatted item type text.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">ItemType</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Item.get_rarity_text">
+<a class="viewcode-back" href="../../../../api/models.html#src.core.models.items.Item.get_rarity_text">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_rarity_text</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get formatted rarity text.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">rarity</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rarity</span><span class="p">,</span> <span class="n">ItemRarity</span><span class="p">):</span>
+            <span class="n">rarity_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rarity</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rarity_text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rarity</span><span class="p">)</span>
+
+        <span class="c1"># Add attunement requirement</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">requires_attunement</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">requires_attunement</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rarity_text</span><span class="si">}</span><span class="s2"> (requires attunement)&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rarity_text</span><span class="si">}</span><span class="s2"> (requires attunement </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">requires_attunement</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+        <span class="k">return</span> <span class="n">rarity_text</span></div>
+
+
+<div class="viewcode-block" id="Item.get_weight_text">
+<a class="viewcode-back" href="../../../../api/models.html#src.core.models.items.Item.get_weight_text">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_weight_text</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get formatted weight text.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;1 lb.&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="si">}</span><span class="s2"> lbs.&quot;</span></div>
+
+
+<div class="viewcode-block" id="Item.get_value_text">
+<a class="viewcode-back" href="../../../../api/models.html#src.core.models.items.Item.get_value_text">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_value_text</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get formatted value text.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">&gt;=</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="n">gp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">//</span> <span class="mi">100</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gp</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> gp&quot;</span> <span class="k">if</span> <span class="n">gp</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;1 gp&quot;</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+                <span class="n">sp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">//</span> <span class="mi">10</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sp</span><span class="si">}</span><span class="s2"> sp&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> cp&quot;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1"># Handle complex value format</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, 5e2pdf Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

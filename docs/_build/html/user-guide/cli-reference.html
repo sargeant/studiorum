@@ -1,0 +1,489 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLI Reference &mdash; 5e2pdf 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=4f7980c1" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Quick Start Guide" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            5e2pdf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#global-options">Global Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main-commands">Main Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#convert">convert</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#adventure"><code class="docutils literal notranslate"><span class="pre">adventure</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#book"><code class="docutils literal notranslate"><span class="pre">book</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#supplement"><code class="docutils literal notranslate"><span class="pre">supplement</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#list">list</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#files"><code class="docutils literal notranslate"><span class="pre">files</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#content"><code class="docutils literal notranslate"><span class="pre">content</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sources"><code class="docutils literal notranslate"><span class="pre">sources</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#info">info</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">content</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#file"><code class="docutils literal notranslate"><span class="pre">file</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#stats">stats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick">quick</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#legacy">legacy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#serve">serve</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#output-files">Output Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-files">Configuration Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exit-codes">Exit Codes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/renderers.html">Rendering System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models.html">Data Models Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to 5e2pdf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/legacy.html">Legacy System Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">5e2pdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">CLI Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/user-guide/cli-reference.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cli-reference">
+<h1>CLI Reference<a class="headerlink" href="#cli-reference" title="Link to this heading"></a></h1>
+<p>Complete reference for all 5e2pdf command-line options and commands.</p>
+<section id="global-options">
+<h2>Global Options<a class="headerlink" href="#global-options" title="Link to this heading"></a></h2>
+<p>These options are available for all commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span><span class="o">[</span>GLOBAL_OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>COMMAND_OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--verbose</span></code></dt><dd><p>Enable verbose output for debugging</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--help</span></code></dt><dd><p>Show help message and exit</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--version</span></code></dt><dd><p>Show version information</p>
+</dd>
+</dl>
+</section>
+<section id="main-commands">
+<h2>Main Commands<a class="headerlink" href="#main-commands" title="Link to this heading"></a></h2>
+<section id="convert">
+<h3>convert<a class="headerlink" href="#convert" title="Link to this heading"></a></h3>
+<p>Convert D&amp;D content to LaTeX format.</p>
+<p><strong>Subcommands:</strong></p>
+<section id="adventure">
+<h4><code class="docutils literal notranslate"><span class="pre">adventure</span></code><a class="headerlink" href="#adventure" title="Link to this heading"></a></h4>
+<p>Convert adventure JSON files to LaTeX.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>convert<span class="w"> </span>adventure<span class="w"> </span>INPUT_FILE<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">INPUT_FILE</span></code>: Path to the adventure JSON file</p></li>
+</ul>
+<p><strong>Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--output,</span> <span class="pre">-o</span> <span class="pre">PATH</span></code>: Output LaTeX file path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--title</span> <span class="pre">TEXT</span></code>: Custom document title</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--images</span> <span class="pre">/</span> <span class="pre">--no-images</span></code>: Include images (default: no images)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--items</span> <span class="pre">/</span> <span class="pre">--no-items</span></code>: Include item lists (default: include)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--creatures</span> <span class="pre">/</span> <span class="pre">--no-creatures</span></code>: Include creature lists (default: include)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--pdf</span></code>: Compile to PDF after conversion</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>convert<span class="w"> </span>adventure<span class="w"> </span>cos.json<span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--output<span class="w"> </span>curse-of-strahd.tex<span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--title<span class="w"> </span><span class="s2">&quot;Curse of Strahd&quot;</span><span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--images<span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--pdf
+</pre></div>
+</div>
+</section>
+<section id="book">
+<h4><code class="docutils literal notranslate"><span class="pre">book</span></code><a class="headerlink" href="#book" title="Link to this heading"></a></h4>
+<p>Convert sourcebook JSON files to LaTeX.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>convert<span class="w"> </span>book<span class="w"> </span>INPUT_FILE<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">INPUT_FILE</span></code>: Path to the book JSON file</p></li>
+</ul>
+<p><strong>Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--output,</span> <span class="pre">-o</span> <span class="pre">PATH</span></code>: Output LaTeX file path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--title</span> <span class="pre">TEXT</span></code>: Custom document title</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--images</span> <span class="pre">/</span> <span class="pre">--no-images</span></code>: Include images (default: no images)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--index</span> <span class="pre">/</span> <span class="pre">--no-index</span></code>: Include index (default: include)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--pdf</span></code>: Compile to PDF after conversion</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>convert<span class="w"> </span>book<span class="w"> </span>phb.json<span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--title<span class="w"> </span><span class="s2">&quot;Player&#39;s Handbook&quot;</span><span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--images<span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--index
+</pre></div>
+</div>
+</section>
+<section id="supplement">
+<h4><code class="docutils literal notranslate"><span class="pre">supplement</span></code><a class="headerlink" href="#supplement" title="Link to this heading"></a></h4>
+<p>Convert miscellaneous content (spells, creatures, items) to LaTeX.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>convert<span class="w"> </span>supplement<span class="w"> </span>INPUT_FILE<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">INPUT_FILE</span></code>: Path to the supplement JSON file</p></li>
+</ul>
+<p><strong>Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--output,</span> <span class="pre">-o</span> <span class="pre">PATH</span></code>: Output LaTeX file path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--title</span> <span class="pre">TEXT</span></code>: Custom document title</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--type</span> <span class="pre">TEXT</span></code>: Content types to include (can be used multiple times)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--images</span> <span class="pre">/</span> <span class="pre">--no-images</span></code>: Include images (default: no images)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--pdf</span></code>: Compile to PDF after conversion</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>convert<span class="w"> </span>supplement<span class="w"> </span>mixed-content.json<span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--type<span class="w"> </span>spell<span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--type<span class="w"> </span>creature<span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--title<span class="w"> </span><span class="s2">&quot;Spell and Creature Collection&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="list">
+<h3>list<a class="headerlink" href="#list" title="Link to this heading"></a></h3>
+<p>List and discover available content.</p>
+<section id="files">
+<h4><code class="docutils literal notranslate"><span class="pre">files</span></code><a class="headerlink" href="#files" title="Link to this heading"></a></h4>
+<p>List available JSON files in data directories.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>list<span class="w"> </span>files<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--dir,</span> <span class="pre">-d</span> <span class="pre">PATH</span></code>: Directory to scan (default: standard data directories)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--pattern,</span> <span class="pre">-p</span> <span class="pre">TEXT</span></code>: File pattern to match (default: <code class="docutils literal notranslate"><span class="pre">*.json</span></code>)</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>list<span class="w"> </span>files<span class="w"> </span>--dir<span class="w"> </span>./homebrew<span class="w"> </span>--pattern<span class="w"> </span><span class="s2">&quot;*.json&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="content">
+<h4><code class="docutils literal notranslate"><span class="pre">content</span></code><a class="headerlink" href="#content" title="Link to this heading"></a></h4>
+<p>List loaded content items.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>list<span class="w"> </span>content<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--type,</span> <span class="pre">-t</span> <span class="pre">TEXT</span></code>: Content type filter (spell, creature, item, adventure, book)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--source,</span> <span class="pre">-s</span> <span class="pre">TEXT</span></code>: Filter by source book abbreviation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--limit,</span> <span class="pre">-l</span> <span class="pre">INTEGER</span></code>: Limit number of results (default: 20)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--search</span> <span class="pre">TEXT</span></code>: Search content names</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>list<span class="w"> </span>content<span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--type<span class="w"> </span>spell<span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--source<span class="w"> </span><span class="s2">&quot;PHB&quot;</span><span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--search<span class="w"> </span><span class="s2">&quot;fire&quot;</span><span class="w"> </span><span class="se">\\</span>
+<span class="w">  </span>--limit<span class="w"> </span><span class="m">10</span>
+</pre></div>
+</div>
+</section>
+<section id="sources">
+<h4><code class="docutils literal notranslate"><span class="pre">sources</span></code><a class="headerlink" href="#sources" title="Link to this heading"></a></h4>
+<p>List available source books.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>list<span class="w"> </span>sources
+</pre></div>
+</div>
+</section>
+</section>
+<section id="info">
+<h3>info<a class="headerlink" href="#info" title="Link to this heading"></a></h3>
+<p>Show detailed information about content.</p>
+<section id="id1">
+<h4><code class="docutils literal notranslate"><span class="pre">content</span></code><a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<p>Show detailed information about a specific content item.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>info<span class="w"> </span>content<span class="w"> </span>NAME<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NAME</span></code>: Name of the content item</p></li>
+</ul>
+<p><strong>Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--type,</span> <span class="pre">-t</span> <span class="pre">TEXT</span></code>: Content type hint (spell, creature, item)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--source,</span> <span class="pre">-s</span> <span class="pre">TEXT</span></code>: Source book filter</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>info<span class="w"> </span>content<span class="w"> </span><span class="s2">&quot;Fireball&quot;</span><span class="w"> </span>--type<span class="w"> </span>spell
+</pre></div>
+</div>
+</section>
+<section id="file">
+<h4><code class="docutils literal notranslate"><span class="pre">file</span></code><a class="headerlink" href="#file" title="Link to this heading"></a></h4>
+<p>Show information about a JSON file.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>info<span class="w"> </span>file<span class="w"> </span>FILE_PATH
+</pre></div>
+</div>
+<p><strong>Arguments:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">FILE_PATH</span></code>: Path to the JSON file</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>info<span class="w"> </span>file<span class="w"> </span>./data/spells-phb.json
+</pre></div>
+</div>
+</section>
+</section>
+<section id="stats">
+<h3>stats<a class="headerlink" href="#stats" title="Link to this heading"></a></h3>
+<p>Show content statistics and analytics.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>stats<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--by-source</span></code>: Group statistics by source book</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--by-type</span></code>: Group statistics by content type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--detailed</span></code>: Show detailed statistics</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>stats<span class="w"> </span>--by-source<span class="w"> </span>--detailed
+</pre></div>
+</div>
+</section>
+<section id="quick">
+<h3>quick<a class="headerlink" href="#quick" title="Link to this heading"></a></h3>
+<p>Quick single-file conversion with minimal configuration.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>quick<span class="w"> </span>INPUT_FILE<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">INPUT_FILE</span></code>: Path to the JSON file</p></li>
+</ul>
+<p><strong>Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--output,</span> <span class="pre">-o</span> <span class="pre">PATH</span></code>: Output file path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--type,</span> <span class="pre">-t</span> <span class="pre">TEXT</span></code>: Content type hint (auto, adventure, book)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--images</span></code>: Include images</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--pdf</span></code>: Compile to PDF</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>quick<span class="w"> </span>spells.json<span class="w"> </span>--pdf<span class="w"> </span>--images
+</pre></div>
+</div>
+</section>
+<section id="legacy">
+<h3>legacy<a class="headerlink" href="#legacy" title="Link to this heading"></a></h3>
+<p>Run commands with backwards compatibility for json2tex.py workflows.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>legacy<span class="w"> </span><span class="o">[</span>LEGACY_ARGS...<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Legacy Arguments:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--adventure</span></code>: Process as adventure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--book</span></code>: Process as book</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--with-images</span></code> / <code class="docutils literal notranslate"><span class="pre">--no-images</span></code>: Image handling</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--add-items</span></code> / <code class="docutils literal notranslate"><span class="pre">--no-items</span></code>: Include items</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--add-creatures</span></code> / <code class="docutils literal notranslate"><span class="pre">--no-creatures</span></code>: Include creatures</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--help</span></code>: Show legacy help</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--version</span></code>: Show legacy version</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>legacy<span class="w"> </span>--adventure<span class="w"> </span>--with-images<span class="w"> </span>adventure.json<span class="w"> </span>&gt;<span class="w"> </span>output.tex
+</pre></div>
+</div>
+</section>
+<section id="serve">
+<h3>serve<a class="headerlink" href="#serve" title="Link to this heading"></a></h3>
+<p>Start REST API server (future feature).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>5e2pdf<span class="w"> </span>serve<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--host</span> <span class="pre">TEXT</span></code>: Host to bind to (default: localhost)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--port</span> <span class="pre">INTEGER</span></code>: Port to bind to (default: 8000)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--reload</span></code>: Enable auto-reload</p></li>
+</ul>
+</section>
+</section>
+<section id="output-files">
+<h2>Output Files<a class="headerlink" href="#output-files" title="Link to this heading"></a></h2>
+<p>5e2pdf generates LaTeX files with the following characteristics:</p>
+<ul class="simple">
+<li><p><strong>UTF-8 encoding</strong>: Full Unicode support for D&amp;D content</p></li>
+<li><p><strong>XeLaTeX compatible</strong>: Optimized for XeLaTeX compilation</p></li>
+<li><p><strong>Modular structure</strong>: Easy to include in larger documents</p></li>
+<li><p><strong>D&amp;D styling</strong>: Matches official book formatting</p></li>
+</ul>
+<p>To compile the generated LaTeX:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>xelatex<span class="w"> </span>output.tex
+</pre></div>
+</div>
+</section>
+<section id="configuration-files">
+<h2>Configuration Files<a class="headerlink" href="#configuration-files" title="Link to this heading"></a></h2>
+<p>5e2pdf looks for configuration files in these locations:</p>
+<ul class="simple">
+<li><p>Linux/macOS: <code class="docutils literal notranslate"><span class="pre">~/.config/5e2pdf/config.yaml</span></code></p></li>
+<li><p>Windows: <code class="docutils literal notranslate"><span class="pre">%APPDATA%\\5e2pdf\\config.yaml</span></code></p></li>
+<li><p>Project directory: <code class="docutils literal notranslate"><span class="pre">./5e2pdf.yaml</span></code></p></li>
+</ul>
+<p>Example configuration:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Data source configuration</span>
+<span class="nt">data_paths</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;./data&quot;</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;./homebrew&quot;</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;~/Documents/dnd-data&quot;</span>
+
+<span class="c1"># Output configuration</span>
+<span class="nt">output</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">default_directory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;./output&quot;</span>
+<span class="w">  </span><span class="nt">include_images</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">  </span><span class="nt">create_subdirectories</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="c1"># LaTeX configuration</span>
+<span class="nt">latex</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">engine</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;xelatex&quot;</span>
+<span class="w">  </span><span class="nt">additional_packages</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;fontspec&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;microtype&quot;</span>
+
+<span class="c1"># CLI defaults</span>
+<span class="nt">cli</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">default_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<span class="w">  </span><span class="nt">verbose</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</pre></div>
+</div>
+</section>
+<section id="environment-variables">
+<h2>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">5E2PDF_DATA_PATH</span></code>: Additional data directory paths (colon-separated)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">5E2PDF_OUTPUT_DIR</span></code>: Default output directory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">5E2PDF_CACHE_DIR</span></code>: Cache directory location</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">5E2PDF_CONFIG</span></code>: Custom configuration file path</p></li>
+</ul>
+</section>
+<section id="exit-codes">
+<h2>Exit Codes<a class="headerlink" href="#exit-codes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code>: Success</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code>: General error (file not found, parsing error, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code>: Command line argument error</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, 5e2pdf Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
