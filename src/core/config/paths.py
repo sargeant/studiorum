@@ -85,6 +85,15 @@ class PathConfig(BaseModel):
                     type_paths.extend(data_dir.glob("*monster*.json"))
                 elif content_type == ContentType.ITEM:
                     type_paths.extend(data_dir.glob("items*.json"))
+                elif content_type == ContentType.BACKGROUND:
+                    type_paths.extend(data_dir.glob("background*.json"))
+                elif content_type == ContentType.FEAT:
+                    type_paths.extend(data_dir.glob("feat*.json"))
+                elif content_type == ContentType.RACE:
+                    type_paths.extend(data_dir.glob("race*.json"))
+                elif content_type == ContentType.CLASS:
+                    # Classes have a directory structure, already handled above
+                    pass
 
             if type_paths:
                 paths[content_type] = type_paths

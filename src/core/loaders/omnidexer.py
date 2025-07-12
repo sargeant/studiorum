@@ -12,9 +12,13 @@ from ..models.content import BaseContent, ContentType
 from .base import DataLoader, SourceManager
 from .json_loader import (
     create_adventure_loader,
+    create_background_loader,
     create_book_loader,
+    create_class_loader,
     create_creature_loader,
+    create_feat_loader,
     create_item_loader,
+    create_race_loader,
     create_spell_loader,
 )
 from .configurable_source_manager import ConfigurableSourceManager
@@ -85,6 +89,10 @@ class Omnidexer:
             ContentType.ITEM: create_item_loader(),
             ContentType.ADVENTURE: create_adventure_loader(),
             ContentType.BOOK: create_book_loader(),
+            ContentType.FEAT: create_feat_loader(),
+            ContentType.RACE: create_race_loader(),
+            ContentType.BACKGROUND: create_background_loader(),
+            ContentType.CLASS: create_class_loader(),
         }
 
         for content_type, loader in loaders.items():

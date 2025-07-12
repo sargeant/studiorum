@@ -34,9 +34,13 @@ class ContentType(str, Enum):
             ValueError: If content type cannot be determined
         """
         from ..models.adventures import Adventure
+        from ..models.backgrounds import Background
         from ..models.books import Book
+        from ..models.classes import Class
         from ..models.creatures import Creature
+        from ..models.feats import Feat
         from ..models.items import Item
+        from ..models.races import Race
         from ..models.spells import Spell
 
         if isinstance(content, Spell):
@@ -49,6 +53,14 @@ class ContentType(str, Enum):
             return cls.ADVENTURE
         elif isinstance(content, Book):
             return cls.BOOK
+        elif isinstance(content, Feat):
+            return cls.FEAT
+        elif isinstance(content, Race):
+            return cls.RACE
+        elif isinstance(content, Background):
+            return cls.BACKGROUND
+        elif isinstance(content, Class):
+            return cls.CLASS
         else:
             # Try to infer from class name
             class_name = content.__class__.__name__.lower()
