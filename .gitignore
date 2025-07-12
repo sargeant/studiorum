@@ -68,4 +68,5 @@ Thumbs.db
 
 # Generated reports
 validation_report.json
-validation_report.txt
+validation_report.txt.coverage
+coverage.xml
