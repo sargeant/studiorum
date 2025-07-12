@@ -85,9 +85,20 @@ uv sync --extra dev
 ./scripts/build.sh setup
 ```
 
-### 3. Get the 5etools data
+### 3. Configure Content Sources 🎯
 ```bash
-git clone https://github.com/5etools-mirror-3/5etools-src
+# Run the interactive setup wizard (recommended)
+uv run 5e2pdf setup wizard
+
+# Or manually add content sources
+uv run 5e2pdf sources add 5etools-official --type github --url https://github.com/5etools-mirror-3/5etools-src
+uv run 5e2pdf sources add homebrew --type github --url https://github.com/TheGiddyLimit/homebrew
+
+# Add a local directory
+uv run 5e2pdf sources add my-content --type directory --path ~/my-dnd-json
+
+# Download and index content
+uv run 5e2pdf sources scan
 ```
 
 ### 4. Use the Modern CLI ⚡
@@ -148,6 +159,24 @@ uv run 5e2pdf quick spell-data.json --pdf
 
 # Convert with custom title and images
 uv run 5e2pdf quick adventure.json --title "My Adventure" --images --pdf
+```
+
+### **Content Source Management** 📚
+```bash
+# List configured sources
+uv run 5e2pdf sources list
+
+# Get detailed info about a source
+uv run 5e2pdf sources info 5etools-official
+
+# Update all sources (pull latest from GitHub)
+uv run 5e2pdf sources update
+
+# Remove a source
+uv run 5e2pdf sources remove my-source --remove-data
+
+# Set up default sources
+uv run 5e2pdf sources defaults
 ```
 
 ### **Advanced Commands** 🔧
@@ -266,6 +295,7 @@ asyncio.run(example())
 - `pydantic-settings>=2.0.0` - Environment-based configuration
 - `typer>=0.9.0` - Modern CLI framework
 - `rich>=13.0.0` - Rich console output
+- `pyyaml>=6.0.0` - YAML configuration file support
 - `requests>=2.31.0` - HTTP requests for data fetching
 - `beautifulsoup4>=4.12.0` - HTML/XML parsing
 - `colorlog>=6.0.0` - Colored logging output
@@ -351,14 +381,55 @@ uv run mypy src/
 - **Async Architecture** for optimal performance
 - **Extensible Design** ready for new content types and output formats
 
-## Symlinks
+## 🔧 Content Configuration System
 
-The following symlinks connect to external data sources:
-- `5eimages` → `../5e.tools/img`
-- `data` → `../5etools-src/data`  
-- `homebrew` → `../5e.tools/homebrew`
+### Configurable Sources
+5e2pdf now uses a modern content source system instead of hardcoded paths:
 
-These should point to your local 5etools repositories.
+**Supported Source Types:**
+- **GitHub Repositories** - Automatically clone and update from GitHub (recommended)
+- **Local Directories** - Point to existing JSON data directories  
+- **Web URLs** - Fetch content from web sources (future feature)
+
+**Default Configuration:**
+- **5etools Official** - `https://github.com/5etools-mirror-3/5etools-src`
+- **5etools Homebrew** - `https://github.com/TheGiddyLimit/homebrew`
+
+### Configuration Files
+Configuration is stored in platform-appropriate locations:
+- **Linux/macOS**: `~/.config/5e2pdf/config.yaml`
+- **Windows**: `%APPDATA%/5e2pdf/config.yaml`
+- **Cache**: `~/.cache/5e2pdf/` (repositories and indexes)
+
+### Setup Wizard
+```bash
+# Interactive setup with multiple options
+uv run 5e2pdf setup wizard
+
+# Options available:
+# 1. Use defaults (5etools official + homebrew) - RECOMMENDED
+# 2. Custom setup (add your own sources)  
+# 3. Local only (use existing directories)
+```
+
+### Migration from Legacy Symlinks
+If you have existing symlinks (`data`, `5eimages`, `homebrew`), you can:
+
+1. **Use the defaults** (recommended):
+   ```bash
+   uv run 5e2pdf sources defaults
+   ```
+
+2. **Add local directories**:
+   ```bash
+   uv run 5e2pdf sources add local-data --type directory --path ./data
+   uv run 5e2pdf sources add local-homebrew --type directory --path ./homebrew
+   ```
+
+3. **Check configuration status**:
+   ```bash
+   uv run 5e2pdf setup check
+   ```
 
 ## Migration Notes
 
@@ -366,6 +437,7 @@ These should point to your local 5etools repositories.
 - **Legacy scripts still work** - `./scripts/build.sh` and `./scripts/json2tex.sh` are fully functional
 - **New architecture is additive** - old functionality remains while new capabilities are added
 - **Gradual migration** - you can start using new features without changing your existing workflow
+- **Content sources replace symlinks** - No more manual symlink management, sources are configured and managed automatically
 
 ### For Developers  
 - **Modern Python patterns** - Type hints, async/await, dependency injection
