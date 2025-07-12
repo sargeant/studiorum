@@ -118,6 +118,14 @@ class JsonDataLoader(DataLoader[T]):
                 if isinstance(book_data, list) and book_data:
                     return book_data
             return []
+        elif self.content_type == ContentType.FEAT and "feat" in data:
+            return data["feat"]
+        elif self.content_type == ContentType.RACE and "race" in data:
+            return data["race"]
+        elif self.content_type == ContentType.BACKGROUND and "background" in data:
+            return data["background"]
+        elif self.content_type == ContentType.CLASS and "class" in data:
+            return data["class"]
 
         # Generic fallbacks
         content_type_name = self.content_type.value
@@ -790,3 +798,31 @@ def create_book_loader() -> JsonDataLoader:
     from ..models.books import Book
 
     return JsonDataLoader(Book, ContentType.BOOK)
+
+
+def create_feat_loader() -> JsonDataLoader:
+    """Create a feat data loader."""
+    from ..models.feats import Feat
+
+    return JsonDataLoader(Feat, ContentType.FEAT)
+
+
+def create_race_loader() -> JsonDataLoader:
+    """Create a race data loader."""
+    from ..models.races import Race
+
+    return JsonDataLoader(Race, ContentType.RACE)
+
+
+def create_background_loader() -> JsonDataLoader:
+    """Create a background data loader."""
+    from ..models.backgrounds import Background
+
+    return JsonDataLoader(Background, ContentType.BACKGROUND)
+
+
+def create_class_loader() -> JsonDataLoader:
+    """Create a class data loader."""
+    from ..models.classes import Class
+
+    return JsonDataLoader(Class, ContentType.CLASS)
