@@ -112,8 +112,8 @@ class Spell(BaseContent):
     range: SpellRange = Field(..., description="Spell range")
     components: SpellComponent = Field(..., description="Spell components")
     duration: List[SpellDuration] = Field(..., description="Spell duration")
-    entries: List[str] = Field(..., description="Spell description")
-    higher_level: Optional[List[str]] = Field(
+    entries: List[Union[str, Dict[str, Any]]] = Field(..., description="Spell description")
+    higher_level: Optional[List[Union[str, Dict[str, Any]]]] = Field(
         None, alias="entriesHigherLevel", description="At higher levels"
     )
     damage_inflict: Optional[List[str]] = Field(
@@ -212,3 +212,45 @@ class Spell(BaseContent):
                 parts.append("M")
 
         return ", ".join(parts)
+
+    def get_description_text(self) -> str:
+        """Extract text from complex entry structures."""
+        return self._extract_text_from_entries(self.entries)
+
+    def get_higher_level_text(self) -> str:
+        """Extract text from complex higher level entries."""
+        if not self.higher_level:
+            return ""
+        return self._extract_text_from_entries(self.higher_level)
+
+    def _extract_text_from_entries(self, entries) -> str:
+        """Recursively extract text from complex entry structures."""
+        text_parts = []
+        
+        if isinstance(entries, list):
+            for entry in entries:
+                result = self._extract_text_from_entries(entry)
+                if result:
+                    text_parts.append(result)
+        elif isinstance(entries, dict):
+            # Handle different entry types
+            if "entries" in entries:
+                result = self._extract_text_from_entries(entries["entries"])
+                if result:
+                    text_parts.append(result)
+            elif "text" in entries:
+                text_parts.append(entries["text"])
+            # Add name if present (for structured sections)
+            if "name" in entries:
+                text_parts.append(f"**{entries['name']}**")
+            # Handle lists within entries
+            if "items" in entries and isinstance(entries["items"], list):
+                for item in entries["items"]:
+                    if isinstance(item, str):
+                        text_parts.append(f"• {item}")
+                    elif isinstance(item, dict) and "text" in item:
+                        text_parts.append(f"• {item['text']}")
+        elif isinstance(entries, str):
+            text_parts.append(entries)
+        
+        return " ".join(text_parts) if text_parts else ""
