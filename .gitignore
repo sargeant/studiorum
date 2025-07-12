@@ -59,3 +59,13 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Cache directories
+.cache/
+
+# External repositories
+5etools-src/
+
+# Generated reports
+validation_report.json
+validation_report.txt
