@@ -62,6 +62,10 @@ class ConfigurableSourceManager(SourceManager):
             # Search through all source files
             for source_name, files in all_files.items():
                 for file_path in files:
+                    # Skip files that should be filtered at discovery level
+                    if self._should_skip_file_at_discovery(file_path):
+                        continue
+                    
                     file_name = file_path.name.lower()
 
                     # Check if file matches any pattern for this content type
@@ -319,3 +323,60 @@ class ConfigurableSourceManager(SourceManager):
         stats["by_type"] = by_type
 
         return stats
+
+    def _should_skip_file_at_discovery(self, file_path: Path) -> bool:
+        """Check if file should be skipped during discovery phase."""
+        filename = file_path.name.lower()
+        parent_dir = file_path.parent.name.lower()
+        file_path_str = str(file_path).lower()
+
+        # Skip non-JSON files
+        if not filename.endswith(".json"):
+            return True
+
+        # Skip specific directories
+        skip_directories = {
+            "search",           # Search indices
+            "generated",       # Generated metadata
+            "node_modules",    # Node.js dependencies
+            ".git",            # Git directory
+            "test",            # Test files
+            "tests",           # Test files
+            "spec",            # Specification files
+            "docs",            # Documentation
+            "build",           # Build artifacts
+            "dist",            # Distribution files
+        }
+
+        # Check if any parent directory should be skipped
+        path_parts = file_path.parts
+        for part in path_parts:
+            if part.lower() in skip_directories:
+                return True
+
+        # Skip specific file patterns
+        skip_file_patterns = [
+            "cspell.json",
+            "package.json",
+            "package-lock.json",
+            "tsconfig.json",
+            "eslint.config",
+            "jest.config",
+            "webpack.config",
+            "rollup.config",
+            "vite.config",
+            "manifest.json",
+            "sw-",                # Service worker files
+            "gendata-",           # Generated data files
+            "index-",             # Search index files
+            "-template",          # Template files
+            "template-",          # Template files
+            "browserconfig.xml",
+            "open-search.xml",
+        ]
+
+        for pattern in skip_file_patterns:
+            if pattern in filename:
+                return True
+
+        return False
