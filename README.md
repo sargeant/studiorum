@@ -1,70 +1,7 @@
 # D&D 5e to PDF Converter
 
-This project converts structured JSON data from the 5e.tools website into LaTeX documents that match the style of the official D&D 5th edition books.
+This project converts JSON data in the 5e.tools format into LaTeX documents using an RPG theme.
 
-## 🚀 **COMPLETE REFACTORING (All Phases Complete!)**
-
-The codebase has been completely modernized with a professional Python architecture:
-
-### **✅ Phase 1: Foundation** 
-- **Modern data models** with Pydantic v2 validation
-- **Omnidexer system** for efficient content indexing and cross-referencing  
-- **Tag resolution engine** for processing `{@spell Fireball|PHB}` style tags
-- **Type-safe async processing** with comprehensive configuration
-
-### **✅ Phase 2: Rendering System**
-- **Abstract renderer interfaces** for multiple output formats
-- **LaTeX document generation** with D&D-style templates
-- **Content-specific renderers** for spells, creatures, items, adventures
-- **Template system** with customizable layouts and LaTeX formatting
-
-### **✅ Phase 3: Modern CLI & Legacy Migration**
-- **Modern CLI interface** with Typer and Rich output
-- **Backwards compatibility layer** maintaining full legacy support
-- **Performance optimizations** with caching and async processing
-- **Comprehensive testing** with 100+ tests across all components
-
-## Directory Structure
-
-```
-5e2pdf/
-├── src/                         # Python source code (MODERN ARCHITECTURE)
-│   ├── core/                    # Core foundation modules
-│   │   ├── models/              # Pydantic data models (Spell, Creature, Item, etc.)
-│   │   ├── loaders/             # Data loading and omnidexer system
-│   │   ├── indexer/             # Tag resolution and cross-referencing
-│   │   ├── config/              # Configuration and settings management
-│   │   └── cache.py             # Performance caching system
-│   ├── renderers/               # Modern rendering system
-│   │   ├── base/                # Abstract renderer interfaces
-│   │   └── latex/               # LaTeX-specific implementations
-│   ├── cli/                     # Modern CLI interface with Typer
-│   │   ├── commands/            # CLI command modules
-│   │   ├── main.py              # Main CLI application
-│   │   └── compat.py            # Legacy compatibility layer
-│   ├── json2tex.py             # Legacy conversion script (still functional)
-│   ├── gen-latex.py            # Legacy LaTeX utilities
-│   ├── tablejson2tex.py        # Legacy table converter
-│   └── dndtex/                 # Legacy rendering module
-├── assets/                      # Static resources
-│   ├── fonts/                   # D&D-style fonts
-│   ├── images/                  # Images and graphics
-│   └── packages/                # LaTeX packages
-├── json_data/                   # Input JSON files
-│   ├── books/                   # Book JSON files
-│   ├── adventures/              # Adventure JSON files
-│   └── supplements/             # Other content JSON files
-├── output/                      # Generated LaTeX files
-├── build/                       # LaTeX compilation artifacts (gitignored)
-├── scripts/                     # Build automation scripts
-├── tests/                       # Comprehensive test suite (NEW)
-│   ├── unit/                    # Unit tests for core components
-│   ├── integration/             # Integration tests
-│   └── fixtures/                # Test data and fixtures
-├── pyproject.toml              # Modern Python project configuration
-├── REFACTORING_PLAN.md         # Detailed refactoring roadmap
-└── README.md                   # This file
-```
 
 ## Quick Start
 
@@ -150,7 +87,7 @@ asyncio.run(test())
 cd build && xelatex adventure-cos.tex
 ```
 
-## 🆕 Modern CLI Usage
+## Usage
 
 ### **Quick Convert** ⚡
 ```bash
@@ -317,6 +254,48 @@ asyncio.run(example())
 - XeLaTeX (for PDF compilation)
 - D&D fonts (included in `assets/fonts/`)
 
+## Directory Structure
+
+```
+5e2pdf/
+├── src/                         # Python source code (MODERN ARCHITECTURE)
+│   ├── core/                    # Core foundation modules
+│   │   ├── models/              # Pydantic data models (Spell, Creature, Item, etc.)
+│   │   ├── loaders/             # Data loading and omnidexer system
+│   │   ├── indexer/             # Tag resolution and cross-referencing
+│   │   ├── config/              # Configuration and settings management
+│   │   └── cache.py             # Performance caching system
+│   ├── renderers/               # Modern rendering system
+│   │   ├── base/                # Abstract renderer interfaces
+│   │   └── latex/               # LaTeX-specific implementations
+│   ├── cli/                     # Modern CLI interface with Typer
+│   │   ├── commands/            # CLI command modules
+│   │   ├── main.py              # Main CLI application
+│   │   └── compat.py            # Legacy compatibility layer
+│   ├── json2tex.py             # Legacy conversion script (still functional)
+│   ├── gen-latex.py            # Legacy LaTeX utilities
+│   ├── tablejson2tex.py        # Legacy table converter
+│   └── dndtex/                 # Legacy rendering module
+├── assets/                      # Static resources
+│   ├── fonts/                   # D&D-style fonts
+│   ├── images/                  # Images and graphics
+│   └── packages/                # LaTeX packages
+├── json_data/                   # Input JSON files
+│   ├── books/                   # Book JSON files
+│   ├── adventures/              # Adventure JSON files
+│   └── supplements/             # Other content JSON files
+├── output/                      # Generated LaTeX files
+├── build/                       # LaTeX compilation artifacts (gitignored)
+├── scripts/                     # Build automation scripts
+├── tests/                       # Comprehensive test suite (NEW)
+│   ├── unit/                    # Unit tests for core components
+│   ├── integration/             # Integration tests
+│   └── fixtures/                # Test data and fixtures
+├── pyproject.toml              # Modern Python project configuration
+├── REFACTORING_PLAN.md         # Detailed refactoring roadmap
+└── README.md                   # This file
+```
+
 ## Development
 
 ### Running Tests
@@ -411,42 +390,3 @@ uv run 5e2pdf setup wizard
 # 2. Custom setup (add your own sources)  
 # 3. Local only (use existing directories)
 ```
-
-### Migration from Legacy Symlinks
-If you have existing symlinks (`data`, `5eimages`, `homebrew`), you can:
-
-1. **Use the defaults** (recommended):
-   ```bash
-   uv run 5e2pdf sources defaults
-   ```
-
-2. **Add local directories**:
-   ```bash
-   uv run 5e2pdf sources add local-data --type directory --path ./data
-   uv run 5e2pdf sources add local-homebrew --type directory --path ./homebrew
-   ```
-
-3. **Check configuration status**:
-   ```bash
-   uv run 5e2pdf setup check
-   ```
-
-## Migration Notes
-
-### For Existing Users
-- **Legacy scripts still work** - `./scripts/build.sh` and `./scripts/json2tex.sh` are fully functional
-- **New architecture is additive** - old functionality remains while new capabilities are added
-- **Gradual migration** - you can start using new features without changing your existing workflow
-- **Content sources replace symlinks** - No more manual symlink management, sources are configured and managed automatically
-
-### For Developers  
-- **Modern Python patterns** - Type hints, async/await, dependency injection
-- **Comprehensive testing** - 96% test coverage with both unit and integration tests
-- **Extensible design** - Easy to add new content types, output formats, and tag handlers
-- **Clear separation of concerns** - Data models, loading, processing, and rendering are cleanly separated
-
-## Support
-
-- **Issues**: Report bugs or request features in GitHub Issues
-- **Documentation**: See `REFACTORING_PLAN.md` for detailed architecture documentation
-- **Tests**: Run `uv run pytest tests/ -v` to validate your setup

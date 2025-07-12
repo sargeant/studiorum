@@ -201,7 +201,6 @@ class GitHubSourceManager:
         exclude_patterns = {
             "package.json",
             "tsconfig.json",
-            ".json",
             "meta.json",
             "node_modules",
             ".git",

@@ -116,7 +116,6 @@ async def loaded_omnidexer(
 
 
 @pytest.fixture
-async def tag_resolver(loaded_omnidexer) -> TagResolver:
+async def tag_resolver(loaded_omnidexer: Omnidexer) -> TagResolver:
     """Create a tag resolver with loaded data."""
-    omnidexer = await loaded_omnidexer
-    return TagResolver(omnidexer)
+    return TagResolver(loaded_omnidexer)
