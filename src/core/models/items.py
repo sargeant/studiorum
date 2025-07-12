@@ -83,8 +83,8 @@ class Item(BaseContent):
     weight: Optional[Union[int, float]] = Field(
         None, description="Item weight in pounds"
     )
-    value: Optional[Union[int, Dict[str, Any]]] = Field(None, description="Item value")
-    entries: Optional[List[str]] = Field(None, description="Item description")
+    value: Optional[Union[int, float, Dict[str, Any]]] = Field(None, description="Item value")
+    entries: Optional[List[Union[str, Dict[str, Any]]]] = Field(None, description="Item description")
 
     # Optional item-specific data
     weapon_data: Optional[WeaponData] = Field(
@@ -98,7 +98,7 @@ class Item(BaseContent):
     requires_attunement: Optional[Union[bool, str]] = Field(
         None, alias="reqAttune", description="Attunement requirement"
     )
-    charges: Optional[Union[int, Dict[str, Any]]] = Field(
+    charges: Optional[Union[int, str, Dict[str, Any]]] = Field(
         None, description="Item charges"
     )
     recharge: Optional[str] = Field(None, description="Recharge conditions")
@@ -212,17 +212,66 @@ class Item(BaseContent):
         if not self.value:
             return ""
 
-        if isinstance(self.value, int):
-            if self.value >= 100:
-                gp = self.value // 100
-                return f"{gp:,} gp" if gp > 1 else "1 gp"
-            elif self.value >= 10:
-                sp = self.value // 10
-                return f"{sp} sp"
+        if isinstance(self.value, (int, float)):
+            # Convert to copper pieces for calculation
+            copper_value = int(self.value * 100) if isinstance(self.value, float) else self.value
+            
+            if copper_value >= 100:
+                gp = copper_value // 100
+                remainder = copper_value % 100
+                if remainder == 0:
+                    return f"{gp:,} gp" if gp > 1 else "1 gp"
+                else:
+                    return f"{gp} gp, {remainder} cp"
+            elif copper_value >= 10:
+                sp = copper_value // 10
+                remainder = copper_value % 10
+                if remainder == 0:
+                    return f"{sp} sp"
+                else:
+                    return f"{sp} sp, {remainder} cp"
             else:
-                return f"{self.value} cp"
+                return f"{copper_value} cp"
         elif isinstance(self.value, dict):
             # Handle complex value format
             return str(self.value)
 
         return str(self.value)
+
+    def get_description_text(self) -> str:
+        """Extract text from complex entry structures."""
+        if not self.entries:
+            return ""
+        return self._extract_text_from_entries(self.entries)
+
+    def _extract_text_from_entries(self, entries) -> str:
+        """Recursively extract text from complex entry structures."""
+        text_parts = []
+        
+        if isinstance(entries, list):
+            for entry in entries:
+                result = self._extract_text_from_entries(entry)
+                if result:
+                    text_parts.append(result)
+        elif isinstance(entries, dict):
+            # Handle different entry types
+            if "entries" in entries:
+                result = self._extract_text_from_entries(entries["entries"])
+                if result:
+                    text_parts.append(result)
+            elif "text" in entries:
+                text_parts.append(entries["text"])
+            # Add name if present (for structured sections)
+            if "name" in entries:
+                text_parts.append(f"**{entries['name']}**")
+            # Handle lists within entries
+            if "items" in entries and isinstance(entries["items"], list):
+                for item in entries["items"]:
+                    if isinstance(item, str):
+                        text_parts.append(f"• {item}")
+                    elif isinstance(item, dict) and "text" in item:
+                        text_parts.append(f"• {item['text']}")
+        elif isinstance(entries, str):
+            text_parts.append(entries)
+        
+        return " ".join(text_parts) if text_parts else ""

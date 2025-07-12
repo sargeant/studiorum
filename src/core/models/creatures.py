@@ -10,28 +10,44 @@ from .content import BaseContent
 class ArmorClass(BaseModel):
     """Represents creature armor class."""
 
-    ac: int = Field(..., description="Armor class value")
+    ac: Optional[int] = Field(None, description="Armor class value")
     from_: Optional[List[str]] = Field(None, alias="from", description="AC sources")
     condition: Optional[str] = Field(None, description="Conditional AC")
+    special: Optional[str] = Field(None, description="Special AC description")
 
     def __str__(self) -> str:
-        result = str(self.ac)
-        if self.from_:
-            sources = ", ".join(self.from_)
-            result += f" ({sources})"
-        if self.condition:
-            result += f" {self.condition}"
-        return result
+        if self.special:
+            return self.special
+        elif self.ac is not None:
+            result = str(self.ac)
+            if self.from_:
+                sources = ", ".join(self.from_)
+                result += f" ({sources})"
+            if self.condition:
+                result += f" {self.condition}"
+            return result
+        else:
+            return "Unknown"
 
 
 class HitPoints(BaseModel):
     """Represents creature hit points."""
 
-    average: int = Field(..., description="Average hit points")
-    formula: str = Field(..., description="Hit dice formula")
+    average: Optional[int] = Field(None, description="Average hit points")
+    formula: Optional[str] = Field(None, description="Hit dice formula")
+    special: Optional[str] = Field(None, description="Special HP description")
 
     def __str__(self) -> str:
-        return f"{self.average} ({self.formula})"
+        if self.special:
+            return self.special
+        elif self.average is not None and self.formula:
+            return f"{self.average} ({self.formula})"
+        elif self.average is not None:
+            return str(self.average)
+        elif self.formula:
+            return self.formula
+        else:
+            return "Unknown"
 
 
 class Speed(BaseModel):
@@ -84,14 +100,50 @@ class Speed(BaseModel):
 class CreatureType(BaseModel):
     """Represents creature type information."""
 
-    type: str = Field(..., description="Base creature type")
+    type: Union[str, Dict[str, Any]] = Field(..., description="Base creature type")
     subtype: Optional[str] = Field(None, description="Creature subtype")
-    tags: Optional[List[str]] = Field(None, description="Additional tags")
+    tags: Optional[List[Union[str, Dict[str, Any]]]] = Field(None, description="Additional tags")
 
     def __str__(self) -> str:
-        result = self.type
+        if isinstance(self.type, dict):
+            if "choose" in self.type:
+                # Handle choice format
+                choices = self.type["choose"]
+                if isinstance(choices, list):
+                    result = " or ".join(choices)
+                else:
+                    result = str(choices)
+            else:
+                result = str(self.type)
+        else:
+            result = self.type
+            
         if self.subtype:
             result += f" ({self.subtype})"
+        
+        # Handle tags if present
+        if self.tags:
+            tag_texts = []
+            for tag in self.tags:
+                if isinstance(tag, str):
+                    tag_texts.append(tag)
+                elif isinstance(tag, dict):
+                    # Handle complex tag format like {'tag': 'elf', 'prefix': 'High'}
+                    if "tag" in tag:
+                        tag_text = tag["tag"]
+                        if "prefix" in tag:
+                            tag_text = f"{tag['prefix']} {tag_text}"
+                        tag_texts.append(tag_text)
+                    else:
+                        tag_texts.append(str(tag))
+            
+            if tag_texts:
+                if self.subtype:
+                    # Tags are part of subtype
+                    result = result[:-1] + f", {', '.join(tag_texts)})"
+                else:
+                    result += f" ({', '.join(tag_texts)})"
+        
         return result
 
 
@@ -99,10 +151,46 @@ class Ability(BaseModel):
     """Represents a creature ability (trait, action, etc.)."""
 
     name: str = Field(..., description="Ability name")
-    entries: List[str] = Field(..., description="Ability description")
+    entries: List[Union[str, Dict[str, Any]]] = Field(..., description="Ability description")
 
     def __str__(self) -> str:
         return self.name
+
+    def get_description_text(self) -> str:
+        """Extract text from complex entry structures."""
+        return self._extract_text_from_entries(self.entries)
+
+    def _extract_text_from_entries(self, entries) -> str:
+        """Recursively extract text from complex entry structures."""
+        text_parts = []
+        
+        if isinstance(entries, list):
+            for entry in entries:
+                result = self._extract_text_from_entries(entry)
+                if result:
+                    text_parts.append(result)
+        elif isinstance(entries, dict):
+            # Handle different entry types
+            if "entries" in entries:
+                result = self._extract_text_from_entries(entries["entries"])
+                if result:
+                    text_parts.append(result)
+            elif "text" in entries:
+                text_parts.append(entries["text"])
+            # Add name if present (for structured sections)
+            if "name" in entries:
+                text_parts.append(f"**{entries['name']}**")
+            # Handle lists within entries
+            if "items" in entries and isinstance(entries["items"], list):
+                for item in entries["items"]:
+                    if isinstance(item, str):
+                        text_parts.append(f"• {item}")
+                    elif isinstance(item, dict) and "text" in item:
+                        text_parts.append(f"• {item['text']}")
+        elif isinstance(entries, str):
+            text_parts.append(entries)
+        
+        return " ".join(text_parts) if text_parts else ""
 
 
 class Creature(BaseContent):
@@ -112,7 +200,7 @@ class Creature(BaseContent):
     type: Union[str, CreatureType, Dict[str, Any]] = Field(
         ..., description="Creature type"
     )
-    alignment: List[str] = Field(..., description="Creature alignment")
+    alignment: List[Union[str, Dict[str, Any]]] = Field(..., description="Creature alignment")
 
     # Combat stats
     ac: List[Union[int, ArmorClass, Dict[str, Any]]] = Field(
@@ -131,9 +219,9 @@ class Creature(BaseContent):
 
     # Optional attributes
     save: Optional[Dict[str, str]] = Field(None, description="Saving throw bonuses")
-    skill: Optional[Dict[str, str]] = Field(None, description="Skill bonuses")
+    skill: Optional[Dict[str, Union[str, List[Any], Any]]] = Field(None, description="Skill bonuses")
     senses: Optional[List[str]] = Field(None, description="Special senses")
-    passive: Optional[int] = Field(None, description="Passive perception")
+    passive: Optional[Union[int, str]] = Field(None, description="Passive perception")
     languages: Optional[List[str]] = Field(None, description="Known languages")
     cr: Optional[Union[str, int, Dict[str, Any]]] = Field(
         None, description="Challenge rating"
@@ -169,7 +257,7 @@ class Creature(BaseContent):
     vulnerable: Optional[List[Union[str, Dict[str, Any]]]] = Field(
         None, description="Damage vulnerabilities"
     )
-    conditionImmune: Optional[List[str]] = Field(
+    conditionImmune: Optional[List[Union[str, Dict[str, Any]]]] = Field(
         None, description="Condition immunities"
     )
 
@@ -251,13 +339,33 @@ class Creature(BaseContent):
             ", ".join(self.size) if isinstance(self.size, list) else str(self.size)
         )
         type_text = str(self.type)
-        alignment_text = (
-            " ".join(self.alignment)
-            if isinstance(self.alignment, list)
-            else str(self.alignment)
-        )
+        alignment_text = self._get_alignment_text()
 
         return f"{size_text} {type_text}, {alignment_text}"
+
+    def _get_alignment_text(self) -> str:
+        """Get formatted alignment text handling complex structures."""
+        if not self.alignment:
+            return "unaligned"
+        
+        alignment_parts = []
+        for alignment_item in self.alignment:
+            if isinstance(alignment_item, str):
+                alignment_parts.append(alignment_item)
+            elif isinstance(alignment_item, dict):
+                # Handle complex alignment structures like {'alignment': ['N', 'G']}
+                if "alignment" in alignment_item:
+                    sub_alignment = alignment_item["alignment"]
+                    if isinstance(sub_alignment, list):
+                        alignment_parts.extend(sub_alignment)
+                    else:
+                        alignment_parts.append(str(sub_alignment))
+                else:
+                    alignment_parts.append(str(alignment_item))
+            else:
+                alignment_parts.append(str(alignment_item))
+        
+        return " ".join(alignment_parts) if alignment_parts else "unaligned"
 
     def get_ac_text(self) -> str:
         """Get formatted AC text."""
