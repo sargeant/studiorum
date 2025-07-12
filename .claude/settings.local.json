@@ -19,7 +19,9 @@
       "Bash(git add:*)",
       "Bash(chmod:*)",
       "Bash(./bin/5e2pdf:*)",
-      "Bash(uv run:*)"
+      "Bash(uv run:*)",
+      "Bash(git commit:*)",
+      "Bash(uv add:*)"
     ],
     "deny": []
   }
