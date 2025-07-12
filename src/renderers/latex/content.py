@@ -510,8 +510,14 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
         skill_parts = []
         for skill, bonus in skills.items():
-            sign = "+" if bonus >= 0 else ""
-            skill_parts.append(f"{skill.title()} {sign}{bonus}")
+            # Handle both string ("+5") and integer (5) format
+            if isinstance(bonus, str):
+                # Already formatted with sign
+                skill_parts.append(f"{skill.title()} {bonus}")
+            else:
+                # Integer format, add sign
+                sign = "+" if bonus >= 0 else ""
+                skill_parts.append(f"{skill.title()} {sign}{bonus}")
 
         return ", ".join(skill_parts) if skill_parts else None
 
