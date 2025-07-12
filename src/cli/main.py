@@ -50,6 +50,7 @@ def main(
         import logging
 
         logging.basicConfig(level=logging.DEBUG)
+        logging.info("Enabled verbose mode")
 
 
 async def get_omnidexer() -> Omnidexer:
