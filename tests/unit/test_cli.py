@@ -46,8 +46,6 @@ class TestCLIMain:
         assert "not found" in result.stdout
 
 
-
-
 class TestCLICommands:
     """Tests for CLI command modules."""
 
@@ -130,7 +128,6 @@ class TestCLIIntegration:
 
             # Should not crash (though it might fail due to missing dependencies)
             assert isinstance(result.exit_code, int)
-
 
 
 class TestCLIFileOperations:

@@ -112,7 +112,9 @@ class Spell(BaseContent):
     range: SpellRange = Field(..., description="Spell range")
     components: SpellComponent = Field(..., description="Spell components")
     duration: List[SpellDuration] = Field(..., description="Spell duration")
-    entries: List[Union[str, Dict[str, Any]]] = Field(..., description="Spell description")
+    entries: List[Union[str, Dict[str, Any]]] = Field(
+        ..., description="Spell description"
+    )
     higher_level: Optional[List[Union[str, Dict[str, Any]]]] = Field(
         None, alias="entriesHigherLevel", description="At higher levels"
     )
@@ -226,7 +228,7 @@ class Spell(BaseContent):
     def _extract_text_from_entries(self, entries) -> str:
         """Recursively extract text from complex entry structures."""
         text_parts = []
-        
+
         if isinstance(entries, list):
             for entry in entries:
                 result = self._extract_text_from_entries(entry)
@@ -252,5 +254,5 @@ class Spell(BaseContent):
                         text_parts.append(f"• {item['text']}")
         elif isinstance(entries, str):
             text_parts.append(entries)
-        
+
         return " ".join(text_parts) if text_parts else ""

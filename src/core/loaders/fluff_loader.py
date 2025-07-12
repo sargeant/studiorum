@@ -24,7 +24,7 @@ class FluffDataLoader(DataLoader[BaseFluff]):
         }
         self.fluff_key_map = {
             ContentType.SPELL: "spellFluff",
-            ContentType.CREATURE: "monsterFluff", 
+            ContentType.CREATURE: "monsterFluff",
             ContentType.ITEM: "itemFluff",
         }
 
@@ -43,19 +43,19 @@ class FluffDataLoader(DataLoader[BaseFluff]):
             # Parse each fluff item liberally
             parsed_fluff = []
             model_class = self.fluff_model_map.get(self.content_type, BaseFluff)
-            
+
             for item in fluff_list:
                 try:
                     # Ensure basic required fields
                     if not item.get("name"):
                         logger.debug(f"Skipping fluff item without name in {path}")
                         continue
-                    
+
                     # Liberal parsing - if validation fails, try to extract what we can
                     fluff_item = self._parse_fluff_item(item, model_class, path)
                     if fluff_item:
                         parsed_fluff.append(fluff_item)
-                        
+
                 except Exception as e:
                     logger.debug(
                         f"Skipping fluff item {item.get('name', 'unknown')} in {path}: {e}"
@@ -76,7 +76,9 @@ class FluffDataLoader(DataLoader[BaseFluff]):
     def get_model_class(self) -> Type[BaseFluff]:
         return self.fluff_model_map.get(self.content_type, BaseFluff)
 
-    def _extract_fluff_content(self, data: Dict[str, Any], path: Path) -> List[Dict[str, Any]]:
+    def _extract_fluff_content(
+        self, data: Dict[str, Any], path: Path
+    ) -> List[Dict[str, Any]]:
         """Extract fluff content from various JSON structures."""
         # Try specific fluff keys first
         fluff_key = self.fluff_key_map.get(self.content_type)
@@ -88,9 +90,9 @@ class FluffDataLoader(DataLoader[BaseFluff]):
         # Try generic patterns
         for possible_key in [
             f"{self.content_type.value}Fluff",
-            f"{self.content_type.value}fluff", 
+            f"{self.content_type.value}fluff",
             "fluff",
-            "fluffData"
+            "fluffData",
         ]:
             if possible_key in data:
                 content = data[possible_key]
@@ -100,13 +102,17 @@ class FluffDataLoader(DataLoader[BaseFluff]):
         # Look for any key ending with "Fluff"
         for key, value in data.items():
             if key.lower().endswith("fluff") and isinstance(value, list):
-                logger.debug(f"Found fluff data in key '{key}' for {self.content_type.value}")
+                logger.debug(
+                    f"Found fluff data in key '{key}' for {self.content_type.value}"
+                )
                 return value
 
         logger.debug(f"No fluff content found for {self.content_type.value} in {path}")
         return []
 
-    def _parse_fluff_item(self, item: Dict[str, Any], model_class: Type[BaseFluff], path: Path) -> BaseFluff:
+    def _parse_fluff_item(
+        self, item: Dict[str, Any], model_class: Type[BaseFluff], path: Path
+    ) -> BaseFluff:
         """Parse fluff item with liberal validation."""
         try:
             # First try normal validation
@@ -115,12 +121,14 @@ class FluffDataLoader(DataLoader[BaseFluff]):
             # If that fails, try liberal parsing
             return self._liberal_parse(item, model_class, path)
 
-    def _liberal_parse(self, item: Dict[str, Any], model_class: Type[BaseFluff], path: Path) -> BaseFluff:
+    def _liberal_parse(
+        self, item: Dict[str, Any], model_class: Type[BaseFluff], path: Path
+    ) -> BaseFluff:
         """Liberal parsing that extracts what it can and ignores errors."""
         # Start with basic required fields
         parsed_item = {
             "name": item.get("name", "Unknown"),
-            "source": item.get("source", "Unknown")
+            "source": item.get("source", "Unknown"),
         }
 
         # Try to extract entries
@@ -140,19 +148,23 @@ class FluffDataLoader(DataLoader[BaseFluff]):
             parsed_item["images"] = item["images"]
 
         # Store any additional data for potential future use
-        extra_data = {k: v for k, v in item.items() 
-                     if k not in ["name", "source", "entries", "images"]}
+        extra_data = {
+            k: v
+            for k, v in item.items()
+            if k not in ["name", "source", "entries", "images"]
+        }
         if extra_data:
             parsed_item["extra_data"] = extra_data
 
         try:
             return model_class.model_validate(parsed_item)
         except Exception as e:
-            logger.debug(f"Even liberal parsing failed for {item.get('name')} in {path}: {e}")
+            logger.debug(
+                f"Even liberal parsing failed for {item.get('name')} in {path}: {e}"
+            )
             # Create minimal valid object
             return model_class(
-                name=item.get("name", "Unknown"),
-                source=item.get("source", "Unknown")
+                name=item.get("name", "Unknown"), source=item.get("source", "Unknown")
             )
 
 

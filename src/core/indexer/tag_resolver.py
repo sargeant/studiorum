@@ -167,7 +167,7 @@ class TagResolver:
         # For adventure tags, use display_text if provided, otherwise name
         display = tag.display_text or tag.name
         page_num = tag.page
-        
+
         if page_num:
             return f"{self._escape_latex(display)} (p. {page_num})"
         return self._escape_latex(display)
@@ -177,14 +177,14 @@ class TagResolver:
         # For book tags, if display_text is numeric, treat it as page number
         page_num = tag.page
         display = tag.name
-        
+
         # Check if display_text looks like a page number
         if tag.display_text and tag.display_text.isdigit():
             page_num = tag.display_text
         elif tag.display_text:
             # If display_text is not numeric, use it as the display name
             display = tag.display_text
-            
+
         if page_num:
             return f"{self._escape_latex(display)}, p. {page_num}"
         return self._escape_latex(display)
@@ -286,11 +286,11 @@ class TagResolver:
 
         # Must escape backslashes first to avoid double-escaping
         result = text.replace("\\", "\\textbackslash{}")
-        
+
         # Then escape other special characters
         latex_chars = {
             "&": "\\&",
-            "%": "\\%", 
+            "%": "\\%",
             "$": "\\$",
             "#": "\\#",
             "^": "\\textasciicircum{}",

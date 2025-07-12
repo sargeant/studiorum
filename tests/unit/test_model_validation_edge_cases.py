@@ -8,7 +8,13 @@ import pytest
 from typing import Any, Dict
 
 from src.core.models.spells import Spell
-from src.core.models.creatures import Creature, CreatureType, HitPoints, ArmorClass, Ability
+from src.core.models.creatures import (
+    Creature,
+    CreatureType,
+    HitPoints,
+    ArmorClass,
+    Ability,
+)
 from src.core.models.items import Item
 from src.core.models.adventures import Adventure
 from src.core.models.books import Book
@@ -41,17 +47,17 @@ class TestModelValidationEdgeCases:
                                 "type": "list",
                                 "items": [
                                     "List item 1",
-                                    {"text": "List item with text key"}
-                                ]
-                            }
-                        ]
-                    }
-                ]
+                                    {"text": "List item with text key"},
+                                ],
+                            },
+                        ],
+                    },
+                ],
             },
             # Table structures
             {
                 "name": "Table Spell",
-                "source": "TEST", 
+                "source": "TEST",
                 "level": 2,
                 "school": "D",
                 "time": [{"number": 1, "unit": "action"}],
@@ -64,12 +70,9 @@ class TestModelValidationEdgeCases:
                         "type": "table",
                         "caption": "Test Table",
                         "colLabels": ["Roll", "Effect"],
-                        "rows": [
-                            ["1-2", "Effect A"],
-                            ["3-4", "Effect B"]
-                        ]
-                    }
-                ]
+                        "rows": [["1-2", "Effect A"], ["3-4", "Effect B"]],
+                    },
+                ],
             },
             # Quote structures
             {
@@ -85,22 +88,22 @@ class TestModelValidationEdgeCases:
                     {
                         "type": "quote",
                         "entries": ["Magic is just science we don't understand yet."],
-                        "by": "Test Wizard"
+                        "by": "Test Wizard",
                     },
-                    "Rest of spell description"
-                ]
-            }
+                    "Rest of spell description",
+                ],
+            },
         ]
-        
+
         for i, spell_data in enumerate(test_cases):
             spell = Spell.model_validate(spell_data)
             assert spell.name == spell_data["name"]
-            
+
             # Test text extraction
             description = spell.get_description_text()
             assert description, f"Failed to extract description for test case {i}"
             assert len(description) > 10, f"Description too short for test case {i}"
-            
+
         print(f"✅ {len(test_cases)} complex spell entry structures validated")
 
     def test_spell_higher_level_variations(self):
@@ -112,7 +115,9 @@ class TestModelValidationEdgeCases:
                     {
                         "type": "entries",
                         "name": "At Higher Levels",
-                        "entries": ["When you cast this spell using a spell slot of 2nd level or higher..."]
+                        "entries": [
+                            "When you cast this spell using a spell slot of 2nd level or higher..."
+                        ],
                     }
                 ]
             },
@@ -126,12 +131,9 @@ class TestModelValidationEdgeCases:
                             "Base description",
                             {
                                 "type": "list",
-                                "items": [
-                                    "Improvement 1",
-                                    "Improvement 2"
-                                ]
-                            }
-                        ]
+                                "items": ["Improvement 1", "Improvement 2"],
+                            },
+                        ],
                     }
                 ]
             },
@@ -139,19 +141,19 @@ class TestModelValidationEdgeCases:
             {
                 "entriesHigherLevel": [
                     {
-                        "type": "entries", 
+                        "type": "entries",
                         "name": "At 2nd Level",
-                        "entries": ["Level 2 improvement"]
+                        "entries": ["Level 2 improvement"],
                     },
                     {
                         "type": "entries",
-                        "name": "At 5th Level", 
-                        "entries": ["Level 5 improvement"]
-                    }
+                        "name": "At 5th Level",
+                        "entries": ["Level 5 improvement"],
+                    },
                 ]
-            }
+            },
         ]
-        
+
         base_spell = {
             "name": "Higher Level Test",
             "source": "TEST",
@@ -161,16 +163,16 @@ class TestModelValidationEdgeCases:
             "range": {"type": "self"},
             "components": {"v": True},
             "duration": [{"type": "instant"}],
-            "entries": ["Base spell description"]
+            "entries": ["Base spell description"],
         }
-        
+
         for i, higher_level_data in enumerate(test_cases):
             spell_data = {**base_spell, **higher_level_data}
             spell = Spell.model_validate(spell_data)
-            
+
             higher_text = spell.get_higher_level_text()
             assert higher_text, f"Failed to extract higher level text for test case {i}"
-            
+
         print(f"✅ {len(test_cases)} higher level spell variations validated")
 
     def test_creature_type_variations(self):
@@ -183,35 +185,51 @@ class TestModelValidationEdgeCases:
             # Object with tags
             {"type": {"type": "humanoid", "tags": ["elf", "wizard"]}},
             # Object with complex tags
-            {"type": {"type": "humanoid", "tags": [{"tag": "elf", "prefix": "High"}, "wizard"]}},
+            {
+                "type": {
+                    "type": "humanoid",
+                    "tags": [{"tag": "elf", "prefix": "High"}, "wizard"],
+                }
+            },
             # Choice format
             {"type": {"choose": ["celestial", "fiend"]}},
             # Mixed format
-            {"type": {"type": "humanoid", "subtype": "elf", "tags": [{"tag": "noble", "prefix": "High"}]}}
+            {
+                "type": {
+                    "type": "humanoid",
+                    "subtype": "elf",
+                    "tags": [{"tag": "noble", "prefix": "High"}],
+                }
+            },
         ]
-        
+
         for i, type_data in enumerate(test_cases):
             creature_type = CreatureType.model_validate(type_data["type"])
             type_str = str(creature_type)
             assert type_str, f"Failed to generate type string for test case {i}"
             assert len(type_str) > 0, f"Empty type string for test case {i}"
-            
+
         print(f"✅ {len(test_cases)} creature type variations validated")
 
     def test_creature_alignment_variations(self):
         """Test creature alignment validation with various formats."""
         base_creature = {
             "name": "Test Creature",
-            "source": "TEST", 
+            "source": "TEST",
             "size": ["M"],
             "type": "humanoid",
             "ac": [{"ac": 10}],
             "hp": {"average": 10, "formula": "2d8+1"},
             "speed": {"walk": 30},
-            "str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10,
-            "cr": "1"
+            "str": 10,
+            "dex": 10,
+            "con": 10,
+            "int": 10,
+            "wis": 10,
+            "cha": 10,
+            "cr": "1",
         }
-        
+
         alignment_test_cases = [
             # Simple alignments
             {"alignment": ["L", "G"]},
@@ -222,16 +240,18 @@ class TestModelValidationEdgeCases:
             {"alignment": [{"alignment": ["N", "G"]}, {"alignment": ["N", "E"]}]},
             # Choice alignments
             {"alignment": [{"special": "any alignment"}]},
-            {"alignment": [{"choose": [["L", "G"], ["L", "N"]]}]}
+            {"alignment": [{"choose": [["L", "G"], ["L", "N"]]}]},
         ]
-        
+
         for i, alignment_data in enumerate(alignment_test_cases):
             creature_data = {**base_creature, **alignment_data}
             creature = Creature.model_validate(creature_data)
-            
+
             alignment_text = creature._get_alignment_text()
-            assert alignment_text, f"Failed to generate alignment text for test case {i}"
-            
+            assert (
+                alignment_text
+            ), f"Failed to generate alignment text for test case {i}"
+
         print(f"✅ {len(alignment_test_cases)} creature alignment variations validated")
 
     def test_creature_hp_variations(self):
@@ -246,15 +266,17 @@ class TestModelValidationEdgeCases:
             # Formula only (should work with optional average)
             {"formula": "1d4"},
             # Average only (should work with optional formula)
-            {"average": 25}
+            {"average": 25},
         ]
-        
+
         for i, hp_data in enumerate(test_cases):
             hp = HitPoints.model_validate(hp_data)
             hp_str = str(hp)
             assert hp_str, f"Failed to generate HP string for test case {i}"
-            assert hp_str != "Unknown", f"HP string defaulted to Unknown for test case {i}"
-            
+            assert (
+                hp_str != "Unknown"
+            ), f"HP string defaulted to Unknown for test case {i}"
+
         print(f"✅ {len(test_cases)} creature HP variations validated")
 
     def test_creature_ac_variations(self):
@@ -269,15 +291,17 @@ class TestModelValidationEdgeCases:
             # Conditional AC
             {"ac": 15, "condition": "with mage armor"},
             # Complex special format
-            {"special": "13 + Dex modifier (leather armor)"}
+            {"special": "13 + Dex modifier (leather armor)"},
         ]
-        
+
         for i, ac_data in enumerate(test_cases):
             ac = ArmorClass.model_validate(ac_data)
             ac_str = str(ac)
             assert ac_str, f"Failed to generate AC string for test case {i}"
-            assert ac_str != "Unknown", f"AC string defaulted to Unknown for test case {i}"
-            
+            assert (
+                ac_str != "Unknown"
+            ), f"AC string defaulted to Unknown for test case {i}"
+
         print(f"✅ {len(test_cases)} creature AC variations validated")
 
     def test_creature_ability_complex_entries(self):
@@ -286,7 +310,7 @@ class TestModelValidationEdgeCases:
             # Simple ability
             {
                 "name": "Simple Ability",
-                "entries": ["This is a simple ability description."]
+                "entries": ["This is a simple ability description."],
             },
             # Complex nested ability
             {
@@ -298,10 +322,10 @@ class TestModelValidationEdgeCases:
                         "items": [
                             "Effect 1",
                             "Effect 2",
-                            {"text": "Effect with text key"}
-                        ]
-                    }
-                ]
+                            {"text": "Effect with text key"},
+                        ],
+                    },
+                ],
             },
             # Ability with attack information
             {
@@ -311,19 +335,21 @@ class TestModelValidationEdgeCases:
                     {
                         "type": "entries",
                         "name": "Hit",
-                        "entries": ["7 (1d8 + 3) slashing damage."]
-                    }
-                ]
-            }
+                        "entries": ["7 (1d8 + 3) slashing damage."],
+                    },
+                ],
+            },
         ]
-        
+
         for i, ability_data in enumerate(test_cases):
             ability = Ability.model_validate(ability_data)
             assert ability.name == ability_data["name"]
-            
+
             description = ability.get_description_text()
-            assert description, f"Failed to extract description for ability test case {i}"
-            
+            assert (
+                description
+            ), f"Failed to extract description for ability test case {i}"
+
         print(f"✅ {len(test_cases)} creature ability variations validated")
 
     def test_item_complex_entries(self):
@@ -341,15 +367,15 @@ class TestModelValidationEdgeCases:
                         "type": "list",
                         "items": [
                             "Property 1: +1 bonus to attack and damage rolls",
-                            "Property 2: Deals extra radiant damage"
-                        ]
-                    }
-                ]
+                            "Property 2: Deals extra radiant damage",
+                        ],
+                    },
+                ],
             },
             # Item with tables
             {
                 "name": "Random Item",
-                "source": "TEST", 
+                "source": "TEST",
                 "type": "G",
                 "entries": [
                     "Roll on the table below:",
@@ -360,10 +386,10 @@ class TestModelValidationEdgeCases:
                         "rows": [
                             ["1-2", "Effect A"],
                             ["3-4", "Effect B"],
-                            ["5-6", "Effect C"]
-                        ]
-                    }
-                ]
+                            ["5-6", "Effect C"],
+                        ],
+                    },
+                ],
             },
             # Item with variant rules
             {
@@ -380,28 +406,30 @@ class TestModelValidationEdgeCases:
                             {
                                 "type": "list",
                                 "style": "list-hang-notitle",
-                                "items": ["Variant property 1", "Variant property 2"]
-                            }
-                        ]
-                    }
-                ]
-            }
+                                "items": ["Variant property 1", "Variant property 2"],
+                            },
+                        ],
+                    },
+                ],
+            },
         ]
-        
+
         for i, item_data in enumerate(test_cases):
             item = Item.model_validate(item_data)
             assert item.name == item_data["name"]
-            
+
             if item.entries:
                 description = item.get_description_text()
-                assert description, f"Failed to extract description for item test case {i}"
-                
+                assert (
+                    description
+                ), f"Failed to extract description for item test case {i}"
+
         print(f"✅ {len(test_cases)} item entry variations validated")
 
     def test_source_format_variations(self):
         """Test that various source formats are handled correctly."""
         from src.core.models.content import Source
-        
+
         test_cases = [
             # String source
             "PHB",
@@ -410,9 +438,14 @@ class TestModelValidationEdgeCases:
             # Full source object
             {"abbreviation": "DMG", "name": "Dungeon Master's Guide", "page": 123},
             # Source with additional data
-            {"abbreviation": "XGE", "name": "Xanathar's Guide", "page": 45, "url": "test"}
+            {
+                "abbreviation": "XGE",
+                "name": "Xanathar's Guide",
+                "page": 45,
+                "url": "test",
+            },
         ]
-        
+
         for i, source_data in enumerate(test_cases):
             if isinstance(source_data, str):
                 # Test string source conversion in model validation
@@ -425,14 +458,14 @@ class TestModelValidationEdgeCases:
                     "range": {"type": "self"},
                     "components": {"v": True},
                     "duration": [{"type": "instant"}],
-                    "entries": ["Test"]
+                    "entries": ["Test"],
                 }
                 spell = Spell.model_validate(spell_data)
                 assert spell.source.abbreviation == source_data
             else:
                 source = Source.model_validate(source_data)
                 assert source.abbreviation == source_data["abbreviation"]
-                
+
         print(f"✅ {len(test_cases)} source format variations validated")
 
     def test_damage_resistance_immunity_formats(self):
@@ -441,34 +474,56 @@ class TestModelValidationEdgeCases:
             "name": "Test Creature",
             "source": "TEST",
             "size": ["M"],
-            "type": "humanoid", 
+            "type": "humanoid",
             "alignment": ["N"],
             "ac": [{"ac": 10}],
             "hp": {"average": 10, "formula": "2d8+1"},
             "speed": {"walk": 30},
-            "str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10,
-            "cr": "1"
+            "str": 10,
+            "dex": 10,
+            "con": 10,
+            "int": 10,
+            "wis": 10,
+            "cha": 10,
+            "cr": "1",
         }
-        
+
         resistance_test_cases = [
             # Simple resistances
             {"resist": ["fire", "cold"]},
             # Complex resistance with conditions
-            {"resist": [{"resist": ["bludgeoning", "piercing"], "note": "from nonmagical attacks"}]},
+            {
+                "resist": [
+                    {
+                        "resist": ["bludgeoning", "piercing"],
+                        "note": "from nonmagical attacks",
+                    }
+                ]
+            },
             # Immunities with special conditions
             {"immune": ["poison"], "conditionImmune": ["poisoned"]},
             # Complex condition immunities
-            {"conditionImmune": [{"conditionImmune": ["charmed"], "note": "while raging"}]},
+            {
+                "conditionImmune": [
+                    {"conditionImmune": ["charmed"], "note": "while raging"}
+                ]
+            },
             # Mixed formats
-            {"resist": ["fire"], "immune": [{"special": "damage from spells"}], "vulnerable": ["cold"]}
+            {
+                "resist": ["fire"],
+                "immune": [{"special": "damage from spells"}],
+                "vulnerable": ["cold"],
+            },
         ]
-        
+
         for i, resistance_data in enumerate(resistance_test_cases):
             creature_data = {**base_creature, **resistance_data}
             creature = Creature.model_validate(creature_data)
             assert creature.name == "Test Creature"
-            
-        print(f"✅ {len(resistance_test_cases)} damage resistance/immunity variations validated")
+
+        print(
+            f"✅ {len(resistance_test_cases)} damage resistance/immunity variations validated"
+        )
 
     def test_skill_bonus_formats(self):
         """Test creature skill bonus validation with various formats."""
@@ -478,31 +533,42 @@ class TestModelValidationEdgeCases:
             # Mixed string and integer formats
             {"skill": {"athletics": "+2", "acrobatics": "3"}},
             # Complex skill formats with choices
-            {"skill": {"other": [{"oneOf": {"arcana": "+7", "history": "+7", "religion": "+7"}}]}},
+            {
+                "skill": {
+                    "other": [
+                        {"oneOf": {"arcana": "+7", "history": "+7", "religion": "+7"}}
+                    ]
+                }
+            },
             # Skill with expertise notation
             {"skill": {"insight": "+5", "persuasion": "+8 (expertise)"}},
             # Empty skills (should be valid)
-            {"skill": {}}
+            {"skill": {}},
         ]
-        
+
         base_creature = {
             "name": "Test Creature",
             "source": "TEST",
             "size": ["M"],
             "type": "humanoid",
-            "alignment": ["N"], 
+            "alignment": ["N"],
             "ac": [{"ac": 10}],
             "hp": {"average": 10, "formula": "2d8+1"},
             "speed": {"walk": 30},
-            "str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10,
-            "cr": "1"
+            "str": 10,
+            "dex": 10,
+            "con": 10,
+            "int": 10,
+            "wis": 10,
+            "cha": 10,
+            "cr": "1",
         }
-        
+
         for i, skill_data in enumerate(test_cases):
             creature_data = {**base_creature, **skill_data}
             creature = Creature.model_validate(creature_data)
             assert creature.name == "Test Creature"
-            
+
         print(f"✅ {len(test_cases)} skill bonus format variations validated")
 
     def test_passive_perception_formats(self):
@@ -515,11 +581,11 @@ class TestModelValidationEdgeCases:
             # String with number
             {"passive": "15 (Perception)"},
             # Complex calculation string
-            {"passive": "10 + Wisdom modifier + proficiency bonus"}
+            {"passive": "10 + Wisdom modifier + proficiency bonus"},
         ]
-        
+
         base_creature = {
-            "name": "Test Creature", 
+            "name": "Test Creature",
             "source": "TEST",
             "size": ["M"],
             "type": "humanoid",
@@ -527,13 +593,18 @@ class TestModelValidationEdgeCases:
             "ac": [{"ac": 10}],
             "hp": {"average": 10, "formula": "2d8+1"},
             "speed": {"walk": 30},
-            "str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10,
-            "cr": "1"
+            "str": 10,
+            "dex": 10,
+            "con": 10,
+            "int": 10,
+            "wis": 10,
+            "cha": 10,
+            "cr": "1",
         }
-        
+
         for i, passive_data in enumerate(test_cases):
             creature_data = {**base_creature, **passive_data}
-            
+
             # For string passive values, we expect validation warnings but not failures
             try:
                 creature = Creature.model_validate(creature_data)
@@ -543,7 +614,7 @@ class TestModelValidationEdgeCases:
                 # String passive values may cause validation errors, which is expected
                 # We're testing that the system handles them gracefully
                 pass
-                
+
         print(f"✅ {len(test_cases)} passive perception format variations tested")
 
     def test_challenge_rating_formats(self):
@@ -560,27 +631,34 @@ class TestModelValidationEdgeCases:
             # Variable CR
             {"cr": "1-4"},
             # Special CR format
-            {"cr": {"special": "Equal to summoner's level"}}
+            {"cr": {"special": "Equal to summoner's level"}},
         ]
-        
+
         base_creature = {
             "name": "Test Creature",
-            "source": "TEST", 
+            "source": "TEST",
             "size": ["M"],
             "type": "humanoid",
             "alignment": ["N"],
             "ac": [{"ac": 10}],
             "hp": {"average": 10, "formula": "2d8+1"},
             "speed": {"walk": 30},
-            "str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10
+            "str": 10,
+            "dex": 10,
+            "con": 10,
+            "int": 10,
+            "wis": 10,
+            "cha": 10,
         }
-        
+
         for i, cr_data in enumerate(test_cases):
             creature_data = {**base_creature, **cr_data}
             creature = Creature.model_validate(creature_data)
-            
+
             cr_text = creature.get_cr_text()
             assert cr_text, f"Failed to generate CR text for test case {i}"
-            assert cr_text != "Unknown", f"CR text defaulted to Unknown for test case {i}"
-            
+            assert (
+                cr_text != "Unknown"
+            ), f"CR text defaulted to Unknown for test case {i}"
+
         print(f"✅ {len(test_cases)} challenge rating format variations validated")

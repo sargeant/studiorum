@@ -122,7 +122,6 @@ except ImportError:
         rprint("[yellow]Stats command not yet implemented[/yellow]")
 
 
-
 @app.command("serve")
 def serve_api(
     host: str = typer.Option("localhost", "--host", help="Host to bind to"),

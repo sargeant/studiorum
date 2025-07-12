@@ -1,6 +1,5 @@
 """Tests for Omnidexer system."""
 
-
 import pytest
 
 from src.core.loaders.omnidexer import IndexEntry, Omnidexer

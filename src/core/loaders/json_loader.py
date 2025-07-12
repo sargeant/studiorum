@@ -38,12 +38,14 @@ class JsonDataLoader(DataLoader[T]):
                 try:
                     # Skip copy-template items that reference other content
                     if self._is_copy_template(item):
-                        logger.debug(f"Skipping copy-template item {item.get('name', 'unknown')} in {path}")
+                        logger.debug(
+                            f"Skipping copy-template item {item.get('name', 'unknown')} in {path}"
+                        )
                         continue
-                    
+
                     # Ensure source information is present
                     item = self._ensure_source_info(item, path)
-                    
+
                     # Add missing required fields with reasonable defaults
                     item = self._add_missing_required_fields(item)
 
@@ -76,17 +78,17 @@ class JsonDataLoader(DataLoader[T]):
     ) -> List[Dict[str, Any]]:
         """Extract content list from various JSON structures."""
         # Handle different JSON structures from 5etools
-        
+
         # Check if this is a Foundry VTT format file and skip it
         if self._is_foundry_file(path, data):
             logger.debug(f"Skipping Foundry VTT format file: {path}")
             return []
-        
+
         # Check if this is a template file and skip it
         if self._is_template_file(path, data):
             logger.debug(f"Skipping template file: {path}")
             return []
-        
+
         # Check if this is a fluff file and handle with liberal parsing
         if self._is_fluff_file(path, data):
             return self._extract_fluff_content(data, path)
@@ -165,15 +167,19 @@ class JsonDataLoader(DataLoader[T]):
             # Add missing alignment field for creatures
             if "alignment" not in item:
                 item["alignment"] = ["N"]  # Default to Neutral
-                logger.debug(f"Added default alignment for creature {item.get('name', 'unknown')}")
-        
+                logger.debug(
+                    f"Added default alignment for creature {item.get('name', 'unknown')}"
+                )
+
         elif self.content_type == ContentType.ITEM:
             # Add missing type field for items
             if "type" not in item:
                 item_type = self._infer_item_type(item)
                 item["type"] = item_type
-                logger.debug(f"Added inferred type '{item_type}' for item {item.get('name', 'unknown')}")
-        
+                logger.debug(
+                    f"Added inferred type '{item_type}' for item {item.get('name', 'unknown')}"
+                )
+
         return item
 
     def _infer_source_from_path(self, path: Path) -> str:
@@ -206,35 +212,41 @@ class JsonDataLoader(DataLoader[T]):
     def _is_foundry_file(self, path: Path, data: Dict[str, Any]) -> bool:
         """Check if this is a Foundry VTT format file."""
         filename = path.name.lower()
-        
+
         # Check filename patterns
         if "foundry" in filename:
             return True
-            
+
         # Check for Foundry-specific data structure
         # Foundry files often have content with 'system', 'activities', or '_id' fields
         for content_array in data.values():
             if isinstance(content_array, list) and content_array:
                 first_item = content_array[0]
                 if isinstance(first_item, dict):
-                    foundry_indicators = ["system", "activities", "_id", "migrationVersion", "folder"]
+                    foundry_indicators = [
+                        "system",
+                        "activities",
+                        "_id",
+                        "migrationVersion",
+                        "folder",
+                    ]
                     if any(indicator in first_item for indicator in foundry_indicators):
                         return True
-        
+
         return False
 
     def _is_template_file(self, path: Path, data: Dict[str, Any]) -> bool:
         """Check if this is a template file containing incomplete creature data."""
         filename = path.name.lower()
-        
+
         # Only check filename patterns for explicit template markers
         if "template" in filename and "creature" in filename:
             return True
-        
+
         # For creature files only, check if content looks like templates
         if self.content_type != ContentType.CREATURE:
             return False
-            
+
         # Check if this file contains template-like data structures
         # Templates often have incomplete creature data or special markers
         for content_array in data.values():
@@ -242,29 +254,38 @@ class JsonDataLoader(DataLoader[T]):
                 # Check if ALL items in the array look like templates
                 template_items = 0
                 total_items = 0
-                
+
                 for item in content_array[:5]:  # Check first 5 items
                     if not isinstance(item, dict):
                         continue
-                        
+
                     total_items += 1
-                    
+
                     # Check for explicit template indicators
-                    template_indicators = ["template", "inherit", "_template", "isTemplate"]
+                    template_indicators = [
+                        "template",
+                        "inherit",
+                        "_template",
+                        "isTemplate",
+                    ]
                     if any(indicator in item for indicator in template_indicators):
                         template_items += 1
                         continue
-                    
+
                     # Check if most required creature fields are missing (indicates template)
                     required_fields = ["size", "type", "alignment", "ac", "hp", "speed"]
-                    missing_count = sum(1 for field in required_fields if field not in item)
-                    if missing_count >= 5:  # If missing almost all required fields, likely a template
+                    missing_count = sum(
+                        1 for field in required_fields if field not in item
+                    )
+                    if (
+                        missing_count >= 5
+                    ):  # If missing almost all required fields, likely a template
                         template_items += 1
-                
+
                 # Only mark as template if most items look like templates
                 if total_items > 0 and template_items / total_items >= 0.8:
                     return True
-        
+
         return False
 
     def _is_copy_template(self, item: Dict[str, Any]) -> bool:
@@ -272,45 +293,62 @@ class JsonDataLoader(DataLoader[T]):
         # Check for 5etools copy mechanism
         if "_copy" in item:
             return True
-        
+
         # Check for NPC/template markers that indicate incomplete data
         if item.get("isNpc"):
             # For NPCs, check if they have basic stat requirements
             # If they're missing AC, HP, and ability scores, they're likely stub entries
-            required_creature_fields = ["ac", "hp", "str", "dex", "con", "int", "wis", "cha"]
-            missing_count = sum(1 for field in required_creature_fields if field not in item)
-            
+            required_creature_fields = [
+                "ac",
+                "hp",
+                "str",
+                "dex",
+                "con",
+                "int",
+                "wis",
+                "cha",
+            ]
+            missing_count = sum(
+                1 for field in required_creature_fields if field not in item
+            )
+
             # If missing most required creature fields, it's likely a stub/template
             if missing_count >= 6:  # Missing most creature stats
                 return True
-            
+
             # Also check for NPCs that only have basic identity info
             if not any(field in item for field in ["ac", "hp"]):
                 return True
-            
+
         return False
 
     def _is_fluff_file(self, path: Path, data: Dict[str, Any]) -> bool:
         """Check if this is a fluff data file."""
         filename = path.name.lower()
-        
+
         # Check filename patterns
         if "fluff" in filename:
             return True
-            
+
         # Check for fluff data keys
         fluff_keys = [
-            "spellFluff", "monsterFluff", "itemFluff", 
-            "adventureFluff", "bookFluff", "fluff"
+            "spellFluff",
+            "monsterFluff",
+            "itemFluff",
+            "adventureFluff",
+            "bookFluff",
+            "fluff",
         ]
-        
+
         for key in fluff_keys:
             if key in data:
                 return True
-                
+
         return False
 
-    def _extract_fluff_content(self, data: Dict[str, Any], path: Path) -> List[Dict[str, Any]]:
+    def _extract_fluff_content(
+        self, data: Dict[str, Any], path: Path
+    ) -> List[Dict[str, Any]]:
         """Extract fluff content with liberal parsing."""
         # Map content types to their fluff keys
         fluff_key_map = {
@@ -318,56 +356,64 @@ class JsonDataLoader(DataLoader[T]):
             ContentType.CREATURE: ["monsterFluff", "monster_fluff", "creatureFluff"],
             ContentType.ITEM: ["itemFluff", "item_fluff"],
         }
-        
+
         # Try specific fluff keys for this content type
         if self.content_type in fluff_key_map:
             for fluff_key in fluff_key_map[self.content_type]:
                 if fluff_key in data and isinstance(data[fluff_key], list):
-                    logger.debug(f"Found {len(data[fluff_key])} fluff items in {fluff_key}")
+                    logger.debug(
+                        f"Found {len(data[fluff_key])} fluff items in {fluff_key}"
+                    )
                     return self._process_fluff_items(data[fluff_key], path)
-        
+
         # Try generic fluff keys
         for key in ["fluff", "fluffData"]:
             if key in data and isinstance(data[key], list):
                 logger.debug(f"Found {len(data[key])} fluff items in {key}")
                 return self._process_fluff_items(data[key], path)
-        
+
         # Look for any key containing "fluff"
         for key, value in data.items():
             if "fluff" in key.lower() and isinstance(value, list):
                 logger.debug(f"Found {len(value)} fluff items in {key}")
                 return self._process_fluff_items(value, path)
-        
+
         logger.debug(f"No fluff content found in {path}")
         return []
 
-    def _process_fluff_items(self, fluff_items: List[Dict[str, Any]], path: Path) -> List[Dict[str, Any]]:
+    def _process_fluff_items(
+        self, fluff_items: List[Dict[str, Any]], path: Path
+    ) -> List[Dict[str, Any]]:
         """Process fluff items to make them compatible with main content models."""
         processed_items = []
-        
+
         for item in fluff_items:
             if not isinstance(item, dict):
                 continue
-                
+
             # Skip items without names
             if not item.get("name"):
                 continue
-                
+
             try:
                 # Create a liberal version of the item that might validate
                 processed_item = self._make_fluff_compatible(item, path)
                 if processed_item:
                     processed_items.append(processed_item)
             except Exception as e:
-                logger.debug(f"Skipping fluff item {item.get('name', 'unknown')} in {path}: {e}")
-        
+                logger.debug(
+                    f"Skipping fluff item {item.get('name', 'unknown')} in {path}: {e}"
+                )
+
         return processed_items
 
-    def _make_fluff_compatible(self, fluff_item: Dict[str, Any], path: Path) -> Optional[Dict[str, Any]]:
+    def _make_fluff_compatible(
+        self, fluff_item: Dict[str, Any], path: Path
+    ) -> Optional[Dict[str, Any]]:
         """Convert fluff item to be compatible with main content model."""
         # Start with the fluff item
         item = fluff_item.copy()
-        
+
         # Add missing required fields based on content type
         if self.content_type == ContentType.SPELL:
             # Add minimal spell fields if missing
@@ -377,7 +423,7 @@ class JsonDataLoader(DataLoader[T]):
             item.setdefault("range", {"type": "self"})
             item.setdefault("components", {"v": True})
             item.setdefault("duration", [{"type": "instant"}])
-            
+
             # Use fluff entries as spell description if no entries exist
             if not item.get("entries"):
                 fluff_text = self._extract_fluff_text(fluff_item)
@@ -385,7 +431,7 @@ class JsonDataLoader(DataLoader[T]):
                     item["entries"] = [fluff_text]
                 else:
                     item["entries"] = ["Fluff content - see original source."]
-                    
+
         elif self.content_type == ContentType.CREATURE:
             # Add minimal creature fields if missing
             item.setdefault("size", ["M"])  # Medium by default
@@ -394,39 +440,39 @@ class JsonDataLoader(DataLoader[T]):
             item.setdefault("ac", [{"ac": 10}])
             item.setdefault("hp", {"average": 1, "formula": "1d4"})
             item.setdefault("speed", {"walk": 30})
-            
+
             # Basic ability scores
             for ability in ["str", "dex", "con", "int", "wis", "cha"]:
                 item.setdefault(ability, 10)
-                
+
             item.setdefault("cr", "0")
-            
+
         elif self.content_type == ContentType.ITEM:
             # Add minimal item fields if missing
             item.setdefault("type", "G")  # Generic item by default
-            
+
         return item
 
     def _extract_fluff_text(self, fluff_item: Dict[str, Any]) -> str:
         """Extract descriptive text from fluff item."""
         text_parts = []
-        
+
         # Try to extract from entries
         entries = fluff_item.get("entries", [])
         if entries:
             text_parts.extend(self._extract_text_from_entries(entries))
-        
+
         # Try other text fields
         for field in ["text", "description", "flavor"]:
             if field in fluff_item and isinstance(fluff_item[field], str):
                 text_parts.append(fluff_item[field])
-        
+
         return " ".join(text_parts) if text_parts else ""
 
     def _extract_text_from_entries(self, entries) -> List[str]:
         """Recursively extract text from complex entry structures."""
         text_parts = []
-        
+
         if isinstance(entries, list):
             for entry in entries:
                 text_parts.extend(self._extract_text_from_entries(entry))
@@ -441,23 +487,23 @@ class JsonDataLoader(DataLoader[T]):
                 text_parts.append(f"**{entries['name']}**")
         elif isinstance(entries, str):
             text_parts.append(entries)
-        
+
         return text_parts
 
     def _infer_item_type(self, item: Dict[str, Any]) -> str:
         """Infer item type from name patterns and properties."""
         name = item.get("name", "").lower()
-        
+
         # Check for explicit type indicators in item properties
         if item.get("damage") or item.get("weaponCategory"):
             return "W"  # Weapon
-        
+
         if item.get("ac") or item.get("armorType"):
             return "A"  # Armor
-        
+
         if item.get("stealth") is not None or "shield" in name:
             return "S"  # Shield
-        
+
         # Check rarity - if it's magical, likely wondrous item
         rarity = item.get("rarity", "").lower()
         if rarity in ["uncommon", "rare", "very rare", "legendary", "artifact"]:
@@ -472,71 +518,226 @@ class JsonDataLoader(DataLoader[T]):
                 return "WD"  # Wand
             elif any(pattern in name for pattern in ["potion", "elixir", "philter"]):
                 return "P"  # Potion
-            elif any(pattern in name for pattern in ["scroll", "tome", "book", "manual", "compendium", "grimoire"]):
+            elif any(
+                pattern in name
+                for pattern in [
+                    "scroll",
+                    "tome",
+                    "book",
+                    "manual",
+                    "compendium",
+                    "grimoire",
+                ]
+            ):
                 return "SC"  # Scroll/Book
-            elif any(pattern in name for pattern in ["amulet", "necklace", "pendant", "cloak", "robe", "boots", "gloves", "gauntlets", "belt", "circlet", "crown", "helm", "helmet", "bracers", "tattoo"]):
+            elif any(
+                pattern in name
+                for pattern in [
+                    "amulet",
+                    "necklace",
+                    "pendant",
+                    "cloak",
+                    "robe",
+                    "boots",
+                    "gloves",
+                    "gauntlets",
+                    "belt",
+                    "circlet",
+                    "crown",
+                    "helm",
+                    "helmet",
+                    "bracers",
+                    "tattoo",
+                ]
+            ):
                 return "W"  # Wondrous Item (wearable)
             else:
                 return "W"  # Default to wondrous item for magical items
-        
+
         # Pattern-based detection for name patterns
         weapon_patterns = [
-            "sword", "blade", "dagger", "knife", "axe", "hammer", "mace", "club", "staff", "spear", "lance", "pike",
-            "bow", "crossbow", "javelin", "dart", "sling", "whip", "flail", "glaive", "halberd", "trident",
-            "scimitar", "rapier", "shortsword", "longsword", "greatsword", "handaxe", "battleaxe", "greataxe",
-            "light hammer", "warhammer", "maul", "morningstar", "war pick", "quarterstaff"
+            "sword",
+            "blade",
+            "dagger",
+            "knife",
+            "axe",
+            "hammer",
+            "mace",
+            "club",
+            "staff",
+            "spear",
+            "lance",
+            "pike",
+            "bow",
+            "crossbow",
+            "javelin",
+            "dart",
+            "sling",
+            "whip",
+            "flail",
+            "glaive",
+            "halberd",
+            "trident",
+            "scimitar",
+            "rapier",
+            "shortsword",
+            "longsword",
+            "greatsword",
+            "handaxe",
+            "battleaxe",
+            "greataxe",
+            "light hammer",
+            "warhammer",
+            "maul",
+            "morningstar",
+            "war pick",
+            "quarterstaff",
         ]
-        
+
         armor_patterns = [
-            "armor", "mail", "plate", "leather", "studded", "chain", "scale", "splint", "breastplate",
-            "half plate", "ring mail", "chain mail", "scale mail", "hide armor", "padded armor"
+            "armor",
+            "mail",
+            "plate",
+            "leather",
+            "studded",
+            "chain",
+            "scale",
+            "splint",
+            "breastplate",
+            "half plate",
+            "ring mail",
+            "chain mail",
+            "scale mail",
+            "hide armor",
+            "padded armor",
         ]
-        
+
         shield_patterns = ["shield", "buckler"]
-        
+
         tool_patterns = [
-            "kit", "tools", "thieves", "artisan", "disguise", "forgery", "herbalism", "navigator",
-            "poisoner", "alchemist", "brewer", "calligrapher", "carpenter", "cartographer", "cobbler",
-            "cook", "glassblower", "jeweler", "leatherworker", "mason", "painter", "potter", "smith",
-            "tinker", "weaver", "woodcarver"
+            "kit",
+            "tools",
+            "thieves",
+            "artisan",
+            "disguise",
+            "forgery",
+            "herbalism",
+            "navigator",
+            "poisoner",
+            "alchemist",
+            "brewer",
+            "calligrapher",
+            "carpenter",
+            "cartographer",
+            "cobbler",
+            "cook",
+            "glassblower",
+            "jeweler",
+            "leatherworker",
+            "mason",
+            "painter",
+            "potter",
+            "smith",
+            "tinker",
+            "weaver",
+            "woodcarver",
         ]
-        
+
         # Check weapon patterns
         if any(pattern in name for pattern in weapon_patterns):
             return "W"  # Weapon
-        
-        # Check armor patterns 
+
+        # Check armor patterns
         if any(pattern in name for pattern in armor_patterns):
             return "A"  # Armor
-        
+
         # Check shield patterns
         if any(pattern in name for pattern in shield_patterns):
             return "S"  # Shield
-        
+
         # Check tool patterns
         if any(pattern in name for pattern in tool_patterns):
             return "T"  # Tool
-        
+
         # Check for adventuring gear patterns
         gear_patterns = [
-            "rope", "torch", "lantern", "oil", "rations", "waterskin", "bedroll", "blanket", "tent",
-            "backpack", "pouch", "sack", "chest", "barrel", "bottle", "vial", "flask", "jug", "pitcher",
-            "ball bearings", "caltrops", "candle", "chain", "chalk", "crowbar", "grappling hook",
-            "ladder", "lock", "manacles", "mirror", "piton", "pole", "pulley", "sealing wax", "shovel",
-            "signal whistle", "string", "tinderbox"
+            "rope",
+            "torch",
+            "lantern",
+            "oil",
+            "rations",
+            "waterskin",
+            "bedroll",
+            "blanket",
+            "tent",
+            "backpack",
+            "pouch",
+            "sack",
+            "chest",
+            "barrel",
+            "bottle",
+            "vial",
+            "flask",
+            "jug",
+            "pitcher",
+            "ball bearings",
+            "caltrops",
+            "candle",
+            "chain",
+            "chalk",
+            "crowbar",
+            "grappling hook",
+            "ladder",
+            "lock",
+            "manacles",
+            "mirror",
+            "piton",
+            "pole",
+            "pulley",
+            "sealing wax",
+            "shovel",
+            "signal whistle",
+            "string",
+            "tinderbox",
         ]
-        
+
         if any(pattern in name for pattern in gear_patterns):
             return "G"  # Adventuring Gear
-        
+
         # Check for mount/vehicle patterns
-        if any(pattern in name for pattern in ["horse", "pony", "mule", "camel", "elephant", "cart", "wagon", "ship", "boat"]):
+        if any(
+            pattern in name
+            for pattern in [
+                "horse",
+                "pony",
+                "mule",
+                "camel",
+                "elephant",
+                "cart",
+                "wagon",
+                "ship",
+                "boat",
+            ]
+        ):
             return "MNT"  # Mount or Vehicle
-        
+
         # Check for treasure patterns
-        if any(pattern in name for pattern in ["gem", "jewel", "coin", "gold", "silver", "platinum", "copper", "treasure", "art object"]):
+        if any(
+            pattern in name
+            for pattern in [
+                "gem",
+                "jewel",
+                "coin",
+                "gold",
+                "silver",
+                "platinum",
+                "copper",
+                "treasure",
+                "art object",
+            ]
+        ):
             return "TRE"  # Treasure
-        
+
         # Special cases based on name prefixes/suffixes
         if name.startswith(("+1", "+2", "+3")) or "enhancement" in name:
             # Enhanced items - determine base type
@@ -546,11 +747,11 @@ class JsonDataLoader(DataLoader[T]):
                 return "A"  # Enhanced armor/shield
             else:
                 return "W"  # Default to wondrous item for enhanced items
-        
+
         # Default fallback based on common D&D item categorization
         if "magic" in name or rarity:
             return "W"  # Wondrous Item for magical items
-        
+
         # Final fallback
         return "G"  # Generic adventuring gear
 

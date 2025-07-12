@@ -102,7 +102,9 @@ class CreatureType(BaseModel):
 
     type: Union[str, Dict[str, Any]] = Field(..., description="Base creature type")
     subtype: Optional[str] = Field(None, description="Creature subtype")
-    tags: Optional[List[Union[str, Dict[str, Any]]]] = Field(None, description="Additional tags")
+    tags: Optional[List[Union[str, Dict[str, Any]]]] = Field(
+        None, description="Additional tags"
+    )
 
     def __str__(self) -> str:
         if isinstance(self.type, dict):
@@ -117,10 +119,10 @@ class CreatureType(BaseModel):
                 result = str(self.type)
         else:
             result = self.type
-            
+
         if self.subtype:
             result += f" ({self.subtype})"
-        
+
         # Handle tags if present
         if self.tags:
             tag_texts = []
@@ -136,14 +138,14 @@ class CreatureType(BaseModel):
                         tag_texts.append(tag_text)
                     else:
                         tag_texts.append(str(tag))
-            
+
             if tag_texts:
                 if self.subtype:
                     # Tags are part of subtype
                     result = result[:-1] + f", {', '.join(tag_texts)})"
                 else:
                     result += f" ({', '.join(tag_texts)})"
-        
+
         return result
 
 
@@ -151,7 +153,9 @@ class Ability(BaseModel):
     """Represents a creature ability (trait, action, etc.)."""
 
     name: str = Field(..., description="Ability name")
-    entries: List[Union[str, Dict[str, Any]]] = Field(..., description="Ability description")
+    entries: List[Union[str, Dict[str, Any]]] = Field(
+        ..., description="Ability description"
+    )
 
     def __str__(self) -> str:
         return self.name
@@ -163,7 +167,7 @@ class Ability(BaseModel):
     def _extract_text_from_entries(self, entries) -> str:
         """Recursively extract text from complex entry structures."""
         text_parts = []
-        
+
         if isinstance(entries, list):
             for entry in entries:
                 result = self._extract_text_from_entries(entry)
@@ -189,7 +193,7 @@ class Ability(BaseModel):
                         text_parts.append(f"• {item['text']}")
         elif isinstance(entries, str):
             text_parts.append(entries)
-        
+
         return " ".join(text_parts) if text_parts else ""
 
 
@@ -200,7 +204,9 @@ class Creature(BaseContent):
     type: Union[str, CreatureType, Dict[str, Any]] = Field(
         ..., description="Creature type"
     )
-    alignment: List[Union[str, Dict[str, Any]]] = Field(..., description="Creature alignment")
+    alignment: List[Union[str, Dict[str, Any]]] = Field(
+        ..., description="Creature alignment"
+    )
 
     # Combat stats
     ac: List[Union[int, ArmorClass, Dict[str, Any]]] = Field(
@@ -219,7 +225,9 @@ class Creature(BaseContent):
 
     # Optional attributes
     save: Optional[Dict[str, str]] = Field(None, description="Saving throw bonuses")
-    skill: Optional[Dict[str, Union[str, List[Any], Any]]] = Field(None, description="Skill bonuses")
+    skill: Optional[Dict[str, Union[str, List[Any], Any]]] = Field(
+        None, description="Skill bonuses"
+    )
     senses: Optional[List[str]] = Field(None, description="Special senses")
     passive: Optional[Union[int, str]] = Field(None, description="Passive perception")
     languages: Optional[List[str]] = Field(None, description="Known languages")
@@ -347,7 +355,7 @@ class Creature(BaseContent):
         """Get formatted alignment text handling complex structures."""
         if not self.alignment:
             return "unaligned"
-        
+
         alignment_parts = []
         for alignment_item in self.alignment:
             if isinstance(alignment_item, str):
@@ -364,7 +372,7 @@ class Creature(BaseContent):
                     alignment_parts.append(str(alignment_item))
             else:
                 alignment_parts.append(str(alignment_item))
-        
+
         return " ".join(alignment_parts) if alignment_parts else "unaligned"
 
     def get_ac_text(self) -> str:

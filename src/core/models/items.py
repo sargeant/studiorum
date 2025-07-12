@@ -83,8 +83,12 @@ class Item(BaseContent):
     weight: Optional[Union[int, float]] = Field(
         None, description="Item weight in pounds"
     )
-    value: Optional[Union[int, float, Dict[str, Any]]] = Field(None, description="Item value")
-    entries: Optional[List[Union[str, Dict[str, Any]]]] = Field(None, description="Item description")
+    value: Optional[Union[int, float, Dict[str, Any]]] = Field(
+        None, description="Item value"
+    )
+    entries: Optional[List[Union[str, Dict[str, Any]]]] = Field(
+        None, description="Item description"
+    )
 
     # Optional item-specific data
     weapon_data: Optional[WeaponData] = Field(
@@ -214,8 +218,10 @@ class Item(BaseContent):
 
         if isinstance(self.value, (int, float)):
             # Convert to copper pieces for calculation
-            copper_value = int(self.value * 100) if isinstance(self.value, float) else self.value
-            
+            copper_value = (
+                int(self.value * 100) if isinstance(self.value, float) else self.value
+            )
+
             if copper_value >= 100:
                 gp = copper_value // 100
                 remainder = copper_value % 100
@@ -247,7 +253,7 @@ class Item(BaseContent):
     def _extract_text_from_entries(self, entries) -> str:
         """Recursively extract text from complex entry structures."""
         text_parts = []
-        
+
         if isinstance(entries, list):
             for entry in entries:
                 result = self._extract_text_from_entries(entry)
@@ -273,5 +279,5 @@ class Item(BaseContent):
                         text_parts.append(f"• {item['text']}")
         elif isinstance(entries, str):
             text_parts.append(entries)
-        
+
         return " ".join(text_parts) if text_parts else ""

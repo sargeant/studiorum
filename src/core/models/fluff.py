@@ -9,11 +9,11 @@ from .content import BaseContent
 
 class FluffImage(BaseModel):
     """Represents an image in fluff content."""
-    
+
     type: str = "image"
     href: Optional[Dict[str, Any]] = None
     credit: Optional[str] = None
-    
+
     def get_path(self) -> Optional[str]:
         """Extract image path from nested structure."""
         if self.href and isinstance(self.href, dict):
@@ -23,12 +23,12 @@ class FluffImage(BaseModel):
 
 class FluffEntry(BaseModel):
     """Liberal model for fluff text entries."""
-    
+
     # Accept any structure - we'll extract text liberally
     content: Union[str, Dict[str, Any], List[Any]] = Field(alias="entries", default="")
     type: Optional[str] = None
     name: Optional[str] = None
-    
+
     @field_validator("content", mode="before")
     @classmethod
     def parse_content(cls, v):
@@ -57,7 +57,7 @@ class FluffEntry(BaseModel):
             elif "text" in v:
                 return v["text"]
         return str(v) if v else ""
-    
+
     @staticmethod
     def _extract_text_from_entries(entries) -> str:
         """Recursively extract text from nested entries."""
@@ -80,15 +80,15 @@ class FluffEntry(BaseModel):
 
 class BaseFluff(BaseModel):
     """Base fluff content with liberal parsing."""
-    
+
     name: str
     source: Union[str, Dict[str, str]]
     entries: List[FluffEntry] = Field(default_factory=list)
     images: List[FluffImage] = Field(default_factory=list)
-    
+
     # Additional fields that might be present
     extra_data: Dict[str, Any] = Field(default_factory=dict, exclude=True)
-    
+
     @field_validator("source", mode="before")
     @classmethod
     def parse_source(cls, v):
@@ -96,14 +96,14 @@ class BaseFluff(BaseModel):
         if isinstance(v, str):
             return {"abbreviation": v, "name": v}
         return v
-    
+
     @field_validator("entries", mode="before")
     @classmethod
     def parse_entries(cls, v):
         """Liberal parsing of entries field."""
         if not v:
             return []
-        
+
         if isinstance(v, list):
             parsed_entries = []
             for entry in v:
@@ -123,14 +123,14 @@ class BaseFluff(BaseModel):
                 return [FluffEntry(content=v)]
             except Exception:
                 return []
-    
+
     @field_validator("images", mode="before")
     @classmethod
     def parse_images(cls, v):
         """Liberal parsing of images field."""
         if not v:
             return []
-        
+
         if isinstance(v, list):
             parsed_images = []
             for img in v:
@@ -142,7 +142,7 @@ class BaseFluff(BaseModel):
                     continue
             return parsed_images
         return []
-    
+
     def get_description_text(self) -> str:
         """Extract all descriptive text from entries."""
         text_parts = []
@@ -150,7 +150,7 @@ class BaseFluff(BaseModel):
             if entry.content:
                 text_parts.append(str(entry.content))
         return "\n\n".join(text_parts)
-    
+
     def get_image_paths(self) -> List[str]:
         """Get all image paths."""
         paths = []
@@ -163,14 +163,17 @@ class BaseFluff(BaseModel):
 
 class SpellFluff(BaseFluff):
     """Fluff content specific to spells."""
+
     pass
 
 
 class CreatureFluff(BaseFluff):
     """Fluff content specific to creatures/monsters."""
+
     pass
 
 
 class ItemFluff(BaseFluff):
     """Fluff content specific to items."""
+
     pass
