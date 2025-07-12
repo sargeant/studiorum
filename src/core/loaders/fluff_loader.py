@@ -1,0 +1,172 @@
+"""Fluff data loader with liberal parsing for descriptive content."""
+
+import json
+from pathlib import Path
+from typing import Any, Dict, List, Type
+
+from ..config.settings import get_logger
+from ..models.content import ContentType
+from ..models.fluff import BaseFluff, CreatureFluff, ItemFluff, SpellFluff
+from .base import DataLoader
+
+logger = get_logger(__name__)
+
+
+class FluffDataLoader(DataLoader[BaseFluff]):
+    """Loads fluff data with liberal parsing to handle inconsistent structures."""
+
+    def __init__(self, content_type: ContentType):
+        self.content_type = content_type
+        self.fluff_model_map = {
+            ContentType.SPELL: SpellFluff,
+            ContentType.CREATURE: CreatureFluff,
+            ContentType.ITEM: ItemFluff,
+        }
+        self.fluff_key_map = {
+            ContentType.SPELL: "spellFluff",
+            ContentType.CREATURE: "monsterFluff", 
+            ContentType.ITEM: "itemFluff",
+        }
+
+    async def load(self, path: Path) -> List[BaseFluff]:
+        """Load fluff data with liberal parsing."""
+        try:
+            logger.info(f"Loading {self.content_type.value} fluff data from {path}")
+
+            # Read JSON file
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Extract fluff content
+            fluff_list = self._extract_fluff_content(data, path)
+
+            # Parse each fluff item liberally
+            parsed_fluff = []
+            model_class = self.fluff_model_map.get(self.content_type, BaseFluff)
+            
+            for item in fluff_list:
+                try:
+                    # Ensure basic required fields
+                    if not item.get("name"):
+                        logger.debug(f"Skipping fluff item without name in {path}")
+                        continue
+                    
+                    # Liberal parsing - if validation fails, try to extract what we can
+                    fluff_item = self._parse_fluff_item(item, model_class, path)
+                    if fluff_item:
+                        parsed_fluff.append(fluff_item)
+                        
+                except Exception as e:
+                    logger.debug(
+                        f"Skipping fluff item {item.get('name', 'unknown')} in {path}: {e}"
+                    )
+
+            logger.info(
+                f"Successfully loaded {len(parsed_fluff)} {self.content_type.value} fluff items from {path}"
+            )
+            return parsed_fluff
+
+        except Exception as e:
+            logger.warning(f"Failed to load fluff from {path}: {e}")
+            return []
+
+    def get_content_type(self) -> ContentType:
+        return self.content_type
+
+    def get_model_class(self) -> Type[BaseFluff]:
+        return self.fluff_model_map.get(self.content_type, BaseFluff)
+
+    def _extract_fluff_content(self, data: Dict[str, Any], path: Path) -> List[Dict[str, Any]]:
+        """Extract fluff content from various JSON structures."""
+        # Try specific fluff keys first
+        fluff_key = self.fluff_key_map.get(self.content_type)
+        if fluff_key and fluff_key in data:
+            content = data[fluff_key]
+            if isinstance(content, list):
+                return content
+
+        # Try generic patterns
+        for possible_key in [
+            f"{self.content_type.value}Fluff",
+            f"{self.content_type.value}fluff", 
+            "fluff",
+            "fluffData"
+        ]:
+            if possible_key in data:
+                content = data[possible_key]
+                if isinstance(content, list):
+                    return content
+
+        # Look for any key ending with "Fluff"
+        for key, value in data.items():
+            if key.lower().endswith("fluff") and isinstance(value, list):
+                logger.debug(f"Found fluff data in key '{key}' for {self.content_type.value}")
+                return value
+
+        logger.debug(f"No fluff content found for {self.content_type.value} in {path}")
+        return []
+
+    def _parse_fluff_item(self, item: Dict[str, Any], model_class: Type[BaseFluff], path: Path) -> BaseFluff:
+        """Parse fluff item with liberal validation."""
+        try:
+            # First try normal validation
+            return model_class.model_validate(item)
+        except Exception:
+            # If that fails, try liberal parsing
+            return self._liberal_parse(item, model_class, path)
+
+    def _liberal_parse(self, item: Dict[str, Any], model_class: Type[BaseFluff], path: Path) -> BaseFluff:
+        """Liberal parsing that extracts what it can and ignores errors."""
+        # Start with basic required fields
+        parsed_item = {
+            "name": item.get("name", "Unknown"),
+            "source": item.get("source", "Unknown")
+        }
+
+        # Try to extract entries
+        entries = []
+        for entry_key in ["entries", "entry", "text", "description"]:
+            if entry_key in item:
+                entries_data = item[entry_key]
+                break
+        else:
+            entries_data = None
+
+        if entries_data:
+            parsed_item["entries"] = entries_data
+
+        # Try to extract images
+        if "images" in item:
+            parsed_item["images"] = item["images"]
+
+        # Store any additional data for potential future use
+        extra_data = {k: v for k, v in item.items() 
+                     if k not in ["name", "source", "entries", "images"]}
+        if extra_data:
+            parsed_item["extra_data"] = extra_data
+
+        try:
+            return model_class.model_validate(parsed_item)
+        except Exception as e:
+            logger.debug(f"Even liberal parsing failed for {item.get('name')} in {path}: {e}")
+            # Create minimal valid object
+            return model_class(
+                name=item.get("name", "Unknown"),
+                source=item.get("source", "Unknown")
+            )
+
+
+# Factory functions for fluff loaders
+def create_spell_fluff_loader() -> FluffDataLoader:
+    """Create a spell fluff data loader."""
+    return FluffDataLoader(ContentType.SPELL)
+
+
+def create_creature_fluff_loader() -> FluffDataLoader:
+    """Create a creature fluff data loader."""
+    return FluffDataLoader(ContentType.CREATURE)
+
+
+def create_item_fluff_loader() -> FluffDataLoader:
+    """Create an item fluff data loader."""
+    return FluffDataLoader(ContentType.ITEM)
