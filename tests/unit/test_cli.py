@@ -6,7 +6,6 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from src.cli.compat import LegacyCompatLayer
 from src.cli.main import app
 
 
@@ -47,64 +46,6 @@ class TestCLIMain:
         assert "not found" in result.stdout
 
 
-class TestLegacyCompatLayer:
-    """Tests for legacy compatibility system."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.compat = LegacyCompatLayer()
-
-    def test_parse_legacy_args_basic(self):
-        """Test parsing basic legacy arguments."""
-        args = ["--adventure", "test.json"]
-        parsed = self.compat._parse_legacy_args(args)
-
-        assert parsed["content_type"] == "adventure"
-        assert parsed["input_file"] == "test.json"
-        assert parsed["include_images"] is False
-
-    def test_parse_legacy_args_with_options(self):
-        """Test parsing legacy arguments with options."""
-        args = ["--book", "--with-images", "--add-items", "--no-creatures", "book.json"]
-        parsed = self.compat._parse_legacy_args(args)
-
-        assert parsed["content_type"] == "book"
-        assert parsed["input_file"] == "book.json"
-        assert parsed["include_images"] is True
-        assert parsed["include_items"] is True
-        assert parsed["include_creatures"] is False
-
-    def test_parse_legacy_args_help(self):
-        """Test parsing help argument."""
-        args = ["--help"]
-        parsed = self.compat._parse_legacy_args(args)
-
-        assert parsed.get("help") is True
-
-    def test_parse_legacy_args_version(self):
-        """Test parsing version argument."""
-        args = ["--version"]
-        parsed = self.compat._parse_legacy_args(args)
-
-        assert parsed.get("version") is True
-
-    def test_execute_legacy_help(self):
-        """Test executing legacy help command."""
-        result = self.compat.execute_legacy_command(["--help"])
-        assert "5e2pdf Legacy Compatibility Mode" in result
-        assert "USAGE:" in result
-
-    def test_execute_legacy_version(self):
-        """Test executing legacy version command."""
-        result = self.compat.execute_legacy_command(["--version"])
-        assert "5e2pdf v2.0.0" in result
-        assert "Legacy Compatibility Mode" in result
-
-    def test_execute_legacy_missing_file(self):
-        """Test executing legacy command with missing file."""
-        result = self.compat.execute_legacy_command(["--adventure", "nonexistent.json"])
-        assert "Error:" in result
-        assert "not found" in result
 
 
 class TestCLICommands:
@@ -190,11 +131,6 @@ class TestCLIIntegration:
             # Should not crash (though it might fail due to missing dependencies)
             assert isinstance(result.exit_code, int)
 
-    def test_legacy_mode_integration(self):
-        """Test legacy mode integration."""
-        result = self.runner.invoke(app, ["legacy", "--help"])
-        assert result.exit_code == 0
-        assert "Legacy Mode" in result.stdout
 
 
 class TestCLIFileOperations:

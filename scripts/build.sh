@@ -246,8 +246,8 @@ build_document() {
     cd "$PROJECT_DIR"
     export OSFONTDIR="$ASSETS_DIR/fonts"
     
-    # Run the conversion using uv
-    uv run python "$SRC_DIR/json2tex.py" $OPTIONS --images "$ASSETS_DIR/images" "$JSON_FILE" > "$OUTPUT_FILE"
+    # Run the conversion using modern CLI
+    uv run 5e2pdf convert "$JSON_FILE" --output "$OUTPUT_FILE" $OPTIONS
     
     print_success "LaTeX file generated: $OUTPUT_FILE"
     

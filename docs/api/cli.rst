@@ -55,13 +55,3 @@ Commands for showing statistics and analytics.
    :members:
    :undoc-members:
    :show-inheritance:
-
-Legacy Compatibility
----------------------
-
-Backwards compatibility layer for existing json2tex workflows.
-
-.. automodule:: src.cli.compat
-   :members:
-   :undoc-members:
-   :show-inheritance:

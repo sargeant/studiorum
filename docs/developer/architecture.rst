@@ -120,14 +120,6 @@ Built using Typer for modern CLI development:
 - **Progress Tracking**: Visual progress bars for long operations
 - **Error Handling**: User-friendly error messages
 
-Legacy Compatibility (src/cli/compat.py)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Backwards compatibility layer:
-
-- **Argument Translation**: Maps old json2tex arguments to new system
-- **Command Emulation**: Reproduces old behavior exactly
-- **Migration Path**: Helps users transition to new CLI
 
 Design Principles
 -----------------

@@ -103,17 +103,12 @@ echo ""
 # Change to project directory
 cd "$PROJECT_DIR"
 
-# Set PYTHONPATH to include src directory
-export PYTHONPATH="$SRC_DIR:$PYTHONPATH"
-
-# Run the conversion
-python3 "$SRC_DIR/json2tex.py" \
+# Run the conversion using modern CLI
+uv run 5e2pdf convert "$JSON_FILE" --output "$OUTPUT_FILE" \
     $ADVENTURE_MODE \
     $NO_IMAGES \
     $ADD_ITEMS \
-    $ADD_CREATURES \
-    --images "$ASSETS_DIR/images" \
-    "$JSON_FILE" > "$OUTPUT_FILE"
+    $ADD_CREATURES
 
 echo "LaTeX file generated: $OUTPUT_FILE"
 

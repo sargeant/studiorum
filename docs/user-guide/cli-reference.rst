@@ -278,30 +278,6 @@ Quick single-file conversion with minimal configuration.
 
    5e2pdf quick spells.json --pdf --images
 
-legacy
-~~~~~~
-
-Run commands with backwards compatibility for json2tex.py workflows.
-
-.. code-block:: bash
-
-   5e2pdf legacy [LEGACY_ARGS...]
-
-**Legacy Arguments:**
-
-- ``--adventure``: Process as adventure
-- ``--book``: Process as book
-- ``--with-images`` / ``--no-images``: Image handling
-- ``--add-items`` / ``--no-items``: Include items
-- ``--add-creatures`` / ``--no-creatures``: Include creatures
-- ``--help``: Show legacy help
-- ``--version``: Show legacy version
-
-**Example:**
-
-.. code-block:: bash
-
-   5e2pdf legacy --adventure --with-images adventure.json > output.tex
 
 serve
 ~~~~~

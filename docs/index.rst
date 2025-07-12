@@ -69,7 +69,6 @@ Documentation
    developer/architecture
    developer/contributing
    developer/testing
-   developer/legacy
 
 Indices and tables
 ==================

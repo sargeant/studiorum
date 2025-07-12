@@ -85,18 +85,7 @@ For miscellaneous content like spell lists or creature collections:
      --type spell \\
      --type item
 
-Legacy Mode
------------
 
-If you have existing scripts that use the old json2tex.py format:
-
-.. code-block:: bash
-
-   # Run legacy commands
-   5e2pdf legacy --adventure --no-images adventure.json > output.tex
-
-   # Get help for legacy mode
-   5e2pdf legacy --help
 
 Working with Output
 ------------------

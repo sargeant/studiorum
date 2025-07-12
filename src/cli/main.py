@@ -113,27 +113,6 @@ except ImportError:
         rprint("[yellow]Stats command not yet implemented[/yellow]")
 
 
-@app.command("legacy")
-def legacy_mode(
-    args: List[str] = typer.Argument(..., help="Legacy command line arguments")
-):
-    """
-    🔄 **Legacy Mode** - Run commands with backwards compatibility
-
-    Execute legacy json2tex.py commands using the modern architecture.
-    Maintains full compatibility with existing scripts and workflows.
-
-    Examples:
-      5e2pdf legacy --adventure --no-images data.json > output.tex
-      5e2pdf legacy --book --with-images book.json > book.tex
-    """
-    from src.cli.compat import LegacyCompatLayer
-
-    compat = LegacyCompatLayer()
-    result = compat.execute_legacy_command(args)
-    if result:
-        console.print(result)
-
 
 @app.command("serve")
 def serve_api(
@@ -147,7 +126,7 @@ def serve_api(
     Launch a web API for converting D&D content remotely.
     """
     rprint("[yellow]API server feature coming in future release![/yellow]")
-    rprint("For now, use the CLI commands or legacy mode.")
+    rprint("For now, use the CLI commands.")
 
 
 @app.command("quick")
