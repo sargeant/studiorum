@@ -83,12 +83,16 @@ try:
     from src.cli.commands.convert import app as convert_app
     from src.cli.commands.info import app as info_app
     from src.cli.commands.list_content import app as list_app
+    from src.cli.commands.setup import app as setup_app
+    from src.cli.commands.sources import app as sources_app
     from src.cli.commands.stats import app as stats_app
 
     # Mount sub-applications
     app.add_typer(convert_app, name="convert")
     app.add_typer(list_app, name="list")
     app.add_typer(info_app, name="info")
+    app.add_typer(setup_app, name="setup")
+    app.add_typer(sources_app, name="sources")
     app.add_typer(stats_app, name="stats")
 except ImportError:
     # Fallback placeholder commands if imports fail
@@ -106,6 +110,11 @@ except ImportError:
     def info_command():
         """Show content information (placeholder)."""
         rprint("[yellow]Info command not yet implemented[/yellow]")
+
+    @app.command("setup")
+    def setup_command():
+        """Setup wizard (placeholder)."""
+        rprint("[yellow]Setup command not yet implemented[/yellow]")
 
     @app.command("stats")
     def stats_command():

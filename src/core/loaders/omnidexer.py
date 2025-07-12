@@ -17,6 +17,7 @@ from .json_loader import (
     create_item_loader,
     create_spell_loader,
 )
+from .configurable_source_manager import ConfigurableSourceManager
 from .source_manager import FileSystemSourceManager
 
 logger = get_logger(__name__)
@@ -55,7 +56,7 @@ class Omnidexer:
     """Central indexing system for all D&D content, inspired by 5etools."""
 
     def __init__(self, source_manager: Optional[SourceManager] = None):
-        self.source_manager = source_manager or FileSystemSourceManager()
+        self.source_manager = source_manager or ConfigurableSourceManager()
 
         # Index structures
         self._index: Dict[str, IndexEntry] = {}  # hash_id -> entry
@@ -97,6 +98,10 @@ class Omnidexer:
     async def load_all_data(self, data_path: Optional[Path] = None) -> Dict[str, int]:
         """Load all available data and build comprehensive index."""
         logger.info("Starting omnidexer data loading...")
+
+        # Ensure sources are ready if using configurable source manager
+        if isinstance(self.source_manager, ConfigurableSourceManager):
+            await self.source_manager.ensure_sources_ready()
 
         # Get data paths from source manager
         data_paths = self.source_manager.get_data_paths()
