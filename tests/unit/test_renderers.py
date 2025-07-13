@@ -340,9 +340,7 @@ class TestLaTeXDocumentRenderer:
     async def test_render_single_spell(self, sample_spell, tag_resolver):
         """Test rendering single spell as document."""
         renderer = LaTeXDocumentRenderer()
-        context = RenderContext(
-            title="Test Spell Document", tag_resolver=await tag_resolver
-        )
+        context = RenderContext(title="Test Spell Document", tag_resolver=tag_resolver)
 
         result = renderer.render_document([sample_spell], context)
 
@@ -360,7 +358,7 @@ class TestLaTeXDocumentRenderer:
         context = RenderContext(
             title="Mixed Content Document",
             include_toc=True,
-            tag_resolver=await tag_resolver,
+            tag_resolver=tag_resolver,
         )
 
         content_items = [sample_spell, sample_creature]
@@ -401,9 +399,8 @@ class TestLaTeXDocumentRenderer:
     async def test_content_filtering(self, sample_spell, sample_creature, tag_resolver):
         """Test content filtering based on context."""
         renderer = LaTeXDocumentRenderer()
-        resolver = await tag_resolver
         context = RenderContext(
-            include_spells=True, include_creatures=False, tag_resolver=resolver
+            include_spells=True, include_creatures=False, tag_resolver=tag_resolver
         )
 
         content_items = [sample_spell, sample_creature]
@@ -442,7 +439,7 @@ class TestRendererIntegration:
     @pytest.mark.asyncio
     async def test_full_rendering_pipeline(self, loaded_omnidexer):
         """Test complete rendering pipeline with real data."""
-        omnidexer = await loaded_omnidexer
+        omnidexer = loaded_omnidexer
 
         # Get some content
         spell = omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
@@ -478,7 +475,7 @@ class TestRendererIntegration:
     @pytest.mark.asyncio
     async def test_error_handling_unknown_content_type(self, loaded_omnidexer):
         """Test handling of unknown content types."""
-        omnidexer = await loaded_omnidexer
+        omnidexer = loaded_omnidexer
 
         # Create a mock content object of unknown type
         from src.core.models.content import BaseContent, Source

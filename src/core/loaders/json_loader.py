@@ -4,26 +4,57 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-from pydantic import ValidationError
+from pydantic import ValidationError, BaseModel
+from importlib import import_module
 
 from ..config.settings import get_logger
-from ..models.content import ContentType
+from ..models.content import ContentType, BaseContent # Added BaseContent
 from .base import DataLoader, T
+
+# Import all specific content models
+from ..models.adventures import Adventure
+from ..models.backgrounds import Background
+from ..models.books import Book
+from ..models.classes import Class
+from ..models.creatures import Creature
+from ..models.feats import Feat
+from ..models.items import Item
+from ..models.races import Race
+from ..models.spells import Spell
+from ..models.fluff import SpellFluff, CreatureFluff, ItemFluff
 
 logger = get_logger(__name__)
 
 
-class JsonDataLoader(DataLoader[T]):
+# Mapping of ContentType to its corresponding Pydantic model class
+_model_map: Dict[ContentType, Type[BaseModel]] = {
+    ContentType.ADVENTURE: Adventure,
+    ContentType.BOOK: Book,
+    ContentType.SPELL: Spell,
+    ContentType.CREATURE: Creature,
+    ContentType.ITEM: Item,
+    ContentType.CLASS: Class,
+    ContentType.BACKGROUND: Background,
+    ContentType.FEAT: Feat,
+    ContentType.RACE: Race,
+    ContentType.SPELL_FLUFF: SpellFluff,
+    ContentType.CREATURE_FLUFF: CreatureFluff,
+    ContentType.ITEM_FLUFF: ItemFluff,
+    # Add other content types as needed
+}
+
+
+class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
     """Loads and validates JSON data using Pydantic models."""
 
-    def __init__(self, model_class: Type[T], content_type: ContentType):
-        self.model_class = model_class
-        self.content_type = content_type
+    def __init__(self, model_class: Type[BaseContent], content_type: ContentType): # Changed from T to BaseContent
+        self._model_class = model_class
+        self._content_type = content_type
 
-    async def load(self, path: Path) -> List[T]:
+    async def load(self, path: Path) -> List[BaseContent]: # Changed from T to BaseContent
         """Load JSON file and validate against Pydantic model."""
         try:
-            logger.info(f"Loading {self.content_type.value} data from {path}")
+            logger.info(f"Loading {self._content_type.value} data from {path}")
 
             # Read JSON file
             with open(path, encoding="utf-8") as f:
@@ -49,7 +80,7 @@ class JsonDataLoader(DataLoader[T]):
                     # Add missing required fields with reasonable defaults
                     item = self._add_missing_required_fields(item)
 
-                    validated_item = self.model_class.model_validate(item)
+                    validated_item = self._model_class.model_validate(item)
                     validated_content.append(validated_item)
                 except ValidationError as e:
                     logger.warning(
@@ -59,7 +90,7 @@ class JsonDataLoader(DataLoader[T]):
                     logger.error(f"Unexpected error validating item in {path}: {e}")
 
             logger.info(
-                f"Successfully loaded {len(validated_content)} {self.content_type.value} items from {path}"
+                f"Successfully loaded {len(validated_content)} {self._content_type.value} items from {path}"
             )
             return validated_content
 
@@ -68,10 +99,10 @@ class JsonDataLoader(DataLoader[T]):
             return []
 
     def get_content_type(self) -> ContentType:
-        return self.content_type
+        return self._content_type
 
-    def get_model_class(self) -> Type[T]:
-        return self.model_class
+    def get_model_class(self) -> Type[BaseContent]: # Changed from T to BaseContent
+        return self._model_class
 
     def _extract_content(
         self, data: Dict[str, Any], path: Path
@@ -94,13 +125,13 @@ class JsonDataLoader(DataLoader[T]):
             return self._extract_fluff_content(data, path)
 
         # Direct content arrays
-        if self.content_type == ContentType.SPELL and "spell" in data:
+        if self._content_type == ContentType.SPELL and "spell" in data:
             return data["spell"]
-        elif self.content_type == ContentType.CREATURE and "monster" in data:
+        elif self._content_type == ContentType.CREATURE and "monster" in data:
             return data["monster"]
-        elif self.content_type == ContentType.ITEM and "item" in data:
+        elif self._content_type == ContentType.ITEM and "item" in data:
             return data["item"]
-        elif self.content_type == ContentType.ADVENTURE:
+        elif self._content_type == ContentType.ADVENTURE:
             if "adventure" in data:
                 return data["adventure"]
             elif "adventureData" in data:
@@ -109,7 +140,7 @@ class JsonDataLoader(DataLoader[T]):
                 if isinstance(adventure_data, list) and adventure_data:
                     return adventure_data
             return []
-        elif self.content_type == ContentType.BOOK:
+        elif self._content_type == ContentType.BOOK:
             if "book" in data:
                 return data["book"]
             elif "bookData" in data:
@@ -118,17 +149,17 @@ class JsonDataLoader(DataLoader[T]):
                 if isinstance(book_data, list) and book_data:
                     return book_data
             return []
-        elif self.content_type == ContentType.FEAT and "feat" in data:
+        elif self._content_type == ContentType.FEAT and "feat" in data:
             return data["feat"]
-        elif self.content_type == ContentType.RACE and "race" in data:
+        elif self._content_type == ContentType.RACE and "race" in data:
             return data["race"]
-        elif self.content_type == ContentType.BACKGROUND and "background" in data:
+        elif self._content_type == ContentType.BACKGROUND and "background" in data:
             return data["background"]
-        elif self.content_type == ContentType.CLASS and "class" in data:
+        elif self._content_type == ContentType.CLASS and "class" in data:
             return data["class"]
 
         # Generic fallbacks
-        content_type_name = self.content_type.value
+        content_type_name = self._content_type.value
         if content_type_name in data:
             return data[content_type_name]
 
@@ -145,11 +176,11 @@ class JsonDataLoader(DataLoader[T]):
         for key, value in data.items():
             if isinstance(value, list) and value:
                 logger.debug(
-                    f"Using '{key}' array as content for {self.content_type.value}"
+                    f"Using '{key}' array as content for {self._content_type.value}"
                 )
                 return value
 
-        logger.warning(f"No content found for {self.content_type.value} in {path}")
+        logger.warning(f"No content found for {self._content_type.value} in {path}")
         return []
 
     def _ensure_source_info(self, item: Dict[str, Any], path: Path) -> Dict[str, Any]:
@@ -171,7 +202,7 @@ class JsonDataLoader(DataLoader[T]):
     def _add_missing_required_fields(self, item: Dict[str, Any]) -> Dict[str, Any]:
         """Add missing required fields with reasonable defaults."""
         # Handle missing fields for different content types
-        if self.content_type == ContentType.CREATURE:
+        if self._content_type == ContentType.CREATURE:
             # Add missing alignment field for creatures
             if "alignment" not in item:
                 item["alignment"] = ["N"]  # Default to Neutral
@@ -179,7 +210,7 @@ class JsonDataLoader(DataLoader[T]):
                     f"Added default alignment for creature {item.get('name', 'unknown')}"
                 )
 
-        elif self.content_type == ContentType.ITEM:
+        elif self._content_type == ContentType.ITEM:
             # Add missing type field for items
             if "type" not in item:
                 item_type = self._infer_item_type(item)
@@ -252,7 +283,7 @@ class JsonDataLoader(DataLoader[T]):
             return True
 
         # For creature files only, check if content looks like templates
-        if self.content_type != ContentType.CREATURE:
+        if self._content_type != ContentType.CREATURE:
             return False
 
         # Check if this file contains template-like data structures
@@ -366,8 +397,8 @@ class JsonDataLoader(DataLoader[T]):
         }
 
         # Try specific fluff keys for this content type
-        if self.content_type in fluff_key_map:
-            for fluff_key in fluff_key_map[self.content_type]:
+        if self._content_type in fluff_key_map:
+            for fluff_key in fluff_key_map[self._content_type]:
                 if fluff_key in data and isinstance(data[fluff_key], list):
                     logger.debug(
                         f"Found {len(data[fluff_key])} fluff items in {fluff_key}"
@@ -423,7 +454,7 @@ class JsonDataLoader(DataLoader[T]):
         item = fluff_item.copy()
 
         # Add missing required fields based on content type
-        if self.content_type == ContentType.SPELL:
+        if self._content_type == ContentType.SPELL:
             # Add minimal spell fields if missing
             item.setdefault("level", 0)  # Cantrip by default
             item.setdefault("school", "T")  # Transmutation by default
@@ -440,7 +471,7 @@ class JsonDataLoader(DataLoader[T]):
                 else:
                     item["entries"] = ["Fluff content - see original source."]
 
-        elif self.content_type == ContentType.CREATURE:
+        elif self._content_type == ContentType.CREATURE:
             # Add minimal creature fields if missing
             item.setdefault("size", ["M"])  # Medium by default
             item.setdefault("type", "humanoid")
@@ -455,11 +486,23 @@ class JsonDataLoader(DataLoader[T]):
 
             item.setdefault("cr", "0")
 
-        elif self.content_type == ContentType.ITEM:
+        elif self._content_type == ContentType.ITEM:
             # Add minimal item fields if missing
             item.setdefault("type", "G")  # Generic item by default
 
         return item
+
+    def _infer_item_type(self, item: Dict[str, Any]) -> str:
+        """Infer item type from common fields."""
+        if "weaponCategory" in item:
+            return "weapon"
+        if "armorCategory" in item:
+            return "armor"
+        if "wondrous" in item:
+            return "wondrous item"
+        if "consumable" in item:
+            return "consumable"
+        return "item" # Default generic item
 
     def _extract_fluff_text(self, fluff_item: Dict[str, Any]) -> str:
         """Extract descriptive text from fluff item."""
@@ -498,331 +541,10 @@ class JsonDataLoader(DataLoader[T]):
 
         return text_parts
 
-    def _infer_item_type(self, item: Dict[str, Any]) -> str:
-        """Infer item type from name patterns and properties."""
-        name = item.get("name", "").lower()
-
-        # Check for explicit type indicators in item properties
-        if item.get("damage") or item.get("weaponCategory"):
-            return "W"  # Weapon
-
-        if item.get("ac") or item.get("armorType"):
-            return "A"  # Armor
-
-        if item.get("stealth") is not None or "shield" in name:
-            return "S"  # Shield
-
-        # Check rarity - if it's magical, likely wondrous item
-        rarity = item.get("rarity", "").lower()
-        if rarity in ["uncommon", "rare", "very rare", "legendary", "artifact"]:
-            # Check for specific magical item types first
-            if any(pattern in name for pattern in ["ring", "band"]):
-                return "RG"  # Ring
-            elif any(pattern in name for pattern in ["rod", "scepter"]):
-                return "RD"  # Rod
-            elif any(pattern in name for pattern in ["staff", "quarterstaff"]):
-                return "ST"  # Staff
-            elif any(pattern in name for pattern in ["wand"]):
-                return "WD"  # Wand
-            elif any(pattern in name for pattern in ["potion", "elixir", "philter"]):
-                return "P"  # Potion
-            elif any(
-                pattern in name
-                for pattern in [
-                    "scroll",
-                    "tome",
-                    "book",
-                    "manual",
-                    "compendium",
-                    "grimoire",
-                ]
-            ):
-                return "SC"  # Scroll/Book
-            elif any(
-                pattern in name
-                for pattern in [
-                    "amulet",
-                    "necklace",
-                    "pendant",
-                    "cloak",
-                    "robe",
-                    "boots",
-                    "gloves",
-                    "gauntlets",
-                    "belt",
-                    "circlet",
-                    "crown",
-                    "helm",
-                    "helmet",
-                    "bracers",
-                    "tattoo",
-                ]
-            ):
-                return "W"  # Wondrous Item (wearable)
-            else:
-                return "W"  # Default to wondrous item for magical items
-
-        # Pattern-based detection for name patterns
-        weapon_patterns = [
-            "sword",
-            "blade",
-            "dagger",
-            "knife",
-            "axe",
-            "hammer",
-            "mace",
-            "club",
-            "staff",
-            "spear",
-            "lance",
-            "pike",
-            "bow",
-            "crossbow",
-            "javelin",
-            "dart",
-            "sling",
-            "whip",
-            "flail",
-            "glaive",
-            "halberd",
-            "trident",
-            "scimitar",
-            "rapier",
-            "shortsword",
-            "longsword",
-            "greatsword",
-            "handaxe",
-            "battleaxe",
-            "greataxe",
-            "light hammer",
-            "warhammer",
-            "maul",
-            "morningstar",
-            "war pick",
-            "quarterstaff",
-        ]
-
-        armor_patterns = [
-            "armor",
-            "mail",
-            "plate",
-            "leather",
-            "studded",
-            "chain",
-            "scale",
-            "splint",
-            "breastplate",
-            "half plate",
-            "ring mail",
-            "chain mail",
-            "scale mail",
-            "hide armor",
-            "padded armor",
-        ]
-
-        shield_patterns = ["shield", "buckler"]
-
-        tool_patterns = [
-            "kit",
-            "tools",
-            "thieves",
-            "artisan",
-            "disguise",
-            "forgery",
-            "herbalism",
-            "navigator",
-            "poisoner",
-            "alchemist",
-            "brewer",
-            "calligrapher",
-            "carpenter",
-            "cartographer",
-            "cobbler",
-            "cook",
-            "glassblower",
-            "jeweler",
-            "leatherworker",
-            "mason",
-            "painter",
-            "potter",
-            "smith",
-            "tinker",
-            "weaver",
-            "woodcarver",
-        ]
-
-        # Check weapon patterns
-        if any(pattern in name for pattern in weapon_patterns):
-            return "W"  # Weapon
-
-        # Check armor patterns
-        if any(pattern in name for pattern in armor_patterns):
-            return "A"  # Armor
-
-        # Check shield patterns
-        if any(pattern in name for pattern in shield_patterns):
-            return "S"  # Shield
-
-        # Check tool patterns
-        if any(pattern in name for pattern in tool_patterns):
-            return "T"  # Tool
-
-        # Check for adventuring gear patterns
-        gear_patterns = [
-            "rope",
-            "torch",
-            "lantern",
-            "oil",
-            "rations",
-            "waterskin",
-            "bedroll",
-            "blanket",
-            "tent",
-            "backpack",
-            "pouch",
-            "sack",
-            "chest",
-            "barrel",
-            "bottle",
-            "vial",
-            "flask",
-            "jug",
-            "pitcher",
-            "ball bearings",
-            "caltrops",
-            "candle",
-            "chain",
-            "chalk",
-            "crowbar",
-            "grappling hook",
-            "ladder",
-            "lock",
-            "manacles",
-            "mirror",
-            "piton",
-            "pole",
-            "pulley",
-            "sealing wax",
-            "shovel",
-            "signal whistle",
-            "string",
-            "tinderbox",
-        ]
-
-        if any(pattern in name for pattern in gear_patterns):
-            return "G"  # Adventuring Gear
-
-        # Check for mount/vehicle patterns
-        if any(
-            pattern in name
-            for pattern in [
-                "horse",
-                "pony",
-                "mule",
-                "camel",
-                "elephant",
-                "cart",
-                "wagon",
-                "ship",
-                "boat",
-            ]
-        ):
-            return "MNT"  # Mount or Vehicle
-
-        # Check for treasure patterns
-        if any(
-            pattern in name
-            for pattern in [
-                "gem",
-                "jewel",
-                "coin",
-                "gold",
-                "silver",
-                "platinum",
-                "copper",
-                "treasure",
-                "art object",
-            ]
-        ):
-            return "TRE"  # Treasure
-
-        # Special cases based on name prefixes/suffixes
-        if name.startswith(("+1", "+2", "+3")) or "enhancement" in name:
-            # Enhanced items - determine base type
-            if any(pattern in name for pattern in weapon_patterns):
-                return "W"  # Enhanced weapon
-            elif any(pattern in name for pattern in armor_patterns + shield_patterns):
-                return "A"  # Enhanced armor/shield
-            else:
-                return "W"  # Default to wondrous item for enhanced items
-
-        # Default fallback based on common D&D item categorization
-        if "magic" in name or rarity:
-            return "W"  # Wondrous Item for magical items
-
-        # Final fallback
-        return "G"  # Generic adventuring gear
-
-
-# Factory functions for common loaders
-def create_spell_loader() -> JsonDataLoader:
-    """Create a spell data loader."""
-    from ..models.spells import Spell
-
-    return JsonDataLoader(Spell, ContentType.SPELL)
-
-
-def create_creature_loader() -> JsonDataLoader:
-    """Create a creature data loader."""
-    from ..models.creatures import Creature
-
-    return JsonDataLoader(Creature, ContentType.CREATURE)
-
-
-def create_item_loader() -> JsonDataLoader:
-    """Create an item data loader."""
-    from ..models.items import Item
-
-    return JsonDataLoader(Item, ContentType.ITEM)
-
-
-def create_adventure_loader() -> JsonDataLoader:
-    """Create an adventure data loader."""
-    from ..models.adventures import Adventure
-
-    return JsonDataLoader(Adventure, ContentType.ADVENTURE)
-
-
-def create_book_loader() -> JsonDataLoader:
-    """Create a book data loader."""
-    from ..models.books import Book
-
-    return JsonDataLoader(Book, ContentType.BOOK)
-
-
-def create_feat_loader() -> JsonDataLoader:
-    """Create a feat data loader."""
-    from ..models.feats import Feat
-
-    return JsonDataLoader(Feat, ContentType.FEAT)
-
-
-def create_race_loader() -> JsonDataLoader:
-    """Create a race data loader."""
-    from ..models.races import Race
-
-    return JsonDataLoader(Race, ContentType.RACE)
-
-
-def create_background_loader() -> JsonDataLoader:
-    """Create a background data loader."""
-    from ..models.backgrounds import Background
-
-    return JsonDataLoader(Background, ContentType.BACKGROUND)
-
-
-def create_class_loader() -> JsonDataLoader:
-    """Create a class data loader."""
-    from ..models.classes import Class
-
-    return JsonDataLoader(Class, ContentType.CLASS)
+    @classmethod
+    def create_for_type(cls, content_type: ContentType) -> "JsonDataLoader":
+        """Create a JsonDataLoader instance for a given content type."""
+        model_class = _model_map.get(content_type)
+        if not model_class:
+            raise ValueError(f"No model class defined for content type: {content_type}")
+        return JsonDataLoader(model_class, content_type)

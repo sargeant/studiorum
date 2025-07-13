@@ -15,14 +15,7 @@ from unittest.mock import patch
 import pytest
 
 from src.core.config.settings import get_logger
-from src.core.loaders.json_loader import (
-    JsonDataLoader,
-    create_adventure_loader,
-    create_book_loader,
-    create_creature_loader,
-    create_item_loader,
-    create_spell_loader,
-)
+from src.core.loaders.json_loader import JsonDataLoader
 from src.core.loaders.omnidexer import Omnidexer
 from src.core.loaders.source_manager import FileSystemSourceManager
 from src.core.models.content import ContentType
@@ -99,9 +92,7 @@ class TestDataValidationStress:
     async def test_load_all_spells_no_validation_errors(self):
         """Test loading all spell data without validation errors."""
         source_manager = FileSystemSourceManager()
-        spell_loader = create_spell_loader()
-
-        # Get all spell files
+        spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
         data_paths = source_manager.get_data_paths()
         spell_files = data_paths.get(ContentType.SPELL, [])
 
@@ -137,9 +128,7 @@ class TestDataValidationStress:
     async def test_load_all_creatures_no_validation_errors(self):
         """Test loading all creature data without validation errors."""
         source_manager = FileSystemSourceManager()
-        creature_loader = create_creature_loader()
-
-        # Get all creature files
+        creature_loader = JsonDataLoader.create_for_type(ContentType.CREATURE)
         data_paths = source_manager.get_data_paths()
         creature_files = data_paths.get(ContentType.CREATURE, [])
 
@@ -174,9 +163,7 @@ class TestDataValidationStress:
     async def test_load_all_items_no_validation_errors(self):
         """Test loading all item data without validation errors."""
         source_manager = FileSystemSourceManager()
-        item_loader = create_item_loader()
-
-        # Get all item files
+        item_loader = JsonDataLoader.create_for_type(ContentType.ITEM)
         data_paths = source_manager.get_data_paths()
         item_files = data_paths.get(ContentType.ITEM, [])
 
@@ -346,7 +333,7 @@ class TestDataValidationStress:
     async def test_file_format_detection_accuracy(self):
         """Test that file format detection correctly identifies different file types."""
         source_manager = FileSystemSourceManager()
-        spell_loader = create_spell_loader()
+        spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
 
         # Get all data files
         data_paths = source_manager.get_data_paths()
@@ -470,8 +457,11 @@ class TestDataValidationStress:
     @pytest.mark.asyncio
     async def test_memory_usage_during_full_load(self):
         """Test memory usage doesn't grow excessively during full data load."""
-        import psutil
-        import os
+        try:
+            import psutil
+            import os
+        except ImportError:
+            pytest.skip("psutil not installed - skipping memory usage test")
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
