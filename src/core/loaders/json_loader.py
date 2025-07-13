@@ -58,7 +58,19 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
 
             # Read JSON file
             with open(path, encoding="utf-8") as f:
-                data = json.load(f)
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError as e:
+                    # Check if this might be an index file with malformed JSON
+                    f.seek(0)
+                    content = f.read()
+                    if "{@" in content and any(pattern in path.name.lower() 
+                                             for pattern in ["-list.", "index.", "_list.", "_index."]):
+                        logger.debug(f"Skipping malformed index file: {path}")
+                        return []
+                    else:
+                        # Re-raise the original error for other files
+                        raise e
 
             # Extract content based on file structure
             content_list = self._extract_content(data, path)
@@ -115,6 +127,11 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
         """Extract content list from various JSON structures."""
         # Handle different JSON structures from 5etools
 
+        # Check if this is an index/list file and skip it
+        if self._is_index_file(path, data):
+            logger.debug(f"Skipping index/list file: {path}")
+            return []
+
         # Check if this is a Foundry VTT format file and skip it
         if self._is_foundry_file(path, data):
             logger.debug(f"Skipping Foundry VTT format file: {path}")
@@ -128,6 +145,11 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
         # Check if this is a fluff file - these should be handled by FluffDataLoader
         if self._is_fluff_file(path, data):
             logger.debug(f"Fluff file {path} should be handled by FluffDataLoader, skipping")
+            return []
+
+        # Check if this is a metadata/sources file and skip it
+        if self._is_metadata_file(path, data):
+            logger.debug(f"Skipping metadata/sources file: {path}")
             return []
 
         # Direct content arrays
@@ -365,6 +387,78 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
             if not any(field in item for field in ["ac", "hp"]):
                 return True
 
+        return False
+
+    def _is_index_file(self, path: Path, data: Dict[str, Any]) -> bool:
+        """Check if this is an index/list file containing tag references."""
+        filename = path.name.lower()
+        
+        # Check filename patterns for index/list files
+        if any(pattern in filename for pattern in ["-list.", "index.", "_list.", "_index."]):
+            return True
+            
+        # Check if the data structure indicates an index file
+        # Index files often contain arrays of strings (tag references)
+        # rather than arrays of objects (content items)
+        if isinstance(data, list):
+            # If it's a list and most items are strings containing tags, it's likely an index
+            if len(data) > 0:
+                string_items = sum(1 for item in data[:10] if isinstance(item, str))
+                if string_items / min(len(data), 10) > 0.5:  # More than 50% are strings
+                    # Check if strings contain tag patterns
+                    tag_strings = sum(1 for item in data[:10] 
+                                    if isinstance(item, str) and "{@" in item)
+                    if tag_strings > 0:
+                        return True
+        
+        # Check top-level arrays for similar pattern
+        for key, value in data.items():
+            if isinstance(value, list) and len(value) > 0:
+                # Check first few items
+                sample_size = min(10, len(value))
+                string_items = sum(1 for item in value[:sample_size] if isinstance(item, str))
+                
+                if string_items / sample_size > 0.5:  # More than 50% are strings
+                    # Check if strings contain tag patterns
+                    tag_strings = sum(1 for item in value[:sample_size] 
+                                    if isinstance(item, str) and "{@" in item)
+                    if tag_strings > 0:
+                        return True
+        
+        return False
+
+    def _is_metadata_file(self, path: Path, data: Dict[str, Any]) -> bool:
+        """Check if this is a metadata/sources file rather than content."""
+        filename = path.name.lower()
+        
+        # Check filename patterns for metadata files
+        if any(pattern in filename for pattern in ["sources.", "metadata.", "_sources.", "_metadata."]):
+            return True
+            
+        # Check if the data structure indicates a metadata file
+        # Metadata files typically have source abbreviations as top-level keys
+        # and nested structures with metadata rather than content arrays
+        if isinstance(data, dict) and not any(isinstance(value, list) for value in data.values()):
+            # Check if top-level keys look like source abbreviations (typically 2-6 uppercase letters)
+            top_keys = list(data.keys())[:5]  # Check first 5 keys
+            abbrev_pattern_count = 0
+            
+            for key in top_keys:
+                if isinstance(key, str) and len(key) >= 2 and len(key) <= 6 and key.isupper():
+                    # Check if the value contains metadata structure
+                    value = data[key]
+                    if isinstance(value, dict):
+                        # Look for nested spell/class mapping structures
+                        nested_values = list(value.values())[:3]  # Check first 3 nested items
+                        for nested_val in nested_values:
+                            if isinstance(nested_val, dict) and "class" in nested_val:
+                                abbrev_pattern_count += 1
+                                break
+            
+            # If most top-level keys look like source abbreviations with metadata, it's likely a metadata file
+            if len(top_keys) > 0 and abbrev_pattern_count / len(top_keys) >= 0.6:
+                return True
+        
         return False
 
     def _is_fluff_file(self, path: Path, data: Dict[str, Any]) -> bool:

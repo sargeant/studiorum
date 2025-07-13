@@ -139,7 +139,13 @@ class TestFullDatasetValidation:
         skips = defaultdict(int)
         for record in self.log_records:
             message = record.getMessage()
-            if "Skipping Foundry VTT" in message:
+            if "Skipping index/list file" in message:
+                skips["index_list"] += 1
+            elif "Skipping malformed index file" in message:
+                skips["malformed_index"] += 1
+            elif "Skipping metadata/sources file" in message:
+                skips["metadata"] += 1
+            elif "Skipping Foundry VTT" in message:
                 skips["foundry"] += 1
             elif "Skipping template" in message:
                 skips["template"] += 1
@@ -153,6 +159,8 @@ class TestFullDatasetValidation:
     @pytest.mark.slow
     async def test_full_spell_dataset_validation(self):
         """Test validation of the complete spell dataset."""
+        report = ValidationReport()  # Initialize report
+        
         source_manager = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
         spell_files = data_paths.get(ContentType.SPELL, [])
@@ -199,6 +207,8 @@ class TestFullDatasetValidation:
     @pytest.mark.slow
     async def test_full_creature_dataset_validation(self):
         """Test validation of the complete creature dataset."""
+        report = ValidationReport()  # Initialize report
+        
         source_manager = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
         creature_files = data_paths.get(ContentType.CREATURE, [])
@@ -247,6 +257,8 @@ class TestFullDatasetValidation:
     @pytest.mark.slow
     async def test_full_item_dataset_validation(self):
         """Test validation of the complete item dataset."""
+        report = ValidationReport()  # Initialize report
+        
         source_manager = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
         item_files = data_paths.get(ContentType.ITEM, [])
