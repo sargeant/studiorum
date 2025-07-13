@@ -1,8 +1,8 @@
 """Adventure data models."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .content import BaseContent
 
@@ -12,7 +12,7 @@ class AdventureChapter(BaseModel):
 
     name: str = Field(..., description="Chapter name")
     ordinal: Optional[Dict[str, Any]] = Field(None, description="Chapter numbering")
-    headers: Optional[List[str]] = Field(None, description="Section headers")
+    headers: Optional[List[Union[str, Dict[str, Any]]]] = Field(None, description="Section headers")
     entries: List[Any] = Field(default_factory=list, description="Chapter content")
 
     def get_chapter_number(self) -> str:
@@ -29,6 +29,47 @@ class AdventureChapter(BaseModel):
                     return str(identifier)
             return str(self.ordinal)
         return ""
+
+    @field_validator("headers", mode="before")
+    @classmethod
+    def parse_headers(cls, v):
+        """Parse headers from various formats."""
+        if not v:
+            return v
+        
+        if isinstance(v, list):
+            result = []
+            for item in v:
+                if isinstance(item, str):
+                    result.append(item)
+                elif isinstance(item, dict):
+                    # Extract header text from dict format
+                    if "header" in item:
+                        result.append(item["header"])
+                    else:
+                        result.append(str(item))
+                else:
+                    result.append(str(item))
+            return result
+        return v
+
+    def get_formatted_headers(self) -> List[str]:
+        """Get formatted header texts."""
+        if not self.headers:
+            return []
+        
+        result = []
+        for header in self.headers:
+            if isinstance(header, str):
+                result.append(header)
+            elif isinstance(header, dict):
+                if "header" in header:
+                    result.append(header["header"])
+                else:
+                    result.append(str(header))
+            else:
+                result.append(str(header))
+        return result
 
 
 class AdventureMetadata(BaseModel):

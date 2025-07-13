@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Type
 
 from ..config.settings import get_logger
 from ..models.content import ContentType
-from ..models.fluff import BaseFluff, CreatureFluff, ItemFluff, SpellFluff
+from ..models.fluff import BaseFluff, CreatureFluff, ItemFluff, SpellFluff, RaceFluff, FeatFluff, ClassFluff, BackgroundFluff
 from .base import DataLoader
 
 logger = get_logger(__name__)
@@ -21,11 +21,19 @@ class FluffDataLoader(DataLoader[BaseFluff]):
             ContentType.SPELL: SpellFluff,
             ContentType.CREATURE: CreatureFluff,
             ContentType.ITEM: ItemFluff,
+            ContentType.RACE: RaceFluff,
+            ContentType.FEAT: FeatFluff,
+            ContentType.CLASS: ClassFluff,
+            ContentType.BACKGROUND: BackgroundFluff,
         }
         self._fluff_key_map = {
-            ContentType.SPELL: "spellFluff",
-            ContentType.CREATURE: "monsterFluff",
-            ContentType.ITEM: "itemFluff",
+            ContentType.SPELL: ["spellFluff", "spell_fluff"],
+            ContentType.CREATURE: ["monsterFluff", "monster_fluff", "creatureFluff"],
+            ContentType.ITEM: ["itemFluff", "item_fluff"],
+            ContentType.RACE: ["raceFluff", "race_fluff"],
+            ContentType.FEAT: ["featFluff", "feat_fluff"],
+            ContentType.CLASS: ["classFluff", "class_fluff"],
+            ContentType.BACKGROUND: ["backgroundFluff", "background_fluff"],
         }
 
     async def load(self, path: Path) -> List[BaseFluff]:
@@ -81,11 +89,12 @@ class FluffDataLoader(DataLoader[BaseFluff]):
     ) -> List[Dict[str, Any]]:
         """Extract fluff content from various JSON structures."""
         # Try specific fluff keys first
-        fluff_key = self._fluff_key_map.get(self._content_type)
-        if fluff_key and fluff_key in data:
-            content = data[fluff_key]
-            if isinstance(content, list):
-                return content
+        fluff_keys = self._fluff_key_map.get(self._content_type, [])
+        for fluff_key in fluff_keys:
+            if fluff_key in data:
+                content = data[fluff_key]
+                if isinstance(content, list):
+                    return content
 
         # Try generic patterns
         for possible_key in [

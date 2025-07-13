@@ -179,18 +179,40 @@ def convert_book(
                 book_data = json.load(f)
 
             # Parse book
-            from src.core.models.books import Book
+            from src.core.models.books import Book, BookChapter
 
-            # Get book data (could be nested)
-            if "book" in book_data:
-                book_items = book_data["book"]
+            # Extract book metadata from filename if available
+            book_id = input_file.stem.replace("book-", "").upper()
+            book_name = title or f"Book: {book_id}"
+
+            # Get book content sections
+            book_sections = []
+            if "data" in book_data:
+                book_sections = book_data["data"]
+            elif "book" in book_data:
+                book_sections = book_data["book"] 
             else:
-                book_items = [book_data]
+                book_sections = [book_data] if isinstance(book_data, dict) else []
 
-            content_items = []
-            for item in book_items:
-                if isinstance(item, dict):
-                    content_items.append(Book.model_validate(item))
+            # Convert sections to chapters
+            chapters = []
+            for section in book_sections:
+                if isinstance(section, dict) and section.get("type") == "section":
+                    chapter = BookChapter(
+                        name=section.get("name", "Untitled Chapter"),
+                        entries=section.get("entries", [])
+                    )
+                    chapters.append(chapter)
+
+            # Create a complete book object
+            book = Book(
+                name=book_name,
+                source={"abbreviation": book_id},
+                id=book_id,
+                contents=chapters
+            )
+            
+            content_items = [book]
 
             if not content_items:
                 rprint("[red]Error:[/red] No valid book content found")

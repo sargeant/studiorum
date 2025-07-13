@@ -1,6 +1,6 @@
 """Pydantic models for feats."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -16,7 +16,9 @@ class Prerequisite(BaseModel):
 class AdditionalSpell(BaseModel):
     """A spell that can be cast in addition to the feat."""
 
-    ability: Optional[str] = None
+    name: Optional[str] = None
+    level: Optional[int] = None
+    ability: Optional[Union[str, Dict[str, Any]]] = None
     innate: Optional[Dict[str, Any]] = None
     known: Optional[Dict[str, Any]] = None
 
@@ -25,7 +27,7 @@ class Feat(BaseContent):
     """A feat."""
 
     prerequisite: Optional[List[Prerequisite]] = None
-    ability: Optional[List[Dict[str, int]]] = None
+    ability: Optional[List[Dict[str, Union[int, Dict[str, Any]]]]] = None
     additionalSpells: Optional[List[AdditionalSpell]] = Field(
         default=None, alias="additionalSpells"
     )

@@ -74,6 +74,11 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
                         )
                         continue
 
+                    # Skip sections when parsing inappropriate content types
+                    if item.get("type") == "section" and self._content_type not in [ContentType.BOOK, ContentType.ADVENTURE]:
+                        logger.debug(f"Skipping section item when parsing {self._content_type.value}")
+                        continue
+
                     # Ensure source information is present
                     item = self._ensure_source_info(item, path)
 
@@ -120,9 +125,10 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
             logger.debug(f"Skipping template file: {path}")
             return []
 
-        # Check if this is a fluff file and handle with liberal parsing
+        # Check if this is a fluff file - these should be handled by FluffDataLoader
         if self._is_fluff_file(path, data):
-            return self._extract_fluff_content(data, path)
+            logger.debug(f"Fluff file {path} should be handled by FluffDataLoader, skipping")
+            return []
 
         # Direct content arrays
         if self._content_type == ContentType.SPELL and "spell" in data:
@@ -389,108 +395,23 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
         self, data: Dict[str, Any], path: Path
     ) -> List[Dict[str, Any]]:
         """Extract fluff content with liberal parsing."""
-        # Map content types to their fluff keys
-        fluff_key_map = {
-            ContentType.SPELL: ["spellFluff", "spell_fluff"],
-            ContentType.CREATURE: ["monsterFluff", "monster_fluff", "creatureFluff"],
-            ContentType.ITEM: ["itemFluff", "item_fluff"],
-        }
-
-        # Try specific fluff keys for this content type
-        if self._content_type in fluff_key_map:
-            for fluff_key in fluff_key_map[self._content_type]:
-                if fluff_key in data and isinstance(data[fluff_key], list):
-                    logger.debug(
-                        f"Found {len(data[fluff_key])} fluff items in {fluff_key}"
-                    )
-                    return self._process_fluff_items(data[fluff_key], path)
-
-        # Try generic fluff keys
-        for key in ["fluff", "fluffData"]:
-            if key in data and isinstance(data[key], list):
-                logger.debug(f"Found {len(data[key])} fluff items in {key}")
-                return self._process_fluff_items(data[key], path)
-
-        # Look for any key containing "fluff"
-        for key, value in data.items():
-            if "fluff" in key.lower() and isinstance(value, list):
-                logger.debug(f"Found {len(value)} fluff items in {key}")
-                return self._process_fluff_items(value, path)
-
-        logger.debug(f"No fluff content found in {path}")
+        # Fluff content should be handled by FluffDataLoader
+        logger.debug(f"Fluff content extraction called for {self._content_type.value} in {path}")
         return []
 
     def _process_fluff_items(
         self, fluff_items: List[Dict[str, Any]], path: Path
     ) -> List[Dict[str, Any]]:
-        """Process fluff items to make them compatible with main content models."""
-        processed_items = []
-
-        for item in fluff_items:
-            if not isinstance(item, dict):
-                continue
-
-            # Skip items without names
-            if not item.get("name"):
-                continue
-
-            try:
-                # Create a liberal version of the item that might validate
-                processed_item = self._make_fluff_compatible(item, path)
-                if processed_item:
-                    processed_items.append(processed_item)
-            except Exception as e:
-                logger.debug(
-                    f"Skipping fluff item {item.get('name', 'unknown')} in {path}: {e}"
-                )
-
-        return processed_items
+        """Process fluff items - now handled by FluffDataLoader."""
+        logger.debug(f"Fluff item processing called for {self._content_type.value} in {path}")
+        return []
 
     def _make_fluff_compatible(
         self, fluff_item: Dict[str, Any], path: Path
     ) -> Optional[Dict[str, Any]]:
-        """Convert fluff item to be compatible with main content model."""
-        # Start with the fluff item
-        item = fluff_item.copy()
-
-        # Add missing required fields based on content type
-        if self._content_type == ContentType.SPELL:
-            # Add minimal spell fields if missing
-            item.setdefault("level", 0)  # Cantrip by default
-            item.setdefault("school", "T")  # Transmutation by default
-            item.setdefault("time", [{"number": 1, "unit": "action"}])
-            item.setdefault("range", {"type": "self"})
-            item.setdefault("components", {"v": True})
-            item.setdefault("duration", [{"type": "instant"}])
-
-            # Use fluff entries as spell description if no entries exist
-            if not item.get("entries"):
-                fluff_text = self._extract_fluff_text(fluff_item)
-                if fluff_text:
-                    item["entries"] = [fluff_text]
-                else:
-                    item["entries"] = ["Fluff content - see original source."]
-
-        elif self._content_type == ContentType.CREATURE:
-            # Add minimal creature fields if missing
-            item.setdefault("size", ["M"])  # Medium by default
-            item.setdefault("type", "humanoid")
-            item.setdefault("alignment", ["N"])  # Neutral by default
-            item.setdefault("ac", [{"ac": 10}])
-            item.setdefault("hp", {"average": 1, "formula": "1d4"})
-            item.setdefault("speed", {"walk": 30})
-
-            # Basic ability scores
-            for ability in ["str", "dex", "con", "int", "wis", "cha"]:
-                item.setdefault(ability, 10)
-
-            item.setdefault("cr", "0")
-
-        elif self._content_type == ContentType.ITEM:
-            # Add minimal item fields if missing
-            item.setdefault("type", "G")  # Generic item by default
-
-        return item
+        """Convert fluff item to be compatible with main content model - deprecated."""
+        logger.debug(f"Fluff compatibility conversion called for {self._content_type.value} in {path}")
+        return None
 
     def _infer_item_type(self, item: Dict[str, Any]) -> str:
         """Infer item type from common fields."""

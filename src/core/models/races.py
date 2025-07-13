@@ -1,5 +1,6 @@
 """Pydantic models for races."""
 
+from __future__ import annotations
 from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
@@ -14,8 +15,8 @@ class AbilityAdjustment(BaseModel):
     cha: Optional[int] = None
     con: Optional[int] = None
     dex: Optional[int] = None
-    int: Optional[int] = None
-    str: Optional[int] = None
+    intelligence: Optional[int] = Field(None, alias="int")
+    strength: Optional[int] = Field(None, alias="str")
     wis: Optional[int] = None
 
 
@@ -26,7 +27,7 @@ class AdditionalSpell(BaseModel):
     level: Optional[int] = None
     innate: Optional[Dict[str, Any]] = None
     known: Optional[Dict[str, Any]] = None
-    ability: Optional[str] = None
+    ability: Optional[Union[str, Dict[str, Any]]] = None
 
 
 class Race(BaseContent):

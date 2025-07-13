@@ -195,3 +195,27 @@ class ItemFluff(BaseFluff):
     """Fluff content specific to items."""
 
     pass
+
+
+class RaceFluff(BaseFluff):
+    """Fluff content specific to races."""
+
+    pass
+
+
+class FeatFluff(BaseFluff):
+    """Fluff content specific to feats."""
+
+    pass
+
+
+class ClassFluff(BaseFluff):
+    """Fluff content specific to classes."""
+
+    pass
+
+
+class BackgroundFluff(BaseFluff):
+    """Fluff content specific to backgrounds."""
+
+    pass
