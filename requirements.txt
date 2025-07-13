@@ -8,7 +8,7 @@ boto==2.49.0
 boto3==1.33.6
 botocore==1.33.6
 Brotli==1.1.0
-certifi==2022.9.24
+certifi==2024.7.4
 charset-normalizer==2.1.1
 colorama==0.4.4
 configobj==5.0.8
