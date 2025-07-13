@@ -377,3 +377,74 @@ uv run 5e2pdf setup wizard
 # 2. Custom setup (add your own sources)  
 # 3. Local only (use existing directories)
 ```
+
+## Contributing
+
+We welcome contributions to the D&D 5e to PDF Converter project! Here's how to get started:
+
+### Development Environment Setup
+
+1. **Install uv** (Python package manager):
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+
+2. **Clone the repository**:
+   ```bash
+   git clone https://github.com/sargeant/5e2pdf.git
+   cd 5e2pdf
+   ```
+
+3. **Install dependencies with development tools**:
+   ```bash
+   uv sync --extra dev
+   ```
+
+### Running Tests
+
+We use pytest for testing. Run the test suite with:
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage report
+uv run pytest --cov=src --cov-report=html
+
+# Run specific test file
+uv run pytest tests/unit/test_content_tracker.py
+```
+
+### Code Quality
+
+Before submitting changes, ensure your code meets our standards:
+
+```bash
+# Format code with black
+uv run black src/ tests/
+
+# Lint with ruff
+uv run ruff check src/ tests/
+
+# Type checking with mypy
+uv run mypy src/
+```
+
+### Submitting Pull Requests
+
+1. Fork the repository on GitHub
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Make your changes and add tests
+4. Ensure all tests pass and code is properly formatted
+5. Commit your changes: `git commit -m "Add your feature"`
+6. Push to your fork: `git push origin feature/your-feature-name`
+7. Submit a pull request with a clear description of your changes
+
+### Issues and Feature Requests
+
+- Check existing issues before creating new ones
+- Use clear, descriptive titles
+- Provide as much context as possible
+- Tag issues appropriately (bug, enhancement, question, etc.)
+
+Thank you for contributing!
