@@ -1,6 +1,6 @@
 # Claude
 
-This is a python project to use the json data files of D&D content from 5e.tools, parse/load, then transform into LaTeX for PDF output.
+This is a python project to parse the json data files of D&D content from 5e.tools, then transform into LaTeX for PDF output.
 
 ## Important notes
 

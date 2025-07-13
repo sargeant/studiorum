@@ -2,15 +2,16 @@
 
 This project converts JSON data in the 5e.tools format into LaTeX documents using an RPG theme.
 
-
 ## Quick Start
 
 ### 1. Install uv (Python package manager)
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ### 2. Setup dependencies
+
 ```bash
 # Install all dependencies
 uv sync
@@ -23,6 +24,7 @@ uv sync --extra dev
 ```
 
 ### 3. Configure Content Sources 🎯
+
 ```bash
 # Run the interactive setup wizard (recommended)
 uv run 5e2pdf setup wizard
@@ -39,6 +41,7 @@ uv run 5e2pdf sources scan
 ```
 
 ### 4. Use the Modern CLI ⚡
+
 ```bash
 # Quick conversion (new way)
 uv run 5e2pdf quick spell-data.json --pdf
@@ -51,6 +54,7 @@ uv run 5e2pdf legacy --adventure --no-images adventure.json
 ```
 
 ### 5. Test the architecture
+
 ```bash
 # Run the comprehensive test suite (100+ tests)
 uv run pytest tests/unit/ -v
@@ -75,6 +79,7 @@ asyncio.run(test())
 ```
 
 ### 6. Build documents (Legacy System - Still Works)
+
 ```bash
 # Simple build (LaTeX only)
 ./scripts/json2tex.sh --adventure --no-images --add-items --add-creatures path/to/adventure.json > output.tex
@@ -90,6 +95,7 @@ cd build && xelatex adventure-cos.tex
 ## Usage
 
 ### **Quick Convert** ⚡
+
 ```bash
 # Convert any JSON file to LaTeX/PDF
 uv run 5e2pdf quick spell-data.json --pdf
@@ -99,6 +105,7 @@ uv run 5e2pdf quick adventure.json --title "My Adventure" --images --pdf
 ```
 
 ### **Content Source Management** 📚
+
 ```bash
 # List configured sources
 uv run 5e2pdf sources list
@@ -117,6 +124,7 @@ uv run 5e2pdf sources defaults
 ```
 
 ### **Advanced Commands** 🔧
+
 ```bash
 # List available content
 uv run 5e2pdf list files
@@ -135,6 +143,7 @@ uv run 5e2pdf stats sources
 ## Architecture Usage Examples
 
 ### Working with the Omnidexer
+
 ```python
 import asyncio
 from src.core.loaders.omnidexer import Omnidexer
@@ -161,6 +170,7 @@ asyncio.run(example())
 ```
 
 ### Using the Tag Resolver
+
 ```python
 import asyncio
 from src.core.loaders.omnidexer import Omnidexer
@@ -184,9 +194,11 @@ asyncio.run(example())
 ## Dependencies
 
 **Environment Management:**
+
 - `uv` - Fast Python package manager and environment manager
 
 **Core Python packages** (defined in `pyproject.toml`):
+
 - `pydantic>=2.0.0` - Data validation and settings management
 - `pydantic-settings>=2.0.0` - Environment-based configuration
 - `typer>=0.9.0` - Modern CLI framework
@@ -198,6 +210,7 @@ asyncio.run(example())
 - `GetOptions>=1.0.3` - Legacy command line option parsing
 
 **Development packages** (`--extra dev`):
+
 - `pytest>=7.0.0` - Testing framework
 - `pytest-asyncio>=0.21.0` - Async test support
 - `pytest-cov>=4.0.0` - Coverage reporting
@@ -206,10 +219,12 @@ asyncio.run(example())
 - `mypy` - Static type checking
 
 **Optional packages:**
+
 - `images` group: `Pillow` for image processing
 - `xml` group: `lxml` for faster XML parsing
 
 **LaTeX requirements:**
+
 - XeLaTeX (for PDF compilation)
 - D&D fonts (included in `assets/fonts/`)
 
@@ -258,6 +273,7 @@ asyncio.run(example())
 ## Development
 
 ### Running Tests
+
 ```bash
 # Run all tests
 uv run pytest tests/ -v
@@ -273,6 +289,7 @@ uv run pytest tests/ --cov=src --cov-report=html
 ```
 
 ### Code Quality
+
 ```bash
 # Format code
 uv run black src/ tests/
@@ -285,6 +302,7 @@ uv run mypy src/
 ```
 
 ### Development Workflow
+
 1. **Make changes** to the modern architecture in `src/core/`
 2. **Add tests** in `tests/unit/` for new functionality
 3. **Run tests** to ensure everything works: `uv run pytest tests/unit/ -v`
@@ -295,6 +313,7 @@ uv run mypy src/
 ### ✅ **ALL PHASES COMPLETE** ✅
 
 **Phase 1: Foundation (`src/core/`)**
+
 - **Data Models** - Type-safe Pydantic v2 models for all D&D content types
 - **Omnidexer System** - Efficient async data loading with hash-based indexing
 - **Tag Resolution** - Complete `{@type name|source|display}` tag parsing with 25+ handlers
@@ -302,18 +321,21 @@ uv run mypy src/
 - **Caching** - Performance optimization with disk-based caching system
 
 **Phase 2: Rendering System (`src/renderers/`)**
+
 - **Abstract Interfaces** - Clean renderer base classes for multiple output formats
 - **LaTeX Pipeline** - Complete document generation with D&D-style templates
 - **Content Renderers** - Specialized rendering for spells, creatures, items, adventures
 - **Template Engine** - Flexible system with built-in D&D layouts and custom templates
 
 **Phase 3: Modern CLI & Migration (`src/cli/`)**
+
 - **Modern CLI** - Professional interface with Typer, Rich output, and async operations
 - **Legacy Compatibility** - Full backwards compatibility for existing scripts and workflows  
 - **Build Integration** - Updated build scripts supporting both modern and legacy modes
 - **Performance** - Optimized with caching, parallel processing, and efficient data loading
 
 ### 📊 **System Status**
+
 - **100+ Tests** across all components with comprehensive coverage
 - **Type Safety** throughout with modern Python patterns
 - **Async Architecture** for optimal performance
@@ -322,24 +344,30 @@ uv run mypy src/
 ## 🔧 Content Configuration System
 
 ### Configurable Sources
+
 5e2pdf now uses a modern content source system instead of hardcoded paths:
 
 **Supported Source Types:**
+
 - **GitHub Repositories** - Automatically clone and update from GitHub (recommended)
 - **Local Directories** - Point to existing JSON data directories  
 - **Web URLs** - Fetch content from web sources (future feature)
 
 **Default Configuration:**
+
 - **5etools Official** - `https://github.com/5etools-mirror-3/5etools-src`
 - **5etools Homebrew** - `https://github.com/TheGiddyLimit/homebrew`
 
 ### Configuration Files
+
 Configuration is stored in platform-appropriate locations:
+
 - **Linux/macOS**: `~/.config/5e2pdf/config.yaml`
 - **Windows**: `%APPDATA%/5e2pdf/config.yaml`
 - **Cache**: `~/.cache/5e2pdf/` (repositories and indexes)
 
 ### Setup Wizard
+
 ```bash
 # Interactive setup with multiple options
 uv run 5e2pdf setup wizard
