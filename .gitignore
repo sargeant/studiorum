@@ -70,3 +70,7 @@ Thumbs.db
 validation_report.json
 validation_report.txt.coverage
 coverage.xml
+
+# AI tools
+.claude/
+.gemini/
