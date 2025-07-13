@@ -53,20 +53,29 @@ class ConfigurableSourceManager(SourceManager):
             ContentType.RACE: ["race", "races"],
             # Fluff content patterns - these should be checked first
             ContentType.SPELL_FLUFF: ["fluff-spell", "spell-fluff"],
-            ContentType.CREATURE_FLUFF: ["fluff-bestiary", "fluff-monster", "bestiary-fluff", "monster-fluff"],
+            ContentType.CREATURE_FLUFF: [
+                "fluff-bestiary",
+                "fluff-monster",
+                "bestiary-fluff",
+                "monster-fluff",
+            ],
             ContentType.ITEM_FLUFF: ["fluff-item", "item-fluff"],
         }
 
         data_paths = {}
         all_files = self.content_manager.get_all_content_files()
-        
+
         # Track files already assigned to avoid conflicts
         assigned_files = set()
 
         # First pass: assign fluff files (more specific patterns)
-        fluff_content_types = [ct for ct in content_patterns.keys() if ct.value.endswith('Fluff')]
-        regular_content_types = [ct for ct in content_patterns.keys() if not ct.value.endswith('Fluff')]
-        
+        fluff_content_types = [
+            ct for ct in content_patterns.keys() if ct.value.endswith("Fluff")
+        ]
+        regular_content_types = [
+            ct for ct in content_patterns.keys() if not ct.value.endswith("Fluff")
+        ]
+
         # Process fluff types first to get priority
         for content_type in fluff_content_types + regular_content_types:
             patterns = content_patterns[content_type]
@@ -78,7 +87,7 @@ class ConfigurableSourceManager(SourceManager):
                     # Skip files already assigned to another content type
                     if file_path in assigned_files:
                         continue
-                        
+
                     # Skip files that should be filtered at discovery level
                     if self._should_skip_file_at_discovery(file_path):
                         continue
@@ -88,17 +97,25 @@ class ConfigurableSourceManager(SourceManager):
                     # Check if file matches any pattern for this content type
                     if any(pattern in file_name for pattern in patterns):
                         # Special case: exclude monsterfeatures from feat matching
-                        if content_type == ContentType.FEAT and "monsterfeature" in file_name:
+                        if (
+                            content_type == ContentType.FEAT
+                            and "monsterfeature" in file_name
+                        ):
                             continue
                         type_paths.append(file_path)
                         assigned_files.add(file_path)
 
                     # Also check parent directory names
-                    elif file_path not in assigned_files:  # Only if not already assigned
+                    elif (
+                        file_path not in assigned_files
+                    ):  # Only if not already assigned
                         parent_name = file_path.parent.name.lower()
                         if any(pattern in parent_name for pattern in patterns):
                             # Special case: exclude monsterfeatures from feat matching
-                            if content_type == ContentType.FEAT and "monsterfeature" in file_name:
+                            if (
+                                content_type == ContentType.FEAT
+                                and "monsterfeature" in file_name
+                            ):
                                 continue
                             type_paths.append(file_path)
                             assigned_files.add(file_path)

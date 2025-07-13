@@ -12,7 +12,9 @@ class BookChapter(BaseModel):
 
     name: str = Field(..., description="Chapter name")
     ordinal: Optional[Dict[str, Any]] = Field(None, description="Chapter numbering")
-    headers: Optional[List[Union[str, Dict[str, Any]]]] = Field(None, description="Section headers")
+    headers: Optional[List[Union[str, Dict[str, Any]]]] = Field(
+        None, description="Section headers"
+    )
     entries: List[Any] = Field(default_factory=list, description="Chapter content")
 
     def get_chapter_number(self) -> str:
@@ -38,7 +40,7 @@ class BookChapter(BaseModel):
         """Parse headers from various formats."""
         if not v:
             return v
-        
+
         if isinstance(v, list):
             result = []
             for item in v:
@@ -59,7 +61,7 @@ class BookChapter(BaseModel):
         """Get formatted header texts."""
         if not self.headers:
             return []
-        
+
         result = []
         for header in self.headers:
             if isinstance(header, str):

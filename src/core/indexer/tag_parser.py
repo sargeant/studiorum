@@ -7,19 +7,40 @@ from lark import Lark, Transformer, Token, Tree
 from lark.exceptions import LarkError
 
 from .tag_ast import (
-    ASTNode, DocumentNode, TextNode, TagNode,
-    CreatureTagNode, SpellTagNode, ItemTagNode, ClassTagNode, RaceTagNode,
-    BackgroundTagNode, FeatTagNode, BoldTagNode, ItalicTagNode, DiceTagNode,
-    HitTagNode, DCTagNode, DamageTagNode, ConditionTagNode, ChanceTagNode,
-    RechargeTagNode, AdventureTagNode, BookTagNode, FilterTagNode, LoaderTagNode,
-    TextSpan
+    ASTNode,
+    DocumentNode,
+    TextNode,
+    TagNode,
+    CreatureTagNode,
+    SpellTagNode,
+    ItemTagNode,
+    ClassTagNode,
+    RaceTagNode,
+    BackgroundTagNode,
+    FeatTagNode,
+    BoldTagNode,
+    ItalicTagNode,
+    DiceTagNode,
+    HitTagNode,
+    DCTagNode,
+    DamageTagNode,
+    ConditionTagNode,
+    ChanceTagNode,
+    RechargeTagNode,
+    AdventureTagNode,
+    BookTagNode,
+    FilterTagNode,
+    LoaderTagNode,
+    TextSpan,
 )
 
 
 class TagParseError(Exception):
     """Exception raised when tag parsing fails."""
-    
-    def __init__(self, message: str, position: Optional[int] = None, text: Optional[str] = None):
+
+    def __init__(
+        self, message: str, position: Optional[int] = None, text: Optional[str] = None
+    ):
         super().__init__(message)
         self.position = position
         self.text = text
@@ -27,11 +48,11 @@ class TagParseError(Exception):
 
 class TagASTTransformer(Transformer):
     """Transformer that converts Lark parse tree to our custom AST."""
-    
+
     def __init__(self, original_text: str):
         super().__init__()
         self.original_text = original_text
-    
+
     def document(self, children: List[ASTNode]) -> DocumentNode:
         """Transform document node."""
         doc = DocumentNode()
@@ -39,24 +60,24 @@ class TagASTTransformer(Transformer):
             if child is not None:
                 doc.add_child(child)
         return doc
-    
+
     def text(self, children: List[Token]) -> TextNode:
         """Transform plain text."""
         text_content = "".join(str(token) for token in children)
         return TextNode(text_content)
-    
+
     def text_fragment(self, children: List[Token]) -> str:
         """Transform text fragment."""
         return "".join(str(token) for token in children)
-    
+
     def tag(self, children: List[Any]) -> TagNode:
         """Transform a tag based on its type and content."""
         if len(children) < 1:
             raise TagParseError("Tag missing type")
-        
+
         tag_type = str(children[0])
         tag_parts = children[1:] if len(children) > 1 else []
-        
+
         # Parse tag parts (name, source, display_text, page)
         parts = []
         for part in tag_parts:
@@ -66,19 +87,19 @@ class TagASTTransformer(Transformer):
                 parts.append(part_text)
             elif isinstance(part, str):
                 parts.append(part)
-        
+
         # Create appropriate tag node based on type
         return self._create_tag_node(tag_type, parts)
-    
+
     def tag_type(self, children: List[Token]) -> str:
         """Transform tag type."""
         return str(children[0])
-    
+
     def content_part(self, children: List[Any]) -> List[ASTNode]:
         """Transform content part (may contain nested tags)."""
         nodes = []
         current_text = ""
-        
+
         for child in children:
             if isinstance(child, TagNode):
                 # Flush any accumulated text
@@ -88,13 +109,13 @@ class TagASTTransformer(Transformer):
                 nodes.append(child)
             elif isinstance(child, str):
                 current_text += child
-        
+
         # Flush remaining text
         if current_text:
             nodes.append(TextNode(current_text))
-        
+
         return nodes
-    
+
     def escaped_char(self, children: List[Token]) -> str:
         """Transform escaped characters."""
         escaped = str(children[0])
@@ -103,7 +124,7 @@ class TagASTTransformer(Transformer):
         elif escaped == "\\}":
             return "}"
         return escaped
-    
+
     def _render_content_part(self, part: List[ASTNode]) -> str:
         """Render a content part to string (for simple cases)."""
         result = ""
@@ -115,7 +136,7 @@ class TagASTTransformer(Transformer):
                 # For now, just use a placeholder
                 result += f"{{@{node.tag_type}...}}"
         return result
-    
+
     def _create_tag_node(self, tag_type: str, parts: List[str]) -> TagNode:
         """Create the appropriate tag node based on type and parts."""
         # Parse common parts: name, source, display_text, page
@@ -123,12 +144,12 @@ class TagASTTransformer(Transformer):
         source = parts[1] if len(parts) > 1 and parts[1] else None
         display_text = parts[2] if len(parts) > 2 and parts[2] else None
         page = parts[3] if len(parts) > 3 and parts[3] else None
-        
+
         # Create display text nodes
         display_text_nodes = None
         if display_text:
             display_text_nodes = [TextNode(display_text)]
-        
+
         # Content reference tags
         if tag_type == "creature":
             return CreatureTagNode(name, source, display_text_nodes, page)
@@ -144,17 +165,21 @@ class TagASTTransformer(Transformer):
             return BackgroundTagNode(name, source, display_text_nodes, page)
         elif tag_type == "feat":
             return FeatTagNode(name, source, display_text_nodes, page)
-        
+
         # Formatting tags
         elif tag_type in ("bold", "b"):
-            content_nodes = display_text_nodes if display_text_nodes else [TextNode(name)]
+            content_nodes = (
+                display_text_nodes if display_text_nodes else [TextNode(name)]
+            )
             return BoldTagNode(content_nodes)
         elif tag_type in ("italic", "i"):
-            content_nodes = display_text_nodes if display_text_nodes else [TextNode(name)]
+            content_nodes = (
+                display_text_nodes if display_text_nodes else [TextNode(name)]
+            )
             return ItalicTagNode(content_nodes)
         elif tag_type == "dice":
             return DiceTagNode(name)
-        
+
         # Special tags
         elif tag_type == "hit":
             return HitTagNode(name)
@@ -168,19 +193,19 @@ class TagASTTransformer(Transformer):
             return ChanceTagNode(name)
         elif tag_type == "recharge":
             return RechargeTagNode(name)
-        
+
         # Reference tags
         elif tag_type == "adventure":
             return AdventureTagNode(name, source, display_text_nodes, page)
         elif tag_type == "book":
             return BookTagNode(name, source, page)
-        
+
         # UI tags (ignored)
         elif tag_type == "filter":
             return FilterTagNode(name)
         elif tag_type == "loader":
             return LoaderTagNode(name)
-        
+
         # Generic tag for unknown types
         else:
             return TagNode(tag_type)
@@ -188,29 +213,24 @@ class TagASTTransformer(Transformer):
 
 class TagParser:
     """Main parser class for D&D 5e.tools tags."""
-    
+
     def __init__(self):
         # Load grammar from file
         grammar_path = Path(__file__).parent / "tag_grammar.lark"
-        with open(grammar_path, 'r') as f:
+        with open(grammar_path, "r") as f:
             grammar = f.read()
-        
+
         # Create lark parser
         try:
-            self.parser = Lark(
-                grammar,
-                start='document',
-                parser='lalr',
-                debug=False
-            )
+            self.parser = Lark(grammar, start="document", parser="lalr", debug=False)
         except Exception as e:
             raise TagParseError(f"Failed to initialize parser: {e}")
-    
+
     def parse(self, text: str) -> DocumentNode:
         """Parse text containing tags and return AST."""
         if not text:
             return DocumentNode()
-        
+
         try:
             # Use regex-based fallback for complex cases
             return self._parse_with_regex_fallback(text)
@@ -219,68 +239,68 @@ class TagParser:
             doc = DocumentNode()
             doc.add_child(TextNode(text))
             return doc
-    
+
     def _parse_with_regex_fallback(self, text: str) -> DocumentNode:
         """Parse using regex fallback for better error handling."""
         # Use regex to find tags and split text
-        tag_pattern = r'{@(\w+)\s+([^}]+)}'
-        
+        tag_pattern = r"{@(\w+)\s+([^}]+)}"
+
         doc = DocumentNode()
         last_end = 0
-        
+
         for match in re.finditer(tag_pattern, text):
             start, end = match.span()
-            
+
             # Add text before the tag
             if start > last_end:
                 before_text = text[last_end:start]
                 if before_text:
                     doc.add_child(TextNode(before_text))
-            
+
             # Parse the tag
             tag_type = match.group(1)
             tag_content = match.group(2)
             tag_node = self._parse_tag_content(tag_type, tag_content)
             doc.add_child(tag_node)
-            
+
             last_end = end
-        
+
         # Add remaining text
         if last_end < len(text):
             remaining_text = text[last_end:]
             if remaining_text:
                 doc.add_child(TextNode(remaining_text))
-        
+
         return doc
-    
+
     def _parse_tag_content(self, tag_type: str, content: str) -> TagNode:
         """Parse tag content into appropriate tag node."""
         # Split by pipe, handling escaped pipes
         parts = self._split_tag_content(content)
-        
+
         # Create transformer and build tag
         transformer = TagASTTransformer(content)
         return transformer._create_tag_node(tag_type, parts)
-    
+
     def _split_tag_content(self, content: str) -> List[str]:
         """Split tag content by pipes, handling escaped characters."""
         parts = []
         current_part = ""
         i = 0
-        
+
         while i < len(content):
             char = content[i]
-            
-            if char == '\\' and i + 1 < len(content):
+
+            if char == "\\" and i + 1 < len(content):
                 # Escaped character
                 next_char = content[i + 1]
-                if next_char in ('|', '}'):
+                if next_char in ("|", "}"):
                     current_part += next_char
                     i += 2
                 else:
                     current_part += char
                     i += 1
-            elif char == '|':
+            elif char == "|":
                 # Pipe separator
                 parts.append(current_part)
                 current_part = ""
@@ -288,8 +308,8 @@ class TagParser:
             else:
                 current_part += char
                 i += 1
-        
+
         # Add the last part
         parts.append(current_part)
-        
+
         return parts

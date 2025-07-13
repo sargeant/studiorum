@@ -8,7 +8,7 @@ from pydantic import ValidationError, BaseModel
 from importlib import import_module
 
 from ..config.settings import get_logger
-from ..models.content import ContentType, BaseContent # Added BaseContent
+from ..models.content import ContentType, BaseContent  # Added BaseContent
 from .base import DataLoader, T
 
 # Import all specific content models
@@ -44,14 +44,18 @@ _model_map: Dict[ContentType, Type[BaseModel]] = {
 }
 
 
-class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
+class JsonDataLoader(DataLoader[BaseContent]):  # Changed from T to BaseContent
     """Loads and validates JSON data using Pydantic models."""
 
-    def __init__(self, model_class: Type[BaseContent], content_type: ContentType): # Changed from T to BaseContent
+    def __init__(
+        self, model_class: Type[BaseContent], content_type: ContentType
+    ):  # Changed from T to BaseContent
         self._model_class = model_class
         self._content_type = content_type
 
-    async def load(self, path: Path) -> List[BaseContent]: # Changed from T to BaseContent
+    async def load(
+        self, path: Path
+    ) -> List[BaseContent]:  # Changed from T to BaseContent
         """Load JSON file and validate against Pydantic model."""
         try:
             logger.info(f"Loading {self._content_type.value} data from {path}")
@@ -64,8 +68,10 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
                     # Check if this might be an index file with malformed JSON
                     f.seek(0)
                     content = f.read()
-                    if "{@" in content and any(pattern in path.name.lower() 
-                                             for pattern in ["-list.", "index.", "_list.", "_index."]):
+                    if "{@" in content and any(
+                        pattern in path.name.lower()
+                        for pattern in ["-list.", "index.", "_list.", "_index."]
+                    ):
                         logger.debug(f"Skipping malformed index file: {path}")
                         return []
                     else:
@@ -87,8 +93,13 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
                         continue
 
                     # Skip sections when parsing inappropriate content types
-                    if item.get("type") == "section" and self._content_type not in [ContentType.BOOK, ContentType.ADVENTURE]:
-                        logger.debug(f"Skipping section item when parsing {self._content_type.value}")
+                    if item.get("type") == "section" and self._content_type not in [
+                        ContentType.BOOK,
+                        ContentType.ADVENTURE,
+                    ]:
+                        logger.debug(
+                            f"Skipping section item when parsing {self._content_type.value}"
+                        )
                         continue
 
                     # Ensure source information is present
@@ -118,7 +129,7 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
     def get_content_type(self) -> ContentType:
         return self._content_type
 
-    def get_model_class(self) -> Type[BaseContent]: # Changed from T to BaseContent
+    def get_model_class(self) -> Type[BaseContent]:  # Changed from T to BaseContent
         return self._model_class
 
     def _extract_content(
@@ -144,7 +155,9 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
 
         # Check if this is a fluff file - these should be handled by FluffDataLoader
         if self._is_fluff_file(path, data):
-            logger.debug(f"Fluff file {path} should be handled by FluffDataLoader, skipping")
+            logger.debug(
+                f"Fluff file {path} should be handled by FluffDataLoader, skipping"
+            )
             return []
 
         # Check if this is a metadata/sources file and skip it
@@ -392,11 +405,13 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
     def _is_index_file(self, path: Path, data: Dict[str, Any]) -> bool:
         """Check if this is an index/list file containing tag references."""
         filename = path.name.lower()
-        
+
         # Check filename patterns for index/list files
-        if any(pattern in filename for pattern in ["-list.", "index.", "_list.", "_index."]):
+        if any(
+            pattern in filename for pattern in ["-list.", "index.", "_list.", "_index."]
+        ):
             return True
-            
+
         # Check if the data structure indicates an index file
         # Index files often contain arrays of strings (tag references)
         # rather than arrays of objects (content items)
@@ -406,59 +421,79 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
                 string_items = sum(1 for item in data[:10] if isinstance(item, str))
                 if string_items / min(len(data), 10) > 0.5:  # More than 50% are strings
                     # Check if strings contain tag patterns
-                    tag_strings = sum(1 for item in data[:10] 
-                                    if isinstance(item, str) and "{@" in item)
+                    tag_strings = sum(
+                        1
+                        for item in data[:10]
+                        if isinstance(item, str) and "{@" in item
+                    )
                     if tag_strings > 0:
                         return True
-        
+
         # Check top-level arrays for similar pattern
         for key, value in data.items():
             if isinstance(value, list) and len(value) > 0:
                 # Check first few items
                 sample_size = min(10, len(value))
-                string_items = sum(1 for item in value[:sample_size] if isinstance(item, str))
-                
+                string_items = sum(
+                    1 for item in value[:sample_size] if isinstance(item, str)
+                )
+
                 if string_items / sample_size > 0.5:  # More than 50% are strings
                     # Check if strings contain tag patterns
-                    tag_strings = sum(1 for item in value[:sample_size] 
-                                    if isinstance(item, str) and "{@" in item)
+                    tag_strings = sum(
+                        1
+                        for item in value[:sample_size]
+                        if isinstance(item, str) and "{@" in item
+                    )
                     if tag_strings > 0:
                         return True
-        
+
         return False
 
     def _is_metadata_file(self, path: Path, data: Dict[str, Any]) -> bool:
         """Check if this is a metadata/sources file rather than content."""
         filename = path.name.lower()
-        
+
         # Check filename patterns for metadata files
-        if any(pattern in filename for pattern in ["sources.", "metadata.", "_sources.", "_metadata."]):
+        if any(
+            pattern in filename
+            for pattern in ["sources.", "metadata.", "_sources.", "_metadata."]
+        ):
             return True
-            
+
         # Check if the data structure indicates a metadata file
         # Metadata files typically have source abbreviations as top-level keys
         # and nested structures with metadata rather than content arrays
-        if isinstance(data, dict) and not any(isinstance(value, list) for value in data.values()):
+        if isinstance(data, dict) and not any(
+            isinstance(value, list) for value in data.values()
+        ):
             # Check if top-level keys look like source abbreviations (typically 2-6 uppercase letters)
             top_keys = list(data.keys())[:5]  # Check first 5 keys
             abbrev_pattern_count = 0
-            
+
             for key in top_keys:
-                if isinstance(key, str) and len(key) >= 2 and len(key) <= 6 and key.isupper():
+                if (
+                    isinstance(key, str)
+                    and len(key) >= 2
+                    and len(key) <= 6
+                    and key.isupper()
+                ):
                     # Check if the value contains metadata structure
                     value = data[key]
                     if isinstance(value, dict):
                         # Look for nested spell/class mapping structures
-                        nested_values = list(value.values())[:3]  # Check first 3 nested items
+                        nested_values = list(value.values())[
+                            :3
+                        ]  # Check first 3 nested items
                         for nested_val in nested_values:
                             if isinstance(nested_val, dict) and "class" in nested_val:
                                 abbrev_pattern_count += 1
                                 break
-            
+
             # If most top-level keys look like source abbreviations with metadata, it's likely a metadata file
             if len(top_keys) > 0 and abbrev_pattern_count / len(top_keys) >= 0.6:
                 return True
-        
+
         return False
 
     def _is_fluff_file(self, path: Path, data: Dict[str, Any]) -> bool:
@@ -490,21 +525,27 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
     ) -> List[Dict[str, Any]]:
         """Extract fluff content with liberal parsing."""
         # Fluff content should be handled by FluffDataLoader
-        logger.debug(f"Fluff content extraction called for {self._content_type.value} in {path}")
+        logger.debug(
+            f"Fluff content extraction called for {self._content_type.value} in {path}"
+        )
         return []
 
     def _process_fluff_items(
         self, fluff_items: List[Dict[str, Any]], path: Path
     ) -> List[Dict[str, Any]]:
         """Process fluff items - now handled by FluffDataLoader."""
-        logger.debug(f"Fluff item processing called for {self._content_type.value} in {path}")
+        logger.debug(
+            f"Fluff item processing called for {self._content_type.value} in {path}"
+        )
         return []
 
     def _make_fluff_compatible(
         self, fluff_item: Dict[str, Any], path: Path
     ) -> Optional[Dict[str, Any]]:
         """Convert fluff item to be compatible with main content model - deprecated."""
-        logger.debug(f"Fluff compatibility conversion called for {self._content_type.value} in {path}")
+        logger.debug(
+            f"Fluff compatibility conversion called for {self._content_type.value} in {path}"
+        )
         return None
 
     def _infer_item_type(self, item: Dict[str, Any]) -> str:
@@ -517,7 +558,7 @@ class JsonDataLoader(DataLoader[BaseContent]): # Changed from T to BaseContent
             return "wondrous item"
         if "consumable" in item:
             return "consumable"
-        return "item" # Default generic item
+        return "item"  # Default generic item
 
     def _extract_fluff_text(self, fluff_item: Dict[str, Any]) -> str:
         """Extract descriptive text from fluff item."""

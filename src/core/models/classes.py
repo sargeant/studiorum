@@ -33,10 +33,10 @@ class Class(BaseContent):
     hd: Optional[Dict[str, int]] = None
     proficiency: Optional[List[str]] = None
     class_features: Optional[List[Any]] = Field(default=None, alias="classFeatures")
-    
+
     # Sidekick identification
     is_sidekick: Optional[bool] = Field(default=None, alias="isSidekick")
-    
+
     # Optional fields
     spellcasting_ability: Optional[str] = Field(
         default=None, alias="spellcastingAbility"
@@ -66,11 +66,13 @@ class Class(BaseContent):
             if self.hd is None:
                 missing_fields.append("hd")
             if self.proficiency is None:
-                missing_fields.append("proficiency") 
+                missing_fields.append("proficiency")
             if self.class_features is None:
                 missing_fields.append("classFeatures")
-                
+
             if missing_fields:
-                raise ValueError(f"Regular classes require these fields: {', '.join(missing_fields)}")
-        
+                raise ValueError(
+                    f"Regular classes require these fields: {', '.join(missing_fields)}"
+                )
+
         return self

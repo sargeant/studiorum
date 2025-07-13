@@ -190,7 +190,7 @@ def convert_book(
             if "data" in book_data:
                 book_sections = book_data["data"]
             elif "book" in book_data:
-                book_sections = book_data["book"] 
+                book_sections = book_data["book"]
             else:
                 book_sections = [book_data] if isinstance(book_data, dict) else []
 
@@ -200,7 +200,7 @@ def convert_book(
                 if isinstance(section, dict) and section.get("type") == "section":
                     chapter = BookChapter(
                         name=section.get("name", "Untitled Chapter"),
-                        entries=section.get("entries", [])
+                        entries=section.get("entries", []),
                     )
                     chapters.append(chapter)
 
@@ -209,9 +209,9 @@ def convert_book(
                 name=book_name,
                 source={"abbreviation": book_id},
                 id=book_id,
-                contents=chapters
+                contents=chapters,
             )
-            
+
             content_items = [book]
 
             if not content_items:

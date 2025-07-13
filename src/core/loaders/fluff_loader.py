@@ -6,7 +6,16 @@ from typing import Any, Dict, List, Type
 
 from ..config.settings import get_logger
 from ..models.content import ContentType
-from ..models.fluff import BaseFluff, CreatureFluff, ItemFluff, SpellFluff, RaceFluff, FeatFluff, ClassFluff, BackgroundFluff
+from ..models.fluff import (
+    BaseFluff,
+    CreatureFluff,
+    ItemFluff,
+    SpellFluff,
+    RaceFluff,
+    FeatFluff,
+    ClassFluff,
+    BackgroundFluff,
+)
 from .base import DataLoader
 
 logger = get_logger(__name__)

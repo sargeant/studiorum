@@ -31,13 +31,13 @@ class IndexEntry:
     def create(cls, content: BaseContent, content_type: ContentType) -> "IndexEntry":
         """Create an index entry from content."""
         # Handle different source formats
-        if hasattr(content.source, 'abbreviation'):
+        if hasattr(content.source, "abbreviation"):
             source_abbrev = content.source.abbreviation
         elif isinstance(content.source, dict):
-            source_abbrev = content.source.get('abbreviation', str(content.source))
+            source_abbrev = content.source.get("abbreviation", str(content.source))
         else:
             source_abbrev = str(content.source)
-            
+
         # Generate unique hash
         identifier = f"{content_type.value}:{content.name}:{source_abbrev}"
         hash_id = hashlib.md5(identifier.encode()).hexdigest()[:8]
@@ -200,10 +200,10 @@ class Omnidexer:
 
         # Source-based index (for finding all content from a source)
         # Handle different source formats
-        if hasattr(content.source, 'abbreviation'):
+        if hasattr(content.source, "abbreviation"):
             source_abbrev = content.source.abbreviation
         elif isinstance(content.source, dict):
-            source_abbrev = content.source.get('abbreviation', str(content.source))
+            source_abbrev = content.source.get("abbreviation", str(content.source))
         else:
             source_abbrev = str(content.source)
         self._by_source[source_abbrev].append(entry)
