@@ -1,18 +1,17 @@
 """Comprehensive unit tests for ContentSourceManager."""
 
-import asyncio
-import pytest
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
-from typing import List, Dict
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 from src.core.config.sources import (
     ContentConfiguration,
     ContentSource,
     SourceType,
 )
-from src.core.sources.manager import ContentSourceManager
 from src.core.sources.github import GitHubSourceManager
+from src.core.sources.manager import ContentSourceManager
 
 
 class TestContentSourceManager:
@@ -287,7 +286,7 @@ class TestContentSourceManager:
         """Test _get_source_files for directory source."""
         # Create test JSON files
         data_dir = tmp_path / "data"
-        data_dir.mkdir()
+        data_dir.mkdir(exist_ok=True)
 
         file1 = data_dir / "spells.json"
         file1.write_text('{"spell": []}' + "x" * 50)  # Make it large enough
@@ -649,10 +648,10 @@ class TestContentSourceManagerIntegration:
         """Integration test with real directory source."""
         # Create test data structure
         data_dir = tmp_path / "test_data"
-        data_dir.mkdir()
+        data_dir.mkdir(exist_ok=True)
 
         spells_dir = data_dir / "spells"
-        spells_dir.mkdir()
+        spells_dir.mkdir(exist_ok=True)
 
         spell_file = spells_dir / "core.json"
         spell_file.write_text(
