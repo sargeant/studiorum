@@ -1,32 +1,13 @@
 """Tests for the new AST-based tag resolution system."""
 
-import pytest
-from typing import List, Set, Tuple
-
 # Import the new tag system components
-from src.core.indexer.tag_ast import (
-    ASTNode,
-    DocumentNode,
-    TagNode,
-    TextNode,
-    CreatureTagNode,
-    SpellTagNode,
-    DiceTagNode,
-    BoldTagNode,
-    ItalicTagNode,
-    AdventureTagNode,
-    BookTagNode,
-)
-from src.core.indexer.tag_parser import TagParser, TagParseError
-from src.core.indexer.tag_handlers import (
-    TagHandler,
-    CreatureTagHandler,
-    SpellTagHandler,
-    DiceTagHandler,
-)
-from src.core.indexer.tag_renderer import TagRenderer, RendererContext
 from src.core.indexer.content_tracker import ContentTracker, TrackedContent
 from src.core.indexer.new_tag_resolver import NewTagResolverFacade
+from src.core.indexer.tag_ast import (
+    CreatureTagNode,
+    TextNode,
+)
+from src.core.indexer.tag_parser import TagParser
 
 
 class MockTagNode:
@@ -112,7 +93,6 @@ class TestTagParser:
 
     def test_parser_handles_creature_tag_with_display_text(self):
         """Test parsing creature tag with custom display text."""
-        text = "{@creature Ancient Red Dragon|MM|great wyrm}"
         # parser = TagParser()
         # ast = parser.parse(text)
         #
@@ -126,7 +106,6 @@ class TestTagParser:
 
     def test_parser_handles_nested_tags(self):
         """Test parsing nested tags within display text."""
-        text = "{@creature Ancient Red Dragon|MM|{@bold great} wyrm}"
         # This should parse to a creature tag with display_text containing both text and a bold tag
         # parser = TagParser()
         # ast = parser.parse(text)
@@ -141,7 +120,6 @@ class TestTagParser:
 
     def test_parser_handles_mixed_content(self):
         """Test parsing text with multiple tags and plain text."""
-        text = "Cast {@spell Fireball|PHB} at the {@creature Ancient Red Dragon|MM}!"
         # parser = TagParser()
         # ast = parser.parse(text)
         #
@@ -155,7 +133,6 @@ class TestTagParser:
 
     def test_parser_handles_escaped_characters(self):
         """Test parsing tags with escaped pipes and braces."""
-        text = "{@creature Name\\|with\\|pipes|MM|display\\}with\\}braces}"
         # parser = TagParser()
         # ast = parser.parse(text)
         #
@@ -166,12 +143,6 @@ class TestTagParser:
 
     def test_parser_error_handling_malformed_tags(self):
         """Test parser error handling for malformed tags."""
-        malformed_cases = [
-            "{@spell}",  # Missing content
-            "{@spell fireball",  # Missing closing brace
-            "{@}",  # Missing tag type
-            "{@spell fireball||}",  # Empty components
-        ]
 
         # parser = TagParser()
         # for case in malformed_cases:
@@ -318,39 +289,331 @@ class TestContentTracker:
 
     def test_content_tracker_deduplication(self):
         """Test that duplicate content is not tracked multiple times."""
-        # tracker = ContentTracker()
-        # tracker.add_content("spell", "Fireball", "PHB")
-        # tracker.add_content("spell", "Fireball", "PHB")  # Duplicate
-        #
-        # tracked = tracker.get_tracked_content()
-        # assert len(tracked) == 1
-        # assert ("spell", "Fireball", "PHB") in tracked
-        pass  # Placeholder for now
+        tracker = ContentTracker()
+        tracker.add_content("spell", "Fireball", "PHB")
+        tracker.add_content("spell", "Fireball", "PHB")  # Duplicate
+        tracker.add_content(
+            "SPELL", "Fireball", "PHB"
+        )  # Same but different case content_type
+
+        tracked = tracker.get_tracked_content()
+        assert len(tracked) == 1  # Should deduplicate
+
+        content = tracked[0]
+        assert content.content_type == "spell"  # Normalized to lowercase
+        assert content.name == "Fireball"
+        assert content.source == "PHB"
+
+        # Check reference count is incremented for all three additions
+        assert tracker.get_content_count("spell", "Fireball", "PHB") == 3
+
+        # Test that names are case-sensitive (different names)
+        tracker.add_content("spell", "fireball", "PHB")  # Different case name
+        tracked = tracker.get_tracked_content()
+        assert len(tracked) == 2  # Should now have two different spells
+
+        # Verify both entries
+        names = [c.name for c in tracked]
+        assert "Fireball" in names
+        assert "fireball" in names
 
     def test_content_tracker_sorting(self):
         """Test that tracked content is returned in sorted order."""
-        # tracker = ContentTracker()
-        # tracker.add_content("spell", "Zephyr Strike", "PHB")
-        # tracker.add_content("creature", "Ancient Red Dragon", "MM")
-        # tracker.add_content("spell", "Fireball", "PHB")
-        #
-        # tracked = tracker.get_tracked_content()
-        # assert tracked == [
-        #     ("creature", "Ancient Red Dragon", "MM"),
-        #     ("spell", "Fireball", "PHB"),
-        #     ("spell", "Zephyr Strike", "PHB"),
-        # ]
-        pass  # Placeholder for now
+        tracker = ContentTracker()
+        tracker.add_content("spell", "Zephyr Strike", "PHB")
+        tracker.add_content("creature", "Ancient Red Dragon", "MM")
+        tracker.add_content("spell", "Fireball", "PHB")
+
+        tracked = tracker.get_tracked_content()
+
+        # Should be sorted by: content_type, name, source
+        expected_order = [
+            ("creature", "Ancient Red Dragon", "MM"),
+            ("spell", "Fireball", "PHB"),
+            ("spell", "Zephyr Strike", "PHB"),
+        ]
+
+        actual_order = [(c.content_type, c.name, c.source) for c in tracked]
+        assert actual_order == expected_order
 
     def test_content_tracker_clear(self):
         """Test clearing tracked content."""
-        # tracker = ContentTracker()
-        # tracker.add_content("spell", "Fireball", "PHB")
-        # assert len(tracker.get_tracked_content()) == 1
-        #
-        # tracker.clear()
-        # assert len(tracker.get_tracked_content()) == 0
-        pass  # Placeholder for now
+        tracker = ContentTracker()
+        tracker.add_content("spell", "Fireball", "PHB")
+        tracker.add_content("creature", "Dragon", "MM")
+        assert len(tracker.get_tracked_content()) == 2
+        assert tracker.get_content_count("spell", "Fireball", "PHB") == 1
+
+        tracker.clear()
+        assert len(tracker.get_tracked_content()) == 0
+        assert tracker.get_content_count("spell", "Fireball", "PHB") == 0
+        assert len(tracker.get_content_types()) == 0
+
+    def test_tracked_content_normalization(self):
+        """Test TrackedContent normalization in __post_init__."""
+        # Test content_type normalization (lowercase)
+        content = TrackedContent("SPELL", "Fireball", "PHB")
+        assert content.content_type == "spell"
+
+        # Test name stripping
+        content = TrackedContent("spell", "  Fireball  ", "PHB")
+        assert content.name == "Fireball"
+
+        # Test source stripping
+        content = TrackedContent("spell", "Fireball", "  PHB  ")
+        assert content.source == "PHB"
+
+        # Test page stripping
+        content = TrackedContent("spell", "Fireball", "PHB", "  123  ")
+        assert content.page == "123"
+
+    def test_tracked_content_equality_and_hashing(self):
+        """Test TrackedContent equality and hashing behavior."""
+        content1 = TrackedContent("spell", "Fireball", "PHB")
+        content2 = TrackedContent("spell", "Fireball", "PHB")
+        content3 = TrackedContent("spell", "Fireball", "MM")
+        content4 = TrackedContent("creature", "Fireball", "PHB")
+
+        # Test equality
+        assert content1 == content2
+        assert content1 != content3  # Different source
+        assert content1 != content4  # Different type
+        assert content1 != "not a TrackedContent"
+
+        # Test hashing (important for set operations)
+        assert hash(content1) == hash(content2)
+        assert hash(content1) != hash(content3)
+
+        # Test in sets
+        content_set = {content1, content2, content3}
+        assert len(content_set) == 2  # content1 and content2 are duplicates
+
+    def test_tracked_content_to_tuple(self):
+        """Test TrackedContent to_tuple method."""
+        content = TrackedContent("spell", "Fireball", "PHB", "123")
+        tuple_result = content.to_tuple()
+        assert tuple_result == ("spell", "Fireball", "PHB")
+
+        # Test with None source
+        content_no_source = TrackedContent("spell", "Fireball", None)
+        tuple_result = content_no_source.to_tuple()
+        assert tuple_result == ("spell", "Fireball", None)
+
+    def test_get_tracked_content_by_type(self):
+        """Test filtering tracked content by type."""
+        tracker = ContentTracker()
+        tracker.add_content("spell", "Fireball", "PHB")
+        tracker.add_content("spell", "Lightning Bolt", "PHB")
+        tracker.add_content("creature", "Dragon", "MM")
+        tracker.add_content("item", "Sword +1", "DMG")
+
+        spell_content = tracker.get_tracked_content_by_type("spell")
+        assert len(spell_content) == 2
+        assert all(c.content_type == "spell" for c in spell_content)
+
+        creature_content = tracker.get_tracked_content_by_type("creature")
+        assert len(creature_content) == 1
+        assert creature_content[0].name == "Dragon"
+
+        # Test case insensitive
+        spell_content_upper = tracker.get_tracked_content_by_type("SPELL")
+        assert len(spell_content_upper) == 2
+
+        # Test non-existent type
+        nonexistent = tracker.get_tracked_content_by_type("nonexistent")
+        assert len(nonexistent) == 0
+
+    def test_get_content_count(self):
+        """Test getting reference counts for specific content."""
+        tracker = ContentTracker()
+
+        # Add same content multiple times
+        tracker.add_content("spell", "Fireball", "PHB")
+        tracker.add_content("spell", "Fireball", "PHB")
+        tracker.add_content("spell", "Fireball", "PHB")
+
+        # Test count retrieval
+        count = tracker.get_content_count("spell", "Fireball", "PHB")
+        assert count == 3
+
+        # Test case insensitive type
+        count_upper = tracker.get_content_count("SPELL", "Fireball", "PHB")
+        assert count_upper == 3
+
+        # Test non-existent content
+        count_none = tracker.get_content_count("spell", "Nonexistent", "PHB")
+        assert count_none == 0
+
+        # Test with whitespace in name
+        count_whitespace = tracker.get_content_count("spell", "  Fireball  ", "PHB")
+        assert count_whitespace == 3
+
+    def test_get_content_types(self):
+        """Test getting all tracked content types."""
+        tracker = ContentTracker()
+
+        # Empty tracker
+        assert tracker.get_content_types() == []
+
+        # Add various types
+        tracker.add_content("spell", "Fireball", "PHB")
+        tracker.add_content("creature", "Dragon", "MM")
+        tracker.add_content("spell", "Lightning Bolt", "PHB")
+        tracker.add_content("item", "Sword", "DMG")
+
+        types = tracker.get_content_types()
+        assert set(types) == {"creature", "item", "spell"}
+        assert types == sorted(types)  # Should be sorted
+
+    def test_get_statistics(self):
+        """Test getting tracking statistics."""
+        tracker = ContentTracker()
+
+        # Empty tracker
+        stats = tracker.get_statistics()
+        assert stats["total_unique_content"] == 0
+        assert stats["total_references"] == 0
+
+        # Add content
+        tracker.add_content("spell", "Fireball", "PHB")
+        tracker.add_content("spell", "Fireball", "PHB")  # Duplicate reference
+        tracker.add_content("spell", "Lightning Bolt", "PHB")
+        tracker.add_content("creature", "Dragon", "MM")
+
+        stats = tracker.get_statistics()
+        assert stats["total_unique_content"] == 3  # 2 spells + 1 creature
+        assert stats["total_references"] == 4  # Fireball counted twice
+        assert stats["spell_count"] == 2
+        assert stats["creature_count"] == 1
+
+    def test_has_content(self):
+        """Test checking if specific content exists."""
+        tracker = ContentTracker()
+        tracker.add_content("spell", "Fireball", "PHB")
+
+        # Test existing content
+        assert tracker.has_content("spell", "Fireball", "PHB")
+
+        # Test case insensitive type
+        assert tracker.has_content("SPELL", "Fireball", "PHB")
+
+        # Test non-existent content
+        assert not tracker.has_content("spell", "Lightning Bolt", "PHB")
+        assert not tracker.has_content("creature", "Fireball", "PHB")
+        assert not tracker.has_content("spell", "Fireball", "MM")
+
+        # Test with None source
+        tracker.add_content("spell", "Cantrip", None)
+        assert tracker.has_content("spell", "Cantrip", None)
+        assert not tracker.has_content("spell", "Cantrip", "PHB")
+
+    def test_remove_content(self):
+        """Test removing specific content."""
+        tracker = ContentTracker()
+        tracker.add_content("spell", "Fireball", "PHB")
+        tracker.add_content("spell", "Lightning Bolt", "PHB")
+
+        # Test successful removal
+        removed = tracker.remove_content("spell", "Fireball", "PHB")
+        assert removed is True
+        assert not tracker.has_content("spell", "Fireball", "PHB")
+        assert len(tracker.get_tracked_content()) == 1
+
+        # Test count is also removed
+        assert tracker.get_content_count("spell", "Fireball", "PHB") == 0
+
+        # Test removing non-existent content
+        removed = tracker.remove_content("spell", "Nonexistent", "PHB")
+        assert removed is False
+
+        # Remaining content should be unaffected
+        assert tracker.has_content("spell", "Lightning Bolt", "PHB")
+
+    def test_merge_tracker(self):
+        """Test merging two trackers."""
+        tracker1 = ContentTracker()
+        tracker1.add_content("spell", "Fireball", "PHB")
+        tracker1.add_content("creature", "Dragon", "MM")
+
+        tracker2 = ContentTracker()
+        tracker2.add_content("spell", "Lightning Bolt", "PHB")
+        tracker2.add_content("spell", "Fireball", "PHB")  # Duplicate
+        tracker2.add_content("item", "Sword", "DMG")
+
+        tracker1.merge_tracker(tracker2)
+
+        # Check all content is present
+        all_content = tracker1.get_tracked_content()
+        assert len(all_content) == 4  # 2 spells + 1 creature + 1 item
+
+        # Check reference counts are updated
+        assert tracker1.get_content_count("spell", "Fireball", "PHB") == 2
+        assert tracker1.get_content_count("spell", "Lightning Bolt", "PHB") == 1
+
+    def test_export_for_appendix(self):
+        """Test exporting content for appendix generation."""
+        tracker = ContentTracker()
+        tracker.add_content("spell", "Fireball", "PHB", "251")
+        tracker.add_content("spell", "Fireball", "PHB")  # Duplicate reference
+        tracker.add_content("creature", "Ancient Red Dragon", "MM", "98")
+
+        export = tracker.export_for_appendix()
+
+        # Check structure
+        assert "spell" in export
+        assert "creature" in export
+
+        # Check spell entry
+        spell_entries = export["spell"]
+        assert len(spell_entries) == 1
+        spell_entry = spell_entries[0]
+        assert spell_entry["name"] == "Fireball"
+        assert spell_entry["type"] == "spell"
+        assert spell_entry["source"] == "PHB"
+        assert spell_entry["page"] == "251"
+        assert spell_entry["reference_count"] == 2
+
+        # Check creature entry
+        creature_entries = export["creature"]
+        assert len(creature_entries) == 1
+        creature_entry = creature_entries[0]
+        assert creature_entry["name"] == "Ancient Red Dragon"
+        assert creature_entry["reference_count"] == 1
+
+    def test_content_with_pages(self):
+        """Test content tracking with page numbers."""
+        tracker = ContentTracker()
+        tracker.add_content("spell", "Fireball", "PHB", "251")
+        tracker.add_content("creature", "Dragon", "MM")  # No page
+
+        content_list = tracker.get_tracked_content()
+
+        # Find the entries
+        fireball = next(c for c in content_list if c.name == "Fireball")
+        dragon = next(c for c in content_list if c.name == "Dragon")
+
+        assert fireball.page == "251"
+        assert dragon.page is None
+
+    def test_edge_cases(self):
+        """Test edge cases and boundary conditions."""
+        tracker = ContentTracker()
+
+        # Empty strings
+        tracker.add_content("", "", "")
+        content_list = tracker.get_tracked_content()
+        assert len(content_list) == 1
+        assert content_list[0].content_type == ""
+        assert content_list[0].name == ""
+        assert content_list[0].source == ""
+
+        # None values
+        tracker.clear()
+        tracker.add_content("spell", "Test", None, None)
+        content_list = tracker.get_tracked_content()
+        assert len(content_list) == 1
+        assert content_list[0].source is None
+        assert content_list[0].page is None
 
 
 class TestTagResolverFacade:
@@ -390,12 +653,6 @@ class TestIntegrationScenarios:
 
     def test_complex_document_processing(self):
         """Test processing a complex document with multiple tag types."""
-        document = """
-        The party encounters an {@creature Ancient Red Dragon|MM|great wyrm} in its lair.
-        The dragon casts {@spell Fireball|PHB} dealing {@dice 8d6} fire damage.
-        Make a {@dc 19} Dexterity saving throw or take {@hit +14} damage.
-        See {@adventure Chapter 3|CoS|The Village|45} for more details.
-        """
 
         # facade = NewTagResolverFacade()
         # result = facade.process_text(document)
@@ -422,7 +679,7 @@ class TestIntegrationScenarios:
         """Test performance with a large document containing many tags."""
         # Create a large document with 1000 tags
         tags = [f"{{@spell Spell{i}|PHB}}" for i in range(1000)]
-        document = " ".join(tags)
+        " ".join(tags)
 
         # facade = NewTagResolverFacade()
         #
@@ -441,11 +698,6 @@ class TestIntegrationScenarios:
 
     def test_error_recovery(self):
         """Test that the system recovers gracefully from parsing errors."""
-        document = """
-        Valid content: {@spell Fireball|PHB}
-        Malformed: {@spell 
-        More valid content: {@creature Dragon|MM}
-        """
 
         # facade = NewTagResolverFacade()
         # result = facade.process_text(document)
