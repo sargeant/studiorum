@@ -54,6 +54,7 @@ GitHub issues serve as our primary task management system, providing:
 - `status/blocked` - Cannot proceed due to external dependency
 - `status/review` - Awaiting code review or feedback
 - `status/needs-info` - Requires more information before proceeding
+- `status/ai-proposed` - AI-generated issue awaiting human review and approval
 
 #### **Special Labels**
 - `breaking-change` - Will break existing APIs or behavior
@@ -256,6 +257,43 @@ gh issue create --title "Fix typo in README" --body "Line 42 has a spelling erro
    - Follow TDD workflow when appropriate
    - Update issue with progress on complex tasks
 
+### When Asked to Identify Problems or Ideas
+
+Sometimes you may ask me to analyze the codebase and propose improvements, identify technical debt, or suggest new features. In these cases:
+
+1. **Create AI-Proposed Issues:**
+   ```bash
+   gh issue create --title "AI Analysis: Clear description of identified issue" \
+     --body "Detailed analysis and proposed solution" \
+     --label "status/ai-proposed,appropriate-type,priority,component"
+   ```
+
+2. **Include AI Analysis Context:**
+   - **Analysis Method**: How I identified this issue (code review, pattern analysis, etc.)
+   - **Impact Assessment**: Severity and scope of the problem/opportunity
+   - **Proposed Solution**: Specific implementation approach
+   - **Alternative Approaches**: Other solutions considered
+   - **Implementation Complexity**: Size estimate and affected files
+
+3. **Human Review Process:**
+   - You review AI-proposed issues with `status/ai-proposed` label
+   - Add comments with feedback, questions, or modifications
+   - Change status to `status/ready` to approve for implementation
+   - Change status to `status/blocked` if more discussion needed
+   - Close issue if proposal is rejected
+
+4. **Searching AI-Proposed Issues:**
+   ```bash
+   # View all AI-proposed issues
+   gh issue list --label "status/ai-proposed"
+   
+   # View by component
+   gh issue list --label "status/ai-proposed,component/core"
+   
+   # View by type
+   gh issue list --label "status/ai-proposed,enhancement"
+   ```
+
 ### Commit Message Format
 
 ```
@@ -337,6 +375,70 @@ gh issue edit 42 --add-label "bug,P1-high"
 
 # Close issue with comment
 gh issue close 42 --comment "Completed in commit abc123"
+
+# Search for AI-proposed issues awaiting review
+gh issue list --label "status/ai-proposed"
+
+# Approve AI-proposed issue for implementation
+gh issue edit 42 --remove-label "status/ai-proposed" --add-label "status/ready"
+```
+
+### AI-Proposed Issue Workflow Example
+
+**User Request:**
+> "Look through the codebase and identify any performance optimization opportunities"
+
+**AI Response:**
+1. Analyze codebase for performance patterns
+2. Create issues for each opportunity found:
+
+```bash
+gh issue create --title "AI Analysis: Optimize JSON parsing with streaming parser" \
+  --body "
+## Analysis Method
+Code review of src/core/loaders/json_loader.py identified large JSON files being loaded entirely into memory.
+
+## Impact Assessment
+- High memory usage for large 5e.tools datasets (>100MB JSON files)
+- Potential OOM errors on systems with limited RAM
+- Slow startup times when loading multiple large files
+
+## Proposed Solution
+Implement streaming JSON parser for large files:
+- Use ijson library for streaming JSON parsing
+- Process data in chunks to reduce memory footprint
+- Add size threshold to determine when to use streaming vs standard parsing
+
+## Alternative Approaches
+1. Lazy loading with caching
+2. Database storage instead of in-memory processing
+3. File splitting at data preparation stage
+
+## Implementation Complexity
+Size: L (1-2 days)
+- Modify json_loader.py parsing logic
+- Add streaming parser dependency
+- Update tests for both parsing methods
+- Performance benchmarking
+
+## Files Likely to Change
+- src/core/loaders/json_loader.py
+- tests/unit/test_json_loader.py
+- pyproject.toml (new dependency)
+" \
+  --label "status/ai-proposed,performance,enhancement,P2-medium,size/L,component/loaders"
+```
+
+**Human Review:**
+```bash
+# Review proposed issues
+gh issue list --label "status/ai-proposed"
+
+# Approve for implementation  
+gh issue edit 42 --remove-label "status/ai-proposed" --add-label "status/ready"
+
+# Request modifications via comment
+gh issue comment 42 --body "Good analysis, but let's start with lazy loading approach first as it's less complex"
 ```
 
 ### Project Board Integration
