@@ -52,7 +52,7 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.6
 sphinxcontrib-serializinghtml==1.1.9
 typing_extensions==4.10.0
-urllib3==2.2.1
+urllib3==2.5.0
 wcwidth==0.2.12
 websockets==12.0
 yewtube==2.10.4
