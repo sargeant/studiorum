@@ -85,6 +85,18 @@ class BookMetadata(BaseModel):
     )
     cover: Optional[Dict[str, Any]] = Field(None, description="Cover image")
 
+    @field_validator("author", mode="before")
+    @classmethod
+    def parse_author(cls, v):
+        """Handle both string and list formats for author field."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return [v]  # Convert string to single-item list
+        if isinstance(v, list):
+            return v
+        return [str(v)]  # Convert other types to string then list
+
     def get_authors_text(self) -> str:
         """Get formatted authors text."""
         if not self.author:
@@ -111,6 +123,18 @@ class Book(BaseContent):
     published: Optional[str] = Field(None, description="Publication date")
     author: Optional[List[str]] = Field(None, description="Authors")
     cover: Optional[Dict[str, Any]] = Field(None, description="Cover image")
+
+    @field_validator("author", mode="before")
+    @classmethod
+    def parse_author(cls, v):
+        """Handle both string and list formats for author field."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return [v]  # Convert string to single-item list
+        if isinstance(v, list):
+            return v
+        return [str(v)]  # Convert other types to string then list
 
     def model_post_init(self, __context) -> None:
         """Post-process parsed data."""

@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .content import BaseContent
 
@@ -29,14 +29,24 @@ class Subclass(BaseModel):
 class Class(BaseContent):
     """A character class."""
 
-    hd: Dict[str, int]
-    proficiency: List[str]
+    # Core fields - optional for sidekicks
+    hd: Optional[Dict[str, int]] = None
+    proficiency: Optional[List[str]] = None
+    class_features: Optional[List[Any]] = Field(default=None, alias="classFeatures")
+    
+    # Sidekick identification
+    is_sidekick: Optional[bool] = Field(default=None, alias="isSidekick")
+    
+    # Optional fields
     spellcasting_ability: Optional[str] = Field(
         default=None, alias="spellcastingAbility"
     )
     caster_progression: Optional[str] = Field(default=None, alias="casterProgression")
     cantrip_progression: Optional[List[int]] = Field(
         default=None, alias="cantripProgression"
+    )
+    spells_known_progression: Optional[List[int]] = Field(
+        default=None, alias="spellsKnownProgression"
     )
     starting_proficiencies: Optional[Dict[str, Any]] = Field(
         default=None, alias="startingProficiencies"
@@ -45,5 +55,22 @@ class Class(BaseContent):
         default=None, alias="startingEquipment"
     )
     multiclassing: Optional[Dict[str, Any]] = None
-    class_features: List[Any] = Field(..., alias="classFeatures")
     subclasses: List[Subclass] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_required_fields_for_regular_classes(self):
+        """Validate that required fields are present for regular (non-sidekick) classes."""
+        # If this is not a sidekick class, certain fields are required
+        if not self.is_sidekick:
+            missing_fields = []
+            if self.hd is None:
+                missing_fields.append("hd")
+            if self.proficiency is None:
+                missing_fields.append("proficiency") 
+            if self.class_features is None:
+                missing_fields.append("classFeatures")
+                
+            if missing_fields:
+                raise ValueError(f"Regular classes require these fields: {', '.join(missing_fields)}")
+        
+        return self
