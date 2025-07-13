@@ -16,7 +16,7 @@ distlib==0.3.8
 docutils==0.20.1
 exceptiongroup==1.2.0
 GetOptions==1.0.3
-h11==0.14.0
+h11==0.16.0
 httpcore==1.0.4
 httpx==0.27.0
 idna==3.4
