@@ -64,7 +64,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_simple_text_passthrough(self, tag_resolver):
         """Test that text without tags passes through unchanged."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         text = "This is plain text with no tags."
         result = resolver.process_text(text)
         assert result == text
@@ -72,7 +72,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_creature_tag_resolution(self, tag_resolver):
         """Test creature tag resolution."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         text = "The {@creature Ancient Red Dragon|MM} attacks!"
         result = resolver.process_text(text)
 
@@ -84,7 +84,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_spell_tag_resolution(self, tag_resolver):
         """Test spell tag resolution."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         text = "She casts {@spell Fireball|PHB}."
         result = resolver.process_text(text)
 
@@ -96,7 +96,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_tag_with_display_text(self, tag_resolver):
         """Test tag resolution with custom display text."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         text = "The {@creature Ancient Red Dragon|MM|great wyrm} is ancient."
         result = resolver.process_text(text)
 
@@ -107,7 +107,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_unknown_content_fallback(self, tag_resolver):
         """Test fallback for unknown content."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         text = "The {@creature Unknown Creature|PHB} appears."
         result = resolver.process_text(text)
 
@@ -117,7 +117,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_formatting_tags(self, tag_resolver):
         """Test formatting tags like bold, italic, dice."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         test_cases = [
             ("Make a {@dice 1d20} roll.", "\\texttt{1d20}"),
             ("The {@bold important text} is highlighted.", "\\textbf{important text}"),
@@ -132,7 +132,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_special_tags(self, tag_resolver):
         """Test special formatting tags."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         test_cases = [
             ("Make a {@hit 7} attack.", "+7"),
             ("The save DC is {@dc 15}.", "DC 15"),
@@ -148,7 +148,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_latex_escaping(self, tag_resolver):
         """Test LaTeX character escaping."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         # Test with content that needs escaping
         text = "The {@bold 50% chance & $100 cost} is important."
         result = resolver.process_text(text)
@@ -161,7 +161,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_multiple_tags_in_text(self, tag_resolver):
         """Test processing multiple tags in same text."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         text = "Cast {@spell Fireball|PHB} at the {@creature Ancient Red Dragon|MM}!"
         result = resolver.process_text(text)
 
@@ -172,7 +172,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_nested_tags_handling(self, tag_resolver):
         """Test that nested tags are handled appropriately."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         # Note: Real nested tags are complex, this tests basic handling
         text = "The {@creature Ancient Red Dragon|MM} casts {@spell Fireball|PHB}."
         result = resolver.process_text(text)
@@ -184,7 +184,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_malformed_tag_handling(self, tag_resolver):
         """Test handling of malformed tags."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         test_cases = [
             "{@spell}",  # Missing content
             "{@spell |PHB}",  # Empty name
@@ -203,7 +203,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_tag_without_source_resolution(self, tag_resolver):
         """Test resolving tags without specifying source."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         text = "Cast {@spell Fireball} to deal damage."
         result = resolver.process_text(text)
 
@@ -213,7 +213,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_filter_and_loader_tag_omission(self, tag_resolver):
         """Test that filter and loader tags are omitted from output."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         text = "This {@filter Spells|spell=fireball} and {@loader content} should be hidden."
         result = resolver.process_text(text)
 
@@ -227,7 +227,7 @@ class TestTagResolver:
     @pytest.mark.asyncio
     async def test_adventure_and_book_tags(self, tag_resolver):
         """Test adventure and book reference tags."""
-        resolver = await tag_resolver
+        resolver = tag_resolver
         test_cases = [
             ("See {@adventure Curse of Strahd|CoS}.", "Curse of Strahd"),
             (

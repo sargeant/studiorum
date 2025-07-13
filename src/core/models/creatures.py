@@ -106,6 +106,18 @@ class CreatureType(BaseModel):
         None, description="Additional tags"
     )
 
+    @classmethod
+    def model_validate(cls, v):
+        """Handle string input and special dict formats by wrapping in type field."""
+        if isinstance(v, str):
+            return super().model_validate({"type": v})
+        elif isinstance(v, dict):
+            # If dict doesn't have 'type' key but has other recognizable keys,
+            # wrap the entire dict as the type
+            if "type" not in v and ("choose" in v or "special" in v):
+                return super().model_validate({"type": v})
+        return super().model_validate(v)
+
     def __str__(self) -> str:
         if isinstance(self.type, dict):
             if "choose" in self.type:
@@ -189,8 +201,14 @@ class Ability(BaseModel):
                 for item in entries["items"]:
                     if isinstance(item, str):
                         text_parts.append(f"• {item}")
-                    elif isinstance(item, dict) and "text" in item:
-                        text_parts.append(f"• {item['text']}")
+                    elif isinstance(item, dict):
+                        item_text_parts = []
+                        if "name" in item:
+                            item_text_parts.append(f"**{item['name']}**")
+                        if "text" in item:
+                            item_text_parts.append(item["text"])
+                        if item_text_parts:
+                            text_parts.append(f"• {' '.join(item_text_parts)}")
         elif isinstance(entries, str):
             text_parts.append(entries)
 
@@ -279,8 +297,8 @@ class Creature(BaseContent):
             if "type" in v:
                 return CreatureType.model_validate(v)
             else:
-                # Handle legacy format
-                return CreatureType(type=str(v))
+                # Handle choice format and other dict structures
+                return CreatureType(type=v)
         return v
 
     @field_validator("ac", mode="before")
@@ -394,5 +412,10 @@ class Creature(BaseContent):
         if self.cr is None:
             return "Unknown"
         elif isinstance(self.cr, dict):
-            return str(self.cr.get("cr", "Unknown"))
+            if "special" in self.cr:
+                return str(self.cr["special"])
+            elif "cr" in self.cr:
+                return str(self.cr["cr"])
+            else:
+                return "Unknown"
         return str(self.cr)

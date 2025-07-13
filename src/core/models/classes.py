@@ -31,7 +31,9 @@ class Class(BaseContent):
 
     hd: Dict[str, int]
     proficiency: List[str]
-    spellcasting_ability: Optional[str] = Field(default=None, alias="spellcastingAbility")
+    spellcasting_ability: Optional[str] = Field(
+        default=None, alias="spellcastingAbility"
+    )
     caster_progression: Optional[str] = Field(default=None, alias="casterProgression")
     cantrip_progression: Optional[List[int]] = Field(
         default=None, alias="cantripProgression"

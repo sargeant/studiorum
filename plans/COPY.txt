@@ -1,0 +1,220 @@
+✦ The _copy mechanism in the 5etools JavaScript codebase (primarily in js/utils.js) is a powerful feature for creating new content entries by
+  inheriting from existing ones and then applying modifications. It's used extensively for various content types like monsters, spells, items,
+  and classes.
+
+
+  Here's a breakdown of its logic and a plan to replicate it in Python:
+
+  Analysis of _copy Logic in 5etools (JavaScript)
+
+
+  The core of the _copy logic resides in js/utils.js, specifically within the DataUtil.generic.copyApplier class and the _pMergeCopy function.
+
+  Key Concepts:
+
+
+   1. `_copy` Object Structure: An object with a _copy property indicates that it's a "copy" of another object. The _copy property itself is an
+      object that typically contains:
+       * name: The name of the base item to copy.
+       * source: The source (e.g., "PHB", "MM") of the base item.
+       * _mod (optional): An array of modification objects. Each modification object specifies a property path to modify and the type of
+         modification (e.g., appendStr, replaceArr, removeArr).
+       * _preserve (optional): An object specifying properties from the base item that should not be overwritten by the copy.
+       * _templates (optional): Used for monster templates, allowing a copy to apply a template to a base monster.
+
+
+   2. Recursive Copying: The _pMergeCopy function handles recursive copying. If a base item itself has a _copy property, it will be resolved
+      first.
+
+
+   3. Modification Types (`_mod`): The _mod array is where the actual changes are defined. DataUtil.generic.copyApplier has static methods like
+      _doMod_appendStr, _doMod_replaceArr, _doMod_prependArr, _doMod_removeArr, _doMod_replaceName, _doMod_replaceTxt, _doMod_insertArr,
+      _doMod_replaceOrAppendArr. These methods perform specific operations on the target object's properties.
+
+
+       * `appendStr`: Appends a string to an existing string property.
+       * `replaceName`: Replaces text within the name property of items in an array.
+       * `replaceTxt`: Replaces text within specified text properties (e.g., entries, headerEntries).
+       * `prependArr`: Prepends items to an array.
+       * `appendArr`: Appends items to an array.
+       * `appendIfNotExistsArr`: Appends items to an array only if they don't already exist.
+       * `replaceArr`: Replaces an item in an array based on name, regex, or index.
+       * `replaceOrAppendArr`: Tries to replace an item; if not found, appends it.
+       * `insertArr`: Inserts items into an array at a specific index.
+       * `removeArr`: Removes items from an array based on name or exact item match.
+
+   4. Property Paths: Modifications use "property paths" (e.g., ["entries", 0, "items"]) to target nested properties within the JSON object.
+
+
+   5. `_preserve` Logic: If _preserve is specified, certain properties from the original item are kept, even if the _copy operation would
+      otherwise overwrite them.
+
+
+   6. Error Handling: The JavaScript code includes checks for self-referencing copies and missing base items.
+
+  Plan to Replicate _copy in Python
+
+
+  We will implement this logic within the JsonDataLoader or a new CopyResolver class, integrating it into the data loading pipeline. The goal
+  is to resolve all _copy references before Pydantic validation, so the models receive fully resolved data.
+
+  I. Core Data Structures
+
+
+   1. `CopyInstruction` Pydantic Model:
+       * Create a new Pydantic model (e.g., src/core/models/copy_instruction.py) to represent the _copy object structure.
+       * It should include fields for name, source, _mod (list of ModInstruction objects), _preserve (dict), and _templates (list of dicts, if
+         we support monster templates).
+
+
+   2. `ModInstruction` Pydantic Model:
+       * Define a nested Pydantic model within CopyInstruction or in a separate file for each type of modification (e.g., AppendStrMod,
+         ReplaceArrMod, etc.).
+       * Each ModInstruction will have a type field (e.g., "appendStr", "replaceArr") and specific fields for its parameters (e.g., propPath,
+         str, items, replace, index).
+
+  II. Implementation Strategy
+
+  Option 1: Integrate into `JsonDataLoader` (Recommended for initial implementation)
+
+  This approach keeps the copy resolution close to where data is loaded and validated.
+
+
+   1. Modify `JsonDataLoader._extract_content`:
+       * After reading the raw JSON data and before Pydantic validation, check if an item has a _copy field.
+       * If _copy is present, call a new private method, _resolve_copy_item.
+
+
+   2. Implement `_resolve_copy_item(self, item: Dict[str, Any]) -> Dict[str, Any]`:
+       * This method will be responsible for finding the base item, applying modifications, and handling recursion.
+       * Find Base Item:
+           * Use the name and source from item["_copy"] to search the already loaded content (or load it if not yet in memory). This will require
+             access to a central content store or a way to load specific content on demand. The Omnidexer might be useful here.
+           * Challenge: The JsonDataLoader currently processes files one by one. To resolve _copy references, it needs access to all loaded
+             content of a given type. This suggests that _copy resolution should happen after all initial content of a type has been loaded, or
+             we need a mechanism to load specific content on demand.
+       * Deep Copy Base Item: Create a deep copy of the found base item to avoid modifying the original.
+       * Apply `_preserve`: Iterate through _preserve rules and ensure those properties from the original are kept.
+       * Apply `_mod` Operations:
+           * Iterate through item["_copy"]["_mod"].
+           * For each ModInstruction, call a corresponding helper method (e.g., _apply_append_str, _apply_replace_arr).
+           * These helper methods will use Python's dictionary manipulation and list methods to modify the copied item.
+           * For property paths, a utility function to get/set nested dictionary values will be needed (similar to MiscUtil.get and MiscUtil.set
+             in JS).
+       * Handle Recursion: If the entParent (the base item) also has a _copy property, recursively call _resolve_copy_item on it before applying
+         the current item's modifications.
+       * Remove `_copy` field: After successful resolution, delete the _copy field from the item.
+
+
+   3. Helper Methods for Modifications:
+       * Create a set of private helper methods within JsonDataLoader (or a new CopyApplier class) for each _mod type:
+           * _apply_append_str(target_item, prop_path, value, joiner)
+           * _apply_replace_name(target_item, prop_path, regex, with_str)
+           * _apply_replace_txt(target_item, prop_path, regex, with_str, props_to_search)
+           * _apply_prepend_arr(target_item, prop_path, items)
+           * _apply_append_arr(target_item, prop_path, items)
+           * _apply_append_if_not_exists_arr(target_item, prop_path, items)
+           * _apply_replace_arr(target_item, prop_path, replace_info, new_items)
+           * _apply_insert_arr(target_item, prop_path, index, items)
+           * _apply_remove_arr(target_item, prop_path, names_to_remove, items_to_remove)
+       * These methods will need to handle nested dictionary access using the prop_path.
+
+
+  Option 2: Create a Dedicated `CopyResolver` Service
+
+  This approach separates the _copy logic from the JsonDataLoader, making it more modular.
+
+
+   1. Create `src/core/copy_resolver.py`:
+       * Define a CopyResolver class.
+       * It will have a method like resolve_copies(content_map: Dict[ContentType, List[BaseContent]]) -> Dict[ContentType, List[BaseContent]].
+       * This method would iterate through all loaded content, identify items with _copy, and resolve them.
+       * The CopyResolver would need access to all loaded content to find base items. This implies that the Omnidexer or SourceManager would be
+         responsible for calling this resolver after all initial loading is complete but before any further processing that expects fully
+         resolved data.
+
+
+   2. Implement `_resolve_single_item_copy(item: Dict[str, Any], all_content: Dict[ContentType, List[BaseContent]]) -> Dict[str, Any]`:
+       * This method would contain the core logic for finding the base item, applying modifications, and handling recursion, similar to
+         _resolve_copy_item in Option 1.
+       * It would take the all_content map to look up base items.
+
+
+   3. Integrate with `Omnidexer` or `SourceManager`:
+       * The Omnidexer (or SourceManager) would be the ideal place to orchestrate this. After all JsonDataLoader instances have loaded their raw
+         data, the Omnidexer would pass this raw data to the CopyResolver to get the fully resolved content before making it available for other
+         parts of the application.
+
+  Conclusion for Plan:
+
+
+  For the initial implementation, Option 1 (integrating into `JsonDataLoader`) is simpler to start with, as it keeps the logic within the
+  existing data loading flow. However, it will require careful management of when _copy resolution happens (e.g., ensuring all potential base
+  items are loaded before attempting to resolve copies).
+
+
+  A more robust and scalable solution would be Option 2 (dedicated `CopyResolver` service), as it cleanly separates concerns and allows for a
+  more explicit "resolution" phase after initial data loading. This would likely involve modifying the Omnidexer to manage this post-loading
+  step.
+
+
+  Given the complexity of _copy and its recursive nature, I will proceed with Option 2 as it provides a cleaner separation of concerns and
+  better scalability for future content types and modifications.
+
+  III. Detailed Implementation Steps (Option 2: Dedicated CopyResolver)
+
+
+   1. Create `src/core/models/copy_instruction.py`:
+       * Define CopyInstruction and ModInstruction Pydantic models.
+
+
+   2. Create `src/core/copy_resolver.py`:
+       * Implement CopyResolver class.
+       * Add a _get_nested_value(data, path_parts) utility function.
+       * Add a _set_nested_value(data, path_parts, value) utility function.
+       * Implement helper methods for each _mod type (e.g., _apply_append_str, _apply_replace_arr, etc.) within CopyResolver. These methods will
+         take the target_item (a dictionary), prop_path (list of strings), and modification-specific parameters.
+       * Implement _resolve_single_item_copy(item: Dict[str, Any], all_content_map: Dict[ContentType, List[Dict[str, Any]]]) -> Dict[str, Any]
+         which will:
+           * Look up the base item in all_content_map using name and source.
+           * Perform a deep copy of the base item.
+           * Apply _preserve rules.
+           * Iterate through _mod instructions and call the appropriate helper methods.
+           * Handle recursive _copy calls.
+           * Return the resolved item.
+
+
+   3. Modify `src/core/loaders/json_loader.py`:
+       * In JsonDataLoader.load, remove the _is_copy_template check and the continue statement. We will now process all items, and the
+         CopyResolver will handle the _copy logic.
+       * The JsonDataLoader will now load raw JSON data, without resolving copies.
+
+
+   4. Modify `src/core/loaders/omnidexer.py`:
+       * The Omnidexer is responsible for loading all content. It will need to:
+           * Load all content using the JsonDataLoader instances, resulting in a map of ContentType to lists of raw (potentially
+             _copy-containing) dictionaries.
+           * Instantiate CopyResolver.
+           * Call copy_resolver.resolve_copies(raw_content_map) to get the fully resolved content.
+           * Then, pass this resolved content to the Pydantic validation step. This might mean the Omnidexer itself orchestrates the Pydantic
+             validation, or it passes the resolved dictionaries back to the JsonDataLoader for final validation. The latter seems cleaner.
+
+
+   5. Refine `JsonDataLoader.load` (Revisited):
+       * The JsonDataLoader.load method should return the raw, unvalidated list of dictionaries.
+       * A new method, JsonDataLoader.validate_items(items: List[Dict[str, Any]]) -> List[T], would take the resolved dictionaries and perform
+         Pydantic validation.
+
+
+   6. Update `src/core/source_manager.py` (if applicable):
+       * Ensure that the SourceManager (which likely uses the Omnidexer) correctly integrates the CopyResolver step.
+
+
+   7. Testing:
+       * Create unit tests for CopyInstruction and ModInstruction models.
+       * Write comprehensive unit tests for CopyResolver covering all _mod types, recursion, and edge cases.
+       * Add integration tests to ensure the full data loading pipeline (loading, copy resolution, validation) works correctly.
+
+
+  This plan ensures that the _copy logic is handled systematically and cleanly, providing fully resolved data to the Pydantic models for
+  validation.

@@ -132,16 +132,6 @@ uv run 5e2pdf stats content spell
 uv run 5e2pdf stats sources
 ```
 
-### **Legacy Compatibility** 🔄
-```bash
-# All old commands still work through legacy mode
-uv run 5e2pdf legacy --adventure --no-images data.json > output.tex
-uv run 5e2pdf legacy --book --with-images book.json > book.tex
-
-# Or use the wrapper script
-./json2tex.py --adventure --no-images data.json > output.tex
-```
-
 ## Architecture Usage Examples
 
 ### Working with the Omnidexer
@@ -190,37 +180,6 @@ async def example():
 
 asyncio.run(example())
 ```
-
-## Build Scripts (Legacy - Still Functional)
-
-### `scripts/build.sh` - Complete Build Tool
-```bash
-# Build an adventure
-./scripts/build.sh adventure json_data/adventures/cos.json
-
-# Build a book with images  
-./scripts/build.sh book json_data/books/book-egw.json --with-images
-
-# List available JSON files
-./scripts/build.sh list
-
-# Clean build artifacts
-./scripts/build.sh clean
-```
-
-**Commands:**
-- `adventure <json>` - Build adventure PDF
-- `book <json>` - Build book PDF  
-- `article <json>` - Build article PDF
-- `list` - Show available JSON files
-- `clean` - Remove build artifacts
-- `setup` - Install dependencies
-
-**Options:**
-- `--with-images` - Include images (default: no images)
-- `--no-items` - Don't add item lists
-- `--no-creatures` - Don't add creature lists
-- `--no-compile` - Generate LaTeX only, skip PDF
 
 ## Dependencies
 

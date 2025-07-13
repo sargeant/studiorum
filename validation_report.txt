@@ -1,0 +1,63 @@
+================================================================================
+🔍 COMPREHENSIVE VALIDATION REPORT
+================================================================================
+
+📊 SUMMARY
+----------------------------------------
+Total analysis time: 0.77s
+Total items loaded: 2,951
+Loading performance: 4388.4 items/second
+Files found: 412
+Files processed: 412
+Validation warnings: 7
+Errors: 0
+
+📋 CONTENT STATISTICS
+----------------------------------------
+adventure: 0 items
+book: 0 items
+creature: 2,951 items
+item: 0 items
+spell: 0 items
+
+📁 FILE ANALYSIS
+----------------------------------------
+spell:
+  Files: 28/28 exist
+  Total size: 2.0 MB
+  Largest: spells-phb.json
+creature:
+  Files: 191/191 exist
+  Total size: 16.3 MB
+  Largest: bestiary-mm.json
+item:
+  Files: 2/2 exist
+  Total size: 2.8 MB
+  Largest: items.json
+adventure:
+  Files: 104/104 exist
+  Total size: 47.6 MB
+  Largest: adventure-wdmm.json
+book:
+  Files: 54/54 exist
+  Total size: 19.6 MB
+  Largest: book-xdmg.json
+class:
+  Files: 33/33 exist
+  Total size: 2.6 MB
+  Largest: foundry.json
+
+🚨 VALIDATION ISSUES (sample)
+----------------------------------------
+  Validation failed for item Homunculus Servant in /Users/sam/Code/5e2pdf/data/bestiary/bestiary-tce.j...
+  Validation failed for item Steel Defender in /Users/sam/Code/5e2pdf/data/bestiary/bestiary-tce.json:...
+  Validation failed for item Elzerina Cassalanter in /Users/sam/Code/5e2pdf/data/bestiary/bestiary-wdh...
+
+💡 RECOMMENDATIONS
+----------------------------------------
+1. Low validation warning rate (0.2%). System is handling data well.
+
+⚡ PERFORMANCE METRICS
+----------------------------------------
+Omnidexer load time: 0.67s
+Items per second: 4388.4

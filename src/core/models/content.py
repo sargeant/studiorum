@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ContentType(str, Enum):
@@ -19,6 +19,9 @@ class ContentType(str, Enum):
     FEAT = "feat"
     RACE = "race"
     SUPPLEMENT = "supplement"
+    SPELL_FLUFF = "spellFluff"
+    CREATURE_FLUFF = "creatureFluff"
+    ITEM_FLUFF = "itemFluff"
 
     @classmethod
     def from_content(cls, content: "BaseContent") -> "ContentType":
@@ -83,9 +86,14 @@ class Source(BaseModel):
     abbreviation: str = Field(
         ..., description="Source book abbreviation (e.g., 'PHB', 'MM')"
     )
-    name: str = Field(..., description="Full source book name")
+    name: Optional[str] = Field(None, description="Full source book name")
     page: Optional[int] = Field(None, description="Page number reference")
     url: Optional[str] = Field(None, description="URL reference")
+
+    def model_post_init(self, __context):
+        """Set name to abbreviation if not provided."""
+        if self.name is None:
+            self.name = self.abbreviation
 
     def __str__(self) -> str:
         if self.page:
@@ -103,6 +111,16 @@ class BaseContent(BaseModel):
 
     name: str = Field(..., description="Content name")
     source: Source = Field(..., description="Source book reference")
+
+    @field_validator("source", mode="before")
+    @classmethod
+    def parse_source(cls, v):
+        """Handle both string and dict source formats for liberal parsing."""
+        if isinstance(v, str):
+            return {"abbreviation": v, "name": v}
+        elif isinstance(v, dict):
+            return v
+        return v
 
     def __str__(self) -> str:
         return f"{self.name} ({self.source.abbreviation})"

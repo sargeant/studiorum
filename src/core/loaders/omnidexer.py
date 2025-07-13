@@ -10,17 +10,8 @@ from typing import Any, Dict, List, Optional, Set
 from ..config.settings import get_logger
 from ..models.content import BaseContent, ContentType
 from .base import DataLoader, SourceManager
-from .json_loader import (
-    create_adventure_loader,
-    create_background_loader,
-    create_book_loader,
-    create_class_loader,
-    create_creature_loader,
-    create_feat_loader,
-    create_item_loader,
-    create_race_loader,
-    create_spell_loader,
-)
+from .json_loader import JsonDataLoader
+from .fluff_loader import FluffDataLoader
 from .configurable_source_manager import ConfigurableSourceManager
 from .source_manager import FileSystemSourceManager
 
@@ -84,15 +75,29 @@ class Omnidexer:
     def _register_default_loaders(self):
         """Register default data loaders for common content types."""
         loaders = {
-            ContentType.SPELL: create_spell_loader(),
-            ContentType.CREATURE: create_creature_loader(),
-            ContentType.ITEM: create_item_loader(),
-            ContentType.ADVENTURE: create_adventure_loader(),
-            ContentType.BOOK: create_book_loader(),
-            ContentType.FEAT: create_feat_loader(),
-            ContentType.RACE: create_race_loader(),
-            ContentType.BACKGROUND: create_background_loader(),
-            ContentType.CLASS: create_class_loader(),
+            ContentType.SPELL: JsonDataLoader.create_for_type(ContentType.SPELL),
+            ContentType.CREATURE: JsonDataLoader.create_for_type(ContentType.CREATURE),
+            ContentType.ITEM: JsonDataLoader.create_for_type(ContentType.ITEM),
+            ContentType.ADVENTURE: JsonDataLoader.create_for_type(
+                ContentType.ADVENTURE
+            ),
+            ContentType.BOOK: JsonDataLoader.create_for_type(ContentType.BOOK),
+            ContentType.FEAT: JsonDataLoader.create_for_type(ContentType.FEAT),
+            ContentType.RACE: JsonDataLoader.create_for_type(ContentType.RACE),
+            ContentType.BACKGROUND: JsonDataLoader.create_for_type(
+                ContentType.BACKGROUND
+            ),
+            ContentType.CLASS: JsonDataLoader.create_for_type(ContentType.CLASS),
+            # Fluff loaders
+            ContentType.SPELL_FLUFF: FluffDataLoader.create_for_type(
+                ContentType.SPELL_FLUFF
+            ),
+            ContentType.CREATURE_FLUFF: FluffDataLoader.create_for_type(
+                ContentType.CREATURE_FLUFF
+            ),
+            ContentType.ITEM_FLUFF: FluffDataLoader.create_for_type(
+                ContentType.ITEM_FLUFF
+            ),
         }
 
         for content_type, loader in loaders.items():

@@ -12,7 +12,7 @@ from typing import Any, Dict
 import pytest
 
 from src.core.loaders.json_loader import JsonDataLoader
-from src.core.loaders.fluff_loader import FluffDataLoader, create_spell_fluff_loader
+from src.core.loaders.fluff_loader import FluffDataLoader
 from src.core.models.content import ContentType
 from src.core.models.spells import Spell
 from src.core.models.creatures import Creature
@@ -189,7 +189,7 @@ class TestLiberalParsing:
             json.dump(fluff_data, f)
             f.flush()
 
-            fluff_loader = create_spell_fluff_loader()
+            fluff_loader = FluffDataLoader.create_for_type(ContentType.SPELL_FLUFF)
             fluff_items = await fluff_loader.load(Path(f.name))
 
             # Should load fluff items with liberal parsing

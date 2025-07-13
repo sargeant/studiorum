@@ -16,13 +16,13 @@ class FluffDataLoader(DataLoader[BaseFluff]):
     """Loads fluff data with liberal parsing to handle inconsistent structures."""
 
     def __init__(self, content_type: ContentType):
-        self.content_type = content_type
-        self.fluff_model_map = {
+        self._content_type = content_type
+        self._fluff_model_map = {
             ContentType.SPELL: SpellFluff,
             ContentType.CREATURE: CreatureFluff,
             ContentType.ITEM: ItemFluff,
         }
-        self.fluff_key_map = {
+        self._fluff_key_map = {
             ContentType.SPELL: "spellFluff",
             ContentType.CREATURE: "monsterFluff",
             ContentType.ITEM: "itemFluff",
@@ -31,7 +31,7 @@ class FluffDataLoader(DataLoader[BaseFluff]):
     async def load(self, path: Path) -> List[BaseFluff]:
         """Load fluff data with liberal parsing."""
         try:
-            logger.info(f"Loading {self.content_type.value} fluff data from {path}")
+            logger.info(f"Loading {self._content_type.value} fluff data from {path}")
 
             # Read JSON file
             with open(path, encoding="utf-8") as f:
@@ -41,8 +41,8 @@ class FluffDataLoader(DataLoader[BaseFluff]):
             fluff_list = self._extract_fluff_content(data, path)
 
             # Parse each fluff item liberally
+            model_class = self._fluff_model_map.get(self._content_type, BaseFluff)
             parsed_fluff = []
-            model_class = self.fluff_model_map.get(self.content_type, BaseFluff)
 
             for item in fluff_list:
                 try:
@@ -62,7 +62,7 @@ class FluffDataLoader(DataLoader[BaseFluff]):
                     )
 
             logger.info(
-                f"Successfully loaded {len(parsed_fluff)} {self.content_type.value} fluff items from {path}"
+                f"Successfully loaded {len(parsed_fluff)} {self._content_type.value} fluff items from {path}"
             )
             return parsed_fluff
 
@@ -71,17 +71,17 @@ class FluffDataLoader(DataLoader[BaseFluff]):
             return []
 
     def get_content_type(self) -> ContentType:
-        return self.content_type
+        return self._content_type
 
     def get_model_class(self) -> Type[BaseFluff]:
-        return self.fluff_model_map.get(self.content_type, BaseFluff)
+        return self._fluff_model_map.get(self._content_type, BaseFluff)
 
     def _extract_fluff_content(
         self, data: Dict[str, Any], path: Path
     ) -> List[Dict[str, Any]]:
         """Extract fluff content from various JSON structures."""
         # Try specific fluff keys first
-        fluff_key = self.fluff_key_map.get(self.content_type)
+        fluff_key = self._fluff_key_map.get(self._content_type)
         if fluff_key and fluff_key in data:
             content = data[fluff_key]
             if isinstance(content, list):
@@ -89,8 +89,8 @@ class FluffDataLoader(DataLoader[BaseFluff]):
 
         # Try generic patterns
         for possible_key in [
-            f"{self.content_type.value}Fluff",
-            f"{self.content_type.value}fluff",
+            f"{self._content_type.value}Fluff",
+            f"{self._content_type.value}fluff",
             "fluff",
             "fluffData",
         ]:
@@ -99,15 +99,15 @@ class FluffDataLoader(DataLoader[BaseFluff]):
                 if isinstance(content, list):
                     return content
 
-        # Look for any key ending with "Fluff"
+        # Look for any key ending with "fluff"
         for key, value in data.items():
             if key.lower().endswith("fluff") and isinstance(value, list):
                 logger.debug(
-                    f"Found fluff data in key '{key}' for {self.content_type.value}"
+                    f"Found fluff data in key '{key}' for {self._content_type.value}"
                 )
                 return value
 
-        logger.debug(f"No fluff content found for {self.content_type.value} in {path}")
+        logger.debug(f"No fluff content found for {self._content_type.value} in {path}")
         return []
 
     def _parse_fluff_item(
@@ -160,25 +160,14 @@ class FluffDataLoader(DataLoader[BaseFluff]):
             return model_class.model_validate(parsed_item)
         except Exception as e:
             logger.debug(
-                f"Even liberal parsing failed for {item.get('name')} in {path}: {e}"
+                f"Even liberal parsing failed for {item.get('name', 'unknown')} in {path}: {e}"
             )
             # Create minimal valid object
             return model_class(
                 name=item.get("name", "Unknown"), source=item.get("source", "Unknown")
             )
 
-
-# Factory functions for fluff loaders
-def create_spell_fluff_loader() -> FluffDataLoader:
-    """Create a spell fluff data loader."""
-    return FluffDataLoader(ContentType.SPELL)
-
-
-def create_creature_fluff_loader() -> FluffDataLoader:
-    """Create a creature fluff data loader."""
-    return FluffDataLoader(ContentType.CREATURE)
-
-
-def create_item_fluff_loader() -> FluffDataLoader:
-    """Create an item fluff data loader."""
-    return FluffDataLoader(ContentType.ITEM)
+    @classmethod
+    def create_for_type(cls, content_type: ContentType) -> "FluffDataLoader":
+        """Create a FluffDataLoader instance for a given content type."""
+        return cls(content_type)

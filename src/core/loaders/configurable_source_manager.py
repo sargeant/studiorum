@@ -65,7 +65,7 @@ class ConfigurableSourceManager(SourceManager):
                     # Skip files that should be filtered at discovery level
                     if self._should_skip_file_at_discovery(file_path):
                         continue
-                    
+
                     file_name = file_path.name.lower()
 
                     # Check if file matches any pattern for this content type
@@ -336,16 +336,16 @@ class ConfigurableSourceManager(SourceManager):
 
         # Skip specific directories
         skip_directories = {
-            "search",           # Search indices
-            "generated",       # Generated metadata
-            "node_modules",    # Node.js dependencies
-            ".git",            # Git directory
-            "test",            # Test files
-            "tests",           # Test files
-            "spec",            # Specification files
-            "docs",            # Documentation
-            "build",           # Build artifacts
-            "dist",            # Distribution files
+            "search",  # Search indices
+            "generated",  # Generated metadata
+            "node_modules",  # Node.js dependencies
+            ".git",  # Git directory
+            "test",  # Test files
+            "tests",  # Test files
+            "spec",  # Specification files
+            "docs",  # Documentation
+            "build",  # Build artifacts
+            "dist",  # Distribution files
         }
 
         # Check if any parent directory should be skipped
@@ -366,11 +366,11 @@ class ConfigurableSourceManager(SourceManager):
             "rollup.config",
             "vite.config",
             "manifest.json",
-            "sw-",                # Service worker files
-            "gendata-",           # Generated data files
-            "index-",             # Search index files
-            "-template",          # Template files
-            "template-",          # Template files
+            "sw-",  # Service worker files
+            "gendata-",  # Generated data files
+            "index-",  # Search index files
+            "-template",  # Template files
+            "template-",  # Template files
             "browserconfig.xml",
             "open-search.xml",
         ]

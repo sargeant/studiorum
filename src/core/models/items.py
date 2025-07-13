@@ -275,8 +275,14 @@ class Item(BaseContent):
                 for item in entries["items"]:
                     if isinstance(item, str):
                         text_parts.append(f"• {item}")
-                    elif isinstance(item, dict) and "text" in item:
-                        text_parts.append(f"• {item['text']}")
+                    elif isinstance(item, dict):
+                        item_text_parts = []
+                        if "name" in item:
+                            item_text_parts.append(f"**{item['name']}**")
+                        if "text" in item:
+                            item_text_parts.append(item["text"])
+                        if item_text_parts:
+                            text_parts.append(f"• {' '.join(item_text_parts)}")
         elif isinstance(entries, str):
             text_parts.append(entries)
 

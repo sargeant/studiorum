@@ -36,7 +36,7 @@ class FluffEntry(BaseModel):
         if self.entries is not None and not self.content:
             self.content = self._extract_text_from_entries(self.entries)
         # If content is still empty/default and we got string data, use it directly
-        elif not self.content and hasattr(self, '_raw_data'):
+        elif not self.content and hasattr(self, "_raw_data"):
             self.content = self._raw_data
 
     @field_validator("content", mode="before")
@@ -121,7 +121,10 @@ class BaseFluff(BaseModel):
                     if isinstance(entry, dict):
                         # For dict entries, pass the entries field if it exists
                         if "entries" in entry:
-                            fluff_entry = FluffEntry(entries=entry["entries"], **{k: v for k, v in entry.items() if k != "entries"})
+                            fluff_entry = FluffEntry(
+                                entries=entry["entries"],
+                                **{k: v for k, v in entry.items() if k != "entries"},
+                            )
                         else:
                             fluff_entry = FluffEntry(**entry)
                         parsed_entries.append(fluff_entry)

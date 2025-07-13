@@ -169,10 +169,18 @@ class Spell(BaseContent):
     def parse_duration(cls, v):
         """Parse duration from various formats."""
         if isinstance(v, list):
-            return [
-                SpellDuration.model_validate(item) if isinstance(item, dict) else item
-                for item in v
-            ]
+            parsed_durations = []
+            for item in v:
+                if isinstance(item, dict):
+                    # Handle concentration type conversion
+                    if item.get("type") == "concentration":
+                        item = item.copy()  # Don't modify original
+                        item["type"] = "timed"
+                        item["concentration"] = True
+                    parsed_durations.append(SpellDuration.model_validate(item))
+                else:
+                    parsed_durations.append(item)
+            return parsed_durations
         return v
 
     def get_level_text(self) -> str:
@@ -245,13 +253,22 @@ class Spell(BaseContent):
             # Add name if present (for structured sections)
             if "name" in entries:
                 text_parts.append(f"**{entries['name']}**")
+            # Add attribution for quotes
+            if "by" in entries:
+                text_parts.append(f"— {entries['by']}")
             # Handle lists within entries
             if "items" in entries and isinstance(entries["items"], list):
                 for item in entries["items"]:
                     if isinstance(item, str):
                         text_parts.append(f"• {item}")
-                    elif isinstance(item, dict) and "text" in item:
-                        text_parts.append(f"• {item['text']}")
+                    elif isinstance(item, dict):
+                        item_text_parts = []
+                        if "name" in item:
+                            item_text_parts.append(f"**{item['name']}**")
+                        if "text" in item:
+                            item_text_parts.append(item["text"])
+                        if item_text_parts:
+                            text_parts.append(f"• {' '.join(item_text_parts)}")
         elif isinstance(entries, str):
             text_parts.append(entries)
 
