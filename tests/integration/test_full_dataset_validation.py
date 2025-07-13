@@ -160,7 +160,7 @@ class TestFullDatasetValidation:
     async def test_full_spell_dataset_validation(self):
         """Test validation of the complete spell dataset."""
         report = ValidationReport()  # Initialize report
-        
+
         source_manager = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
         spell_files = data_paths.get(ContentType.SPELL, [])
@@ -208,7 +208,7 @@ class TestFullDatasetValidation:
     async def test_full_creature_dataset_validation(self):
         """Test validation of the complete creature dataset."""
         report = ValidationReport()  # Initialize report
-        
+
         source_manager = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
         creature_files = data_paths.get(ContentType.CREATURE, [])
@@ -258,7 +258,7 @@ class TestFullDatasetValidation:
     async def test_full_item_dataset_validation(self):
         """Test validation of the complete item dataset."""
         report = ValidationReport()  # Initialize report
-        
+
         source_manager = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
         item_files = data_paths.get(ContentType.ITEM, [])
