@@ -7,17 +7,15 @@ inconsistent and complex data structures from 5etools.
 import json
 import tempfile
 from pathlib import Path
-from typing import Any, Dict
 
 import pytest
 
-from src.core.loaders.json_loader import JsonDataLoader
 from src.core.loaders.fluff_loader import FluffDataLoader
+from src.core.loaders.json_loader import JsonDataLoader
 from src.core.models.content import ContentType
-from src.core.models.spells import Spell
 from src.core.models.creatures import Creature
 from src.core.models.items import Item
-from src.core.models.fluff import SpellFluff
+from src.core.models.spells import Spell
 
 
 class TestLiberalParsing:

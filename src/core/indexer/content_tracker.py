@@ -1,7 +1,7 @@
 """Content tracking for appendix generation."""
 
-from typing import Set, List, Tuple, Dict, Optional
 from dataclasses import dataclass
+from typing import Dict, List, Optional, Set, Tuple
 
 
 @dataclass

@@ -5,12 +5,12 @@ from pydantic import ValidationError
 
 from src.core.models.content import Source
 from src.core.models.creatures import (
+    Ability,
     ArmorClass,
     Creature,
+    CreatureType,
     HitPoints,
     Speed,
-    CreatureType,
-    Ability,
 )
 from src.core.models.spells import Spell, SpellComponent
 

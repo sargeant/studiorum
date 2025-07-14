@@ -1,34 +1,25 @@
 """Tag handlers for the new tag resolution system."""
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
-from .tag_ast import (
-    ASTNode,
-    TagNode,
-    TextNode,
-    CreatureTagNode,
-    SpellTagNode,
-    ItemTagNode,
-    ClassTagNode,
-    RaceTagNode,
-    BackgroundTagNode,
-    FeatTagNode,
-    BoldTagNode,
-    ItalicTagNode,
-    DiceTagNode,
-    HitTagNode,
-    DCTagNode,
-    DamageTagNode,
-    ConditionTagNode,
-    ChanceTagNode,
-    RechargeTagNode,
-    AdventureTagNode,
-    BookTagNode,
-    FilterTagNode,
-    LoaderTagNode,
-)
 from .content_tracker import ContentTracker
+from .tag_ast import (
+    AdventureTagNode,
+    BoldTagNode,
+    BookTagNode,
+    ChanceTagNode,
+    ConditionTagNode,
+    DamageTagNode,
+    DCTagNode,
+    DiceTagNode,
+    FilterTagNode,
+    HitTagNode,
+    ItalicTagNode,
+    LoaderTagNode,
+    RechargeTagNode,
+    TagNode,
+)
 
 if TYPE_CHECKING:
     from .tag_renderer import RendererContext

@@ -4,20 +4,16 @@ This module tests specific edge cases and complex data structures
 that might cause validation issues.
 """
 
-import pytest
-from typing import Any, Dict
 
-from src.core.models.spells import Spell
 from src.core.models.creatures import (
+    Ability,
+    ArmorClass,
     Creature,
     CreatureType,
     HitPoints,
-    ArmorClass,
-    Ability,
 )
 from src.core.models.items import Item
-from src.core.models.adventures import Adventure
-from src.core.models.books import Book
+from src.core.models.spells import Spell
 
 
 class TestModelValidationEdgeCases:

@@ -10,10 +10,9 @@ from typing import Any, Dict, List, Optional, Set
 from ..config.settings import get_logger
 from ..models.content import BaseContent, ContentType
 from .base import DataLoader, SourceManager
-from .json_loader import JsonDataLoader
-from .fluff_loader import FluffDataLoader
 from .configurable_source_manager import ConfigurableSourceManager
-from .source_manager import FileSystemSourceManager
+from .fluff_loader import FluffDataLoader
+from .json_loader import JsonDataLoader
 
 logger = get_logger(__name__)
 

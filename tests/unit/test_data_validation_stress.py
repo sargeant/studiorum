@@ -6,11 +6,7 @@ can handle all available data without warnings or unknown data structures.
 
 import asyncio
 import logging
-import warnings
-from collections import defaultdict
-from pathlib import Path
-from typing import Any, Dict, List, Set
-from unittest.mock import patch
+from typing import List
 
 import pytest
 
@@ -99,7 +95,6 @@ class TestDataValidationStress:
         if not spell_files:
             pytest.skip("No spell data files found")
 
-        validation_errors = []
         total_spells = 0
 
         for spell_file in spell_files:
@@ -360,7 +355,7 @@ class TestDataValidationStress:
                 continue
 
             # Use spell loader as representative loader
-            spells = await spell_loader.load(file_path)
+            await spell_loader.load(file_path)
 
             # Check log messages for detection
             log_messages = [record.getMessage() for record in self.log_capture.records]
@@ -388,9 +383,9 @@ class TestDataValidationStress:
 
     def test_edge_case_data_structures(self):
         """Test validation of edge case data structures."""
-        from src.core.models.spells import Spell
         from src.core.models.creatures import Creature
         from src.core.models.items import Item
+        from src.core.models.spells import Spell
 
         # Test spell with minimal data
         minimal_spell = {
@@ -458,8 +453,9 @@ class TestDataValidationStress:
     async def test_memory_usage_during_full_load(self):
         """Test memory usage doesn't grow excessively during full data load."""
         try:
-            import psutil
             import os
+
+            import psutil
         except ImportError:
             pytest.skip("psutil not installed - skipping memory usage test")
 

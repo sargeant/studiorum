@@ -1,7 +1,7 @@
 """AST nodes for the tag resolution system."""
 
-from typing import List, Optional, Any
 from dataclasses import dataclass
+from typing import Any, List, Optional
 
 
 @dataclass
@@ -18,7 +18,7 @@ class ASTNode:
 
     def __init__(self, original_text_span: Optional[TextSpan] = None):
         self.original_text_span = original_text_span
-        self.children: List["ASTNode"] = []
+        self.children: List[ASTNode] = []
 
     def add_child(self, child: "ASTNode") -> None:
         """Add a child node."""

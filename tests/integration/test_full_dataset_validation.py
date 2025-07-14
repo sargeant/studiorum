@@ -9,14 +9,14 @@ import logging
 import time
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List
 
 import pytest
 
 from src.core.config.settings import get_logger
+from src.core.loaders.json_loader import JsonDataLoader
 from src.core.loaders.omnidexer import Omnidexer
 from src.core.loaders.source_manager import FileSystemSourceManager
-from src.core.loaders.json_loader import JsonDataLoader
 from src.core.models.content import ContentType
 
 
@@ -321,7 +321,7 @@ class TestFullDatasetValidation:
         # Generate comprehensive report
         total_items = sum(load_stats.values())
 
-        print(f"\n📊 OMNIDEXER LOAD RESULTS:")
+        print("\n📊 OMNIDEXER LOAD RESULTS:")
         print(f"Total load time: {total_load_time:.2f}s")
         print(f"Items per second: {total_items / total_load_time:.1f}")
         print(f"Total items loaded: {total_items:,}")
@@ -393,8 +393,9 @@ class TestFullDatasetValidation:
     async def test_memory_efficiency_large_dataset(self):
         """Test memory efficiency when loading large datasets."""
         try:
-            import psutil
             import os
+
+            import psutil
         except ImportError:
             pytest.skip("psutil not installed - skipping memory usage test")
 
@@ -413,7 +414,7 @@ class TestFullDatasetValidation:
 
         memory_per_item = memory_increase / total_items if total_items > 0 else 0
 
-        print(f"\n💾 MEMORY EFFICIENCY ANALYSIS:")
+        print("\n💾 MEMORY EFFICIENCY ANALYSIS:")
         print(f"Initial memory: {initial_memory:.1f} MB")
         print(f"Final memory: {final_memory:.1f} MB")
         print(f"Memory increase: {memory_increase:.1f} MB")
@@ -447,7 +448,7 @@ class TestFullDatasetValidation:
 
         async def load_subset():
             """Load a subset of the data."""
-            omnidexer = Omnidexer(source_manager)
+            Omnidexer(source_manager)
             # Load just spells for faster concurrent test
             data_paths = source_manager.get_data_paths()
             spell_files = data_paths.get(ContentType.SPELL, [])[

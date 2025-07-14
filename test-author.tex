@@ -1,0 +1,82 @@
+\documentclass[10pt,letterpaper]{book}
+
+% D&D 5e styling packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{multicol}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titling}
+\usepackage{titlesec}
+
+% Page geometry for D&D style
+\geometry{
+    margin=0.75in,
+    top=1in,
+    bottom=1in
+}
+
+% Colors (D&D 5e style)
+\definecolor{dndred}{RGB}{158, 0, 0}
+\definecolor{dndgold}{RGB}{255, 215, 0}
+\definecolor{dndbeige}{RGB}{250, 241, 224}
+
+% Custom fonts (if available)
+{}
+
+% Header styling
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[LO]{\rightmark}
+\fancyhead[RE]{\leftmark}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Title formatting
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{dndred}}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{dndred}}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}
+  {\thesubsection}{1em}{}
+
+% Document metadata
+\title{Book: Book: SCAG}
+{}
+{}
+\date{\today}
+
+\begin{document}
+
+% Title page
+\maketitle
+\thispagestyle{empty}
+\clearpage
+
+
+\subsection{Book: SCAG}
+\textit{Source: SCAG}
+
+This content type is not yet fully supported by the rendering system.
+
+
+\chapter*{Index}
+\addcontentsline{toc}{chapter}{Index}
+
+\begin{multicols}{2}
+{}
+\textbf{Book: SCAG} (book) \dotfill SCAG \\
+{}
+\end{multicols}
+
+\end{document}

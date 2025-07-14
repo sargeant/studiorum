@@ -5,6 +5,7 @@ This document defines our workflow for using GitHub issues to drive development 
 ## Overview
 
 GitHub issues serve as our primary task management system, providing:
+
 - Clear task definition and scope
 - Progress tracking and history
 - Automatic linking between code changes and requirements
@@ -16,6 +17,7 @@ GitHub issues serve as our primary task management system, providing:
 ### Labels
 
 #### **Type Labels** (What kind of work)
+
 - `bug` - Something isn't working correctly
 - `feature` - New functionality or capability
 - `enhancement` - Improvement to existing functionality
@@ -26,12 +28,14 @@ GitHub issues serve as our primary task management system, providing:
 - `security` - Security-related improvements or fixes
 
 #### **Priority Labels** (How urgent)
+
 - `P0-critical` - Blocking issue, must be fixed immediately
 - `P1-high` - Important, should be addressed soon
 - `P2-medium` - Normal priority, planned work
 - `P3-low` - Nice to have, low priority
 
 #### **Component Labels** (What part of the codebase)
+
 - `component/core` - Core logic and models
 - `component/cli` - Command line interface
 - `component/renderers` - LaTeX/PDF rendering system
@@ -42,6 +46,7 @@ GitHub issues serve as our primary task management system, providing:
 - `component/tests` - Test infrastructure
 
 #### **Size Labels** (Effort estimation)
+
 - `size/XS` - < 1 hour (small bug fix, typo)
 - `size/S` - 1-4 hours (simple feature, straightforward fix)
 - `size/M` - 4-8 hours (moderate feature, complex bug)
@@ -49,6 +54,7 @@ GitHub issues serve as our primary task management system, providing:
 - `size/XL` - 2+ days (epic, architectural change)
 
 #### **Status Labels** (Current state)
+
 - `status/ready` - Requirements clear, ready to start
 - `status/in-progress` - Actively being worked on
 - `status/blocked` - Cannot proceed due to external dependency
@@ -57,6 +63,7 @@ GitHub issues serve as our primary task management system, providing:
 - `status/ai-proposed` - AI-generated issue awaiting human review and approval
 
 #### **Special Labels**
+
 - `breaking-change` - Will break existing APIs or behavior
 - `good-first-issue` - Suitable for new contributors
 - `help-wanted` - Looking for community assistance
@@ -66,6 +73,7 @@ GitHub issues serve as our primary task management system, providing:
 ### Milestones
 
 Use milestones to group related issues into releases or major features:
+
 - `v2.1.0` - Next minor release
 - `v3.0.0` - Major version with breaking changes
 - `Epic: New Renderer System` - Large feature spanning multiple issues
@@ -73,6 +81,7 @@ Use milestones to group related issues into releases or major features:
 ### Projects
 
 Use GitHub Projects for organizing work:
+
 - **Active Sprint** - Current work in progress
 - **Backlog** - Prioritized future work
 - **Long-term** - Ideas and future considerations
@@ -80,6 +89,7 @@ Use GitHub Projects for organizing work:
 ## Issue Templates
 
 ### Bug Report Template
+
 ```markdown
 ## Bug Description
 Brief description of the issue.
@@ -110,6 +120,7 @@ Any other relevant information.
 ```
 
 ### Feature Request Template
+
 ```markdown
 ## Feature Description
 Clear description of the new feature.
@@ -139,6 +150,7 @@ Technical considerations, affected files, etc.
 ```
 
 ### Enhancement Template
+
 ```markdown
 ## Enhancement Description
 What existing functionality should be improved?
@@ -170,6 +182,7 @@ List modules/files that will change.
 ### 1. Issue Creation
 
 **For Users:**
+
 ```bash
 # Create a bug report
 gh issue create --template bug_report.md --label "bug,P2-medium"
@@ -182,6 +195,7 @@ gh issue create --title "Fix typo in README" --body "Line 42 has a spelling erro
 ```
 
 **Metadata to include:**
+
 - Appropriate type label (bug, feature, etc.)
 - Priority level
 - Size estimate
@@ -191,12 +205,14 @@ gh issue create --title "Fix typo in README" --body "Line 42 has a spelling erro
 ### 2. Issue Triage and Planning
 
 **Review new issues for:**
+
 - Clear requirements and acceptance criteria
 - Appropriate labels and metadata
 - Dependencies on other issues
 - Priority and sizing accuracy
 
 **Add missing information:**
+
 - Component labels based on affected code
 - Size estimates for effort planning
 - Dependencies if issues are related
@@ -205,16 +221,19 @@ gh issue create --title "Fix typo in README" --body "Line 42 has a spelling erro
 ### 3. Development Process
 
 **Starting Work:**
+
 1. Assign the issue to yourself
 2. Add `status/in-progress` label
 3. Create a branch if needed: `git checkout -b issue-#-short-description`
 
 **During Development:**
+
 - Reference the issue in commit messages: `Fix bug in data loading (refs #42)`
 - Update issue with progress if it's a large task
 - Ask questions in issue comments if requirements are unclear
 
 **Completing Work:**
+
 1. Ensure all acceptance criteria are met
 2. Add/update tests as specified
 3. Update documentation as needed
@@ -224,12 +243,14 @@ gh issue create --title "Fix typo in README" --body "Line 42 has a spelling erro
 ### 4. Code Review and Completion
 
 **For complex changes:**
+
 - Create pull request referencing the issue
 - Request review from appropriate team members
 - Add `status/review` label during review process
 - Address feedback and update as needed
 
 **Issue closure:**
+
 - Issues close automatically when commits with `fixes #N`, `closes #N`, or `resolves #N` are pushed
 - Verify acceptance criteria were met
 - Add any follow-up issues if discovered
@@ -239,6 +260,7 @@ gh issue create --title "Fix typo in README" --body "Line 42 has a spelling erro
 ### When Receiving Task Requests
 
 1. **Create GitHub Issue First:**
+
    ```bash
    gh issue create --title "Clear task description" \
      --body "Detailed requirements and acceptance criteria" \
@@ -262,6 +284,7 @@ gh issue create --title "Fix typo in README" --body "Line 42 has a spelling erro
 Sometimes you may ask me to analyze the codebase and propose improvements, identify technical debt, or suggest new features. In these cases:
 
 1. **Create AI-Proposed Issues:**
+
    ```bash
    gh issue create --title "AI Analysis: Clear description of identified issue" \
      --body "Detailed analysis and proposed solution" \
@@ -283,6 +306,7 @@ Sometimes you may ask me to analyze the codebase and propose improvements, ident
    - Close issue if proposal is rejected
 
 4. **Searching AI-Proposed Issues:**
+
    ```bash
    # View all AI-proposed issues
    gh issue list --label "status/ai-proposed"
@@ -313,6 +337,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ### Testing and Validation
 
 Before closing issues, ensure:
+
 - [ ] All acceptance criteria met
 - [ ] Tests added/updated as required
 - [ ] Code follows project standards (linting, formatting)
@@ -343,6 +368,7 @@ For large features spanning multiple issues:
 ### Dependencies
 
 For dependent issues:
+
 - Use "Depends on #X" in issue description
 - Add `dependencies` label
 - Don't start until dependencies complete
@@ -351,6 +377,7 @@ For dependent issues:
 ### Research and Spike Issues
 
 For investigation work:
+
 - Use `type/research` or `type/spike` labels
 - Include time-box in acceptance criteria
 - Define what decisions need to be made
@@ -389,11 +416,12 @@ gh issue edit 42 --remove-label "status/ai-proposed" --add-label "status/ready"
 > "Look through the codebase and identify any performance optimization opportunities"
 
 **AI Response:**
+
 1. Analyze codebase for performance patterns
 2. Create issues for each opportunity found:
 
 ```bash
-gh issue create --title "AI Analysis: Optimize JSON parsing with streaming parser" \
+gh issue create --title "Optimize JSON parsing with streaming parser" \
   --body "
 ## Analysis Method
 Code review of src/core/loaders/json_loader.py identified large JSON files being loaded entirely into memory.
@@ -430,6 +458,7 @@ Size: L (1-2 days)
 ```
 
 **Human Review:**
+
 ```bash
 # Review proposed issues
 gh issue list --label "status/ai-proposed"
@@ -463,6 +492,7 @@ git checkout -b bug-memory-leak-in-parser
 ## Best Practices
 
 ### Issue Creation
+
 - **Be Specific:** Clear, actionable descriptions
 - **Include Context:** Why is this needed?
 - **Define Success:** What does "done" look like?
@@ -470,12 +500,14 @@ git checkout -b bug-memory-leak-in-parser
 - **Label Consistently:** Use standard label taxonomy
 
 ### Communication
+
 - **Update Progress:** Comment on long-running issues
 - **Ask Questions:** Use issue comments for clarification
 - **Link Related Work:** Reference other issues and PRs
 - **Document Decisions:** Capture important discussions
 
 ### Quality
+
 - **Test Requirements:** Specify what tests are needed
 - **Documentation:** Note what docs need updating
 - **Breaking Changes:** Flag API or behavior changes
@@ -484,12 +516,14 @@ git checkout -b bug-memory-leak-in-parser
 ## Automation Opportunities
 
 ### GitHub Actions Integration
+
 - Auto-label issues based on content
 - Auto-assign issues based on components
 - Run tests when issues are marked ready
 - Notify team of critical issues
 
 ### Issue Templates
+
 - Standardize information collection
 - Ensure all necessary metadata is captured
 - Guide users to provide complete information

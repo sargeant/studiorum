@@ -342,7 +342,7 @@ def reset_setup():
         return
 
     config_manager = get_config_manager()
-    config = config_manager.reset_to_defaults()
+    config_manager.reset_to_defaults()
 
     console.print("[green]✅ Configuration reset to defaults[/green]")
     console.print("Run [bold]5e2pdf sources scan[/bold] to download content.")

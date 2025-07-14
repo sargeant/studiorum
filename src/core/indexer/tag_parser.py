@@ -2,36 +2,35 @@
 
 import re
 from pathlib import Path
-from typing import List, Any, Optional, Union
-from lark import Lark, Transformer, Token, Tree
-from lark.exceptions import LarkError
+from typing import Any, List, Optional
+
+from lark import Lark, Token, Transformer
 
 from .tag_ast import (
-    ASTNode,
-    DocumentNode,
-    TextNode,
-    TagNode,
-    CreatureTagNode,
-    SpellTagNode,
-    ItemTagNode,
-    ClassTagNode,
-    RaceTagNode,
-    BackgroundTagNode,
-    FeatTagNode,
-    BoldTagNode,
-    ItalicTagNode,
-    DiceTagNode,
-    HitTagNode,
-    DCTagNode,
-    DamageTagNode,
-    ConditionTagNode,
-    ChanceTagNode,
-    RechargeTagNode,
     AdventureTagNode,
+    ASTNode,
+    BackgroundTagNode,
+    BoldTagNode,
     BookTagNode,
+    ChanceTagNode,
+    ClassTagNode,
+    ConditionTagNode,
+    CreatureTagNode,
+    DamageTagNode,
+    DCTagNode,
+    DiceTagNode,
+    DocumentNode,
+    FeatTagNode,
     FilterTagNode,
+    HitTagNode,
+    ItalicTagNode,
+    ItemTagNode,
     LoaderTagNode,
-    TextSpan,
+    RaceTagNode,
+    RechargeTagNode,
+    SpellTagNode,
+    TagNode,
+    TextNode,
 )
 
 
@@ -217,7 +216,7 @@ class TagParser:
     def __init__(self):
         # Load grammar from file
         grammar_path = Path(__file__).parent / "tag_grammar.lark"
-        with open(grammar_path, "r") as f:
+        with open(grammar_path) as f:
             grammar = f.read()
 
         # Create lark parser
@@ -234,7 +233,7 @@ class TagParser:
         try:
             # Use regex-based fallback for complex cases
             return self._parse_with_regex_fallback(text)
-        except Exception as e:
+        except Exception:
             # If parsing fails, create a simple text node
             doc = DocumentNode()
             doc.add_child(TextNode(text))

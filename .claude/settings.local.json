@@ -21,7 +21,16 @@
       "Bash(uv run:*)",
       "Bash(git commit:*)",
       "Bash(uv add:*)",
-      "Bash(pytest:*)"
+      "Bash(pytest:*)",
+      "Bash(gemini:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)"
     ],
     "deny": []
   }

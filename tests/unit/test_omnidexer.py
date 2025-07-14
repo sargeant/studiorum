@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.core.loaders.omnidexer import IndexEntry, Omnidexer
 from src.core.loaders.json_loader import JsonDataLoader
+from src.core.loaders.omnidexer import IndexEntry, Omnidexer
 from src.core.loaders.source_manager import FileSystemSourceManager
 from src.core.models.content import ContentType
 

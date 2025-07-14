@@ -1,6 +1,5 @@
 """Configurable source manager that integrates with the new content source system."""
 
-import asyncio
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -125,7 +124,7 @@ class ConfigurableSourceManager(SourceManager):
 
         self._data_paths_cache = data_paths
 
-        logger.info(f"Discovered content files:")
+        logger.info("Discovered content files:")
         for content_type, paths in data_paths.items():
             logger.info(f"  {content_type.value}: {len(paths)} files")
 
@@ -370,8 +369,8 @@ class ConfigurableSourceManager(SourceManager):
     def _should_skip_file_at_discovery(self, file_path: Path) -> bool:
         """Check if file should be skipped during discovery phase."""
         filename = file_path.name.lower()
-        parent_dir = file_path.parent.name.lower()
-        file_path_str = str(file_path).lower()
+        file_path.parent.name.lower()
+        str(file_path).lower()
 
         # Skip non-JSON files
         if not filename.endswith(".json"):

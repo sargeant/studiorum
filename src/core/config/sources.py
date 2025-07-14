@@ -3,7 +3,7 @@
 import os
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 import yaml
 from pydantic import BaseModel, Field, field_validator
@@ -174,7 +174,7 @@ class ContentConfigManager:
             self.save_config()
         else:
             try:
-                with open(self.config_path, "r", encoding="utf-8") as f:
+                with open(self.config_path, encoding="utf-8") as f:
                     data = yaml.safe_load(f)
                 self._config = ContentConfiguration.model_validate(data)
             except Exception as e:

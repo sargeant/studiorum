@@ -1,9 +1,10 @@
 """Tag renderer and dispatcher for the new tag system."""
 
-from typing import Dict, List, Optional, Any, TYPE_CHECKING
-from .tag_ast import ASTNode, DocumentNode, TextNode, TagNode
-from .tag_handlers import TagHandler, get_default_handlers
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
 from .content_tracker import ContentTracker
+from .tag_ast import ASTNode, DocumentNode, TagNode, TextNode
+from .tag_handlers import TagHandler, get_default_handlers
 
 if TYPE_CHECKING:
     from ...loaders.omnidexer import Omnidexer
@@ -102,7 +103,7 @@ class TagRenderer:
                     handler.track_content(node, self.content_tracker)
                     # Render the tag
                     return handler.render(node, context)
-                except Exception as e:
+                except Exception:
                     # Fallback for handler errors
                     return self._fallback_render(node)
             else:

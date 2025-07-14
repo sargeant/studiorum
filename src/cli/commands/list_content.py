@@ -113,7 +113,7 @@ def list_content(
                     raise typer.Exit(1)
             else:
                 # Get all content
-                stats = omnidexer.get_statistics()
+                omnidexer.get_statistics()
                 content_items = []
                 for ct in ContentType:
                     content_items.extend(omnidexer.get_all_by_type(ct))

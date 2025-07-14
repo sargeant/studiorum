@@ -7,14 +7,14 @@ from typing import Any, Dict, List, Type
 from ..config.settings import get_logger
 from ..models.content import ContentType
 from ..models.fluff import (
-    BaseFluff,
-    CreatureFluff,
-    ItemFluff,
-    SpellFluff,
-    RaceFluff,
-    FeatFluff,
-    ClassFluff,
     BackgroundFluff,
+    BaseFluff,
+    ClassFluff,
+    CreatureFluff,
+    FeatFluff,
+    ItemFluff,
+    RaceFluff,
+    SpellFluff,
 )
 from .base import DataLoader
 
@@ -150,7 +150,6 @@ class FluffDataLoader(DataLoader[BaseFluff]):
         }
 
         # Try to extract entries
-        entries = []
         for entry_key in ["entries", "entry", "text", "description"]:
             if entry_key in item:
                 entries_data = item[entry_key]

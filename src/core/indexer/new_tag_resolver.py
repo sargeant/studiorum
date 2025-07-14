@@ -1,10 +1,11 @@
 """New tag resolver facade providing backward compatibility."""
 
-from typing import List, Dict, Any, Optional, Callable
-from .tag_parser import TagParser, TagParseError
-from .tag_renderer import TagRenderer, RendererContext
-from .tag_handlers import TagHandler
+from typing import Any, Callable, Dict, List
+
 from .content_tracker import ContentTracker
+from .tag_handlers import TagHandler
+from .tag_parser import TagParser
+from .tag_renderer import RendererContext, TagRenderer
 
 
 class NewTagResolverFacade:
@@ -33,7 +34,7 @@ class NewTagResolverFacade:
             # Render AST to output
             return self.renderer.render_document(document)
 
-        except Exception as e:
+        except Exception:
             # Fallback to original text on parse/render failure
             # In production, you might want to log this error
             return text

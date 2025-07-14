@@ -399,7 +399,7 @@ async def _compile_pdf(latex_path: Path):
     try:
         with Progress() as progress:
             compile_task = progress.add_task("[cyan]Running xelatex...", total=None)
-            result = subprocess.run(
+            subprocess.run(
                 [
                     "xelatex",
                     "-output-directory",
