@@ -8,6 +8,9 @@ on:
 jobs:
   update_release_draft:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # To create/update releases
+      pull-requests: write  # To update pull request labels and comments
     steps:
       - uses: release-drafter/release-drafter@v5
         env:
