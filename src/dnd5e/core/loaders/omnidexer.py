@@ -77,35 +77,36 @@ class Omnidexer:
         # Register default loaders
         self._register_default_loaders()
 
+    # New: Define content types for each loader type
+    _JSON_CONTENT_TYPES = (
+        ContentType.SPELL,
+        ContentType.CREATURE,
+        ContentType.ITEM,
+        ContentType.ADVENTURE,
+        ContentType.BOOK,
+        ContentType.FEAT,
+        ContentType.RACE,
+        ContentType.BACKGROUND,
+        ContentType.CLASS,
+    )
+
+    _FLUFF_CONTENT_TYPES = (
+        ContentType.SPELL_FLUFF,
+        ContentType.CREATURE_FLUFF,
+        ContentType.ITEM_FLUFF,
+    )
+
     def _register_default_loaders(self):
         """Register default data loaders for common content types."""
-        loaders = {
-            ContentType.SPELL: JsonDataLoader.create_for_type(ContentType.SPELL),
-            ContentType.CREATURE: JsonDataLoader.create_for_type(ContentType.CREATURE),
-            ContentType.ITEM: JsonDataLoader.create_for_type(ContentType.ITEM),
-            ContentType.ADVENTURE: JsonDataLoader.create_for_type(
-                ContentType.ADVENTURE
-            ),
-            ContentType.BOOK: JsonDataLoader.create_for_type(ContentType.BOOK),
-            ContentType.FEAT: JsonDataLoader.create_for_type(ContentType.FEAT),
-            ContentType.RACE: JsonDataLoader.create_for_type(ContentType.RACE),
-            ContentType.BACKGROUND: JsonDataLoader.create_for_type(
-                ContentType.BACKGROUND
-            ),
-            ContentType.CLASS: JsonDataLoader.create_for_type(ContentType.CLASS),
-            # Fluff loaders
-            ContentType.SPELL_FLUFF: FluffDataLoader.create_for_type(
-                ContentType.SPELL_FLUFF
-            ),
-            ContentType.CREATURE_FLUFF: FluffDataLoader.create_for_type(
-                ContentType.CREATURE_FLUFF
-            ),
-            ContentType.ITEM_FLUFF: FluffDataLoader.create_for_type(
-                ContentType.ITEM_FLUFF
-            ),
-        }
+        self._register_loaders_for_type(JsonDataLoader, self._JSON_CONTENT_TYPES)
+        self._register_loaders_for_type(FluffDataLoader, self._FLUFF_CONTENT_TYPES)
 
-        for content_type, loader in loaders.items():
+    def _register_loaders_for_type(
+        self, loader_cls: type[DataLoader], content_types: tuple[ContentType, ...]
+    ):
+        """Helper to register loaders for a given loader class and content types."""
+        for content_type in content_types:
+            loader = loader_cls.create_for_type(content_type)
             self.register_loader(content_type, loader)
 
     def register_loader(self, content_type: ContentType, loader: DataLoader):
