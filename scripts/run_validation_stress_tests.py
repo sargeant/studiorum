@@ -126,7 +126,7 @@ def main():
     total = len(results)
 
     print(f"\n{'='*60}")
-    print(f"📊 TEST SUMMARY")
+    print("📊 TEST SUMMARY")
     print(f"{'='*60}")
     print(f"Total time: {total_duration:.2f}s")
     print(f"Passed: {passed}/{total}")
@@ -139,7 +139,7 @@ def main():
         print(f"\n🎉 All {total} test suites passed!")
 
         # Run additional specific validation tests
-        print(f"\n🔍 Running specific validation checks...")
+        print("\n🔍 Running specific validation checks...")
 
         # Check for any validation warnings in recent CLI run
         cli_check_cmd = [

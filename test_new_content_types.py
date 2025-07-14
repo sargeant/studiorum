@@ -111,7 +111,7 @@ async def test_new_content_types():
     try:
         stats = omnidexer.get_statistics()
         print(f"Total indexed content: {stats.get('total_entries', 0)}")
-        print(f"Content by type:")
+        print("Content by type:")
 
         for content_type in [
             ContentType.BACKGROUND,

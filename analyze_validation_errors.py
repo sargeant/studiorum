@@ -171,7 +171,7 @@ def main():
         for pattern_type, items in result["patterns"].items():
             all_patterns[pattern_type].extend(items)
 
-    print(f"\nAnalysis complete!")
+    print("\nAnalysis complete!")
     print(f"Files processed: {len(json_files)}")
     print(f"Errors: {error_count}")
     print(f"Success: {len(json_files) - error_count}")

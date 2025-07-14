@@ -128,7 +128,7 @@ class LaTeXTemplateEngine:
 
         # Content-specific templates
         self._template_cache["spell"] = r"""
-\subsection{{{name}}} 
+\subsection{{{name}}}
 \textit{{{level_text}}}
 
 \textbf{{Casting Time:}} {casting_time} \\

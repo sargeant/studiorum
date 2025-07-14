@@ -76,12 +76,11 @@ ignore = [
     "F401", # unused imports (will clean up separately)
     "UP006", # dict/list instead of Dict/List (gradual migration)
     "UP007", # X | Y instead of Union[X, Y] (gradual migration)
-    "UP045", # X | None instead of Optional[X] (gradual migration)
+    #"UP045", # X | None instead of Optional[X] (gradual migration)
     "C401", # generator expression improvements
     "C414", # unnecessary list calls
     "C417", # unnecessary map usage
     "UP015", # unnecessary mode arguments
-# "I001", # import sorting (now enabled for standardization)
     "W291", # trailing whitespace
 ]
 
