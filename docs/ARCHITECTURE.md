@@ -8,7 +8,7 @@ The 5e2pdf project follows a layered architecture with clear separation of conce
 
 ## Architectural Layers
 
-### 1. CLI Layer (`src/cli/`)
+### 1. CLI Layer (`dnd5e/cli/`)
 - **Purpose**: Command-line interface and user interaction
 - **Allowed Dependencies**: `core`, `renderers`, `processors`
 - **Key Components**:
@@ -19,7 +19,7 @@ The 5e2pdf project follows a layered architecture with clear separation of conce
   - Orchestrating business logic
   - Output formatting and display
 
-### 2. Renderers Layer (`src/renderers/`)
+### 2. Renderers Layer (`dnd5e/renderers/`)
 - **Purpose**: Output generation (LaTeX, PDF, future formats)
 - **Allowed Dependencies**: `core`
 - **Key Components**:
@@ -31,7 +31,7 @@ The 5e2pdf project follows a layered architecture with clear separation of conce
   - Template management
   - Format-specific logic
 
-### 3. Processors Layer (`src/processors/`)
+### 3. Processors Layer (`dnd5e/processors/`)
 - **Purpose**: Data transformation and processing
 - **Allowed Dependencies**: `core`
 - **Key Components**:
@@ -42,7 +42,7 @@ The 5e2pdf project follows a layered architecture with clear separation of conce
   - Content transformation
   - Business rule application
 
-### 4. Core Layer (`src/core/`)
+### 4. Core Layer (`dnd5e/core/`)
 - **Purpose**: Core business logic and data models
 - **Allowed Dependencies**: None (foundational layer)
 - **Key Components**:
@@ -62,7 +62,7 @@ The project uses a dependency injection system to reduce tight coupling and impr
 
 ### Key Interfaces
 
-Located in `src/core/interfaces.py`:
+Located in `dnd5e/core/interfaces.py`:
 
 - `ContentLoader` - Protocol for content loading functionality
 - `ContentTypeResolver` - Protocol for resolving content types
@@ -74,7 +74,7 @@ Located in `src/core/interfaces.py`:
 The `ServiceLocator` class provides a centralized registry for services:
 
 ```python
-from src.core.interfaces import get_service_locator
+from dnd5e.core.interfaces import get_service_locator
 
 locator = get_service_locator()
 indexer = locator.get(ContentIndexer)
@@ -82,7 +82,7 @@ indexer = locator.get(ContentIndexer)
 
 ### Dependency Container
 
-The `DependencyContainer` class in `src/core/dependency_injection.py` provides:
+The `DependencyContainer` class in `dnd5e/core/dependency_injection.py` provides:
 
 - Service registration and resolution
 - Singleton pattern support
@@ -92,7 +92,7 @@ The `DependencyContainer` class in `src/core/dependency_injection.py` provides:
 ### Usage Example
 
 ```python
-from src.core.dependency_injection import get_dependency_container, inject
+from dnd5e.core.dependency_injection import get_dependency_container, inject
 
 # Register a service
 container = get_dependency_container()
@@ -109,10 +109,10 @@ def process_content(content, indexer, resolver):
 
 ### Registry Pattern
 
-The `ContentTypeRegistry` in `src/core/interfaces.py` breaks circular dependencies between content models and type resolution:
+The `ContentTypeRegistry` in `dnd5e/core/interfaces.py` breaks circular dependencies between content models and type resolution:
 
 ```python
-from src.core.interfaces import get_content_type_registry
+from dnd5e.core.interfaces import get_content_type_registry
 
 registry = get_content_type_registry()
 registry.register(Adventure, ContentType.ADVENTURE)
@@ -121,10 +121,10 @@ content_type = registry.get_type(content_instance)
 
 ### Factory Pattern
 
-The `ContentFactory` in `src/core/loaders/content_factory.py` eliminates the need for direct model imports in loaders:
+The `ContentFactory` in `dnd5e/core/loaders/content_factory.py` eliminates the need for direct model imports in loaders:
 
 ```python
-from src.core.loaders.content_factory import get_content_factory
+from dnd5e.core.loaders.content_factory import get_content_factory
 
 factory = get_content_factory()
 content = factory.create_content(data, ContentType.SPELL)
@@ -143,7 +143,7 @@ The project includes a circular import detector (`scripts/check_circular_imports
 
 Usage:
 ```bash
-python scripts/check_circular_imports.py src/ --fail-on-cycles
+python scripts/check_circular_imports.py src/dnd5e/ --fail-on-cycles
 ```
 
 ### Architectural Boundary Checking
@@ -157,7 +157,7 @@ The architectural boundary checker (`scripts/check_architectural_boundaries.py`)
 
 Usage:
 ```bash
-python scripts/check_architectural_boundaries.py src/ --fail-on-violations
+python scripts/check_architectural_boundaries.py src/dnd5e/ --fail-on-violations
 ```
 
 ## Best Practices
@@ -174,29 +174,29 @@ python scripts/check_architectural_boundaries.py src/ --fail-on-violations
 
 ```python
 # Good - using interfaces
-from src.core.interfaces import ContentIndexer, get_service_locator
+from dnd5e.core.interfaces import ContentIndexer, get_service_locator
 
 # Good - factory pattern
-from src.core.loaders.content_factory import get_content_factory
+from dnd5e.core.loaders.content_factory import get_content_factory
 
 # Good - dependency injection
-from src.core.dependency_injection import inject
+from dnd5e.core.dependency_injection import inject
 ```
 
 ### Patterns to Avoid
 
 ```python
 # Bad - direct imports of all model classes
-from src.core.models.adventures import Adventure
-from src.core.models.spells import Spell
+from dnd5e.core.models.adventures import Adventure
+from dnd5e.core.models.spells import Spell
 # ... (importing many specific classes)
 
 # Bad - importing from higher layers
-from src.cli.commands.convert import ConvertCommand  # in core layer
+from dnd5e.cli.commands.convert import ConvertCommand  # in core layer
 
 # Bad - creating circular dependencies
-from src.core.models.content import ContentType
-from src.core.models.adventures import Adventure  # which imports content
+from dnd5e.core.models.content import ContentType
+from dnd5e.core.models.adventures import Adventure  # which imports content
 ```
 
 ### Testing Patterns
@@ -210,7 +210,7 @@ from src.core.models.adventures import Adventure  # which imports content
 
 ### Service Configuration
 
-Services are automatically configured in `src/core/dependency_injection.py`:
+Services are automatically configured in `dnd5e/core/dependency_injection.py`:
 
 ```python
 def configure_services():
@@ -224,8 +224,8 @@ def configure_services():
 
 ### Adding New Services
 
-1. Define an interface in `src/core/interfaces.py`
-2. Create a factory in `src/core/dependency_injection.py`
+1. Define an interface in `dnd5e/core/interfaces.py`
+2. Create a factory in `dnd5e/core/dependency_injection.py`
 3. Register the service in `configure_services()`
 4. Use dependency injection in consuming code
 
@@ -235,8 +235,8 @@ def configure_services():
 
 **Before:**
 ```python
-from src.core.loaders.omnidexer import Omnidexer
-from src.core.indexer.tag_resolver import TagResolver
+from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.indexer.tag_resolver import TagResolver
 
 class MyClass:
     def __init__(self):
@@ -246,8 +246,8 @@ class MyClass:
 
 **After:**
 ```python
-from src.core.interfaces import ContentIndexer, TagResolver
-from src.core.dependency_injection import get_dependency_container
+from dnd5e.core.interfaces import ContentIndexer, TagResolver
+from dnd5e.core.dependency_injection import get_dependency_container
 
 class MyClass:
     def __init__(self, indexer: ContentIndexer = None, resolver: TagResolver = None):
@@ -260,13 +260,13 @@ class MyClass:
 
 **Before:**
 ```python
-from src.core.models.content import ContentType
+from dnd5e.core.models.content import ContentType
 content_type = ContentType.from_content(content)
 ```
 
 **After:**
 ```python
-from src.core.content_type_resolver import get_content_type_resolver
+from dnd5e.core.content_type_resolver import get_content_type_resolver
 resolver = get_content_type_resolver()
 content_type = resolver.resolve_type(content)
 ```

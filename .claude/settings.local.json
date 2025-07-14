@@ -36,7 +36,8 @@
       "Bash(gh pr close:*)",
       "Bash(gh issue edit:*)",
       "Bash(touch:*)",
-      "Bash(gh issue close:*)"
+      "Bash(gh issue close:*)",
+      "Bash(gh label:*)"
     ],
     "deny": []
   }

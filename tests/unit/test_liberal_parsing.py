@@ -10,12 +10,12 @@ from pathlib import Path
 
 import pytest
 
-from src.core.loaders.fluff_loader import FluffDataLoader
-from src.core.loaders.json_loader import JsonDataLoader
-from src.core.models.content import ContentType
-from src.core.models.creatures import Creature
-from src.core.models.items import Item
-from src.core.models.spells import Spell
+from dnd5e.core.loaders.fluff_loader import FluffDataLoader
+from dnd5e.core.loaders.json_loader import JsonDataLoader
+from dnd5e.core.models.content import ContentType
+from dnd5e.core.models.creatures import Creature
+from dnd5e.core.models.items import Item
+from dnd5e.core.models.spells import Spell
 
 
 class TestLiberalParsing:
@@ -351,7 +351,7 @@ class TestLiberalParsing:
             ],
         }
 
-        from src.core.models.creatures import Ability
+        from dnd5e.core.models.creatures import Ability
 
         ability = Ability.model_validate(complex_ability_data)
 
@@ -426,7 +426,7 @@ class TestLiberalParsing:
             "tags": None,
         }
 
-        from src.core.models.creatures import CreatureType
+        from dnd5e.core.models.creatures import CreatureType
 
         creature_type = CreatureType.model_validate(choice_type_data)
 
@@ -476,7 +476,7 @@ class TestLiberalParsing:
             "special": "5 + five times your level (the homunculus has a number of Hit Dice equal to your level)"
         }
 
-        from src.core.models.creatures import HitPoints
+        from dnd5e.core.models.creatures import HitPoints
 
         hp = HitPoints.model_validate(special_hp_data)
         assert "5 + five times your level" in str(hp)
@@ -484,7 +484,7 @@ class TestLiberalParsing:
         # Test special AC format
         special_ac_data = {"special": "11 + the level of the spell (natural armor)"}
 
-        from src.core.models.creatures import ArmorClass
+        from dnd5e.core.models.creatures import ArmorClass
 
         ac = ArmorClass.model_validate(special_ac_data)
         assert "11 + the level of the spell" in str(ac)

@@ -10,11 +10,11 @@ from rich import print as rprint
 from rich.console import Console
 from rich.progress import Progress
 
-from src.core.config.settings import get_settings
-from src.core.indexer.tag_resolver import TagResolver
-from src.core.loaders.omnidexer import Omnidexer
-from src.renderers.base import RenderContext
-from src.renderers.latex import LaTeXDocumentRenderer
+from dnd5e.core.config.settings import get_settings
+from dnd5e.core.indexer.tag_resolver import TagResolver
+from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.renderers.base import RenderContext
+from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
 # Create the main Typer app
 app = typer.Typer(
@@ -80,12 +80,12 @@ async def get_tag_resolver() -> TagResolver:
 
 # Import and mount CLI command modules
 try:
-    from src.cli.commands.convert import app as convert_app
-    from src.cli.commands.info import app as info_app
-    from src.cli.commands.list_content import app as list_app
-    from src.cli.commands.setup import app as setup_app
-    from src.cli.commands.sources import app as sources_app
-    from src.cli.commands.stats import app as stats_app
+    from dnd5e.cli.commands.convert import app as convert_app
+    from dnd5e.cli.commands.info import app as info_app
+    from dnd5e.cli.commands.list_content import app as list_app
+    from dnd5e.cli.commands.setup import app as setup_app
+    from dnd5e.cli.commands.sources import app as sources_app
+    from dnd5e.cli.commands.stats import app as stats_app
 
     # Mount sub-applications
     app.add_typer(convert_app, name="convert")
@@ -196,15 +196,15 @@ def quick_convert(
 
                         # Try to create appropriate model
                         if key in ["spell", "spells"]:
-                            from src.core.models.spells import Spell
+                            from dnd5e.core.models.spells import Spell
 
                             content_items.append(Spell.model_validate(item_data))
                         elif key in ["monster", "monsters", "creature", "creatures"]:
-                            from src.core.models.creatures import Creature
+                            from dnd5e.core.models.creatures import Creature
 
                             content_items.append(Creature.model_validate(item_data))
                         elif key in ["item", "items"]:
-                            from src.core.models.items import Item
+                            from dnd5e.core.models.items import Item
 
                             content_items.append(Item.model_validate(item_data))
 

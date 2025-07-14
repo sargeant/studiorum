@@ -10,8 +10,8 @@ from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table
 
-from src.core.loaders.omnidexer import Omnidexer
-from src.core.models.content import ContentType
+from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.models.content import ContentType
 
 app = typer.Typer(help="List available D&D content")
 console = Console()
@@ -223,9 +223,9 @@ def _format_file_size(size_bytes: int) -> str:
 
 def _get_content_details(item) -> str:
     """Get brief details about a content item."""
-    from src.core.models.creatures import Creature
-    from src.core.models.items import Item
-    from src.core.models.spells import Spell
+    from dnd5e.core.models.creatures import Creature
+    from dnd5e.core.models.items import Item
+    from dnd5e.core.models.spells import Spell
 
     if isinstance(item, Spell):
         return f"Level {item.level} {item.school}"

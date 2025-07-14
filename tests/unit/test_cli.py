@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from src.cli.main import app
+from dnd5e.cli.main import app
 
 
 class TestCLIMain:
@@ -113,8 +113,8 @@ class TestCLIIntegration:
         output_file = tmp_path / "output.tex"
 
         # Mock the omnidexer and dependencies
-        with patch("src.cli.main.get_omnidexer") as mock_omnidexer, patch(
-            "src.cli.main.get_tag_resolver"
+        with patch("dnd5e.cli.main.get_omnidexer") as mock_omnidexer, patch(
+            "dnd5e.cli.main.get_tag_resolver"
         ) as mock_tag_resolver:
             mock_omni = Mock()
             mock_tag = Mock()
@@ -178,7 +178,7 @@ class TestCLIErrorHandling:
 
     def test_info_content_not_found(self):
         """Test info content command with non-existent content."""
-        with patch("src.cli.main.get_omnidexer") as mock_omnidexer:
+        with patch("dnd5e.cli.main.get_omnidexer") as mock_omnidexer:
             mock_omni = Mock()
             mock_omni.find.return_value = None
             mock_omnidexer.return_value = mock_omni
@@ -193,14 +193,14 @@ class TestCacheSystem:
 
     def test_cache_creation(self):
         """Test cache manager creation."""
-        from src.core.cache import CacheManager
+        from dnd5e.core.cache import CacheManager
 
         cache = CacheManager()
         assert cache.cache_dir.exists()
 
     def test_cache_set_get(self):
         """Test basic cache operations."""
-        from src.core.cache import CacheManager
+        from dnd5e.core.cache import CacheManager
 
         cache = CacheManager()
 
@@ -215,7 +215,7 @@ class TestCacheSystem:
 
     def test_cache_invalidation(self):
         """Test cache invalidation."""
-        from src.core.cache import CacheManager
+        from dnd5e.core.cache import CacheManager
 
         cache = CacheManager()
 
@@ -227,7 +227,7 @@ class TestCacheSystem:
 
     def test_cache_clear(self):
         """Test cache clearing."""
-        from src.core.cache import CacheManager
+        from dnd5e.core.cache import CacheManager
 
         cache = CacheManager()
 
@@ -241,7 +241,7 @@ class TestCacheSystem:
 
     def test_cache_stats(self):
         """Test cache statistics."""
-        from src.core.cache import CacheManager
+        from dnd5e.core.cache import CacheManager
 
         cache = CacheManager()
         cache.set("test_key", "test_value")
@@ -253,7 +253,7 @@ class TestCacheSystem:
 
     def test_cached_decorator(self):
         """Test cached function decorator."""
-        from src.core.cache import cached
+        from dnd5e.core.cache import cached
 
         call_count = 0
 

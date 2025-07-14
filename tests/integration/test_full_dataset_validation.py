@@ -13,11 +13,11 @@ from typing import Dict, List
 
 import pytest
 
-from src.core.config.settings import get_logger
-from src.core.loaders.json_loader import JsonDataLoader
-from src.core.loaders.omnidexer import Omnidexer
-from src.core.loaders.source_manager import FileSystemSourceManager
-from src.core.models.content import ContentType
+from dnd5e.core.config.settings import get_logger
+from dnd5e.core.loaders.json_loader import JsonDataLoader
+from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.loaders.source_manager import FileSystemSourceManager
+from dnd5e.core.models.content import ContentType
 
 
 class ValidationReport:
@@ -344,15 +344,15 @@ class TestFullDatasetValidation:
         # Adjust expectations based on available data
         # In test environments, we may only have minimal sample data
         min_expected_items = 1 if total_items < 100 else 1000
-        assert total_items >= min_expected_items, (
-            f"Expected to load at least {min_expected_items} items, got {total_items} items"
-        )
-        assert len(validation_warnings) <= warning_threshold, (
-            f"Too many validation warnings: {len(validation_warnings)} > {warning_threshold}"
-        )
-        assert sum(file_skips.values()) <= skip_threshold, (
-            f"Too many files skipped: {sum(file_skips.values())} > {skip_threshold}"
-        )
+        assert (
+            total_items >= min_expected_items
+        ), f"Expected to load at least {min_expected_items} items, got {total_items} items"
+        assert (
+            len(validation_warnings) <= warning_threshold
+        ), f"Too many validation warnings: {len(validation_warnings)} > {warning_threshold}"
+        assert (
+            sum(file_skips.values()) <= skip_threshold
+        ), f"Too many files skipped: {sum(file_skips.values())} > {skip_threshold}"
 
         # Test omnidexer functionality
         statistics = omnidexer.get_statistics()
@@ -382,9 +382,9 @@ class TestFullDatasetValidation:
                 loads.append(len(all_spells))
 
             # Results should be consistent
-            assert all(count == loads[0] for count in loads), (
-                f"Inconsistent spell loading results: {loads}"
-            )
+            assert all(
+                count == loads[0] for count in loads
+            ), f"Inconsistent spell loading results: {loads}"
 
         print("✅ Data consistency test passed")
 
@@ -430,15 +430,15 @@ class TestFullDatasetValidation:
             max_memory_increase = 1000  # 1GB for large datasets
             max_memory_per_item = 0.1  # 100KB per item for large datasets
 
-        assert memory_increase < max_memory_increase, (
-            f"Memory usage too high: {memory_increase:.1f}MB > {max_memory_increase}MB"
-        )
+        assert (
+            memory_increase < max_memory_increase
+        ), f"Memory usage too high: {memory_increase:.1f}MB > {max_memory_increase}MB"
 
         # Only check memory per item if we have a reasonable number of items
         if total_items > 0:
-            assert memory_per_item < max_memory_per_item, (
-                f"Memory per item too high: {memory_per_item:.4f}MB > {max_memory_per_item}MB"
-            )
+            assert (
+                memory_per_item < max_memory_per_item
+            ), f"Memory per item too high: {memory_per_item:.4f}MB > {max_memory_per_item}MB"
 
     @pytest.mark.asyncio
     @pytest.mark.slow
@@ -469,9 +469,9 @@ class TestFullDatasetValidation:
 
         # All loads should succeed and return same result
         assert all(isinstance(result, int) for result in results), "Some loads failed"
-        assert all(result == results[0] for result in results), (
-            f"Inconsistent concurrent results: {results}"
-        )
+        assert all(
+            result == results[0] for result in results
+        ), f"Inconsistent concurrent results: {results}"
 
         print(f"✅ Concurrent loading test passed: {results[0]} items per load")
 

@@ -6,11 +6,11 @@ from typing import Any, Dict
 
 import pytest
 
-from src.core.indexer.tag_resolver import TagResolver
-from src.core.loaders.omnidexer import Omnidexer
-from src.core.loaders.source_manager import FileSystemSourceManager
-from src.core.models.creatures import Creature
-from src.core.models.spells import Spell
+from dnd5e.core.indexer.tag_resolver import TagResolver
+from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.loaders.source_manager import FileSystemSourceManager
+from dnd5e.core.models.creatures import Creature
+from dnd5e.core.models.spells import Spell
 
 
 @pytest.fixture

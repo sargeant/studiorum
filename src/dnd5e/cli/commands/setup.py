@@ -9,13 +9,13 @@ from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
-from src.core.config.sources import (
+from dnd5e.core.config.sources import (
     ContentSource,
     SourceType,
     get_config_manager,
     get_content_config,
 )
-from src.core.sources import ContentSourceManager
+from dnd5e.core.sources import ContentSourceManager
 
 console = Console()
 app = typer.Typer(help="Setup and configuration wizard")

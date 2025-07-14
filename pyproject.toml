@@ -48,10 +48,10 @@ xml = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["src/dnd5e"]
 
 [project.scripts]
-5e2pdf = "src.cli.main:app"
+5e2pdf = "dnd5e.cli.main:app"
 
 [tool.ruff]
 line-length = 88
@@ -89,7 +89,7 @@ line-length = 88
 target-version = ["py38"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["src"]
+known-first-party = ["dnd5e"]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 force-single-line = false
 combine-as-imports = true
@@ -107,7 +107,7 @@ addopts = [
     "-ra",
     "--strict-markers",
     "--strict-config",
-    "--cov=src",
+    "--cov=dnd5e",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",

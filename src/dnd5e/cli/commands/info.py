@@ -9,8 +9,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress
 
-from src.core.loaders.omnidexer import Omnidexer
-from src.core.models.content import ContentType
+from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.models.content import ContentType
 
 app = typer.Typer(help="Show detailed information about content")
 console = Console()
@@ -149,9 +149,9 @@ def show_file_info(
 
 def _display_content_details(item):
     """Display detailed information about a content item."""
-    from src.core.models.creatures import Creature
-    from src.core.models.items import Item
-    from src.core.models.spells import Spell
+    from dnd5e.core.models.creatures import Creature
+    from dnd5e.core.models.items import Item
+    from dnd5e.core.models.spells import Spell
 
     content_type = ContentType.from_content(item)
 

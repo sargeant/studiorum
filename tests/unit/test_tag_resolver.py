@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.core.indexer.tag_resolver import TagMatch, TagResolver
+from dnd5e.core.indexer.tag_resolver import TagMatch, TagResolver
 
 
 class TestTagMatch:

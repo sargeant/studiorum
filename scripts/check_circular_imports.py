@@ -62,8 +62,8 @@ class ImportAnalyzer(ast.NodeVisitor):
     def visit_Import(self, node: ast.Import) -> None:
         """Visit import statements."""
         for alias in node.names:
-            # Only track imports within the project (starting with 'src.')
-            if alias.name.startswith("src."):
+            # Only track imports within the project (starting with 'dnd5e.')
+            if alias.name.startswith("dnd5e."):
                 self.imports.append(
                     ImportInfo(
                         module=alias.name, line_number=node.lineno, is_from_import=False
@@ -72,7 +72,7 @@ class ImportAnalyzer(ast.NodeVisitor):
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         """Visit from...import statements."""
-        if node.module and node.module.startswith("src."):
+        if node.module and node.module.startswith("dnd5e."):
             # Handle relative imports
             if node.module.startswith(".."):
                 # Convert relative import to absolute

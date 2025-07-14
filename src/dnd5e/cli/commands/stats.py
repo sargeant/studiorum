@@ -9,8 +9,8 @@ from rich.panel import Panel
 from rich.progress import Progress
 from rich.table import Table
 
-from src.core.loaders.omnidexer import Omnidexer
-from src.core.models.content import ContentType
+from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.models.content import ContentType
 
 app = typer.Typer(help="Show content statistics and analysis")
 console = Console()
@@ -233,7 +233,7 @@ def show_source_stats():
 
 def _analyze_spells(spells):
     """Analyze spell-specific statistics."""
-    from src.core.models.spells import Spell
+    from dnd5e.core.models.spells import Spell
 
     # Level distribution
     level_counts = {}
@@ -272,7 +272,7 @@ def _analyze_spells(spells):
 
 def _analyze_creatures(creatures):
     """Analyze creature-specific statistics."""
-    from src.core.models.creatures import Creature
+    from dnd5e.core.models.creatures import Creature
 
     # CR distribution
     cr_counts = {}
@@ -339,7 +339,7 @@ def _analyze_creatures(creatures):
 
 def _analyze_items(items):
     """Analyze item-specific statistics."""
-    from src.core.models.items import Item
+    from dnd5e.core.models.items import Item
 
     # Type and rarity distribution
     type_counts = {}
