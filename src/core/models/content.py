@@ -36,48 +36,11 @@ class ContentType(str, Enum):
         Raises:
             ValueError: If content type cannot be determined
         """
-        from ..models.adventures import Adventure
-        from ..models.backgrounds import Background
-        from ..models.books import Book
-        from ..models.classes import Class
-        from ..models.creatures import Creature
-        from ..models.feats import Feat
-        from ..models.items import Item
-        from ..models.races import Race
-        from ..models.spells import Spell
+        # Use the registry-based resolver to avoid circular imports
+        from ..content_type_resolver import get_content_type_resolver
 
-        if isinstance(content, Spell):
-            return cls.SPELL
-        elif isinstance(content, Creature):
-            return cls.CREATURE
-        elif isinstance(content, Item):
-            return cls.ITEM
-        elif isinstance(content, Adventure):
-            return cls.ADVENTURE
-        elif isinstance(content, Book):
-            return cls.BOOK
-        elif isinstance(content, Feat):
-            return cls.FEAT
-        elif isinstance(content, Race):
-            return cls.RACE
-        elif isinstance(content, Background):
-            return cls.BACKGROUND
-        elif isinstance(content, Class):
-            return cls.CLASS
-        else:
-            # Try to infer from class name
-            class_name = content.__class__.__name__.lower()
-            for content_type in cls:
-                if content_type.value in class_name:
-                    return content_type
-
-            # If it's the base BaseContent class, return a default
-            if content.__class__.__name__ == "BaseContent":
-                return cls.SUPPLEMENT  # Default fallback for unknown content
-
-            raise ValueError(
-                f"Cannot determine content type for {content.__class__.__name__}"
-            )
+        resolver = get_content_type_resolver()
+        return resolver.resolve_type(content)
 
 
 class Source(BaseModel):

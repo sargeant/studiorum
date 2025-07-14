@@ -42,7 +42,7 @@ class TestLiberalParsing:
             json.dump(foundry_data, f)
             f.flush()
 
-            spell_loader = JsonDataLoader(Spell, ContentType.SPELL)
+            spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
             spells = await spell_loader.load(Path(f.name))
 
             # Should skip Foundry file and return empty list
@@ -78,7 +78,7 @@ class TestLiberalParsing:
             json.dump(template_data, f)
             f.flush()
 
-            creature_loader = JsonDataLoader(Creature, ContentType.CREATURE)
+            creature_loader = JsonDataLoader.create_for_type(ContentType.CREATURE)
             creatures = await creature_loader.load(Path(f.name))
 
             # Should skip template file and return empty list
@@ -138,7 +138,7 @@ class TestLiberalParsing:
             json.dump(copy_template_data, f)
             f.flush()
 
-            creature_loader = JsonDataLoader(Creature, ContentType.CREATURE)
+            creature_loader = JsonDataLoader.create_for_type(ContentType.CREATURE)
             creatures = await creature_loader.load(Path(f.name))
 
             # Should only load the valid creature, skip copy templates
@@ -232,7 +232,7 @@ class TestLiberalParsing:
             json.dump(creature_data, f)
             f.flush()
 
-            creature_loader = JsonDataLoader(Creature, ContentType.CREATURE)
+            creature_loader = JsonDataLoader.create_for_type(ContentType.CREATURE)
             creatures = await creature_loader.load(Path(f.name))
 
             # Should load creature with default alignment
@@ -661,7 +661,7 @@ class TestLiberalParsing:
             json.dump(extremely_complex_data, f)
             f.flush()
 
-            spell_loader = JsonDataLoader(Spell, ContentType.SPELL)
+            spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
             spells = await spell_loader.load(Path(f.name))
 
             # Should successfully parse the ultra-complex spell

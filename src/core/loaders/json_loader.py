@@ -2,55 +2,32 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ValidationError
 
 from ..config.settings import get_logger
-
-# Import all specific content models
-from ..models.adventures import Adventure
-from ..models.backgrounds import Background
-from ..models.books import Book
-from ..models.classes import Class
-from ..models.content import BaseContent, ContentType  # Added BaseContent
-from ..models.creatures import Creature
-from ..models.feats import Feat
-from ..models.fluff import CreatureFluff, ItemFluff, SpellFluff
-from ..models.items import Item
-from ..models.races import Race
-from ..models.spells import Spell
+from ..models.content import BaseContent, ContentType
 from .base import DataLoader
+from .content_factory import ContentFactory, get_content_factory
 
 logger = get_logger(__name__)
 
 
-# Mapping of ContentType to its corresponding Pydantic model class
-_model_map: Dict[ContentType, Type[BaseModel]] = {
-    ContentType.ADVENTURE: Adventure,
-    ContentType.BOOK: Book,
-    ContentType.SPELL: Spell,
-    ContentType.CREATURE: Creature,
-    ContentType.ITEM: Item,
-    ContentType.CLASS: Class,
-    ContentType.BACKGROUND: Background,
-    ContentType.FEAT: Feat,
-    ContentType.RACE: Race,
-    ContentType.SPELL_FLUFF: SpellFluff,
-    ContentType.CREATURE_FLUFF: CreatureFluff,
-    ContentType.ITEM_FLUFF: ItemFluff,
-    # Add other content types as needed
-}
+# Content factory for creating content instances
+# This removes the need for direct model imports
 
 
-class JsonDataLoader(DataLoader[BaseContent]):  # Changed from T to BaseContent
-    """Loads and validates JSON data using Pydantic models."""
+class JsonDataLoader(DataLoader[BaseContent]):
+    """Loads and validates JSON data using Pydantic models with dependency injection."""
 
     def __init__(
-        self, model_class: Type[BaseContent], content_type: ContentType
-    ):  # Changed from T to BaseContent
-        self._model_class = model_class
+        self,
+        content_type: ContentType,
+        content_factory: Optional[ContentFactory] = None,
+    ):
         self._content_type = content_type
+        self._content_factory = content_factory or get_content_factory()
 
     async def load(
         self, path: Path
@@ -107,7 +84,9 @@ class JsonDataLoader(DataLoader[BaseContent]):  # Changed from T to BaseContent
                     # Add missing required fields with reasonable defaults
                     item = self._add_missing_required_fields(item)
 
-                    validated_item = self._model_class.model_validate(item)
+                    validated_item = self._content_factory.create_content(
+                        item, self._content_type
+                    )
                     validated_content.append(validated_item)
                 except ValidationError as e:
                     logger.warning(
@@ -128,8 +107,13 @@ class JsonDataLoader(DataLoader[BaseContent]):  # Changed from T to BaseContent
     def get_content_type(self) -> ContentType:
         return self._content_type
 
-    def get_model_class(self) -> Type[BaseContent]:  # Changed from T to BaseContent
-        return self._model_class
+    def get_supported_types(self) -> List[ContentType]:
+        """Get list of supported content types."""
+        return self._content_factory.get_supported_types()
+
+    def get_model_class(self) -> type[BaseContent]:
+        """Return the base content class for backward compatibility."""
+        return BaseContent
 
     def _extract_content(
         self, data: Dict[str, Any], path: Path
@@ -599,7 +583,4 @@ class JsonDataLoader(DataLoader[BaseContent]):  # Changed from T to BaseContent
     @classmethod
     def create_for_type(cls, content_type: ContentType) -> "JsonDataLoader":
         """Create a JsonDataLoader instance for a given content type."""
-        model_class = _model_map.get(content_type)
-        if not model_class:
-            raise ValueError(f"No model class defined for content type: {content_type}")
-        return JsonDataLoader(model_class, content_type)
+        return JsonDataLoader(content_type)
