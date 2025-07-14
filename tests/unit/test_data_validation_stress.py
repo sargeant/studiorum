@@ -377,9 +377,9 @@ class TestDataValidationStress:
         print(f"✅ File format detection stats: {format_detection_stats}")
 
         # At least some files should be processed normally
-        assert (
-            format_detection_stats["processed_normally"] > 0
-        ), "No files were processed normally - format detection may be too aggressive"
+        assert format_detection_stats["processed_normally"] > 0, (
+            "No files were processed normally - format detection may be too aggressive"
+        )
 
     def test_edge_case_data_structures(self):
         """Test validation of edge case data structures."""
