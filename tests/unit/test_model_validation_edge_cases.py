@@ -4,7 +4,6 @@ This module tests specific edge cases and complex data structures
 that might cause validation issues.
 """
 
-
 from src.core.models.creatures import (
     Ability,
     ArmorClass,
@@ -244,9 +243,9 @@ class TestModelValidationEdgeCases:
             creature = Creature.model_validate(creature_data)
 
             alignment_text = creature._get_alignment_text()
-            assert (
-                alignment_text
-            ), f"Failed to generate alignment text for test case {i}"
+            assert alignment_text, (
+                f"Failed to generate alignment text for test case {i}"
+            )
 
         print(f"✅ {len(alignment_test_cases)} creature alignment variations validated")
 
@@ -269,9 +268,9 @@ class TestModelValidationEdgeCases:
             hp = HitPoints.model_validate(hp_data)
             hp_str = str(hp)
             assert hp_str, f"Failed to generate HP string for test case {i}"
-            assert (
-                hp_str != "Unknown"
-            ), f"HP string defaulted to Unknown for test case {i}"
+            assert hp_str != "Unknown", (
+                f"HP string defaulted to Unknown for test case {i}"
+            )
 
         print(f"✅ {len(test_cases)} creature HP variations validated")
 
@@ -294,9 +293,9 @@ class TestModelValidationEdgeCases:
             ac = ArmorClass.model_validate(ac_data)
             ac_str = str(ac)
             assert ac_str, f"Failed to generate AC string for test case {i}"
-            assert (
-                ac_str != "Unknown"
-            ), f"AC string defaulted to Unknown for test case {i}"
+            assert ac_str != "Unknown", (
+                f"AC string defaulted to Unknown for test case {i}"
+            )
 
         print(f"✅ {len(test_cases)} creature AC variations validated")
 
@@ -342,9 +341,9 @@ class TestModelValidationEdgeCases:
             assert ability.name == ability_data["name"]
 
             description = ability.get_description_text()
-            assert (
-                description
-            ), f"Failed to extract description for ability test case {i}"
+            assert description, (
+                f"Failed to extract description for ability test case {i}"
+            )
 
         print(f"✅ {len(test_cases)} creature ability variations validated")
 
@@ -416,9 +415,9 @@ class TestModelValidationEdgeCases:
 
             if item.entries:
                 description = item.get_description_text()
-                assert (
-                    description
-                ), f"Failed to extract description for item test case {i}"
+                assert description, (
+                    f"Failed to extract description for item test case {i}"
+                )
 
         print(f"✅ {len(test_cases)} item entry variations validated")
 
@@ -653,8 +652,8 @@ class TestModelValidationEdgeCases:
 
             cr_text = creature.get_cr_text()
             assert cr_text, f"Failed to generate CR text for test case {i}"
-            assert (
-                cr_text != "Unknown"
-            ), f"CR text defaulted to Unknown for test case {i}"
+            assert cr_text != "Unknown", (
+                f"CR text defaulted to Unknown for test case {i}"
+            )
 
         print(f"✅ {len(test_cases)} challenge rating format variations validated")

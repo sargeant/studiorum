@@ -112,14 +112,12 @@ class TestLaTeXTemplateEngine:
         """Test template with conditional blocks."""
         engine = LaTeXTemplateEngine()
 
-        engine._template_cache["conditional"] = (
-            """
+        engine._template_cache["conditional"] = """
 Name: {name}
 {% if age %}
 Age: {age}
 {% endif %}
 """.strip()
-        )
 
         # With age
         result1 = engine.render_template("conditional", {"name": "Alice", "age": 25})

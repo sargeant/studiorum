@@ -212,9 +212,9 @@ def _display_creature_details(creature):
 [cyan]Size:[/cyan] {size}
 [cyan]Type:[/cyan] {creature.type}
 [cyan]Challenge Rating:[/cyan] {cr}
-[cyan]Armor Class:[/cyan] {creature.ac[0] if creature.ac else 'Unknown'}
-[cyan]Hit Points:[/cyan] {creature.hp if creature.hp else 'Unknown'}
-[cyan]Speed:[/cyan] {creature.speed if creature.speed else 'Unknown'}
+[cyan]Armor Class:[/cyan] {creature.ac[0] if creature.ac else "Unknown"}
+[cyan]Hit Points:[/cyan] {creature.hp if creature.hp else "Unknown"}
+[cyan]Speed:[/cyan] {creature.speed if creature.speed else "Unknown"}
 """
 
     console.print(
@@ -223,12 +223,12 @@ def _display_creature_details(creature):
 
     # Ability scores
     abilities = f"""
-[cyan]STR:[/cyan] {creature.strength} ({(creature.strength-10)//2:+d})
-[cyan]DEX:[/cyan] {creature.dexterity} ({(creature.dexterity-10)//2:+d})
-[cyan]CON:[/cyan] {creature.constitution} ({(creature.constitution-10)//2:+d})
-[cyan]INT:[/cyan] {creature.intelligence} ({(creature.intelligence-10)//2:+d})
-[cyan]WIS:[/cyan] {creature.wisdom} ({(creature.wisdom-10)//2:+d})
-[cyan]CHA:[/cyan] {creature.charisma} ({(creature.charisma-10)//2:+d})
+[cyan]STR:[/cyan] {creature.strength} ({(creature.strength - 10) // 2:+d})
+[cyan]DEX:[/cyan] {creature.dexterity} ({(creature.dexterity - 10) // 2:+d})
+[cyan]CON:[/cyan] {creature.constitution} ({(creature.constitution - 10) // 2:+d})
+[cyan]INT:[/cyan] {creature.intelligence} ({(creature.intelligence - 10) // 2:+d})
+[cyan]WIS:[/cyan] {creature.wisdom} ({(creature.wisdom - 10) // 2:+d})
+[cyan]CHA:[/cyan] {creature.charisma} ({(creature.charisma - 10) // 2:+d})
 """
 
     console.print(

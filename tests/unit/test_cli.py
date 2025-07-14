@@ -116,7 +116,6 @@ class TestCLIIntegration:
         with patch("src.cli.main.get_omnidexer") as mock_omnidexer, patch(
             "src.cli.main.get_tag_resolver"
         ) as mock_tag_resolver:
-
             mock_omni = Mock()
             mock_tag = Mock()
             mock_omnidexer.return_value = mock_omni

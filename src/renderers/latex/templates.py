@@ -25,8 +25,7 @@ class LaTeXTemplateEngine:
     def _load_builtin_templates(self):
         """Load built-in LaTeX templates."""
 
-        self._template_cache["document_header"] = (
-            r"""
+        self._template_cache["document_header"] = r"""
 \documentclass[{font_size},{page_size}]{{book}}
 
 % D&D 5e styling packages
@@ -106,23 +105,17 @@ class LaTeXTemplateEngine:
 \thispagestyle{{empty}}
 \clearpage
 """.strip()
-        )
 
-        self._template_cache["document_footer"] = (
-            r"""
+        self._template_cache["document_footer"] = r"""
 \end{document}
 """.strip()
-        )
 
-        self._template_cache["table_of_contents"] = (
-            r"""
+        self._template_cache["table_of_contents"] = r"""
 \tableofcontents
 \clearpage
 """.strip()
-        )
 
-        self._template_cache["index"] = (
-            r"""
+        self._template_cache["index"] = r"""
 \chapter*{{{title}}}
 \addcontentsline{{toc}}{{chapter}}{{{title}}}
 
@@ -132,11 +125,9 @@ class LaTeXTemplateEngine:
 {{% endfor %}}
 \end{{multicols}}
 """.strip()
-        )
 
         # Content-specific templates
-        self._template_cache["spell"] = (
-            r"""
+        self._template_cache["spell"] = r"""
 \subsection{{{name}}} 
 \textit{{{level_text}}}
 
@@ -151,10 +142,8 @@ class LaTeXTemplateEngine:
 \textbf{{At Higher Levels.}} {higher_levels}
 {{% endif %}}
 """.strip()
-        )
 
-        self._template_cache["creature"] = (
-            r"""
+        self._template_cache["creature"] = r"""
 \subsection{{{name}}}
 \textit{{{size_text} {type_text}, {alignment_text}}}
 
@@ -205,10 +194,8 @@ class LaTeXTemplateEngine:
 {{% endfor %}}
 {{% endif %}}
 """.strip()
-        )
 
-        self._template_cache["item"] = (
-            r"""
+        self._template_cache["item"] = r"""
 \subsection{{{name}}}
 \textit{{{type_text}{rarity_text}}}
 
@@ -218,7 +205,6 @@ class LaTeXTemplateEngine:
 \textbf{{Properties:}} {properties}
 {{% endif %}}
 """.strip()
-        )
 
     def render_template(self, template_name: str, variables: Dict[str, Any]) -> str:
         """Render a template with the given variables.

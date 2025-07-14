@@ -41,10 +41,10 @@ def show_overview():
 
             # Overview panel
             overview = f"""
-[green]Total Items:[/green] {stats.get('total_items', 0)}
-[green]Content Types:[/green] {len(stats.get('by_type', {}))}
-[green]Source Books:[/green] {len(stats.get('by_source', {}))}
-[green]Loaded Types:[/green] {', '.join(stats.get('loaded_types', []))}
+[green]Total Items:[/green] {stats.get("total_items", 0)}
+[green]Content Types:[/green] {len(stats.get("by_type", {}))}
+[green]Source Books:[/green] {len(stats.get("by_source", {}))}
+[green]Loaded Types:[/green] {", ".join(stats.get("loaded_types", []))}
 """
 
             console.print(
