@@ -54,25 +54,25 @@ class ArchitecturalBoundaryChecker:
         return [
             Layer(
                 name="cli",
-                path_patterns=["src.cli"],
+                path_patterns=["dnd5e.cli"],
                 allowed_dependencies=["core", "renderers", "processors"],
                 description="Command-line interface layer",
             ),
             Layer(
                 name="renderers",
-                path_patterns=["src.renderers"],
+                path_patterns=["dnd5e.renderers"],
                 allowed_dependencies=["core"],
                 description="Output rendering layer",
             ),
             Layer(
                 name="processors",
-                path_patterns=["src.processors"],
+                path_patterns=["dnd5e.processors"],
                 allowed_dependencies=["core"],
                 description="Data processing layer",
             ),
             Layer(
                 name="core",
-                path_patterns=["src.core"],
+                path_patterns=["dnd5e.core"],
                 allowed_dependencies=[],
                 description="Core business logic layer",
             ),
@@ -131,7 +131,7 @@ class ArchitecturalBoundaryChecker:
         """Check an import statement for boundary violations."""
         if isinstance(node, ast.Import):
             for alias in node.names:
-                if alias.name.startswith("src."):
+                if alias.name.startswith("dnd5e."):
                     to_layer = self._get_module_layer(alias.name)
                     if to_layer and not self._is_dependency_allowed(
                         from_layer, to_layer
@@ -148,7 +148,7 @@ class ArchitecturalBoundaryChecker:
                         )
 
         elif isinstance(node, ast.ImportFrom):
-            if node.module and node.module.startswith("src."):
+            if node.module and node.module.startswith("dnd5e."):
                 to_layer = self._get_module_layer(node.module)
                 if to_layer and not self._is_dependency_allowed(from_layer, to_layer):
                     for alias in node.names:

@@ -4,8 +4,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from src.core.indexer.tag_resolver import TagResolver
-from src.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.indexer.tag_resolver import TagResolver
+from dnd5e.core.loaders.omnidexer import Omnidexer
 
 
 @dataclass

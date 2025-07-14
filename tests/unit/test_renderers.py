@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from src.core.models.content import ContentType
-from src.renderers.base import RenderContext, RenderingError
-from src.renderers.latex import (
+from dnd5e.core.models.content import ContentType
+from dnd5e.renderers.base import RenderContext, RenderingError
+from dnd5e.renderers.latex import (
     LaTeXCreatureRenderer,
     LaTeXDocumentRenderer,
     LaTeXItemRenderer,
@@ -476,7 +476,7 @@ class TestRendererIntegration:
         omnidexer = loaded_omnidexer
 
         # Create a mock content object of unknown type
-        from src.core.models.content import BaseContent, Source
+        from dnd5e.core.models.content import BaseContent, Source
 
         unknown_content = BaseContent(
             name="Unknown Content",

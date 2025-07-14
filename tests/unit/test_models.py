@@ -3,8 +3,8 @@
 import pytest
 from pydantic import ValidationError
 
-from src.core.models.content import Source
-from src.core.models.creatures import (
+from dnd5e.core.models.content import Source
+from dnd5e.core.models.creatures import (
     Ability,
     ArmorClass,
     Creature,
@@ -12,7 +12,7 @@ from src.core.models.creatures import (
     HitPoints,
     Speed,
 )
-from src.core.models.spells import Spell, SpellComponent
+from dnd5e.core.models.spells import Spell, SpellComponent
 
 
 class TestSource:

@@ -1,13 +1,13 @@
 """Tests for the new AST-based tag resolution system."""
 
 # Import the new tag system components
-from src.core.indexer.content_tracker import ContentTracker, TrackedContent
-from src.core.indexer.new_tag_resolver import NewTagResolverFacade
-from src.core.indexer.tag_ast import (
+from dnd5e.core.indexer.content_tracker import ContentTracker, TrackedContent
+from dnd5e.core.indexer.new_tag_resolver import NewTagResolverFacade
+from dnd5e.core.indexer.tag_ast import (
     CreatureTagNode,
     TextNode,
 )
-from src.core.indexer.tag_parser import TagParser
+from dnd5e.core.indexer.tag_parser import TagParser
 
 
 class MockTagNode:

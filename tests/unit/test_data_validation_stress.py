@@ -10,11 +10,11 @@ from typing import List
 
 import pytest
 
-from src.core.config.settings import get_logger
-from src.core.loaders.json_loader import JsonDataLoader
-from src.core.loaders.omnidexer import Omnidexer
-from src.core.loaders.source_manager import FileSystemSourceManager
-from src.core.models.content import ContentType
+from dnd5e.core.config.settings import get_logger
+from dnd5e.core.loaders.json_loader import JsonDataLoader
+from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.loaders.source_manager import FileSystemSourceManager
+from dnd5e.core.models.content import ContentType
 
 
 class LogCapture:
@@ -304,7 +304,7 @@ class TestDataValidationStress:
         }
 
         # Test spell validation
-        from src.core.models.spells import Spell
+        from dnd5e.core.models.spells import Spell
 
         spell = Spell.model_validate(complex_spell_data)
         assert spell.name == "Complex Test Spell"
@@ -316,7 +316,7 @@ class TestDataValidationStress:
         )  # Should extract text from complex structure
 
         # Test creature validation
-        from src.core.models.creatures import Creature
+        from dnd5e.core.models.creatures import Creature
 
         creature = Creature.model_validate(complex_creature_data)
         assert creature.name == "Complex Test Creature"
@@ -377,15 +377,15 @@ class TestDataValidationStress:
         print(f"✅ File format detection stats: {format_detection_stats}")
 
         # At least some files should be processed normally
-        assert format_detection_stats["processed_normally"] > 0, (
-            "No files were processed normally - format detection may be too aggressive"
-        )
+        assert (
+            format_detection_stats["processed_normally"] > 0
+        ), "No files were processed normally - format detection may be too aggressive"
 
     def test_edge_case_data_structures(self):
         """Test validation of edge case data structures."""
-        from src.core.models.creatures import Creature
-        from src.core.models.items import Item
-        from src.core.models.spells import Spell
+        from dnd5e.core.models.creatures import Creature
+        from dnd5e.core.models.items import Item
+        from dnd5e.core.models.spells import Spell
 
         # Test spell with minimal data
         minimal_spell = {

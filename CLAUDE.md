@@ -2,6 +2,13 @@
 
 This is a python project to parse the json data files of D&D content from 5e.tools, then transform into LaTeX for PDF output.
 
+## Package Structure
+
+The project uses a standard Python package structure:
+- Package name: `dnd5e` (imports use `from dnd5e.*`)
+- Located in: `src/dnd5e/`
+- Entry point: `dnd5e.cli.main:app`
+
 ## Important notes
 
 - This project is managed by uv

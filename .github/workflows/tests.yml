@@ -65,7 +65,7 @@ jobs:
       run: uv run ruff format --check src/ tests/
 
     - name: Check for circular imports
-      run: uv run python scripts/check_circular_imports.py src/ --fail-on-cycles
+      run: uv run python scripts/check_circular_imports.py src/dnd5e/ --fail-on-cycles
 
     - name: Check architectural boundaries
-      run: uv run python scripts/check_architectural_boundaries.py src/ --fail-on-violations
+      run: uv run python scripts/check_architectural_boundaries.py src/dnd5e/ --fail-on-violations

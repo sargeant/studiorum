@@ -5,13 +5,13 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from src.core.config.sources import (
+from dnd5e.core.config.sources import (
     ContentConfiguration,
     ContentSource,
     SourceType,
 )
-from src.core.sources.github import GitHubSourceManager
-from src.core.sources.manager import ContentSourceManager
+from dnd5e.core.sources.github import GitHubSourceManager
+from dnd5e.core.sources.manager import ContentSourceManager
 
 
 class TestContentSourceManager:

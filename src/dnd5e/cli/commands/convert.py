@@ -9,10 +9,10 @@ from rich import print as rprint
 from rich.console import Console
 from rich.progress import Progress
 
-from src.core.indexer.tag_resolver import TagResolver
-from src.core.loaders.omnidexer import Omnidexer
-from src.renderers.base import RenderContext
-from src.renderers.latex import LaTeXDocumentRenderer
+from dnd5e.core.indexer.tag_resolver import TagResolver
+from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.renderers.base import RenderContext
+from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
 app = typer.Typer(help="Convert D&D content to LaTeX/PDF")
 console = Console()
@@ -75,7 +75,7 @@ def convert_adventure(
                 adventure_data = json.load(f)
 
             # Parse adventure
-            from src.core.models.adventures import Adventure
+            from dnd5e.core.models.adventures import Adventure
 
             # Get adventure data (could be nested)
             if "adventure" in adventure_data:
@@ -179,7 +179,7 @@ def convert_book(
                 book_data = json.load(f)
 
             # Parse book
-            from src.core.models.books import Book, BookChapter
+            from dnd5e.core.models.books import Book, BookChapter
 
             # Extract book metadata from filename if available
             book_id = input_file.stem.replace("book-", "").upper()
@@ -309,9 +309,9 @@ def convert_supplement(
             content_items = []
 
             # Import models
-            from src.core.models.creatures import Creature
-            from src.core.models.items import Item
-            from src.core.models.spells import Spell
+            from dnd5e.core.models.creatures import Creature
+            from dnd5e.core.models.items import Item
+            from dnd5e.core.models.spells import Spell
 
             # Process different content types
             type_handlers = {
