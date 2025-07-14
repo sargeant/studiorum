@@ -75,3 +75,4 @@ coverage.xml
 # AI tools
 .claude/
 .gemini/
+original-code/
