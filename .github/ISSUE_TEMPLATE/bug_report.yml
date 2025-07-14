@@ -1,0 +1,130 @@
+name: Bug Report
+description: Report a bug or issue with the application
+title: "[Bug]: "
+labels: ["bug", "P2-medium"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a bug! Please fill out the form below to help us understand and resolve the issue.
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: A clear and concise description of what actually happened.
+      placeholder: What actually happened?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How urgent is this bug?
+      options:
+        - P0-critical (Blocking, must be fixed immediately)
+        - P1-high (Important, should be addressed soon)
+        - P2-medium (Normal priority, planned work)
+        - P3-low (Nice to have, low priority)
+      default: 2
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: components
+    attributes:
+      label: Affected Components
+      description: Which parts of the codebase are affected?
+      options:
+        - label: Core logic and models
+          value: component/core
+        - label: Command line interface
+          value: component/cli
+        - label: LaTeX/PDF rendering system
+          value: component/renderers
+        - label: Data loading and parsing
+          value: component/loaders
+        - label: Content indexing and tagging
+          value: component/indexer
+        - label: Data source management
+          value: component/sources
+        - label: Configuration system
+          value: component/config
+        - label: Test infrastructure
+          value: component/tests
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Please provide information about your environment
+      placeholder: |
+        - OS: [e.g., macOS 14.0, Ubuntu 22.04]
+        - Python version: [e.g., 3.11.5]
+        - Project version: [e.g., 2.0.0]
+        - UV version: [e.g., 0.1.45]
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-output
+    attributes:
+      label: Error Output
+      description: If applicable, paste any error messages or stack traces
+      placeholder: Paste error output here...
+      render: shell
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here, including screenshots if helpful.
+
+  - type: checkboxes
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What needs to be done to consider this bug fixed?
+      options:
+        - label: Bug is fixed and no longer occurs
+          value: bug-fixed
+        - label: Test case added to prevent regression
+          value: test-added
+        - label: Documentation updated if needed
+          value: docs-updated
+        - label: Root cause identified and addressed
+          value: root-cause-fixed

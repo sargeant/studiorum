@@ -52,7 +52,6 @@ packages = ["src"]
 
 [project.scripts]
 5e2pdf = "src.cli.main:app"
-json2tex = "src.json2tex:main"
 
 [tool.ruff]
 line-length = 88
@@ -82,13 +81,20 @@ ignore = [
     "C414", # unnecessary list calls
     "C417", # unnecessary map usage
     "UP015", # unnecessary mode arguments
-    "I001", # import sorting (will use isort separately)
+# "I001", # import sorting (now enabled for standardization)
     "W291", # trailing whitespace
 ]
 
 [tool.black]
 line-length = 88
 target-version = ["py38"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+force-single-line = false
+combine-as-imports = true
+split-on-trailing-comma = true
 
 [tool.mypy]
 python_version = "3.8"

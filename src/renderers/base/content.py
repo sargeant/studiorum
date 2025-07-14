@@ -3,8 +3,7 @@
 from abc import abstractmethod
 from typing import Any, Dict, Optional, Set
 
-from src.core.models.content import BaseContent, ContentType
-
+from ...core.models.content import BaseContent, ContentType
 from .context import RenderContext
 from .renderer import BaseRenderer
 

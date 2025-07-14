@@ -528,4 +528,51 @@ git checkout -b bug-memory-leak-in-parser
 - Ensure all necessary metadata is captured
 - Guide users to provide complete information
 
+## Template Usage Examples
+
+### Using Issue Templates via GitHub Web Interface
+
+When creating a new issue on GitHub, you'll see template options:
+
+1. **Bug Report** - For reporting problems or errors
+2. **Feature Request** - For suggesting new functionality  
+3. **Enhancement** - For improving existing features
+
+### Using Templates via GitHub CLI
+
+```bash
+# Create a bug report using the template
+gh issue create --template bug_report.yml
+
+# Create a feature request using the template
+gh issue create --template feature_request.yml
+
+# Create an enhancement using the template
+gh issue create --template enhancement.yml
+
+# Quick issue creation with manual labels
+gh issue create --title "Fix typo in README" \
+  --body "Line 42 has a spelling error" \
+  --label "documentation,size/XS,P3-low"
+```
+
+### Template Features
+
+All templates include:
+
+- **Auto-labeling** - Templates automatically apply appropriate type and priority labels
+- **Required fields** - Critical information is marked as required
+- **Component selection** - Checkboxes to identify affected parts of the codebase
+- **Acceptance criteria** - Pre-defined checkboxes for completion requirements
+- **Structured formatting** - Consistent layout across all issue types
+
+### Label Management
+
+See `.github/LABELS.md` for:
+
+- Complete label taxonomy
+- GitHub CLI commands to create all labels
+- Color coding and descriptions
+- Label usage guidelines
+
 This workflow ensures that all development work is properly tracked, requirements are clear, and progress is visible to all stakeholders.

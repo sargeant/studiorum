@@ -40,7 +40,7 @@ Storing Player Character data as a JSON file is the most straightforward and con
 ### 4. Short-Form Content Generation
 
 **Analysis:**
-The existing `src/dndtex/tags.py` and `InTextTagRenderer.py` suggest a system for rendering structured text. The `entries` fields in `Race` and `Class` models contain descriptive text.
+The existing tag resolution system in `src/core/indexer/` handles rendering structured text. The `entries` fields in `Race` and `Class` models contain descriptive text.
 
 **Gap:**
 We need to extract specific, concise pieces of information (e.g., "Darkvision 60ft", "Proficiency Bonus +2", "Strength 15 (+2)") from the loaded content and calculated stats, and format them for display on a character sheet.
@@ -51,7 +51,7 @@ We will create dedicated functions or methods within the new `PlayerCharacter` m
 ### 5. PDF Generation (Character Sheet Template)
 
 **Analysis:**
-The project uses LaTeX for PDF generation (`src/dndtex/`, `gen-latex.py`, `json2tex.py`). This indicates that a LaTeX-based character sheet is a feasible approach.
+The project uses LaTeX for PDF generation through the modern `src/renderers/latex/` system. This indicates that a LaTeX-based character sheet is a feasible approach.
 
 **Gap:**
 There is no existing LaTeX template specifically for character sheets.
@@ -116,7 +116,7 @@ We will create a new LaTeX template (`.tex` file) specifically designed for D&D 
         *   Generate the final LaTeX content string.
 
 3.  **Integrate with PDF Generation Pipeline:**
-    *   Modify `src/gen-latex.py` or create a new script (e.g., `src/gen-character-sheet.py`) to:
+    *   Create a new CLI command in `src/cli/commands/` (e.g., `character_sheet.py`) to:
         *   Load a `PlayerCharacter` from its JSON file.
         *   Use the `CharacterSheetRenderer` to generate the LaTeX content.
         *   Compile the LaTeX content into a PDF using a shell command (e.g., `pdflatex`).

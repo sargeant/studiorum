@@ -61,6 +61,40 @@ We use several tools to maintain code quality:
 - **mypy**: Type checking
 - **pytest**: Testing
 
+Import Standards
+^^^^^^^^^^^^^^^^
+
+Follow these import conventions:
+
+- **Use relative imports** for intra-package imports (within ``src/``)
+- **Use absolute imports** for external dependencies and standard library
+- **Group imports** in this order: standard library, third-party, first-party
+- **Sort imports alphabetically** within each group
+
+Examples:
+
+.. code-block:: python
+
+   # Standard library
+   import json
+   from pathlib import Path
+   from typing import Any, Dict, List
+   
+   # Third-party
+   import typer
+   from pydantic import BaseModel
+   
+   # Relative imports for package code
+   from ...core.models.content import BaseContent
+   from ..base import ContentRenderer
+   from .templates import LaTeXTemplateEngine
+
+Ruff automatically enforces import sorting when you run:
+
+.. code-block:: bash
+
+   ruff check --select I --fix .
+
 Run the full quality check:
 
 .. code-block:: bash

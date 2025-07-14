@@ -90,10 +90,8 @@ check_dependencies() {
     # Check if we can import required modules
     cd "$PROJECT_DIR"
     
-    if ! uv run python -c "import dndtex" &> /dev/null; then
-        print_error "dndtex module not found. Run './scripts/build.sh setup' to install dependencies."
-        exit 1
-    fi
+    # Note: Legacy dndtex module has been removed as per issue #20
+    # Modern functionality is in src.cli.main
     
     print_success "Python dependencies OK"
     

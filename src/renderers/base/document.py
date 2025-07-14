@@ -4,8 +4,7 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import List
 
-from src.core.models.content import BaseContent
-
+from ...core.models.content import BaseContent
 from .context import RenderContext
 from .renderer import BaseRenderer
 

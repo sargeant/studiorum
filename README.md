@@ -78,18 +78,17 @@ asyncio.run(test())
 "
 ```
 
-### 6. Build documents (Legacy System - Still Works)
+### 6. Build documents (Modern CLI System)
 
 ```bash
-# Simple build (LaTeX only)
-./scripts/json2tex.sh --adventure --no-images --add-items --add-creatures path/to/adventure.json > output.tex
+# Use the modern CLI for conversions
+5e2pdf convert adventure path/to/adventure.json --output output.tex
 
-# Complete build with PDF compilation
+# Complete build with PDF compilation using build script
 ./scripts/build.sh adventure json_data/adventures/cos.json
 
-# Original workflow from CLAUDE.md
-./scripts/json2tex.sh --no-images --add-items --add-creatures --adventure ../5etools-src/data/adventure/adventure-cos.json > build/adventure-cos.tex
-cd build && xelatex adventure-cos.tex
+# Note: Legacy json2tex.sh wrapper and direct script calls have been removed (issue #20)
+# Use the modern 5e2pdf CLI instead
 ```
 
 ## Usage
@@ -246,10 +245,7 @@ asyncio.run(example())
 │   │   ├── commands/            # CLI command modules
 │   │   ├── main.py              # Main CLI application
 │   │   └── compat.py            # Legacy compatibility layer
-│   ├── json2tex.py             # Legacy conversion script (still functional)
-│   ├── gen-latex.py            # Legacy LaTeX utilities
-│   ├── tablejson2tex.py        # Legacy table converter
-│   └── dndtex/                 # Legacy rendering module
+│   └── # Note: Legacy files (json2tex.py, gen-latex.py, tablejson2tex.py, dndtex/) removed in issue #20
 ├── assets/                      # Static resources
 │   ├── fonts/                   # D&D-style fonts
 │   ├── images/                  # Images and graphics

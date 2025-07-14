@@ -11,18 +11,18 @@ import logging
 import time
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from src.core.config.settings import get_logger
-from src.core.loaders.omnidexer import Omnidexer
-from src.core.loaders.source_manager import FileSystemSourceManager
 from src.core.loaders.json_loader import (
-    create_spell_loader,
-    create_creature_loader,
-    create_item_loader,
     create_adventure_loader,
     create_book_loader,
+    create_creature_loader,
+    create_item_loader,
+    create_spell_loader,
 )
+from src.core.loaders.omnidexer import Omnidexer
+from src.core.loaders.source_manager import FileSystemSourceManager
 from src.core.models.content import ContentType
 
 
@@ -273,8 +273,9 @@ class ValidationReport:
     def _get_memory_usage(self) -> Dict:
         """Get current memory usage."""
         try:
-            import psutil
             import os
+
+            import psutil
 
             process = psutil.Process(os.getpid())
             memory_info = process.memory_info()

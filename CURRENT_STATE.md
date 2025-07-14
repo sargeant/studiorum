@@ -6,9 +6,9 @@
 
 ### Analysis of Current State
 
-1.  **Dual Architecture (Legacy vs. Modern):**
-    *   **Legacy:** The original scripts (`json2tex.py`, `gen-latex.py`) and shell script wrappers (`scripts/build.sh`) are still present and functional. They provide a direct, if brittle, conversion pipeline.
-    *   **Modern:** A new, robust architecture has been built in the `src/` directory. It is modular, type-safe, and built on modern Python principles.
+1.  **Modern Architecture (Legacy Code Removed):**
+    *   **Note:** The original legacy scripts (`json2tex.py`, `gen-latex.py`, `tablejson2tex.py`, and `dndtex/` module) were removed in issue #20 to clean up the codebase.
+    *   **Modern:** A robust architecture has been built in the `src/` directory. It is modular, type-safe, and built on modern Python principles. The shell script wrappers (`scripts/build.sh`) remain for convenience but now use the modern CLI internally.
 
 2.  **Modern Architecture Core Components:**
     *   **CLI (`src/cli`):** A new command-line interface using `Typer` and `Rich` provides a user-friendly way to interact with the system. It includes commands for managing content sources, converting files, and viewing information. It's the main entry point for the new workflow.

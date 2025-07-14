@@ -1,0 +1,186 @@
+name: Enhancement
+description: Suggest an improvement to existing functionality
+title: "[Enhancement]: "
+labels: ["enhancement", "P2-medium"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting an enhancement! Please describe how existing functionality can be improved.
+
+  - type: textarea
+    id: enhancement-description
+    attributes:
+      label: Enhancement Description
+      description: What existing functionality should be improved?
+      placeholder: Describe what you want to enhance...
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current Behavior
+      description: How does the functionality work now?
+      placeholder: Describe the current behavior...
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired-behavior
+    attributes:
+      label: Desired Behavior
+      description: How should it work after the enhancement?
+      placeholder: Describe the improved behavior...
+    validations:
+      required: true
+
+  - type: textarea
+    id: benefits
+    attributes:
+      label: Benefits
+      description: Why is this improvement valuable? What problems does it solve?
+      placeholder: |
+        - Improved performance
+        - Better user experience
+        - Reduced complexity
+        - Enhanced reliability
+      render: markdown
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this enhancement?
+      options:
+        - P0-critical (Blocking, must be addressed immediately)
+        - P1-high (Important, should be addressed soon)
+        - P2-medium (Normal priority, planned work)
+        - P3-low (Nice to have, low priority)
+      default: 2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: size-estimate
+    attributes:
+      label: Size Estimate
+      description: How complex do you think this enhancement is to implement?
+      options:
+        - size/XS (< 1 hour - small improvement)
+        - size/S (1-4 hours - straightforward enhancement)
+        - size/M (4-8 hours - moderate enhancement)
+        - size/L (1-2 days - major enhancement)
+        - size/XL (2+ days - architectural improvement)
+        - Not sure
+      default: 5
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: components
+    attributes:
+      label: Affected Components
+      description: Which parts of the codebase would this enhancement affect?
+      options:
+        - label: Core logic and models
+          value: component/core
+        - label: Command line interface
+          value: component/cli
+        - label: LaTeX/PDF rendering system
+          value: component/renderers
+        - label: Data loading and parsing
+          value: component/loaders
+        - label: Content indexing and tagging
+          value: component/indexer
+        - label: Data source management
+          value: component/sources
+        - label: Configuration system
+          value: component/config
+        - label: Test infrastructure
+          value: component/tests
+
+  - type: textarea
+    id: implementation-approach
+    attributes:
+      label: Implementation Approach
+      description: Technical approach and considerations for implementing this enhancement
+      placeholder: |
+        - Specific changes needed
+        - Dependencies to consider
+        - Potential risks or challenges
+        - Alternative implementation options
+      render: markdown
+
+  - type: checkboxes
+    id: enhancement-type
+    attributes:
+      label: Enhancement Type
+      description: What type of improvement is this?
+      options:
+        - label: Performance optimization
+          value: performance
+        - label: User experience improvement
+          value: ux
+        - label: Code quality/maintainability
+          value: refactoring
+        - label: Security enhancement
+          value: security
+        - label: Error handling improvement
+          value: error-handling
+        - label: Configuration/flexibility improvement
+          value: configuration
+        - label: Documentation improvement
+          value: documentation
+
+  - type: checkboxes
+    id: breaking-changes
+    attributes:
+      label: Breaking Changes
+      description: Could this enhancement introduce breaking changes?
+      options:
+        - label: This enhancement may introduce breaking changes
+          value: breaking-change
+        - label: This enhancement is backward compatible
+          value: backward-compatible
+
+  - type: textarea
+    id: backward-compatibility
+    attributes:
+      label: Backward Compatibility
+      description: How will this enhancement maintain compatibility with existing usage?
+      placeholder: Describe migration path, deprecation timeline, or compatibility measures...
+
+  - type: checkboxes
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What needs to be done to consider this enhancement complete?
+      options:
+        - label: Enhancement implemented as described
+          value: enhancement-implemented
+        - label: Existing functionality preserved
+          value: functionality-preserved
+        - label: Tests updated to cover new behavior
+          value: tests-updated
+        - label: Performance impact assessed
+          value: performance-assessed
+        - label: Documentation updated
+          value: docs-updated
+        - label: Backward compatibility maintained
+          value: compatibility-maintained
+
+  - type: textarea
+    id: affected-files
+    attributes:
+      label: Affected Components/Files
+      description: List the modules, files, or components that will change
+      placeholder: |
+        - src/core/module.py
+        - src/cli/commands.py
+        - tests/test_module.py
+        - docs/user-guide.rst
+      render: markdown

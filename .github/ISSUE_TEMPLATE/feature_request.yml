@@ -1,0 +1,160 @@
+name: Feature Request
+description: Suggest a new feature or capability
+title: "[Feature]: "
+labels: ["feature", "P2-medium"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a new feature! Please provide as much detail as possible to help us understand and evaluate your request.
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: A clear and concise description of the new feature you'd like to see.
+      placeholder: Describe the feature...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-statement
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? What need does it address?
+      placeholder: What problem would this solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: How should this feature work? Describe the desired behavior and user experience.
+      placeholder: How should this work?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternative-solutions
+    attributes:
+      label: Alternative Solutions
+      description: Have you considered any alternative approaches or solutions?
+      placeholder: What other approaches have you considered?
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature?
+      options:
+        - P0-critical (Blocking, must be implemented immediately)
+        - P1-high (Important, should be addressed soon)
+        - P2-medium (Normal priority, planned work)
+        - P3-low (Nice to have, low priority)
+      default: 2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: size-estimate
+    attributes:
+      label: Size Estimate
+      description: How complex do you think this feature is to implement?
+      options:
+        - size/XS (< 1 hour - very small change)
+        - size/S (1-4 hours - simple feature)
+        - size/M (4-8 hours - moderate feature)
+        - size/L (1-2 days - large feature)
+        - size/XL (2+ days - epic or architectural change)
+        - Not sure
+      default: 5
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: components
+    attributes:
+      label: Affected Components
+      description: Which parts of the codebase would this feature affect?
+      options:
+        - label: Core logic and models
+          value: component/core
+        - label: Command line interface
+          value: component/cli
+        - label: LaTeX/PDF rendering system
+          value: component/renderers
+        - label: Data loading and parsing
+          value: component/loaders
+        - label: Content indexing and tagging
+          value: component/indexer
+        - label: Data source management
+          value: component/sources
+        - label: Configuration system
+          value: component/config
+        - label: Test infrastructure
+          value: component/tests
+
+  - type: textarea
+    id: implementation-notes
+    attributes:
+      label: Implementation Notes
+      description: Technical considerations, potential challenges, or specific requirements
+      placeholder: |
+        - Dependencies needed
+        - API changes required
+        - Database schema changes
+        - Performance considerations
+        - Security implications
+      render: markdown
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User Story
+      description: Describe this feature from the user's perspective
+      placeholder: |
+        As a [type of user],
+        I want [goal/desire]
+        So that [benefit/value]
+
+  - type: checkboxes
+    id: breaking-changes
+    attributes:
+      label: Breaking Changes
+      description: Could this feature introduce breaking changes?
+      options:
+        - label: This feature may introduce breaking changes
+          value: breaking-change
+        - label: This feature is backward compatible
+          value: backward-compatible
+
+  - type: checkboxes
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What needs to be done to consider this feature complete?
+      options:
+        - label: Feature implemented as described
+          value: feature-implemented
+        - label: Tests added for new functionality
+          value: tests-added
+        - label: Documentation updated
+          value: docs-updated
+        - label: No breaking changes (or breaking changes documented)
+          value: compatibility-maintained
+        - label: Performance impact assessed
+          value: performance-checked
+
+  - type: textarea
+    id: files-likely-to-change
+    attributes:
+      label: Files Likely to Change
+      description: List the files or modules that would likely need modification
+      placeholder: |
+        - src/core/...
+        - src/cli/...
+        - tests/...
+        - docs/...
+      render: markdown

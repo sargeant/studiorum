@@ -2,12 +2,11 @@
 
 from typing import Any, Dict, List, Optional, Set
 
-from src.core.models.content import BaseContent, ContentType
-from src.core.models.creatures import Creature
-from src.core.models.items import Item
-from src.core.models.spells import Spell
-from src.renderers.base import ContentRenderer, RenderContext
-
+from ...core.models.content import BaseContent, ContentType
+from ...core.models.creatures import Creature
+from ...core.models.items import Item
+from ...core.models.spells import Spell
+from ..base import ContentRenderer, RenderContext
 from .templates import LaTeXTemplateEngine
 
 

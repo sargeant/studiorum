@@ -2,9 +2,8 @@
 
 from typing import Any, Dict, List
 
-from src.core.models.content import BaseContent, ContentType
-from src.renderers.base import DocumentRenderer, RenderContext, RenderingError
-
+from ...core.models.content import BaseContent, ContentType
+from ..base import DocumentRenderer, RenderContext, RenderingError
 from .content import LaTeXContentRendererRegistry
 from .templates import LaTeXTemplateEngine
 

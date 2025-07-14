@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/sargeant/5e2pdf/blob/main/README.md
+    about: Check the documentation for usage guides and examples
+  - name: 💬 Discussion
+    url: https://github.com/sargeant/5e2pdf/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 🔒 Security Issues
+    url: https://github.com/sargeant/5e2pdf/security/advisories/new
+    about: Report security vulnerabilities privately

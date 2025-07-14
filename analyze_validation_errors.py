@@ -8,8 +8,8 @@ helping identify complex data structures that need preprocessing.
 
 import json
 import sys
+from collections import Counter, defaultdict
 from pathlib import Path
-from collections import defaultdict, Counter
 from typing import Any, Dict, List, Set
 
 
