@@ -70,22 +70,6 @@ GitHub issues serve as our primary task management system, providing:
 - `dependencies` - Related to dependency management
 - `performance` - Performance optimization or concern
 
-### Milestones
-
-Use milestones to group related issues into releases or major features:
-
-- `v2.1.0` - Next minor release
-- `v3.0.0` - Major version with breaking changes
-- `Epic: New Renderer System` - Large feature spanning multiple issues
-
-### Projects
-
-Use GitHub Projects for organizing work:
-
-- **Active Sprint** - Current work in progress
-- **Backlog** - Prioritized future work
-- **Long-term** - Ideas and future considerations
-
 ## Issue Templates
 
 ### Bug Report Template
@@ -108,7 +92,7 @@ What actually happens.
 ## Environment
 - OS: [e.g., macOS 14.0]
 - Python version: [e.g., 3.11]
-- Project version: [e.g., 2.0.0]
+- dnd5e version: [e.g., 1.0.0]
 
 ## Additional Context
 Any other relevant information.
@@ -144,7 +128,7 @@ Technical considerations, affected files, etc.
 - [ ] No breaking changes (or breaking changes documented)
 
 ## Files Likely to Change
-- `src/core/...`
+- `src/dnd5e/...`
 - `tests/...`
 - `docs/...`
 ```
@@ -176,84 +160,6 @@ Technical approach and considerations.
 ## Affected Components
 List modules/files that will change.
 ```
-
-## Workflow Process
-
-### 1. Issue Creation
-
-**For Users:**
-
-```bash
-# Create a bug report
-gh issue create --template bug_report.md --label "bug,P2-medium"
-
-# Create a feature request
-gh issue create --template feature_request.md --label "feature,P2-medium"
-
-# Quick issue creation
-gh issue create --title "Fix typo in README" --body "Line 42 has a spelling error" --label "documentation,size/XS,P3-low"
-```
-
-**Metadata to include:**
-
-- Appropriate type label (bug, feature, etc.)
-- Priority level
-- Size estimate
-- Component affected
-- Clear acceptance criteria
-
-### 2. Issue Triage and Planning
-
-**Review new issues for:**
-
-- Clear requirements and acceptance criteria
-- Appropriate labels and metadata
-- Dependencies on other issues
-- Priority and sizing accuracy
-
-**Add missing information:**
-
-- Component labels based on affected code
-- Size estimates for effort planning
-- Dependencies if issues are related
-- Milestones for release planning
-
-### 3. Development Process
-
-**Starting Work:**
-
-1. Assign the issue to yourself
-2. Add `status/in-progress` label
-3. Create a branch if needed: `git checkout -b issue-#-short-description`
-
-**During Development:**
-
-- Reference the issue in commit messages: `Fix bug in data loading (refs #42)`
-- Update issue with progress if it's a large task
-- Ask questions in issue comments if requirements are unclear
-
-**Completing Work:**
-
-1. Ensure all acceptance criteria are met
-2. Add/update tests as specified
-3. Update documentation as needed
-4. Commit with closing keywords: `Fix data validation bug (fixes #42)`
-5. Push changes to close issue automatically
-
-### 4. Code Review and Completion
-
-**For complex changes:**
-
-- Create pull request referencing the issue
-- Request review from appropriate team members
-- Add `status/review` label during review process
-- Address feedback and update as needed
-
-**Issue closure:**
-
-- Issues close automatically when commits with `fixes #N`, `closes #N`, or `resolves #N` are pushed
-- Verify acceptance criteria were met
-- Add any follow-up issues if discovered
 
 ## AI Assistant (Claude) Workflow
 
@@ -310,10 +216,10 @@ Sometimes you may ask me to analyze the codebase and propose improvements, ident
    ```bash
    # View all AI-proposed issues
    gh issue list --label "status/ai-proposed"
-   
+
    # View by component
    gh issue list --label "status/ai-proposed,component/core"
-   
+
    # View by type
    gh issue list --label "status/ai-proposed,enhancement"
    ```
@@ -328,10 +234,6 @@ type: Brief description of change (fixes #issue-number)
 - Any important implementation notes
 
 Fixes #42
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ### Testing and Validation
@@ -463,7 +365,7 @@ Size: L (1-2 days)
 # Review proposed issues
 gh issue list --label "status/ai-proposed"
 
-# Approve for implementation  
+# Approve for implementation
 gh issue edit 42 --remove-label "status/ai-proposed" --add-label "status/ready"
 
 # Request modifications via comment
@@ -480,13 +382,13 @@ gh issue comment 42 --body "Good analysis, but let's start with lazy loading app
 
 ```bash
 # For issues
-git checkout -b issue-42-fix-data-validation
+git checkout -b issue/42-fix-data-validation
 
 # For features
-git checkout -b feature-new-renderer-system
+git checkout -b feature/new-renderer-system
 
 # For bugs
-git checkout -b bug-memory-leak-in-parser
+git checkout -b fix/memory-leak-in-parser
 ```
 
 ## Best Practices
@@ -512,67 +414,3 @@ git checkout -b bug-memory-leak-in-parser
 - **Documentation:** Note what docs need updating
 - **Breaking Changes:** Flag API or behavior changes
 - **Performance:** Consider impact on performance
-
-## Automation Opportunities
-
-### GitHub Actions Integration
-
-- Auto-label issues based on content
-- Auto-assign issues based on components
-- Run tests when issues are marked ready
-- Notify team of critical issues
-
-### Issue Templates
-
-- Standardize information collection
-- Ensure all necessary metadata is captured
-- Guide users to provide complete information
-
-## Template Usage Examples
-
-### Using Issue Templates via GitHub Web Interface
-
-When creating a new issue on GitHub, you'll see template options:
-
-1. **Bug Report** - For reporting problems or errors
-2. **Feature Request** - For suggesting new functionality  
-3. **Enhancement** - For improving existing features
-
-### Using Templates via GitHub CLI
-
-```bash
-# Create a bug report using the template
-gh issue create --template bug_report.yml
-
-# Create a feature request using the template
-gh issue create --template feature_request.yml
-
-# Create an enhancement using the template
-gh issue create --template enhancement.yml
-
-# Quick issue creation with manual labels
-gh issue create --title "Fix typo in README" \
-  --body "Line 42 has a spelling error" \
-  --label "documentation,size/XS,P3-low"
-```
-
-### Template Features
-
-All templates include:
-
-- **Auto-labeling** - Templates automatically apply appropriate type and priority labels
-- **Required fields** - Critical information is marked as required
-- **Component selection** - Checkboxes to identify affected parts of the codebase
-- **Acceptance criteria** - Pre-defined checkboxes for completion requirements
-- **Structured formatting** - Consistent layout across all issue types
-
-### Label Management
-
-See `.github/LABELS.md` for:
-
-- Complete label taxonomy
-- GitHub CLI commands to create all labels
-- Color coding and descriptions
-- Label usage guidelines
-
-This workflow ensures that all development work is properly tracked, requirements are clear, and progress is visible to all stakeholders.
