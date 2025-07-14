@@ -2,11 +2,14 @@
 
 import hashlib
 import json
+import logging
 import pickle
 import threading
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class CacheManager:
@@ -81,8 +84,18 @@ class CacheManager:
                 with open(cache_path, "rb") as f:
                     return pickle.load(f)
 
-            except Exception:
-                # Error reading cache, remove and return default
+            except (pickle.PickleError, EOFError) as e:
+                logger.warning("Cache corruption detected for key '%s': %s", key, e)
+                cache_path.unlink(missing_ok=True)
+                meta_path.unlink(missing_ok=True)
+                return default
+            except (FileNotFoundError, PermissionError, OSError) as e:
+                logger.debug("Cache file access error for key '%s': %s", key, e)
+                cache_path.unlink(missing_ok=True)
+                meta_path.unlink(missing_ok=True)
+                return default
+            except Exception as e:
+                logger.error("Unexpected cache read error for key '%s': %s", key, e)
                 cache_path.unlink(missing_ok=True)
                 meta_path.unlink(missing_ok=True)
                 return default
@@ -119,8 +132,12 @@ class CacheManager:
                 # Clean up cache if too large
                 self._cleanup_if_needed()
 
-            except Exception:
-                # Error writing cache, remove partial files
+            except (pickle.PickleError, OSError, PermissionError) as e:
+                logger.warning("Failed to write cache for key '%s': %s", key, e)
+                cache_path.unlink(missing_ok=True)
+                meta_path.unlink(missing_ok=True)
+            except Exception as e:
+                logger.error("Unexpected cache write error for key '%s': %s", key, e)
                 cache_path.unlink(missing_ok=True)
                 meta_path.unlink(missing_ok=True)
 
@@ -204,8 +221,8 @@ class CacheManager:
                                 "size": cache_file.stat().st_size,
                             }
                         )
-                except Exception:
-                    # Remove invalid metadata
+                except (json.JSONDecodeError, ValueError, KeyError, OSError) as e:
+                    logger.debug("Invalid cache metadata file '%s': %s", meta_file, e)
                     meta_file.unlink(missing_ok=True)
 
             # Check total size
@@ -223,9 +240,10 @@ class CacheManager:
                     if total_size <= self.max_cache_size * 0.8:  # Leave some headroom
                         break
 
-        except Exception:
-            # If cleanup fails, just continue
-            pass
+        except OSError as e:
+            logger.warning("Cache cleanup failed due to file system error: %s", e)
+        except Exception as e:
+            logger.error("Unexpected error during cache cleanup: %s", e)
 
 
 # Global cache instance

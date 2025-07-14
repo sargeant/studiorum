@@ -1,5 +1,6 @@
 """Lark-based parser for D&D 5e.tools tags."""
 
+import logging
 import re
 from pathlib import Path
 from typing import Any, List, Optional
@@ -32,6 +33,8 @@ from .tag_ast import (
     TagNode,
     TextNode,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class TagParseError(Exception):
@@ -233,8 +236,13 @@ class TagParser:
         try:
             # Use regex-based fallback for complex cases
             return self._parse_with_regex_fallback(text)
-        except Exception:
-            # If parsing fails, create a simple text node
+        except TagParseError as e:
+            logger.warning("Tag parsing failed: %s", e)
+            doc = DocumentNode()
+            doc.add_child(TextNode(text))
+            return doc
+        except Exception as e:
+            logger.error("Unexpected error during tag parsing: %s", e)
             doc = DocumentNode()
             doc.add_child(TextNode(text))
             return doc

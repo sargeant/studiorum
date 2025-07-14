@@ -303,8 +303,9 @@ def _analyze_creatures(creatures):
                 num, denom = str(cr_str).split("/")
                 return float(num) / float(denom)
             return float(cr_str)
-        except:
-            return 999  # Put non-numeric CRs at the end
+        except (ValueError, TypeError, ZeroDivisionError):
+            # Put non-numeric CRs at the end for sorting
+            return 999
 
     sorted_crs = sorted(cr_counts.items(), key=lambda x: sort_cr(x[0]))
     for cr, count in sorted_crs[:10]:

@@ -1,10 +1,13 @@
 """Tag renderer and dispatcher for the new tag system."""
 
+import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from .content_tracker import ContentTracker
 from .tag_ast import ASTNode, DocumentNode, TagNode, TextNode
 from .tag_handlers import TagHandler, get_default_handlers
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from ...loaders.omnidexer import Omnidexer
@@ -103,8 +106,11 @@ class TagRenderer:
                     handler.track_content(node, self.content_tracker)
                     # Render the tag
                     return handler.render(node, context)
-                except Exception:
-                    # Fallback for handler errors
+                except (AttributeError, ValueError, TypeError) as e:
+                    logger.warning("Tag handler failed for '%s': %s", node.tag_type, e)
+                    return self._fallback_render(node)
+                except Exception as e:
+                    logger.error("Unexpected error in tag handler for '%s': %s", node.tag_type, e)
                     return self._fallback_render(node)
             else:
                 # No handler found - use fallback
@@ -145,9 +151,10 @@ class TagRenderer:
             if handler:
                 try:
                     handler.track_content(node, self.content_tracker)
-                except Exception:
-                    # Ignore tracking errors
-                    pass
+                except (AttributeError, ValueError, TypeError) as e:
+                    logger.debug("Content tracking failed for tag '%s': %s", node.tag_type, e)
+                except Exception as e:
+                    logger.warning("Unexpected error tracking content for '%s': %s", node.tag_type, e)
 
         # Track content in children
         for child in node.children:

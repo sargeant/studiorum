@@ -1,11 +1,14 @@
 """New tag resolver facade providing backward compatibility."""
 
+import logging
 from typing import Any, Callable, Dict, List
 
 from .content_tracker import ContentTracker
 from .tag_handlers import TagHandler
-from .tag_parser import TagParser
+from .tag_parser import TagParseError, TagParser
 from .tag_renderer import RendererContext, TagRenderer
+
+logger = logging.getLogger(__name__)
 
 
 class NewTagResolverFacade:
@@ -34,9 +37,11 @@ class NewTagResolverFacade:
             # Render AST to output
             return self.renderer.render_document(document)
 
-        except Exception:
-            # Fallback to original text on parse/render failure
-            # In production, you might want to log this error
+        except TagParseError as e:
+            logger.warning("Tag parsing failed for text '%s': %s", text[:50], e)
+            return text
+        except Exception as e:
+            logger.error("Unexpected error processing tags in text '%s': %s", text[:50], e)
             return text
 
     def register_tag_handler(self, tag_type: str, handler_func: Callable) -> None:
@@ -80,9 +85,10 @@ class NewTagResolverFacade:
         try:
             document = self.parser.parse(text)
             self.renderer.track_document_content(document)
-        except Exception:
-            # Ignore tracking errors
-            pass
+        except TagParseError as e:
+            logger.debug("Tag parsing failed during content tracking: %s", e)
+        except Exception as e:
+            logger.warning("Unexpected error tracking document content: %s", e)
 
     def get_supported_tag_types(self) -> List[str]:
         """Get all supported tag types."""
@@ -117,8 +123,11 @@ class LegacyHandlerWrapper(TagHandler):
             # Create a legacy TagMatch-like object for compatibility
             legacy_tag = LegacyTagMatch(node)
             return self.handler_func(legacy_tag)
-        except Exception:
-            # Fallback to node name
+        except (TypeError, AttributeError, ValueError) as e:
+            logger.warning("Legacy handler failed for tag type '%s': %s", self.tag_type, e)
+            return getattr(node, "name", str(node))
+        except Exception as e:
+            logger.error("Unexpected error in legacy handler for '%s': %s", self.tag_type, e)
             return getattr(node, "name", str(node))
 
     def track_content(self, node, tracker: ContentTracker) -> None:

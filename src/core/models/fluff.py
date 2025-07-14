@@ -1,8 +1,11 @@
 """Fluff content models for liberal parsing of descriptive content."""
 
+import logging
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator
+
+logger = logging.getLogger(__name__)
 
 
 class FluffImage(BaseModel):
@@ -129,15 +132,19 @@ class BaseFluff(BaseModel):
                     else:
                         # Treat as raw content - set content directly
                         parsed_entries.append(FluffEntry(content=str(entry)))
-                except Exception:
-                    # Skip invalid entries but keep going
+                except (ValidationError, TypeError, KeyError) as e:
+                    logger.debug("Skipping invalid fluff entry: %s - %s", entry, e)
+                    continue
+                except Exception as e:
+                    logger.warning("Unexpected error parsing fluff entry %s: %s", entry, e)
                     continue
             return parsed_entries
         else:
             # Single entry
             try:
                 return [FluffEntry(content=v)]
-            except Exception:
+            except (ValidationError, TypeError) as e:
+                logger.debug("Failed to parse single fluff entry '%s': %s", v, e)
                 return []
 
     @field_validator("images", mode="before")
@@ -153,8 +160,11 @@ class BaseFluff(BaseModel):
                 try:
                     if isinstance(img, dict):
                         parsed_images.append(FluffImage(**img))
-                except Exception:
-                    # Skip invalid images but keep going
+                except (ValidationError, TypeError, KeyError) as e:
+                    logger.debug("Skipping invalid image entry: %s - %s", img, e)
+                    continue
+                except Exception as e:
+                    logger.warning("Unexpected error parsing image %s: %s", img, e)
                     continue
             return parsed_images
         return []
