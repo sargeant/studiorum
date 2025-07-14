@@ -173,7 +173,11 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Rendered content
         """
-        content_type = ContentType.from_content(content)
+        try:
+            content_type = ContentType.from_content(content)
+        except ValueError:
+            # If content type is unknown, use basic rendering as a fallback
+            return self._render_basic_content(content, context)
 
         # Check if content should be included
         if not context.should_include_content_type(content_type.value):
@@ -182,7 +186,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         # Get appropriate renderer
         renderer = self.content_registry.get_renderer(content_type)
         if not renderer:
-            # Fallback to basic rendering
+            # Fallback to basic rendering if no specific renderer is found
             return self._render_basic_content(content, context)
 
         return renderer.render_content(content, context)
