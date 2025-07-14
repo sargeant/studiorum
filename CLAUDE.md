@@ -5,6 +5,7 @@ This is a python project to parse the json data files of D&D content from 5e.too
 ## Package Structure
 
 The project uses a standard Python package structure:
+
 - Package name: `dnd5e` (imports use `from dnd5e.*`)
 - Located in: `src/dnd5e/`
 - Entry point: `dnd5e.cli.main:app`
@@ -37,7 +38,7 @@ This workflow has the following stages;
 
 ## Explore
 
-First, use parallel subagents to find and read all files that may be useful for implementing the change, either as examples or as edit targets. The subagents should return relevant file paths, and any other info that may be useful. Don't forget to try using gemini if you have a large file or codebase to analyse.
+First, use parallel subagents to find and read all files that may be useful for implementing the change, either as examples or as edit targets. The subagents should return relevant file paths, and any other info that may be useful. Don't forget to try using gemini if you have a large file or codebase for analysis.
 
 ### Plan
 
@@ -49,7 +50,7 @@ If there are things you still do not understand or questions you have for me, pa
 
 ### Tests
 
-Make sure unit tests are added first with the expected behaviour of new additions. If you are changing how a feature operates, make sure the tests are present and correct.
+Make sure unit tests are added first with the expected behavior of new additions. If you are changing how a feature operates, make sure the tests are present and correct.
 
 Use parallel subagents to run tests, and make sure they all pass.
 
