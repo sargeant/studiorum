@@ -51,3 +51,43 @@ If your testing shows strange problems, go back to the plan stage and think ultr
 ### Code
 
 When you have a thorough implementation plan and unit tests, you are ready to start writing code. Follow the style of the existing codebase, although the target should be aligned to the defaults of the `ruff` linter. Fix linter warnings that seem reasonable to you.
+
+## Avoiding the Commit/Lint/Messy Trap
+
+When working with repositories that have pre-commit hooks (especially formatters like ruff format), you can easily get into a "messy git state" where:
+
+1. You stage changes with git add
+2. You commit with git commit
+3. Pre-commit hooks run and modify your files
+4. Now you have both staged and unstaged changes for the same file
+5. Git status shows a confusing mix of staged/unstaged changes
+
+### The Solution: Stage After Hooks
+
+Always stage files AFTER the pre-commit hooks have run, not before.
+
+Wrong Approach: ❌ Don't do this
+
+  git add file.py
+  git commit -m "message"  # hooks run and modify file.py
+
+Now file.py has both staged and unstaged changes, which leads to confusion.
+
+Right Approach: ✅ Do this instead
+
+  git commit -am "message"  # hooks run and modify files
+
+If hooks made changes, the commit fails but files are now properly formatted
+
+  git add -A  # stage all the hook-modified files
+  git commit -m "message"  # commit with properly formatted code
+
+### Best Practices
+
+  1. Never manually stage files before committing in repos with formatting hooks
+  2. Use git commit -am to automatically stage and commit, letting hooks run first
+  3. Always run git add -A after a failed commit due to hook modifications
+  4. Check git status before and after commits to ensure clean state
+  5. Consider using git commit --amend to fix up commits after hooks run
+
+In repositories with formatting hooks: format first, then stage, then commit.
