@@ -59,9 +59,9 @@ class TestContentSourceManager:
     def manager(self, mock_config):
         """Create ContentSourceManager with mocked dependencies."""
         with patch(
-            "src.core.sources.manager.get_content_config", return_value=mock_config
+            "dnd5e.core.sources.manager.get_content_config", return_value=mock_config
         ):
-            with patch("src.core.sources.manager.GitHubSourceManager") as mock_github:
+            with patch("dnd5e.core.sources.manager.GitHubSourceManager") as mock_github:
                 mock_github_instance = Mock(spec=GitHubSourceManager)
                 mock_github.return_value = mock_github_instance
                 manager = ContentSourceManager()
@@ -71,7 +71,7 @@ class TestContentSourceManager:
     # Initialization Tests
     def test_init_with_config(self, mock_config):
         """Test initialization with provided config."""
-        with patch("src.core.sources.manager.GitHubSourceManager") as mock_github:
+        with patch("dnd5e.core.sources.manager.GitHubSourceManager") as mock_github:
             manager = ContentSourceManager(mock_config)
             assert manager.config == mock_config
             assert isinstance(manager._content_index, dict)
@@ -84,9 +84,9 @@ class TestContentSourceManager:
         mock_config.cache_dir = Path("/tmp/cache")
 
         with patch(
-            "src.core.sources.manager.get_content_config", return_value=mock_config
+            "dnd5e.core.sources.manager.get_content_config", return_value=mock_config
         ):
-            with patch("src.core.sources.manager.GitHubSourceManager"):
+            with patch("dnd5e.core.sources.manager.GitHubSourceManager"):
                 manager = ContentSourceManager()
                 assert manager.config == mock_config
 
@@ -96,7 +96,7 @@ class TestContentSourceManager:
         """Test ensure_all_sources with no enabled sources."""
         mock_config.get_enabled_sources.return_value = []
 
-        with patch("src.core.sources.manager.logger") as mock_logger:
+        with patch("dnd5e.core.sources.manager.logger") as mock_logger:
             await manager.ensure_all_sources()
             mock_logger.warning.assert_called_once_with(
                 "No enabled content sources configured"
@@ -122,7 +122,7 @@ class TestContentSourceManager:
         manager.github_manager.is_git_available.return_value = True
         manager.github_manager.ensure_repository = AsyncMock()
 
-        with patch("src.core.sources.manager.logger") as mock_logger:
+        with patch("dnd5e.core.sources.manager.logger") as mock_logger:
             await manager.ensure_all_sources()
 
             # Check that the right number of sources is logged
@@ -151,7 +151,7 @@ class TestContentSourceManager:
         """Test successful GitHub source ensuring."""
         manager.github_manager.ensure_repository = AsyncMock()
 
-        with patch("src.core.sources.manager.logger") as mock_logger:
+        with patch("dnd5e.core.sources.manager.logger") as mock_logger:
             await manager._ensure_github_source(github_source)
 
             manager.github_manager.ensure_repository.assert_called_once_with(
@@ -166,7 +166,7 @@ class TestContentSourceManager:
             side_effect=Exception("Network error")
         )
 
-        with patch("src.core.sources.manager.logger") as mock_logger:
+        with patch("dnd5e.core.sources.manager.logger") as mock_logger:
             with pytest.raises(Exception, match="Network error"):
                 await manager._ensure_github_source(github_source)
 
@@ -178,7 +178,7 @@ class TestContentSourceManager:
     @pytest.mark.asyncio
     async def test_ensure_directory_source_success(self, manager, directory_source):
         """Test successful directory source ensuring."""
-        with patch("src.core.sources.manager.logger") as mock_logger:
+        with patch("dnd5e.core.sources.manager.logger") as mock_logger:
             await manager._ensure_directory_source(directory_source)
             mock_logger.info.assert_called_with(
                 "Directory source 'test-directory' is ready"
@@ -191,7 +191,7 @@ class TestContentSourceManager:
         """Test directory source ensuring when path doesn't exist."""
         directory_source.path = Path("/nonexistent/path")
 
-        with patch("src.core.sources.manager.logger") as mock_logger:
+        with patch("dnd5e.core.sources.manager.logger") as mock_logger:
             with pytest.raises(
                 FileNotFoundError, match="Directory source path not found"
             ):
@@ -241,7 +241,7 @@ class TestContentSourceManager:
         with patch.object(
             manager, "_get_source_files", return_value=mock_files
         ) as mock_get_files:
-            with patch("src.core.sources.manager.logger") as mock_logger:
+            with patch("dnd5e.core.sources.manager.logger") as mock_logger:
                 await manager.build_content_index(force_rebuild=True)
 
                 mock_get_files.assert_called_once_with(github_source)
@@ -259,7 +259,7 @@ class TestContentSourceManager:
         with patch.object(
             manager, "_get_source_files", side_effect=Exception("Test error")
         ):
-            with patch("src.core.sources.manager.logger") as mock_logger:
+            with patch("dnd5e.core.sources.manager.logger") as mock_logger:
                 await manager.build_content_index()
 
                 assert manager._content_index[github_source.name] == []
@@ -325,7 +325,7 @@ class TestContentSourceManager:
         source = Mock()
         source.type = "UNSUPPORTED"
 
-        with patch("src.core.sources.manager.logger") as mock_logger:
+        with patch("dnd5e.core.sources.manager.logger") as mock_logger:
             result = await manager._get_source_files(source)
 
             assert result == []
@@ -472,7 +472,7 @@ class TestContentSourceManager:
         """Test update_source for non-existent source."""
         mock_config.get_source_by_name.return_value = None
 
-        with patch("src.core.sources.manager.logger") as mock_logger:
+        with patch("dnd5e.core.sources.manager.logger") as mock_logger:
             result = await manager.update_source("nonexistent")
 
             assert result is False
@@ -490,7 +490,7 @@ class TestContentSourceManager:
             with patch.object(
                 manager, "_get_source_files", return_value=mock_files
             ) as mock_get_files:
-                with patch("src.core.sources.manager.logger") as mock_logger:
+                with patch("dnd5e.core.sources.manager.logger") as mock_logger:
                     result = await manager.update_source(github_source.name)
 
                     assert result is True
@@ -522,7 +522,7 @@ class TestContentSourceManager:
         with patch.object(
             manager, "_ensure_github_source", side_effect=Exception("Update failed")
         ):
-            with patch("src.core.sources.manager.logger") as mock_logger:
+            with patch("dnd5e.core.sources.manager.logger") as mock_logger:
                 result = await manager.update_source(github_source.name)
 
                 assert result is False
@@ -575,7 +575,7 @@ class TestContentSourceManager:
             "Removal failed"
         )
 
-        with patch("src.core.sources.manager.logger") as mock_logger:
+        with patch("dnd5e.core.sources.manager.logger") as mock_logger:
             result = await manager.remove_source_data(github_source.name)
 
             assert result is False
@@ -679,8 +679,10 @@ class TestContentSourceManagerIntegration:
         config.get_source_by_name.return_value = source
 
         # Test manager
-        with patch("src.core.sources.manager.get_content_config", return_value=config):
-            with patch("src.core.sources.manager.GitHubSourceManager"):
+        with patch(
+            "dnd5e.core.sources.manager.get_content_config", return_value=config
+        ):
+            with patch("dnd5e.core.sources.manager.GitHubSourceManager"):
                 manager = ContentSourceManager()
 
                 # Test source ensuring
