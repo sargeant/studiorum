@@ -41,7 +41,9 @@ class NewTagResolverFacade:
             logger.warning("Tag parsing failed for text '%s': %s", text[:50], e)
             return text
         except Exception as e:
-            logger.error("Unexpected error processing tags in text '%s': %s", text[:50], e)
+            logger.error(
+                "Unexpected error processing tags in text '%s': %s", text[:50], e
+            )
             return text
 
     def register_tag_handler(self, tag_type: str, handler_func: Callable) -> None:
@@ -124,10 +126,14 @@ class LegacyHandlerWrapper(TagHandler):
             legacy_tag = LegacyTagMatch(node)
             return self.handler_func(legacy_tag)
         except (TypeError, AttributeError, ValueError) as e:
-            logger.warning("Legacy handler failed for tag type '%s': %s", self.tag_type, e)
+            logger.warning(
+                "Legacy handler failed for tag type '%s': %s", self.tag_type, e
+            )
             return getattr(node, "name", str(node))
         except Exception as e:
-            logger.error("Unexpected error in legacy handler for '%s': %s", self.tag_type, e)
+            logger.error(
+                "Unexpected error in legacy handler for '%s': %s", self.tag_type, e
+            )
             return getattr(node, "name", str(node))
 
     def track_content(self, node, tracker: ContentTracker) -> None:

@@ -110,7 +110,9 @@ class TagRenderer:
                     logger.warning("Tag handler failed for '%s': %s", node.tag_type, e)
                     return self._fallback_render(node)
                 except Exception as e:
-                    logger.error("Unexpected error in tag handler for '%s': %s", node.tag_type, e)
+                    logger.error(
+                        "Unexpected error in tag handler for '%s': %s", node.tag_type, e
+                    )
                     return self._fallback_render(node)
             else:
                 # No handler found - use fallback
@@ -152,9 +154,15 @@ class TagRenderer:
                 try:
                     handler.track_content(node, self.content_tracker)
                 except (AttributeError, ValueError, TypeError) as e:
-                    logger.debug("Content tracking failed for tag '%s': %s", node.tag_type, e)
+                    logger.debug(
+                        "Content tracking failed for tag '%s': %s", node.tag_type, e
+                    )
                 except Exception as e:
-                    logger.warning("Unexpected error tracking content for '%s': %s", node.tag_type, e)
+                    logger.warning(
+                        "Unexpected error tracking content for '%s': %s",
+                        node.tag_type,
+                        e,
+                    )
 
         # Track content in children
         for child in node.children:

@@ -136,7 +136,9 @@ class BaseFluff(BaseModel):
                     logger.debug("Skipping invalid fluff entry: %s - %s", entry, e)
                     continue
                 except Exception as e:
-                    logger.warning("Unexpected error parsing fluff entry %s: %s", entry, e)
+                    logger.warning(
+                        "Unexpected error parsing fluff entry %s: %s", entry, e
+                    )
                     continue
             return parsed_entries
         else:
