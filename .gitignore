@@ -70,6 +70,7 @@ Thumbs.db
 validation_report.json
 validation_report.txt.coverage
 coverage.xml
+.coverage
 
 # AI tools
 .claude/
