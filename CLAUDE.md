@@ -26,7 +26,7 @@ This workflow has the following stages;
 - Plan
 - Write Tests
 - Code
-- Validate Tests
+- Validate Tests, iterating through changes to code/tests as needed
 
 ## Explore
 
@@ -38,7 +38,7 @@ Next, think hard and write up a detailed implementation plan. Don't forget to in
 
 If there are things you are not sure about, use parallel subagents to do some web research. They should only return useful information, no noise.
 
-If there are things you still do not understand or questions you have for the user, pause here to ask them before continuing.
+If there are things you still do not understand or questions you have for me, pause here to ask them before continuing.
 
 ### Tests
 
@@ -46,8 +46,8 @@ Make sure unit tests are added first with the expected behaviour of new addition
 
 Use parallel subagents to run tests, and make sure they all pass.
 
-If your testing shows problems, go back to the plan stage and think ultra-hard.
+If your testing shows strange problems, go back to the plan stage and think ultra-hard.
 
 ### Code
 
-When you have a thorough implementation plan and unit tests, you are ready to start writing code. Follow the style of the existing codebase, although the target should be aligned to the defaults in the `black` linter. Fix linter warnings that seem reasonable to you.
+When you have a thorough implementation plan and unit tests, you are ready to start writing code. Follow the style of the existing codebase, although the target should be aligned to the defaults of the `ruff` linter. Fix linter warnings that seem reasonable to you.
