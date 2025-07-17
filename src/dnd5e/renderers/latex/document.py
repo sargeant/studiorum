@@ -1,10 +1,13 @@
 """LaTeX document renderer implementation."""
 
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.document_metadata import DocumentMetadata, DocumentType
 from ..base import DocumentRenderer, RenderContext, RenderingError
+from .compilation_config import CompilationConfig, CompilationResult, LaTeXEngine
+from .compiler import LaTeXCompiler
 from .content import LaTeXContentRendererRegistry
 from .content_organizer import ContentOrganizer
 from .document_structure import DocumentStructureBuilder
@@ -25,6 +28,9 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         self.content_registry = LaTeXContentRendererRegistry()
         self.content_organizer = ContentOrganizer()
         self._structure_builder: Optional[DocumentStructureBuilder] = None
+
+        # Initialize LaTeX compiler
+        self.compiler = LaTeXCompiler(self._create_compilation_config(config))
 
     @property
     def output_format(self) -> str:
@@ -119,8 +125,12 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             template_name = "book"
 
         # Render the base document with structured sections
+        # Remove content_type from template_context to avoid conflict with positional argument
+        content_type = template_context.pop(
+            "content_type", metadata.document_type.value
+        )
         document = self.template_engine.render_dnd_template(
-            template_name, metadata.document_type.value, **template_context
+            template_name, content_type, **template_context
         )
 
         # Render individual content items within sections
@@ -384,3 +394,127 @@ This content type is not yet fully supported by the rendering system.
             result = result.replace(char, replacement)
 
         return result
+
+    def _create_compilation_config(
+        self, config: Dict[str, Any] = None
+    ) -> CompilationConfig:
+        """Create compilation configuration from renderer config.
+
+        Args:
+            config: Renderer configuration
+
+        Returns:
+            CompilationConfig instance
+        """
+        if not config:
+            config = {}
+
+        # Extract compilation-specific settings
+        compilation_config = CompilationConfig()
+
+        # Map renderer config to compilation config
+        if "latex_engine" in config:
+            engine_name = config["latex_engine"].lower()
+            for engine in LaTeXEngine:
+                if engine.value == engine_name:
+                    compilation_config.primary_engine = engine
+                    break
+
+        if "compilation_timeout" in config:
+            compilation_config.timeout_seconds = config["compilation_timeout"]
+
+        if "max_passes" in config:
+            compilation_config.max_passes = config["max_passes"]
+
+        if "show_progress" in config:
+            compilation_config.show_progress = config["show_progress"]
+
+        if "keep_temp_files" in config:
+            compilation_config.keep_intermediate_files = config["keep_temp_files"]
+
+        if "output_dir" in config:
+            compilation_config.output_dir = Path(config["output_dir"])
+
+        return compilation_config
+
+    def compile_to_pdf(
+        self,
+        content: BaseContent,
+        output_path: Optional[Path] = None,
+        context: Dict[str, Any] = None,
+    ) -> CompilationResult:
+        """Compile a single content item to PDF.
+
+        Args:
+            content: Content to compile
+            output_path: Path for output PDF (auto-generated if None)
+            context: Optional rendering context
+
+        Returns:
+            CompilationResult with compilation details
+        """
+        render_context = RenderContext(**(context or {}))
+        latex_source = self.render_document([content], render_context)
+
+        output_name = output_path.stem if output_path else content.name
+        working_dir = output_path.parent if output_path else None
+
+        return self.compiler.compile_document(latex_source, output_name, working_dir)
+
+    def compile_document_to_pdf(
+        self,
+        content_items: List[BaseContent],
+        output_path: Optional[Path] = None,
+        context: RenderContext = None,
+    ) -> CompilationResult:
+        """Compile multiple content items to PDF.
+
+        Args:
+            content_items: List of content to compile
+            output_path: Path for output PDF (auto-generated if None)
+            context: Optional rendering context
+
+        Returns:
+            CompilationResult with compilation details
+        """
+        if not context:
+            context = RenderContext()
+
+        # Generate LaTeX source
+        latex_source = self.render_document(content_items, context)
+
+        # Determine output configuration
+        if output_path:
+            output_name = output_path.stem
+            working_dir = output_path.parent
+        else:
+            output_name = context.title or "document"
+            working_dir = self.compiler.config.output_dir
+
+        # Compile to PDF
+        result = self.compiler.compile_document(latex_source, output_name, working_dir)
+
+        # Move output file to requested location if needed
+        if output_path and result.success and result.output_file:
+            if result.output_file != output_path:
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                result.output_file.rename(output_path)
+                result.output_file = output_path
+
+        return result
+
+    def validate_latex_environment(self) -> Dict[str, bool]:
+        """Validate the LaTeX compilation environment.
+
+        Returns:
+            Dictionary of validation results
+        """
+        return self.compiler.validate_environment()
+
+    def get_available_engines(self) -> List:
+        """Get available LaTeX engines.
+
+        Returns:
+            List of available LaTeX engines
+        """
+        return self.compiler.get_available_engines()

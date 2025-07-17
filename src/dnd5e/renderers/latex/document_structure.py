@@ -59,7 +59,7 @@ class DocumentStructureBuilder:
         Returns:
             Dictionary mapping content types to lists of content
         """
-        organized = {}
+        organized: Dict[str, List[BaseContent]] = {}
 
         for item in content_items:
             try:
