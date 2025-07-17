@@ -1,34 +1,35 @@
 % Base LaTeX template for D&D 5e documents using DND-5e-LaTeX-Template
 % This template provides the foundation for all D&D-style documents
 
-\documentclass[<# font_size #>,<# paper_size #>,<# layout_options #>]{<# document_class #>}
+<#-- Build document class line with options --#>
+\documentclass[<# class_options | join(', ') #>]{<# document_class | default('dndbook') #>}
 
 <#-- Document configuration --#>
 <@ block document_packages @>
-% Core packages
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{geometry}
-\usepackage{xcolor}
-\usepackage{graphicx}
-\usepackage{float}
-\usepackage{array}
-\usepackage{longtable}
-\usepackage{booktabs}
-\usepackage{enumitem}
-\usepackage{hyperref}
+% DND-5e-LaTeX-Template provides most styling automatically
+% Only include additional packages if needed
 
-% DND-specific packages and configuration
-<@ if fonts_dir @>
+<@ if use_custom_fonts @>
+% Custom font configuration (only if not using template defaults)
 \usepackage{fontspec}
-\setmainfont{BookSanity}[
-    Path = <# fonts_dir #>/,
-    Extension = .otf,
-    UprightFont = *,
-    BoldFont = *-Bold,
-    ItalicFont = *-Italic,
-    BoldItalicFont = *-BoldItalic
-]
+<@ if main_font @>
+\setmainfont{<# main_font #>}
+<@ endif @>
+<@ if sans_font @>
+\setsansfont{<# sans_font #>}
+<@ endif @>
+<@ if mono_font @>
+\setmonofont{<# mono_font #>}
+<@ endif @>
+<@ endif @>
+
+% Additional packages for enhanced functionality
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{makeidx}
+
+<@ if enable_index @>
+\makeindex
 <@ endif @>
 <@ endblock @>
 
@@ -50,21 +51,35 @@
 
 <#-- Additional configuration --#>
 <@ block document_config @>
-% Hyperlink configuration
+% Hyperlink configuration optimized for DND template
 \hypersetup{
     colorlinks=true,
     linkcolor=DndRed,
     urlcolor=DndRed,
     citecolor=DndRed,
+    filecolor=DndRed,
+    bookmarks=true,
+    bookmarksopen=true,
+    bookmarksnumbered=true,
     <@ if title @>
     pdftitle={<# title | latex_escape #>},
     <@ endif @>
     <@ if author @>
     pdfauthor={<# author | latex_escape #>},
     <@ endif @>
+    <@ if subject @>
+    pdfsubject={<# subject | latex_escape #>},
+    <@ else @>
     pdfsubject={D&D 5e Content},
-    pdfkeywords={D&D, 5e, RPG, tabletop}
+    <@ endif @>
+    pdfkeywords={D&D, 5e, RPG, tabletop, <# keywords | default('') | latex_escape #>}
 }
+
+<@ if enable_line_numbers @>
+% Line numbers for debugging (optional)
+\usepackage{lineno}
+\linenumbers
+<@ endif @>
 <@ endblock @>
 
 <#-- Document structure --#>

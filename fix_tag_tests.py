@@ -29,7 +29,7 @@ def replace_usage(match):
     # Extract the text line and result line
     lines = old_usage.split("\n")
     text_line = lines[0]
-    result_line = lines[1].strip()
+    lines[1].strip()
 
     return f"{indent}resolver = await tag_resolver\n{indent}{text_line}\n{indent}result = resolver.process_text(text)"
 

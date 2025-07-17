@@ -2,10 +2,13 @@
 
 import re
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import jinja2
 from jinja2 import Environment, FileSystemLoader, Template
+
+from ...core.config.latex_config import LaTeXConfig, get_default_latex_config
+from .dnd_template import DNDTemplateManager, check_dnd_template_status
 
 
 class LaTeXTemplateEngine:
@@ -27,6 +30,12 @@ class LaTeXTemplateEngine:
             self.config.get("templates_dir", "src/dnd5e/renderers/latex/templates")
         )
         self.debug = self.config.get("debug", False)
+
+        # Initialize LaTeX configuration
+        self.latex_config = get_default_latex_config()
+
+        # Initialize DND template manager
+        self.dnd_manager = DNDTemplateManager()
 
         # Create templates directory if it doesn't exist
         self.templates_dir.mkdir(parents=True, exist_ok=True)
@@ -308,3 +317,125 @@ class LaTeXTemplateEngine:
         }
         context.update(kwargs)
         return context
+
+    def check_dnd_template_availability(self) -> bool:
+        """Check if DND-5e-LaTeX-Template is available.
+
+        Returns:
+            True if template is available and ready to use
+        """
+        return check_dnd_template_status()
+
+    def get_dnd_template_status(self) -> Dict[str, Any]:
+        """Get detailed DND template status information.
+
+        Returns:
+            Dictionary with template status details
+        """
+        template_available, missing_files = (
+            self.dnd_manager.check_template_availability()
+        )
+        latex_available, latex_version = self.dnd_manager.check_latex_installation()
+        packages_available, missing_packages = (
+            self.dnd_manager.check_required_packages()
+        )
+
+        return {
+            "template_available": template_available,
+            "missing_template_files": missing_files,
+            "latex_available": latex_available,
+            "latex_version": latex_version,
+            "packages_available": packages_available,
+            "missing_packages": missing_packages,
+            "system_info": self.dnd_manager.get_system_info(),
+        }
+
+    def create_dnd_template_context(
+        self, content_type: str = "book", **kwargs
+    ) -> Dict[str, Any]:
+        """Create template context optimized for DND template usage.
+
+        Args:
+            content_type: Type of content being rendered
+            **kwargs: Additional context variables
+
+        Returns:
+            Template context with DND-specific configuration
+        """
+        # Get content-specific configuration
+        content_config = self.latex_config.get_content_type_config(content_type)
+
+        # Create base context
+        context = self.create_template_context(**kwargs)
+
+        # Add DND-specific configuration
+        context.update(
+            {
+                "document_class": content_config["document_class"],
+                "class_options": content_config["class_options"],
+                "content_type": content_type,
+                "use_dnd_template": True,
+                "dnd_template_available": self.check_dnd_template_availability(),
+            }
+        )
+
+        # Add LaTeX document configuration
+        doc_config = self.latex_config.document
+        context.update(
+            {
+                "font_scheme": doc_config.font_scheme,
+                "paper_size": doc_config.paper_size,
+                "font_size": doc_config.font_size,
+                "enable_background": doc_config.enable_background,
+                "high_contrast": doc_config.high_contrast,
+                "justified_text": doc_config.justified_text,
+                "fancy_headers": doc_config.fancy_headers,
+                "two_column": doc_config.two_column,
+                "show_toc": doc_config.include_toc,
+                "show_index": doc_config.include_index,
+                "enable_index": doc_config.include_index,
+            }
+        )
+
+        return context
+
+    def render_dnd_template(
+        self, template_name: str, content_type: str = "book", **kwargs
+    ) -> str:
+        """Render template with DND-specific configuration.
+
+        Args:
+            template_name: Name of template to render
+            content_type: Type of content being rendered
+            **kwargs: Additional context variables
+
+        Returns:
+            Rendered template content
+
+        Raises:
+            RuntimeError: If DND template is not available
+        """
+        # Check DND template availability
+        if not self.check_dnd_template_availability():
+            raise RuntimeError(
+                "DND-5e-LaTeX-Template is not available. "
+                "Please install the template before rendering."
+            )
+
+        # Create DND-optimized context
+        context = self.create_dnd_template_context(content_type, **kwargs)
+
+        # Render template
+        return self.render_template(template_name, context)
+
+    def get_installation_guide(self) -> str:
+        """Get DND template installation guide.
+
+        Returns:
+            Installation guide text
+        """
+        return self.dnd_manager.create_installation_guide()
+
+    def print_dnd_status_report(self):
+        """Print comprehensive DND template status report."""
+        self.dnd_manager.print_status_report()
