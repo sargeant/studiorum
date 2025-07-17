@@ -1,0 +1,99 @@
+% Base LaTeX template for D&D 5e documents using DND-5e-LaTeX-Template
+% This template provides the foundation for all D&D-style documents
+
+\documentclass[<# font_size #>,<# paper_size #>,<# layout_options #>]{<# document_class #>}
+
+<#-- Document configuration --#>
+<@ block document_packages @>
+% Core packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+% DND-specific packages and configuration
+<@ if fonts_dir @>
+\usepackage{fontspec}
+\setmainfont{BookSanity}[
+    Path = <# fonts_dir #>/,
+    Extension = .otf,
+    UprightFont = *,
+    BoldFont = *-Bold,
+    ItalicFont = *-Italic,
+    BoldItalicFont = *-BoldItalic
+]
+<@ endif @>
+<@ endblock @>
+
+<#-- Document metadata --#>
+<@ block document_metadata @>
+<@ if title @>
+\title{<# title | latex_escape #>}
+<@ endif @>
+<@ if subtitle @>
+\subtitle{<# subtitle | latex_escape #>}
+<@ endif @>
+<@ if author @>
+\author{<# author | latex_escape #>}
+<@ endif @>
+<@ if date @>
+\date{<# date | latex_escape #>}
+<@ endif @>
+<@ endblock @>
+
+<#-- Additional configuration --#>
+<@ block document_config @>
+% Hyperlink configuration
+\hypersetup{
+    colorlinks=true,
+    linkcolor=DndRed,
+    urlcolor=DndRed,
+    citecolor=DndRed,
+    <@ if title @>
+    pdftitle={<# title | latex_escape #>},
+    <@ endif @>
+    <@ if author @>
+    pdfauthor={<# author | latex_escape #>},
+    <@ endif @>
+    pdfsubject={D&D 5e Content},
+    pdfkeywords={D&D, 5e, RPG, tabletop}
+}
+<@ endblock @>
+
+<#-- Document structure --#>
+\begin{document}
+
+<@ block document_header @>
+<@ if show_title_page @>
+% Title page
+\maketitle
+\thispagestyle{empty}
+\clearpage
+<@ endif @>
+<@ endblock @>
+
+<@ block table_of_contents @>
+<@ if show_toc @>
+\tableofcontents
+\clearpage
+<@ endif @>
+<@ endblock @>
+
+<@ block document_body @>
+<#-- Main content goes here --#>
+<@ endblock @>
+
+<@ block document_footer @>
+<@ if show_index @>
+\printindex
+<@ endif @>
+<@ endblock @>
+
+\end{document}

@@ -81,57 +81,68 @@ class TestLaTeXTemplateEngine:
         """Test template engine creation."""
         engine = LaTeXTemplateEngine()
         assert engine is not None
-        assert len(engine._template_cache) > 0
+        assert engine.templates_dir is not None
 
     def test_builtin_templates_loaded(self):
-        """Test that built-in templates are loaded."""
+        """Test that built-in templates are available."""
         engine = LaTeXTemplateEngine()
 
         required_templates = [
-            "document_header",
-            "document_footer",
             "spell",
             "creature",
             "item",
         ]
 
         for template_name in required_templates:
-            assert template_name in engine._template_cache
+            assert engine.template_exists(template_name)
 
     def test_render_simple_template(self):
         """Test rendering template with variables."""
         engine = LaTeXTemplateEngine()
 
-        # Add a simple test template
-        engine._template_cache["test"] = "Hello {name}, you are {age} years old."
+        # Create a simple test template
+        test_template = engine.templates_dir / "test.tex.j2"
+        test_template.write_text("Hello <# name #>, you are <# age #> years old.")
 
-        result = engine.render_template("test", {"name": "Alice", "age": 25})
-        assert result == "Hello Alice, you are 25 years old."
+        try:
+            result = engine.render_template("test", {"name": "Alice", "age": 25})
+            assert result == "Hello Alice, you are 25 years old."
+        finally:
+            test_template.unlink(missing_ok=True)
 
     def test_render_template_with_conditionals(self):
         """Test template with conditional blocks."""
         engine = LaTeXTemplateEngine()
 
-        engine._template_cache["conditional"] = """
-Name: {name}
-{% if age %}
-Age: {age}
-{% endif %}
-""".strip()
+        # Create a conditional test template
+        conditional_template = engine.templates_dir / "conditional.tex.j2"
+        conditional_template.write_text("""Name: <# name #>
+<@ if age @>
+Age: <# age #>
+<@ endif @>""")
 
-        # With age
-        result1 = engine.render_template("conditional", {"name": "Alice", "age": 25})
-        assert "Age: 25" in result1
+        try:
+            # With age
+            result1 = engine.render_template(
+                "conditional", {"name": "Alice", "age": 25}
+            )
+            assert "Age: 25" in result1
 
-        # Without age
-        result2 = engine.render_template("conditional", {"name": "Bob", "age": None})
-        assert "Age:" not in result2
+            # Without age
+            result2 = engine.render_template(
+                "conditional", {"name": "Bob", "age": None}
+            )
+            assert "Age:" not in result2
+        finally:
+            conditional_template.unlink(missing_ok=True)
 
     def test_unknown_template(self):
         """Test error handling for unknown template."""
         engine = LaTeXTemplateEngine()
 
-        with pytest.raises(ValueError, match="Template 'unknown' not found"):
+        with pytest.raises(
+            FileNotFoundError, match="Template 'unknown.tex.j2' not found"
+        ):
             engine.render_template("unknown", {})
 
 

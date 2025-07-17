@@ -1,0 +1,203 @@
+% Reference template for D&D 5e quick reference sheets and tables
+% Uses dndarticle document class with compact layout
+
+<@ extends "base.tex.j2" @>
+
+<@ set document_class = "dndarticle" @>
+<@ set layout_options = "10pt,a4paper,twoside,bg=print,twocolumn,openany,nodeprecatedcode" @>
+
+<@ block document_packages @>
+<# super() #>
+
+% Additional packages for reference layout
+\usepackage{multicol}
+\usepackage{wrapfig}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\usepackage{tabularx}
+\usepackage{ltxtable}
+\usepackage{supertabular}
+<@ endblock @>
+
+<@ block document_config @>
+<# super() #>
+
+% Reference-specific configuration
+\setlength{\columnsep}{0.8cm}
+\setlength{\columnseprule}{0.1pt}
+
+% Compact section styling for references
+\titleformat{\section}
+    {\normalfont\scshape\large\color{DndRed}}
+    {\thesection}{1em}{}
+
+\titleformat{\subsection}
+    {\normalfont\scshape\normalsize}
+    {\thesubsection}{1em}{}
+
+% Very tight spacing for reference content
+\setlength{\parskip}{0.25em}
+\setlength{\itemsep}{0.1em}
+\setlength{\parsep}{0.1em}
+\setlength{\topsep}{0.1em}
+
+% Compact table styling
+\renewcommand{\arraystretch}{1.1}
+\setlength{\tabcolsep}{0.5em}
+<@ endblock @>
+
+<@ block document_body @>
+<@ if introduction @>
+\section*{Quick Reference}
+<# introduction #>
+<@ endif @>
+
+<#-- Render tables --#>
+<@ if tables @>
+<@ for table in tables @>
+\section{<# table.title | latex_escape #>}
+
+<@ if table.description @>
+<# table.description #>
+<@ endif @>
+
+\begin{table}[H]
+\centering
+\begin{tabular}{<# table.column_spec #>}
+\toprule
+<@ for header in table.headers @>
+\textbf{<# header | latex_escape #>}<@ if not loop.last @> & <@ endif @>
+<@ endfor @> \\
+\midrule
+<@ for row in table.rows @>
+<@ for cell in row @>
+<# cell | latex_escape #><@ if not loop.last @> & <@ endif @>
+<@ endfor @> \\
+<@ endfor @>
+\bottomrule
+\end{tabular}
+<@ if table.caption @>
+\caption{<# table.caption | latex_escape #>}
+<@ endif @>
+\end{table}
+
+<@ endfor @>
+<@ endif @>
+
+<#-- Render spell lists in compact format --#>
+<@ if spells @>
+<@ if spells_by_level @>
+<@ for level, spell_list in spells_by_level.items() @>
+\section{<@ if level == 0 @>Cantrips<@ else @>Level <# level #> Spells<@ endif @>}
+
+<@ for spell in spell_list @>
+\textbf{<# spell.name | latex_escape #>} \\
+\textit{<# spell.level | dnd_spell_level #> <# spell.school | latex_escape #>} \\
+\textbf{Time:} <# spell.casting_time | latex_escape #> \textbf{Range:} <# spell.range | latex_escape #> \\
+\textbf{Components:} <# spell.components | latex_escape #> \textbf{Duration:} <# spell.duration | latex_escape #> \\
+<# spell.description #>
+
+<@ if spell.higher_levels @>
+\textbf{Higher Levels:} <# spell.higher_levels #>
+<@ endif @>
+
+<@ endfor @>
+<@ endfor @>
+
+<@ else @>
+\section{Spells}
+<@ for spell in spells @>
+\textbf{<# spell.name | latex_escape #>} \\
+\textit{<# spell.level | dnd_spell_level #> <# spell.school | latex_escape #>} \\
+\textbf{Time:} <# spell.casting_time | latex_escape #> \textbf{Range:} <# spell.range | latex_escape #> \\
+\textbf{Components:} <# spell.components | latex_escape #> \textbf{Duration:} <# spell.duration | latex_escape #> \\
+<# spell.description #>
+
+<@ if spell.higher_levels @>
+\textbf{Higher Levels:} <# spell.higher_levels #>
+<@ endif @>
+
+<@ endfor @>
+<@ endif @>
+<@ endif @>
+
+<#-- Render items in compact format --#>
+<@ if items @>
+\section{Magic Items}
+<@ for item in items @>
+\textbf{<# item.name | latex_escape #>} \\
+\textit{<# item.type | latex_escape #><@ if item.rarity @>, <# item.rarity | latex_escape #><@ endif @><@ if item.requires_attunement @> (requires attunement)<@ endif @>} \\
+<# item.description #>
+
+<@ if item.properties @>
+\textbf{Properties:} <# item.properties | latex_escape #>
+<@ endif @>
+
+<@ endfor @>
+<@ endif @>
+
+<#-- Render creatures in stat block format --#>
+<@ if creatures @>
+\section{Creatures}
+<@ for creature in creatures @>
+\textbf{<# creature.name | latex_escape #>} \\
+\textit{<# creature.size | latex_escape #> <# creature.type | latex_escape #>, <# creature.alignment | latex_escape #>} \\
+\textbf{AC} <# creature.ac.value #> \textbf{HP} <# creature.hp.average #> \textbf{Speed} <# creature.speed | latex_escape #> \\
+\textbf{STR} <# creature.str #> (<# creature.str | dnd_ability_modifier #>) \textbf{DEX} <# creature.dex #> (<# creature.dex | dnd_ability_modifier #>) \textbf{CON} <# creature.con #> (<# creature.con | dnd_ability_modifier #>) \\
+\textbf{INT} <# creature.int #> (<# creature.int | dnd_ability_modifier #>) \textbf{WIS} <# creature.wis #> (<# creature.wis | dnd_ability_modifier #>) \textbf{CHA} <# creature.cha #> (<# creature.cha | dnd_ability_modifier #>) \\
+<@ if creature.skills @>
+\textbf{Skills} <# creature.skills | latex_escape #> \\
+<@ endif @>
+<@ if creature.damage_immunities @>
+\textbf{Damage Immunities} <# creature.damage_immunities | latex_escape #> \\
+<@ endif @>
+<@ if creature.condition_immunities @>
+\textbf{Condition Immunities} <# creature.condition_immunities | latex_escape #> \\
+<@ endif @>
+<@ if creature.senses @>
+\textbf{Senses} <# creature.senses | latex_escape #> \\
+<@ endif @>
+<@ if creature.languages @>
+\textbf{Languages} <# creature.languages | latex_escape #> \\
+<@ endif @>
+\textbf{CR} <# creature.cr | dnd_challenge_rating #> \\
+
+<@ if creature.traits @>
+<@ for trait in creature.traits @>
+\textbf{<# trait.name | latex_escape #>.} <# trait.description #>
+<@ endfor @>
+<@ endif @>
+
+<@ if creature.actions @>
+\textbf{Actions} \\
+<@ for action in creature.actions @>
+\textbf{<# action.name | latex_escape #>.} <# action.description #>
+<@ endfor @>
+<@ endif @>
+
+<@ if creature.legendary_actions @>
+\textbf{Legendary Actions} \\
+<@ for action in creature.legendary_actions @>
+\textbf{<# action.name | latex_escape #>.} <# action.description #>
+<@ endfor @>
+<@ endif @>
+
+<@ endfor @>
+<@ endif @>
+
+<#-- Custom sections --#>
+<@ if sections @>
+<@ for section in sections @>
+\section{<# section.title | latex_escape #>}
+<# section.content #>
+
+<@ if section.subsections @>
+<@ for subsection in section.subsections @>
+\subsection{<# subsection.title | latex_escape #>}
+<# subsection.content #>
+<@ endfor @>
+<@ endif @>
+
+<@ endfor @>
+<@ endif @>
+<@ endblock @>
