@@ -1,5 +1,5 @@
 % Base LaTeX template for D&D 5e documents using DND-5e-LaTeX-Template
-% This template provides the foundation for all D&D-style documents
+% This template provides the foundation for all D&D-style documents with structured content
 
 <#-- Build document class line with options --#>
 \documentclass[<# class_options | join(', ') #>]{<# document_class | default('dndbook') #>}
@@ -35,6 +35,17 @@
 
 <#-- Document metadata --#>
 <@ block document_metadata @>
+<@ if metadata @>
+\title{<# metadata.title | latex_escape #>}
+<@ if metadata.subtitle @>
+\subtitle{<# metadata.subtitle | latex_escape #>}
+<@ endif @>
+<@ if metadata.authors @>
+\author{<# metadata.get_author_list() | latex_escape #>}
+<@ endif @>
+\date{<# metadata.get_formatted_date() | latex_escape #>}
+<@ else @>
+<#-- Fallback to legacy metadata format --#>
 <@ if title @>
 \title{<# title | latex_escape #>}
 <@ endif @>
@@ -46,6 +57,7 @@
 <@ endif @>
 <@ if date @>
 \date{<# date | latex_escape #>}
+<@ endif @>
 <@ endif @>
 <@ endblock @>
 
@@ -86,28 +98,65 @@
 \begin{document}
 
 <@ block document_header @>
-<@ if show_title_page @>
+<@ if use_frontmatter @>
+\frontmatter
+<@ endif @>
+
+<@ if show_title_page or (metadata and metadata.cover) @>
 % Title page
 \maketitle
 \thispagestyle{empty}
+<@ if use_frontmatter @>
 \clearpage
+<@ else @>
+\newpage
+<@ endif @>
 <@ endif @>
 <@ endblock @>
 
 <@ block table_of_contents @>
-<@ if show_toc @>
+<@ if show_toc or (metadata and metadata.include_toc) @>
+<@ if use_frontmatter @>
+% Table of Contents in frontmatter
+<@ endif @>
 \tableofcontents
 \clearpage
 <@ endif @>
 <@ endblock @>
 
+<@ block document_structure @>
+<@ if use_frontmatter @>
+\mainmatter
+<@ endif @>
+
+<#-- Structured content sections --#>
+<@ if sections @>
+<@ for section in sections @>
+<@ include 'section.tex.j2' @>
+<@ endfor @>
+<@ else @>
+<#-- Fallback to legacy content block --#>
 <@ block document_body @>
 <#-- Main content goes here --#>
 <@ endblock @>
+<@ endif @>
+<@ endblock @>
 
 <@ block document_footer @>
-<@ if show_index @>
+<@ if use_frontmatter and (show_index or (metadata and metadata.include_index)) @>
+\backmatter
+<@ endif @>
+
+<@ if show_index or (metadata and metadata.include_index) @>
 \printindex
+<@ endif @>
+
+<@ if metadata and metadata.include_bibliography @>
+% Bibliography would go here
+<@ endif @>
+
+<@ if metadata and metadata.include_glossary @>
+% Glossary would go here
 <@ endif @>
 <@ endblock @>
 

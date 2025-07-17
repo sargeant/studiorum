@@ -1,11 +1,14 @@
 """LaTeX document renderer implementation."""
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from ...core.models.content import BaseContent, ContentType
+from ...core.models.document_metadata import DocumentMetadata, DocumentType
 from ..base import DocumentRenderer, RenderContext, RenderingError
 from .content import LaTeXContentRendererRegistry
-from .templates import LaTeXTemplateEngine
+from .content_organizer import ContentOrganizer
+from .document_structure import DocumentStructureBuilder
+from .template_engine import LaTeXTemplateEngine
 
 
 class LaTeXDocumentRenderer(DocumentRenderer):
@@ -20,6 +23,8 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         super().__init__(config)
         self.template_engine = LaTeXTemplateEngine(config)
         self.content_registry = LaTeXContentRendererRegistry()
+        self.content_organizer = ContentOrganizer()
+        self._structure_builder: Optional[DocumentStructureBuilder] = None
 
     @property
     def output_format(self) -> str:
@@ -52,31 +57,151 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             Complete LaTeX document
         """
         try:
-            # Build document sections
-            sections = []
+            # Check if structured document rendering is requested
+            if hasattr(context, "metadata") and context.metadata:
+                return self.render_structured_document(content_items, context)
 
-            # Document header
-            sections.append(self.render_document_header(context))
-
-            # Table of contents (if enabled)
-            if context.include_toc and len(content_items) > 1:
-                sections.append(self.render_table_of_contents(content_items, context))
-
-            # Main content
-            for item in content_items:
-                sections.append(self.render_content_item(item, context))
-
-            # Index (if enabled)
-            if context.include_index:
-                sections.append(self.render_index(content_items, context))
-
-            # Document footer
-            sections.append(self.render_document_footer(context))
-
-            return "\n\n".join(filter(None, sections))
+            # Fallback to legacy document rendering
+            return self.render_legacy_document(content_items, context)
 
         except Exception as e:
             raise RenderingError(f"Failed to render LaTeX document: {e}") from e
+
+    def render_structured_document(
+        self, content_items: List[BaseContent], context: RenderContext
+    ) -> str:
+        """Render a structured LaTeX document using DocumentStructureBuilder.
+
+        Args:
+            content_items: List of content to include
+            context: Rendering context with metadata
+
+        Returns:
+            Complete structured LaTeX document
+        """
+        # Get document metadata from context
+        metadata = getattr(context, "metadata", None)
+        if not metadata:
+            # Create default metadata if none provided
+            metadata = DocumentMetadata(
+                title=context.title or "D&D 5e Content", document_type=DocumentType.BOOK
+            )
+
+        # Initialize structure builder
+        self._structure_builder = DocumentStructureBuilder(metadata)
+        self.content_organizer.document_type = metadata.document_type
+
+        # Organize content and build structure
+        self.content_organizer.organize_content(content_items)
+        sections, document_context = self._structure_builder.build_document_structure(
+            content_items, context
+        )
+
+        # Create template context
+        template_context = self.template_engine.create_dnd_template_context(
+            content_type=metadata.document_type.value
+        )
+
+        # Add document structure data
+        template_context.update(document_context)
+        template_context.update(
+            {
+                "show_title_page": True,
+                "show_toc": metadata.include_toc,
+                "show_index": metadata.include_index,
+            }
+        )
+
+        # Render using appropriate template based on document type
+        if metadata.document_type == DocumentType.ARTICLE:
+            template_name = "article"
+        else:
+            template_name = "book"
+
+        # Render the base document with structured sections
+        document = self.template_engine.render_dnd_template(
+            template_name, metadata.document_type.value, **template_context
+        )
+
+        # Render individual content items within sections
+        rendered_document = self._render_content_in_sections(
+            document, sections, context
+        )
+
+        return rendered_document
+
+    def render_legacy_document(
+        self, content_items: List[BaseContent], context: RenderContext
+    ) -> str:
+        """Render a document using the legacy approach.
+
+        Args:
+            content_items: List of content to include
+            context: Rendering context
+
+        Returns:
+            Complete LaTeX document
+        """
+        # Build document sections
+        sections = []
+
+        # Document header
+        sections.append(self.render_document_header(context))
+
+        # Table of contents (if enabled)
+        if context.include_toc and len(content_items) > 1:
+            sections.append(self.render_table_of_contents(content_items, context))
+
+        # Main content
+        for item in content_items:
+            sections.append(self.render_content_item(item, context))
+
+        # Index (if enabled)
+        if context.include_index:
+            sections.append(self.render_index(content_items, context))
+
+        # Document footer
+        sections.append(self.render_document_footer(context))
+
+        return "\n\n".join(filter(None, sections))
+
+    def _render_content_in_sections(
+        self, document: str, sections, context: RenderContext
+    ) -> str:
+        """Render content items within document sections.
+
+        Args:
+            document: Base document template
+            sections: Document sections with content items
+            context: Rendering context
+
+        Returns:
+            Document with content rendered in sections
+        """
+        from ...core.models.document_metadata import ContentSection
+
+        # This is a placeholder implementation
+        # In practice, we would need to replace section placeholders
+        # with actual rendered content
+
+        for section in sections:
+            if isinstance(section, ContentSection) and section.content_items:
+                # Render each content item in the section
+                rendered_items = []
+                for item in section.content_items:
+                    rendered_item = self.render_content_item(item, context)
+                    if rendered_item:
+                        rendered_items.append(rendered_item)
+
+                # For now, we'll append a comment indicating where content should go
+                # Future enhancement would replace specific placeholders in the template
+                content_placeholder = f"% Content for {section.title}"
+                if content_placeholder in document:
+                    document = document.replace(
+                        content_placeholder, "\n".join(rendered_items)
+                    )
+
+        return document
 
     def render_document_header(self, context: RenderContext) -> str:
         """Render LaTeX document preamble and begin document.
@@ -98,7 +223,11 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             "fonts_dir": str(context.fonts_dir) if context.fonts_dir else None,
         }
 
-        return self.template_engine.render_template("document_header", template_vars)
+        # Use legacy template engine for compatibility
+        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
+
+        legacy_engine = LegacyTemplateEngine()
+        return legacy_engine.render_template("document_header", template_vars)
 
     def render_document_footer(self, context: RenderContext) -> str:
         """Render LaTeX document footer.
@@ -109,7 +238,11 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             LaTeX document footer
         """
-        return self.template_engine.render_template("document_footer", {})
+        # Use legacy template engine for compatibility
+        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
+
+        legacy_engine = LegacyTemplateEngine()
+        return legacy_engine.render_template("document_footer", {})
 
     def render_table_of_contents(
         self, content_items: List[BaseContent], context: RenderContext
@@ -128,7 +261,11 @@ class LaTeXDocumentRenderer(DocumentRenderer):
 
         template_vars = {"content_items": content_items, "title": "Table of Contents"}
 
-        return self.template_engine.render_template("table_of_contents", template_vars)
+        # Use legacy template engine for compatibility
+        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
+
+        legacy_engine = LegacyTemplateEngine()
+        return legacy_engine.render_template("table_of_contents", template_vars)
 
     def render_index(
         self, content_items: List[BaseContent], context: RenderContext
@@ -161,7 +298,11 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             "title": "Index",
         }
 
-        return self.template_engine.render_template("index", template_vars)
+        # Use legacy template engine for compatibility
+        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
+
+        legacy_engine = LegacyTemplateEngine()
+        return legacy_engine.render_template("index", template_vars)
 
     def render_content_item(self, content: BaseContent, context: RenderContext) -> str:
         """Render an individual content item.

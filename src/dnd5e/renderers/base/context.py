@@ -2,10 +2,13 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from dnd5e.core.indexer.tag_resolver import TagResolver
 from dnd5e.core.loaders.omnidexer import Omnidexer
+
+if TYPE_CHECKING:
+    from dnd5e.core.models.document_metadata import DocumentMetadata
 
 
 @dataclass
@@ -20,7 +23,10 @@ class RenderContext:
     omnidexer: Optional[Omnidexer] = None
     tag_resolver: Optional[TagResolver] = None
 
-    # Document metadata
+    # Document metadata (structured)
+    metadata: Optional["DocumentMetadata"] = None
+
+    # Document metadata (legacy)
     title: Optional[str] = None
     subtitle: Optional[str] = None
     author: Optional[str] = None

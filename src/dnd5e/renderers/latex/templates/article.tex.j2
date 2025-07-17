@@ -1,10 +1,7 @@
 % Article template for D&D 5e single-topic documents
-% Uses dndarticle document class for article-style layout
+% Uses dndarticle document class with structured content support
 
 <@ extends "base.tex.j2" @>
-
-<@ set document_class = "dndarticle" @>
-<@ set layout_options = "10pt,a4paper,twoside,bg=print,twocolumn,openany,nodeprecatedcode" @>
 
 <@ block document_packages @>
 <# super() #>
@@ -14,6 +11,7 @@
 \usepackage{wrapfig}
 \usepackage{tikz}
 \usepackage{tcolorbox}
+\usepackage{titlesec}
 <@ endblock @>
 
 <@ block document_config @>
@@ -23,7 +21,8 @@
 \setlength{\columnsep}{1cm}
 \setlength{\columnseprule}{0.1pt}
 
-% Section styling for articles
+% Section styling for articles (only if not using DND template styling)
+<@ if not use_dnd_template_styling @>
 \titleformat{\section}
     {\normalfont\scshape\Large\color{DndRed}}
     {\thesection}{1em}{}
@@ -35,15 +34,27 @@
 \titleformat{\subsubsection}
     {\normalfont\scshape\normalsize}
     {\thesubsubsection}{1em}{}
+<@ endif @>
+
+% Configure section numbering depth for articles
+<@ if metadata and metadata.numbering_depth @>
+\setcounter{secnumdepth}{<# metadata.numbering_depth #>}
+<@ endif @>
 <@ endblock @>
 
+<#-- Fallback document body for legacy content (when not using structured sections) --#>
 <@ block document_body @>
+<#-- This block provides compatibility with legacy templates --#>
+<#-- Structured content is now handled by the document_structure block in base.tex.j2 --#>
+
 <@ if abstract @>
 \begin{abstract}
 <# abstract #>
 \end{abstract}
 <@ endif @>
 
+<#-- Legacy section rendering --#>
+<@ if sections @>
 <@ for section in sections @>
 \section{<# section.title | latex_escape #>}
 <# section.content #>
@@ -64,91 +75,27 @@
 <@ endif @>
 
 <@ endfor @>
+<@ endif @>
 
-<#-- Render spells if present --#>
+<#-- Legacy content type rendering --#>
 <@ if spells @>
 \section{Spells}
 <@ for spell in spells @>
-\DndSpellHeader{<# spell.name | latex_escape #>}
-{<# spell.level | dnd_spell_level #>}
-{<# spell.school | latex_escape #>}
-{<# spell.casting_time | latex_escape #>}
-{<# spell.range | latex_escape #>}
-{<# spell.components | latex_escape #>}
-{<# spell.duration | latex_escape #>}
-
-<# spell.description #>
-
-<@ if spell.higher_levels @>
-\DndSpellHigherLevels{<# spell.higher_levels #>}
-<@ endif @>
-
+% Spell content will be rendered by content renderers
 <@ endfor @>
 <@ endif @>
 
-<#-- Render creatures if present --#>
 <@ if creatures @>
 \section{Creatures}
 <@ for creature in creatures @>
-\DndMonster{<# creature.name | latex_escape #>}
-{<# creature.size | latex_escape #> <# creature.type | latex_escape #>, <# creature.alignment | latex_escape #>}
-{<# creature.ac.value #>}
-{<# creature.ac.notes | latex_escape #>}
-{<# creature.hp.average #>}
-{<# creature.hp.formula | latex_escape #>}
-{<# creature.speed | latex_escape #>}
-{<# creature.str #>}
-{<# creature.dex #>}
-{<# creature.con #>}
-{<# creature.int #>}
-{<# creature.wis #>}
-{<# creature.cha #>}
-{<# creature.skills | latex_escape #>}
-{<# creature.damage_immunities | latex_escape #>}
-{<# creature.condition_immunities | latex_escape #>}
-{<# creature.senses | latex_escape #>}
-{<# creature.languages | latex_escape #>}
-{<# creature.cr | dnd_challenge_rating #>}
-
-<@ if creature.traits @>
-<@ for trait in creature.traits @>
-\DndMonsterAction{<# trait.name | latex_escape #>}
-<# trait.description #>
+% Creature content will be rendered by content renderers
 <@ endfor @>
 <@ endif @>
 
-<@ if creature.actions @>
-\DndMonsterSection{Actions}
-<@ for action in creature.actions @>
-\DndMonsterAction{<# action.name | latex_escape #>}
-<# action.description #>
-<@ endfor @>
-<@ endif @>
-
-<@ if creature.legendary_actions @>
-\DndMonsterSection{Legendary Actions}
-<@ for action in creature.legendary_actions @>
-\DndMonsterAction{<# action.name | latex_escape #>}
-<# action.description #>
-<@ endfor @>
-<@ endif @>
-
-<@ endfor @>
-<@ endif @>
-
-<#-- Render items if present --#>
 <@ if items @>
 \section{Magic Items}
 <@ for item in items @>
-\subsection{<# item.name | latex_escape #>}
-\textit{<# item.type | latex_escape #><@ if item.rarity @>, <# item.rarity | latex_escape #><@ endif @><@ if item.requires_attunement @> (requires attunement)<@ endif @>}
-
-<# item.description #>
-
-<@ if item.properties @>
-\textbf{Properties:} <# item.properties | latex_escape #>
-<@ endif @>
-
+% Item content will be rendered by content renderers
 <@ endfor @>
 <@ endif @>
 <@ endblock @>
