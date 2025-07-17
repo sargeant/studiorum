@@ -7,7 +7,7 @@ from ...core.models.creatures import Creature
 from ...core.models.items import Item
 from ...core.models.spells import Spell
 from ..base import ContentRenderer, RenderContext
-from .templates import LaTeXTemplateEngine
+from .template_engine import LaTeXTemplateEngine
 
 
 class LaTeXContentRenderer(ContentRenderer):

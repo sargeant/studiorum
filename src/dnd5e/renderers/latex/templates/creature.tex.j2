@@ -1,0 +1,50 @@
+% Simple creature template for backward compatibility
+\subsection{<# name #>}
+\textit{<# size_text #> <# type_text #>, <# alignment_text #>}
+
+\textbf{Armor Class} <# ac_text #> \\
+\textbf{Hit Points} <# hp_text #> \\
+\textbf{Speed} <# speed_text #>
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{STR} & \textbf{DEX} & \textbf{CON} & \textbf{INT} & \textbf{WIS} & \textbf{CHA} \\
+\hline
+<# str_text #> & <# dex_text #> & <# con_text #> & <# int_text #> & <# wis_text #> & <# cha_text #> \\
+\hline
+\end{tabular}
+\end{center}
+
+<@ if skills @>
+\textbf{Skills} <# skills #> \\
+<@ endif @>
+<@ if damage_resistances @>
+\textbf{Damage Resistances} <# damage_resistances #> \\
+<@ endif @>
+<@ if damage_immunities @>
+\textbf{Damage Immunities} <# damage_immunities #> \\
+<@ endif @>
+<@ if condition_immunities @>
+\textbf{Condition Immunities} <# condition_immunities #> \\
+<@ endif @>
+<@ if senses @>
+\textbf{Senses} <# senses #> \\
+<@ endif @>
+<@ if languages @>
+\textbf{Languages} <# languages #> \\
+<@ endif @>
+\textbf{Challenge} <# cr_text #> \\
+
+<@ if traits @>
+<@ for trait in traits @>
+\textbf{<# trait.name #>.} <# trait.description #>
+<@ endfor @>
+<@ endif @>
+
+<@ if actions @>
+\subsubsection*{Actions}
+<@ for action in actions @>
+\textbf{<# action.name #>.} <# action.description #>
+<@ endfor @>
+<@ endif @>

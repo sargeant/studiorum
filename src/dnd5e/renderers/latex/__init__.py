@@ -2,7 +2,7 @@
 
 from .content import LaTeXCreatureRenderer, LaTeXItemRenderer, LaTeXSpellRenderer
 from .document import LaTeXDocumentRenderer
-from .templates import LaTeXTemplateEngine
+from .template_engine import LaTeXTemplateEngine
 
 __all__ = [
     "LaTeXDocumentRenderer",
