@@ -58,7 +58,7 @@ packages = ["src/dnd5e"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py38"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
@@ -89,7 +89,7 @@ ignore = [
 
 [tool.black]
 line-length = 88
-target-version = ["py38"]
+target-version = ["py311"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["dnd5e"]
@@ -99,7 +99,7 @@ combine-as-imports = true
 split-on-trailing-comma = true
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -125,22 +125,4 @@ asyncio_mode = "auto"
 filterwarnings = [
     "ignore::UserWarning",
     "ignore::DeprecationWarning",
-]
-
-[dependency-groups]
-dev = [
-    "pytest>=8.4.1",
-    "pytest-asyncio>=1.0.0",
-    "pytest-cov>=6.2.1",
-    "ruff>=0.12.2",
-    "lark>=1.2.2",
-    "mypy",
-    "psutil>=5.9.0",  # For memory usage testing
-
-]
-docs = [
-    "myst-parser>=4.0.1",
-    "sphinx>=8.2.3",
-    "sphinx-autobuild>=2024.10.3",
-    "sphinx-rtd-theme>=3.0.2",
 ]

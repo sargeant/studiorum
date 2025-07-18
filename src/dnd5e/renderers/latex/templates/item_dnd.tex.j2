@@ -1,0 +1,135 @@
+% Enhanced item template using DND-5e-LaTeX-Template environments
+% Designed for high-quality item formatting with tables and proper typography
+
+<@ if is_table_format @>
+% Table format for multiple items
+\begin{DndTable}[header=<# table_title | default("Items") #>]{<# table_columns #>}
+<@ for item in items @>
+<# item.name #> & <# item.type_text #> & <# item.rarity_text #> & <# item.value_text #> & <# item.weight_text #>\\
+<@ endfor @>
+\end{DndTable}
+
+<@ if include_descriptions @>
+<@ for item in items @>
+<@ if item.description @>
+\textbf{<# item.name #>.} <# item.description #>
+
+<@ endif @>
+<@ endfor @>
+<@ endif @>
+
+<@ else @>
+% Individual item format
+<@ if use_subsection @>
+\subsection{<# name #>}
+<@ else @>
+\textbf{<# name #>}
+<@ endif @>
+
+<@ if item_metadata @>
+\textit{<# item_metadata #>}
+
+<@ endif @>
+
+<@ if has_properties_table @>
+% Item properties table
+\begin{DndTable}[header=Properties]{X l}
+<@ if ac_text @>
+\textbf{Armor Class} & <# ac_text #>\\
+<@ endif @>
+<@ if damage_text @>
+\textbf{Damage} & <# damage_text #>\\
+<@ endif @>
+<@ if range_text @>
+\textbf{Range} & <# range_text #>\\
+<@ endif @>
+<@ if weight_text @>
+\textbf{Weight} & <# weight_text #>\\
+<@ endif @>
+<@ if value_text @>
+\textbf{Value} & <# value_text #>\\
+<@ endif @>
+<@ if properties_list @>
+\textbf{Properties} & <# properties_list #>\\
+<@ endif @>
+<@ if requires_attunement_text @>
+\textbf{Attunement} & <# requires_attunement_text #>\\
+<@ endif @>
+<@ if charges_text @>
+\textbf{Charges} & <# charges_text #>\\
+<@ endif @>
+\end{DndTable}
+
+<@ endif @>
+
+<@ if description @>
+<# description #>
+
+<@ endif @>
+
+<@ if magic_properties @>
+\begin{DndSidebar}{Magic Properties}
+<@ for property in magic_properties @>
+\textbf{<# property.name #>:} <# property.description #>
+
+<@ endfor @>
+\end{DndSidebar}
+
+<@ endif @>
+
+<@ if weapon_statistics @>
+\subsubsection{Weapon Statistics}
+\begin{DndTable}[header=Weapon Properties]{l l}
+\textbf{Damage} & <# weapon_statistics.damage #>\\
+\textbf{Damage Type} & <# weapon_statistics.damage_type #>\\
+<@ if weapon_statistics.range @>
+\textbf{Range} & <# weapon_statistics.range #>\\
+<@ endif @>
+\textbf{Properties} & <# weapon_statistics.properties #>\\
+<@ if weapon_statistics.mastery @>
+\textbf{Mastery} & <# weapon_statistics.mastery #>\\
+<@ endif @>
+\end{DndTable}
+
+<@ endif @>
+
+<@ if armor_statistics @>
+\subsubsection{Armor Statistics}
+\begin{DndTable}[header=Armor Properties]{l l}
+\textbf{Type} & <# armor_statistics.type #>\\
+\textbf{AC} & <# armor_statistics.ac #>\\
+<@ if armor_statistics.strength_req @>
+\textbf{Strength Required} & <# armor_statistics.strength_req #>\\
+<@ endif @>
+<@ if armor_statistics.stealth_disadvantage @>
+\textbf{Stealth} & Disadvantage\\
+<@ endif @>
+\end{DndTable}
+
+<@ endif @>
+
+<@ if variants @>
+\subsubsection{Variants}
+\begin{DndTable}[header=Item Variants]{X l l}
+\textbf{Name} & \textbf{Rarity} & \textbf{Bonus}\\
+<@ for variant in variants @>
+<# variant.name #> & <# variant.rarity #> & <# variant.bonus #>\\
+<@ endfor @>
+\end{DndTable}
+
+<@ endif @>
+
+<@ if creation_rules @>
+\begin{DndComment}{Creation}
+<# creation_rules #>
+\end{DndComment}
+
+<@ endif @>
+
+<@ endif @>
+
+<@ if source_reference @>
+\begin{flushright}
+\footnotesize\textit{Source: <# source_reference #>}
+\end{flushright}
+<@ endif @>

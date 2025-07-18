@@ -1,0 +1,98 @@
+% Enhanced adventure template using DND-5e-LaTeX-Template environments
+% Designed for D&D adventure module rendering
+
+<@ if use_section @>
+\section{<# name #>}
+<@ else @>
+\subsection{<# name #>}
+<@ endif @>
+
+<@ if adventure_hook @>
+\begin{DndSidebar}{Adventure Hook}
+<# adventure_hook #>
+\end{DndSidebar}
+<@ endif @>
+
+<@ if summary @>
+<# summary #>
+
+<@ endif @>
+
+<@ if background @>
+\subsubsection{Background}
+<# background #>
+
+<@ endif @>
+
+<@ if encounters @>
+<@ for encounter in encounters @>
+\subsubsection{<# encounter.name #>}
+<@ if encounter.description @>
+<# encounter.description #>
+
+<@ endif @>
+
+<@ if encounter.creatures @>
+\textbf{Creatures:} <# encounter.creatures #>
+
+<@ endif @>
+
+<@ if encounter.treasure @>
+\textbf{Treasure:} <# encounter.treasure #>
+
+<@ endif @>
+
+<@ if encounter.map_reference @>
+\textbf{Map:} <# encounter.map_reference #>
+
+<@ endif @>
+
+<@ if encounter.tactics @>
+\begin{DndComment}{Tactics}
+<# encounter.tactics #>
+\end{DndComment>
+<@ endif @>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if npcs @>
+\subsubsection{Notable NPCs}
+<@ for npc in npcs @>
+\paragraph{<# npc.name #>}
+<# npc.description #>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if locations @>
+\subsubsection{Key Locations}
+\begin{DndTable}[header=Locations]{c X}
+\textbf{Area} & \textbf{Description}\\
+<@ for location in locations @>
+<# location.number #> & <# location.description #>\\
+<@ endfor @>
+\end{DndTable}
+<@ endif @>
+
+<@ if random_encounters @>
+\subsubsection{Random Encounters}
+\begin{DndTable}[header=Random Encounters]{c X}
+\textbf{d20} & \textbf{Encounter}\\
+<@ for encounter in random_encounters @>
+<# encounter.roll #> & <# encounter.description #>\\
+<@ endfor @>
+\end{DndTable}
+<@ endif @>
+
+<@ if conclusion @>
+\subsubsection{Conclusion}
+<# conclusion #>
+
+<@ endif @>
+
+<@ if source_reference @>
+\begin{flushright}
+\footnotesize\textit{Source: <# source_reference #>}
+\end{flushright>
+<@ endif @>

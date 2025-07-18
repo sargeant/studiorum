@@ -3,7 +3,26 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
+
+from typing_extensions import Unpack
+
+
+class CompilationConfigKwargs(TypedDict, total=False):
+    """Keyword arguments for CompilationConfig."""
+
+    primary_engine: "LaTeXEngine"
+    fallback_engines: List["LaTeXEngine"]
+    max_passes: int
+    timeout_seconds: int
+    output_dir: Optional[Path]
+    keep_intermediate_files: bool
+    verbose_logging: bool
+    engine_options: Dict[str, List[str]]
+    check_dependencies: bool
+    required_packages: List[str]
+    show_progress: bool
+    progress_style: str
 
 
 class LaTeXEngine(Enum):
@@ -118,7 +137,9 @@ class CompilationConfig:
             return min(self.timeout_seconds // 2, 60)
 
     @classmethod
-    def for_mode(cls, mode: CompilationMode, **kwargs: object) -> "CompilationConfig":
+    def for_mode(
+        cls, mode: CompilationMode, **kwargs: Unpack[CompilationConfigKwargs]
+    ) -> "CompilationConfig":
         """Create configuration optimized for a specific mode.
 
         Args:

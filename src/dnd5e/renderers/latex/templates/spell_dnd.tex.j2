@@ -1,0 +1,87 @@
+% Enhanced spell template using DND-5e-LaTeX-Template environments
+% Designed for high-quality spell formatting matching official D&D layout
+
+<@ if use_spell_header @>
+\DndSpellHeader%
+{<# name #>}%
+{<# level_school_text #>}%
+{<# casting_time #>}%
+{<# range_text #>}%
+{<# components_text #>}%
+{<# duration_text #>}
+
+<# description #>
+
+<@ if higher_levels @>
+\textbf{At Higher Levels.} <# higher_levels #>
+<@ endif @>
+
+<@ if damage_types @>
+\textbf{Damage:} <# damage_types | join(", ") #>
+<@ endif @>
+
+<@ if saving_throws @>
+\textbf{Save:} <# saving_throws | join(", ") #>
+<@ endif @>
+
+<@ if spell_attacks @>
+\textbf{Attack:} <# spell_attacks | join(", ") #>
+<@ endif @>
+
+<@ else @>
+% Fallback to enhanced manual formatting if DndSpellHeader not available
+\begin{center}
+\large\textbf{<# name #>}
+\end{center}
+
+\begin{center}
+\textit{<# level_school_text #>}
+\end{center}
+
+\noindent\rule{\textwidth}{0.4pt}
+
+\begin{description}[leftmargin=0pt, labelsep=10pt, itemsep=0pt]
+\item[\textbf{Casting Time:}] <# casting_time #>
+\item[\textbf{Range:}] <# range_text #>
+\item[\textbf{Components:}] <# components_text #>
+\item[\textbf{Duration:}] <# duration_text #>
+<@ if classes_text @>
+\item[\textbf{Classes:}] <# classes_text #>
+<@ endif @>
+<@ if damage_types @>
+\item[\textbf{Damage:}] <# damage_types | join(", ") #>
+<@ endif @>
+<@ if saving_throws @>
+\item[\textbf{Save:}] <# saving_throws | join(", ") #>
+<@ endif @>
+<@ if spell_attacks @>
+\item[\textbf{Attack:}] <# spell_attacks | join(", ") #>
+<@ endif @>
+\end{description}
+
+\noindent\rule{\textwidth}{0.4pt}
+
+<# description #>
+
+<@ if higher_levels @>
+
+\textbf{At Higher Levels.} <# higher_levels #>
+<@ endif @>
+
+<@ if spell_lists @>
+
+\begin{DndSidebar}{Spell Lists}
+<@ for class_name, levels in spell_lists.items() @>
+\textbf{<# class_name | title #>:} <# levels | join(", ") #>
+
+<@ endfor @>
+\end{DndSidebar}
+<@ endif @>
+
+<@ endif @>
+
+<@ if source_reference @>
+\begin{flushright}
+\footnotesize\textit{Source: <# source_reference #>}
+\end{flushright}
+<@ endif @>

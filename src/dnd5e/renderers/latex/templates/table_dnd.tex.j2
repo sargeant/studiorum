@@ -1,0 +1,100 @@
+% Enhanced table template using DND-5e-LaTeX-Template environments
+% Designed for flexible table rendering with multiple formats
+
+<@ if table_type == "simple" @>
+% Simple table format
+<@ if title @>
+\textbf{<# title #>}
+<@ endif @>
+
+\begin{DndTable}[header=<# title | default("Table") #>]{<# column_spec #>}
+<@ if header_row @>
+<# header_row #>\\
+<@ endif @>
+<@ for row in data_rows @>
+<# row #>\\
+<@ endfor @>
+\end{DndTable}
+
+<@ elif table_type == "random" @>
+% Random table format with dice rolls
+<@ if title @>
+\textbf{<# title #>}
+<@ endif @>
+
+\begin{DndTable}[header=<# title | default("Random Table") #>]{c X}
+\textbf{<# dice_column_header | default("d" + dice_size | string) #>} & \textbf{<# result_column_header | default("Result") #>}\\
+<@ for entry in random_entries @>
+<# entry.roll #> & <# entry.result #>\\
+<@ endfor @>
+\end{DndTable}
+
+<@ elif table_type == "stat_block" @>
+% Stat block table format
+<@ if title @>
+\textbf{<# title #>}
+<@ endif @>
+
+\begin{DndTable}[header=<# title | default("Statistics") #>]{l l}
+<@ for stat in stats @>
+\textbf{<# stat.name #>} & <# stat.value #>\\
+<@ endfor @>
+\end{DndTable}
+
+<@ elif table_type == "equipment" @>
+% Equipment table format
+<@ if title @>
+\textbf{<# title #>}
+<@ endif @>
+
+\begin{DndTable}[header=<# title | default("Equipment") #>]{X l l l}
+\textbf{Item} & \textbf{Cost} & \textbf{Weight} & \textbf{Properties}\\
+<@ for item in equipment @>
+<# item.name #> & <# item.cost #> & <# item.weight #> & <# item.properties #>\\
+<@ endfor @>
+\end{DndTable}
+
+<@ elif table_type == "spells" @>
+% Spell table format
+<@ if title @>
+\textbf{<# title #>}
+<@ endif @>
+
+\begin{DndTable}[header=<# title | default("Spells") #>]{X c c c c}
+\textbf{Spell} & \textbf{Level} & \textbf{School} & \textbf{Time} & \textbf{Range}\\
+<@ for spell in spells @>
+<# spell.name #> & <# spell.level #> & <# spell.school #> & <# spell.casting_time #> & <# spell.range #>\\
+<@ endfor @>
+\end{DndTable}
+
+<@ else @>
+% Default flexible table format
+<@ if title @>
+\textbf{<# title #>}
+<@ endif @>
+
+\begin{DndTable}[header=<# title | default("Table") #>]{<# column_spec | default("X") #>}
+<@ if headers @>
+<@ for header in headers @>
+\textbf{<# header #>}<@ if not loop.last @> & <@ endif @>
+<@ endfor @>\\
+<@ endif @>
+<@ for row in rows @>
+<@ for cell in row @>
+<# cell #><@ if not loop.last @> & <@ endif @>
+<@ endfor @>\\
+<@ endfor @>
+\end{DndTable}
+
+<@ endif @>
+
+<@ if caption @>
+
+\textit{<# caption #>}
+<@ endif @>
+
+<@ if source_reference @>
+\begin{flushright}
+\footnotesize\textit{Source: <# source_reference #>}
+\end{flushright>
+<@ endif @>

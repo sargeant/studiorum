@@ -1,0 +1,145 @@
+% Enhanced creature template using DND-5e-LaTeX-Template environments
+% Designed for high-quality creature stat blocks matching official D&D layout
+
+<@ if full_width @>
+\begin{DndMonster}[float*=b,width=\textwidth + 8pt]{<# name #>}
+<@ else @>
+\begin{DndMonster}{<# name #>}
+<@ endif @>
+
+\DndMonsterType{<# size_text #> <# type_text #>, <# alignment_text #>}
+
+\DndMonsterBasics[
+  armor-class = <# ac_value #><@ if ac_source @> (<# ac_source #>)<@ endif @>,
+  hit-points = <# hp_average #><@ if hp_formula @> (<# hp_formula #>)<@ endif @>,
+  speed = <# speed_text #>
+]
+
+\DndMonsterAbilityScores[
+  str = <# str_score #>,
+  dex = <# dex_score #>,
+  con = <# con_score #>,
+  int = <# int_score #>,
+  wis = <# wis_score #>,
+  cha = <# cha_score #>
+]
+
+<@ if has_details @>
+\DndMonsterDetails[
+<@ if saving_throws @>  saving-throws = <# saving_throws #>,<@ endif @>
+<@ if skills @>  skills = <# skills #>,<@ endif @>
+<@ if damage_resistances @>  damage-resistances = <# damage_resistances #>,<@ endif @>
+<@ if damage_immunities @>  damage-immunities = <# damage_immunities #>,<@ endif @>
+<@ if damage_vulnerabilities @>  damage-vulnerabilities = <# damage_vulnerabilities #>,<@ endif @>
+<@ if condition_immunities @>  condition-immunities = <# condition_immunities #>,<@ endif @>
+<@ if senses @>  senses = <# senses #>,<@ endif @>
+<@ if languages @>  languages = <# languages #>,<@ endif @>
+  challenge = <# cr_text #>
+]
+<@ endif @>
+
+<@ if traits @>
+<@ for trait in traits @>
+\DndMonsterAction{<# trait.name #>}
+<# trait.description #>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if spellcasting @>
+\DndMonsterAction{Spellcasting}
+<# spellcasting.description #>
+
+<@ if spellcasting.spells @>
+<@ for level, spells in spellcasting.spells.items() @>
+<@ if level == "0" @>
+\textbf{Cantrips (at will):} <# spells | join(", ") #>
+
+<@ elif level == "1" @>
+\textbf{1st level (<# spellcasting.slots[level] | default("at will") #>):} <# spells | join(", ") #>
+
+<@ elif level == "2" @>
+\textbf{2nd level (<# spellcasting.slots[level] | default("at will") #>):} <# spells | join(", ") #>
+
+<@ elif level == "3" @>
+\textbf{3rd level (<# spellcasting.slots[level] | default("at will") #>):} <# spells | join(", ") #>
+
+<@ elif level == "4" @>
+\textbf{4th level (<# spellcasting.slots[level] | default("at will") #>):} <# spells | join(", ") #>
+
+<@ elif level == "5" @>
+\textbf{5th level (<# spellcasting.slots[level] | default("at will") #>):} <# spells | join(", ") #>
+
+<@ elif level == "6" @>
+\textbf{6th level (<# spellcasting.slots[level] | default("at will") #>):} <# spells | join(", ") #>
+
+<@ elif level == "7" @>
+\textbf{7th level (<# spellcasting.slots[level] | default("at will") #>):} <# spells | join(", ") #>
+
+<@ elif level == "8" @>
+\textbf{8th level (<# spellcasting.slots[level] | default("at will") #>):} <# spells | join(", ") #>
+
+<@ elif level == "9" @>
+\textbf{9th level (<# spellcasting.slots[level] | default("at will") #>):} <# spells | join(", ") #>
+
+<@ endif @>
+<@ endfor @>
+<@ endif @>
+<@ endif @>
+
+<@ if actions @>
+\DndMonsterSection{Actions}
+<@ for action in actions @>
+\DndMonsterAction{<# action.name #>}
+<# action.description #>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if legendary_actions_count and legendary_actions @>
+\DndMonsterSection{Legendary Actions}
+<@ if legendary_actions_description @>
+<# legendary_actions_description #>
+<@ else @>
+<# name #> can take <# legendary_actions_count #> legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature's turn. <# name #> regains spent legendary actions at the start of its turn.
+<@ endif @>
+
+<@ for action in legendary_actions @>
+\DndMonsterAction{<# action.name #><@ if action.cost and action.cost > 1 @> (Costs <# action.cost #> Actions)<@ endif @>}
+<# action.description #>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if reactions @>
+\DndMonsterSection{Reactions}
+<@ for reaction in reactions @>
+\DndMonsterAction{<# reaction.name #>}
+<# reaction.description #>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if lair_actions @>
+\DndMonsterSection{Lair Actions}
+<# lair_actions_description #>
+
+<@ for action in lair_actions @>
+\DndMonsterAction{<# action.name #>}
+<# action.description #>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if regional_effects @>
+\DndMonsterSection{Regional Effects}
+<# regional_effects_description #>
+
+<@ for effect in regional_effects @>
+\DndMonsterAction{<# effect.name #>}
+<# effect.description #>
+
+<@ endfor @>
+<@ endif @>
+
+\end{DndMonster}
