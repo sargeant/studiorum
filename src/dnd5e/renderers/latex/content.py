@@ -2128,6 +2128,33 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
 
         return "\n\n".join(formatted_entries)
 
+    # Legacy compatibility methods for backward compatibility with tests
+    def _format_rarity(self, rarity: Optional[str]) -> str:
+        """Legacy method for backward compatibility with tests.
+
+        Args:
+            rarity: Rarity string
+
+        Returns:
+            Formatted rarity with leading comma
+        """
+        if not rarity:
+            return ""
+        return f", {rarity}"
+
+    def _format_properties(self, properties: Optional[List[str]]) -> Optional[str]:
+        """Legacy method for backward compatibility with tests.
+
+        Args:
+            properties: List of property strings
+
+        Returns:
+            Comma-separated properties string or None if empty
+        """
+        if not properties:
+            return None
+        return ", ".join(properties)
+
 
 class LaTeXClassRenderer(LaTeXContentRenderer):
     """Enhanced LaTeX renderer for D&D class content using DND template environments."""
