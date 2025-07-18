@@ -1,7 +1,7 @@
 """File system-based source manager."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..config.paths import get_path_config
 from ..config.settings import get_logger
@@ -14,15 +14,15 @@ logger = get_logger(__name__)
 class FileSystemSourceManager(SourceManager):
     """Manages data sources from the file system."""
 
-    def __init__(self, root_path: Optional[Path] = None):
+    def __init__(self, root_path: Path | None = None):
         self.path_config = get_path_config(root_path)
         self._source_info = self._build_source_info()
 
-    def get_data_paths(self) -> Dict[ContentType, List[Path]]:
+    def get_data_paths(self) -> dict[ContentType, list[Path]]:
         """Return paths to data files organized by content type."""
         return self.path_config.get_data_paths()
 
-    def resolve_source(self, source_abbrev: str) -> Optional[Dict[str, Any]]:
+    def resolve_source(self, source_abbrev: str) -> dict[str, Any] | None:
         """Resolve source abbreviation to full source information."""
         return self._source_info.get(source_abbrev)
 
@@ -44,7 +44,7 @@ class FileSystemSourceManager(SourceManager):
             source_abbrev, 1000
         )  # High number for unknown sources
 
-    def _build_source_info(self) -> Dict[str, Dict[str, Any]]:
+    def _build_source_info(self) -> dict[str, dict[str, Any]]:
         """Build source information database."""
         # This would ideally be loaded from a sources.json file
         # For now, we'll use a basic mapping

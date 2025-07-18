@@ -5,7 +5,7 @@ import hashlib
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from ..config.settings import get_logger
 from ..models.content import BaseContent, ContentType
@@ -55,24 +55,24 @@ class IndexEntry:
 class Omnidexer:
     """Central indexing system for all D&D content, inspired by 5etools."""
 
-    def __init__(self, source_manager: Optional[SourceManager] = None):
+    def __init__(self, source_manager: SourceManager | None = None):
         self.source_manager = source_manager or ConfigurableSourceManager()
 
         # Index structures
-        self._index: Dict[str, IndexEntry] = {}  # hash_id -> entry
-        self._by_type: Dict[ContentType, Dict[str, IndexEntry]] = defaultdict(
+        self._index: dict[str, IndexEntry] = {}  # hash_id -> entry
+        self._by_type: dict[ContentType, dict[str, IndexEntry]] = defaultdict(
             dict
         )  # type -> lookup_key -> entry
-        self._by_source: Dict[str, List[IndexEntry]] = defaultdict(
+        self._by_source: dict[str, list[IndexEntry]] = defaultdict(
             list
         )  # source -> entries
-        self._by_name: Dict[str, List[IndexEntry]] = defaultdict(
+        self._by_name: dict[str, list[IndexEntry]] = defaultdict(
             list
         )  # name -> entries
 
         # Loaders
-        self._loaders: Dict[ContentType, DataLoader] = {}
-        self._loaded_types: Set[ContentType] = set()
+        self._loaders: dict[ContentType, DataLoader] = {}
+        self._loaded_types: set[ContentType] = set()
 
         # Register default loaders
         self._register_default_loaders()
@@ -114,7 +114,7 @@ class Omnidexer:
         self._loaders[content_type] = loader
         logger.info(f"Registered loader for {content_type.value}")
 
-    async def load_all_data(self, data_path: Optional[Path] = None) -> Dict[str, int]:
+    async def load_all_data(self, data_path: Path | None = None) -> dict[str, int]:
         """Load all available data and build comprehensive index."""
         logger.info("Starting omnidexer data loading...")
 
@@ -163,7 +163,7 @@ class Omnidexer:
 
     async def _load_content_type(
         self, content_type: ContentType, path: Path
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """Load a specific content type from path."""
         if content_type not in self._loaders:
             logger.warning(f"No loader registered for {content_type.value}")
@@ -213,8 +213,8 @@ class Omnidexer:
         self._by_name[name_key].append(entry)
 
     def find(
-        self, content_type: ContentType, name: str, source: Optional[str] = None
-    ) -> Optional[BaseContent]:
+        self, content_type: ContentType, name: str, source: str | None = None
+    ) -> BaseContent | None:
         """Find content by type, name, and optionally source."""
         if content_type not in self._by_type:
             return None
@@ -234,12 +234,12 @@ class Omnidexer:
                     return entry.content
             return None
 
-    def find_by_hash(self, hash_id: str) -> Optional[BaseContent]:
+    def find_by_hash(self, hash_id: str) -> BaseContent | None:
         """Find content by unique hash identifier."""
         entry = self._index.get(hash_id)
         return entry.content if entry else None
 
-    def find_all(self, content_type: ContentType, name: str) -> List[BaseContent]:
+    def find_all(self, content_type: ContentType, name: str) -> list[BaseContent]:
         """Find all content matching type and name across all sources."""
         if content_type not in self._by_type:
             return []
@@ -254,20 +254,20 @@ class Omnidexer:
 
         return matches
 
-    def get_all_by_type(self, content_type: ContentType) -> List[BaseContent]:
+    def get_all_by_type(self, content_type: ContentType) -> list[BaseContent]:
         """Get all content of a specific type."""
         if content_type not in self._by_type:
             return []
         return [entry.content for entry in self._by_type[content_type].values()]
 
-    def get_all_by_source(self, source: str) -> List[BaseContent]:
+    def get_all_by_source(self, source: str) -> list[BaseContent]:
         """Get all content from a specific source."""
         entries = self._by_source.get(source, [])
         return [entry.content for entry in entries]
 
     def search(
-        self, query: str, content_type: Optional[ContentType] = None, limit: int = 50
-    ) -> List[BaseContent]:
+        self, query: str, content_type: ContentType | None = None, limit: int = 50
+    ) -> list[BaseContent]:
         """Search for content by name (fuzzy matching)."""
         query_lower = query.lower()
         results = []
@@ -288,8 +288,8 @@ class Omnidexer:
         return results
 
     def search_by_name_prefix(
-        self, prefix: str, content_type: Optional[ContentType] = None, limit: int = 20
-    ) -> List[BaseContent]:
+        self, prefix: str, content_type: ContentType | None = None, limit: int = 20
+    ) -> list[BaseContent]:
         """Search for content by name prefix."""
         prefix_lower = prefix.lower()
         results = []
@@ -309,7 +309,7 @@ class Omnidexer:
 
         return results
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get statistics about the loaded index."""
         stats = {
             "total_items": len(self._index),

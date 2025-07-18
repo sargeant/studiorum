@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
@@ -24,14 +24,14 @@ class JsonDataLoader(DataLoader[BaseContent]):
     def __init__(
         self,
         content_type: ContentType,
-        content_factory: Optional[ContentFactory] = None,
+        content_factory: ContentFactory | None = None,
     ):
         self._content_type = content_type
         self._content_factory = content_factory or get_content_factory()
 
     async def load(
         self, path: Path
-    ) -> List[BaseContent]:  # Changed from T to BaseContent
+    ) -> list[BaseContent]:  # Changed from T to BaseContent
         """Load JSON file and validate against Pydantic model."""
         try:
             logger.info(f"Loading {self._content_type.value} data from {path}")
@@ -107,7 +107,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
     def get_content_type(self) -> ContentType:
         return self._content_type
 
-    def get_supported_types(self) -> List[ContentType]:
+    def get_supported_types(self) -> list[ContentType]:
         """Get list of supported content types."""
         return self._content_factory.get_supported_types()
 
@@ -116,8 +116,8 @@ class JsonDataLoader(DataLoader[BaseContent]):
         return BaseContent
 
     def _extract_content(
-        self, data: Dict[str, Any], path: Path
-    ) -> List[Dict[str, Any]]:
+        self, data: dict[str, Any], path: Path
+    ) -> list[dict[str, Any]]:
         """Extract content list from various JSON structures."""
         # Handle different JSON structures from 5etools
 
@@ -207,7 +207,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
         logger.warning(f"No content found for {self._content_type.value} in {path}")
         return []
 
-    def _ensure_source_info(self, item: Dict[str, Any], path: Path) -> Dict[str, Any]:
+    def _ensure_source_info(self, item: dict[str, Any], path: Path) -> dict[str, Any]:
         """Ensure item has source information."""
         if "source" not in item:
             # Try to infer source from filename
@@ -223,7 +223,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return item
 
-    def _add_missing_required_fields(self, item: Dict[str, Any]) -> Dict[str, Any]:
+    def _add_missing_required_fields(self, item: dict[str, Any]) -> dict[str, Any]:
         """Add missing required fields with reasonable defaults."""
         # Handle missing fields for different content types
         if self._content_type == ContentType.CREATURE:
@@ -272,7 +272,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
         # Fallback: use filename as source
         return path.stem.upper()
 
-    def _is_foundry_file(self, path: Path, data: Dict[str, Any]) -> bool:
+    def _is_foundry_file(self, path: Path, data: dict[str, Any]) -> bool:
         """Check if this is a Foundry VTT format file."""
         filename = path.name.lower()
 
@@ -298,7 +298,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return False
 
-    def _is_template_file(self, path: Path, data: Dict[str, Any]) -> bool:
+    def _is_template_file(self, path: Path, data: dict[str, Any]) -> bool:
         """Check if this is a template file containing incomplete creature data."""
         filename = path.name.lower()
 
@@ -351,7 +351,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return False
 
-    def _is_copy_template(self, item: Dict[str, Any]) -> bool:
+    def _is_copy_template(self, item: dict[str, Any]) -> bool:
         """Check if this item is a copy-template that references other content."""
         # Check for 5etools copy mechanism
         if "_copy" in item:
@@ -385,7 +385,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return False
 
-    def _is_index_file(self, path: Path, data: Dict[str, Any]) -> bool:
+    def _is_index_file(self, path: Path, data: dict[str, Any]) -> bool:
         """Check if this is an index/list file containing tag references."""
         filename = path.name.lower()
 
@@ -433,7 +433,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return False
 
-    def _is_metadata_file(self, path: Path, data: Dict[str, Any]) -> bool:
+    def _is_metadata_file(self, path: Path, data: dict[str, Any]) -> bool:
         """Check if this is a metadata/sources file rather than content."""
         filename = path.name.lower()
 
@@ -479,7 +479,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return False
 
-    def _is_fluff_file(self, path: Path, data: Dict[str, Any]) -> bool:
+    def _is_fluff_file(self, path: Path, data: dict[str, Any]) -> bool:
         """Check if this is a fluff data file."""
         filename = path.name.lower()
 
@@ -504,8 +504,8 @@ class JsonDataLoader(DataLoader[BaseContent]):
         return False
 
     def _extract_fluff_content(
-        self, data: Dict[str, Any], path: Path
-    ) -> List[Dict[str, Any]]:
+        self, data: dict[str, Any], path: Path
+    ) -> list[dict[str, Any]]:
         """Extract fluff content with liberal parsing."""
         # Fluff content should be handled by FluffDataLoader
         logger.debug(
@@ -514,8 +514,8 @@ class JsonDataLoader(DataLoader[BaseContent]):
         return []
 
     def _process_fluff_items(
-        self, fluff_items: List[Dict[str, Any]], path: Path
-    ) -> List[Dict[str, Any]]:
+        self, fluff_items: list[dict[str, Any]], path: Path
+    ) -> list[dict[str, Any]]:
         """Process fluff items - now handled by FluffDataLoader."""
         logger.debug(
             f"Fluff item processing called for {self._content_type.value} in {path}"
@@ -523,15 +523,15 @@ class JsonDataLoader(DataLoader[BaseContent]):
         return []
 
     def _make_fluff_compatible(
-        self, fluff_item: Dict[str, Any], path: Path
-    ) -> Optional[Dict[str, Any]]:
+        self, fluff_item: dict[str, Any], path: Path
+    ) -> dict[str, Any] | None:
         """Convert fluff item to be compatible with main content model - deprecated."""
         logger.debug(
             f"Fluff compatibility conversion called for {self._content_type.value} in {path}"
         )
         return None
 
-    def _infer_item_type(self, item: Dict[str, Any]) -> str:
+    def _infer_item_type(self, item: dict[str, Any]) -> str:
         """Infer item type from common fields."""
         if "weaponCategory" in item:
             return "weapon"
@@ -543,7 +543,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             return "consumable"
         return "item"  # Default generic item
 
-    def _extract_fluff_text(self, fluff_item: Dict[str, Any]) -> str:
+    def _extract_fluff_text(self, fluff_item: dict[str, Any]) -> str:
         """Extract descriptive text from fluff item."""
         text_parts = []
 
@@ -559,7 +559,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return " ".join(text_parts) if text_parts else ""
 
-    def _extract_text_from_entries(self, entries) -> List[str]:
+    def _extract_text_from_entries(self, entries) -> list[str]:
         """Recursively extract text from complex entry structures."""
         text_parts = []
 

@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from ..config.settings import get_logger
 from ..models.content import BaseContent, ContentType
@@ -17,7 +17,7 @@ class Reference:
     source_content: BaseContent
     target_type: ContentType
     target_name: str
-    target_source: Optional[str]
+    target_source: str | None
     context: str  # The text context where the reference appears
 
 
@@ -26,20 +26,20 @@ class ReferenceIndex:
 
     def __init__(self):
         # Forward references: content -> what it references
-        self._forward_refs: Dict[str, List[Reference]] = defaultdict(list)
+        self._forward_refs: dict[str, list[Reference]] = defaultdict(list)
 
         # Backward references: content -> what references it
-        self._backward_refs: Dict[str, List[Reference]] = defaultdict(list)
+        self._backward_refs: dict[str, list[Reference]] = defaultdict(list)
 
         # Referenced content by type (for generating lists)
-        self._referenced_by_type: Dict[ContentType, Set[str]] = defaultdict(set)
+        self._referenced_by_type: dict[ContentType, set[str]] = defaultdict(set)
 
     def add_reference(
         self,
         source: BaseContent,
         target_type: ContentType,
         target_name: str,
-        target_source: Optional[str] = None,
+        target_source: str | None = None,
         context: str = "",
     ):
         """Add a reference from source content to target content."""
@@ -70,24 +70,24 @@ class ReferenceIndex:
             f"Added reference: {source.name} -> {target_type.value}:{target_name}"
         )
 
-    def get_references_from(self, content: BaseContent) -> List[Reference]:
+    def get_references_from(self, content: BaseContent) -> list[Reference]:
         """Get all references made by the given content."""
         content_key = self._get_content_key(content)
         return self._forward_refs.get(content_key, [])
 
     def get_references_to(
-        self, content_type: ContentType, name: str, source: Optional[str] = None
-    ) -> List[Reference]:
+        self, content_type: ContentType, name: str, source: str | None = None
+    ) -> list[Reference]:
         """Get all references to the specified content."""
         target_key = f"{content_type.value}:{name}:{source or 'any'}"
         return self._backward_refs.get(target_key, [])
 
-    def get_referenced_content(self, content_type: ContentType) -> List[str]:
+    def get_referenced_content(self, content_type: ContentType) -> list[str]:
         """Get list of all content names that are referenced for a given type."""
         referenced = self._referenced_by_type.get(content_type, set())
         return [ref.split("|")[0] for ref in referenced]
 
-    def get_reference_statistics(self) -> Dict[str, Any]:
+    def get_reference_statistics(self) -> dict[str, Any]:
         """Get statistics about references in the index."""
         stats = {
             "total_references": sum(len(refs) for refs in self._forward_refs.values()),

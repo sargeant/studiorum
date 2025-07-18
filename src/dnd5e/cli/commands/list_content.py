@@ -2,7 +2,6 @@
 
 import asyncio
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich import print as rprint
@@ -19,7 +18,7 @@ console = Console()
 
 @app.command("files")
 def list_files(
-    directory: Optional[Path] = typer.Option(
+    directory: Path | None = typer.Option(
         None, "--dir", "-d", help="Directory to scan"
     ),
     pattern: str = typer.Option(
@@ -75,14 +74,14 @@ def list_files(
 
 @app.command("content")
 def list_content(
-    content_type: Optional[str] = typer.Option(
+    content_type: str | None = typer.Option(
         None, "--type", "-t", help="Content type (spell, creature, item, etc.)"
     ),
-    source: Optional[str] = typer.Option(
+    source: str | None = typer.Option(
         None, "--source", "-s", help="Filter by source book"
     ),
     limit: int = typer.Option(20, "--limit", "-l", help="Limit number of results"),
-    search: Optional[str] = typer.Option(None, "--search", help="Search content names"),
+    search: str | None = typer.Option(None, "--search", help="Search content names"),
 ):
     """
     📋 List loaded content items

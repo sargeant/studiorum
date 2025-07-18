@@ -3,7 +3,6 @@
 import asyncio
 import logging
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich import print as rprint
@@ -27,8 +26,8 @@ app = typer.Typer(
 console = Console()
 
 # Global state
-_omnidexer: Optional[Omnidexer] = None
-_tag_resolver: Optional[TagResolver] = None
+_omnidexer: Omnidexer | None = None
+_tag_resolver: TagResolver | None = None
 
 
 @app.command("version")
@@ -140,9 +139,7 @@ def serve_api(
 @app.command("quick")
 def quick_convert(
     input_file: Path = typer.Argument(..., help="Input JSON file"),
-    output_file: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Output file"
-    ),
+    output_file: Path | None = typer.Option(None, "--output", "-o", help="Output file"),
     content_type: str = typer.Option(
         "auto", "--type", "-t", help="Content type (adventure, book, auto)"
     ),

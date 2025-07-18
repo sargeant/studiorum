@@ -3,7 +3,7 @@
 import logging
 import re
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 
 from lark import Lark, Token, Transformer
 
@@ -41,7 +41,7 @@ class TagParseError(Exception):
     """Exception raised when tag parsing fails."""
 
     def __init__(
-        self, message: str, position: Optional[int] = None, text: Optional[str] = None
+        self, message: str, position: int | None = None, text: str | None = None
     ):
         super().__init__(message)
         self.position = position
@@ -55,7 +55,7 @@ class TagASTTransformer(Transformer):
         super().__init__()
         self.original_text = original_text
 
-    def document(self, children: List[ASTNode]) -> DocumentNode:
+    def document(self, children: list[ASTNode]) -> DocumentNode:
         """Transform document node."""
         doc = DocumentNode()
         for child in children:
@@ -63,16 +63,16 @@ class TagASTTransformer(Transformer):
                 doc.add_child(child)
         return doc
 
-    def text(self, children: List[Token]) -> TextNode:
+    def text(self, children: list[Token]) -> TextNode:
         """Transform plain text."""
         text_content = "".join(str(token) for token in children)
         return TextNode(text_content)
 
-    def text_fragment(self, children: List[Token]) -> str:
+    def text_fragment(self, children: list[Token]) -> str:
         """Transform text fragment."""
         return "".join(str(token) for token in children)
 
-    def tag(self, children: List[Any]) -> TagNode:
+    def tag(self, children: list[Any]) -> TagNode:
         """Transform a tag based on its type and content."""
         if len(children) < 1:
             raise TagParseError("Tag missing type")
@@ -93,11 +93,11 @@ class TagASTTransformer(Transformer):
         # Create appropriate tag node based on type
         return self._create_tag_node(tag_type, parts)
 
-    def tag_type(self, children: List[Token]) -> str:
+    def tag_type(self, children: list[Token]) -> str:
         """Transform tag type."""
         return str(children[0])
 
-    def content_part(self, children: List[Any]) -> List[ASTNode]:
+    def content_part(self, children: list[Any]) -> list[ASTNode]:
         """Transform content part (may contain nested tags)."""
         nodes = []
         current_text = ""
@@ -118,7 +118,7 @@ class TagASTTransformer(Transformer):
 
         return nodes
 
-    def escaped_char(self, children: List[Token]) -> str:
+    def escaped_char(self, children: list[Token]) -> str:
         """Transform escaped characters."""
         escaped = str(children[0])
         if escaped == "\\|":
@@ -127,7 +127,7 @@ class TagASTTransformer(Transformer):
             return "}"
         return escaped
 
-    def _render_content_part(self, part: List[ASTNode]) -> str:
+    def _render_content_part(self, part: list[ASTNode]) -> str:
         """Render a content part to string (for simple cases)."""
         result = ""
         for node in part:
@@ -139,7 +139,7 @@ class TagASTTransformer(Transformer):
                 result += f"{{@{node.tag_type}...}}"
         return result
 
-    def _create_tag_node(self, tag_type: str, parts: List[str]) -> TagNode:
+    def _create_tag_node(self, tag_type: str, parts: list[str]) -> TagNode:
         """Create the appropriate tag node based on type and parts."""
         # Parse common parts: name, source, display_text, page
         name = parts[0] if len(parts) > 0 else ""
@@ -289,7 +289,7 @@ class TagParser:
         transformer = TagASTTransformer(content)
         return transformer._create_tag_node(tag_type, parts)
 
-    def _split_tag_content(self, content: str) -> List[str]:
+    def _split_tag_content(self, content: str) -> list[str]:
         """Split tag content by pipes, handling escaped characters."""
         parts = []
         current_part = ""

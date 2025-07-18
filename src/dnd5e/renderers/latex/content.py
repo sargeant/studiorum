@@ -1,6 +1,6 @@
 """LaTeX content-specific renderers."""
 
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from ...core.models.classes import Class
 from ...core.models.content import BaseContent, ContentType
@@ -15,7 +15,7 @@ from .template_engine import LaTeXTemplateEngine
 class LaTeXContentRenderer(ContentRenderer):
     """Base LaTeX content renderer with common functionality."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize LaTeX content renderer.
 
         Args:
@@ -80,7 +80,7 @@ class LaTeXContentRenderer(ContentRenderer):
 class LaTeXSpellRenderer(LaTeXContentRenderer):
     """Enhanced LaTeX renderer for spell content using DND template environments."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize spell renderer.
 
         Args:
@@ -91,7 +91,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
         self.use_spell_header = config.get("use_spell_header", True) if config else True
 
     @property
-    def supported_content_types(self) -> Set[ContentType]:
+    def supported_content_types(self) -> set[ContentType]:
         """Return supported content types."""
         return {ContentType.SPELL}
 
@@ -118,7 +118,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
     def _build_spell_variables(
         self, spell: Spell, context: RenderContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Build comprehensive template variables for spell rendering.
 
         Args:
@@ -188,7 +188,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         return variables
 
-    def _format_casting_time(self, time_data: List[Dict[str, Any]]) -> str:
+    def _format_casting_time(self, time_data: list[dict[str, Any]]) -> str:
         """Format casting time data.
 
         Args:
@@ -212,7 +212,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         return ", ".join(time_parts) if time_parts else "Unknown"
 
-    def _format_range(self, range_data: Dict[str, Any]) -> str:
+    def _format_range(self, range_data: dict[str, Any]) -> str:
         """Format range data.
 
         Args:
@@ -247,7 +247,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         return str(range_data)
 
-    def _format_components(self, components: Dict[str, Any]) -> str:
+    def _format_components(self, components: dict[str, Any]) -> str:
         """Format components data.
 
         Args:
@@ -273,7 +273,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         return ", ".join(parts) if parts else "None"
 
-    def _format_duration(self, duration_data: List[Dict[str, Any]]) -> str:
+    def _format_duration(self, duration_data: list[dict[str, Any]]) -> str:
         """Format duration data.
 
         Args:
@@ -309,7 +309,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         return ", ".join(duration_parts) if duration_parts else "Unknown"
 
-    def _format_entries(self, entries: List[str], context: RenderContext) -> str:
+    def _format_entries(self, entries: list[str], context: RenderContext) -> str:
         """Format spell description entries.
 
         Args:
@@ -332,9 +332,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         return "\n\n".join(formatted_entries)
 
-    def _format_higher_levels(
-        self, spell: Spell, context: RenderContext
-    ) -> Optional[str]:
+    def _format_higher_levels(self, spell: Spell, context: RenderContext) -> str | None:
         """Format higher levels text.
 
         Args:
@@ -404,7 +402,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
         else:
             return f"{level}th-level {school_name.lower()}"
 
-    def _format_casting_time_enhanced(self, casting_time: List[Any]) -> str:
+    def _format_casting_time_enhanced(self, casting_time: list[Any]) -> str:
         """Format casting time with enhanced handling.
 
         Args:
@@ -540,7 +538,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         return ", ".join(parts) if parts else "None"
 
-    def _format_duration_enhanced(self, duration: List[Any]) -> str:
+    def _format_duration_enhanced(self, duration: list[Any]) -> str:
         """Format duration with enhanced handling.
 
         Args:
@@ -591,7 +589,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         return ", ".join(duration_parts) if duration_parts else "Instantaneous"
 
-    def _format_saves(self, saving_throws: Optional[List[str]]) -> Optional[List[str]]:
+    def _format_saves(self, saving_throws: list[str] | None) -> list[str] | None:
         """Format saving throws list.
 
         Args:
@@ -620,9 +618,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         return formatted_saves
 
-    def _format_attacks(
-        self, spell_attacks: Optional[List[str]]
-    ) -> Optional[List[str]]:
+    def _format_attacks(self, spell_attacks: list[str] | None) -> list[str] | None:
         """Format spell attack types.
 
         Args:
@@ -649,7 +645,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         return formatted_attacks
 
-    def _format_classes(self, classes_data: Optional[Dict[str, Any]]) -> Optional[str]:
+    def _format_classes(self, classes_data: dict[str, Any] | None) -> str | None:
         """Format spell classes information.
 
         Args:
@@ -673,8 +669,8 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
         return ", ".join(sorted(class_names)) if class_names else None
 
     def _extract_spell_lists(
-        self, classes_data: Optional[Dict[str, Any]]
-    ) -> Optional[Dict[str, List[str]]]:
+        self, classes_data: dict[str, Any] | None
+    ) -> dict[str, list[str]] | None:
         """Extract spell list information by class.
 
         Args:
@@ -723,7 +719,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 class LaTeXCreatureRenderer(LaTeXContentRenderer):
     """Enhanced LaTeX renderer for creature content using DND template environments."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize creature renderer.
 
         Args:
@@ -733,7 +729,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
         self.use_dnd_template = config.get("use_dnd_template", True) if config else True
 
     @property
-    def supported_content_types(self) -> Set[ContentType]:
+    def supported_content_types(self) -> set[ContentType]:
         """Return supported content types."""
         return {ContentType.CREATURE}
 
@@ -760,7 +756,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
     def _build_creature_variables(
         self, creature: Creature, context: RenderContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Build comprehensive template variables for creature rendering.
 
         Args:
@@ -913,7 +909,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
         return variables
 
-    def _format_size(self, size_data: List[str]) -> str:
+    def _format_size(self, size_data: list[str]) -> str:
         """Format creature size.
 
         Args:
@@ -936,7 +932,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
         return size_map.get(size_data[0], size_data[0])
 
-    def _format_alignment(self, alignment: List[str]) -> str:
+    def _format_alignment(self, alignment: list[str]) -> str:
         """Format creature alignment.
 
         Args:
@@ -965,7 +961,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
         return " ".join(parts) if parts else "unaligned"
 
-    def _format_ac(self, ac_data: List[Any]) -> str:
+    def _format_ac(self, ac_data: list[Any]) -> str:
         """Format armor class.
 
         Args:
@@ -1065,7 +1061,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
         """
         return f"{cr} (XP varies)"
 
-    def _format_skills(self, skills: Optional[Dict[str, Any]]) -> Optional[str]:
+    def _format_skills(self, skills: dict[str, Any] | None) -> str | None:
         """Format skills list.
 
         Args:
@@ -1090,7 +1086,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
         return ", ".join(skill_parts) if skill_parts else None
 
-    def _format_damage_list(self, damage_data: Optional[List[Any]]) -> Optional[str]:
+    def _format_damage_list(self, damage_data: list[Any] | None) -> str | None:
         """Format damage resistance/immunity list.
 
         Args:
@@ -1112,9 +1108,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
         return ", ".join(damage_parts) if damage_parts else None
 
-    def _format_condition_list(
-        self, condition_data: Optional[List[str]]
-    ) -> Optional[str]:
+    def _format_condition_list(self, condition_data: list[str] | None) -> str | None:
         """Format condition immunity list.
 
         Args:
@@ -1128,7 +1122,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
         return ", ".join(condition_data)
 
-    def _format_senses(self, senses_data: Optional[List[str]]) -> Optional[str]:
+    def _format_senses(self, senses_data: list[str] | None) -> str | None:
         """Format senses list.
 
         Args:
@@ -1142,7 +1136,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
         return ", ".join(senses_data)
 
-    def _format_languages(self, languages_data: Optional[List[str]]) -> Optional[str]:
+    def _format_languages(self, languages_data: list[str] | None) -> str | None:
         """Format languages list.
 
         Args:
@@ -1157,8 +1151,8 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
         return ", ".join(languages_data)
 
     def _format_traits(
-        self, traits_data: Optional[List[Dict[str, Any]]], context: RenderContext
-    ) -> Optional[List[Dict[str, str]]]:
+        self, traits_data: list[dict[str, Any]] | None, context: RenderContext
+    ) -> list[dict[str, str]] | None:
         """Format creature traits.
 
         Args:
@@ -1194,8 +1188,8 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
         return formatted_traits if formatted_traits else None
 
     def _format_actions(
-        self, actions_data: Optional[List[Dict[str, Any]]], context: RenderContext
-    ) -> Optional[List[Dict[str, str]]]:
+        self, actions_data: list[dict[str, Any]] | None, context: RenderContext
+    ) -> list[dict[str, str]] | None:
         """Format creature actions.
 
         Args:
@@ -1230,7 +1224,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
         return formatted_actions if formatted_actions else None
 
-    def _parse_ac_data(self, ac_data: List[Any]) -> Dict[str, Any]:
+    def _parse_ac_data(self, ac_data: list[Any]) -> dict[str, Any]:
         """Parse armor class data for DND template.
 
         Args:
@@ -1264,10 +1258,10 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
             }
         else:
             # Simple integer
-            value = int(ac_entry) if isinstance(ac_entry, (int, str)) else 10
+            value = int(ac_entry) if isinstance(ac_entry, int | str) else 10
             return {"value": value, "source": None, "text": str(value)}
 
-    def _parse_hp_data(self, hp_data: Any) -> Dict[str, Any]:
+    def _parse_hp_data(self, hp_data: Any) -> dict[str, Any]:
         """Parse hit points data for DND template.
 
         Args:
@@ -1299,7 +1293,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
             }
         else:
             # Simple integer
-            average = int(hp_data) if isinstance(hp_data, (int, str)) else 1
+            average = int(hp_data) if isinstance(hp_data, int | str) else 1
             return {"average": average, "formula": None, "text": str(average)}
 
     def _format_type(self, type_data: Any) -> str:
@@ -1328,9 +1322,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
         else:
             return str(type_data)
 
-    def _format_saving_throws(
-        self, save_data: Optional[Dict[str, str]]
-    ) -> Optional[str]:
+    def _format_saving_throws(self, save_data: dict[str, str] | None) -> str | None:
         """Format saving throw bonuses.
 
         Args:
@@ -1422,8 +1414,8 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
             return f"{cr_str} (XP varies)"
 
     def _format_creature_abilities(
-        self, abilities_data: Optional[List[Dict[str, Any]]], context: RenderContext
-    ) -> Optional[List[Dict[str, Any]]]:
+        self, abilities_data: list[dict[str, Any]] | None, context: RenderContext
+    ) -> list[dict[str, Any]] | None:
         """Format creature abilities (traits, actions, etc.) with enhanced data.
 
         Args:
@@ -1468,8 +1460,8 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
         return formatted_abilities if formatted_abilities else None
 
     def _extract_spellcasting_trait(
-        self, traits_data: Optional[List[Dict[str, Any]]]
-    ) -> Optional[Dict[str, Any]]:
+        self, traits_data: list[dict[str, Any]] | None
+    ) -> dict[str, Any] | None:
         """Extract spellcasting information from traits.
 
         Args:
@@ -1501,8 +1493,8 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
         return None
 
     def _get_legendary_actions_description(
-        self, creature_name: str, count: Optional[int]
-    ) -> Optional[str]:
+        self, creature_name: str, count: int | None
+    ) -> str | None:
         """Generate legendary actions description.
 
         Args:
@@ -1545,7 +1537,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 class LaTeXItemRenderer(LaTeXContentRenderer):
     """Enhanced LaTeX renderer for item content using DND table formatting."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize item renderer.
 
         Args:
@@ -1556,7 +1548,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         self.table_format = config.get("table_format", False) if config else False
 
     @property
-    def supported_content_types(self) -> Set[ContentType]:
+    def supported_content_types(self) -> set[ContentType]:
         """Return supported content types."""
         return {ContentType.ITEM}
 
@@ -1582,7 +1574,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         return self.template_engine.render_template(template_name, variables)
 
     def render_item_table(
-        self, items: List[Item], context: RenderContext, table_title: str = "Items"
+        self, items: list[Item], context: RenderContext, table_title: str = "Items"
     ) -> str:
         """Render multiple items as a DND table.
 
@@ -1616,7 +1608,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
 
     def _build_item_variables(
         self, item: Item, context: RenderContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Build comprehensive template variables for item rendering.
 
         Args:
@@ -1714,7 +1706,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
 
     def _build_table_item_data(
         self, item: Item, context: RenderContext
-    ) -> Dict[str, str]:
+    ) -> dict[str, str]:
         """Build item data for table display.
 
         Args:
@@ -1735,7 +1727,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
             "description": self._format_entries(getattr(item, "entries", []), context),
         }
 
-    def _determine_table_columns(self, items: List[Item]) -> str:
+    def _determine_table_columns(self, items: list[Item]) -> str:
         """Determine appropriate table columns based on items.
 
         Args:
@@ -1801,7 +1793,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
 
         return rarity_text
 
-    def _format_weight(self, weight: Any) -> Optional[str]:
+    def _format_weight(self, weight: Any) -> str | None:
         """Format item weight.
 
         Args:
@@ -1813,7 +1805,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         if not weight:
             return None
 
-        if isinstance(weight, (int, float)):
+        if isinstance(weight, int | float):
             if weight == 1:
                 return "1 lb."
             else:
@@ -1821,7 +1813,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         else:
             return str(weight)
 
-    def _format_value(self, value: Any) -> Optional[str]:
+    def _format_value(self, value: Any) -> str | None:
         """Format item value.
 
         Args:
@@ -1833,7 +1825,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         if not value:
             return None
 
-        if isinstance(value, (int, float)):
+        if isinstance(value, int | float):
             # Convert copper pieces to appropriate currency
             if value >= 1000:
                 gp = value / 100
@@ -1849,7 +1841,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         else:
             return str(value)
 
-    def _format_ac_enhanced(self, item: Item) -> Optional[str]:
+    def _format_ac_enhanced(self, item: Item) -> str | None:
         """Format armor class for armor items.
 
         Args:
@@ -1871,7 +1863,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         else:
             return str(ac)
 
-    def _format_damage_enhanced(self, item: Item) -> Optional[str]:
+    def _format_damage_enhanced(self, item: Item) -> str | None:
         """Format damage for weapon items.
 
         Args:
@@ -1893,7 +1885,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         else:
             return None
 
-    def _format_range_item(self, item: Item) -> Optional[str]:
+    def _format_range_item(self, item: Item) -> str | None:
         """Format range for weapon items.
 
         Args:
@@ -1908,9 +1900,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
 
         return str(range_data)
 
-    def _format_properties_enhanced(
-        self, properties: Optional[List[str]]
-    ) -> Optional[str]:
+    def _format_properties_enhanced(self, properties: list[str] | None) -> str | None:
         """Format weapon/item properties.
 
         Args:
@@ -1942,7 +1932,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
 
         return ", ".join(expanded)
 
-    def _format_attunement(self, attunement: Any) -> Optional[str]:
+    def _format_attunement(self, attunement: Any) -> str | None:
         """Format attunement requirement.
 
         Args:
@@ -1959,7 +1949,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         else:
             return str(attunement)
 
-    def _format_charges(self, charges: Any) -> Optional[str]:
+    def _format_charges(self, charges: Any) -> str | None:
         """Format item charges.
 
         Args:
@@ -1971,7 +1961,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         if not charges:
             return None
 
-        if isinstance(charges, (int, str)):
+        if isinstance(charges, int | str):
             return str(charges)
         elif isinstance(charges, dict):
             # Handle complex charge structures
@@ -1979,7 +1969,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         else:
             return str(charges)
 
-    def _extract_magic_properties(self, item: Item) -> Optional[List[Dict[str, str]]]:
+    def _extract_magic_properties(self, item: Item) -> list[dict[str, str]] | None:
         """Extract magic properties from item.
 
         Args:
@@ -1992,7 +1982,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         # For now, return None as placeholder
         return None
 
-    def _build_weapon_statistics(self, item: Item) -> Optional[Dict[str, str]]:
+    def _build_weapon_statistics(self, item: Item) -> dict[str, str] | None:
         """Build weapon statistics table data.
 
         Args:
@@ -2027,7 +2017,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
 
         return stats if any(v != "—" for v in stats.values()) else None
 
-    def _build_armor_statistics(self, item: Item) -> Optional[Dict[str, str]]:
+    def _build_armor_statistics(self, item: Item) -> dict[str, str] | None:
         """Build armor statistics table data.
 
         Args:
@@ -2051,7 +2041,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
 
         return stats
 
-    def _extract_variants(self, item: Item) -> Optional[List[Dict[str, str]]]:
+    def _extract_variants(self, item: Item) -> list[dict[str, str]] | None:
         """Extract item variants.
 
         Args:
@@ -2064,7 +2054,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         # For now, return None as placeholder
         return None
 
-    def _extract_creation_rules(self, item: Item) -> Optional[str]:
+    def _extract_creation_rules(self, item: Item) -> str | None:
         """Extract creation rules for magic items.
 
         Args:
@@ -2106,7 +2096,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         else:
             return str(source)
 
-    def _format_entries(self, entries: List[Any], context: RenderContext) -> str:
+    def _format_entries(self, entries: list[Any], context: RenderContext) -> str:
         """Format item description entries.
 
         Args:
@@ -2129,7 +2119,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         return "\n\n".join(formatted_entries)
 
     # Legacy compatibility methods for backward compatibility with tests
-    def _format_rarity(self, rarity: Optional[str]) -> str:
+    def _format_rarity(self, rarity: str | None) -> str:
         """Legacy method for backward compatibility with tests.
 
         Args:
@@ -2142,7 +2132,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
             return ""
         return f", {rarity}"
 
-    def _format_properties(self, properties: Optional[List[str]]) -> Optional[str]:
+    def _format_properties(self, properties: list[str] | None) -> str | None:
         """Legacy method for backward compatibility with tests.
 
         Args:
@@ -2159,7 +2149,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
 class LaTeXClassRenderer(LaTeXContentRenderer):
     """Enhanced LaTeX renderer for D&D class content using DND template environments."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize class renderer.
 
         Args:
@@ -2169,7 +2159,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
         self.use_dnd_template = config.get("use_dnd_template", True) if config else True
 
     @property
-    def supported_content_types(self) -> Set[ContentType]:
+    def supported_content_types(self) -> set[ContentType]:
         """Return supported content types."""
         return {ContentType.CLASS}
 
@@ -2196,7 +2186,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
 
     def _build_class_variables(
         self, class_obj: Class, context: RenderContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Build comprehensive template variables for class rendering.
 
         Args:
@@ -2263,7 +2253,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
 
         return variables
 
-    def _extract_class_description(self, class_obj: Class) -> Optional[str]:
+    def _extract_class_description(self, class_obj: Class) -> str | None:
         """Extract class description from fluff or entries.
 
         Args:
@@ -2277,8 +2267,8 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
         return None
 
     def _build_hit_dice_info(
-        self, hd: Dict[str, int], class_name: str
-    ) -> Dict[str, str]:
+        self, hd: dict[str, int], class_name: str
+    ) -> dict[str, str]:
         """Build hit dice information.
 
         Args:
@@ -2301,7 +2291,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
             "higher_levels": higher_levels,
         }
 
-    def _build_proficiencies_info(self, prof_data: Dict[str, Any]) -> Dict[str, str]:
+    def _build_proficiencies_info(self, prof_data: dict[str, Any]) -> dict[str, str]:
         """Build proficiencies information.
 
         Args:
@@ -2357,7 +2347,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
 
         return proficiencies
 
-    def _build_equipment_info(self, equipment_data: Dict[str, Any]) -> List[List[str]]:
+    def _build_equipment_info(self, equipment_data: dict[str, Any]) -> list[list[str]]:
         """Build starting equipment information.
 
         Args:
@@ -2373,7 +2363,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
             return [[str(item) for item in default_equipment]]
         return []
 
-    def _build_class_table(self, class_obj: Class) -> Dict[str, Any]:
+    def _build_class_table(self, class_obj: Class) -> dict[str, Any]:
         """Build class progression table.
 
         Args:
@@ -2405,7 +2395,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
             or class_obj.cantrip_progression is not None
         )
 
-    def _build_spellcasting_table(self, class_obj: Class) -> Dict[str, Any]:
+    def _build_spellcasting_table(self, class_obj: Class) -> dict[str, Any]:
         """Build spellcasting progression table.
 
         Args:
@@ -2422,7 +2412,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
             "rows": ["1st & 2 & — & — & — & — & — & — & — & —"],  # Placeholder
         }
 
-    def _build_spellcasting_rules(self, class_obj: Class) -> Dict[str, str]:
+    def _build_spellcasting_rules(self, class_obj: Class) -> dict[str, str]:
         """Build spellcasting rules text.
 
         Args:
@@ -2446,8 +2436,8 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
         return rules
 
     def _build_class_features(
-        self, features_data: List[Any], context: RenderContext
-    ) -> List[Dict[str, Any]]:
+        self, features_data: list[Any], context: RenderContext
+    ) -> list[dict[str, Any]]:
         """Build class features list.
 
         Args:
@@ -2478,8 +2468,8 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
         return formatted_features
 
     def _build_subclasses_info(
-        self, subclasses: List[Any], context: RenderContext
-    ) -> List[Dict[str, Any]]:
+        self, subclasses: list[Any], context: RenderContext
+    ) -> list[dict[str, Any]]:
         """Build subclasses information.
 
         Args:
@@ -2514,8 +2504,8 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
         return f"At a certain level, you choose an archetype that shapes the nature of your {class_name.lower()} abilities."
 
     def _build_multiclassing_info(
-        self, multiclassing_data: Dict[str, Any]
-    ) -> Dict[str, str]:
+        self, multiclassing_data: dict[str, Any]
+    ) -> dict[str, str]:
         """Build multiclassing information.
 
         Args:
@@ -2597,7 +2587,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
 class LaTeXRaceRenderer(LaTeXContentRenderer):
     """Enhanced LaTeX renderer for D&D race content using DND template environments."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize race renderer.
 
         Args:
@@ -2607,7 +2597,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
         self.use_dnd_template = config.get("use_dnd_template", True) if config else True
 
     @property
-    def supported_content_types(self) -> Set[ContentType]:
+    def supported_content_types(self) -> set[ContentType]:
         """Return supported content types."""
         return {ContentType.RACE}
 
@@ -2634,7 +2624,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
 
     def _build_race_variables(
         self, race: Race, context: RenderContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Build comprehensive template variables for race rendering.
 
         Args:
@@ -2710,7 +2700,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
 
         return variables
 
-    def _format_ability_adjustments(self, abilities: List[Any]) -> str:
+    def _format_ability_adjustments(self, abilities: list[Any]) -> str:
         """Format ability score adjustments.
 
         Args:
@@ -2759,7 +2749,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
 
         return ". ".join(adjustments) + "." if adjustments else ""
 
-    def _extract_age_info(self, race: Race) -> Optional[str]:
+    def _extract_age_info(self, race: Race) -> str | None:
         """Extract age information from race entries.
 
         Args:
@@ -2772,7 +2762,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
         # For now, return None as placeholder
         return None
 
-    def _format_size_info(self, size: List[str]) -> str:
+    def _format_size_info(self, size: list[str]) -> str:
         """Format size information.
 
         Args:
@@ -2829,7 +2819,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
         Returns:
             Formatted darkvision string
         """
-        if isinstance(darkvision, (int, str)):
+        if isinstance(darkvision, int | str):
             range_value = str(darkvision)
             return (
                 f"You have superior vision in dark and dim conditions. You can see in dim light within "
@@ -2841,7 +2831,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
 
     def _extract_racial_traits(
         self, race: Race, context: RenderContext
-    ) -> List[Dict[str, str]]:
+    ) -> list[dict[str, str]]:
         """Extract racial traits from entries.
 
         Args:
@@ -2855,7 +2845,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
         # For now, return empty list as placeholder
         return []
 
-    def _build_proficiencies_info(self, race: Race) -> List[Dict[str, str]]:
+    def _build_proficiencies_info(self, race: Race) -> list[dict[str, str]]:
         """Build proficiencies information.
 
         Args:
@@ -2904,7 +2894,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
 
         return proficiencies
 
-    def _build_resistances_info(self, race: Race) -> List[Dict[str, str]]:
+    def _build_resistances_info(self, race: Race) -> list[dict[str, str]]:
         """Build resistances and immunities information.
 
         Args:
@@ -2935,7 +2925,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
 
         return resistances
 
-    def _format_racial_spells(self, spells: List[Any]) -> Dict[str, str]:
+    def _format_racial_spells(self, spells: list[Any]) -> dict[str, str]:
         """Format racial spells information.
 
         Args:
@@ -2951,7 +2941,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
             "description": "You know certain spells based on your heritage.",
         }
 
-    def _format_language_proficiencies(self, languages: List[str]) -> str:
+    def _format_language_proficiencies(self, languages: list[str]) -> str:
         """Format language proficiencies.
 
         Args:
@@ -2965,7 +2955,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
 
         return f"You can speak, read, and write {', '.join(languages)}."
 
-    def _format_entries(self, entries: List[Any], context: RenderContext) -> str:
+    def _format_entries(self, entries: list[Any], context: RenderContext) -> str:
         """Format race description entries.
 
         Args:
@@ -3022,7 +3012,7 @@ class LaTeXContentRendererRegistry:
 
     def __init__(self):
         """Initialize renderer registry."""
-        self._renderers: Dict[ContentType, ContentRenderer] = {}
+        self._renderers: dict[ContentType, ContentRenderer] = {}
         self._register_default_renderers()
 
     def _register_default_renderers(self):
@@ -3042,7 +3032,7 @@ class LaTeXContentRendererRegistry:
         """
         self._renderers[content_type] = renderer
 
-    def get_renderer(self, content_type: ContentType) -> Optional[ContentRenderer]:
+    def get_renderer(self, content_type: ContentType) -> ContentRenderer | None:
         """Get renderer for content type.
 
         Args:

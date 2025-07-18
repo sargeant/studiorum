@@ -6,7 +6,6 @@ can handle all available data without warnings or unknown data structures.
 
 import asyncio
 import logging
-from typing import List
 
 import pytest
 
@@ -56,7 +55,7 @@ class TestDataValidationStress:
         for logger in loggers:
             logger.removeHandler(self.handler)
 
-    def get_validation_warnings(self) -> List[str]:
+    def get_validation_warnings(self) -> list[str]:
         """Extract validation warning messages."""
         warnings = []
         for record in self.log_capture.records:
@@ -64,7 +63,7 @@ class TestDataValidationStress:
                 warnings.append(record.getMessage())
         return warnings
 
-    def get_unknown_data_warnings(self) -> List[str]:
+    def get_unknown_data_warnings(self) -> list[str]:
         """Extract warnings about unknown or unhandled data."""
         unknown_warnings = []
         for record in self.log_capture.records:
@@ -488,12 +487,12 @@ class TestDataValidationStress:
         )
 
     @pytest.mark.asyncio
-    async def test_concurrent_data_loading(self):
+    async def test_concurrent_data_loading(self) -> None:
         """Test that concurrent data loading works without issues."""
         source_manager = FileSystemSourceManager()
 
         # Create multiple omnidexers to test concurrent loading
-        async def load_data():
+        async def load_data() -> dict[str, int]:
             omnidexer = Omnidexer(source_manager)
             return await omnidexer.load_all_data()
 

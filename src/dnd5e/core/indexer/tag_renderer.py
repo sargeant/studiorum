@@ -1,7 +1,9 @@
 """Tag renderer and dispatcher for the new tag system."""
 
+from __future__ import annotations
+
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from .content_tracker import ContentTracker
 from .tag_ast import ASTNode, DocumentNode, TagNode, TextNode
@@ -16,9 +18,7 @@ if TYPE_CHECKING:
 class RendererContext:
     """Context object passed to handlers during rendering."""
 
-    def __init__(
-        self, renderer: "TagRenderer", omnidexer: Optional["Omnidexer"] = None
-    ):
+    def __init__(self, renderer: TagRenderer, omnidexer: Omnidexer | None = None):
         self.renderer = renderer
         self.omnidexer = omnidexer
         self.content_tracker = renderer.content_tracker
@@ -31,10 +31,10 @@ class RendererContext:
 class TagRenderer:
     """Main renderer/dispatcher for tag processing."""
 
-    def __init__(self, omnidexer: Optional["Omnidexer"] = None):
+    def __init__(self, omnidexer: Omnidexer | None = None):
         self.omnidexer = omnidexer
         self.content_tracker = ContentTracker()
-        self._handlers: Dict[str, TagHandler] = {}
+        self._handlers: dict[str, TagHandler] = {}
 
         # Register default handlers
         for handler in get_default_handlers():
@@ -46,7 +46,7 @@ class TagRenderer:
         for tag_type in self._get_handler_types(handler):
             self._handlers[tag_type] = handler
 
-    def _get_handler_types(self, handler: TagHandler) -> List[str]:
+    def _get_handler_types(self, handler: TagHandler) -> list[str]:
         """Get all tag types a handler can process."""
         # This is a simple implementation - in practice, you might want
         # handlers to declare their types more explicitly
@@ -87,9 +87,7 @@ class TagRenderer:
         context = RendererContext(self, self.omnidexer)
         return self.render_node(document, context)
 
-    def render_node(
-        self, node: ASTNode, context: Optional[RendererContext] = None
-    ) -> str:
+    def render_node(self, node: ASTNode, context: RendererContext | None = None) -> str:
         """Render a single AST node."""
         if context is None:
             context = RendererContext(self, self.omnidexer)
@@ -168,11 +166,11 @@ class TagRenderer:
         for child in node.children:
             self._track_node_content(child)
 
-    def get_tracked_content(self) -> List[Any]:
+    def get_tracked_content(self) -> list[Any]:
         """Get all tracked content for appendix generation."""
         return self.content_tracker.get_tracked_content()
 
-    def get_tracked_content_for_appendix(self) -> Dict[str, List[Dict[str, str]]]:
+    def get_tracked_content_for_appendix(self) -> dict[str, list[dict[str, str]]]:
         """Get tracked content formatted for appendix generation."""
         return self.content_tracker.export_for_appendix()
 
@@ -180,7 +178,7 @@ class TagRenderer:
         """Clear all tracked content."""
         self.content_tracker.clear()
 
-    def get_content_statistics(self) -> Dict[str, int]:
+    def get_content_statistics(self) -> dict[str, int]:
         """Get statistics about tracked content."""
         return self.content_tracker.get_statistics()
 
@@ -188,7 +186,7 @@ class TagRenderer:
         """Check if a handler exists for the given tag type."""
         return tag_type in self._handlers
 
-    def get_supported_tag_types(self) -> List[str]:
+    def get_supported_tag_types(self) -> list[str]:
         """Get all supported tag types."""
         return sorted(list(self._handlers.keys()))
 

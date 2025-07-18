@@ -9,7 +9,6 @@ import logging
 import time
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List
 
 import pytest
 
@@ -123,7 +122,7 @@ class TestFullDatasetValidation:
         for logger in loggers:
             logger.removeHandler(self.handler)
 
-    def extract_validation_warnings(self) -> List[str]:
+    def extract_validation_warnings(self) -> list[str]:
         """Extract validation warnings from log records."""
         warnings = []
         for record in self.log_records:
@@ -134,7 +133,7 @@ class TestFullDatasetValidation:
                 warnings.append(record.getMessage())
         return warnings
 
-    def extract_file_skips(self) -> Dict[str, int]:
+    def extract_file_skips(self) -> dict[str, int]:
         """Extract file skip information from log records."""
         skips = defaultdict(int)
         for record in self.log_records:

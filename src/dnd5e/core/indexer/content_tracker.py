@@ -1,7 +1,6 @@
 """Content tracking for appendix generation."""
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
 
 
 @dataclass
@@ -10,8 +9,8 @@ class TrackedContent:
 
     content_type: str
     name: str
-    source: Optional[str] = None
-    page: Optional[str] = None
+    source: str | None = None
+    page: str | None = None
 
     def __post_init__(self):
         """Normalize the content after initialization."""
@@ -22,7 +21,7 @@ class TrackedContent:
         if self.page:
             self.page = self.page.strip()
 
-    def to_tuple(self) -> Tuple[str, str, Optional[str]]:
+    def to_tuple(self) -> tuple[str, str, str | None]:
         """Convert to tuple for set operations."""
         return (self.content_type, self.name, self.source)
 
@@ -41,15 +40,15 @@ class ContentTracker:
     """Tracks content references for appendix generation."""
 
     def __init__(self):
-        self._tracked_content: Set[TrackedContent] = set()
-        self._content_counts: Dict[Tuple[str, str, Optional[str]], int] = {}
+        self._tracked_content: set[TrackedContent] = set()
+        self._content_counts: dict[tuple[str, str, str | None], int] = {}
 
     def add_content(
         self,
         content_type: str,
         name: str,
-        source: Optional[str] = None,
-        page: Optional[str] = None,
+        source: str | None = None,
+        page: str | None = None,
     ) -> None:
         """Add content to tracking."""
         content = TrackedContent(content_type, name, source, page)
@@ -61,14 +60,14 @@ class ContentTracker:
         key = content.to_tuple()
         self._content_counts[key] = self._content_counts.get(key, 0) + 1
 
-    def get_tracked_content(self) -> List[TrackedContent]:
+    def get_tracked_content(self) -> list[TrackedContent]:
         """Get all tracked content in sorted order."""
         return sorted(
             list(self._tracked_content),
             key=lambda x: (x.content_type, x.name, x.source or ""),
         )
 
-    def get_tracked_content_by_type(self, content_type: str) -> List[TrackedContent]:
+    def get_tracked_content_by_type(self, content_type: str) -> list[TrackedContent]:
         """Get tracked content filtered by type."""
         content_type = content_type.lower()
         return [
@@ -78,18 +77,18 @@ class ContentTracker:
         ]
 
     def get_content_count(
-        self, content_type: str, name: str, source: Optional[str] = None
+        self, content_type: str, name: str, source: str | None = None
     ) -> int:
         """Get the number of times specific content has been referenced."""
         key = (content_type.lower(), name.strip(), source.strip() if source else None)
         return self._content_counts.get(key, 0)
 
-    def get_content_types(self) -> List[str]:
+    def get_content_types(self) -> list[str]:
         """Get all content types that have been tracked."""
         types = set(content.content_type for content in self._tracked_content)
         return sorted(list(types))
 
-    def get_statistics(self) -> Dict[str, int]:
+    def get_statistics(self) -> dict[str, int]:
         """Get tracking statistics."""
         stats = {
             "total_unique_content": len(self._tracked_content),
@@ -109,14 +108,14 @@ class ContentTracker:
         self._content_counts.clear()
 
     def has_content(
-        self, content_type: str, name: str, source: Optional[str] = None
+        self, content_type: str, name: str, source: str | None = None
     ) -> bool:
         """Check if specific content has been tracked."""
         content = TrackedContent(content_type, name, source)
         return content in self._tracked_content
 
     def remove_content(
-        self, content_type: str, name: str, source: Optional[str] = None
+        self, content_type: str, name: str, source: str | None = None
     ) -> bool:
         """Remove specific content from tracking. Returns True if removed."""
         content = TrackedContent(content_type, name, source)
@@ -136,7 +135,7 @@ class ContentTracker:
                 content.content_type, content.name, content.source, content.page
             )
 
-    def export_for_appendix(self) -> Dict[str, List[Dict[str, str]]]:
+    def export_for_appendix(self) -> dict[str, list[dict[str, str]]]:
         """Export tracked content in a format suitable for appendix generation."""
         result = {}
 

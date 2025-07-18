@@ -1,7 +1,7 @@
 """LaTeX template engine for D&D-style documents."""
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 class LaTeXTemplateEngine:
@@ -11,7 +11,7 @@ class LaTeXTemplateEngine:
     custom template loading from files.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize template engine.
 
         Args:
@@ -206,7 +206,7 @@ class LaTeXTemplateEngine:
 {{% endif %}}
 """.strip()
 
-    def render_template(self, template_name: str, variables: Dict[str, Any]) -> str:
+    def render_template(self, template_name: str, variables: dict[str, Any]) -> str:
         """Render a template with the given variables.
 
         Args:
@@ -222,7 +222,7 @@ class LaTeXTemplateEngine:
 
         return self._substitute_variables(template, variables)
 
-    def _get_template(self, template_name: str) -> Optional[str]:
+    def _get_template(self, template_name: str) -> str | None:
         """Get template content by name.
 
         Args:
@@ -244,7 +244,7 @@ class LaTeXTemplateEngine:
 
         return None
 
-    def _substitute_variables(self, template: str, variables: Dict[str, Any]) -> str:
+    def _substitute_variables(self, template: str, variables: dict[str, Any]) -> str:
         """Substitute variables in template using simple string formatting.
 
         Args:
@@ -274,7 +274,7 @@ class LaTeXTemplateEngine:
 
         return result
 
-    def _process_conditionals(self, template: str, variables: Dict[str, Any]) -> str:
+    def _process_conditionals(self, template: str, variables: dict[str, Any]) -> str:
         """Process basic conditional blocks in templates.
 
         Args:
@@ -310,7 +310,7 @@ class LaTeXTemplateEngine:
                 return ""
 
             items = variables[list_name]
-            if not isinstance(items, (list, tuple)):
+            if not isinstance(items, list | tuple):
                 return ""
 
             result_parts = []

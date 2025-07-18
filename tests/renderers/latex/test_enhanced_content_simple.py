@@ -1,6 +1,6 @@
 """Simplified tests for enhanced LaTeX content renderers with DND template environments."""
 
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -25,18 +25,18 @@ from dnd5e.renderers.latex.content import (
 class TestEnhancedLaTeXCreatureRenderer:
     """Test cases for enhanced LaTeX creature renderer using DND environments."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.renderer = LaTeXCreatureRenderer()
         self.context = Mock(spec=RenderContext)
         self.context.tag_resolver = Mock()
         self.context.tag_resolver.process_text.side_effect = lambda x: x
 
-    def test_supported_content_types(self):
+    def test_supported_content_types(self) -> None:
         """Test supported content types."""
         assert self.renderer.supported_content_types == {ContentType.CREATURE}
 
-    def test_enhanced_creature_rendering_uses_dnd_template(self):
+    def test_enhanced_creature_rendering_uses_dnd_template(self) -> None:
         """Test that enhanced creature renderer uses DND template format."""
         creature = Mock(spec=Creature)
         creature.name = "Ancient Red Dragon"

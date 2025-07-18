@@ -2,7 +2,7 @@
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import jinja2
 from jinja2 import Environment, FileSystemLoader, Template
@@ -19,7 +19,7 @@ class LaTeXTemplateEngine:
     document classes.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize template engine.
 
         Args:
@@ -121,7 +121,7 @@ class LaTeXTemplateEngine:
                 value = str(value)
             return f"\\verb|{value}|"
 
-        def dnd_ability_modifier(value: Union[int, str]) -> str:
+        def dnd_ability_modifier(value: int | str) -> str:
             """Format ability score as modifier (+1, -2, etc.)."""
             try:
                 score = int(value)
@@ -130,7 +130,7 @@ class LaTeXTemplateEngine:
             except (ValueError, TypeError):
                 return str(value)
 
-        def dnd_challenge_rating(value: Union[int, str, float]) -> str:
+        def dnd_challenge_rating(value: int | str | float) -> str:
             """Format challenge rating for display."""
             try:
                 cr = float(value)
@@ -143,7 +143,7 @@ class LaTeXTemplateEngine:
             except (ValueError, TypeError):
                 return str(value)
 
-        def dnd_spell_level(value: Union[int, str]) -> str:
+        def dnd_spell_level(value: int | str) -> str:
             """Format spell level for display."""
             try:
                 level = int(value)
@@ -171,7 +171,7 @@ class LaTeXTemplateEngine:
         self.env.filters["dnd_challenge_rating"] = dnd_challenge_rating
         self.env.filters["dnd_spell_level"] = dnd_spell_level
 
-    def render_template(self, template_name: str, context: Dict[str, Any]) -> str:
+    def render_template(self, template_name: str, context: dict[str, Any]) -> str:
         """Render a template with the given context.
 
         Args:
@@ -302,7 +302,7 @@ class LaTeXTemplateEngine:
         """
         return self.get_template_path(template_name).exists()
 
-    def create_template_context(self, **kwargs) -> Dict[str, Any]:
+    def create_template_context(self, **kwargs) -> dict[str, Any]:
         """Create template context with common variables.
 
         Args:
@@ -326,7 +326,7 @@ class LaTeXTemplateEngine:
         """
         return check_dnd_template_status()
 
-    def get_dnd_template_status(self) -> Dict[str, Any]:
+    def get_dnd_template_status(self) -> dict[str, Any]:
         """Get detailed DND template status information.
 
         Returns:
@@ -352,7 +352,7 @@ class LaTeXTemplateEngine:
 
     def create_dnd_template_context(
         self, content_type: str = "book", **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create template context optimized for DND template usage.
 
         Args:

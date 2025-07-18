@@ -1,7 +1,8 @@
 """Content organization utilities for document structure."""
 
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from collections.abc import Callable
+from typing import Any
 
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.document_metadata import ContentSection, DocumentType, SectionLevel
@@ -17,7 +18,7 @@ class ContentOrganizer:
             document_type: Type of document being organized
         """
         self.document_type = document_type
-        self._sorters: Dict[str, Callable] = {
+        self._sorters: dict[str, Callable] = {
             ContentType.SPELL.value: self._sort_spells,
             ContentType.CREATURE.value: self._sort_creatures,
             ContentType.ITEM.value: self._sort_items,
@@ -28,8 +29,8 @@ class ContentOrganizer:
         }
 
     def organize_content(
-        self, content_items: List[BaseContent]
-    ) -> Dict[str, List[BaseContent]]:
+        self, content_items: list[BaseContent]
+    ) -> dict[str, list[BaseContent]]:
         """Organize content items by type and sort appropriately.
 
         Args:
@@ -49,8 +50,8 @@ class ContentOrganizer:
         return grouped
 
     def create_hierarchical_sections(
-        self, organized_content: Dict[str, List[BaseContent]]
-    ) -> List[ContentSection]:
+        self, organized_content: dict[str, list[BaseContent]]
+    ) -> list[ContentSection]:
         """Create hierarchical sections from organized content.
 
         Args:
@@ -68,8 +69,8 @@ class ContentOrganizer:
         return sections
 
     def organize_by_source(
-        self, content_items: List[BaseContent]
-    ) -> Dict[str, Dict[str, List[BaseContent]]]:
+        self, content_items: list[BaseContent]
+    ) -> dict[str, dict[str, list[BaseContent]]]:
         """Organize content by source book and then by type.
 
         Args:
@@ -100,8 +101,8 @@ class ContentOrganizer:
         return dict(organized)
 
     def organize_by_level(
-        self, content_items: List[BaseContent]
-    ) -> Dict[str, List[BaseContent]]:
+        self, content_items: list[BaseContent]
+    ) -> dict[str, list[BaseContent]]:
         """Organize content by level (for spells, creatures, etc.).
 
         Args:
@@ -123,8 +124,8 @@ class ContentOrganizer:
         return dict(organized)
 
     def create_table_of_contents_data(
-        self, sections: List[ContentSection]
-    ) -> List[Dict[str, Any]]:
+        self, sections: list[ContentSection]
+    ) -> list[dict[str, Any]]:
         """Create table of contents data structure.
 
         Args:
@@ -141,8 +142,8 @@ class ContentOrganizer:
         return toc_data
 
     def _group_by_content_type(
-        self, content_items: List[BaseContent]
-    ) -> Dict[str, List[BaseContent]]:
+        self, content_items: list[BaseContent]
+    ) -> dict[str, list[BaseContent]]:
         """Group content items by their content type.
 
         Args:
@@ -163,7 +164,7 @@ class ContentOrganizer:
 
         return dict(grouped)
 
-    def _sort_spells(self, spells: List[BaseContent]) -> List[BaseContent]:
+    def _sort_spells(self, spells: list[BaseContent]) -> list[BaseContent]:
         """Sort spells by level, then school, then name.
 
         Args:
@@ -181,7 +182,7 @@ class ContentOrganizer:
 
         return sorted(spells, key=spell_sort_key)
 
-    def _sort_creatures(self, creatures: List[BaseContent]) -> List[BaseContent]:
+    def _sort_creatures(self, creatures: list[BaseContent]) -> list[BaseContent]:
         """Sort creatures by challenge rating, then name.
 
         Args:
@@ -213,7 +214,7 @@ class ContentOrganizer:
 
         return sorted(creatures, key=creature_sort_key)
 
-    def _sort_items(self, items: List[BaseContent]) -> List[BaseContent]:
+    def _sort_items(self, items: list[BaseContent]) -> list[BaseContent]:
         """Sort items by type, rarity, then name.
 
         Args:
@@ -244,7 +245,7 @@ class ContentOrganizer:
 
         return sorted(items, key=item_sort_key)
 
-    def _sort_alphabetically(self, content: List[BaseContent]) -> List[BaseContent]:
+    def _sort_alphabetically(self, content: list[BaseContent]) -> list[BaseContent]:
         """Sort content alphabetically by name.
 
         Args:
@@ -307,7 +308,7 @@ class ContentOrganizer:
         return "Miscellaneous"
 
     def _create_section_for_content_type(
-        self, content_type: str, items: List[BaseContent]
+        self, content_type: str, items: list[BaseContent]
     ) -> ContentSection:
         """Create a section for a specific content type.
 
@@ -345,8 +346,8 @@ class ContentOrganizer:
         return section
 
     def _create_spell_subsections(
-        self, spells: List[BaseContent]
-    ) -> List[ContentSection]:
+        self, spells: list[BaseContent]
+    ) -> list[ContentSection]:
         """Create subsections for spells organized by level.
 
         Args:
@@ -376,8 +377,8 @@ class ContentOrganizer:
         return subsections
 
     def _create_creature_subsections(
-        self, creatures: List[BaseContent]
-    ) -> List[ContentSection]:
+        self, creatures: list[BaseContent]
+    ) -> list[ContentSection]:
         """Create subsections for creatures organized by CR.
 
         Args:
@@ -409,8 +410,8 @@ class ContentOrganizer:
         return subsections
 
     def _create_item_subsections(
-        self, items: List[BaseContent]
-    ) -> List[ContentSection]:
+        self, items: list[BaseContent]
+    ) -> list[ContentSection]:
         """Create subsections for items organized by type.
 
         Args:
@@ -467,7 +468,7 @@ class ContentOrganizer:
 
     def _extract_toc_entries(
         self, section: ContentSection, level: int = 1
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Extract table of contents entries from a section.
 
         Args:

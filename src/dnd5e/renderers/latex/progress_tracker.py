@@ -16,7 +16,6 @@ try:
         TimeElapsedColumn,
         TimeRemainingColumn,
     )
-    from rich.text import Text
 
     RICH_AVAILABLE = True
 except ImportError:
@@ -54,7 +53,7 @@ class ProgressReporter(Protocol):
 class RichProgressReporter:
     """Rich-based progress reporter with fancy output."""
 
-    def __init__(self, console: Optional[Console] = None):
+    def __init__(self, console: Console | None = None):
         """Initialize rich progress reporter.
 
         Args:
@@ -64,9 +63,9 @@ class RichProgressReporter:
             raise ImportError("Rich library not available for progress tracking")
 
         self.console = console or Console()
-        self.progress: Optional[Progress] = None
-        self.main_task: Optional[TaskID] = None
-        self.pass_task: Optional[TaskID] = None
+        self.progress: Progress | None = None
+        self.main_task: TaskID | None = None
+        self.pass_task: TaskID | None = None
         self.current_pass = 0
         self.total_passes = 0
         self.start_time = 0.0
@@ -239,7 +238,7 @@ class CompilationProgress:
 class ProgressTracker:
     """Main progress tracking coordinator."""
 
-    def __init__(self, style: str = "rich", console: Optional[Console] = None):
+    def __init__(self, style: str = "rich", console: Console | None = None):
         """Initialize progress tracker.
 
         Args:
@@ -250,9 +249,7 @@ class ProgressTracker:
         self._reporter = self._create_reporter(style, console)
         self._progress = CompilationProgress("", 0)
 
-    def _create_reporter(
-        self, style: str, console: Optional[Console]
-    ) -> ProgressReporter:
+    def _create_reporter(self, style: str, console: Console | None) -> ProgressReporter:
         """Create appropriate progress reporter.
 
         Args:

@@ -1,6 +1,6 @@
 """Adventure data models."""
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -11,11 +11,11 @@ class AdventureChapter(BaseModel):
     """Represents a chapter within an adventure."""
 
     name: str = Field(..., description="Chapter name")
-    ordinal: Optional[Dict[str, Any]] = Field(None, description="Chapter numbering")
-    headers: Optional[List[Union[str, Dict[str, Any]]]] = Field(
+    ordinal: dict[str, Any] | None = Field(None, description="Chapter numbering")
+    headers: list[str | dict[str, Any]] | None = Field(
         None, description="Section headers"
     )
-    entries: List[Any] = Field(default_factory=list, description="Chapter content")
+    entries: list[Any] = Field(default_factory=list, description="Chapter content")
 
     def get_chapter_number(self) -> str:
         """Get formatted chapter number."""
@@ -55,7 +55,7 @@ class AdventureChapter(BaseModel):
             return result
         return v
 
-    def get_formatted_headers(self) -> List[str]:
+    def get_formatted_headers(self) -> list[str]:
         """Get formatted header texts."""
         if not self.headers:
             return []
@@ -77,12 +77,12 @@ class AdventureChapter(BaseModel):
 class AdventureMetadata(BaseModel):
     """Adventure metadata and publishing information."""
 
-    id: Optional[str] = Field(None, description="Adventure ID")
-    published: Optional[str] = Field(None, description="Publication date")
-    storyline: Optional[str] = Field(None, description="Storyline/campaign")
-    level: Optional[Dict[str, Any]] = Field(None, description="Level range")
-    group: Optional[str] = Field(None, description="Adventure group")
-    cover: Optional[Dict[str, Any]] = Field(None, description="Cover image")
+    id: str | None = Field(None, description="Adventure ID")
+    published: str | None = Field(None, description="Publication date")
+    storyline: str | None = Field(None, description="Storyline/campaign")
+    level: dict[str, Any] | None = Field(None, description="Level range")
+    group: str | None = Field(None, description="Adventure group")
+    cover: dict[str, Any] | None = Field(None, description="Cover image")
 
     def get_level_range(self) -> str:
         """Get formatted level range."""
@@ -102,20 +102,18 @@ class AdventureMetadata(BaseModel):
 class Adventure(BaseContent):
     """Represents a D&D adventure."""
 
-    id: Optional[str] = Field(None, description="Adventure identifier")
-    contents: List[AdventureChapter] = Field(
+    id: str | None = Field(None, description="Adventure identifier")
+    contents: list[AdventureChapter] = Field(
         default_factory=list, description="Adventure chapters"
     )
-    metadata: Optional[AdventureMetadata] = Field(
-        None, description="Adventure metadata"
-    )
+    metadata: AdventureMetadata | None = Field(None, description="Adventure metadata")
 
     # Adventure-specific fields
-    published: Optional[str] = Field(None, description="Publication date")
-    storyline: Optional[str] = Field(None, description="Storyline")
-    level: Optional[Dict[str, Any]] = Field(None, description="Level range")
-    group: Optional[str] = Field(None, description="Adventure group")
-    cover: Optional[Dict[str, Any]] = Field(None, description="Cover image")
+    published: str | None = Field(None, description="Publication date")
+    storyline: str | None = Field(None, description="Storyline")
+    level: dict[str, Any] | None = Field(None, description="Level range")
+    group: str | None = Field(None, description="Adventure group")
+    cover: dict[str, Any] | None = Field(None, description="Cover image")
 
     def model_post_init(self, __context) -> None:
         """Post-process parsed data."""

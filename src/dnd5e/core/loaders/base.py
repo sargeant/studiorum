@@ -2,18 +2,18 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from ..models.content import BaseContent, ContentType
 
 T = TypeVar("T", bound=BaseContent)
 
 
-class DataLoader(ABC, Generic[T]):
+class DataLoader[T: BaseContent](ABC):
     """Abstract base class for data loaders."""
 
     @abstractmethod
-    async def load(self, path: Path) -> List[T]:
+    async def load(self, path: Path) -> list[T]:
         """Load data from file and return validated content objects."""
         pass
 
@@ -32,12 +32,12 @@ class SourceManager(ABC):
     """Abstract base class for managing multiple data sources."""
 
     @abstractmethod
-    def get_data_paths(self) -> Dict[ContentType, List[Path]]:
+    def get_data_paths(self) -> dict[ContentType, list[Path]]:
         """Return paths to data files organized by content type."""
         pass
 
     @abstractmethod
-    def resolve_source(self, source_abbrev: str) -> Optional[Dict[str, Any]]:
+    def resolve_source(self, source_abbrev: str) -> dict[str, Any] | None:
         """Resolve source abbreviation to full source information."""
         pass
 

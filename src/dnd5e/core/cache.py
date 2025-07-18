@@ -5,9 +5,10 @@ import json
 import logging
 import pickle
 import threading
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class CacheManager:
     and other expensive computations to improve performance.
     """
 
-    def __init__(self, cache_dir: Optional[Path] = None):
+    def __init__(self, cache_dir: Path | None = None):
         """Initialize cache manager.
 
         Args:
@@ -100,7 +101,7 @@ class CacheManager:
                 meta_path.unlink(missing_ok=True)
                 return default
 
-    def set(self, key: str, value: Any, ttl: Optional[timedelta] = None) -> None:
+    def set(self, key: str, value: Any, ttl: timedelta | None = None) -> None:
         """
         Set value in cache.
 
@@ -142,7 +143,7 @@ class CacheManager:
                 meta_path.unlink(missing_ok=True)
 
     def cached_call(
-        self, key: str, func: Callable, *args, ttl: Optional[timedelta] = None, **kwargs
+        self, key: str, func: Callable, *args, ttl: timedelta | None = None, **kwargs
     ) -> Any:
         """
         Call function with caching.
@@ -184,7 +185,7 @@ class CacheManager:
             for meta_file in self.cache_dir.glob("*.meta"):
                 meta_file.unlink(missing_ok=True)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         with self._lock:
             cache_files = list(self.cache_dir.glob("*.cache"))
@@ -258,7 +259,7 @@ def get_cache() -> CacheManager:
     return _cache_manager
 
 
-def cached(key_func: Optional[Callable] = None, ttl: Optional[timedelta] = None):
+def cached(key_func: Callable | None = None, ttl: timedelta | None = None):
     """
     Decorator for caching function results.
 

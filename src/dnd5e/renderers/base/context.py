@@ -1,8 +1,10 @@
 """Rendering context management."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from dnd5e.core.indexer.tag_resolver import TagResolver
 from dnd5e.core.loaders.omnidexer import Omnidexer
@@ -20,17 +22,17 @@ class RenderContext:
     """
 
     # Core services
-    omnidexer: Optional[Omnidexer] = None
-    tag_resolver: Optional[TagResolver] = None
+    omnidexer: Omnidexer | None = None
+    tag_resolver: TagResolver | None = None
 
     # Document metadata (structured)
-    metadata: Optional["DocumentMetadata"] = None
+    metadata: DocumentMetadata | None = None
 
     # Document metadata (legacy)
-    title: Optional[str] = None
-    subtitle: Optional[str] = None
-    author: Optional[str] = None
-    date: Optional[str] = None
+    title: str | None = None
+    subtitle: str | None = None
+    author: str | None = None
+    date: str | None = None
 
     # Rendering options
     include_images: bool = False
@@ -43,18 +45,18 @@ class RenderContext:
     include_items: bool = True
     include_creatures: bool = True
     include_spells: bool = True
-    content_filters: List[str] = field(default_factory=list)
+    content_filters: list[str] = field(default_factory=list)
 
     # Paths and resources
-    output_dir: Optional[Path] = None
-    assets_dir: Optional[Path] = None
-    images_dir: Optional[Path] = None
-    fonts_dir: Optional[Path] = None
+    output_dir: Path | None = None
+    assets_dir: Path | None = None
+    images_dir: Path | None = None
+    fonts_dir: Path | None = None
 
     # Custom data
-    custom_data: Dict[str, Any] = field(default_factory=dict)
+    custom_data: dict[str, Any] = field(default_factory=dict)
 
-    def get_image_path(self, image_name: str) -> Optional[Path]:
+    def get_image_path(self, image_name: str) -> Path | None:
         """Get full path to an image asset.
 
         Args:
@@ -67,7 +69,7 @@ class RenderContext:
             return None
         return self.images_dir / image_name
 
-    def get_font_path(self, font_name: str) -> Optional[Path]:
+    def get_font_path(self, font_name: str) -> Path | None:
         """Get full path to a font asset.
 
         Args:
@@ -105,7 +107,7 @@ class RenderContext:
 
         return True
 
-    def copy(self, **updates) -> "RenderContext":
+    def copy(self, **updates) -> RenderContext:
         """Create a copy of this context with optional updates.
 
         Args:

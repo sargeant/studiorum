@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 
 class ErrorSeverity(Enum):
@@ -36,10 +36,10 @@ class LaTeXError:
     severity: ErrorSeverity
     category: ErrorCategory
     message: str
-    file_path: Optional[str] = None
-    line_number: Optional[int] = None
-    context: Optional[str] = None
-    suggestion: Optional[str] = None
+    file_path: str | None = None
+    line_number: int | None = None
+    context: str | None = None
+    suggestion: str | None = None
 
     def __str__(self) -> str:
         """Human-readable error description."""
@@ -68,8 +68,8 @@ class LaTeXErrorParser:
         self._suggestion_rules = self._build_suggestion_rules()
 
     def parse_log(
-        self, log_content: str, log_file_path: Optional[Path] = None
-    ) -> List[LaTeXError]:
+        self, log_content: str, log_file_path: Path | None = None
+    ) -> list[LaTeXError]:
         """Parse LaTeX log content and extract errors.
 
         Args:
@@ -107,7 +107,7 @@ class LaTeXErrorParser:
 
     def analyze_compilation_failure(
         self, return_code: int, stdout: str, stderr: str, timeout_occurred: bool = False
-    ) -> List[LaTeXError]:
+    ) -> list[LaTeXError]:
         """Analyze compilation failure and generate error reports.
 
         Args:
@@ -153,7 +153,7 @@ class LaTeXErrorParser:
 
         return errors
 
-    def _build_error_patterns(self) -> List[Dict]:
+    def _build_error_patterns(self) -> list[dict]:
         """Build regex patterns for matching LaTeX errors.
 
         Returns:
@@ -210,7 +210,7 @@ class LaTeXErrorParser:
             },
         ]
 
-    def _build_suggestion_rules(self) -> Dict[ErrorCategory, List[str]]:
+    def _build_suggestion_rules(self) -> dict[ErrorCategory, list[str]]:
         """Build suggestion rules for different error categories.
 
         Returns:
@@ -250,8 +250,8 @@ class LaTeXErrorParser:
         }
 
     def _extract_error_from_match(
-        self, match: re.Match, pattern_info: Dict, lines: List[str], line_index: int
-    ) -> Optional[LaTeXError]:
+        self, match: re.Match, pattern_info: dict, lines: list[str], line_index: int
+    ) -> LaTeXError | None:
         """Extract error information from a regex match.
 
         Args:
@@ -285,8 +285,8 @@ class LaTeXErrorParser:
             return None
 
     def _extract_location_info(
-        self, lines: List[str], error_line_index: int
-    ) -> Tuple[Optional[str], Optional[int]]:
+        self, lines: list[str], error_line_index: int
+    ) -> tuple[str | None, int | None]:
         """Extract file path and line number from log context.
 
         Args:
@@ -317,9 +317,7 @@ class LaTeXErrorParser:
 
         return file_path, line_number
 
-    def _extract_context(
-        self, lines: List[str], error_line_index: int
-    ) -> Optional[str]:
+    def _extract_context(self, lines: list[str], error_line_index: int) -> str | None:
         """Extract context around an error.
 
         Args:
@@ -340,7 +338,7 @@ class LaTeXErrorParser:
 
         return " ".join(context_lines) if context_lines else None
 
-    def _get_suggestion(self, error: LaTeXError) -> Optional[str]:
+    def _get_suggestion(self, error: LaTeXError) -> str | None:
         """Get suggestion for fixing an error.
 
         Args:
@@ -358,7 +356,7 @@ class LaTeXErrorParser:
 
         return None
 
-    def get_error_summary(self, errors: List[LaTeXError]) -> str:
+    def get_error_summary(self, errors: list[LaTeXError]) -> str:
         """Generate a human-readable summary of errors.
 
         Args:
@@ -371,12 +369,12 @@ class LaTeXErrorParser:
             return "No errors found."
 
         # Count by severity
-        severity_counts: Dict[ErrorSeverity, int] = {}
+        severity_counts: dict[ErrorSeverity, int] = {}
         for error in errors:
             severity_counts[error.severity] = severity_counts.get(error.severity, 0) + 1
 
         # Build summary
-        parts: List[str] = []
+        parts: list[str] = []
 
         if ErrorSeverity.FATAL in severity_counts:
             parts.append(f"{severity_counts[ErrorSeverity.FATAL]} fatal error(s)")

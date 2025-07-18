@@ -1,6 +1,6 @@
 """Tests for enhanced LaTeX content renderers with DND template environments."""
 
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest

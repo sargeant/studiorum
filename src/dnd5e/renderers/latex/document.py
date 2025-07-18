@@ -1,7 +1,7 @@
 """LaTeX document renderer implementation."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.document_metadata import DocumentMetadata, DocumentType
@@ -17,7 +17,7 @@ from .template_engine import LaTeXTemplateEngine
 class LaTeXDocumentRenderer(DocumentRenderer):
     """LaTeX document renderer that creates complete D&D-style documents."""
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize LaTeX document renderer.
 
         Args:
@@ -27,7 +27,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         self.template_engine = LaTeXTemplateEngine(config)
         self.content_registry = LaTeXContentRendererRegistry()
         self.content_organizer = ContentOrganizer()
-        self._structure_builder: Optional[DocumentStructureBuilder] = None
+        self._structure_builder: DocumentStructureBuilder | None = None
 
         # Initialize LaTeX compiler
         self.compiler = LaTeXCompiler(self._create_compilation_config(config))
@@ -37,7 +37,9 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         """Return the output format."""
         return "latex"
 
-    def render(self, content: BaseContent, context: Dict[str, Any] = None) -> str:
+    def render(
+        self, content: BaseContent, context: dict[str, Any] | None = None
+    ) -> str:
         """Render a single content item as a minimal document.
 
         Args:
@@ -51,7 +53,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return self.render_document([content], render_context)
 
     def render_document(
-        self, content_items: List[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderContext
     ) -> str:
         """Render a complete LaTeX document.
 
@@ -74,7 +76,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             raise RenderingError(f"Failed to render LaTeX document: {e}") from e
 
     def render_structured_document(
-        self, content_items: List[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderContext
     ) -> str:
         """Render a structured LaTeX document using DocumentStructureBuilder.
 
@@ -141,7 +143,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return rendered_document
 
     def render_legacy_document(
-        self, content_items: List[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderContext
     ) -> str:
         """Render a document using the legacy approach.
 
@@ -255,7 +257,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return legacy_engine.render_template("document_footer", {})
 
     def render_table_of_contents(
-        self, content_items: List[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderContext
     ) -> str:
         """Render table of contents.
 
@@ -278,7 +280,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return legacy_engine.render_template("table_of_contents", template_vars)
 
     def render_index(
-        self, content_items: List[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderContext
     ) -> str:
         """Render document index.
 
@@ -396,7 +398,7 @@ This content type is not yet fully supported by the rendering system.
         return result
 
     def _create_compilation_config(
-        self, config: Dict[str, Any] = None
+        self, config: dict[str, Any] | None = None
     ) -> CompilationConfig:
         """Create compilation configuration from renderer config.
 
@@ -440,8 +442,8 @@ This content type is not yet fully supported by the rendering system.
     def compile_to_pdf(
         self,
         content: BaseContent,
-        output_path: Optional[Path] = None,
-        context: Dict[str, Any] = None,
+        output_path: Path | None = None,
+        context: dict[str, Any] | None = None,
     ) -> CompilationResult:
         """Compile a single content item to PDF.
 
@@ -463,9 +465,9 @@ This content type is not yet fully supported by the rendering system.
 
     def compile_document_to_pdf(
         self,
-        content_items: List[BaseContent],
-        output_path: Optional[Path] = None,
-        context: RenderContext = None,
+        content_items: list[BaseContent],
+        output_path: Path | None = None,
+        context: RenderContext | None = None,
     ) -> CompilationResult:
         """Compile multiple content items to PDF.
 
@@ -503,7 +505,7 @@ This content type is not yet fully supported by the rendering system.
 
         return result
 
-    def validate_latex_environment(self) -> Dict[str, bool]:
+    def validate_latex_environment(self) -> dict[str, bool]:
         """Validate the LaTeX compilation environment.
 
         Returns:
@@ -511,7 +513,7 @@ This content type is not yet fully supported by the rendering system.
         """
         return self.compiler.validate_environment()
 
-    def get_available_engines(self) -> List:
+    def get_available_engines(self) -> list:
         """Get available LaTeX engines.
 
         Returns:

@@ -8,7 +8,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 from rich.console import Console
 from rich.table import Table
@@ -41,7 +40,7 @@ class DNDTemplateManager:
             "tikz",
         ]
 
-    def check_template_availability(self) -> Tuple[bool, List[str]]:
+    def check_template_availability(self) -> tuple[bool, list[str]]:
         """Check if DND-5e-LaTeX-Template is available.
 
         Returns:
@@ -55,7 +54,7 @@ class DNDTemplateManager:
 
         return len(missing_files) == 0, missing_files
 
-    def _find_template_file(self, filename: str) -> Optional[Path]:
+    def _find_template_file(self, filename: str) -> Path | None:
         """Find template file in LaTeX search paths.
 
         Args:
@@ -82,7 +81,7 @@ class DNDTemplateManager:
 
         return None
 
-    def check_latex_installation(self) -> Tuple[bool, str]:
+    def check_latex_installation(self) -> tuple[bool, str]:
         """Check if LaTeX is properly installed.
 
         Returns:
@@ -107,7 +106,7 @@ class DNDTemplateManager:
 
         return False, "LaTeX not found"
 
-    def check_required_packages(self) -> Tuple[bool, List[str]]:
+    def check_required_packages(self) -> tuple[bool, list[str]]:
         """Check if required LaTeX packages are available.
 
         Returns:
@@ -148,7 +147,7 @@ class DNDTemplateManager:
         ):
             return False
 
-    def get_texmf_paths(self) -> List[Path]:
+    def get_texmf_paths(self) -> list[Path]:
         """Get LaTeX TEXMF paths where template could be installed.
 
         Returns:
@@ -189,7 +188,7 @@ class DNDTemplateManager:
 
         return paths
 
-    def get_system_info(self) -> Dict[str, str]:
+    def get_system_info(self) -> dict[str, str]:
         """Get system information for troubleshooting.
 
         Returns:
@@ -343,7 +342,7 @@ def check_dnd_template_status() -> bool:
     return packages_available
 
 
-def get_dnd_document_class_options() -> Dict[str, Dict[str, str]]:
+def get_dnd_document_class_options() -> dict[str, dict[str, str]]:
     """Get available document class options.
 
     Returns:
@@ -378,7 +377,7 @@ def get_dnd_document_class_options() -> Dict[str, Dict[str, str]]:
     }
 
 
-def get_recommended_class_options(content_type: str) -> List[str]:
+def get_recommended_class_options(content_type: str) -> list[str]:
     """Get recommended class options for different content types.
 
     Args:

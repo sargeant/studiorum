@@ -2,7 +2,6 @@
 
 import asyncio
 from pathlib import Path
-from typing import List, Optional
 
 import typer
 from rich import print as rprint
@@ -21,10 +20,10 @@ console = Console()
 @app.command("adventure")
 def convert_adventure(
     input_file: Path = typer.Argument(..., help="Adventure JSON file"),
-    output_file: Optional[Path] = typer.Option(
+    output_file: Path | None = typer.Option(
         None, "--output", "-o", help="Output LaTeX file"
     ),
-    title: Optional[str] = typer.Option(None, "--title", help="Document title"),
+    title: str | None = typer.Option(None, "--title", help="Document title"),
     with_images: bool = typer.Option(False, "--images", help="Include images"),
     with_items: bool = typer.Option(
         True, "--items/--no-items", help="Include item lists"
@@ -132,10 +131,10 @@ def convert_adventure(
 @app.command("book")
 def convert_book(
     input_file: Path = typer.Argument(..., help="Book JSON file"),
-    output_file: Optional[Path] = typer.Option(
+    output_file: Path | None = typer.Option(
         None, "--output", "-o", help="Output LaTeX file"
     ),
-    title: Optional[str] = typer.Option(None, "--title", help="Document title"),
+    title: str | None = typer.Option(None, "--title", help="Document title"),
     with_images: bool = typer.Option(False, "--images", help="Include images"),
     with_index: bool = typer.Option(True, "--index/--no-index", help="Include index"),
     compile_pdf: bool = typer.Option(
@@ -255,11 +254,11 @@ def convert_book(
 @app.command("supplement")
 def convert_supplement(
     input_file: Path = typer.Argument(..., help="Supplement JSON file"),
-    output_file: Optional[Path] = typer.Option(
+    output_file: Path | None = typer.Option(
         None, "--output", "-o", help="Output LaTeX file"
     ),
-    title: Optional[str] = typer.Option(None, "--title", help="Document title"),
-    content_types: List[str] = typer.Option(
+    title: str | None = typer.Option(None, "--title", help="Document title"),
+    content_types: list[str] = typer.Option(
         ["all"], "--type", help="Content types to include"
     ),
     with_images: bool = typer.Option(False, "--images", help="Include images"),

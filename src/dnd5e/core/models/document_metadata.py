@@ -3,7 +3,7 @@
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -45,8 +45,8 @@ class DocumentAuthor(BaseModel):
     """Author information for documents."""
 
     name: str = Field(..., description="Author name")
-    email: Optional[str] = Field(None, description="Author email")
-    affiliation: Optional[str] = Field(None, description="Author affiliation")
+    email: str | None = Field(None, description="Author email")
+    affiliation: str | None = Field(None, description="Author affiliation")
 
     def __str__(self) -> str:
         return self.name
@@ -55,7 +55,7 @@ class DocumentAuthor(BaseModel):
 class DocumentCover(BaseModel):
     """Cover image information for documents."""
 
-    image_path: Optional[Path] = Field(None, description="Path to cover image")
+    image_path: Path | None = Field(None, description="Path to cover image")
     title_overlay: bool = Field(True, description="Show title overlay on cover")
     subtitle_overlay: bool = Field(True, description="Show subtitle overlay on cover")
     author_overlay: bool = Field(True, description="Show author overlay on cover")
@@ -74,20 +74,20 @@ class DocumentMetadata(BaseModel):
 
     # Basic document information
     title: str = Field(..., description="Document title")
-    subtitle: Optional[str] = Field(None, description="Document subtitle")
-    short_title: Optional[str] = Field(None, description="Short title for headers")
+    subtitle: str | None = Field(None, description="Document subtitle")
+    short_title: str | None = Field(None, description="Short title for headers")
 
     # Author information
-    authors: List[DocumentAuthor] = Field(
+    authors: list[DocumentAuthor] = Field(
         default_factory=list, description="Document authors"
     )
-    editor: Optional[str] = Field(None, description="Document editor")
+    editor: str | None = Field(None, description="Document editor")
 
     # Publication information
-    date: Optional[Union[str, datetime]] = Field(None, description="Publication date")
-    version: Optional[str] = Field(None, description="Document version")
-    edition: Optional[str] = Field(None, description="Document edition")
-    publisher: Optional[str] = Field(None, description="Publisher name")
+    date: str | datetime | None = Field(None, description="Publication date")
+    version: str | None = Field(None, description="Document version")
+    edition: str | None = Field(None, description="Document edition")
+    publisher: str | None = Field(None, description="Publisher name")
 
     # Document structure
     document_type: DocumentType = Field(
@@ -105,13 +105,13 @@ class DocumentMetadata(BaseModel):
     include_glossary: bool = Field(False, description="Include glossary")
 
     # Visual options
-    cover: Optional[DocumentCover] = Field(None, description="Cover information")
-    logo_path: Optional[Path] = Field(None, description="Path to logo image")
+    cover: DocumentCover | None = Field(None, description="Cover information")
+    logo_path: Path | None = Field(None, description="Path to logo image")
 
     # Custom metadata
-    keywords: List[str] = Field(default_factory=list, description="Document keywords")
-    subject: Optional[str] = Field(None, description="Document subject")
-    description: Optional[str] = Field(None, description="Document description")
+    keywords: list[str] = Field(default_factory=list, description="Document keywords")
+    subject: str | None = Field(None, description="Document subject")
+    description: str | None = Field(None, description="Document description")
     language: str = Field(default="en", description="Document language")
 
     # LaTeX-specific options
@@ -120,7 +120,7 @@ class DocumentMetadata(BaseModel):
     numbering_depth: int = Field(default=2, description="Section numbering depth")
 
     # Custom fields
-    custom_fields: Dict[str, Any] = Field(
+    custom_fields: dict[str, Any] = Field(
         default_factory=dict, description="Custom metadata fields"
     )
 
@@ -216,13 +216,13 @@ class ContentSection(BaseModel):
     title: str = Field(..., description="Section title")
     level: SectionLevel = Field(..., description="Section level")
     numbered: bool = Field(True, description="Include section in numbering")
-    label: Optional[str] = Field(None, description="LaTeX label for cross-references")
+    label: str | None = Field(None, description="LaTeX label for cross-references")
 
     # Content organization
-    content_items: List[Any] = Field(
+    content_items: list[Any] = Field(
         default_factory=list, description="Content items in section"
     )
-    subsections: List["ContentSection"] = Field(
+    subsections: list["ContentSection"] = Field(
         default_factory=list, description="Subsections"
     )
 
@@ -231,7 +231,7 @@ class ContentSection(BaseModel):
         False, description="Insert page break before section"
     )
     page_break_after: bool = Field(False, description="Insert page break after section")
-    two_column: Optional[bool] = Field(
+    two_column: bool | None = Field(
         None, description="Override column layout for section"
     )
 
@@ -274,7 +274,7 @@ class ContentSection(BaseModel):
             )
         self.subsections.append(subsection)
 
-    def get_all_content_items(self) -> List[Any]:
+    def get_all_content_items(self) -> list[Any]:
         """Get all content items including those in subsections."""
         items = list(self.content_items)
         for subsection in self.subsections:

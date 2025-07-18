@@ -2,7 +2,6 @@
 
 import logging
 from pathlib import Path
-from typing import Optional
 
 import colorlog
 from pydantic import Field
@@ -15,11 +14,14 @@ class Settings(BaseSettings):
     # Logging configuration
     log_level: str = Field(default="WARNING", env="LOG_LEVEL")
     log_format: str = Field(
-        default="%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(name)s%(reset)s: %(message)s"
+        default=(
+            "%(log_color)s%(levelname)-8s%(reset)s "
+            "%(blue)s%(name)s%(reset)s: %(message)s"
+        )
     )
 
     # Data paths
-    data_path: Optional[Path] = Field(default=None, env="DATA_PATH")
+    data_path: Path | None = Field(default=None, env="DATA_PATH")
     assets_path: Path = Field(default=Path("assets"), env="ASSETS_PATH")
     output_path: Path = Field(default=Path("output"), env="OUTPUT_PATH")
     build_path: Path = Field(default=Path("build"), env="BUILD_PATH")
@@ -31,7 +33,7 @@ class Settings(BaseSettings):
 
     # LaTeX options
     latex_engine: str = Field(default="xelatex", env="LATEX_ENGINE")
-    font_dir: Optional[Path] = Field(default=None, env="FONT_DIR")
+    font_dir: Path | None = Field(default=None, env="FONT_DIR")
 
     class Config:
         env_file = ".env"
@@ -46,7 +48,7 @@ class Settings(BaseSettings):
 
 
 # Global settings instance
-_settings: Optional[Settings] = None
+_settings: Settings | None = None
 
 
 def get_settings() -> Settings:

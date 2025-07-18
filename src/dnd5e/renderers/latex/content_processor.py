@@ -6,13 +6,11 @@ by extracting, organizing, and transforming data structures for optimal output.
 
 import re
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional
 
-from ...core.models.classes import Class
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.creatures import Creature
 from ...core.models.items import Item
-from ...core.models.races import Race
 from ...core.models.spells import Spell
 from ..base import RenderContext
 
@@ -21,7 +19,7 @@ class ContentProcessor(ABC):
     """Abstract base class for content processors."""
 
     @abstractmethod
-    def process(self, content: BaseContent, context: RenderContext) -> Dict[str, Any]:
+    def process(self, content: BaseContent, context: RenderContext) -> dict[str, Any]:
         """Process content and return enhanced data for rendering.
 
         Args:
@@ -53,7 +51,7 @@ class SpellProcessor(ContentProcessor):
         """Check if processor supports spell content."""
         return content_type == ContentType.SPELL
 
-    def process(self, content: BaseContent, context: RenderContext) -> Dict[str, Any]:
+    def process(self, content: BaseContent, context: RenderContext) -> dict[str, Any]:
         """Process spell content for enhanced rendering.
 
         Args:
@@ -103,7 +101,7 @@ class SpellProcessor(ContentProcessor):
         # This would need implementation based on actual data structure
         return False
 
-    def _extract_damage_dice(self, spell: Spell) -> Optional[str]:
+    def _extract_damage_dice(self, spell: Spell) -> str | None:
         """Extract damage dice from spell description."""
         if not hasattr(spell, "entries") or not spell.entries:
             return None
@@ -118,7 +116,7 @@ class SpellProcessor(ContentProcessor):
 
         return None
 
-    def _extract_spell_tags(self, spell: Spell) -> List[str]:
+    def _extract_spell_tags(self, spell: Spell) -> list[str]:
         """Extract semantic tags from spell."""
         tags = []
 
@@ -151,7 +149,7 @@ class SpellProcessor(ContentProcessor):
             return spell.components.get("s", False)
         return False
 
-    def _extract_material_component(self, spell: Spell) -> Optional[str]:
+    def _extract_material_component(self, spell: Spell) -> str | None:
         """Extract material component description."""
         if hasattr(spell.components, "material"):
             material = spell.components.material
@@ -176,7 +174,7 @@ class SpellProcessor(ContentProcessor):
 
         return False
 
-    def _extract_upcast_effects(self, spell: Spell) -> Optional[str]:
+    def _extract_upcast_effects(self, spell: Spell) -> str | None:
         """Extract upcast effects from higher level text."""
         if not spell.higher_level:
             return None
@@ -189,7 +187,7 @@ class SpellProcessor(ContentProcessor):
 
         return " ".join(effects) if effects else None
 
-    def _get_class_availability(self, spell: Spell) -> List[str]:
+    def _get_class_availability(self, spell: Spell) -> list[str]:
         """Get list of classes that can cast this spell."""
         if not hasattr(spell, "classes") or not spell.classes:
             return []
@@ -214,7 +212,7 @@ class CreatureProcessor(ContentProcessor):
         """Check if processor supports creature content."""
         return content_type == ContentType.CREATURE
 
-    def process(self, content: BaseContent, context: RenderContext) -> Dict[str, Any]:
+    def process(self, content: BaseContent, context: RenderContext) -> dict[str, Any]:
         """Process creature content for enhanced rendering.
 
         Args:
@@ -277,12 +275,11 @@ class CreatureProcessor(ContentProcessor):
         else:
             return "Legendary"
 
-    def _get_size_category(self, size: List[str]) -> str:
+    def _get_size_category(self, size: list[str]) -> str:
         """Get primary size category."""
         if not size:
             return "Medium"
 
-        size_order = ["T", "S", "M", "L", "H", "G"]
         primary_size = size[0] if size else "M"
 
         return {
@@ -315,7 +312,7 @@ class CreatureProcessor(ContentProcessor):
         else:
             return 9
 
-    def _calculate_ability_modifiers(self, creature: Creature) -> Dict[str, int]:
+    def _calculate_ability_modifiers(self, creature: Creature) -> dict[str, int]:
         """Calculate ability modifiers."""
         abilities = {
             "str": creature.strength,
@@ -369,7 +366,7 @@ class CreatureProcessor(ContentProcessor):
             and len(creature.legendary) > 0
         )
 
-    def _extract_creature_tags(self, creature: Creature) -> List[str]:
+    def _extract_creature_tags(self, creature: Creature) -> list[str]:
         """Extract semantic tags from creature."""
         tags = []
 
@@ -396,7 +393,7 @@ class CreatureProcessor(ContentProcessor):
 
         return tags
 
-    def _extract_environment_tags(self, creature: Creature) -> List[str]:
+    def _extract_environment_tags(self, creature: Creature) -> list[str]:
         """Extract environment tags from creature."""
         # This would need implementation based on creature environment data
         return []
@@ -409,7 +406,7 @@ class ItemProcessor(ContentProcessor):
         """Check if processor supports item content."""
         return content_type == ContentType.ITEM
 
-    def process(self, content: BaseContent, context: RenderContext) -> Dict[str, Any]:
+    def process(self, content: BaseContent, context: RenderContext) -> dict[str, Any]:
         """Process item content for enhanced rendering.
 
         Args:
@@ -477,14 +474,14 @@ class ItemProcessor(ContentProcessor):
         else:
             return True
 
-    def _extract_item_properties(self, item: Item) -> List[str]:
+    def _extract_item_properties(self, item: Item) -> list[str]:
         """Extract item properties."""
         if not item.properties:
             return []
 
         return list(item.properties)
 
-    def _get_damage_output(self, item: Item) -> Optional[str]:
+    def _get_damage_output(self, item: Item) -> str | None:
         """Get damage output for weapons."""
         if not item.is_weapon():
             return None
@@ -495,14 +492,14 @@ class ItemProcessor(ContentProcessor):
 
         return None
 
-    def _get_armor_rating(self, item: Item) -> Optional[int]:
+    def _get_armor_rating(self, item: Item) -> int | None:
         """Get armor class for armor items."""
         if not item.is_armor():
             return None
 
         ac = getattr(item, "ac", None)
         if ac:
-            return int(ac) if isinstance(ac, (int, str)) else None
+            return int(ac) if isinstance(ac, int | str) else None
 
         return None
 
@@ -532,7 +529,7 @@ class ContentProcessorRegistry:
 
     def __init__(self):
         """Initialize processor registry."""
-        self._processors: Dict[ContentType, ContentProcessor] = {}
+        self._processors: dict[ContentType, ContentProcessor] = {}
         self._register_default_processors()
 
     def _register_default_processors(self):
@@ -551,7 +548,7 @@ class ContentProcessorRegistry:
             if processor.supports_content_type(content_type):
                 self._processors[content_type] = processor
 
-    def get_processor(self, content_type: ContentType) -> Optional[ContentProcessor]:
+    def get_processor(self, content_type: ContentType) -> ContentProcessor | None:
         """Get processor for content type.
 
         Args:
@@ -564,7 +561,7 @@ class ContentProcessorRegistry:
 
     def process_content(
         self, content: BaseContent, context: RenderContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Process content using appropriate processor.
 
         Args:

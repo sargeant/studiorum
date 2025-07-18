@@ -3,24 +3,22 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypedDict
-
-from typing_extensions import Unpack
+from typing import Optional, TypedDict, Unpack
 
 
 class CompilationConfigKwargs(TypedDict, total=False):
     """Keyword arguments for CompilationConfig."""
 
     primary_engine: "LaTeXEngine"
-    fallback_engines: List["LaTeXEngine"]
+    fallback_engines: list["LaTeXEngine"]
     max_passes: int
     timeout_seconds: int
-    output_dir: Optional[Path]
+    output_dir: Path | None
     keep_intermediate_files: bool
     verbose_logging: bool
-    engine_options: Dict[str, List[str]]
+    engine_options: dict[str, list[str]]
     check_dependencies: bool
-    required_packages: List[str]
+    required_packages: list[str]
     show_progress: bool
     progress_style: str
 
@@ -47,7 +45,7 @@ class CompilationConfig:
 
     # Engine configuration
     primary_engine: LaTeXEngine = LaTeXEngine.LUALATEX
-    fallback_engines: List[LaTeXEngine] = field(
+    fallback_engines: list[LaTeXEngine] = field(
         default_factory=lambda: [LaTeXEngine.XELATEX, LaTeXEngine.PDFLATEX]
     )
 
@@ -57,16 +55,16 @@ class CompilationConfig:
     timeout_seconds: int = 300  # 5 minutes default
 
     # Output configuration
-    output_dir: Optional[Path] = None
+    output_dir: Path | None = None
     keep_intermediate_files: bool = False
     verbose_logging: bool = False
 
     # Engine-specific options
-    engine_options: Dict[str, List[str]] = field(default_factory=dict)
+    engine_options: dict[str, list[str]] = field(default_factory=dict)
 
     # Dependency checking
     check_dependencies: bool = True
-    required_packages: List[str] = field(
+    required_packages: list[str] = field(
         default_factory=lambda: ["dndbook", "dnd", "fontspec"]
     )
 
@@ -79,7 +77,7 @@ class CompilationConfig:
         if not self.engine_options:
             self.engine_options = self._get_default_engine_options()
 
-    def _get_default_engine_options(self) -> Dict[str, List[str]]:
+    def _get_default_engine_options(self) -> dict[str, list[str]]:
         """Get default options for each LaTeX engine.
 
         Returns:
@@ -94,7 +92,7 @@ class CompilationConfig:
             LaTeXEngine.PDFLATEX.value: base_options,
         }
 
-    def get_engine_command(self, engine: LaTeXEngine) -> List[str]:
+    def get_engine_command(self, engine: LaTeXEngine) -> list[str]:
         """Get the complete command for a LaTeX engine.
 
         Args:
@@ -164,7 +162,7 @@ class CompilationConfig:
 
         return config
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Validate the configuration.
 
         Returns:
@@ -195,10 +193,10 @@ class CompilationResult:
     engine_used: LaTeXEngine
     passes_completed: int
     total_time: float
-    output_file: Optional[Path] = None
-    log_file: Optional[Path] = None
-    error_message: Optional[str] = None
-    warnings: List[str] = field(default_factory=list)
+    output_file: Path | None = None
+    log_file: Path | None = None
+    error_message: str | None = None
+    warnings: list[str] = field(default_factory=list)
 
     def __str__(self) -> str:
         """String representation of compilation result."""
@@ -220,16 +218,16 @@ class CompilationPass:
 
     pass_number: int
     engine: LaTeXEngine
-    command: List[str]
+    command: list[str]
     start_time: float
-    end_time: Optional[float] = None
-    return_code: Optional[int] = None
+    end_time: float | None = None
+    return_code: int | None = None
     stdout: str = ""
     stderr: str = ""
     needs_rerun: bool = False
 
     @property
-    def duration(self) -> Optional[float]:
+    def duration(self) -> float | None:
         """Duration of this pass in seconds."""
         if self.end_time is not None:
             return self.end_time - self.start_time

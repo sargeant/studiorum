@@ -125,7 +125,7 @@ class GitHubSourceManager:
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
 
-    def get_repository_info(self, source: ContentSource) -> Optional[dict]:
+    def get_repository_info(self, source: ContentSource) -> dict | None:
         """Get information about a cloned repository."""
         repo_path = self.get_repo_path(source)
 

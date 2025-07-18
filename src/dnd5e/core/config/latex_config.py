@@ -1,7 +1,7 @@
 """LaTeX-specific configuration for 5e2pdf."""
 
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field, validator
 
@@ -16,7 +16,7 @@ class LaTeXDocumentConfig(BaseModel):
     )
 
     # Class options
-    class_options: List[str] = Field(
+    class_options: list[str] = Field(
         default_factory=lambda: ["bg", "justified", "twocolumn"],
         description="List of class options to pass to document class",
     )
@@ -59,7 +59,7 @@ class LaTeXDocumentConfig(BaseModel):
     include_index: bool = Field(default=False, description="Include index")
 
     # Custom options
-    custom_class_options: List[str] = Field(
+    custom_class_options: list[str] = Field(
         default_factory=list, description="Additional custom class options"
     )
 
@@ -95,7 +95,7 @@ class LaTeXDocumentConfig(BaseModel):
             raise ValueError(f"Font size must be one of: {valid_sizes}")
         return v
 
-    def get_class_options_list(self) -> List[str]:
+    def get_class_options_list(self) -> list[str]:
         """Get complete list of class options for document class.
 
         Returns:
@@ -171,7 +171,7 @@ class LaTeXEngineConfig(BaseModel):
         default="pdf", description="Output format (pdf, dvi, ps)"
     )
 
-    output_directory: Optional[Path] = Field(
+    output_directory: Path | None = Field(
         default=None, description="Output directory for LaTeX files"
     )
 
@@ -205,7 +205,7 @@ class LaTeXEngineConfig(BaseModel):
             raise ValueError(f"Interaction mode must be one of: {valid_modes}")
         return v
 
-    def get_compilation_command(self, tex_file: Path) -> List[str]:
+    def get_compilation_command(self, tex_file: Path) -> list[str]:
         """Get LaTeX compilation command.
 
         Args:
@@ -246,7 +246,7 @@ class LaTeXTemplateConfig(BaseModel):
         description="Directory containing LaTeX templates",
     )
 
-    dnd_template_dir: Optional[Path] = Field(
+    dnd_template_dir: Path | None = Field(
         default=None, description="Directory containing DND-5e-LaTeX-Template files"
     )
 
@@ -263,7 +263,7 @@ class LaTeXTemplateConfig(BaseModel):
     template_debug: bool = Field(default=False, description="Enable template debugging")
 
     # Content type mappings
-    content_type_templates: Dict[str, str] = Field(
+    content_type_templates: dict[str, str] = Field(
         default_factory=lambda: {
             "adventure": "book",
             "sourcebook": "book",
@@ -311,9 +311,7 @@ class LaTeXConfig(BaseModel):
         default_factory=LaTeXTemplateConfig, description="Template configuration"
     )
 
-    def get_content_type_config(
-        self, content_type: str
-    ) -> Dict[str, Union[str, List[str]]]:
+    def get_content_type_config(self, content_type: str) -> dict[str, str | list[str]]:
         """Get optimized configuration for specific content type.
 
         Args:

@@ -1,12 +1,11 @@
 """Document structure builder for LaTeX document assembly."""
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.document_metadata import (
     ContentSection,
     DocumentMetadata,
-    DocumentStructure,
     DocumentType,
     SectionLevel,
 )
@@ -26,8 +25,8 @@ class DocumentStructureBuilder:
         self._section_counter = 0
 
     def build_document_structure(
-        self, content_items: List[BaseContent], context: RenderContext
-    ) -> Tuple[List[ContentSection], Dict[str, Any]]:
+        self, content_items: list[BaseContent], context: RenderContext
+    ) -> tuple[list[ContentSection], dict[str, Any]]:
         """Build complete document structure from content items.
 
         Args:
@@ -49,8 +48,8 @@ class DocumentStructureBuilder:
         return sections, document_context
 
     def _organize_content_by_type(
-        self, content_items: List[BaseContent]
-    ) -> Dict[str, List[BaseContent]]:
+        self, content_items: list[BaseContent]
+    ) -> dict[str, list[BaseContent]]:
         """Organize content items by their content type.
 
         Args:
@@ -59,7 +58,7 @@ class DocumentStructureBuilder:
         Returns:
             Dictionary mapping content types to lists of content
         """
-        organized: Dict[str, List[BaseContent]] = {}
+        organized: dict[str, list[BaseContent]] = {}
 
         for item in content_items:
             try:
@@ -76,8 +75,8 @@ class DocumentStructureBuilder:
         return organized
 
     def _build_section_hierarchy(
-        self, organized_content: Dict[str, List[BaseContent]], context: RenderContext
-    ) -> List[ContentSection]:
+        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+    ) -> list[ContentSection]:
         """Build section hierarchy based on document type and content.
 
         Args:
@@ -106,8 +105,8 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_adventure_structure(
-        self, organized_content: Dict[str, List[BaseContent]], context: RenderContext
-    ) -> List[ContentSection]:
+        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+    ) -> list[ContentSection]:
         """Build structure for adventure documents.
 
         Adventures typically use:
@@ -137,8 +136,8 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_book_structure(
-        self, organized_content: Dict[str, List[BaseContent]], context: RenderContext
-    ) -> List[ContentSection]:
+        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+    ) -> list[ContentSection]:
         """Build structure for book documents.
 
         Books typically use:
@@ -168,8 +167,8 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_supplement_structure(
-        self, organized_content: Dict[str, List[BaseContent]], context: RenderContext
-    ) -> List[ContentSection]:
+        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+    ) -> list[ContentSection]:
         """Build structure for supplement documents.
 
         Supplements typically organize by content type:
@@ -208,8 +207,8 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_reference_structure(
-        self, organized_content: Dict[str, List[BaseContent]], context: RenderContext
-    ) -> List[ContentSection]:
+        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+    ) -> list[ContentSection]:
         """Build structure for reference documents.
 
         References typically use:
@@ -226,8 +225,8 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_article_structure(
-        self, organized_content: Dict[str, List[BaseContent]], context: RenderContext
-    ) -> List[ContentSection]:
+        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+    ) -> list[ContentSection]:
         """Build structure for article documents.
 
         Articles typically use:
@@ -244,8 +243,8 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_generic_structure(
-        self, organized_content: Dict[str, List[BaseContent]], context: RenderContext
-    ) -> List[ContentSection]:
+        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+    ) -> list[ContentSection]:
         """Build generic structure as fallback.
 
         Args:
@@ -316,8 +315,8 @@ class DocumentStructureBuilder:
         return section
 
     def _create_content_type_chapters(
-        self, organized_content: Dict[str, List[BaseContent]], context: RenderContext
-    ) -> List[ContentSection]:
+        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+    ) -> list[ContentSection]:
         """Create chapters for content types (excluding adventures/books).
 
         Args:
@@ -342,7 +341,7 @@ class DocumentStructureBuilder:
         return chapters
 
     def _create_content_type_chapter(
-        self, content_type: str, items: List[BaseContent], context: RenderContext
+        self, content_type: str, items: list[BaseContent], context: RenderContext
     ) -> ContentSection:
         """Create a chapter for a specific content type.
 
@@ -368,7 +367,7 @@ class DocumentStructureBuilder:
         return section
 
     def _create_content_type_section(
-        self, content_type: str, items: List[BaseContent], context: RenderContext
+        self, content_type: str, items: list[BaseContent], context: RenderContext
     ) -> ContentSection:
         """Create a section for a specific content type.
 
@@ -450,8 +449,8 @@ class DocumentStructureBuilder:
         return f"{safe_text}-{self._section_counter}"
 
     def _create_document_context(
-        self, sections: List[ContentSection], context: RenderContext
-    ) -> Dict[str, Any]:
+        self, sections: list[ContentSection], context: RenderContext
+    ) -> dict[str, Any]:
         """Create document context for template rendering.
 
         Args:
@@ -475,7 +474,7 @@ class DocumentStructureBuilder:
             ),
         }
 
-    def generate_latex_structure(self, sections: List[ContentSection]) -> List[str]:
+    def generate_latex_structure(self, sections: list[ContentSection]) -> list[str]:
         """Generate LaTeX commands for document structure.
 
         Args:
@@ -512,7 +511,7 @@ class DocumentStructureBuilder:
 
         return commands
 
-    def _generate_section_commands(self, section: ContentSection) -> List[str]:
+    def _generate_section_commands(self, section: ContentSection) -> list[str]:
         """Generate LaTeX commands for a section and its subsections.
 
         Args:

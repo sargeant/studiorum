@@ -1,7 +1,7 @@
 """Fluff content models for liberal parsing of descriptive content."""
 
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
@@ -12,10 +12,10 @@ class FluffImage(BaseModel):
     """Represents an image in fluff content."""
 
     type: str = "image"
-    href: Optional[Dict[str, Any]] = None
-    credit: Optional[str] = None
+    href: dict[str, Any] | None = None
+    credit: str | None = None
 
-    def get_path(self) -> Optional[str]:
+    def get_path(self) -> str | None:
         """Extract image path from nested structure."""
         if self.href and isinstance(self.href, dict):
             return self.href.get("path")
@@ -26,10 +26,10 @@ class FluffEntry(BaseModel):
     """Liberal model for fluff text entries."""
 
     # Accept any structure - we'll extract text liberally
-    content: Union[str, Dict[str, Any], List[Any]] = Field(default="")
-    type: Optional[str] = None
-    name: Optional[str] = None
-    entries: Optional[Union[str, Dict[str, Any], List[Any]]] = Field(default=None)
+    content: str | dict[str, Any] | list[Any] = Field(default="")
+    type: str | None = None
+    name: str | None = None
+    entries: str | dict[str, Any] | list[Any] | None = Field(default=None)
 
     def model_post_init(self, __context):
         """Post-process content after model initialization."""
@@ -93,12 +93,12 @@ class BaseFluff(BaseModel):
     """Base fluff content with liberal parsing."""
 
     name: str
-    source: Union[str, Dict[str, str]]
-    entries: List[FluffEntry] = Field(default_factory=list)
-    images: List[FluffImage] = Field(default_factory=list)
+    source: str | dict[str, str]
+    entries: list[FluffEntry] = Field(default_factory=list)
+    images: list[FluffImage] = Field(default_factory=list)
 
     # Additional fields that might be present
-    extra_data: Dict[str, Any] = Field(default_factory=dict, exclude=True)
+    extra_data: dict[str, Any] = Field(default_factory=dict, exclude=True)
 
     @field_validator("source", mode="before")
     @classmethod
@@ -179,7 +179,7 @@ class BaseFluff(BaseModel):
                 text_parts.append(str(entry.content))
         return "\n\n".join(text_parts)
 
-    def get_image_paths(self) -> List[str]:
+    def get_image_paths(self) -> list[str]:
         """Get all image paths."""
         paths = []
         for img in self.images:

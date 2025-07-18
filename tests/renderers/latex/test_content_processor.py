@@ -1,7 +1,7 @@
 """Tests for LaTeX content processors."""
 
-from typing import Any, Dict
-from unittest.mock import Mock
+from typing import Any
+from unittest.mock import Mock, patch
 
 import pytest
 

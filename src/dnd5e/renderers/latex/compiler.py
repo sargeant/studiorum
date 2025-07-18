@@ -1,13 +1,12 @@
 """LaTeX compilation engine with multi-pass support and error handling."""
 
-import os
 import re
 import shutil
 import subprocess
 import tempfile
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Optional
 
 from .compilation_config import (
     CompilationConfig,
@@ -22,7 +21,7 @@ from .progress_tracker import ProgressTracker
 class LaTeXCompiler:
     """Robust LaTeX compiler with multi-pass support and error handling."""
 
-    def __init__(self, config: Optional[CompilationConfig] = None):
+    def __init__(self, config: CompilationConfig | None = None):
         """Initialize LaTeX compiler.
 
         Args:
@@ -43,7 +42,7 @@ class LaTeXCompiler:
         self,
         latex_content: str,
         output_name: str = "document",
-        working_dir: Optional[Path] = None,
+        working_dir: Path | None = None,
     ) -> CompilationResult:
         """Compile a LaTeX document to PDF.
 
@@ -160,7 +159,7 @@ class LaTeXCompiler:
         )
 
         passes_completed = 0
-        compilation_passes: List[CompilationPass] = []
+        compilation_passes: list[CompilationPass] = []
 
         with self.progress_tracker.compilation(engine.value, max_passes) as tracker:
             try:
@@ -352,7 +351,7 @@ class LaTeXCompiler:
         except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
             return False
 
-    def _check_dependencies(self, tex_file: Path) -> List[str]:
+    def _check_dependencies(self, tex_file: Path) -> list[str]:
         """Check for missing LaTeX packages and dependencies.
 
         Args:
@@ -382,7 +381,7 @@ class LaTeXCompiler:
 
         return missing_deps
 
-    def _analyze_compilation_errors(self, comp_pass: CompilationPass) -> List:
+    def _analyze_compilation_errors(self, comp_pass: CompilationPass) -> list:
         """Analyze compilation errors from a pass.
 
         Args:
@@ -402,7 +401,7 @@ class LaTeXCompiler:
             timeout_occurred,
         )
 
-    def get_available_engines(self) -> List[LaTeXEngine]:
+    def get_available_engines(self) -> list[LaTeXEngine]:
         """Get list of available LaTeX engines on the system.
 
         Returns:
@@ -414,7 +413,7 @@ class LaTeXCompiler:
                 available.append(engine)
         return available
 
-    def validate_environment(self) -> Dict[str, bool]:
+    def validate_environment(self) -> dict[str, bool]:
         """Validate the LaTeX compilation environment.
 
         Returns:

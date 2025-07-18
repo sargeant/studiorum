@@ -1,7 +1,5 @@
 """Content type resolution without circular dependencies."""
 
-from typing import Type
-
 from .interfaces import ContentTypeResolver, get_content_type_registry
 from .models.content import BaseContent, ContentType
 
@@ -64,7 +62,7 @@ class RegistryBasedContentTypeResolver:
         return self._registry.get_type(content)
 
     def register_type(
-        self, content_class: Type[BaseContent], content_type: ContentType
+        self, content_class: type[BaseContent], content_type: ContentType
     ) -> None:
         """Register a content class with its type.
 
