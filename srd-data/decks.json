@@ -1,0 +1,1675 @@
+{
+  "_meta": {
+    "internalCopies": [
+      "deck"
+    ]
+  },
+  "deck": [
+    {
+      "name": "Deck of Illusions",
+      "source": "DMG",
+      "page": 161,
+      "srd": true,
+      "cards": [
+        "Red Dragon|Deck of Illusions|DMG",
+        "Knight and Four Guards|Deck of Illusions|DMG",
+        "Succubus/Incubus|Deck of Illusions|DMG",
+        "Druid|Deck of Illusions|DMG",
+        "Cloud Giant|Deck of Illusions|DMG",
+        "Ettin|Deck of Illusions|DMG",
+        "Bugbear|Deck of Illusions|DMG",
+        "Goblin|Deck of Illusions|DMG",
+        "Beholder|Deck of Illusions|DMG",
+        "Archmage and Mage Apprentice|Deck of Illusions|DMG",
+        "Night Hag|Deck of Illusions|DMG",
+        "Assassin|Deck of Illusions|DMG",
+        "Fire Giant|Deck of Illusions|DMG",
+        "Ogre Mage|Deck of Illusions|DMG",
+        "Gnoll|Deck of Illusions|DMG",
+        "Kobold|Deck of Illusions|DMG",
+        "Lich|Deck of Illusions|DMG",
+        "Priest and Two Acolytes|Deck of Illusions|DMG",
+        "Medusa|Deck of Illusions|DMG",
+        "Veteran|Deck of Illusions|DMG",
+        "Frost Giant|Deck of Illusions|DMG",
+        "Troll|Deck of Illusions|DMG",
+        "Hobgoblin|Deck of Illusions|DMG",
+        "Goblin|Deck of Illusions|DMG",
+        "Iron Golem|Deck of Illusions|DMG",
+        "Bandit Captain and Three Bandits|Deck of Illusions|DMG",
+        "Erinyes|Deck of Illusions|DMG",
+        "Berserker|Deck of Illusions|DMG",
+        "Hill Giant|Deck of Illusions|DMG",
+        "Ogre|Deck of Illusions|DMG",
+        "Orc|Deck of Illusions|DMG",
+        "Kobold|Deck of Illusions|DMG",
+        "You (The Deck's Owner)|Deck of Illusions|DMG"
+      ],
+      "back": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/back.webp"
+        },
+        "width": 411,
+        "height": 561
+      },
+      "entries": [
+        "This box contains a set of parchment cards. A full deck has 34 cards. A deck found as treasure is usually missing {@dice 1d20 - 1} cards.",
+        "The magic of the deck functions only if cards are drawn at random (you can use an altered deck of playing cards to simulate the deck). You can use an action to draw a card at random from the deck and throw it to the ground at a point within 30 feet of you.",
+        "An illusion of one or more creatures forms over the thrown card and remains until dispelled. An illusory creature appears real, of the appropriate size, and behaves as if it were a real creature, except that it can do no harm. While you are within 120 feet of the illusory creature and can see it, you can use an action to move it magically anywhere within 30 feet of its card. Any physical interaction with the illusory creature reveals it to be an illusion, because objects pass through it. Someone who uses an action to visually inspect the creature identifies it as illusory with a successful {@dc 15} Intelligence ({@skill Investigation}) check. The creature then appears translucent.",
+        "The illusion lasts until its card is moved or the illusion is dispelled. When the illusion ends, the image on its card disappears, and that card can't be used again.",
+        {
+          "type": "table",
+          "colLabels": [
+            "{@dice 1d34|Playing Card}",
+            "Illusion"
+          ],
+          "colStyles": [
+            "col-3",
+            "col-9"
+          ],
+          "rows": [
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 1
+                },
+                "entry": "Ace of hearts"
+              },
+              "{@creature adult red dragon||Red dragon}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 2
+                },
+                "entry": "King of hearts"
+              },
+              "{@creature Knight} and four {@creature guard||guards}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 3
+                },
+                "entry": "Queen of hearts"
+              },
+              "{@creature Succubus||Succubus/Incubus}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 4
+                },
+                "entry": "Jack of hearts"
+              },
+              "{@creature Druid}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 5
+                },
+                "entry": "Ten of hearts"
+              },
+              "{@creature Cloud giant}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 6
+                },
+                "entry": "Nine of hearts"
+              },
+              "{@creature Ettin}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 7
+                },
+                "entry": "Eight of hearts"
+              },
+              "{@creature Bugbear}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 8
+                },
+                "entry": "Two of hearts"
+              },
+              "{@creature Goblin}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 9
+                },
+                "entry": "Ace of diamonds"
+              },
+              "{@creature Beholder}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 10
+                },
+                "entry": "King of diamonds"
+              },
+              "{@creature Archmage} and {@creature mage} apprentice"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 11
+                },
+                "entry": "Queen of diamonds"
+              },
+              "{@creature Night hag}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 12
+                },
+                "entry": "Jack of diamonds"
+              },
+              "{@creature Assassin}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 13
+                },
+                "entry": "Ten of diamonds"
+              },
+              "{@creature Fire giant}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 14
+                },
+                "entry": "Nine of diamonds"
+              },
+              "{@creature oni||Ogre mage}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 15
+                },
+                "entry": "Eight of diamonds"
+              },
+              "{@creature Gnoll}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 16
+                },
+                "entry": "Two of diamonds"
+              },
+              "{@creature Kobold}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 17
+                },
+                "entry": "Ace of spades"
+              },
+              "{@creature Lich}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 18
+                },
+                "entry": "King of spades"
+              },
+              "{@creature Priest} and two {@creature acolyte||acolytes}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 19
+                },
+                "entry": "Queen of spades"
+              },
+              "{@creature Medusa}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 20
+                },
+                "entry": "Jack of spades"
+              },
+              "{@creature Veteran}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 21
+                },
+                "entry": "Ten of spades"
+              },
+              "{@creature Frost giant}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 22
+                },
+                "entry": "Nine of spades"
+              },
+              "{@creature Troll}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 23
+                },
+                "entry": "Eight of spades"
+              },
+              "{@creature Hobgoblin}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 24
+                },
+                "entry": "Two of spades"
+              },
+              "{@creature Goblin}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 25
+                },
+                "entry": "Ace of clubs"
+              },
+              "{@creature Iron golem}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 26
+                },
+                "entry": "King of clubs"
+              },
+              "{@creature Bandit captain} and three {@creature bandit||bandits}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 27
+                },
+                "entry": "Queen of clubs"
+              },
+              "{@creature Erinyes}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 28
+                },
+                "entry": "Jack of clubs"
+              },
+              "{@creature Berserker}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 29
+                },
+                "entry": "Ten of clubs"
+              },
+              "{@creature Hill giant}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 30
+                },
+                "entry": "Nine of clubs"
+              },
+              "{@creature Ogre}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 31
+                },
+                "entry": "Eight of clubs"
+              },
+              "{@creature Orc}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 32
+                },
+                "entry": "Two of clubs"
+              },
+              "{@creature Kobold}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "min": 33,
+                  "max": 34
+                },
+                "entry": "jokers (2)"
+              },
+              "You (the deck's owner)"
+            ]
+          ]
+        }
+      ],
+      "hasCardArt": false
+    },
+    {
+      "name": "Deck of Many Things",
+      "source": "DMG",
+      "page": 162,
+      "srd": true,
+      "cards": [
+        {
+          "uid": "Vizier|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Sun|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Moon|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Star|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Comet|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "The Fates|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Throne|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Key|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Knight|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Gem|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Talons|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "The Void|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Flames|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Skull|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Idiot|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Donjon|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Ruin|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Euryale|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Rogue|Deck of Many Things",
+          "replacement": true
+        },
+        {
+          "uid": "Balance|Deck of Many Things",
+          "replacement": true
+        },
+        "Fool|Deck of Many Things",
+        "Jester|Deck of Many Things"
+      ],
+      "back": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/00-back.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "Usually found in a box or pouch, this deck contains a number of cards made of ivory or vellum. Most ({@chance 75}) of these decks have only thirteen cards, but the rest have twenty-two.",
+        "Before you draw a card, you must declare how many cards you intend to draw and then draw them randomly (you can use an altered deck of playing cards to simulate the deck). Any cards drawn in excess of this number have no effect. Otherwise, as soon as you draw a card from the deck, its magic takes effect. You must draw each card no more than 1 hour after the previous draw. If you fail to draw the chosen number, the remaining number of cards fly from the deck on their own and take effect all at once.",
+        "Once a card is drawn, it fades from existence. Unless the card is the {@card Fool|Deck of Many Things} or the {@card Jester|Deck of Many Things}, the card reappears in the deck, making it possible to draw the same card twice.",
+        {
+          "type": "entries",
+          "name": "A Question of Enmity",
+          "entries": [
+            "Two of the cards in a deck of many things can earn a character the enmity of another being. With the {@card Flames|Deck of Many Things} card, the enmity is overt. The character should experience the devil's malevolent efforts on multiple occasions. Seeking out the fiend shouldn't be a simple task, and the adventurer should clash with the devil's allies and followers a few times before being able to confront the devil itself.",
+            "In the case of the {@card Rogue|Deck of Many Things} card, the enmity is secret and should come from someone thought to be a friend or an ally. As Dungeon Master, you should wait for a dramatically appropriate moment to reveal this enmity, leaving the adventurer guessing who is likely to become a betrayer."
+          ]
+        },
+        {
+          "type": "table",
+          "colLabels": [
+            "{@dice 1d22|Playing Card}",
+            "Card"
+          ],
+          "colStyles": [
+            "col-6 text-center",
+            "col-6 text-center"
+          ],
+          "rows": [
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 1
+                },
+                "entry": "Ace of diamonds"
+              },
+              "{@card Vizier|Deck of Many Things}*"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 2
+                },
+                "entry": "King of diamonds"
+              },
+              "{@card Sun|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 3
+                },
+                "entry": "Queen of diamonds"
+              },
+              "{@card Moon|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 4
+                },
+                "entry": "Jack of diamonds"
+              },
+              "{@card Star|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 5
+                },
+                "entry": "Two of diamonds"
+              },
+              "{@card Comet|Deck of Many Things}*"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 6
+                },
+                "entry": "Ace of hearts"
+              },
+              "{@card The Fates|Deck of Many Things}*"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 7
+                },
+                "entry": "King of hearts"
+              },
+              "{@card Throne|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 8
+                },
+                "entry": "Queen of hearts"
+              },
+              "{@card Key|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 9
+                },
+                "entry": "Jack of hearts"
+              },
+              "{@card Knight|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 10
+                },
+                "entry": "Two of hearts"
+              },
+              "{@card Gem|Deck of Many Things}*"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 11
+                },
+                "entry": "Ace of clubs"
+              },
+              "{@card Talons|Deck of Many Things}*"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 12
+                },
+                "entry": "King of clubs"
+              },
+              "{@card The Void|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 13
+                },
+                "entry": "Queen of clubs"
+              },
+              "{@card Flames|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 14
+                },
+                "entry": "Jack of clubs"
+              },
+              "{@card Skull|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 15
+                },
+                "entry": "Two of clubs"
+              },
+              "{@card Idiot|Deck of Many Things}*"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 16
+                },
+                "entry": "Ace of spades"
+              },
+              "{@card Donjon|Deck of Many Things}*"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 17
+                },
+                "entry": "King of spades"
+              },
+              "{@card Ruin|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 18
+                },
+                "entry": "Queen of spades"
+              },
+              "{@card Euryale|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 19
+                },
+                "entry": "Jack of spades"
+              },
+              "{@card Rogue|Deck of Many Things}"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 20
+                },
+                "entry": "Two of spades"
+              },
+              "{@card Balance|Deck of Many Things}*"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 21
+                },
+                "entry": "Joker (with TM)"
+              },
+              "{@card Fool|Deck of Many Things}*"
+            ],
+            [
+              {
+                "type": "cell",
+                "roll": {
+                  "exact": 22
+                },
+                "entry": "Joker (without TM)"
+              },
+              "{@card Jester|Deck of Many Things}"
+            ]
+          ],
+          "footnotes": [
+            "* Found only in a deck with twenty-two cards"
+          ]
+        }
+      ],
+      "hasCardArt": true
+    }
+  ],
+  "card": [
+    {
+      "name": "Archmage and Mage Apprentice",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Assassin",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Bandit Captain and Three Bandits",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Beholder",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Berserker",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Bugbear",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Cloud Giant",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Druid",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Erinyes",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Ettin",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Fire Giant",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Frost Giant",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Gnoll",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Goblin",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Hill Giant",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Hobgoblin",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Iron Golem",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Knight and Four Guards",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Kobold",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Lich",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Medusa",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Night Hag",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Ogre",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Ogre Mage",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Orc",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Priest and Two Acolytes",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Red Dragon",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Succubus/Incubus",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Troll",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Veteran",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "You (The Deck's Owner)",
+      "source": "DMG",
+      "set": "Deck of Illusions",
+      "page": 161,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/generic/unknown.webp"
+        },
+        "width": 411,
+        "height": 561
+      }
+    },
+    {
+      "name": "Balance",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/20-balance.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "Your mind suffers a wrenching alteration, causing your alignment to change. Lawful becomes chaotic, good becomes evil, and vice versa. If you are true neutral or unaligned, this card has no effect on you."
+      ]
+    },
+    {
+      "name": "Comet",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/05-comet.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "If you single-handedly defeat the next hostile monster or group of monsters you encounter, you gain experience points enough to gain one level. Otherwise, this card has no effect."
+      ]
+    },
+    {
+      "name": "Donjon",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/16-donjon.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "You disappear and become entombed in a state of suspended animation in an extradimensional sphere. Everything you were wearing and carrying stays behind in the space you occupied when you disappeared. You remain imprisoned until you are found and removed from the sphere. You can't be located by any divination magic, but a {@spell wish} spell can reveal the location of your prison. You draw no more cards."
+      ]
+    },
+    {
+      "name": "Euryale",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/18-euryale.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "The card's {@creature medusa}-like visage curses you. You take a −2 penalty on saving throws while cursed in this way. Only a god or the magic of {@card The Fates|Deck of Many Things} card can end this curse."
+      ]
+    },
+    {
+      "name": "Flames",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/13-flames.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "A powerful devil becomes your enemy. The devil seeks your ruin and plagues your life, savoring your suffering before attempting to slay you. This enmity lasts until either you or the devil dies."
+      ]
+    },
+    {
+      "name": "Fool",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/21-fool.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "You lose 10,000 XP, discard this card, and draw from the deck again, counting both draws as one of your declared draws. If losing that much XP would cause you to lose a level, you instead lose an amount that leaves you with just enough XP to keep your level."
+      ]
+    },
+    {
+      "name": "Gem",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/10-gem.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "Twenty-five pieces of jewelry worth 2,000 gp each or fifty gems worth 1,000 gp each appear at your feet."
+      ]
+    },
+    {
+      "name": "Idiot",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/15-idiot.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "Permanently reduce your Intelligence by {@dice 1d4 + 1} (to a minimum score of 1). You can draw one additional card beyond your declared draws."
+      ]
+    },
+    {
+      "name": "Jester",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/22-jester.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "You gain 10,000 XP, or you can draw two additional cards beyond your declared draws."
+      ]
+    },
+    {
+      "name": "Key",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/08-key.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "A rare or rarer magic weapon with which you are proficient appears in your hands. The DM chooses the weapon."
+      ]
+    },
+    {
+      "name": "Knight",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/09-knight.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "You gain the service of a 4th-level fighter who appears in a space you choose within 30 feet of you. The fighter is of the same race as you and serves you loyally until death, believing the fates have drawn him or her to you. You control this character."
+      ]
+    },
+    {
+      "name": "Moon",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/03-moon.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "You are granted the ability to cast the {@spell wish} spell {@dice 1d3} times."
+      ]
+    },
+    {
+      "name": "Rogue",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/19-rogue.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "A nonplayer character of the DM's choice becomes hostile toward you. The identity of your new enemy isn't known until the NPC or someone else reveals it. Nothing less than a {@spell wish} spell or divine intervention can end the NPC's hostility toward you."
+      ]
+    },
+    {
+      "name": "Ruin",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/17-ruin.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "All forms of wealth that you carry or own, other than magic items, are lost to you. Portable property vanishes. Businesses, buildings, and land you own are lost in a way that alters reality the least. Any documentation that proves you should own something lost to this card also disappears."
+      ]
+    },
+    {
+      "name": "Skull",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/14-skull.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "You summon an {@creature avatar of death|DMG}—a ghostly humanoid skeleton clad in a tattered black robe and carrying a spectral scythe. It appears in a space of the DM's choice within 10 feet of you and attacks you, warning all others that you must win the battle alone. The avatar fights until you die or it drops to 0 hit points, whereupon it disappears. If anyone tries to help you, the helper summons its own {@creature avatar of death|DMG}. A creature slain by an {@creature avatar of death|DMG} can't be restored to life."
+      ]
+    },
+    {
+      "name": "Star",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/04-star.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "Increase one of your ability scores by 2. The score can exceed 20 but can't exceed 24."
+      ]
+    },
+    {
+      "name": "Sun",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/02-sun.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "You gain 50,000 XP, and a wondrous item (which the DM determines randomly) appears in your hands."
+      ]
+    },
+    {
+      "name": "Talons",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/11-talons.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "Every magic item you wear or carry disintegrates. Artifacts in your possession aren't destroyed but do vanish."
+      ]
+    },
+    {
+      "name": "The Fates",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/06-fates.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "Reality's fabric unravels and spins anew, allowing you to avoid or erase one event as if it never happened. You can use the card's magic as soon as you draw the card or at any other time before you die."
+      ]
+    },
+    {
+      "name": "The Void",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/12-void.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "This black card spells disaster. Your soul is drawn from your body and contained in an object in a place of the DM's choice. One or more powerful beings guard the place. While your soul is trapped in this way, your body is {@condition incapacitated}. A {@spell wish} spell can't restore your soul, but the spell reveals the location of the object that holds it. You draw no more cards."
+      ]
+    },
+    {
+      "name": "Throne",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/07-throne.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "You gain proficiency in the {@skill Persuasion} skill, and you double your proficiency bonus on checks made with that skill. In addition, you gain rightful ownership of a small keep somewhere in the world. However, the keep is currently in the hands of monsters, which you must clear out before you can claim the keep as yours."
+      ]
+    },
+    {
+      "name": "Vizier",
+      "source": "DMG",
+      "set": "Deck of Many Things",
+      "page": 162,
+      "srd": true,
+      "face": {
+        "type": "image",
+        "href": {
+          "type": "internal",
+          "path": "decks/DMG/Deck of Many Things/01-vizier.webp"
+        },
+        "width": 742,
+        "height": 959
+      },
+      "entries": [
+        "At any time you choose within one year of drawing this card, you can ask a question in meditation and mentally receive a truthful answer to that question. Besides information, the answer helps you solve a puzzling problem or other dilemma. In other words, the knowledge comes with wisdom on how to apply it."
+      ]
+    }
+  ]
+}

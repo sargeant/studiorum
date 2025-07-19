@@ -1,0 +1,1099 @@
+{
+  "_meta": {
+    "internalCopies": [
+      "subclass"
+    ]
+  },
+  "class": [
+    {
+      "name": "Bard",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "reprintedAs": [
+        "Bard|XPHB"
+      ],
+      "edition": "classic",
+      "hd": {
+        "number": 1,
+        "faces": 8
+      },
+      "proficiency": [
+        "dex",
+        "cha"
+      ],
+      "spellcastingAbility": "cha",
+      "casterProgression": "full",
+      "cantripProgression": [
+        2,
+        2,
+        2,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "spellsKnownProgression": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        14,
+        15,
+        15,
+        16,
+        18,
+        19,
+        19,
+        20,
+        22,
+        22,
+        22
+      ],
+      "additionalSpells": [
+        {
+          "name": "Magical Secrets",
+          "known": {
+            "10": [
+              {
+                "choose": "level=0;1;2;3;4;5"
+              },
+              {
+                "choose": "level=0;1;2;3;4;5"
+              }
+            ],
+            "14": [
+              {
+                "choose": "level=0;1;2;3;4;5;6;7"
+              },
+              {
+                "choose": "level=0;1;2;3;4;5;6;7"
+              }
+            ],
+            "18": [
+              {
+                "choose": ""
+              },
+              {
+                "choose": ""
+              }
+            ]
+          }
+        }
+      ],
+      "startingProficiencies": {
+        "armor": [
+          "light"
+        ],
+        "weapons": [
+          "simple",
+          "{@item hand crossbow|phb|hand crossbows}",
+          "{@item longsword|phb|longswords}",
+          "{@item rapier|phb|rapiers}",
+          "{@item shortsword|phb|shortswords}"
+        ],
+        "tools": [
+          "three {@item musical instrument|PHB|musical instruments} of your choice"
+        ],
+        "toolProficiencies": [
+          {
+            "anyMusicalInstrument": 3
+          }
+        ],
+        "skills": [
+          {
+            "any": 3
+          }
+        ]
+      },
+      "startingEquipment": {
+        "additionalFromBackground": true,
+        "default": [
+          "(a) a {@item rapier|phb}, (b) a {@item longsword|phb}, or (c) any {@filter simple weapon|items|source=phb|category=basic|type=simple weapon}",
+          "(a) a {@item diplomat's pack|phb} or (b) an {@item entertainer's pack|phb}",
+          "(a) a {@item lute|phb} or (b) any other {@filter musical instrument|items|miscellaneous=mundane|type=instrument}",
+          "{@item Leather armor|phb}, and a {@item dagger|phb}"
+        ],
+        "goldAlternative": "{@dice 5d4 × 10|5d4 × 10|Starting Gold}",
+        "defaultData": [
+          {
+            "a": [
+              "rapier|phb"
+            ],
+            "b": [
+              "longsword|phb"
+            ],
+            "c": [
+              {
+                "equipmentType": "weaponSimple"
+              }
+            ]
+          },
+          {
+            "a": [
+              "diplomat's pack|phb"
+            ],
+            "b": [
+              "entertainer's pack|phb"
+            ]
+          },
+          {
+            "a": [
+              "lute|phb"
+            ],
+            "b": [
+              {
+                "equipmentType": "instrumentMusical"
+              }
+            ]
+          },
+          {
+            "_": [
+              "leather armor|phb",
+              "dagger|phb"
+            ]
+          }
+        ]
+      },
+      "multiclassing": {
+        "requirements": {
+          "cha": 13
+        },
+        "proficienciesGained": {
+          "armor": [
+            "light"
+          ],
+          "skills": [
+            {
+              "choose": {
+                "from": [
+                  "athletics",
+                  "acrobatics",
+                  "sleight of hand",
+                  "stealth",
+                  "arcana",
+                  "history",
+                  "investigation",
+                  "nature",
+                  "religion",
+                  "animal handling",
+                  "insight",
+                  "medicine",
+                  "perception",
+                  "survival",
+                  "deception",
+                  "intimidation",
+                  "performance",
+                  "persuasion"
+                ],
+                "count": 1
+              }
+            }
+          ],
+          "tools": [
+            "one {@item musical instrument|PHB} of your choice"
+          ],
+          "toolProficiencies": [
+            {
+              "anyMusicalInstrument": 1
+            }
+          ]
+        }
+      },
+      "classTableGroups": [
+        {
+          "colLabels": [
+            "{@filter Cantrips Known|spells|level=0|class=bard}",
+            "{@filter Spells Known|spells|class=bard}"
+          ],
+          "rows": [
+            [
+              2,
+              4
+            ],
+            [
+              2,
+              5
+            ],
+            [
+              2,
+              6
+            ],
+            [
+              3,
+              7
+            ],
+            [
+              3,
+              8
+            ],
+            [
+              3,
+              9
+            ],
+            [
+              3,
+              10
+            ],
+            [
+              3,
+              11
+            ],
+            [
+              3,
+              12
+            ],
+            [
+              4,
+              14
+            ],
+            [
+              4,
+              15
+            ],
+            [
+              4,
+              15
+            ],
+            [
+              4,
+              16
+            ],
+            [
+              4,
+              18
+            ],
+            [
+              4,
+              19
+            ],
+            [
+              4,
+              19
+            ],
+            [
+              4,
+              20
+            ],
+            [
+              4,
+              22
+            ],
+            [
+              4,
+              22
+            ],
+            [
+              4,
+              22
+            ]
+          ]
+        },
+        {
+          "title": "Spell Slots per Spell Level",
+          "colLabels": [
+            "{@filter 1st|spells|level=1|class=bard}",
+            "{@filter 2nd|spells|level=2|class=bard}",
+            "{@filter 3rd|spells|level=3|class=bard}",
+            "{@filter 4th|spells|level=4|class=bard}",
+            "{@filter 5th|spells|level=5|class=bard}",
+            "{@filter 6th|spells|level=6|class=bard}",
+            "{@filter 7th|spells|level=7|class=bard}",
+            "{@filter 8th|spells|level=8|class=bard}",
+            "{@filter 9th|spells|level=9|class=bard}"
+          ],
+          "rowsSpellProgression": [
+            [
+              2,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              3,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              2,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              2,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              2,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              2,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              2,
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              2,
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              2,
+              1,
+              1,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              2,
+              1,
+              1,
+              0,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              2,
+              1,
+              1,
+              1,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              2,
+              1,
+              1,
+              1,
+              0
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              2,
+              1,
+              1,
+              1,
+              1
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              3,
+              1,
+              1,
+              1,
+              1
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              3,
+              2,
+              1,
+              1,
+              1
+            ],
+            [
+              4,
+              3,
+              3,
+              3,
+              3,
+              2,
+              2,
+              1,
+              1
+            ]
+          ]
+        }
+      ],
+      "classFeatures": [
+        "Bardic Inspiration|Bard||1",
+        "Spellcasting|Bard||1",
+        "Jack of All Trades|Bard||2",
+        "Song of Rest (d6)|Bard||2",
+        "Magical Inspiration|Bard||2|TCE",
+        {
+          "classFeature": "Bard College|Bard||3",
+          "gainSubclassFeature": true
+        },
+        "Expertise|Bard||3",
+        "Ability Score Improvement|Bard||4",
+        "Bardic Versatility|Bard||4|TCE",
+        "Bardic Inspiration (d8)|Bard||5",
+        "Font of Inspiration|Bard||5",
+        "Countercharm|Bard||6",
+        {
+          "classFeature": "Bard College feature|Bard||6",
+          "gainSubclassFeature": true
+        },
+        "Ability Score Improvement|Bard||8",
+        "Song of Rest (d8)|Bard||9",
+        "Bardic Inspiration (d10)|Bard||10",
+        "Expertise|Bard||10",
+        "Magical Secrets|Bard||10",
+        "Ability Score Improvement|Bard||12",
+        "Song of Rest (d10)|Bard||13",
+        "Magical Secrets|Bard||14",
+        {
+          "classFeature": "Bard College feature|Bard||14",
+          "gainSubclassFeature": true
+        },
+        "Bardic Inspiration (d12)|Bard||15",
+        "Ability Score Improvement|Bard||16",
+        "Song of Rest (d12)|Bard||17",
+        "Magical Secrets|Bard||18",
+        "Ability Score Improvement|Bard||19",
+        "Superior Inspiration|Bard||20"
+      ],
+      "subclassTitle": "Bard College",
+      "hasFluff": true,
+      "hasFluffImages": true
+    }
+  ],
+  "subclass": [
+    {
+      "name": "College of Lore",
+      "shortName": "Lore",
+      "source": "PHB",
+      "className": "Bard",
+      "classSource": "PHB",
+      "page": 54,
+      "srd": true,
+      "reprintedAs": [
+        "Lore|Bard|XPHB|XPHB"
+      ],
+      "edition": "classic",
+      "additionalSpells": [
+        {
+          "name": "Additional Magical Secrets",
+          "known": {
+            "6": [
+              {
+                "choose": "level=0;1;2;3"
+              },
+              {
+                "choose": "level=0;1;2;3"
+              }
+            ]
+          }
+        }
+      ],
+      "subclassFeatures": [
+        "College of Lore|Bard||Lore||3",
+        "Additional Magical Secrets|Bard||Lore||6",
+        "Peerless Skill|Bard||Lore||14"
+      ]
+    }
+  ],
+  "classFeature": [
+    {
+      "name": "Bardic Inspiration",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 1,
+      "entries": [
+        "You can inspire others through stirring words or music. To do so, you use a bonus action on your turn to choose one creature other than yourself within 60 feet of you who can hear you. That creature gains one Bardic Inspiration die, a {@dice d6}.",
+        "Once within the next 10 minutes, the creature can roll the die and add the number rolled to one ability check, attack roll, or saving throw it makes. The creature can wait until after it rolls the {@dice d20} before deciding to use the Bardic Inspiration die, but must decide before the DM says whether the roll succeeds or fails. Once the Bardic Inspiration die is rolled, it is lost. A creature can have only one Bardic Inspiration die at a time.",
+        "You can use this feature a number of times equal to your Charisma modifier (a minimum of once). You regain any expended uses when you finish a long rest.",
+        "Your Bardic Inspiration die changes when you reach certain levels in this class. The die becomes a {@dice d8} at 5th level, a {@dice d10} at 10th level, and a {@dice d12} at 15th level."
+      ]
+    },
+    {
+      "name": "Spellcasting",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 1,
+      "entries": [
+        "You have learned to untangle and reshape the fabric of reality in harmony with your wishes and music. Your spells are part of your vast repertoire, magic that you can tune to different situations. See {@book chapter 10|PHB|10} for the general rules of spellcasting and {@book chapter 11|PHB|11} for the {@filter bard spell list|spells|class=bard}.",
+        {
+          "type": "entries",
+          "name": "Cantrips",
+          "entries": [
+            "You know two cantrips of your choice from the bard spell list. You learn additional bard cantrips of your choice at higher levels, learning a 3rd cantrip at 4th level and a 4th at 10th level."
+          ]
+        },
+        {
+          "type": "entries",
+          "name": "Spell Slots",
+          "entries": [
+            "The Bard table shows how many spell slots you have to cast your {@filter bard spells|spells|class=bard} of 1st level and higher. To cast one of these spells, you must expend a slot of the spell's level or higher. You regain all expended spell slots when you finish a long rest.",
+            "For example, if you know the 1st-level spell {@spell cure wounds} and have a 1st-level and a 2nd-level spell slot available, you can cast {@spell cure wounds} using either slot."
+          ]
+        },
+        {
+          "type": "entries",
+          "name": "Spells Known of 1st Level and Higher",
+          "entries": [
+            "You know four 1st-level spells of your choice from the bard spell list.",
+            "You learn an additional bard spell of your choice at each level except 12th, 16th, 19th, and 20th. Each of these spells must be of a level for which you have spell slots. For instance, when you reach 3rd level in this class, you can learn one new spell of 1st or 2nd level.",
+            "Additionally, when you gain a level in this class, you can choose one of the bard spells you know and replace it with another spell from the bard spell list, which also must be of a level for which you have spell slots."
+          ]
+        },
+        {
+          "type": "entries",
+          "name": "Spellcasting Ability",
+          "entries": [
+            "Charisma is your spellcasting ability for your bard spells. Your magic comes from the heart and soul you pour into the performance of your music or oration. You use your Charisma whenever a spell refers to your spellcasting ability. In addition, you use your Charisma modifier when setting the saving throw DC for a bard spell you cast and when making an attack roll with one.",
+            {
+              "type": "abilityDc",
+              "name": "Spell",
+              "attributes": [
+                "cha"
+              ]
+            },
+            {
+              "type": "abilityAttackMod",
+              "name": "Spell",
+              "attributes": [
+                "cha"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "entries",
+          "name": "Ritual Casting",
+          "entries": [
+            "You can cast any bard spell you know as a ritual if that spell has the ritual tag."
+          ]
+        },
+        {
+          "type": "entries",
+          "name": "Spellcasting Focus",
+          "entries": [
+            "You can use a {@item musical instrument|PHB} as a spellcasting focus for your bard spells."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Jack of All Trades",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 2,
+      "entries": [
+        "Starting at 2nd level, you can add half your proficiency bonus, rounded down, to any ability check you make that doesn't already include your proficiency bonus."
+      ]
+    },
+    {
+      "name": "Song of Rest (d6)",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 2,
+      "entries": [
+        "Beginning at 2nd level, you can use soothing music or oration to help revitalize your wounded allies during a short rest. If you or any friendly creatures who can hear your performance regain hit points by spending Hit Dice at the end of the short rest, each of those creatures regains an extra {@dice 1d6} hit points.",
+        "The extra hit points increase when you reach certain levels in this class: to {@dice 1d8} at 9th level, to {@dice 1d10} at 13th level, and to {@dice 1d12} at 17th level."
+      ]
+    },
+    {
+      "name": "Bard College",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 3,
+      "entries": [
+        "At 3rd level, you delve into the advanced techniques of a bard college of your choice from the list of available colleges. Your choice grants you features at 3rd level and again at 6th and 14th level."
+      ]
+    },
+    {
+      "name": "Expertise",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 3,
+      "entries": [
+        "At 3rd level, choose two of your skill proficiencies. Your proficiency bonus is doubled for any ability check you make that uses either of the chosen proficiencies.",
+        "At 10th level, you can choose another two skill proficiencies to gain this benefit."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 4,
+      "entries": [
+        "When you reach 4th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Bardic Inspiration (d8)",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 5,
+      "entries": [
+        "At 5th level, your Bardic Inspiration die changes to a {@dice d8}."
+      ]
+    },
+    {
+      "name": "Font of Inspiration",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 5,
+      "entries": [
+        "Beginning when you reach 5th level, you regain all of your expended uses of Bardic Inspiration when you finish a short or long rest."
+      ]
+    },
+    {
+      "name": "Bard College feature",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 6,
+      "entries": [
+        "At 6th level, you gain a feature from your Bard College."
+      ]
+    },
+    {
+      "name": "Countercharm",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 6,
+      "entries": [
+        "At 6th level, you gain the ability to use musical notes or words of power to disrupt mind-influencing effects. As an action, you can start a performance that lasts until the end of your next turn. During that time, you and any friendly creatures within 30 feet of you have advantage on saving throws against being {@condition frightened} or {@condition charmed}. A creature must be able to hear you to gain this benefit. The performance ends early if you are {@condition incapacitated} or silenced or if you voluntarily end it (no action required)."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 8,
+      "entries": [
+        "When you reach 8th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Song of Rest (d8)",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 9,
+      "entries": [
+        "At 9th level, the extra hit points gained from Song of Rest increases to {@dice 1d8}."
+      ]
+    },
+    {
+      "name": "Bardic Inspiration (d10)",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 10,
+      "entries": [
+        "At 10th level, your Bardic Inspiration die changes to a {@dice d10}."
+      ]
+    },
+    {
+      "name": "Expertise",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 10,
+      "entries": [
+        "At 10th level, you can choose another two skill proficiencies. Your proficiency bonus is doubled for any ability check you make that uses either of the chosen proficiencies."
+      ]
+    },
+    {
+      "name": "Magical Secrets",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 10,
+      "entries": [
+        "By 10th level, you have plundered magical knowledge from a wide spectrum of disciplines. Choose two spells from any classes, including this one. A spell you choose must be of a level you can cast, as shown on the Bard table, or a cantrip.",
+        "The chosen spells count as bard spells for you and are included in the number in the Spells Known column of the Bard table.",
+        "You learn two additional spells from any classes at 14th level and again at 18th level."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 12,
+      "entries": [
+        "When you reach 12th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Song of Rest (d10)",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 13,
+      "entries": [
+        "At 13th level, the extra hit points gained from Song of Rest increases to {@dice 1d10}."
+      ]
+    },
+    {
+      "name": "Bard College feature",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 14,
+      "entries": [
+        "At 14th level, you gain a feature from your Bard College."
+      ]
+    },
+    {
+      "name": "Magical Secrets",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 14,
+      "entries": [
+        "At 14th level, choose two additional spells from any classes, including this one. A spell you choose must be of a level you can cast, as shown on the Bard table, or a cantrip.",
+        "The chosen spells count as bard spells for you and are included in the number in the Spells Known column of the Bard table."
+      ]
+    },
+    {
+      "name": "Bardic Inspiration (d12)",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 15,
+      "entries": [
+        "At 15th level, your Bardic Inspiration die changes to a {@dice d12}."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 16,
+      "entries": [
+        "When you reach 16th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Song of Rest (d12)",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 17,
+      "entries": [
+        "At 17th level, the extra hit points gained from Song of Rest increases to {@dice 1d12}."
+      ]
+    },
+    {
+      "name": "Magical Secrets",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 18,
+      "entries": [
+        "At 18th level, choose two additional spells from any class, including this one. A spell you choose must be of a level you can cast, as shown on the Bard table, or a cantrip.",
+        "The chosen spells count as bard spells for you and are included in the number in the Spells Known column of the Bard table."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 19,
+      "entries": [
+        "When you reach 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Superior Inspiration",
+      "source": "PHB",
+      "page": 51,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "level": 20,
+      "entries": [
+        "At 20th level, when you roll initiative and have no uses of Bardic Inspiration left, you regain one use."
+      ]
+    }
+  ],
+  "subclassFeature": [
+    {
+      "name": "College of Lore",
+      "source": "PHB",
+      "page": 54,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "subclassShortName": "Lore",
+      "subclassSource": "PHB",
+      "level": 3,
+      "entries": [
+        "Bards of the College of Lore know something about most things, collecting bits of knowledge from sources as diverse as scholarly tomes and peasant tales. Whether singing folk ballads in taverns or elaborate compositions in royal courts, these bards use their gifts to hold audiences spellbound. When the applause dies down, the audience members might find themselves questioning everything they held to be true, from their faith in the priesthood of the local temple to their loyalty to the king.",
+        "The loyalty of these bards lies in the pursuit of beauty and truth, not in fealty to a monarch or following the tenets of a deity. A noble who keeps such a bard as a herald or advisor knows that the bard would rather be honest than politic.",
+        "The college's members gather in libraries and sometimes in actual colleges, complete with classrooms and dormitories, to share their lore with one another. They also meet at festivals or affairs of state, where they can expose corruption, unravel lies, and poke fun at self-important figures of authority.",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "Bonus Proficiencies|Bard||Lore||3"
+        },
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "Cutting Words|Bard||Lore||3"
+        }
+      ]
+    },
+    {
+      "name": "Bonus Proficiencies",
+      "source": "PHB",
+      "page": 54,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "subclassShortName": "Lore",
+      "subclassSource": "PHB",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "When you join the College of Lore at 3rd level, you gain proficiency with three skills of your choice."
+      ]
+    },
+    {
+      "name": "Cutting Words",
+      "source": "PHB",
+      "page": 54,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "subclassShortName": "Lore",
+      "subclassSource": "PHB",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "Also at 3rd level, you learn how to use your wit to distract, confuse, and otherwise sap the confidence and competence of others. When a creature that you can see within 60 feet of you makes an attack roll, an ability check, or a damage roll, you can use your reaction to expend one of your uses of Bardic Inspiration, rolling a Bardic Inspiration die and subtracting the number rolled from the creature's roll. You can choose to use this feature after the creature makes its roll, but before the DM determines whether the attack roll or ability check succeeds or fails, or before the creature deals its damage. The creature is immune if it can't hear you or if it's immune to being {@condition charmed}."
+      ]
+    },
+    {
+      "name": "Additional Magical Secrets",
+      "source": "PHB",
+      "page": 54,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "subclassShortName": "Lore",
+      "subclassSource": "PHB",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "At 6th level, you learn two spells of your choice from any class. A spell you choose must be of a level you can cast, as shown on the Bard table, or a cantrip. The chosen spells count as bard spells for you but don't count against the number of bard spells you know."
+      ]
+    },
+    {
+      "name": "Peerless Skill",
+      "source": "PHB",
+      "page": 54,
+      "srd": true,
+      "className": "Bard",
+      "classSource": "PHB",
+      "subclassShortName": "Lore",
+      "subclassSource": "PHB",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "Starting at 14th level, when you make an ability check, you can expend one use of Bardic Inspiration. Roll a Bardic Inspiration die and add the number rolled to your ability check. You can choose to do so after you roll the die for the ability check, but before the DM tells you whether you succeed or fail."
+      ]
+    }
+  ]
+}

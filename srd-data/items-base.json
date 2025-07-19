@@ -1,0 +1,1617 @@
+{
+  "_meta": {
+    "internalCopies": [
+      "itemType"
+    ]
+  },
+  "baseitem": [
+    {
+      "name": "Arrow",
+      "source": "PHB",
+      "page": 150,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Arrow|XPHB"
+      ],
+      "edition": "classic",
+      "type": "A",
+      "rarity": "none",
+      "weight": 0.05,
+      "value": 5,
+      "arrow": true
+    },
+    {
+      "name": "Arrows (20)",
+      "source": "PHB",
+      "page": 150,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Arrows (20)|XPHB"
+      ],
+      "edition": "classic",
+      "type": "A",
+      "rarity": "none",
+      "weight": 1,
+      "value": 100,
+      "arrow": true,
+      "packContents": [
+        {
+          "item": "arrow|phb",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "name": "Bagpipes",
+      "source": "PHB",
+      "page": 154,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Bagpipes|XPHB"
+      ],
+      "edition": "classic",
+      "type": "INS",
+      "rarity": "none",
+      "weight": 6,
+      "value": 3000
+    },
+    {
+      "name": "Battleaxe",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Battleaxe|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 4,
+      "value": 1000,
+      "weaponCategory": "martial",
+      "property": [
+        "V"
+      ],
+      "dmg1": "1d8",
+      "dmgType": "S",
+      "dmg2": "1d10",
+      "axe": true,
+      "weapon": true
+    },
+    {
+      "name": "Blowgun",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Blowgun|XPHB"
+      ],
+      "edition": "classic",
+      "type": "R",
+      "rarity": "none",
+      "weight": 1,
+      "value": 1000,
+      "weaponCategory": "martial",
+      "property": [
+        "A",
+        "LD"
+      ],
+      "range": "25/100",
+      "dmg1": "1",
+      "dmgType": "P",
+      "weapon": true,
+      "ammoType": "blowgun needle|phb"
+    },
+    {
+      "name": "Blowgun Needle",
+      "source": "PHB",
+      "page": 150,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Needle|XPHB"
+      ],
+      "edition": "classic",
+      "type": "A",
+      "rarity": "none",
+      "weight": 0.02,
+      "value": 2,
+      "needleBlowgun": true
+    },
+    {
+      "name": "Blowgun Needles (50)",
+      "source": "PHB",
+      "page": 150,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Needles (50)|XPHB"
+      ],
+      "edition": "classic",
+      "type": "A",
+      "rarity": "none",
+      "weight": 1,
+      "value": 100,
+      "needleBlowgun": true,
+      "packContents": [
+        {
+          "item": "blowgun needle|phb",
+          "quantity": 50
+        }
+      ]
+    },
+    {
+      "name": "Breastplate",
+      "source": "PHB",
+      "page": 145,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Breastplate|XPHB"
+      ],
+      "edition": "classic",
+      "type": "MA",
+      "rarity": "none",
+      "weight": 20,
+      "value": 40000,
+      "ac": 14,
+      "armor": true,
+      "entries": [
+        "This armor consists of a fitted metal chest piece worn with supple leather. Although it leaves the legs and arms relatively unprotected, this armor provides good protection for the wearer's vital organs while leaving the wearer relatively unencumbered."
+      ]
+    },
+    {
+      "name": "Chain Mail",
+      "source": "PHB",
+      "page": 145,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Chain Mail|XPHB"
+      ],
+      "edition": "classic",
+      "type": "HA",
+      "rarity": "none",
+      "weight": 55,
+      "value": 7500,
+      "ac": 16,
+      "strength": "13",
+      "armor": true,
+      "stealth": true,
+      "entries": [
+        "Made of interlocking metal rings, chain mail includes a layer of quilted fabric worn underneath the mail to prevent chafing and to cushion the impact of blows. The suit includes gauntlets."
+      ]
+    },
+    {
+      "name": "Chain Shirt",
+      "source": "PHB",
+      "page": 144,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Chain Shirt|XPHB"
+      ],
+      "edition": "classic",
+      "type": "MA",
+      "rarity": "none",
+      "weight": 20,
+      "value": 5000,
+      "ac": 13,
+      "armor": true,
+      "entries": [
+        "Made of interlocking metal rings, a chain shirt is worn between layers of clothing or leather. This armor offers modest protection to the wearer's upper body and allows the sound of the rings rubbing against one another to be muffled by outer layers."
+      ]
+    },
+    {
+      "name": "Club",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Club|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 2,
+      "value": 10,
+      "weaponCategory": "simple",
+      "property": [
+        "L"
+      ],
+      "dmg1": "1d4",
+      "dmgType": "B",
+      "club": true,
+      "weapon": true
+    },
+    {
+      "name": "Crossbow Bolt",
+      "source": "PHB",
+      "page": 150,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Bolt|XPHB"
+      ],
+      "edition": "classic",
+      "type": "A",
+      "rarity": "none",
+      "weight": 0.075,
+      "value": 5,
+      "bolt": true
+    },
+    {
+      "name": "Crossbow Bolts (20)",
+      "source": "PHB",
+      "page": 150,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Bolts (20)|XPHB"
+      ],
+      "edition": "classic",
+      "type": "A",
+      "rarity": "none",
+      "weight": 1.5,
+      "value": 100,
+      "bolt": true,
+      "packContents": [
+        {
+          "item": "crossbow bolt|phb",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "name": "Crystal",
+      "group": [
+        "Arcane Focus"
+      ],
+      "source": "PHB",
+      "page": 151,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Crystal|XPHB"
+      ],
+      "edition": "classic",
+      "type": "SCF",
+      "scfType": "arcane",
+      "rarity": "none",
+      "weight": 1,
+      "value": 1000
+    },
+    {
+      "name": "Dagger",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Dagger|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 1,
+      "value": 200,
+      "weaponCategory": "simple",
+      "property": [
+        "F",
+        "L",
+        "T"
+      ],
+      "range": "20/60",
+      "dmg1": "1d4",
+      "dmgType": "P",
+      "dagger": true,
+      "weapon": true
+    },
+    {
+      "name": "Dart",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Dart|XPHB"
+      ],
+      "edition": "classic",
+      "type": "R",
+      "rarity": "none",
+      "weight": 0.25,
+      "value": 5,
+      "weaponCategory": "simple",
+      "property": [
+        "F",
+        "T"
+      ],
+      "range": "20/60",
+      "dmg1": "1d4",
+      "dmgType": "P",
+      "weapon": true
+    },
+    {
+      "name": "Drum",
+      "source": "PHB",
+      "page": 154,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Drum|XPHB"
+      ],
+      "edition": "classic",
+      "type": "INS",
+      "rarity": "none",
+      "weight": 3,
+      "value": 600
+    },
+    {
+      "name": "Dulcimer",
+      "source": "PHB",
+      "page": 154,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Dulcimer|XPHB"
+      ],
+      "edition": "classic",
+      "type": "INS",
+      "rarity": "none",
+      "weight": 10,
+      "value": 2500
+    },
+    {
+      "name": "Flail",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Flail|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 2,
+      "value": 1000,
+      "weaponCategory": "martial",
+      "dmg1": "1d8",
+      "dmgType": "B",
+      "weapon": true
+    },
+    {
+      "name": "Flute",
+      "source": "PHB",
+      "page": 154,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Flute|XPHB"
+      ],
+      "edition": "classic",
+      "type": "INS",
+      "rarity": "none",
+      "weight": 1,
+      "value": 200
+    },
+    {
+      "name": "Glaive",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Glaive|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 6,
+      "value": 2000,
+      "weaponCategory": "martial",
+      "property": [
+        "H",
+        "R",
+        "2H"
+      ],
+      "dmg1": "1d10",
+      "dmgType": "S",
+      "polearm": true,
+      "weapon": true
+    },
+    {
+      "name": "Greataxe",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Greataxe|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 7,
+      "value": 3000,
+      "weaponCategory": "martial",
+      "property": [
+        "H",
+        "2H"
+      ],
+      "dmg1": "1d12",
+      "dmgType": "S",
+      "axe": true,
+      "weapon": true
+    },
+    {
+      "name": "Greatclub",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Greatclub|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 10,
+      "value": 20,
+      "weaponCategory": "simple",
+      "property": [
+        "2H"
+      ],
+      "dmg1": "1d8",
+      "dmgType": "B",
+      "club": true,
+      "weapon": true
+    },
+    {
+      "name": "Greatsword",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Greatsword|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 6,
+      "value": 5000,
+      "weaponCategory": "martial",
+      "property": [
+        "H",
+        "2H"
+      ],
+      "dmg1": "2d6",
+      "dmgType": "S",
+      "sword": true,
+      "weapon": true
+    },
+    {
+      "name": "Halberd",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Halberd|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 6,
+      "value": 2000,
+      "weaponCategory": "martial",
+      "property": [
+        "H",
+        "R",
+        "2H"
+      ],
+      "dmg1": "1d10",
+      "dmgType": "S",
+      "polearm": true,
+      "weapon": true
+    },
+    {
+      "name": "Half Plate Armor",
+      "source": "PHB",
+      "page": 145,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Half Plate Armor|XPHB"
+      ],
+      "edition": "classic",
+      "type": "MA",
+      "rarity": "none",
+      "weight": 40,
+      "value": 75000,
+      "ac": 15,
+      "armor": true,
+      "stealth": true,
+      "entries": [
+        "Half plate consists of shaped metal plates that cover most of the wearer's body. It does not include leg protection beyond simple greaves that are attached with leather straps."
+      ]
+    },
+    {
+      "name": "Hand Crossbow",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Hand Crossbow|XPHB"
+      ],
+      "edition": "classic",
+      "type": "R",
+      "rarity": "none",
+      "weight": 3,
+      "value": 7500,
+      "weaponCategory": "martial",
+      "property": [
+        "A",
+        "L",
+        "LD"
+      ],
+      "range": "30/120",
+      "dmg1": "1d6",
+      "dmgType": "P",
+      "crossbow": true,
+      "weapon": true,
+      "ammoType": "crossbow bolt|phb"
+    },
+    {
+      "name": "Handaxe",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Handaxe|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 2,
+      "value": 500,
+      "weaponCategory": "simple",
+      "property": [
+        "L",
+        "T"
+      ],
+      "range": "20/60",
+      "dmg1": "1d6",
+      "dmgType": "S",
+      "axe": true,
+      "weapon": true
+    },
+    {
+      "name": "Heavy Crossbow",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Heavy Crossbow|XPHB"
+      ],
+      "edition": "classic",
+      "type": "R",
+      "rarity": "none",
+      "weight": 18,
+      "value": 5000,
+      "weaponCategory": "martial",
+      "property": [
+        "A",
+        "H",
+        "LD",
+        "2H"
+      ],
+      "range": "100/400",
+      "dmg1": "1d10",
+      "dmgType": "P",
+      "crossbow": true,
+      "weapon": true,
+      "ammoType": "crossbow bolt|phb"
+    },
+    {
+      "name": "Hide Armor",
+      "source": "PHB",
+      "page": 144,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Hide Armor|XPHB"
+      ],
+      "edition": "classic",
+      "type": "MA",
+      "rarity": "none",
+      "weight": 12,
+      "value": 1000,
+      "ac": 12,
+      "armor": true,
+      "entries": [
+        "This crude armor consists of thick furs and pelts. It is commonly worn by barbarian tribes, evil humanoids, and other folk who lack access to the tools and materials needed to create better armor."
+      ]
+    },
+    {
+      "name": "Horn",
+      "source": "PHB",
+      "page": 154,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Horn|XPHB"
+      ],
+      "edition": "classic",
+      "type": "INS",
+      "rarity": "none",
+      "weight": 2,
+      "value": 300
+    },
+    {
+      "name": "Javelin",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Javelin|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 2,
+      "value": 50,
+      "weaponCategory": "simple",
+      "property": [
+        "T"
+      ],
+      "range": "30/120",
+      "dmg1": "1d6",
+      "dmgType": "P",
+      "spear": true,
+      "weapon": true
+    },
+    {
+      "name": "Lance",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Lance|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 6,
+      "value": 1000,
+      "weaponCategory": "martial",
+      "property": [
+        "R",
+        "S"
+      ],
+      "dmg1": "1d12",
+      "dmgType": "P",
+      "lance": true,
+      "weapon": true,
+      "entries": [
+        {
+          "type": "entries",
+          "name": "Special",
+          "entries": [
+            "You have disadvantage when you use a lance to attack a target within 5 feet of you. Also, a lance requires two hands to wield when you aren't mounted."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Leather Armor",
+      "source": "PHB",
+      "page": 144,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Leather Armor|XPHB"
+      ],
+      "edition": "classic",
+      "type": "LA",
+      "rarity": "none",
+      "weight": 10,
+      "value": 1000,
+      "ac": 11,
+      "armor": true,
+      "entries": [
+        "The breastplate and shoulder protectors of this armor are made of leather that has been stiffened by being boiled in oil. The rest of the armor is made of softer and more flexible materials."
+      ]
+    },
+    {
+      "name": "Light Crossbow",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Light Crossbow|XPHB"
+      ],
+      "edition": "classic",
+      "type": "R",
+      "rarity": "none",
+      "weight": 5,
+      "value": 2500,
+      "weaponCategory": "simple",
+      "property": [
+        "A",
+        "LD",
+        "2H"
+      ],
+      "range": "80/320",
+      "dmg1": "1d8",
+      "dmgType": "P",
+      "crossbow": true,
+      "weapon": true,
+      "ammoType": "crossbow bolt|phb"
+    },
+    {
+      "name": "Light Hammer",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Light Hammer|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 2,
+      "value": 200,
+      "weaponCategory": "simple",
+      "property": [
+        "L",
+        "T"
+      ],
+      "range": "20/60",
+      "dmg1": "1d4",
+      "dmgType": "B",
+      "hammer": true,
+      "weapon": true
+    },
+    {
+      "name": "Longbow",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Longbow|XPHB"
+      ],
+      "edition": "classic",
+      "type": "R",
+      "rarity": "none",
+      "weight": 2,
+      "value": 5000,
+      "weaponCategory": "martial",
+      "property": [
+        "A",
+        "H",
+        "2H"
+      ],
+      "range": "150/600",
+      "dmg1": "1d8",
+      "dmgType": "P",
+      "bow": true,
+      "weapon": true,
+      "ammoType": "arrow|phb"
+    },
+    {
+      "name": "Longsword",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Longsword|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 3,
+      "value": 1500,
+      "weaponCategory": "martial",
+      "property": [
+        "V"
+      ],
+      "dmg1": "1d8",
+      "dmgType": "S",
+      "dmg2": "1d10",
+      "sword": true,
+      "weapon": true
+    },
+    {
+      "name": "Lute",
+      "source": "PHB",
+      "page": 154,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Lute|XPHB"
+      ],
+      "edition": "classic",
+      "type": "INS",
+      "rarity": "none",
+      "weight": 2,
+      "value": 3500
+    },
+    {
+      "name": "Lyre",
+      "source": "PHB",
+      "page": 154,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Lyre|XPHB"
+      ],
+      "edition": "classic",
+      "type": "INS",
+      "rarity": "none",
+      "weight": 2,
+      "value": 3000
+    },
+    {
+      "name": "Mace",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Mace|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 4,
+      "value": 500,
+      "weaponCategory": "simple",
+      "dmg1": "1d6",
+      "dmgType": "B",
+      "mace": true,
+      "weapon": true
+    },
+    {
+      "name": "Maul",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Maul|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 10,
+      "value": 1000,
+      "weaponCategory": "martial",
+      "property": [
+        "H",
+        "2H"
+      ],
+      "dmg1": "2d6",
+      "dmgType": "B",
+      "hammer": true,
+      "weapon": true
+    },
+    {
+      "name": "Morningstar",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Morningstar|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 4,
+      "value": 1500,
+      "weaponCategory": "martial",
+      "dmg1": "1d8",
+      "dmgType": "P",
+      "mace": true,
+      "weapon": true
+    },
+    {
+      "name": "Net",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        {
+          "uid": "Net|XPHB",
+          "tag": "item"
+        }
+      ],
+      "edition": "classic",
+      "type": "R",
+      "rarity": "none",
+      "weight": 3,
+      "value": 100,
+      "weaponCategory": "martial",
+      "property": [
+        "S",
+        "T"
+      ],
+      "range": "5/15",
+      "net": true,
+      "weapon": true,
+      "entries": [
+        {
+          "type": "entries",
+          "name": "Special",
+          "entries": [
+            "A Large or smaller creature hit by a net is {@condition restrained} until it is freed. A net has no effect on creatures that are formless, or creatures that are Huge or larger. A creature can use its action to make a {@dc 10} Strength check, freeing itself or another creature within its reach on a success. Dealing 5 slashing damage to the net (AC 10) also frees the creature without harming it, ending the effect and destroying the net. When you use an action, bonus action, or reaction to attack with a net, you can make only one attack regardless of the number of attacks you can normally make."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Orb",
+      "group": [
+        "Arcane Focus"
+      ],
+      "source": "PHB",
+      "page": 151,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Orb|XPHB"
+      ],
+      "edition": "classic",
+      "type": "SCF",
+      "scfType": "arcane",
+      "rarity": "none",
+      "weight": 3,
+      "value": 2000
+    },
+    {
+      "name": "Padded Armor",
+      "source": "PHB",
+      "page": 144,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Padded Armor|XPHB"
+      ],
+      "edition": "classic",
+      "type": "LA",
+      "rarity": "none",
+      "weight": 8,
+      "value": 500,
+      "ac": 11,
+      "armor": true,
+      "stealth": true,
+      "entries": [
+        "Padded armor consists of quilted layers of cloth and batting."
+      ]
+    },
+    {
+      "name": "Pan Flute",
+      "source": "PHB",
+      "page": 154,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Pan Flute|XPHB"
+      ],
+      "edition": "classic",
+      "type": "INS",
+      "rarity": "none",
+      "weight": 2,
+      "value": 1200
+    },
+    {
+      "name": "Pike",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Pike|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 18,
+      "value": 500,
+      "weaponCategory": "martial",
+      "property": [
+        "H",
+        "R",
+        "2H"
+      ],
+      "dmg1": "1d10",
+      "dmgType": "P",
+      "weapon": true
+    },
+    {
+      "name": "Plate Armor",
+      "source": "PHB",
+      "page": 145,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Plate Armor|XPHB"
+      ],
+      "edition": "classic",
+      "type": "HA",
+      "rarity": "none",
+      "weight": 65,
+      "value": 150000,
+      "ac": 18,
+      "strength": "15",
+      "armor": true,
+      "stealth": true,
+      "entries": [
+        "Plate consists of shaped, interlocking metal plates to cover the entire body. A suit of plate includes gauntlets, heavy leather boots, a visored helmet, and thick layers of padding underneath the armor. Buckles and straps distribute the weight over the body."
+      ]
+    },
+    {
+      "name": "Quarterstaff",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Quarterstaff|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 4,
+      "value": 20,
+      "weaponCategory": "simple",
+      "property": [
+        "V"
+      ],
+      "dmg1": "1d6",
+      "dmgType": "B",
+      "dmg2": "1d8",
+      "weapon": true
+    },
+    {
+      "name": "Rapier",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Rapier|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 2,
+      "value": 2500,
+      "weaponCategory": "martial",
+      "property": [
+        "F"
+      ],
+      "dmg1": "1d8",
+      "dmgType": "P",
+      "rapier": true,
+      "sword": true,
+      "weapon": true
+    },
+    {
+      "name": "Ring Mail",
+      "source": "PHB",
+      "page": 145,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Ring Mail|XPHB"
+      ],
+      "edition": "classic",
+      "type": "HA",
+      "rarity": "none",
+      "weight": 40,
+      "value": 3000,
+      "ac": 14,
+      "armor": true,
+      "stealth": true,
+      "entries": [
+        "This armor is leather armor with heavy rings sewn into it. The rings help reinforce the armor against blows from swords and axes. Ring mail is inferior to chain mail, and it's usually worn only by those who can't afford better armor."
+      ]
+    },
+    {
+      "name": "Rod",
+      "group": [
+        "Arcane Focus"
+      ],
+      "source": "PHB",
+      "page": 151,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Rod|XPHB"
+      ],
+      "edition": "classic",
+      "type": "SCF",
+      "scfType": "arcane",
+      "rarity": "none",
+      "weight": 2,
+      "value": 1000
+    },
+    {
+      "name": "Scale Mail",
+      "source": "PHB",
+      "page": 144,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Scale Mail|XPHB"
+      ],
+      "edition": "classic",
+      "type": "MA",
+      "rarity": "none",
+      "weight": 45,
+      "value": 5000,
+      "ac": 14,
+      "armor": true,
+      "stealth": true,
+      "entries": [
+        "This armor consists of a coat and leggings (and perhaps a separate skirt) of leather covered with overlapping pieces of metal, much like the scales of a fish. The suit includes gauntlets."
+      ]
+    },
+    {
+      "name": "Scimitar",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Scimitar|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 3,
+      "value": 2500,
+      "weaponCategory": "martial",
+      "property": [
+        "F",
+        "L"
+      ],
+      "dmg1": "1d6",
+      "dmgType": "S",
+      "sword": true,
+      "weapon": true
+    },
+    {
+      "name": "Shawm",
+      "source": "PHB",
+      "page": 154,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Shawm|XPHB"
+      ],
+      "edition": "classic",
+      "type": "INS",
+      "rarity": "none",
+      "weight": 1,
+      "value": 200
+    },
+    {
+      "name": "Shield",
+      "source": "PHB",
+      "page": 144,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Shield|XPHB"
+      ],
+      "edition": "classic",
+      "type": "S",
+      "rarity": "none",
+      "weight": 6,
+      "value": 1000,
+      "ac": 2,
+      "entries": [
+        "A shield is made from wood or metal and is carried in one hand. Wielding a shield increases your Armor Class by 2. You can benefit from only one shield at a time."
+      ]
+    },
+    {
+      "name": "Shortbow",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Shortbow|XPHB"
+      ],
+      "edition": "classic",
+      "type": "R",
+      "rarity": "none",
+      "weight": 2,
+      "value": 2500,
+      "weaponCategory": "simple",
+      "property": [
+        "A",
+        "2H"
+      ],
+      "range": "80/320",
+      "dmg1": "1d6",
+      "dmgType": "P",
+      "bow": true,
+      "weapon": true,
+      "ammoType": "arrow|phb"
+    },
+    {
+      "name": "Shortsword",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Shortsword|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 2,
+      "value": 1000,
+      "weaponCategory": "martial",
+      "property": [
+        "F",
+        "L"
+      ],
+      "dmg1": "1d6",
+      "dmgType": "P",
+      "sword": true,
+      "weapon": true
+    },
+    {
+      "name": "Sickle",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Sickle|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 2,
+      "value": 100,
+      "weaponCategory": "simple",
+      "property": [
+        "L"
+      ],
+      "dmg1": "1d4",
+      "dmgType": "S",
+      "weapon": true
+    },
+    {
+      "name": "Sling",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Sling|XPHB"
+      ],
+      "edition": "classic",
+      "type": "R",
+      "rarity": "none",
+      "value": 10,
+      "weaponCategory": "simple",
+      "property": [
+        "A"
+      ],
+      "range": "30/120",
+      "dmg1": "1d4",
+      "dmgType": "B",
+      "weapon": true,
+      "ammoType": "sling bullet|phb"
+    },
+    {
+      "name": "Sling Bullet",
+      "source": "PHB",
+      "page": 150,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Sling Bullet|XPHB"
+      ],
+      "edition": "classic",
+      "type": "A",
+      "rarity": "none",
+      "weight": 0.075,
+      "value": 0.2,
+      "bulletSling": true
+    },
+    {
+      "name": "Sling Bullets (20)",
+      "source": "PHB",
+      "page": 150,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Sling Bullets (20)|XPHB"
+      ],
+      "edition": "classic",
+      "type": "A",
+      "rarity": "none",
+      "weight": 1.5,
+      "value": 4,
+      "bulletSling": true,
+      "packContents": [
+        {
+          "item": "sling bullet|phb",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "name": "Spear",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Spear|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 3,
+      "value": 100,
+      "weaponCategory": "simple",
+      "property": [
+        "T",
+        "V"
+      ],
+      "range": "20/60",
+      "dmg1": "1d6",
+      "dmgType": "P",
+      "dmg2": "1d8",
+      "spear": true,
+      "weapon": true
+    },
+    {
+      "name": "Splint Armor",
+      "source": "PHB",
+      "page": 145,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Splint Armor|XPHB"
+      ],
+      "edition": "classic",
+      "type": "HA",
+      "rarity": "none",
+      "weight": 60,
+      "value": 20000,
+      "ac": 17,
+      "strength": "15",
+      "armor": true,
+      "stealth": true,
+      "entries": [
+        "This armor is made of narrow vertical strips of metal riveted to a backing of leather that is worn over cloth padding. Flexible chain mail protects the joints."
+      ]
+    },
+    {
+      "name": "Staff",
+      "group": [
+        "Arcane Focus"
+      ],
+      "source": "PHB",
+      "page": 151,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Staff|XPHB"
+      ],
+      "edition": "classic",
+      "type": "SCF",
+      "scfType": "arcane",
+      "rarity": "none",
+      "weight": 4,
+      "value": 500,
+      "weaponCategory": "simple",
+      "property": [
+        "V"
+      ],
+      "dmg1": "1d6",
+      "dmgType": "B",
+      "dmg2": "1d8",
+      "staff": true
+    },
+    {
+      "name": "Studded Leather Armor",
+      "source": "PHB",
+      "page": 144,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Studded Leather Armor|XPHB"
+      ],
+      "edition": "classic",
+      "type": "LA",
+      "rarity": "none",
+      "weight": 13,
+      "value": 4500,
+      "ac": 12,
+      "armor": true,
+      "entries": [
+        "Made from tough but flexible leather, studded leather is reinforced with close-set rivets or spikes."
+      ]
+    },
+    {
+      "name": "Trident",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Trident|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 4,
+      "value": 500,
+      "weaponCategory": "martial",
+      "property": [
+        "T",
+        "V"
+      ],
+      "range": "20/60",
+      "dmg1": "1d6",
+      "dmgType": "P",
+      "dmg2": "1d8",
+      "weapon": true
+    },
+    {
+      "name": "Viol",
+      "source": "PHB",
+      "page": 154,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Viol|XPHB"
+      ],
+      "edition": "classic",
+      "type": "INS",
+      "rarity": "none",
+      "weight": 1,
+      "value": 3000
+    },
+    {
+      "name": "Wand",
+      "group": [
+        "Arcane Focus"
+      ],
+      "source": "PHB",
+      "page": 151,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Wand|XPHB"
+      ],
+      "edition": "classic",
+      "type": "SCF",
+      "scfType": "arcane",
+      "rarity": "none",
+      "weight": 1,
+      "value": 1000
+    },
+    {
+      "name": "War Pick",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "War Pick|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 2,
+      "value": 500,
+      "weaponCategory": "martial",
+      "dmg1": "1d8",
+      "dmgType": "P",
+      "weapon": true
+    },
+    {
+      "name": "Warhammer",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Warhammer|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 2,
+      "value": 1500,
+      "weaponCategory": "martial",
+      "property": [
+        "V"
+      ],
+      "dmg1": "1d8",
+      "dmgType": "B",
+      "dmg2": "1d10",
+      "hammer": true,
+      "weapon": true
+    },
+    {
+      "name": "Whip",
+      "source": "PHB",
+      "page": 149,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Whip|XPHB"
+      ],
+      "edition": "classic",
+      "type": "M",
+      "rarity": "none",
+      "weight": 3,
+      "value": 200,
+      "weaponCategory": "martial",
+      "property": [
+        "F",
+        "R"
+      ],
+      "dmg1": "1d4",
+      "dmgType": "S",
+      "weapon": true
+    },
+    {
+      "name": "Wooden Staff",
+      "group": [
+        "Druidic Focus"
+      ],
+      "source": "PHB",
+      "page": 151,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Wooden Staff|XPHB"
+      ],
+      "edition": "classic",
+      "type": "SCF",
+      "scfType": "druid",
+      "rarity": "none",
+      "weight": 4,
+      "value": 500,
+      "weaponCategory": "simple",
+      "property": [
+        "V"
+      ],
+      "dmg1": "1d6",
+      "dmgType": "B",
+      "dmg2": "1d8"
+    }
+  ]
+}

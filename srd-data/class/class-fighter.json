@@ -1,0 +1,673 @@
+{
+  "_meta": {
+    "internalCopies": [
+      "subclass"
+    ]
+  },
+  "class": [
+    {
+      "name": "Fighter",
+      "source": "PHB",
+      "page": 70,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Fighter|XPHB"
+      ],
+      "edition": "classic",
+      "hd": {
+        "number": 1,
+        "faces": 10
+      },
+      "proficiency": [
+        "str",
+        "con"
+      ],
+      "optionalfeatureProgression": [
+        {
+          "name": "Fighting Style",
+          "featureType": [
+            "FS:F"
+          ],
+          "progression": {
+            "1": 1
+          }
+        }
+      ],
+      "startingProficiencies": {
+        "armor": [
+          "light",
+          "medium",
+          "heavy",
+          "shield"
+        ],
+        "weapons": [
+          "simple",
+          "martial"
+        ],
+        "skills": [
+          {
+            "choose": {
+              "from": [
+                "acrobatics",
+                "animal handling",
+                "athletics",
+                "history",
+                "insight",
+                "intimidation",
+                "perception",
+                "survival"
+              ],
+              "count": 2
+            }
+          }
+        ]
+      },
+      "startingEquipment": {
+        "additionalFromBackground": true,
+        "default": [
+          "(a) {@item chain mail|phb} or (b) {@item leather armor|phb}, {@item longbow|phb}, and {@item arrows (20)|phb|20 arrows}",
+          "(a) a {@filter martial weapon|items|source=phb|category=basic|type=martial weapon} and a {@item shield|phb} or (b) two {@filter martial weapons|items|source=phb|category=basic|type=martial weapon}",
+          "(a) a {@item light crossbow|phb} and {@item crossbow bolts (20)|phb|20 bolts} or (b) two {@item handaxe|phb|handaxes}",
+          "(a) a {@item dungeoneer's pack|phb} or (b) an {@item explorer's pack|phb}"
+        ],
+        "goldAlternative": "{@dice 5d4 × 10|5d4 × 10|Starting Gold}",
+        "defaultData": [
+          {
+            "a": [
+              "chain mail|phb"
+            ],
+            "b": [
+              "leather armor|phb",
+              "longbow|phb",
+              "arrows (20)|phb"
+            ]
+          },
+          {
+            "a": [
+              {
+                "equipmentType": "weaponMartial"
+              },
+              "shield|phb"
+            ],
+            "b": [
+              {
+                "equipmentType": "weaponMartial",
+                "quantity": 2
+              }
+            ]
+          },
+          {
+            "a": [
+              "light crossbow|phb",
+              "crossbow bolts (20)|phb"
+            ],
+            "b": [
+              {
+                "item": "handaxe|phb",
+                "quantity": 2
+              }
+            ]
+          },
+          {
+            "a": [
+              "dungeoneer's pack|phb"
+            ],
+            "b": [
+              "explorer's pack|phb"
+            ]
+          }
+        ]
+      },
+      "multiclassing": {
+        "requirements": {
+          "or": [
+            {
+              "str": 13,
+              "dex": 13
+            }
+          ]
+        },
+        "proficienciesGained": {
+          "armor": [
+            "light",
+            "medium",
+            "shield"
+          ],
+          "weapons": [
+            "simple",
+            "martial"
+          ]
+        }
+      },
+      "classFeatures": [
+        "Fighting Style|Fighter||1",
+        "Second Wind|Fighter||1",
+        "Action Surge|Fighter||2",
+        {
+          "classFeature": "Martial Archetype|Fighter||3",
+          "gainSubclassFeature": true
+        },
+        "Ability Score Improvement|Fighter||4",
+        "Martial Versatility|Fighter||4|TCE",
+        "Extra Attack|Fighter||5",
+        "Ability Score Improvement|Fighter||6",
+        {
+          "classFeature": "Martial Archetype feature|Fighter||7",
+          "gainSubclassFeature": true
+        },
+        "Ability Score Improvement|Fighter||8",
+        "Indomitable|Fighter||9",
+        {
+          "classFeature": "Martial Archetype feature|Fighter||10",
+          "gainSubclassFeature": true
+        },
+        "Extra Attack (2)|Fighter||11",
+        "Ability Score Improvement|Fighter||12",
+        "Indomitable (two uses)|Fighter||13",
+        "Ability Score Improvement|Fighter||14",
+        {
+          "classFeature": "Martial Archetype feature|Fighter||15",
+          "gainSubclassFeature": true
+        },
+        "Ability Score Improvement|Fighter||16",
+        "Action Surge (two uses)|Fighter||17",
+        "Indomitable (three uses)|Fighter||17",
+        {
+          "classFeature": "Martial Archetype feature|Fighter||18",
+          "gainSubclassFeature": true
+        },
+        "Ability Score Improvement|Fighter||19",
+        "Extra Attack (3)|Fighter||20"
+      ],
+      "subclassTitle": "Martial Archetype",
+      "hasFluff": true,
+      "hasFluffImages": true
+    }
+  ],
+  "subclass": [
+    {
+      "name": "Champion",
+      "shortName": "Champion",
+      "source": "PHB",
+      "className": "Fighter",
+      "classSource": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "reprintedAs": [
+        "Champion|Fighter|XPHB|XPHB"
+      ],
+      "edition": "classic",
+      "optionalfeatureProgression": [
+        {
+          "name": "Fighting Style",
+          "featureType": [
+            "FS:F"
+          ],
+          "progression": {
+            "10": 1
+          }
+        }
+      ],
+      "subclassFeatures": [
+        "Champion|Fighter||Champion||3",
+        "Remarkable Athlete|Fighter||Champion||7",
+        "Additional Fighting Style|Fighter||Champion||10",
+        "Superior Critical|Fighter||Champion||15",
+        "Survivor|Fighter||Champion||18"
+      ]
+    }
+  ],
+  "classFeature": [
+    {
+      "name": "Fighting Style",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 1,
+      "entries": [
+        "You adopt a particular style of fighting as your specialty. Choose one of the following options. You can't take the same Fighting Style option more than once, even if you get to choose again.",
+        {
+          "type": "options",
+          "count": 1,
+          "entries": [
+            {
+              "type": "refOptionalfeature",
+              "optionalfeature": "Archery"
+            },
+            {
+              "type": "refOptionalfeature",
+              "optionalfeature": "Defense"
+            },
+            {
+              "type": "refOptionalfeature",
+              "optionalfeature": "Dueling"
+            },
+            {
+              "type": "refOptionalfeature",
+              "optionalfeature": "Great Weapon Fighting"
+            },
+            {
+              "type": "refOptionalfeature",
+              "optionalfeature": "Protection"
+            },
+            {
+              "type": "refOptionalfeature",
+              "optionalfeature": "Two-Weapon Fighting"
+            },
+            {
+              "type": "refOptionalfeature",
+              "optionalfeature": "Blind Fighting|TCE"
+            },
+            {
+              "type": "refOptionalfeature",
+              "optionalfeature": "Interception|TCE"
+            },
+            {
+              "type": "refOptionalfeature",
+              "optionalfeature": "Superior Technique|TCE"
+            },
+            {
+              "type": "refOptionalfeature",
+              "optionalfeature": "Thrown Weapon Fighting|TCE"
+            },
+            {
+              "type": "refOptionalfeature",
+              "optionalfeature": "Unarmed Fighting|TCE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Second Wind",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 1,
+      "entries": [
+        "You have a limited well of stamina that you can draw on to protect yourself from harm. On your turn, you can use a bonus action to regain hit points equal to {@dice 1d10} + your fighter level.",
+        "Once you use this feature, you must finish a short or long rest before you can use it again."
+      ]
+    },
+    {
+      "name": "Action Surge",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 2,
+      "entries": [
+        "Starting at 2nd level, you can push yourself beyond your normal limits for a moment. On your turn, you can take one additional action.",
+        "Once you use this feature, you must finish a short or long rest before you can use it again. Starting at 17th level, you can use it twice before a rest, but only once on the same turn."
+      ]
+    },
+    {
+      "name": "Martial Archetype",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 3,
+      "entries": [
+        "At 3rd level, you choose an archetype from the list available that you strive to emulate in your combat styles and techniques. The archetype you choose grants you features at 3rd level and again at 7th, 10th, 15th, and 18th level."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 4,
+      "entries": [
+        "When you reach 4th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Extra Attack",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 5,
+      "entries": [
+        "Beginning at 5th level, you can attack twice, instead of once, whenever you take the {@action Attack} action on your turn.",
+        "The number of attacks increases to three when you reach 11th level in this class and to four when you reach 20th level in this class."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 6,
+      "entries": [
+        "When you reach 6th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Martial Archetype feature",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 7,
+      "entries": [
+        "At 7th level, you gain a feature granted by your Martial Archetype."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 8,
+      "entries": [
+        "When you reach 8th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Indomitable",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 9,
+      "entries": [
+        "Beginning at 9th level, you can reroll a saving throw that you fail. If you do so, you must use the new roll, and you can't use this feature again until you finish a long rest.",
+        "You can use this feature twice between long rests starting at 13th level and three times between long rests starting at 17th level."
+      ]
+    },
+    {
+      "name": "Martial Archetype feature",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 10,
+      "entries": [
+        "At 10th level, you gain a feature granted by your Martial Archetype."
+      ]
+    },
+    {
+      "name": "Extra Attack (2)",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 11,
+      "entries": [
+        "At 11th level, you can attack three times whenever you take the {@action Attack} action on your turn."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 12,
+      "entries": [
+        "When you reach 12th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Indomitable (two uses)",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 13,
+      "entries": [
+        "At 13th level, you can use Indomitable twice between long rests."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 14,
+      "entries": [
+        "When you reach 14th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Martial Archetype feature",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 15,
+      "entries": [
+        "At 15th level, you gain a feature granted by your Martial Archetype."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 16,
+      "entries": [
+        "When you reach 16th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Action Surge (two uses)",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 17,
+      "entries": [
+        "At 17th level, you can use Action Surge twice before a rest, but only once on the same turn."
+      ]
+    },
+    {
+      "name": "Indomitable (three uses)",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 17,
+      "entries": [
+        "At 17th level, you can use Indomitable three times between long rests."
+      ]
+    },
+    {
+      "name": "Martial Archetype feature",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 18,
+      "entries": [
+        "At 18th level, you gain a feature granted by your Martial Archetype."
+      ]
+    },
+    {
+      "name": "Ability Score Improvement",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 19,
+      "entries": [
+        "When you reach 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+        "If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+      ]
+    },
+    {
+      "name": "Extra Attack (3)",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "level": 20,
+      "entries": [
+        "At 20th level, you can attack four times whenever you take the {@action Attack} action on your turn."
+      ]
+    }
+  ],
+  "subclassFeature": [
+    {
+      "name": "Champion",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "subclassShortName": "Champion",
+      "subclassSource": "PHB",
+      "level": 3,
+      "entries": [
+        "The archetypal Champion focuses on the development of raw physical power honed to deadly perfection. Those who model themselves on this archetype combine rigorous training with physical excellence to deal devastating blows.",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "Improved Critical|Fighter||Champion||3"
+        }
+      ]
+    },
+    {
+      "name": "Improved Critical",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "subclassShortName": "Champion",
+      "subclassSource": "PHB",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "Beginning when you choose this archetype at 3rd level, your weapon attacks score a critical hit on a roll of 19 or 20."
+      ]
+    },
+    {
+      "name": "Remarkable Athlete",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "subclassShortName": "Champion",
+      "subclassSource": "PHB",
+      "level": 7,
+      "header": 2,
+      "entries": [
+        "Starting at 7th level, you can add half your proficiency bonus (round up) to any Strength, Dexterity, or Constitution check you make that doesn't already use your proficiency bonus.",
+        "In addition, when you make a running long jump, the distance you can cover increases by a number of feet equal to your Strength modifier."
+      ]
+    },
+    {
+      "name": "Additional Fighting Style",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "subclassShortName": "Champion",
+      "subclassSource": "PHB",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "At 10th level, you can choose a second option from the Fighting Style class feature."
+      ]
+    },
+    {
+      "name": "Superior Critical",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "subclassShortName": "Champion",
+      "subclassSource": "PHB",
+      "level": 15,
+      "header": 2,
+      "entries": [
+        "Starting at 15th level, your weapon attacks score a critical hit on a roll of 18-20."
+      ]
+    },
+    {
+      "name": "Survivor",
+      "source": "PHB",
+      "page": 72,
+      "srd": true,
+      "basicRules": true,
+      "className": "Fighter",
+      "classSource": "PHB",
+      "subclassShortName": "Champion",
+      "subclassSource": "PHB",
+      "level": 18,
+      "header": 2,
+      "entries": [
+        "At 18th level, you attain the pinnacle of resilience in battle. At the start of each of your turns, you regain hit points equal to 5 + your Constitution modifier if you have no more than half of your hit points left. You don't gain this benefit if you have 0 hit points."
+      ]
+    }
+  ]
+}
