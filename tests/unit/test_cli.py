@@ -113,9 +113,10 @@ class TestCLIIntegration:
         output_file = tmp_path / "output.tex"
 
         # Mock the omnidexer and dependencies
-        with patch("dnd5e.cli.main.get_omnidexer") as mock_omnidexer, patch(
-            "dnd5e.cli.main.get_tag_resolver"
-        ) as mock_tag_resolver:
+        with (
+            patch("dnd5e.cli.main.get_omnidexer") as mock_omnidexer,
+            patch("dnd5e.cli.main.get_tag_resolver") as mock_tag_resolver,
+        ):
             mock_omni = Mock()
             mock_tag = Mock()
             mock_omnidexer.return_value = mock_omni
