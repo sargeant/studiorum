@@ -1,16 +1,14 @@
 # 5e2pdf: D&D 5e to PDF Converter
 
-[![License: MIT](httpshttps://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/sargeant/5e2pdf/actions)
 [![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 
-This project converts Dungeons & Dragons 5th Edition content from 5e.tools-compatible JSON data into beautifully formatted LaTeX and PDF documents.
+This project converts Dungeons & Dragons 5th Edition content from 5e.tools-compatible JSON data into beautifully formatted PDF documents.
 
 ## What is this?
 
-5e2pdf is a powerful command-line tool for D&D players and Dungeon Masters who want to create high-quality, printable documents from digital source files. Whether you're compiling a custom spellbook, a bestiary for your campaign, or a full adventure module, this tool gives you the power to turn JSON data into professional-looking PDFs while also using the power of the 5e.tools site.
-
-It uses a sophisticated rendering pipeline to handle complex D&D data structures, resolving `{@tag}` references, and applying a classic D&D-style theme to the output.
+5e2pdf is a powerful command-line tool for D&D players and Dungeon Masters who want to create high-quality, printable documents from digital source files. Whether you're compiling a custom spellbook, a bestiary for your campaign, or a full adventure module, this tool gives you the power to turn JSON data into professional-looking PDFs.
 
 ## Features
 
