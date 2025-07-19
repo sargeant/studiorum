@@ -156,7 +156,7 @@ class TestOmnidexer:
         assert omnidexer.is_loaded(ContentType.CREATURE)
 
         # Test unloaded type
-        assert not omnidexer.is_loaded(ContentType.BACKGROUND)
+        assert not omnidexer.is_loaded(ContentType.SPELL_FLUFF)
 
     @pytest.mark.asyncio
     async def test_statistics(self, loaded_omnidexer):

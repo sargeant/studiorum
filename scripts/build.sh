@@ -61,10 +61,10 @@ usage() {
     echo "  --legacy                  Use legacy system (default for compatibility)"
     echo ""
     echo "Examples:"
-    echo "  $0 adventure json_data/adventures/cos.json"
-    echo "  $0 book json_data/books/book-egw.json --with-images"
-    echo "  $0 article json_data/supplements/items.json --no-compile"
-    echo "  $0 modern adventure json_data/adventures/cos.json --pdf"
+    echo "  $0 adventure srd-data/adventures/cos.json"
+    echo "  $0 book srd-data/books/book-egw.json --with-images"
+    echo "  $0 article srd-data/supplements/items.json --no-compile"
+    echo "  $0 modern adventure srd-data/adventures/cos.json --pdf"
     echo ""
     echo "Modern CLI:"
     echo "  ./bin/5e2pdf convert adventure <file> --pdf"
@@ -80,21 +80,21 @@ usage() {
 # Function to check dependencies
 check_dependencies() {
     print_status "Checking dependencies..."
-    
+
     # Check uv
     if ! command -v uv &> /dev/null; then
         print_error "uv is required but not installed. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"
         exit 1
     fi
-    
+
     # Check if we can import required modules
     cd "$PROJECT_DIR"
-    
+
     # Note: Legacy dndtex module has been removed as per issue #20
     # Modern functionality is in src.cli.main
-    
+
     print_success "Python dependencies OK"
-    
+
     # Check LaTeX (optional)
     if command -v xelatex &> /dev/null; then
         print_success "XeLaTeX found - PDF compilation available"
@@ -106,38 +106,38 @@ check_dependencies() {
 # Function to setup project
 setup_project() {
     print_status "Setting up project dependencies..."
-    
+
     cd "$PROJECT_DIR"
-    
+
     # Check if uv is installed
     if ! command -v uv &> /dev/null; then
         print_error "uv is required. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"
         exit 1
     fi
-    
+
     # Install Python dependencies using uv
     print_status "Installing Python dependencies with uv..."
     uv sync
-    
+
     # Create build directory
     mkdir -p "$BUILD_DIR"
-    
+
     print_success "Setup complete"
 }
 
 # Function to clean build artifacts
 clean_build() {
     print_status "Cleaning build artifacts..."
-    
+
     if [ -d "$BUILD_DIR" ]; then
         rm -rf "$BUILD_DIR"/*
         print_success "Build directory cleaned"
     fi
-    
+
     # Clean any remaining artifacts in project root
     cd "$PROJECT_DIR"
     find . -name "*.aux" -o -name "*.fdb_latexmk" -o -name "*.mtc*" -o -name "*.maf" -o -name "*.log" -o -name "*.out" | xargs rm -f 2>/dev/null || true
-    
+
     print_success "Cleanup complete"
 }
 
@@ -145,20 +145,20 @@ clean_build() {
 list_files() {
     print_status "Available JSON files:"
     echo ""
-    
-    if [ -d "$PROJECT_DIR/json_data" ]; then
+
+    if [ -d "$PROJECT_DIR/srd-data" ]; then
         echo "📚 Books:"
-        find "$PROJECT_DIR/json_data/books" -name "*.json" 2>/dev/null | sed 's|.*/||' | sort || echo "  (none found)"
+        find "$PROJECT_DIR/srd-data" -name "book-*.json" 2>/dev/null | sed 's|.*/||' | sort || echo "  (none found)"
         echo ""
-        
+
         echo "🗡️  Adventures:"
-        find "$PROJECT_DIR/json_data/adventures" -name "*.json" 2>/dev/null | sed 's|.*/||' | sort || echo "  (none found)"
+        find "$PROJECT_DIR/srd-data" -name "adventure-*.json" 2>/dev/null | sed 's|.*/||' | sort || echo "  (none found)"
         echo ""
-        
-        echo "📜 Supplements:"
-        find "$PROJECT_DIR/json_data/supplements" -name "*.json" 2>/dev/null | sed 's|.*/||' | sort || echo "  (none found)"
+
+        echo "📜 Content:"
+        find "$PROJECT_DIR/srd-data" -name "*.json" -not -name "book-*" -not -name "adventure-*" 2>/dev/null | sed 's|.*/||' | sort || echo "  (none found)"
     else
-        echo "No json_data directory found. Make sure you've run the organization script."
+        echo "No srd-data directory found. Run the SRD extraction script first."
     fi
 }
 
@@ -167,12 +167,12 @@ build_document() {
     local MODE="$1"
     local JSON_FILE="$2"
     shift 2
-    
+
     # Parse additional options
     local OPTIONS=""
     local OUTPUT_OVERRIDE=""
     local COMPILE_PDF=true
-    
+
     while [[ $# -gt 0 ]]; do
         case $1 in
             --with-images)
@@ -201,7 +201,7 @@ build_document() {
                 ;;
         esac
     done
-    
+
     # Set default options based on mode
     case $MODE in
         adventure)
@@ -218,16 +218,16 @@ build_document() {
             exit 1
             ;;
     esac
-    
+
     # Check if JSON file exists
     if [ ! -f "$PROJECT_DIR/$JSON_FILE" ]; then
         print_error "JSON file not found: $JSON_FILE"
         exit 1
     fi
-    
+
     # Extract base name for output file
     BASENAME=$(basename "$JSON_FILE" .json)
-    
+
     if [ -n "$OUTPUT_OVERRIDE" ]; then
         OUTPUT_FILE="$OUTPUT_OVERRIDE/$BASENAME.tex"
         mkdir -p "$OUTPUT_OVERRIDE"
@@ -235,40 +235,40 @@ build_document() {
         OUTPUT_FILE="$BUILD_DIR/$BASENAME.tex"
         mkdir -p "$BUILD_DIR"
     fi
-    
+
     print_status "Building $MODE: $JSON_FILE"
     print_status "Output: $OUTPUT_FILE"
     print_status "Options: $OPTIONS"
-    
+
     # Change to project directory and set paths
     cd "$PROJECT_DIR"
     export OSFONTDIR="$ASSETS_DIR/fonts"
-    
+
     # Run the conversion using modern CLI
     uv run 5e2pdf convert "$JSON_FILE" --output "$OUTPUT_FILE" $OPTIONS
-    
+
     print_success "LaTeX file generated: $OUTPUT_FILE"
-    
+
     # Compile to PDF if requested and xelatex is available
     if [ "$COMPILE_PDF" = true ] && command -v xelatex &> /dev/null; then
         print_status "Compiling to PDF..."
-        
+
         cd "$(dirname "$OUTPUT_FILE")"
         BASENAME_NO_EXT=$(basename "$OUTPUT_FILE" .tex)
-        
+
         # Run xelatex multiple times for proper cross-references
         print_status "Running XeLaTeX (pass 1/2)..."
         xelatex -interaction=nonstopmode "$BASENAME_NO_EXT.tex" > /dev/null 2>&1 || {
             print_error "XeLaTeX compilation failed. Check the log file."
             exit 1
         }
-        
+
         print_status "Running XeLaTeX (pass 2/2)..."
         xelatex -interaction=nonstopmode "$BASENAME_NO_EXT.tex" > /dev/null 2>&1 || {
             print_error "XeLaTeX compilation failed. Check the log file."
             exit 1
         }
-        
+
         if [ -f "$BASENAME_NO_EXT.pdf" ]; then
             print_success "PDF generated: $(dirname "$OUTPUT_FILE")/$BASENAME_NO_EXT.pdf"
         else
@@ -278,7 +278,7 @@ build_document() {
     elif [ "$COMPILE_PDF" = true ]; then
         print_warning "XeLaTeX not found - skipping PDF compilation"
     fi
-    
+
     print_success "Build complete!"
 }
 

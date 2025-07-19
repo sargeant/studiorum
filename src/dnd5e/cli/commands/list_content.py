@@ -34,11 +34,8 @@ def list_files(
     if directory is None:
         # Default directories
         directories = [
-            Path("json_data/adventures"),
-            Path("json_data/books"),
-            Path("json_data/supplements"),
-            Path("data/adventure"),
-            Path("data/book"),
+            Path("srd-data/adventure"),
+            Path("srd-data/book"),
             Path("homebrew"),
         ]
     else:
@@ -63,10 +60,8 @@ def list_files(
 
     if total_files == 0:
         rprint("[yellow]No JSON files found in search directories[/yellow]")
-        rprint(
-            "Make sure you have cloned the 5etools-src repository and created symlinks:"
-        )
-        rprint("  ln -s ../5etools-src/data data")
+        rprint("Make sure you have SRD data available. Run the extraction script:")
+        rprint("  python extract_srd_content.py")
     else:
         console.print(table)
         rprint(f"\n[dim]Found {total_files} files[/dim]")

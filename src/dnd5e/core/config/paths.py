@@ -41,15 +41,10 @@ class PathConfig(BaseModel):
         if self.data_path and self.data_path.exists():
             data_dirs.append(self.data_path)
 
-        # Check for symlinked data directory
-        data_symlink = self.root_path / "data"
-        if data_symlink.exists() and data_symlink.is_symlink():
-            data_dirs.append(data_symlink)
-
-        # Check for local json_data directory
-        local_data = self.root_path / "json_data"
-        if local_data.exists():
-            data_dirs.append(local_data)
+        # Check for srd-data directory
+        srd_data = self.root_path / "srd-data"
+        if srd_data.exists():
+            data_dirs.append(srd_data)
 
         # Map content types to subdirectories and file patterns
         content_mappings = {
