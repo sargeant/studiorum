@@ -213,20 +213,49 @@ class TestLaTeXItemRenderer:
 
     def test_render_item_table_multiple_items(self):
         """Test rendering multiple items as a table."""
-        items = [
-            Mock(spec=Item, name="Longsword", type="M", rarity="common"),
-            Mock(spec=Item, name="Chain Mail", type="HA", rarity="common"),
-            Mock(spec=Item, name="Ring of Protection", type="R", rarity="rare"),
-        ]
+        items = []
 
-        # Mock the item methods that might be called
-        for item in items:
-            item.is_weapon = Mock(return_value=item.name == "Longsword")
-            item.is_armor = Mock(return_value=item.name == "Chain Mail")
-            if hasattr(item, "is_magic_item"):
-                item.is_magic_item = Mock(
-                    return_value=item.name == "Ring of Protection"
-                )
+        # Create individual mocks with proper attributes
+        longsword = Mock(spec=Item)
+        longsword.name = "Longsword"
+        longsword.type = "M"
+        longsword.rarity = "common"
+        longsword.requires_attunement = None
+        longsword.weight = 3
+        longsword.value = {"amount": 15, "coin": "gp"}
+        longsword.source = Mock()
+        longsword.source.abbreviation = "PHB"
+        longsword.is_weapon = Mock(return_value=True)
+        longsword.is_armor = Mock(return_value=False)
+        items.append(longsword)
+
+        chain_mail = Mock(spec=Item)
+        chain_mail.name = "Chain Mail"
+        chain_mail.type = "HA"
+        chain_mail.rarity = "common"
+        chain_mail.requires_attunement = None
+        chain_mail.weight = 55
+        chain_mail.value = {"amount": 75, "coin": "gp"}
+        chain_mail.source = Mock()
+        chain_mail.source.abbreviation = "PHB"
+        chain_mail.is_weapon = Mock(return_value=False)
+        chain_mail.is_armor = Mock(return_value=True)
+        items.append(chain_mail)
+
+        ring = Mock(spec=Item)
+        ring.name = "Ring of Protection"
+        ring.type = "R"
+        ring.rarity = "rare"
+        ring.requires_attunement = True
+        ring.weight = None
+        ring.value = None
+        ring.source = Mock()
+        ring.source.abbreviation = "DMG"
+        ring.is_weapon = Mock(return_value=False)
+        ring.is_armor = Mock(return_value=False)
+        if hasattr(ring, "is_magic_item"):
+            ring.is_magic_item = Mock(return_value=True)
+        items.append(ring)
 
         with patch.object(
             self.renderer.template_engine, "render_template"
@@ -242,18 +271,26 @@ class TestLaTeXItemRenderer:
 
     def test_determine_table_columns_basic(self):
         """Test table column determination."""
-        items = [Mock(spec=Item, name="Test Item")]
-
-        # Mock required methods
-        for item in items:
-            item.is_weapon = Mock(return_value=False)
-            item.is_armor = Mock(return_value=False)
+        test_item = Mock(spec=Item)
+        test_item.name = "Test Item"
+        test_item.type = "G"
+        test_item.rarity = None
+        test_item.weight = None
+        test_item.value = None
+        test_item.source = Mock()
+        test_item.source.abbreviation = "PHB"
+        test_item.is_weapon = Mock(return_value=False)
+        test_item.is_armor = Mock(return_value=False)
+        items = [test_item]
 
         columns = self.renderer._determine_table_columns(items)
 
-        # Should return some column specification
-        assert isinstance(columns, str)
-        assert len(columns) > 0
+        # Should return a dictionary with headers and specification
+        assert isinstance(columns, dict)
+        assert "headers" in columns
+        assert "specification" in columns
+        assert isinstance(columns["headers"], list)
+        assert isinstance(columns["specification"], str)
 
 
 class TestLaTeXClassRenderer:
@@ -274,6 +311,20 @@ class TestLaTeXClassRenderer:
         """Test basic class rendering."""
         class_data = Mock(spec=Class)
         class_data.name = "Fighter"
+        # Add required source attribute
+        class_data.source = Mock()
+        class_data.source.abbreviation = "PHB"
+
+        # Add all expected Class attributes
+        class_data.hd = {"number": 1, "faces": 10}
+        class_data.starting_proficiencies = None
+        class_data.starting_equipment = None
+        class_data.class_features = []
+        class_data.spellcasting_ability = None
+        class_data.caster_progression = None
+        class_data.cantrip_progression = None
+        class_data.subclasses = []
+        class_data.multiclassing = None
 
         # Make context more realistic by adding get method
         self.context.get = Mock(return_value=True)
@@ -309,6 +360,24 @@ class TestLaTeXRaceRenderer:
         """Test basic race rendering."""
         race_data = Mock(spec=Race)
         race_data.name = "Elf"
+        # Add required source attribute
+        race_data.source = Mock()
+        race_data.source.abbreviation = "PHB"
+
+        # Add all expected Race attributes
+        race_data.entries = ["Elves are a magical people."]
+        race_data.ability = []
+        race_data.size = ["M"]
+        race_data.speed = 30
+        race_data.darkvision = 60
+        race_data.additionalSpells = None
+        race_data.language_proficiencies = None
+        race_data.skill_proficiencies = None
+        race_data.weapon_proficiencies = None
+        race_data.armor_proficiencies = None
+        race_data.tool_proficiencies = None
+        race_data.resistances = None
+        race_data.condition_immunities = None
 
         # Make context more realistic by adding get method
         self.context.get = Mock(return_value=True)
