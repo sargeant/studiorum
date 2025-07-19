@@ -162,7 +162,7 @@ class TestEnhancedLaTeXSpellRenderer:
         spell.name = "Fireball"
         spell.level = 3
         spell.school = "V"
-        spell.time = [{"number": 1, "unit": "action"}]
+        spell.casting_time = [{"number": 1, "unit": "action"}]
         spell.range = {"type": "point", "distance": {"type": "feet", "amount": 150}}
         spell.components = {
             "v": True,
@@ -174,6 +174,7 @@ class TestEnhancedLaTeXSpellRenderer:
         spell.higher_level = [
             "When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd."
         ]
+        spell.source = "PHB"
 
         with patch.object(
             self.renderer.template_engine, "render_template"
@@ -261,28 +262,44 @@ class TestLaTeXItemRenderer:
     def test_render_item_table_multiple_items(self):
         """Test rendering multiple items as a table."""
         items = [
-            Mock(
-                spec=Item,
-                name="Longsword",
-                type="M",
-                rarity="common",
-                entries=["A versatile weapon."],
-            ),
-            Mock(
-                spec=Item,
-                name="Chain Mail",
-                type="HA",
-                rarity="common",
-                entries=["Heavy armor."],
-            ),
-            Mock(
-                spec=Item,
-                name="Ring of Protection",
-                type="R",
-                rarity="rare",
-                entries=["Magic ring."],
-            ),
+            Mock(spec=Item),
+            Mock(spec=Item),
+            Mock(spec=Item),
         ]
+
+        # Set attributes explicitly
+        items[0].name = "Longsword"
+        items[0].type = "M"
+        items[0].rarity = "common"
+        items[0].entries = ["A versatile weapon."]
+        items[0].requires_attunement = False
+        items[0].properties = ["versatile"]
+        items[0].weight = None
+        items[0].value = None
+        items[0].charges = None
+        items[0].source = "PHB"
+
+        items[1].name = "Chain Mail"
+        items[1].type = "HA"
+        items[1].rarity = "common"
+        items[1].entries = ["Heavy armor."]
+        items[1].requires_attunement = False
+        items[1].properties = None
+        items[1].weight = None
+        items[1].value = None
+        items[1].charges = None
+        items[1].source = "PHB"
+
+        items[2].name = "Ring of Protection"
+        items[2].type = "R"
+        items[2].rarity = "rare"
+        items[2].entries = ["Magic ring."]
+        items[2].requires_attunement = True
+        items[2].properties = None
+        items[2].weight = None
+        items[2].value = None
+        items[2].charges = None
+        items[2].source = "PHB"
 
         # Mock the item methods
         for item in items:
@@ -348,6 +365,7 @@ class TestLaTeXClassRenderer:
         self.context = Mock(spec=RenderContext)
         self.context.tag_resolver = Mock()
         self.context.tag_resolver.process_text.side_effect = lambda x: x
+        self.context.get = Mock(return_value=True)
 
     def test_supported_content_types(self):
         """Test supported content types."""
@@ -388,6 +406,16 @@ class TestLaTeXClassRenderer:
                 ],
             }
         ]
+
+        # Add attributes that _build_class_variables expects
+        class_data.hd = None
+        class_data.starting_proficiencies = None
+        class_data.starting_equipment = None
+        class_data.spellcasting_ability = None
+        class_data.caster_progression = None
+        class_data.cantrip_progression = None
+        class_data.multiclassing = None
+        class_data.source = None
 
         with patch.object(
             self.renderer.template_engine, "render_template"
@@ -460,6 +488,7 @@ class TestLaTeXRaceRenderer:
         self.context = Mock(spec=RenderContext)
         self.context.tag_resolver = Mock()
         self.context.tag_resolver.process_text.side_effect = lambda x: x
+        self.context.get = Mock(return_value=True)
 
     def test_supported_content_types(self):
         """Test supported content types."""
@@ -483,6 +512,18 @@ class TestLaTeXRaceRenderer:
                 "entries": ["High elves are graceful warriors and wizards."],
             }
         ]
+
+        # Add attributes that _build_race_variables expects
+        race_data.darkvision = None
+        race_data.additionalSpells = None
+        race_data.language_proficiencies = None
+        race_data.skill_proficiencies = None
+        race_data.weapon_proficiencies = None
+        race_data.armor_proficiencies = None
+        race_data.tool_proficiencies = None
+        race_data.resistances = None
+        race_data.condition_immunities = None
+        race_data.source = None
 
         with patch.object(
             self.renderer.template_engine, "render_template"

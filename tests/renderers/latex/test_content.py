@@ -10,10 +10,12 @@ from dnd5e.core.models.items import Item
 from dnd5e.core.models.spells import Spell
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex.content import (
+    LaTeXClassRenderer,
     LaTeXContentRenderer,
     LaTeXContentRendererRegistry,
     LaTeXCreatureRenderer,
     LaTeXItemRenderer,
+    LaTeXRaceRenderer,
     LaTeXSpellRenderer,
 )
 
@@ -836,10 +838,12 @@ class TestLaTeXContentRendererRegistry:
     def test_init(self):
         """Test registry initialization."""
         registry = LaTeXContentRendererRegistry()
-        assert len(registry._renderers) == 3
+        assert len(registry._renderers) == 5
         assert ContentType.SPELL in registry._renderers
         assert ContentType.CREATURE in registry._renderers
         assert ContentType.ITEM in registry._renderers
+        assert ContentType.CLASS in registry._renderers
+        assert ContentType.RACE in registry._renderers
 
     def test_register_renderer(self):
         """Test registering a renderer."""
@@ -877,10 +881,14 @@ class TestLaTeXContentRendererRegistry:
         spell_renderer = registry.get_renderer(ContentType.SPELL)
         creature_renderer = registry.get_renderer(ContentType.CREATURE)
         item_renderer = registry.get_renderer(ContentType.ITEM)
+        class_renderer = registry.get_renderer(ContentType.CLASS)
+        race_renderer = registry.get_renderer(ContentType.RACE)
 
         assert isinstance(spell_renderer, LaTeXSpellRenderer)
         assert isinstance(creature_renderer, LaTeXCreatureRenderer)
         assert isinstance(item_renderer, LaTeXItemRenderer)
+        assert isinstance(class_renderer, LaTeXClassRenderer)
+        assert isinstance(race_renderer, LaTeXRaceRenderer)
 
 
 if __name__ == "__main__":

@@ -554,8 +554,11 @@ class TestItemProcessor:
         item.value = 5000  # 50 gp
         assert self.processor._get_value_tier(item) == "Moderate"
 
-        item.value = 50000  # 500 gp
+        item.value = 25000  # 250 gp
         assert self.processor._get_value_tier(item) == "Costly"
+
+        item.value = 50000  # 500 gp
+        assert self.processor._get_value_tier(item) == "Expensive"
 
         item.value = 500000  # 5000 gp
         assert self.processor._get_value_tier(item) == "Expensive"

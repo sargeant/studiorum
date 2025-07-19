@@ -478,15 +478,15 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
                     amount = distance.get("amount", 0)
                     return f"{amount} mile{'s' if amount != 1 else ''}"
         elif range_type == "sphere" and distance:
-            if isinstance(distance, dict) and distance.get("type") == "feet":
+            if isinstance(distance, dict):
                 radius = distance.get("amount", 0)
                 return f"Self ({radius}-foot radius)"
         elif range_type == "cone" and distance:
-            if isinstance(distance, dict) and distance.get("type") == "feet":
+            if isinstance(distance, dict):
                 length = distance.get("amount", 0)
                 return f"Self ({length}-foot cone)"
         elif range_type == "line" and distance:
-            if isinstance(distance, dict) and distance.get("type") == "feet":
+            if isinstance(distance, dict):
                 length = distance.get("amount", 0)
                 return f"Self ({length}-foot line)"
         elif range_type == "sight":
@@ -1590,13 +1590,14 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
             return ""
 
         # Determine table columns based on item types
-        columns = self._determine_table_columns(items)
+        column_data = self._determine_table_columns(items)
 
         # Build variables for table rendering
         variables = {
             "is_table_format": True,
             "table_title": table_title,
-            "table_columns": columns,
+            "table_columns": column_data["specification"],
+            "table_headers": column_data["headers"],
             "items": [self._build_table_item_data(item, context) for item in items],
             "include_descriptions": any(
                 getattr(item, "entries", None) for item in items
@@ -1727,28 +1728,52 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
             "description": self._format_entries(getattr(item, "entries", []), context),
         }
 
-    def _determine_table_columns(self, items: list[Item]) -> str:
+    def _determine_table_columns(self, items: list[Item]) -> dict:
         """Determine appropriate table columns based on items.
 
         Args:
             items: List of items to analyze
 
         Returns:
-            LaTeX column specification string
+            Dictionary with LaTeX column specification and headers
         """
         # Check what properties are present across items
         has_weight = any(getattr(item, "weight", None) for item in items)
         has_value = any(getattr(item, "value", None) for item in items)
         has_rarity = any(getattr(item, "rarity", None) for item in items)
 
-        if has_weight and has_value and has_rarity:
-            return "X l l l l"  # Name, Type, Rarity, Value, Weight
-        elif has_value and has_rarity:
-            return "X l l l"  # Name, Type, Rarity, Value
-        elif has_rarity:
-            return "X l l"  # Name, Type, Rarity
+        # Check if items are focused on weapons or armor
+        weapon_count = sum(
+            1 for item in items if hasattr(item, "is_weapon") and item.is_weapon()
+        )
+        armor_count = sum(
+            1 for item in items if hasattr(item, "is_armor") and item.is_armor()
+        )
+
+        headers = ["name", "type"]
+        columns = "X l"
+
+        # If majority are weapons, include weapon-specific columns
+        if weapon_count > len(items) / 2:
+            headers.extend(["damage", "properties"])
+            columns += " l l"
+        # If majority are armor, include armor-specific columns
+        elif armor_count > len(items) / 2:
+            headers.extend(["ac", "stealth"])
+            columns += " l l"
         else:
-            return "X l"  # Name, Type
+            # General item columns based on available properties
+            if has_rarity:
+                headers.append("rarity")
+                columns += " l"
+            if has_value:
+                headers.append("value")
+                columns += " l"
+            if has_weight:
+                headers.append("weight")
+                columns += " l"
+
+        return {"specification": columns, "headers": headers}
 
     def _format_type_enhanced(self, item_type: Any) -> str:
         """Format item type with enhanced handling.
@@ -2583,6 +2608,73 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
         else:
             return str(source)
 
+    def _process_class_table_data(self, table_data: dict[str, Any]) -> dict[str, Any]:
+        """Process class table data for rendering.
+
+        Args:
+            table_data: Table data with columns, column_labels, and rows
+
+        Returns:
+            Processed table data dictionary
+        """
+        # Extract headers from column_labels if available, otherwise use columns
+        headers = table_data.get("column_labels", table_data.get("columns", []))
+
+        # Generate LaTeX column specification
+        # Start with level column (left-aligned), proficiency (center), then features (expandable)
+        columns = "l c X"
+
+        # Add remaining columns as center-aligned
+        remaining_cols = len(headers) - 3
+        if remaining_cols > 0:
+            columns += " c" * remaining_cols
+
+        return {
+            "headers": headers,
+            "rows": table_data.get("rows", []),
+            "columns": columns,
+        }
+
+    def _format_class_features(
+        self, features_data: list[Any], context: RenderContext
+    ) -> list[dict[str, str]]:
+        """Format class features for rendering.
+
+        Args:
+            features_data: List of feature data
+            context: Rendering context
+
+        Returns:
+            List of formatted feature dictionaries
+        """
+        if not features_data:
+            return []
+
+        formatted_features = []
+        for feature in features_data:
+            if isinstance(feature, dict):
+                name = feature.get("name", "")
+                entries = feature.get("entries", [])
+
+                # Process entries to create description
+                description_parts = []
+                for entry in entries:
+                    if isinstance(entry, str):
+                        description_parts.append(
+                            self.process_text_with_tags(entry, context)
+                        )
+                    else:
+                        description_parts.append(str(entry))
+
+                formatted_features.append(
+                    {
+                        "name": self.escape_latex(name),
+                        "description": " ".join(description_parts),
+                    }
+                )
+
+        return formatted_features
+
 
 class LaTeXRaceRenderer(LaTeXContentRenderer):
     """Enhanced LaTeX renderer for D&D race content using DND template environments."""
@@ -3005,6 +3097,116 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
             return abbr
         else:
             return str(source)
+
+    def _format_ability_score_increases(self, abilities: list[Any]) -> str:
+        """Format ability score increases for tests.
+
+        Args:
+            abilities: List of ability adjustments
+
+        Returns:
+            Formatted ability increases string
+        """
+        if not abilities:
+            return ""
+
+        adjustments = []
+        for ability in abilities:
+            if hasattr(ability, "ability_name") and hasattr(ability, "value"):
+                # Pydantic AbilityAdjustment model
+                ability_names = {
+                    "str": "Strength",
+                    "dex": "Dexterity",
+                    "con": "Constitution",
+                    "int": "Intelligence",
+                    "wis": "Wisdom",
+                    "cha": "Charisma",
+                }
+                ability_name = ability_names.get(
+                    ability.ability_name.lower(), ability.ability_name.title()
+                )
+                adjustments.append(f"{ability_name} +{ability.value}")
+            elif isinstance(ability, dict):
+                # Dictionary format
+                for abil, value in ability.items():
+                    if abil.lower() in ["str", "dex", "con", "int", "wis", "cha"]:
+                        ability_names = {
+                            "str": "Strength",
+                            "dex": "Dexterity",
+                            "con": "Constitution",
+                            "int": "Intelligence",
+                            "wis": "Wisdom",
+                            "cha": "Charisma",
+                        }
+                        ability_name = ability_names.get(abil.lower(), abil.title())
+                        adjustments.append(f"{ability_name} +{value}")
+
+        return ", ".join(adjustments)
+
+    def _format_racial_traits(
+        self, trait_tags: list[str], entries: list[str], context: RenderContext
+    ) -> list[dict[str, str]]:
+        """Format racial traits from tags and entries.
+
+        Args:
+            trait_tags: List of trait names
+            entries: List of trait descriptions
+            context: Rendering context
+
+        Returns:
+            List of formatted trait dictionaries
+        """
+        traits = []
+        for i, (tag, entry) in enumerate(zip(trait_tags, entries, strict=False)):
+            traits.append(
+                {
+                    "name": self.escape_latex(tag),
+                    "description": self.process_text_with_tags(entry, context),
+                }
+            )
+        return traits
+
+    def _format_subraces(
+        self, subraces: list[Any], context: RenderContext
+    ) -> list[dict[str, str]]:
+        """Format subraces information.
+
+        Args:
+            subraces: List of subrace data
+            context: Rendering context
+
+        Returns:
+            List of formatted subrace dictionaries
+        """
+        formatted_subraces = []
+        for subrace in subraces:
+            if isinstance(subrace, dict):
+                name = subrace.get("name", "")
+                abilities = subrace.get("ability", [])
+                entries = subrace.get("entries", [])
+
+                # Format ability increases
+                ability_increases = self._format_ability_score_increases(abilities)
+
+                # Format entries
+                description_parts = []
+                for entry in entries:
+                    if isinstance(entry, str):
+                        description_parts.append(
+                            self.process_text_with_tags(entry, context)
+                        )
+                    else:
+                        description_parts.append(str(entry))
+
+                formatted_subraces.append(
+                    {
+                        "name": self.escape_latex(name),
+                        "ability_increases": ability_increases,
+                        "description": " ".join(description_parts),
+                    }
+                )
+
+        return formatted_subraces
 
 
 class LaTeXContentRendererRegistry:
