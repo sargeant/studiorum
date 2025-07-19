@@ -65,9 +65,7 @@ def setup_wizard():
 
     # Setup options
     console.print("\n[bold]Setup Options:[/bold]")
-    console.print(
-        "1. [cyan]Use defaults[/cyan] - 5etools official + homebrew (recommended)"
-    )
+    console.print("1. [cyan]Use defaults[/cyan] - System Reference Document (SRD) data")
     console.print("2. [cyan]Custom setup[/cyan] - Configure sources manually")
     console.print("3. [cyan]Local only[/cyan] - Use existing local directories")
 
@@ -114,24 +112,14 @@ def _setup_custom(config_manager):
     config = config_manager.get_config()
 
     # Ask about defaults first
-    if Confirm.ask("Include default sources (5etools official + homebrew)?"):
+    if Confirm.ask("Include default sources (SRD)?"):
         config.add_source(
             ContentSource(
-                name="5etools-official",
-                type=SourceType.GITHUB,
-                url="https://github.com/5etools-mirror-3/5etools-src",
+                name="srd",
+                type=SourceType.DIRECTORY,
+                path=Path("srd-data"),
                 enabled=True,
                 priority=1,
-            )
-        )
-
-        config.add_source(
-            ContentSource(
-                name="5etools-homebrew",
-                type=SourceType.GITHUB,
-                url="https://github.com/TheGiddyLimit/homebrew",
-                enabled=True,
-                priority=2,
             )
         )
 

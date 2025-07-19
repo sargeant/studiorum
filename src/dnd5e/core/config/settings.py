@@ -42,9 +42,7 @@ class Settings(BaseSettings):
 
     def model_post_init(self, __context) -> None:
         """Post-process settings after parsing."""
-        # Set font_dir default if not specified
-        if self.font_dir is None:
-            self.font_dir = self.assets_path / "fonts"
+        pass
 
 
 # Global settings instance

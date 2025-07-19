@@ -202,29 +202,14 @@ class ContentConfigManager:
         """Create default configuration with recommended sources."""
         config = ContentConfiguration()
 
-        # Add default 5etools mirror
+        # Add SRD source
         config.add_source(
             ContentSource(
-                name="5etools-official",
-                type=SourceType.GITHUB,
-                url="https://github.com/5etools-mirror-3/5etools-src",
+                name="srd",
+                type=SourceType.DIRECTORY,
+                path=Path("srd-data"),
                 enabled=True,
                 priority=1,
-                auto_update=True,
-                update_interval="daily",
-            )
-        )
-
-        # Add homebrew repository
-        config.add_source(
-            ContentSource(
-                name="5etools-homebrew",
-                type=SourceType.GITHUB,
-                url="https://github.com/TheGiddyLimit/homebrew",
-                enabled=True,
-                priority=2,
-                auto_update=True,
-                update_interval="daily",
             )
         )
 

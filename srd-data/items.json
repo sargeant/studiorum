@@ -12604,59 +12604,6 @@
       ]
     },
     {
-      "name": "Spire of Conflux (Dormant)",
-      "source": "TDCSR",
-      "page": 209,
-      "srd": true,
-      "basicRules": true,
-      "type": "M",
-      "rarity": "legendary",
-      "reqAttune": "by a spellcaster",
-      "reqAttuneTags": [
-        {
-          "spellcasting": true
-        }
-      ],
-      "weight": 4,
-      "weaponCategory": "simple",
-      "property": [
-        "V",
-        "Vst|TDCSR"
-      ],
-      "dmg1": "1d6",
-      "dmgType": "B",
-      "dmg2": "1d8",
-      "bonusSpellAttack": "+1",
-      "bonusSpellSaveDc": "+1",
-      "recharge": "dawn",
-      "rechargeAmount": "{@dice 1d4 + 2}",
-      "charges": 8,
-      "staff": true,
-      "entries": [
-        "A powerful relic passed down from generation to generation of Ashari leaders, the Spire of Conflux was lost over three centuries ago when Joran the Sea-Speaker, a respected leader of {@book the Water Ashari|TDCSR|2|The Ashari}, was devoured by a demon of the Abyss. It was rediscovered by the legendary druid {@creature Keyleth, Voice of the Tempest|TDCSR|Keyleth of Zephrah, Voice of the Tempest}. However, rumors swirl that she is seeking another hero to wield it—one who can travel the land and do good in small ways as she once did.",
-        {
-          "type": "entries",
-          "name": "Dormant",
-          "entries": [
-            "While the Spire of Conflux is in a dormant state, the staff has 8 charges and regains {@dice 1d4 + 2} expended charges daily at dawn. While holding the staff, you can expend 1 or more of its charges to cast one of the following spells from it, using your spell save DC: {@spell burning hands} (1 charge) or {@spell fireball} (3 charges).",
-            "Additionally, while holding this staff, you have a +1 bonus to spell attack rolls and your spell save DC increases by 1."
-          ]
-        }
-      ],
-      "attachedSpells": {
-        "charges": {
-          "1": [
-            "burning hands"
-          ],
-          "3": [
-            "fireball"
-          ]
-        }
-      },
-      "hasFluff": true,
-      "hasFluffImages": true
-    },
-    {
       "name": "Sprig of Mistletoe",
       "group": [
         "Druidic Focus"

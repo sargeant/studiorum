@@ -317,7 +317,7 @@ def scan_content():
 
 @app.command("defaults")
 def setup_defaults():
-    """Set up default content sources (5etools official and homebrew)."""
+    """Set up default content sources (SRD)."""
     config_manager = get_config_manager()
 
     if typer.confirm("This will reset to default sources. Continue?"):

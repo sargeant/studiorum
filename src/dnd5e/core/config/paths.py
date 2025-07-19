@@ -12,9 +12,7 @@ class PathConfig(BaseModel):
     """Configuration for data file paths."""
 
     root_path: Path = Field(..., description="Root project directory")
-    data_path: Path | None = Field(
-        None, description="External data directory (5etools-src)"
-    )
+    data_path: Path | None = Field(None, description="External data directory")
     assets_path: Path = Field(..., description="Assets directory")
     output_path: Path = Field(..., description="Output directory")
     build_path: Path = Field(..., description="Build artifacts directory")
