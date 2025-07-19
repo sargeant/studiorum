@@ -7,7 +7,9 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from dnd5e.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass

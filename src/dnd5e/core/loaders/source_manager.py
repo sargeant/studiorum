@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from ..config.paths import get_path_config
-from ..config.settings import get_logger
+from ..logging import get_logger
 from ..models.content import ContentType
 from .base import SourceManager
 

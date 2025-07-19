@@ -12,6 +12,7 @@ from rich.progress import Progress
 from dnd5e.core.config.settings import get_settings
 from dnd5e.core.indexer.tag_resolver import TagResolver
 from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.logging.logger import setup_logging
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
@@ -47,13 +48,10 @@ def main(
     Convert structured JSON data from 5e.tools into professional LaTeX documents
     that match the style of official D&D 5th edition books.
     """
-    if verbose:
-        # Override the default log level for verbose mode
-        settings = get_settings()
-        settings.log_level = "INFO"
-        # Update the root logger level
-        logging.getLogger().setLevel(logging.INFO)
-        logging.info("Enabled verbose mode")
+    settings = get_settings()
+    log_level = "INFO" if verbose else settings.log_level
+    setup_logging(level=log_level)
+    logging.info("Enabled verbose mode")
 
 
 async def get_omnidexer() -> Omnidexer:

@@ -9,10 +9,10 @@ import logging
 
 import pytest
 
-from dnd5e.core.config.settings import get_logger
 from dnd5e.core.loaders.json_loader import JsonDataLoader
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.loaders.source_manager import FileSystemSourceManager
+from dnd5e.core.logging import get_logger
 from dnd5e.core.models.content import ContentType
 
 

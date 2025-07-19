@@ -3,8 +3,8 @@
 from pathlib import Path
 from typing import Any
 
-from ..config.settings import get_logger
 from ..config.sources import get_content_config
+from ..logging import get_logger
 from ..models.content import ContentType
 from ..sources import ContentSourceManager
 from .base import SourceManager

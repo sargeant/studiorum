@@ -4,12 +4,14 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
+from dnd5e.core.logging import get_logger
+
 from .content_tracker import ContentTracker
 from .tag_handlers import TagHandler
 from .tag_parser import TagParseError, TagParser
 from .tag_renderer import RendererContext, TagRenderer
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class NewTagResolverFacade:

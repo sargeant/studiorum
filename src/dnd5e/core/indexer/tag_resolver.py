@@ -4,8 +4,8 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from ..config.settings import get_logger
 from ..loaders.omnidexer import Omnidexer
+from ..logging import get_logger
 from ..models.content import ContentType
 
 logger = get_logger(__name__)

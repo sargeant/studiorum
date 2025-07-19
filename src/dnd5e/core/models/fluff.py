@@ -5,7 +5,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
-logger = logging.getLogger(__name__)
+from dnd5e.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class FluffImage(BaseModel):

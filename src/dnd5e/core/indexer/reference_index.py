@@ -4,7 +4,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
 
-from ..config.settings import get_logger
+from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
 
 logger = get_logger(__name__)

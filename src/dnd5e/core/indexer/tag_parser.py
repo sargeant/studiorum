@@ -7,6 +7,8 @@ from typing import Any
 
 from lark import Lark, Token, Transformer
 
+from dnd5e.core.logging import get_logger
+
 from .tag_ast import (
     AdventureTagNode,
     ASTNode,
@@ -34,7 +36,7 @@ from .tag_ast import (
     TextNode,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TagParseError(Exception):

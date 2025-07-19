@@ -5,12 +5,14 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from dnd5e.core.logging import get_logger
+
 from .content_tracker import ContentTracker
 from .tag_ast import ASTNode, DocumentNode, TagNode, TextNode
 from .tag_handlers import TagHandler, get_default_handlers
 from .tag_renderer import RendererContext, TagRenderer
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from ...loaders.omnidexer import Omnidexer

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ..config.settings import get_logger
+from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
 from .base import DataLoader, SourceManager
 from .configurable_source_manager import ConfigurableSourceManager

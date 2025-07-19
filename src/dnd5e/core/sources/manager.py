@@ -4,13 +4,13 @@ import asyncio
 from pathlib import Path
 from typing import Optional
 
-from ..config.settings import get_logger
 from ..config.sources import (
     ContentConfiguration,
     ContentSource,
     SourceType,
     get_content_config,
 )
+from ..logging import get_logger
 from .github import GitHubSourceManager
 
 logger = get_logger(__name__)

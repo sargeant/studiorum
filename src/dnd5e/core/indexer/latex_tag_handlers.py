@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from dnd5e.core.logging import get_logger
+
 from .content_tracker import ContentTracker
 from .cross_reference_manager import CrossReferenceManager
 from .hyperlink_manager import HyperlinkManager
@@ -17,7 +19,7 @@ from .tag_handlers import (
     TagHandler,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from .latex_tag_renderer import LaTeXRendererContext

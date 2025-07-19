@@ -57,18 +57,3 @@ def get_settings() -> Settings:
     if _settings is None:
         _settings = Settings()
     return _settings
-
-
-def get_logger(name: str) -> logging.Logger:
-    """Get configured logger for a module."""
-    settings = get_settings()
-
-    # Configure root logger if not already done
-    root_logger = logging.getLogger()
-    if not root_logger.handlers:
-        handler = colorlog.StreamHandler()
-        handler.setFormatter(colorlog.ColoredFormatter(settings.log_format))
-        root_logger.addHandler(handler)
-        root_logger.setLevel(getattr(logging, settings.log_level.upper()))
-
-    return logging.getLogger(name)

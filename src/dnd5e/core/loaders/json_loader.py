@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
-from ..config.settings import get_logger
+from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
 from .base import DataLoader
 from .content_factory import ContentFactory, get_content_factory
