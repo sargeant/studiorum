@@ -85,5 +85,5 @@ htmlcov/
 # Output directory
 output/
 
-# Developer notes
-notes/
+# Developer stuff
+private/
