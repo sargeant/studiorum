@@ -2,9 +2,12 @@
 
 from typing import Any
 
+from ...core.models.adventures import Adventure
+from ...core.models.backgrounds import Background
 from ...core.models.classes import Class
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.creatures import Creature
+from ...core.models.feats import Feat
 from ...core.models.items import Item
 from ...core.models.races import Race
 from ...core.models.spells import Spell
@@ -3209,6 +3212,456 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
         return formatted_subraces
 
 
+class LaTeXAdventureRenderer(LaTeXContentRenderer):
+    """Enhanced LaTeX renderer for adventure content using DND template environments."""
+
+    def __init__(self, config: dict[str, Any] | None = None):
+        """Initialize adventure renderer.
+
+        Args:
+            config: Configuration options including use_dnd_template flag
+        """
+        super().__init__(config)
+        self.use_dnd_template = config.get("use_dnd_template", True) if config else True
+
+    @property
+    def supported_content_types(self) -> set[ContentType]:
+        """Return supported content types."""
+        return {ContentType.ADVENTURE}
+
+    def render_content(self, content: BaseContent, context: RenderContext) -> str:
+        """Render adventure content to LaTeX using DND template environments.
+
+        Args:
+            content: Adventure content to render
+            context: Rendering context
+
+        Returns:
+            LaTeX markup string
+        """
+        if not isinstance(content, Adventure):
+            raise ValueError(f"Expected Adventure, got {type(content)}")
+
+        template_name = (
+            "adventure_dnd.tex.j2" if self.use_dnd_template else "adventure.tex.j2"
+        )
+
+        template_vars = self._build_adventure_variables(content, context)
+
+        return self.template_engine.render_template(template_name, template_vars)
+
+    def _build_adventure_variables(
+        self, adventure: Adventure, context: RenderContext
+    ) -> dict[str, Any]:
+        """Build template variables for adventure rendering.
+
+        Args:
+            adventure: Adventure to render
+            context: Rendering context
+
+        Returns:
+            Dictionary of template variables
+        """
+        # Extract adventure content from entries
+        adventure_hook = None
+        summary = None
+        background = None
+        encounters = []
+        npcs = []
+        locations = []
+        random_encounters = []
+        conclusion = None
+
+        # Process entries to extract structured content
+        if hasattr(adventure, "entries") and adventure.entries:
+            content_text = self._extract_text_from_entries(adventure.entries, context)
+            summary = content_text
+
+        return {
+            "name": self.escape_latex(adventure.name),
+            "use_section": True,
+            "adventure_hook": adventure_hook,
+            "summary": summary,
+            "background": background,
+            "encounters": encounters,
+            "npcs": npcs,
+            "locations": locations,
+            "random_encounters": random_encounters,
+            "conclusion": conclusion,
+            "source_reference": self.escape_latex(getattr(adventure, "source", "")),
+        }
+
+    def _extract_text_from_entries(
+        self, entries: list[Any], context: RenderContext
+    ) -> str:
+        """Extract and process text from entries list.
+
+        Args:
+            entries: List of entry objects
+            context: Rendering context
+
+        Returns:
+            Processed text content
+        """
+        text_parts = []
+
+        for entry in entries:
+            if isinstance(entry, str):
+                text_parts.append(self.process_text_with_tags(entry, context))
+            elif isinstance(entry, dict):
+                if "entries" in entry:
+                    # Nested entries
+                    nested_text = self._extract_text_from_entries(
+                        entry["entries"], context
+                    )
+                    text_parts.append(nested_text)
+                elif "name" in entry and "text" in entry:
+                    # Named text block
+                    name = self.escape_latex(entry["name"])
+                    text = self.process_text_with_tags(entry["text"], context)
+                    text_parts.append(f"\\textbf{{{name}}} {text}")
+                elif "text" in entry:
+                    text_parts.append(
+                        self.process_text_with_tags(entry["text"], context)
+                    )
+
+        return "\n\n".join(text_parts)
+
+
+class LaTeXBackgroundRenderer(LaTeXContentRenderer):
+    """Enhanced LaTeX renderer for background content using DND template environments."""
+
+    def __init__(self, config: dict[str, Any] | None = None):
+        """Initialize background renderer.
+
+        Args:
+            config: Configuration options including use_dnd_template flag
+        """
+        super().__init__(config)
+        self.use_dnd_template = config.get("use_dnd_template", True) if config else True
+
+    @property
+    def supported_content_types(self) -> set[ContentType]:
+        """Return supported content types."""
+        return {ContentType.BACKGROUND}
+
+    def render_content(self, content: BaseContent, context: RenderContext) -> str:
+        """Render background content to LaTeX using DND template environments.
+
+        Args:
+            content: Background content to render
+            context: Rendering context
+
+        Returns:
+            LaTeX markup string
+        """
+        if not isinstance(content, Background):
+            raise ValueError(f"Expected Background, got {type(content)}")
+
+        template_name = (
+            "background_dnd.tex.j2" if self.use_dnd_template else "background.tex.j2"
+        )
+
+        template_vars = self._build_background_variables(content, context)
+
+        return self.template_engine.render_template(template_name, template_vars)
+
+    def _build_background_variables(
+        self, background: Background, context: RenderContext
+    ) -> dict[str, Any]:
+        """Build template variables for background rendering.
+
+        Args:
+            background: Background to render
+            context: Rendering context
+
+        Returns:
+            Dictionary of template variables
+        """
+        # Process description from entries
+        description = ""
+        if hasattr(background, "entries") and background.entries:
+            description = self._extract_text_from_entries(background.entries, context)
+
+        # Format proficiencies
+        skill_proficiencies = self._format_proficiencies(background.skill_proficiencies)
+        tool_proficiencies = self._format_proficiencies(background.tool_proficiencies)
+        language_proficiencies = self._format_proficiencies(
+            background.language_proficiencies
+        )
+
+        return {
+            "name": self.escape_latex(background.name),
+            "use_subsection": False,
+            "description": description,
+            "skill_proficiencies": skill_proficiencies,
+            "tool_proficiencies": tool_proficiencies,
+            "language_proficiencies": language_proficiencies,
+            "equipment": None,  # Could be extracted from entries if needed
+            "feature": None,  # Could be extracted from entries if needed
+            "personality_traits": [],  # Could be extracted from entries if needed
+            "ideals": [],  # Could be extracted from entries if needed
+            "bonds": [],  # Could be extracted from entries if needed
+            "flaws": [],  # Could be extracted from entries if needed
+            "variant": None,  # Could be extracted from entries if needed
+            "source_reference": self.escape_latex(getattr(background, "source", "")),
+        }
+
+    def _format_proficiencies(self, proficiencies: list[Any] | None) -> str:
+        """Format proficiency list for display.
+
+        Args:
+            proficiencies: List of proficiency objects
+
+        Returns:
+            Formatted proficiency string
+        """
+        if not proficiencies:
+            return ""
+
+        formatted_parts = []
+        for prof in proficiencies:
+            if isinstance(prof, str):
+                formatted_parts.append(self.escape_latex(prof))
+            elif isinstance(prof, dict):
+                # Handle choice structures
+                if "choose" in prof:
+                    choose_data = prof["choose"]
+                    if "from" in choose_data:
+                        options = choose_data["from"]
+                        count = choose_data.get("count", 1)
+                        if isinstance(options, list):
+                            option_str = ", ".join(
+                                self.escape_latex(str(opt)) for opt in options[:3]
+                            )
+                            if len(options) > 3:
+                                option_str += ", ..."
+                            formatted_parts.append(f"Choose {count} from: {option_str}")
+                        else:
+                            formatted_parts.append(f"Choose {count}")
+                else:
+                    # Simple dict format
+                    text = prof.get("text", prof.get("name", str(prof)))
+                    formatted_parts.append(self.escape_latex(text))
+
+        return ", ".join(formatted_parts)
+
+    def _extract_text_from_entries(
+        self, entries: list[Any], context: RenderContext
+    ) -> str:
+        """Extract and process text from entries list.
+
+        Args:
+            entries: List of entry objects
+            context: Rendering context
+
+        Returns:
+            Processed text content
+        """
+        text_parts = []
+
+        for entry in entries:
+            if isinstance(entry, str):
+                text_parts.append(self.process_text_with_tags(entry, context))
+            elif isinstance(entry, dict):
+                if "entries" in entry:
+                    # Nested entries
+                    nested_text = self._extract_text_from_entries(
+                        entry["entries"], context
+                    )
+                    text_parts.append(nested_text)
+                elif "name" in entry and "text" in entry:
+                    # Named text block
+                    name = self.escape_latex(entry["name"])
+                    text = self.process_text_with_tags(entry["text"], context)
+                    text_parts.append(f"\\textbf{{{name}}} {text}")
+                elif "text" in entry:
+                    text_parts.append(
+                        self.process_text_with_tags(entry["text"], context)
+                    )
+
+        return "\n\n".join(text_parts)
+
+
+class LaTeXFeatRenderer(LaTeXContentRenderer):
+    """Enhanced LaTeX renderer for feat content using DND template environments."""
+
+    def __init__(self, config: dict[str, Any] | None = None):
+        """Initialize feat renderer.
+
+        Args:
+            config: Configuration options including use_dnd_template flag
+        """
+        super().__init__(config)
+        self.use_dnd_template = config.get("use_dnd_template", True) if config else True
+
+    @property
+    def supported_content_types(self) -> set[ContentType]:
+        """Return supported content types."""
+        return {ContentType.FEAT}
+
+    def render_content(self, content: BaseContent, context: RenderContext) -> str:
+        """Render feat content to LaTeX using DND template environments.
+
+        Args:
+            content: Feat content to render
+            context: Rendering context
+
+        Returns:
+            LaTeX markup string
+        """
+        if not isinstance(content, Feat):
+            raise ValueError(f"Expected Feat, got {type(content)}")
+
+        template_name = "feat_dnd.tex.j2" if self.use_dnd_template else "feat.tex.j2"
+
+        template_vars = self._build_feat_variables(content, context)
+
+        return self.template_engine.render_template(template_name, template_vars)
+
+    def _build_feat_variables(
+        self, feat: Feat, context: RenderContext
+    ) -> dict[str, Any]:
+        """Build template variables for feat rendering.
+
+        Args:
+            feat: Feat to render
+            context: Rendering context
+
+        Returns:
+            Dictionary of template variables
+        """
+        # Process description from entries
+        description = ""
+        if hasattr(feat, "entries") and feat.entries:
+            description = self._extract_text_from_entries(feat.entries, context)
+
+        # Format prerequisites
+        prerequisite_text = self._format_prerequisites(feat.prerequisite)
+
+        # Format ability score improvements
+        ability_score_improvement = self._format_ability_improvements(feat.ability)
+
+        return {
+            "name": self.escape_latex(feat.name),
+            "use_subsection": False,
+            "prerequisite": prerequisite_text,
+            "description": description,
+            "ability_score_improvement": ability_score_improvement,
+            "source_reference": self.escape_latex(getattr(feat, "source", "")),
+        }
+
+    def _format_prerequisites(self, prerequisites: list[Any] | None) -> str:
+        """Format prerequisite list for display.
+
+        Args:
+            prerequisites: List of prerequisite objects
+
+        Returns:
+            Formatted prerequisite string
+        """
+        if not prerequisites:
+            return ""
+
+        formatted_parts = []
+        for prereq in prerequisites:
+            if isinstance(prereq, str):
+                formatted_parts.append(self.escape_latex(prereq))
+            elif hasattr(prereq, "other") and prereq.other:
+                formatted_parts.append(self.escape_latex(prereq.other))
+            elif isinstance(prereq, dict):
+                if "other" in prereq:
+                    formatted_parts.append(self.escape_latex(prereq["other"]))
+                else:
+                    # Handle ability score prerequisites
+                    prereq_parts = []
+                    for key, value in prereq.items():
+                        if key in ["str", "dex", "con", "int", "wis", "cha"]:
+                            ability_name = {
+                                "str": "Strength",
+                                "dex": "Dexterity",
+                                "con": "Constitution",
+                                "int": "Intelligence",
+                                "wis": "Wisdom",
+                                "cha": "Charisma",
+                            }[key]
+                            prereq_parts.append(f"{ability_name} {value}")
+                    if prereq_parts:
+                        formatted_parts.append(", ".join(prereq_parts))
+
+        return ", ".join(formatted_parts) if formatted_parts else ""
+
+    def _format_ability_improvements(
+        self, abilities: list[dict[str, Any]] | None
+    ) -> str:
+        """Format ability score improvements for display.
+
+        Args:
+            abilities: List of ability improvement objects
+
+        Returns:
+            Formatted ability improvement string
+        """
+        if not abilities:
+            return ""
+
+        improvements = []
+        for ability in abilities:
+            if isinstance(ability, dict):
+                for key, value in ability.items():
+                    if key in ["str", "dex", "con", "int", "wis", "cha"]:
+                        ability_name = {
+                            "str": "Strength",
+                            "dex": "Dexterity",
+                            "con": "Constitution",
+                            "int": "Intelligence",
+                            "wis": "Wisdom",
+                            "cha": "Charisma",
+                        }[key]
+                        if isinstance(value, int):
+                            improvements.append(f"{ability_name} +{value}")
+                        elif isinstance(value, dict) and "choose" in value:
+                            improvements.append(f"{ability_name} (choice)")
+
+        return ", ".join(improvements) if improvements else ""
+
+    def _extract_text_from_entries(
+        self, entries: list[Any], context: RenderContext
+    ) -> str:
+        """Extract and process text from entries list.
+
+        Args:
+            entries: List of entry objects
+            context: Rendering context
+
+        Returns:
+            Processed text content
+        """
+        text_parts = []
+
+        for entry in entries:
+            if isinstance(entry, str):
+                text_parts.append(self.process_text_with_tags(entry, context))
+            elif isinstance(entry, dict):
+                if "entries" in entry:
+                    # Nested entries
+                    nested_text = self._extract_text_from_entries(
+                        entry["entries"], context
+                    )
+                    text_parts.append(nested_text)
+                elif "name" in entry and "text" in entry:
+                    # Named text block
+                    name = self.escape_latex(entry["name"])
+                    text = self.process_text_with_tags(entry["text"], context)
+                    text_parts.append(f"\\textbf{{{name}}} {text}")
+                elif "text" in entry:
+                    text_parts.append(
+                        self.process_text_with_tags(entry["text"], context)
+                    )
+
+        return "\n\n".join(text_parts)
+
+
 class LaTeXContentRendererRegistry:
     """Registry for LaTeX content renderers."""
 
@@ -3224,6 +3677,9 @@ class LaTeXContentRendererRegistry:
         self.register_renderer(ContentType.ITEM, LaTeXItemRenderer())
         self.register_renderer(ContentType.CLASS, LaTeXClassRenderer())
         self.register_renderer(ContentType.RACE, LaTeXRaceRenderer())
+        self.register_renderer(ContentType.ADVENTURE, LaTeXAdventureRenderer())
+        self.register_renderer(ContentType.BACKGROUND, LaTeXBackgroundRenderer())
+        self.register_renderer(ContentType.FEAT, LaTeXFeatRenderer())
 
     def register_renderer(self, content_type: ContentType, renderer: ContentRenderer):
         """Register a renderer for a content type.

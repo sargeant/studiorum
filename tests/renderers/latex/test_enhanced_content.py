@@ -5,17 +5,23 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from dnd5e.core.models.adventures import Adventure
+from dnd5e.core.models.backgrounds import Background
 from dnd5e.core.models.classes import Class
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.models.creatures import Creature
+from dnd5e.core.models.feats import Feat
 from dnd5e.core.models.items import Item
 from dnd5e.core.models.races import Race
 from dnd5e.core.models.spells import Spell
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex.content import (
+    LaTeXAdventureRenderer,
+    LaTeXBackgroundRenderer,
     LaTeXClassRenderer,
     LaTeXContentRendererRegistry,
     LaTeXCreatureRenderer,
+    LaTeXFeatRenderer,
     LaTeXItemRenderer,
     LaTeXRaceRenderer,
     LaTeXSpellRenderer,
@@ -620,6 +626,209 @@ class TestEnhancedContentRendererRegistry:
         assert race_renderer is not None
         assert isinstance(class_renderer, LaTeXClassRenderer)
         assert isinstance(race_renderer, LaTeXRaceRenderer)
+
+
+class TestLaTeXAdventureRenderer:
+    """Test cases for LaTeX adventure renderer."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.renderer = LaTeXAdventureRenderer()
+        self.context = Mock(spec=RenderContext)
+        self.context.tag_resolver = Mock()
+        self.context.tag_resolver.process_text.side_effect = lambda x: x
+
+    def test_supported_content_types(self):
+        """Test that adventure renderer supports correct content types."""
+        assert self.renderer.supported_content_types == {ContentType.ADVENTURE}
+
+    def test_render_content_adventure(self):
+        """Test rendering an adventure to LaTeX."""
+        adventure = Mock(spec=Adventure)
+        adventure.name = "Lost Mine of Phandelver"
+        adventure.entries = ["This is an adventure for 1st-level characters."]
+        adventure.source = "LMoP"
+
+        with patch.object(
+            self.renderer.template_engine, "render_template"
+        ) as mock_render:
+            mock_render.return_value = (
+                "\\section{Lost Mine of Phandelver}\nContent here"
+            )
+
+            result = self.renderer.render_content(adventure, self.context)
+
+            mock_render.assert_called_once()
+            args, kwargs = mock_render.call_args
+            assert args[0] == "adventure_dnd.tex.j2"
+            assert "name" in args[1]
+            assert "Lost Mine of Phandelver" in args[1]["name"]
+            assert result == "\\section{Lost Mine of Phandelver}\nContent here"
+
+    def test_render_content_wrong_type(self):
+        """Test that renderer raises error for wrong content type."""
+        spell = Mock(spec=Spell)
+        with pytest.raises(ValueError, match="Expected Adventure"):
+            self.renderer.render_content(spell, self.context)
+
+
+class TestLaTeXBackgroundRenderer:
+    """Test cases for LaTeX background renderer."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.renderer = LaTeXBackgroundRenderer()
+        self.context = Mock(spec=RenderContext)
+        self.context.tag_resolver = Mock()
+        self.context.tag_resolver.process_text.side_effect = lambda x: x
+
+    def test_supported_content_types(self):
+        """Test that background renderer supports correct content types."""
+        assert self.renderer.supported_content_types == {ContentType.BACKGROUND}
+
+    def test_render_content_background(self):
+        """Test rendering a background to LaTeX."""
+        background = Mock(spec=Background)
+        background.name = "Acolyte"
+        background.entries = ["You have spent your life in the service of a temple."]
+        background.skill_proficiencies = ["Insight", "Religion"]
+        background.tool_proficiencies = None
+        background.language_proficiencies = ["Two of your choice"]
+        background.source = "PHB"
+
+        with patch.object(
+            self.renderer.template_engine, "render_template"
+        ) as mock_render:
+            mock_render.return_value = "\\subsubsection{Acolyte}\nContent here"
+
+            result = self.renderer.render_content(background, self.context)
+
+            mock_render.assert_called_once()
+            args, kwargs = mock_render.call_args
+            assert args[0] == "background_dnd.tex.j2"
+            assert "name" in args[1]
+            assert "Acolyte" in args[1]["name"]
+            assert result == "\\subsubsection{Acolyte}\nContent here"
+
+    def test_format_proficiencies_simple_list(self):
+        """Test formatting simple proficiency list."""
+        proficiencies = ["Insight", "Religion"]
+        result = self.renderer._format_proficiencies(proficiencies)
+        assert result == "Insight, Religion"
+
+    def test_format_proficiencies_empty(self):
+        """Test formatting empty proficiency list."""
+        result = self.renderer._format_proficiencies(None)
+        assert result == ""
+
+    def test_render_content_wrong_type(self):
+        """Test that renderer raises error for wrong content type."""
+        spell = Mock(spec=Spell)
+        with pytest.raises(ValueError, match="Expected Background"):
+            self.renderer.render_content(spell, self.context)
+
+
+class TestLaTeXFeatRenderer:
+    """Test cases for LaTeX feat renderer."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.renderer = LaTeXFeatRenderer()
+        self.context = Mock(spec=RenderContext)
+        self.context.tag_resolver = Mock()
+        self.context.tag_resolver.process_text.side_effect = lambda x: x
+
+    def test_supported_content_types(self):
+        """Test that feat renderer supports correct content types."""
+        assert self.renderer.supported_content_types == {ContentType.FEAT}
+
+    def test_render_content_feat(self):
+        """Test rendering a feat to LaTeX."""
+        feat = Mock(spec=Feat)
+        feat.name = "Alert"
+        feat.entries = ["Always on the lookout for danger."]
+        feat.prerequisite = None
+        feat.ability = None
+        feat.source = "PHB"
+
+        with patch.object(
+            self.renderer.template_engine, "render_template"
+        ) as mock_render:
+            mock_render.return_value = "\\paragraph{Alert}\nContent here"
+
+            result = self.renderer.render_content(feat, self.context)
+
+            mock_render.assert_called_once()
+            args, kwargs = mock_render.call_args
+            assert args[0] == "feat_dnd.tex.j2"
+            assert "name" in args[1]
+            assert "Alert" in args[1]["name"]
+            assert result == "\\paragraph{Alert}\nContent here"
+
+    def test_format_prerequisites_empty(self):
+        """Test formatting empty prerequisites."""
+        result = self.renderer._format_prerequisites(None)
+        assert result == ""
+
+    def test_format_ability_improvements_empty(self):
+        """Test formatting empty ability improvements."""
+        result = self.renderer._format_ability_improvements(None)
+        assert result == ""
+
+    def test_render_content_wrong_type(self):
+        """Test that renderer raises error for wrong content type."""
+        spell = Mock(spec=Spell)
+        with pytest.raises(ValueError, match="Expected Feat"):
+            self.renderer.render_content(spell, self.context)
+
+
+class TestEnhancedContentRendererRegistryUpdated:
+    """Test cases for enhanced content renderer registry with new renderers."""
+
+    def test_registry_includes_all_enhanced_renderers_updated(self):
+        """Test that registry includes all enhanced renderers including new ones."""
+        registry = LaTeXContentRendererRegistry()
+
+        # Test that all content types have renderers
+        assert ContentType.SPELL in registry._renderers
+        assert ContentType.CREATURE in registry._renderers
+        assert ContentType.ITEM in registry._renderers
+        assert ContentType.CLASS in registry._renderers
+        assert ContentType.RACE in registry._renderers
+        assert ContentType.ADVENTURE in registry._renderers
+        assert ContentType.BACKGROUND in registry._renderers
+        assert ContentType.FEAT in registry._renderers
+
+        # Test that renderers are of correct types
+        assert isinstance(registry._renderers[ContentType.SPELL], LaTeXSpellRenderer)
+        assert isinstance(
+            registry._renderers[ContentType.CREATURE], LaTeXCreatureRenderer
+        )
+        assert isinstance(registry._renderers[ContentType.ITEM], LaTeXItemRenderer)
+        assert isinstance(registry._renderers[ContentType.CLASS], LaTeXClassRenderer)
+        assert isinstance(registry._renderers[ContentType.RACE], LaTeXRaceRenderer)
+        assert isinstance(
+            registry._renderers[ContentType.ADVENTURE], LaTeXAdventureRenderer
+        )
+        assert isinstance(
+            registry._renderers[ContentType.BACKGROUND], LaTeXBackgroundRenderer
+        )
+        assert isinstance(registry._renderers[ContentType.FEAT], LaTeXFeatRenderer)
+
+    def test_get_renderer_new_types(self):
+        """Test getting renderers for new content types."""
+        registry = LaTeXContentRendererRegistry()
+
+        adventure_renderer = registry.get_renderer(ContentType.ADVENTURE)
+        background_renderer = registry.get_renderer(ContentType.BACKGROUND)
+        feat_renderer = registry.get_renderer(ContentType.FEAT)
+
+        assert adventure_renderer is not None
+        assert background_renderer is not None
+        assert feat_renderer is not None
+        assert isinstance(adventure_renderer, LaTeXAdventureRenderer)
+        assert isinstance(background_renderer, LaTeXBackgroundRenderer)
+        assert isinstance(feat_renderer, LaTeXFeatRenderer)
 
 
 if __name__ == "__main__":
