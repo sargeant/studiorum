@@ -66,7 +66,7 @@ def process_json_file(source_path: Path, target_path: Path) -> bool:
 
 
 def main():
-    source_dir = Path("5etools-src/data")
+    source_dir = Path("../5etools-src/data")
     target_dir = Path("srd-data")
 
     if not source_dir.exists():

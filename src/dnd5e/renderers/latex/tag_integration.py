@@ -12,7 +12,7 @@ from ...core.indexer.hyperlink_manager import HyperlinkManager
 from ...core.indexer.latex_content_tracker import LaTeXContentTracker
 from ...core.indexer.latex_tag_handlers import get_latex_enhanced_handlers
 from ...core.indexer.latex_tag_renderer import LaTeXTagRenderer
-from ...core.indexer.new_tag_resolver import NewTagResolverFacade
+from ...core.indexer.new_tag_resolver import TagResolverFacade
 
 logger = get_logger(__name__)
 
@@ -207,7 +207,7 @@ class LaTeXTagIntegration:
                 pass
 
 
-class LaTeXTagResolverFacade(NewTagResolverFacade):
+class LaTeXTagResolverFacade(TagResolverFacade):
     """Enhanced facade that provides LaTeX-specific tag resolution."""
 
     def __init__(

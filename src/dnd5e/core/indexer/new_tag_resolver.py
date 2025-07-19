@@ -1,4 +1,4 @@
-"""New tag resolver facade providing backward compatibility."""
+"""Tag resolver facade providing backward compatibility."""
 
 import logging
 from collections.abc import Callable
@@ -14,7 +14,7 @@ from .tag_renderer import RendererContext, TagRenderer
 logger = get_logger(__name__)
 
 
-class NewTagResolverFacade:
+class TagResolverFacade:
     """Facade providing backward compatibility with the old TagResolver API."""
 
     def __init__(self, omnidexer=None):
@@ -57,9 +57,12 @@ class NewTagResolverFacade:
         """
         self._custom_handlers[tag_type] = handler_func
 
-        # Create a wrapper handler that adapts the function to our new interface
-        wrapper_handler = LegacyHandlerWrapper(tag_type, handler_func)
-        self.renderer.register_handler(wrapper_handler)
+        # Legacy handler registration is no longer supported
+        # Custom handlers should implement TagHandler interface
+        raise NotImplementedError(
+            "Legacy handler registration is deprecated. "
+            "Please implement TagHandler interface instead."
+        )
 
     def register_handler(self, handler: TagHandler) -> None:
         """Register a new-style tag handler."""
@@ -109,59 +112,3 @@ class NewTagResolverFacade:
         """Backward compatibility property."""
         # Return a dict-like view of handlers for backward compatibility
         return self._custom_handlers
-
-
-class LegacyHandlerWrapper(TagHandler):
-    """Wrapper to adapt old-style handler functions to the new TagHandler interface."""
-
-    def __init__(self, tag_type: str, handler_func: Callable):
-        self.tag_type = tag_type
-        self.handler_func = handler_func
-
-    def handles(self, tag_type: str) -> bool:
-        """Check if this handler handles the tag type."""
-        return tag_type == self.tag_type
-
-    def render(self, node, context: RendererContext) -> str:
-        """Render using the legacy handler function."""
-        try:
-            # Create a legacy TagMatch-like object for compatibility
-            legacy_tag = LegacyTagMatch(node)
-            return self.handler_func(legacy_tag)
-        except (TypeError, AttributeError, ValueError) as e:
-            logger.warning(
-                "Legacy handler failed for tag type '%s': %s", self.tag_type, e
-            )
-            return getattr(node, "name", str(node))
-        except Exception as e:
-            logger.error(
-                "Unexpected error in legacy handler for '%s': %s", self.tag_type, e
-            )
-            return getattr(node, "name", str(node))
-
-    def track_content(self, node, tracker: ContentTracker) -> None:
-        """Legacy handlers don't track content."""
-        pass
-
-
-class LegacyTagMatch:
-    """Compatibility class that mimics the old TagMatch interface."""
-
-    def __init__(self, node):
-        self.tag_type = node.tag_type
-        self.name = getattr(node, "name", "")
-        self.source = getattr(node, "source", None)
-        self.page = getattr(node, "page", None)
-
-        # For display_text, try to extract from display_text_nodes
-        if hasattr(node, "display_text_nodes") and node.display_text_nodes:
-            # Simple text extraction - in reality you might want more sophisticated handling
-            self.display_text = "".join(
-                getattr(child, "text", str(child)) for child in node.display_text_nodes
-            )
-        else:
-            self.display_text = None
-
-    def get_display_text(self) -> str:
-        """Get display text or fallback to name."""
-        return self.display_text if self.display_text else self.name

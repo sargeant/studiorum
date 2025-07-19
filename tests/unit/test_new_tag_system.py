@@ -2,7 +2,7 @@
 
 # Import the new tag system components
 from dnd5e.core.indexer.content_tracker import ContentTracker, TrackedContent
-from dnd5e.core.indexer.new_tag_resolver import NewTagResolverFacade
+from dnd5e.core.indexer.new_tag_resolver import TagResolverFacade
 from dnd5e.core.indexer.tag_ast import (
     CreatureTagNode,
     TextNode,
@@ -621,7 +621,7 @@ class TestTagResolverFacade:
 
     def test_facade_api_compatibility(self):
         """Test that the facade maintains the old API."""
-        facade = NewTagResolverFacade()
+        facade = TagResolverFacade()
 
         # Should have the same method as the old TagResolver
         assert hasattr(facade, "process_text")
@@ -635,7 +635,7 @@ class TestTagResolverFacade:
 
     def test_facade_new_functionality(self):
         """Test that the facade exposes new functionality."""
-        facade = NewTagResolverFacade()
+        facade = TagResolverFacade()
 
         # Process some text with tags
         text = "Cast {@spell Fireball|PHB} at the {@creature Ancient Red Dragon|MM}!"
@@ -654,7 +654,7 @@ class TestIntegrationScenarios:
     def test_complex_document_processing(self):
         """Test processing a complex document with multiple tag types."""
 
-        # facade = NewTagResolverFacade()
+        # facade = TagResolverFacade()
         # result = facade.process_text(document)
         #
         # # Check that all tags are processed correctly
@@ -681,7 +681,7 @@ class TestIntegrationScenarios:
         tags = [f"{{@spell Spell{i}|PHB}}" for i in range(1000)]
         " ".join(tags)
 
-        # facade = NewTagResolverFacade()
+        # facade = TagResolverFacade()
         #
         # import time
         # start_time = time.time()
@@ -699,7 +699,7 @@ class TestIntegrationScenarios:
     def test_error_recovery(self):
         """Test that the system recovers gracefully from parsing errors."""
 
-        # facade = NewTagResolverFacade()
+        # facade = TagResolverFacade()
         # result = facade.process_text(document)
         #
         # # Should process valid tags and handle malformed ones gracefully

@@ -100,7 +100,7 @@ Successfully implemented a complete overhaul of the tag resolution system for 5e
 
 ### **Content Tracking Example**
 ```python
-facade = NewTagResolverFacade()
+facade = TagResolverFacade()
 facade.process_text("Cast {@spell Fireball|PHB} at {@creature Dragon|MM}!")
 
 # Get tracked content for appendix

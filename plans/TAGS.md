@@ -7,10 +7,10 @@
 >  - Implement visitor pattern over Abstract Syntax Tree (AST)
 >  - Benefits: Better error handling, easier extensibility, cleaner separation of parsing vs resolution
 
-This might be important to know since I plan to add it later; I want to be able to print a full adventure, and anytime it uses a specific tag type (e.g., spell or item) I want to store that fact for later. In the appendix of the LaTeX document, I want to add descriptions of all the spells/items/creatures mentioned in the book. Don't try to implement that feature for now, I'm just raising it here in case it makes a different to the new tag system implementation. 
+This might be important to know since I plan to add it later; I want to be able to print a full adventure, and anytime it uses a specific tag type (e.g., spell or item) I want to store that fact for later. In the appendix of the LaTeX document, I want to add descriptions of all the spells/items/creatures mentioned in the book. Don't try to implement that feature for now, I'm just raising it here in case it makes a different to the new tag system implementation.
 
 
-Use the TDD pattern to plan this. Discuss with Gemini at the plan stage to get a second 
+Use the TDD pattern to plan this. Discuss with Gemini at the plan stage to get a second
 opinion and revise your thinking if needed.
 
 ## Implementation
@@ -285,9 +285,9 @@ opinion and revise your thinking if needed.
 
   API Preservation
 
-  The NewTagResolverFacade maintains the existing interface:
+  The TagResolverFacade maintains the existing interface:
 
-  class NewTagResolverFacade:
+  class TagResolverFacade:
       def __init__(self, omnidexer=None):
           self.parser = TagParser()
           self.renderer = TagRenderer(omnidexer)
@@ -303,21 +303,21 @@ opinion and revise your thinking if needed.
 
       def register_tag_handler(self, tag_type: str, handler_func: Callable):
           """Legacy handler registration"""
-          wrapper = LegacyHandlerWrapper(tag_type, handler_func)
+          # Legacy handler registration is deprecated
           self.renderer.register_handler(wrapper)
 
   Legacy Handler Adaptation
 
   Old-style handler functions get wrapped:
 
-  class LegacyHandlerWrapper(TagHandler):
+  # Legacy handler classes have been removed
       def __init__(self, tag_type: str, handler_func: Callable):
           self.tag_type = tag_type
           self.handler_func = handler_func
 
       def render(self, node, context) -> str:
           # Create legacy TagMatch-like object
-          legacy_tag = LegacyTagMatch(node)
+          # Legacy tag matching is no longer supported
           return self.handler_func(legacy_tag)
 
   🚀 7. Processing Flow Example
@@ -427,7 +427,7 @@ opinion and revise your thinking if needed.
   Appendix Generation Flow
 
   # 1. Process document and track content
-  facade = NewTagResolverFacade()
+  facade = TagResolverFacade()
   latex_output = facade.process_text(adventure_text)
 
   # 2. Get tracked content
