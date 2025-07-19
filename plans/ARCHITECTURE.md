@@ -9,6 +9,7 @@ The 5e2pdf project follows a layered architecture with clear separation of conce
 ## Architectural Layers
 
 ### 1. CLI Layer (`dnd5e/cli/`)
+
 - **Purpose**: Command-line interface and user interaction
 - **Allowed Dependencies**: `core`, `renderers`, `processors`
 - **Key Components**:
@@ -20,6 +21,7 @@ The 5e2pdf project follows a layered architecture with clear separation of conce
   - Output formatting and display
 
 ### 2. Renderers Layer (`dnd5e/renderers/`)
+
 - **Purpose**: Output generation (LaTeX, PDF, future formats)
 - **Allowed Dependencies**: `core`
 - **Key Components**:
@@ -32,6 +34,7 @@ The 5e2pdf project follows a layered architecture with clear separation of conce
   - Format-specific logic
 
 ### 3. Processors Layer (`dnd5e/processors/`)
+
 - **Purpose**: Data transformation and processing
 - **Allowed Dependencies**: `core`
 - **Key Components**:
@@ -43,6 +46,7 @@ The 5e2pdf project follows a layered architecture with clear separation of conce
   - Business rule application
 
 ### 4. Core Layer (`dnd5e/core/`)
+
 - **Purpose**: Core business logic and data models
 - **Allowed Dependencies**: None (foundational layer)
 - **Key Components**:
@@ -142,6 +146,7 @@ The project includes a circular import detector (`scripts/check_circular_imports
 - Runs automatically in CI/CD
 
 Usage:
+
 ```bash
 python scripts/check_circular_imports.py src/dnd5e/ --fail-on-cycles
 ```
@@ -156,6 +161,7 @@ The architectural boundary checker (`scripts/check_architectural_boundaries.py`)
 - Runs automatically in CI/CD
 
 Usage:
+
 ```bash
 python scripts/check_architectural_boundaries.py src/dnd5e/ --fail-on-violations
 ```
@@ -234,6 +240,7 @@ def configure_services():
 ### From Direct Imports to Dependency Injection
 
 **Before:**
+
 ```python
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.indexer.tag_resolver import TagResolver
@@ -245,6 +252,7 @@ class MyClass:
 ```
 
 **After:**
+
 ```python
 from dnd5e.core.interfaces import ContentIndexer, TagResolver
 from dnd5e.core.dependency_injection import get_dependency_container
@@ -259,12 +267,14 @@ class MyClass:
 ### From ContentType.from_content() to Registry
 
 **Before:**
+
 ```python
 from dnd5e.core.models.content import ContentType
 content_type = ContentType.from_content(content)
 ```
 
 **After:**
+
 ```python
 from dnd5e.core.content_type_resolver import get_content_type_resolver
 resolver = get_content_type_resolver()
