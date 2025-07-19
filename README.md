@@ -1,446 +1,112 @@
-# D&D 5e to PDF Converter
+# 5e2pdf: D&D 5e to PDF Converter
 
-This project converts JSON data in the 5e.tools format into LaTeX documents using an RPG theme.
+[![License: MIT](httpshttps://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/sargeant/5e2pdf/actions)
+[![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+
+This project converts Dungeons & Dragons 5th Edition content from 5e.tools-compatible JSON data into beautifully formatted LaTeX and PDF documents.
+
+## What is this?
+
+5e2pdf is a powerful command-line tool for D&D players and Dungeon Masters who want to create high-quality, printable documents from digital source files. Whether you're compiling a custom spellbook, a bestiary for your campaign, or a full adventure module, this tool gives you the power to turn JSON data into professional-looking PDFs.
+
+It uses a sophisticated rendering pipeline to handle complex D&D data structures, resolving `{@tag}` references, and applying a classic D&D-style theme to the output.
+
+## Features
+
+- **High-Quality PDF Output**: Generates clean, readable PDFs using LaTeX.
+- **5e.tools Compatibility**: Works with the widely-used 5e.tools JSON format.
+- **Content Management**: Easily manage multiple content sources (official, homebrew, local).
+- **Modern CLI**: A powerful and easy-to-use command-line interface built with Typer.
+- **Tag Resolution**: Automatically resolves and formats over 25 different D&D `{@tags}`.
+- **Extensible Architecture**: Designed to be extended with new content types and output formats.
 
 ## Quick Start
 
-### 1. Install uv (Python package manager)
+### 1. Install Dependencies
 
+You'll need a working **Python 3.12+** environment and **XeLaTeX**.
+
+First, install `uv`, a fast Python package manager:
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-### 2. Setup dependencies
+### 2. Install the Project
 
+Clone the repository and install the required packages:
 ```bash
-# Install all dependencies
+git clone https://github.com/sargeant/5e2pdf.git
+cd 5e2pdf
 uv sync
-
-# Install with development tools
-uv sync --extra dev
-
-# Or use the build script
-./scripts/build.sh setup
 ```
 
-### 3. Configure Content Sources 🎯
+### 3. Configure Content Sources
 
+Run the interactive setup wizard to download and configure the default content sources from 5e.tools:
 ```bash
-# Run the interactive setup wizard (recommended)
 uv run 5e2pdf setup wizard
-
-# Or manually add content sources
-uv run 5e2pdf sources add 5etools-official --type github --url https://github.com/5etools-mirror-3/5etools-src
-uv run 5e2pdf sources add homebrew --type github --url https://github.com/TheGiddyLimit/homebrew
-
-# Add a local directory
-uv run 5e2pdf sources add my-content --type directory --path ~/my-dnd-json
-
-# Download and index content
-uv run 5e2pdf sources scan
 ```
 
-### 4. Use the Modern CLI ⚡
+### 4. Convert a File!
 
+Now you can convert a JSON file to a PDF. For example, to convert a file of spells:
 ```bash
-# Quick conversion (new way)
-uv run 5e2pdf quick spell-data.json --pdf
-
-# Modern CLI help
-uv run 5e2pdf --help
-
-# Legacy compatibility (old commands still work)
-uv run 5e2pdf legacy --adventure --no-images adventure.json
-```
-
-### 5. Test the architecture
-
-```bash
-# Run the comprehensive test suite (100+ tests)
-uv run pytest tests/unit/ -v
-
-# Test omnidexer data loading
-uv run python -c "
-import asyncio
-from src.core.loaders.omnidexer import Omnidexer
-
-async def test():
-    omnidexer = Omnidexer()
-    stats = await omnidexer.load_all_data()
-    print(f'Loaded: {stats}')
-    
-    # Find a spell
-    fireball = omnidexer.find('spell', 'Fireball', 'PHB')
-    if fireball:
-        print(f'Found: {fireball.name} - {fireball.get_level_text()}')
-
-asyncio.run(test())
-"
-```
-
-### 6. Build documents (Modern CLI System)
-
-```bash
-# Use the modern CLI for conversions
-5e2pdf convert adventure path/to/adventure.json --output output.tex
-
-# Complete build with PDF compilation using build script
-./scripts/build.sh adventure json_data/adventures/cos.json
-
-# Note: Legacy json2tex.sh wrapper and direct script calls have been removed (issue #20)
-# Use the modern 5e2pdf CLI instead
+# This command assumes a 'spells.json' file exists in your directory
+uv run 5e2pdf quick spells.json --pdf
 ```
 
 ## Usage
 
-### **Quick Convert** ⚡
+The `5e2pdf` CLI is powerful and easy to use. Here are some common commands.
 
+### Quick Convert
+
+The fastest way to convert a single file.
 ```bash
-# Convert any JSON file to LaTeX/PDF
-uv run 5e2pdf quick spell-data.json --pdf
+# Convert a JSON file to a PDF
+uv run 5e2pdf quick path/to/your/file.json --pdf
 
-# Convert with custom title and images
-uv run 5e2pdf quick adventure.json --title "My Adventure" --images --pdf
+# Add a custom title and include images
+uv run 5e2pdf quick adventure.json --title "My Grand Adventure" --images --pdf
 ```
 
-### **Content Source Management** 📚
+### Manage Content Sources
 
+Manage your local and remote content sources.
 ```bash
-# List configured sources
+# List all configured sources
 uv run 5e2pdf sources list
 
-# Get detailed info about a source
-uv run 5e2pdf sources info 5etools-official
-
-# Update all sources (pull latest from GitHub)
+# Update all sources to the latest version
 uv run 5e2pdf sources update
 
-# Remove a source
-uv run 5e2pdf sources remove my-source --remove-data
-
-# Set up default sources
-uv run 5e2pdf sources defaults
+# Add a new source from a local directory
+uv run 5e2pdf sources add my-content --type directory --path ~/my-dnd-json
 ```
 
-### **Advanced Commands** 🔧
-
-```bash
-# List available content
-uv run 5e2pdf list files
-uv run 5e2pdf list content --type spell --limit 10
-
-# Show content information  
-uv run 5e2pdf info content "Fireball" --type spell
-uv run 5e2pdf info file adventure.json
-
-# Statistics and analysis
-uv run 5e2pdf stats overview
-uv run 5e2pdf stats content spell
-uv run 5e2pdf stats sources
-```
-
-## Architecture Usage Examples
-
-### Working with the Omnidexer
-
-```python
-import asyncio
-from src.core.loaders.omnidexer import Omnidexer
-from src.core.models.content import ContentType
-
-async def example():
-    # Create and load omnidexer
-    omnidexer = Omnidexer()
-    await omnidexer.load_all_data()
-    
-    # Find specific content
-    fireball = omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
-    ancient_dragon = omnidexer.find(ContentType.CREATURE, "Ancient Red Dragon", "MM")
-    
-    # Search content
-    fire_spells = omnidexer.search("Fire", ContentType.SPELL)
-    all_creatures = omnidexer.get_all_by_type(ContentType.CREATURE)
-    
-    # Get statistics
-    stats = omnidexer.get_statistics()
-    print(f"Loaded {stats['total_items']} items")
-
-asyncio.run(example())
-```
-
-### Using the Tag Resolver
-
-```python
-import asyncio
-from src.core.loaders.omnidexer import Omnidexer
-from src.core.indexer.tag_resolver import TagResolver
-
-async def example():
-    omnidexer = Omnidexer()
-    await omnidexer.load_all_data()
-    
-    resolver = TagResolver(omnidexer)
-    
-    # Process text with tags
-    text = "Cast {@spell Fireball|PHB} at the {@creature Ancient Red Dragon|MM}!"
-    latex_output = resolver.process_text(text)
-    print(latex_output)
-    # Output: "Cast \textit{Fireball} at the \textbf{Ancient Red Dragon}!"
-
-asyncio.run(example())
-```
-
-## Dependencies
-
-**Environment Management:**
-
-- `uv` - Fast Python package manager and environment manager
-
-**Core Python packages** (defined in `pyproject.toml`):
-
-- `pydantic>=2.0.0` - Data validation and settings management
-- `pydantic-settings>=2.0.0` - Environment-based configuration
-- `typer>=0.9.0` - Modern CLI framework
-- `rich>=13.0.0` - Rich console output
-- `pyyaml>=6.0.0` - YAML configuration file support
-- `requests>=2.31.0` - HTTP requests for data fetching
-- `beautifulsoup4>=4.12.0` - HTML/XML parsing
-- `colorlog>=6.0.0` - Colored logging output
-- `GetOptions>=1.0.3` - Legacy command line option parsing
-
-**Development packages** (`--extra dev`):
-
-- `pytest>=7.0.0` - Testing framework
-- `pytest-asyncio>=0.21.0` - Async test support
-- `pytest-cov>=4.0.0` - Coverage reporting
-- `black` - Code formatting
-- `ruff` - Fast Python linter
-- `mypy` - Static type checking
-
-**Optional packages:**
-
-- `images` group: `Pillow` for image processing
-- `xml` group: `lxml` for faster XML parsing
-
-**LaTeX requirements:**
-
-- XeLaTeX (for PDF compilation)
-- D&D fonts (included in `assets/fonts/`)
-
-## Directory Structure
-
-```
-5e2pdf/
-├── src/                         # Python source code (MODERN ARCHITECTURE)
-│   ├── core/                    # Core foundation modules
-│   │   ├── models/              # Pydantic data models (Spell, Creature, Item, etc.)
-│   │   ├── loaders/             # Data loading and omnidexer system
-│   │   ├── indexer/             # Tag resolution and cross-referencing
-│   │   ├── config/              # Configuration and settings management
-│   │   └── cache.py             # Performance caching system
-│   ├── renderers/               # Modern rendering system
-│   │   ├── base/                # Abstract renderer interfaces
-│   │   └── latex/               # LaTeX-specific implementations
-│   ├── cli/                     # Modern CLI interface with Typer
-│   │   ├── commands/            # CLI command modules
-│   │   ├── main.py              # Main CLI application
-│   │   └── compat.py            # Legacy compatibility layer
-│   └── # Note: Legacy files (json2tex.py, gen-latex.py, tablejson2tex.py, dndtex/) removed in issue #20
-├── assets/                      # Static resources
-│   ├── fonts/                   # D&D-style fonts
-│   ├── images/                  # Images and graphics
-│   └── packages/                # LaTeX packages
-├── json_data/                   # Input JSON files
-│   ├── books/                   # Book JSON files
-│   ├── adventures/              # Adventure JSON files
-│   └── supplements/             # Other content JSON files
-├── output/                      # Generated LaTeX files
-├── build/                       # LaTeX compilation artifacts (gitignored)
-├── scripts/                     # Build automation scripts
-├── tests/                       # Comprehensive test suite (NEW)
-│   ├── unit/                    # Unit tests for core components
-│   ├── integration/             # Integration tests
-│   └── fixtures/                # Test data and fixtures
-├── pyproject.toml              # Modern Python project configuration
-├── REFACTORING_PLAN.md         # Detailed refactoring roadmap
-└── README.md                   # This file
-```
-
-## Development
-
-### Running Tests
-
-```bash
-# Run all tests
-uv run pytest tests/ -v
-
-# Run specific test categories
-uv run pytest tests/unit/ -v                    # Unit tests
-uv run pytest tests/unit/test_models.py -v      # Model validation tests
-uv run pytest tests/unit/test_omnidexer.py -v   # Data loading tests
-uv run pytest tests/unit/test_tag_resolver.py -v # Tag processing tests
-
-# Run with coverage
-uv run pytest tests/ --cov=src --cov-report=html
-```
-
-### Code Quality
-
-```bash
-# Format code
-uv run black src/ tests/
-
-# Lint code  
-uv run ruff check src/ tests/
-
-# Type checking
-uv run mypy src/
-```
-
-### Development Workflow
-
-1. **Make changes** to the modern architecture in `src/core/`
-2. **Add tests** in `tests/unit/` for new functionality
-3. **Run tests** to ensure everything works: `uv run pytest tests/unit/ -v`
-4. **Format and lint** code: `uv run black src/ && uv run ruff check src/`
-
-## Architecture Overview
-
-### ✅ **ALL PHASES COMPLETE** ✅
-
-**Phase 1: Foundation (`src/core/`)**
-
-- **Data Models** - Type-safe Pydantic v2 models for all D&D content types
-- **Omnidexer System** - Efficient async data loading with hash-based indexing
-- **Tag Resolution** - Complete `{@type name|source|display}` tag parsing with 25+ handlers
-- **Configuration** - Environment-based settings with automatic path detection
-- **Caching** - Performance optimization with disk-based caching system
-
-**Phase 2: Rendering System (`src/renderers/`)**
-
-- **Abstract Interfaces** - Clean renderer base classes for multiple output formats
-- **LaTeX Pipeline** - Complete document generation with D&D-style templates
-- **Content Renderers** - Specialized rendering for spells, creatures, items, adventures
-- **Template Engine** - Flexible system with built-in D&D layouts and custom templates
-
-**Phase 3: Modern CLI & Migration (`src/cli/`)**
-
-- **Modern CLI** - Professional interface with Typer, Rich output, and async operations
-- **Legacy Compatibility** - Full backwards compatibility for existing scripts and workflows  
-- **Build Integration** - Updated build scripts supporting both modern and legacy modes
-- **Performance** - Optimized with caching, parallel processing, and efficient data loading
-
-### 📊 **System Status**
-
-- **100+ Tests** across all components with comprehensive coverage
-- **Type Safety** throughout with modern Python patterns
-- **Async Architecture** for optimal performance
-- **Extensible Design** ready for new content types and output formats
-
-## 🔧 Content Configuration System
-
-### Configurable Sources
-
-5e2pdf now uses a modern content source system instead of hardcoded paths:
-
-**Supported Source Types:**
-
-- **GitHub Repositories** - Automatically clone and update from GitHub (recommended)
-- **Local Directories** - Point to existing JSON data directories  
-- **Web URLs** - Fetch content from web sources (future feature)
-
-**Default Configuration:**
-
-- **5etools Official** - `https://github.com/5etools-mirror-3/5etools-src`
-- **5etools Homebrew** - `https://github.com/TheGiddyLimit/homebrew`
-
-### Configuration Files
-
-Configuration is stored in platform-appropriate locations:
-
-- **Linux/macOS**: `~/.config/5e2pdf/config.yaml`
-- **Windows**: `%APPDATA%/5e2pdf/config.yaml`
-- **Cache**: `~/.cache/5e2pdf/` (repositories and indexes)
-
-### Setup Wizard
-
-```bash
-# Interactive setup with multiple options
-uv run 5e2pdf setup wizard
-
-# Options available:
-# 1. Use defaults (5etools official + homebrew) - RECOMMENDED
-# 2. Custom setup (add your own sources)  
-# 3. Local only (use existing directories)
-```
+For more detailed usage and advanced commands, please see our [Usage Guide](docs/user-guide/README.md).
 
 ## Contributing
 
-We welcome contributions to the D&D 5e to PDF Converter project! Here's how to get started:
+Contributions are welcome! Whether you're fixing a bug, adding a feature, or improving documentation, we appreciate your help.
 
-### Development Environment Setup
+1.  **Fork the repository** and clone it locally.
+2.  **Install development dependencies**: `uv sync --extra dev`
+3.  **Create a feature branch**: `git checkout -b feature/my-new-feature`
+4.  **Make your changes** and add tests.
+5.  **Run tests and quality checks**:
+    ```bash
+    uv run pytest
+    uv run ruff check .
+    uv run mypy src/
+    ```
+6.  **Submit a pull request** with a clear description of your changes.
 
-1. **Install uv** (Python package manager):
-   ```bash
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   ```
+## License
 
-2. **Clone the repository**:
-   ```bash
-   git clone https://github.com/sargeant/5e2pdf.git
-   cd 5e2pdf
-   ```
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
 
-3. **Install dependencies with development tools**:
-   ```bash
-   uv sync --extra dev
-   ```
+## More Information
 
-### Running Tests
-
-We use pytest for testing. Run the test suite with:
-
-```bash
-# Run all tests
-uv run pytest
-
-# Run with coverage report
-uv run pytest --cov=src --cov-report=html
-
-# Run specific test file
-uv run pytest tests/unit/test_content_tracker.py
-```
-
-### Code Quality
-
-Before submitting changes, ensure your code meets our standards:
-
-```bash
-# Format code with black
-uv run black src/ tests/
-
-# Lint with ruff
-uv run ruff check src/ tests/
-
-# Type checking with mypy
-uv run mypy src/
-```
-
-### Submitting Pull Requests
-
-1. Fork the repository on GitHub
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Make your changes and add tests
-4. Ensure all tests pass and code is properly formatted
-5. Commit your changes: `git commit -m "Add your feature"`
-6. Push to your fork: `git push origin feature/your-feature-name`
-7. Submit a pull request with a clear description of your changes
-
-### Issues and Feature Requests
-
-- Check existing issues before creating new ones
-- Use clear, descriptive titles
-- Provide as much context as possible
-- Tag issues appropriately (bug, enhancement, question, etc.)
-
-Thank you for contributing!
+For more detailed technical information about the project's architecture, directory structure, and development workflow, please see our [**Developer Documentation**](docs/developer/index.html).
