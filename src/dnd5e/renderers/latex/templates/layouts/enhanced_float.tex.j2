@@ -1,0 +1,109 @@
+<# Enhanced float management template #>
+<# Provides intelligent float positioning for figures, tables, and sidebars #>
+
+<# Macro for creating optimized figure floats #>
+<# macro figure_float(content, position="!htb", width=None, caption=None, label=None, span_columns=false) #>
+<# if span_columns #>
+\begin{figure*}[<# position #>]
+<# else #>
+\begin{figure}[<# position #>]
+<# endif #>
+<# if width #>
+\begin{center}
+<# content #>
+\end{center}
+<# else #>
+<# content #>
+<# endif #>
+<# if caption #>
+\caption{<# caption #>}
+<# endif #>
+<# if label #>
+\label{<# label #>}
+<# endif #>
+<# if span_columns #>
+\end{figure*}
+<# else #>
+\end{figure}
+<# endif #>
+<# endmacro #>
+
+<# Macro for creating optimized table floats #>
+<# macro table_float(content, position="!htb", caption=None, label=None, span_columns=false) #>
+<# if span_columns #>
+\begin{table*}[<# position #>]
+<# else #>
+\begin{table}[<# position #>]
+<# endif #>
+\centering
+<# content #>
+<# if caption #>
+\caption{<# caption #>}
+<# endif #>
+<# if label #>
+\label{<# label #>}
+<# endif #>
+<# if span_columns #>
+\end{table*}
+<# else #>
+\end{table}
+<# endif #>
+<# endmacro #>
+
+<# Macro for DND creature stat block floats #>
+<# macro creature_float(content, creature_name, position="float*=b", width="\\textwidth + 8pt") #>
+\begin{DndMonster}[<# position #>,width=<# width #>]{<# creature_name #>}
+<# content #>
+\end{DndMonster}
+<# endmacro #>
+
+<# Macro for sidebar floats with various types #>
+<# macro sidebar_float(content, title, sidebar_type="DndSidebar", position="!b", width=None) #>
+<# if width #>
+\begin{<# sidebar_type #>}[float=<# position #>,width=<# width #>]{<# title #>}
+<# else #>
+\begin{<# sidebar_type #>}[float=<# position #>]{<# title #>}
+<# endif #>
+<# content #>
+\end{<# sidebar_type #>}
+<# endmacro #>
+
+<# Macro for wrapping figure content with text wrapping #>
+<# macro wrap_figure(content, position="r", width="0.4\\textwidth", caption=None) #>
+\begin{wrapfigure}{<# position #>}{<# width #>}
+\vspace{-\baselineskip}
+<# content #>
+<# if caption #>
+\caption{<# caption #>}
+<# endif #>
+\vspace{-\baselineskip}
+\end{wrapfigure}
+<# endmacro #>
+
+<# Float barrier to force float placement #>
+<# macro float_barrier() #>
+\FloatBarrier
+<# endmacro #>
+
+<# Clear floats to one side #>
+<# macro clear_floats(side="both") #>
+<# if side == "left" #>
+\clearpage
+<# elif side == "right" #>
+\clearpage
+<# else #>
+\clearpage
+<# endif #>
+<# endmacro #>
+
+<# Prevent float placement in specific areas #>
+<# macro no_floats_here() #>
+\suppressfloats[t]
+<# endmacro #>
+
+<# Force float to appear here (if possible) #>
+<# macro float_here(content, type="figure") #>
+\begin{<# type #>}[H]
+<# content #>
+\end{<# type #>}
+<# endmacro #>

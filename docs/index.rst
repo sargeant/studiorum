@@ -66,7 +66,7 @@ Documentation
    :maxdepth: 2
    :caption: Developer Guide:
 
-   developer/architecture
+   developer/index
    developer/contributing
    developer/testing
 
@@ -76,4 +76,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

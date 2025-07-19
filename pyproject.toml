@@ -39,6 +39,7 @@ docs = [
     "sphinx-autobuild>=2024.0.0",
     "sphinx-rtd-theme>=3.0.0",
     "myst-parser>=4.0.0",
+    "packaging",
 ]
 images = ["Pillow>=9.0.0"]
 xml = ["lxml>=4.9.0"]

@@ -1,0 +1,51 @@
+<# Advanced multi-column layout template #>
+<# Uses the multicol package with intelligent column management #>
+
+<# Check if we need the multicol package #>
+<# if column_count and column_count > 1 #>
+% Advanced multi-column layout
+<# if column_sep #>
+\setlength{\columnsep}{<# column_sep #>}
+<# endif #>
+
+<# if balance_columns #>
+\raggedcolumns
+<# endif #>
+
+\begin{multicols}{<# column_count | default(2) #>}
+<# if column_title #>
+[\section{<# column_title #>}]
+<# endif #>
+
+<# content #>
+
+\end{multicols}
+
+<# if balance_columns #>
+\flushcolumns
+<# endif #>
+
+<# else #>
+<# Column count is 1 or not specified, use single column #>
+<# content #>
+<# endif #>
+
+<# Utilities for column management #>
+<# macro column_break() #>
+\columnbreak
+<# endmacro #>
+
+<# macro span_columns(content) #>
+\end{multicols}
+<# content #>
+\begin{multicols}{<# column_count | default(2) #>}
+<# endmacro #>
+
+<# macro balanced_columns(left_content, right_content) #>
+\begin{multicols}{2}
+\columnbreak
+<# left_content #>
+\columnbreak
+<# right_content #>
+\end{multicols}
+<# endmacro #>
