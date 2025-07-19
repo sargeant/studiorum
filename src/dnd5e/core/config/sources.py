@@ -3,7 +3,6 @@
 import os
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Union
 
 import yaml
 from pydantic import BaseModel, Field, field_validator
@@ -28,11 +27,11 @@ class ContentSource(BaseModel):
     )
 
     # GitHub source fields
-    url: Optional[str] = Field(None, description="GitHub repository URL or web URL")
-    branch: Optional[str] = Field(default="master", description="Git branch to use")
+    url: str | None = Field(None, description="GitHub repository URL or web URL")
+    branch: str | None = Field(default="master", description="Git branch to use")
 
     # Directory source fields
-    path: Optional[Union[str, Path]] = Field(None, description="Local directory path")
+    path: str | Path | None = Field(None, description="Local directory path")
 
     # Update settings
     auto_update: bool = Field(
@@ -46,13 +45,14 @@ class ContentSource(BaseModel):
         """Validate source name is safe for filesystem."""
         if not v.replace("-", "").replace("_", "").isalnum():
             raise ValueError(
-                "Source name must contain only alphanumeric characters, hyphens, and underscores"
+                "Source name must contain only alphanumeric characters, "
+                "hyphens, and underscores"
             )
         return v
 
     @field_validator("url")
     @classmethod
-    def validate_url(cls, v: Optional[str], info) -> Optional[str]:
+    def validate_url(cls, v: str | None, info) -> str | None:
         """Validate URL is provided for web/github sources."""
         if info.data.get("type") in [SourceType.GITHUB, SourceType.WEB] and not v:
             raise ValueError(f"URL is required for {info.data.get('type')} sources")
@@ -60,7 +60,7 @@ class ContentSource(BaseModel):
 
     @field_validator("path")
     @classmethod
-    def validate_path(cls, v: Optional[Union[str, Path]], info) -> Optional[Path]:
+    def validate_path(cls, v: str | Path | None, info) -> Path | None:
         """Validate path is provided for directory sources."""
         if info.data.get("type") == SourceType.DIRECTORY:
             if not v:
@@ -73,7 +73,7 @@ class ContentConfiguration(BaseModel):
     """Main content configuration."""
 
     version: str = Field(default="1.0", description="Configuration version")
-    content_sources: List[ContentSource] = Field(
+    content_sources: list[ContentSource] = Field(
         default_factory=list, description="List of content sources"
     )
 
@@ -109,12 +109,12 @@ class ContentConfiguration(BaseModel):
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
-    def get_enabled_sources(self) -> List[ContentSource]:
+    def get_enabled_sources(self) -> list[ContentSource]:
         """Get list of enabled sources sorted by priority."""
         enabled = [source for source in self.content_sources if source.enabled]
         return sorted(enabled, key=lambda x: (x.priority, x.name))
 
-    def get_source_by_name(self, name: str) -> Optional[ContentSource]:
+    def get_source_by_name(self, name: str) -> ContentSource | None:
         """Get source by name."""
         for source in self.content_sources:
             if source.name == name:
@@ -140,12 +140,12 @@ class ContentConfiguration(BaseModel):
 class ContentConfigManager:
     """Manages loading and saving of content configuration."""
 
-    def __init__(self, config_path: Optional[Path] = None):
+    def __init__(self, config_path: Path | None = None):
         """Initialize config manager."""
         if config_path is None:
             config_path = self._get_default_config_path()
         self.config_path = config_path
-        self._config: Optional[ContentConfiguration] = None
+        self._config: ContentConfiguration | None = None
 
     def _get_default_config_path(self) -> Path:
         """Get the default configuration file path."""
@@ -247,7 +247,7 @@ class ContentConfigManager:
 
 
 # Global config manager instance
-_config_manager: Optional[ContentConfigManager] = None
+_config_manager: ContentConfigManager | None = None
 
 
 def get_config_manager() -> ContentConfigManager:

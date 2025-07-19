@@ -2,7 +2,7 @@
 
 import asyncio
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
@@ -14,7 +14,7 @@ from dnd5e.core.models.spells import Spell
 
 
 @pytest.fixture
-def event_loop():
+def event_loop() -> Any:
     """Create an instance of the default event loop for the test session."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
@@ -22,7 +22,7 @@ def event_loop():
 
 
 @pytest.fixture
-def sample_spell_data() -> Dict[str, Any]:
+def sample_spell_data() -> dict[str, Any]:
     """Sample spell data for testing."""
     return {
         "name": "Fireball",
@@ -44,7 +44,7 @@ def sample_spell_data() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def sample_creature_data() -> Dict[str, Any]:
+def sample_creature_data() -> dict[str, Any]:
     """Sample creature data for testing."""
     return {
         "name": "Ancient Red Dragon",

@@ -2,7 +2,6 @@
 
 from abc import abstractmethod
 from pathlib import Path
-from typing import List
 
 from ...core.models.content import BaseContent
 from .context import RenderContext
@@ -18,7 +17,7 @@ class DocumentRenderer(BaseRenderer):
 
     @abstractmethod
     def render_document(
-        self, content_items: List[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderContext
     ) -> str:
         """Render a complete document from multiple content items.
 
@@ -56,7 +55,7 @@ class DocumentRenderer(BaseRenderer):
         pass
 
     def render_table_of_contents(
-        self, content_items: List[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderContext
     ) -> str:
         """Render table of contents.
 
@@ -70,7 +69,7 @@ class DocumentRenderer(BaseRenderer):
         return ""  # Default implementation returns empty string
 
     def render_index(
-        self, content_items: List[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderContext
     ) -> str:
         """Render document index.
 
@@ -85,7 +84,7 @@ class DocumentRenderer(BaseRenderer):
 
     def render_document_to_file(
         self,
-        content_items: List[BaseContent],
+        content_items: list[BaseContent],
         output_path: Path,
         context: RenderContext,
     ) -> None:

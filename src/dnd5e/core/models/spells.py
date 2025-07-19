@@ -1,6 +1,6 @@
 """Spell data models."""
 
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -12,9 +12,7 @@ class SpellComponent(BaseModel):
 
     verbal: bool = Field(False, alias="v", description="Verbal component required")
     somatic: bool = Field(False, alias="s", description="Somatic component required")
-    material: Union[bool, str] = Field(
-        False, alias="m", description="Material component"
-    )
+    material: bool | str = Field(False, alias="m", description="Material component")
 
     @field_validator("material", mode="before")
     @classmethod
@@ -33,7 +31,7 @@ class SpellDuration(BaseModel):
     """Represents spell duration."""
 
     type: Literal["instant", "timed", "permanent", "special"]
-    duration: Optional[Dict[str, Any]] = None
+    duration: dict[str, Any] | None = None
     concentration: bool = False
 
     def __str__(self) -> str:
@@ -58,7 +56,7 @@ class SpellTime(BaseModel):
 
     number: int = Field(1, description="Number of time units")
     unit: str = Field(..., description="Time unit (action, bonus action, etc.)")
-    condition: Optional[str] = Field(None, description="Conditional casting time")
+    condition: str | None = Field(None, description="Conditional casting time")
 
     def __str__(self) -> str:
         if self.number == 1:
@@ -76,9 +74,7 @@ class SpellRange(BaseModel):
     """Represents spell range."""
 
     type: str = Field(..., description="Range type (point, line, cone, etc.)")
-    distance: Optional[Dict[str, Any]] = Field(
-        None, description="Distance specification"
-    )
+    distance: dict[str, Any] | None = Field(None, description="Distance specification")
 
     def __str__(self) -> str:
         if self.type == "point":
@@ -108,26 +104,24 @@ class Spell(BaseContent):
 
     level: int = Field(..., ge=0, le=9, description="Spell level (0-9)")
     school: str = Field(..., description="School of magic")
-    casting_time: List[SpellTime] = Field(..., alias="time", description="Casting time")
+    casting_time: list[SpellTime] = Field(..., alias="time", description="Casting time")
     range: SpellRange = Field(..., description="Spell range")
     components: SpellComponent = Field(..., description="Spell components")
-    duration: List[SpellDuration] = Field(..., description="Spell duration")
-    entries: List[Union[str, Dict[str, Any]]] = Field(
-        ..., description="Spell description"
-    )
-    higher_level: Optional[List[Union[str, Dict[str, Any]]]] = Field(
+    duration: list[SpellDuration] = Field(..., description="Spell duration")
+    entries: list[str | dict[str, Any]] = Field(..., description="Spell description")
+    higher_level: list[str | dict[str, Any]] | None = Field(
         None, alias="entriesHigherLevel", description="At higher levels"
     )
-    damage_inflict: Optional[List[str]] = Field(
+    damage_inflict: list[str] | None = Field(
         None, alias="damageInflict", description="Damage types"
     )
-    saving_throw: Optional[List[str]] = Field(
+    saving_throw: list[str] | None = Field(
         None, alias="savingThrow", description="Saving throws"
     )
-    spell_attack: Optional[List[str]] = Field(
+    spell_attack: list[str] | None = Field(
         None, alias="spellAttack", description="Spell attack types"
     )
-    classes: Optional[Dict[str, Any]] = Field(None, description="Class lists")
+    classes: dict[str, Any] | None = Field(None, description="Class lists")
 
     @field_validator("school", mode="before")
     @classmethod

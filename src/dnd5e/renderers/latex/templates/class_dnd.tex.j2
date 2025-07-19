@@ -1,0 +1,207 @@
+% Enhanced class template using DND-5e-LaTeX-Template environments
+% Designed for comprehensive D&D class rendering with tables and features
+
+<@ if use_subsection @>
+\subsection{<# name #>}
+<@ else @>
+\section{<# name #>}
+<@ endif @>
+
+<@ if description @>
+<# description #>
+
+<@ endif @>
+
+<@ if hit_dice_info @>
+\subsubsection{Hit Points}
+\textbf{Hit Dice:} <# hit_dice_info.dice_text #> per <# name.lower() #> level
+
+\textbf{Hit Points at 1st Level:} <# hit_dice_info.first_level #> + your Constitution modifier
+
+\textbf{Hit Points at Higher Levels:} <# hit_dice_info.higher_levels #> + your Constitution modifier per <# name.lower() #> level after 1st
+
+<@ endif @>
+
+<@ if proficiencies @>
+\subsubsection{Proficiencies}
+<@ if proficiencies.armor @>
+\textbf{Armor:} <# proficiencies.armor #>
+
+<@ endif @>
+<@ if proficiencies.weapons @>
+\textbf{Weapons:} <# proficiencies.weapons #>
+
+<@ endif @>
+<@ if proficiencies.tools @>
+\textbf{Tools:} <# proficiencies.tools #>
+
+<@ endif @>
+<@ if proficiencies.saving_throws @>
+\textbf{Saving Throws:} <# proficiencies.saving_throws #>
+
+<@ endif @>
+<@ if proficiencies.skills @>
+\textbf{Skills:} <# proficiencies.skills #>
+
+<@ endif @>
+<@ endif @>
+
+<@ if starting_equipment @>
+\subsubsection{Equipment}
+You start with the following equipment, in addition to the equipment granted by your background:
+
+<@ for equipment_option in starting_equipment @>
+\begin{itemize}
+<@ for item in equipment_option @>
+\item <# item #>
+<@ endfor @>
+\end{itemize}
+<@ endfor @>
+
+<@ if equipment_alternatives @>
+\textbf{Alternative:} If you are using starting wealth, you have <# equipment_alternatives #> in funds.
+<@ endif @>
+
+<@ endif @>
+
+<@ if class_table @>
+\subsubsection{The <# name #>}
+\begin{DndTable}[header=The <# name #>]{<# class_table.columns #>}
+<# class_table.header_row #>\\
+<@ for row in class_table.rows @>
+<# row #>\\
+<@ endfor @>
+\end{DndTable}
+
+<@ endif @>
+
+<@ if spellcasting_table @>
+\subsubsection{Spellcasting}
+\begin{DndTable}[header=Spell Slots per Spell Level]{<# spellcasting_table.columns #>}
+<# spellcasting_table.header_row #>\\
+<@ for row in spellcasting_table.rows @>
+<# row #>\\
+<@ endfor @>
+\end{DndTable}
+
+<@ endif @>
+
+<@ if class_features @>
+<@ for feature in class_features @>
+<@ if feature.level_header @>
+\subsubsection{<# feature.level_header #>}
+<@ endif @>
+
+<@ if feature.feature_name @>
+\paragraph{<# feature.feature_name #>}
+<@ endif @>
+
+<# feature.description #>
+
+<@ if feature.choices @>
+\begin{DndSidebar}{<# feature.feature_name #> Options}
+<@ for choice in feature.choices @>
+\textbf{<# choice.name #>:} <# choice.description #>
+
+<@ endfor @>
+\end{DndSidebar}
+<@ endif @>
+
+<@ if feature.table @>
+\begin{DndTable}[header=<# feature.table.title #>]{<# feature.table.columns #>}
+<# feature.table.header_row #>\\
+<@ for row in feature.table.rows @>
+<# row #>\\
+<@ endfor @>
+\end{DndTable}
+<@ endif @>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if spellcasting_rules @>
+\subsubsection{Spellcasting}
+<# spellcasting_rules.description #>
+
+<@ if spellcasting_rules.cantrips @>
+\paragraph{Cantrips}
+<# spellcasting_rules.cantrips #>
+
+<@ endif @>
+
+<@ if spellcasting_rules.preparing_spells @>
+\paragraph{Preparing and Casting Spells}
+<# spellcasting_rules.preparing_spells #>
+
+<@ endif @>
+
+<@ if spellcasting_rules.spellcasting_ability @>
+\paragraph{Spellcasting Ability}
+<# spellcasting_rules.spellcasting_ability #>
+
+<@ endif @>
+
+<@ if spellcasting_rules.ritual_casting @>
+\paragraph{Ritual Casting}
+<# spellcasting_rules.ritual_casting #>
+
+<@ endif @>
+
+<@ if spellcasting_rules.spellcasting_focus @>
+\paragraph{Spellcasting Focus}
+<# spellcasting_rules.spellcasting_focus #>
+
+<@ endif @>
+
+<@ endif @>
+
+<@ if subclasses @>
+\subsubsection{<# name #> Archetypes}
+<@ if subclass_intro @>
+<# subclass_intro #>
+
+<@ endif @>
+
+<@ for subclass in subclasses @>
+\paragraph{<# subclass.name #>}
+<@ if subclass.description @>
+<# subclass.description #>
+
+<@ endif @>
+
+<@ if subclass.features @>
+<@ for feature in subclass.features @>
+<@ if feature.level_header @>
+\textbf{<# feature.level_header #>}
+<@ endif @>
+
+\textbf{<# feature.name #>}
+
+<# feature.description #>
+
+<@ endfor @>
+<@ endif @>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if multiclassing @>
+\subsubsection{Multiclassing}
+<@ if multiclassing.requirements @>
+\paragraph{Prerequisites}
+<# multiclassing.requirements #>
+
+<@ endif @>
+
+<@ if multiclassing.proficiencies @>
+\paragraph{Proficiencies}
+<# multiclassing.proficiencies #>
+
+<@ endif @>
+<@ endif @>
+
+<@ if source_reference @>
+\begin{flushright}
+\footnotesize\textit{Source: <# source_reference #>}
+\end{flushright}
+<@ endif @>

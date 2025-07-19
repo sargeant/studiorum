@@ -2,7 +2,6 @@
 
 import asyncio
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -59,10 +58,8 @@ def add_source(
     source_type: str = typer.Option(
         ..., "--type", "-t", help="Source type (github, directory)"
     ),
-    url: Optional[str] = typer.Option(
-        None, "--url", "-u", help="URL for GitHub sources"
-    ),
-    path: Optional[str] = typer.Option(
+    url: str | None = typer.Option(None, "--url", "-u", help="URL for GitHub sources"),
+    path: str | None = typer.Option(
         None, "--path", "-p", help="Path for directory sources"
     ),
     enabled: bool = typer.Option(
@@ -197,9 +194,7 @@ def remove_source(
 
 @app.command("update")
 def update_sources(
-    name: Optional[str] = typer.Argument(
-        None, help="Name of specific source to update"
-    ),
+    name: str | None = typer.Argument(None, help="Name of specific source to update"),
 ):
     """Update content sources."""
     config = get_content_config()

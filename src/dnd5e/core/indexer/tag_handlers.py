@@ -1,7 +1,7 @@
 """Tag handlers for the new tag resolution system."""
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from .content_tracker import ContentTracker
 from .tag_ast import (
@@ -374,7 +374,7 @@ class LoaderTagHandler(TagHandler):
 
 
 # Registry of all default handlers
-def get_default_handlers() -> List[TagHandler]:
+def get_default_handlers() -> list[TagHandler]:
     """Get the list of default tag handlers."""
     return [
         # Content reference handlers

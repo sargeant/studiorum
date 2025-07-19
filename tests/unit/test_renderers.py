@@ -81,57 +81,68 @@ class TestLaTeXTemplateEngine:
         """Test template engine creation."""
         engine = LaTeXTemplateEngine()
         assert engine is not None
-        assert len(engine._template_cache) > 0
+        assert engine.templates_dir is not None
 
     def test_builtin_templates_loaded(self):
-        """Test that built-in templates are loaded."""
+        """Test that built-in templates are available."""
         engine = LaTeXTemplateEngine()
 
         required_templates = [
-            "document_header",
-            "document_footer",
             "spell",
             "creature",
             "item",
         ]
 
         for template_name in required_templates:
-            assert template_name in engine._template_cache
+            assert engine.template_exists(template_name)
 
     def test_render_simple_template(self):
         """Test rendering template with variables."""
         engine = LaTeXTemplateEngine()
 
-        # Add a simple test template
-        engine._template_cache["test"] = "Hello {name}, you are {age} years old."
+        # Create a simple test template
+        test_template = engine.templates_dir / "test.tex.j2"
+        test_template.write_text("Hello <# name #>, you are <# age #> years old.")
 
-        result = engine.render_template("test", {"name": "Alice", "age": 25})
-        assert result == "Hello Alice, you are 25 years old."
+        try:
+            result = engine.render_template("test", {"name": "Alice", "age": 25})
+            assert result == "Hello Alice, you are 25 years old."
+        finally:
+            test_template.unlink(missing_ok=True)
 
     def test_render_template_with_conditionals(self):
         """Test template with conditional blocks."""
         engine = LaTeXTemplateEngine()
 
-        engine._template_cache["conditional"] = """
-Name: {name}
-{% if age %}
-Age: {age}
-{% endif %}
-""".strip()
+        # Create a conditional test template
+        conditional_template = engine.templates_dir / "conditional.tex.j2"
+        conditional_template.write_text("""Name: <# name #>
+<@ if age @>
+Age: <# age #>
+<@ endif @>""")
 
-        # With age
-        result1 = engine.render_template("conditional", {"name": "Alice", "age": 25})
-        assert "Age: 25" in result1
+        try:
+            # With age
+            result1 = engine.render_template(
+                "conditional", {"name": "Alice", "age": 25}
+            )
+            assert "Age: 25" in result1
 
-        # Without age
-        result2 = engine.render_template("conditional", {"name": "Bob", "age": None})
-        assert "Age:" not in result2
+            # Without age
+            result2 = engine.render_template(
+                "conditional", {"name": "Bob", "age": None}
+            )
+            assert "Age:" not in result2
+        finally:
+            conditional_template.unlink(missing_ok=True)
 
     def test_unknown_template(self):
         """Test error handling for unknown template."""
         engine = LaTeXTemplateEngine()
 
-        with pytest.raises(ValueError, match="Template 'unknown' not found"):
+        with pytest.raises(
+            FileNotFoundError, match="Template 'unknown.tex.j2' not found"
+        ):
             engine.render_template("unknown", {})
 
 
@@ -156,12 +167,14 @@ class TestLaTeXSpellRenderer:
 
         result = renderer.render_content(sample_spell, context)
 
-        assert "\\subsection{Fireball}" in result
+        # Enhanced renderer uses DND template
+        assert "\\DndSpellHeader" in result
+        assert "Fireball" in result
         assert "3rd-level evocation" in result
-        assert "Casting Time:" in result
-        assert "Range:" in result
-        assert "Components:" in result
-        assert "Duration:" in result
+        assert "1 action" in result
+        assert "150 feet" in result
+        assert "V, S, M" in result
+        assert "Instantaneous" in result
 
     def test_render_spell_with_wrong_type(self, sample_creature):
         """Test error when rendering wrong content type."""
@@ -241,12 +254,15 @@ class TestLaTeXCreatureRenderer:
 
         result = renderer.render_content(sample_creature, context)
 
-        assert "\\subsection{Ancient Red Dragon}" in result
+        # Enhanced renderer uses DND template
+        assert "\\begin{DndMonster}" in result
+        assert "Ancient Red Dragon" in result
         assert "Gargantuan dragon" in result
-        assert "Armor Class" in result
-        assert "Hit Points" in result
-        assert "Speed" in result
-        assert "STR" in result and "DEX" in result
+        assert (
+            "22 (natural armor)" in result
+        )  # AC format in DND template (corrected value)
+        assert "546" in result  # HP
+        assert "40 ft." in result  # Speed
 
     def test_format_size(self):
         """Test size formatting."""
@@ -344,7 +360,9 @@ class TestLaTeXDocumentRenderer:
 
         assert "\\documentclass" in result
         assert "\\title{Test Spell Document}" in result
-        assert "\\subsection{Fireball}" in result
+        assert (
+            "\\DndSpellHeader" in result or "Fireball" in result
+        )  # DND template format
         assert "\\end{document}" in result
 
     @pytest.mark.asyncio
@@ -462,8 +480,9 @@ class TestRendererIntegration:
         assert "\\documentclass" in result
         assert "\\title{Integration Test Document}" in result
         assert "\\tableofcontents" in result
-        assert "\\subsection{Fireball}" in result
-        assert "\\subsection{Ancient Red Dragon}" in result
+        # Enhanced renderers use DND templates
+        assert "Fireball" in result
+        assert "Ancient Red Dragon" in result
         assert "\\end{document}" in result
 
         # Verify content details

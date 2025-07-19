@@ -1,6 +1,6 @@
 """Content factory for creating content instances without tight coupling."""
 
-from typing import Any, Dict, Type
+from typing import Any
 
 from ..interfaces import ContentLoader, get_content_type_registry
 from ..models.content import BaseContent, ContentType
@@ -11,7 +11,7 @@ class ContentFactory:
 
     def __init__(self):
         self._registry = get_content_type_registry()
-        self._class_map: Dict[ContentType, Type[BaseContent]] = {}
+        self._class_map: dict[ContentType, type[BaseContent]] = {}
         self._initialized = False
 
     def _ensure_initialized(self) -> None:
@@ -53,7 +53,7 @@ class ContentFactory:
         }
 
     def create_content(
-        self, data: Dict[str, Any], content_type: ContentType
+        self, data: dict[str, Any], content_type: ContentType
     ) -> BaseContent:
         """Create content instance from data.
 
@@ -85,7 +85,7 @@ class ContentFactory:
         return list(self._class_map.keys())
 
     def register_content_class(
-        self, content_type: ContentType, content_class: Type[BaseContent]
+        self, content_type: ContentType, content_class: type[BaseContent]
     ) -> None:
         """Register a content class for a content type.
 

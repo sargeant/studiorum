@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Dict, Optional, Protocol, Type, TypeVar, runtime_checkable
+from typing import Any, Optional, Protocol, TypeVar, runtime_checkable
 
 from .interfaces import (
     ContentIndexer,
@@ -30,21 +30,21 @@ class ServiceFactory(Protocol):
 class ServiceRegistration:
     """Registration information for a service."""
 
-    service_type: Type
+    service_type: type
     factory: ServiceFactory
     singleton: bool = True
-    instance: Optional[Any] = None
+    instance: Any | None = None
 
 
 class DependencyContainer:
     """Dependency injection container."""
 
     def __init__(self):
-        self._services: Dict[Type, ServiceRegistration] = {}
-        self._building: set[Type] = set()
+        self._services: dict[type, ServiceRegistration] = {}
+        self._building: set[type] = set()
 
     def register(
-        self, service_type: Type, factory: ServiceFactory, singleton: bool = True
+        self, service_type: type, factory: ServiceFactory, singleton: bool = True
     ) -> None:
         """Register a service with the container.
 
@@ -57,7 +57,7 @@ class DependencyContainer:
             service_type=service_type, factory=factory, singleton=singleton
         )
 
-    def register_instance(self, service_type: Type, instance: Any) -> None:
+    def register_instance(self, service_type: type, instance: Any) -> None:
         """Register a service instance directly.
 
         Args:
@@ -71,7 +71,7 @@ class DependencyContainer:
             instance=instance,
         )
 
-    def resolve(self, service_type: Type[T]) -> T:
+    def resolve(self, service_type: type[T]) -> T:
         """Resolve a service from the container.
 
         Args:
@@ -106,7 +106,7 @@ class DependencyContainer:
         finally:
             self._building.discard(service_type)
 
-    def has_service(self, service_type: Type) -> bool:
+    def has_service(self, service_type: type) -> bool:
         """Check if a service is registered.
 
         Args:
@@ -132,7 +132,7 @@ class LambdaServiceFactory:
 class ClassServiceFactory:
     """Service factory for class instantiation."""
 
-    def __init__(self, service_class: Type, *args, **kwargs):
+    def __init__(self, service_class: type, *args, **kwargs):
         self.service_class = service_class
         self.args = args
         self.kwargs = kwargs
@@ -142,7 +142,7 @@ class ClassServiceFactory:
         return self.service_class(*self.args, **self.kwargs)
 
 
-def inject(*dependencies: Type):
+def inject(*dependencies: type):
     """Decorator for dependency injection into functions.
 
     Args:

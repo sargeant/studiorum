@@ -1,7 +1,6 @@
 """Info command for 5e2pdf CLI."""
 
 import asyncio
-from typing import Optional
 
 import typer
 from rich import print as rprint
@@ -19,10 +18,10 @@ console = Console()
 @app.command("content")
 def show_content_info(
     name: str = typer.Argument(..., help="Name of the content item"),
-    content_type: Optional[str] = typer.Option(
+    content_type: str | None = typer.Option(
         None, "--type", "-t", help="Content type (spell, creature, item)"
     ),
-    source: Optional[str] = typer.Option(None, "--source", "-s", help="Source book"),
+    source: str | None = typer.Option(None, "--source", "-s", help="Source book"),
 ):
     """
     🔍 Show detailed information about a specific content item

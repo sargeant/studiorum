@@ -1,6 +1,6 @@
 """Creature data models."""
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -10,10 +10,10 @@ from .content import BaseContent
 class ArmorClass(BaseModel):
     """Represents creature armor class."""
 
-    ac: Optional[int] = Field(None, description="Armor class value")
-    from_: Optional[List[str]] = Field(None, alias="from", description="AC sources")
-    condition: Optional[str] = Field(None, description="Conditional AC")
-    special: Optional[str] = Field(None, description="Special AC description")
+    ac: int | None = Field(None, description="Armor class value")
+    from_: list[str] | None = Field(None, alias="from", description="AC sources")
+    condition: str | None = Field(None, description="Conditional AC")
+    special: str | None = Field(None, description="Special AC description")
 
     def __str__(self) -> str:
         if self.special:
@@ -33,9 +33,9 @@ class ArmorClass(BaseModel):
 class HitPoints(BaseModel):
     """Represents creature hit points."""
 
-    average: Optional[int] = Field(None, description="Average hit points")
-    formula: Optional[str] = Field(None, description="Hit dice formula")
-    special: Optional[str] = Field(None, description="Special HP description")
+    average: int | None = Field(None, description="Average hit points")
+    formula: str | None = Field(None, description="Hit dice formula")
+    special: str | None = Field(None, description="Special HP description")
 
     def __str__(self) -> str:
         if self.special:
@@ -53,19 +53,11 @@ class HitPoints(BaseModel):
 class Speed(BaseModel):
     """Represents creature movement speeds."""
 
-    walk: Optional[Union[int, Dict[str, Any]]] = Field(
-        None, description="Walking speed"
-    )
-    fly: Optional[Union[int, Dict[str, Any]]] = Field(None, description="Flying speed")
-    swim: Optional[Union[int, Dict[str, Any]]] = Field(
-        None, description="Swimming speed"
-    )
-    climb: Optional[Union[int, Dict[str, Any]]] = Field(
-        None, description="Climbing speed"
-    )
-    burrow: Optional[Union[int, Dict[str, Any]]] = Field(
-        None, description="Burrowing speed"
-    )
+    walk: int | dict[str, Any] | None = Field(None, description="Walking speed")
+    fly: int | dict[str, Any] | None = Field(None, description="Flying speed")
+    swim: int | dict[str, Any] | None = Field(None, description="Swimming speed")
+    climb: int | dict[str, Any] | None = Field(None, description="Climbing speed")
+    burrow: int | dict[str, Any] | None = Field(None, description="Burrowing speed")
 
     def __str__(self) -> str:
         speeds = []
@@ -100,11 +92,9 @@ class Speed(BaseModel):
 class CreatureType(BaseModel):
     """Represents creature type information."""
 
-    type: Union[str, Dict[str, Any]] = Field(..., description="Base creature type")
-    subtype: Optional[str] = Field(None, description="Creature subtype")
-    tags: Optional[List[Union[str, Dict[str, Any]]]] = Field(
-        None, description="Additional tags"
-    )
+    type: str | dict[str, Any] = Field(..., description="Base creature type")
+    subtype: str | None = Field(None, description="Creature subtype")
+    tags: list[str | dict[str, Any]] | None = Field(None, description="Additional tags")
 
     @classmethod
     def model_validate(cls, v):
@@ -165,9 +155,7 @@ class Ability(BaseModel):
     """Represents a creature ability (trait, action, etc.)."""
 
     name: str = Field(..., description="Ability name")
-    entries: List[Union[str, Dict[str, Any]]] = Field(
-        ..., description="Ability description"
-    )
+    entries: list[str | dict[str, Any]] = Field(..., description="Ability description")
 
     def __str__(self) -> str:
         return self.name
@@ -218,20 +206,14 @@ class Ability(BaseModel):
 class Creature(BaseContent):
     """Represents a D&D creature/monster."""
 
-    size: List[str] = Field(..., description="Creature size")
-    type: Union[str, CreatureType, Dict[str, Any]] = Field(
-        ..., description="Creature type"
-    )
-    alignment: List[Union[str, Dict[str, Any]]] = Field(
-        ..., description="Creature alignment"
-    )
+    size: list[str] = Field(..., description="Creature size")
+    type: str | CreatureType | dict[str, Any] = Field(..., description="Creature type")
+    alignment: list[str | dict[str, Any]] = Field(..., description="Creature alignment")
 
     # Combat stats
-    ac: List[Union[int, ArmorClass, Dict[str, Any]]] = Field(
-        ..., description="Armor class"
-    )
-    hp: Union[HitPoints, Dict[str, Any]] = Field(..., description="Hit points")
-    speed: Union[Speed, Dict[str, Any]] = Field(..., description="Movement speeds")
+    ac: list[int | ArmorClass | dict[str, Any]] = Field(..., description="Armor class")
+    hp: HitPoints | dict[str, Any] = Field(..., description="Hit points")
+    speed: Speed | dict[str, Any] = Field(..., description="Movement speeds")
 
     # Ability scores
     strength: int = Field(..., ge=1, le=30, alias="str")
@@ -242,48 +224,42 @@ class Creature(BaseContent):
     charisma: int = Field(..., ge=1, le=30, alias="cha")
 
     # Optional attributes
-    save: Optional[Dict[str, str]] = Field(None, description="Saving throw bonuses")
-    skill: Optional[Dict[str, Union[str, List[Any], Any]]] = Field(
+    save: dict[str, str] | None = Field(None, description="Saving throw bonuses")
+    skill: dict[str, str | list[Any] | Any] | None = Field(
         None, description="Skill bonuses"
     )
-    senses: Optional[List[str]] = Field(None, description="Special senses")
-    passive: Optional[Union[int, str]] = Field(None, description="Passive perception")
-    languages: Optional[List[str]] = Field(None, description="Known languages")
-    cr: Optional[Union[str, int, Dict[str, Any]]] = Field(
-        None, description="Challenge rating"
-    )
+    senses: list[str] | None = Field(None, description="Special senses")
+    passive: int | str | None = Field(None, description="Passive perception")
+    languages: list[str] | None = Field(None, description="Known languages")
+    cr: str | int | dict[str, Any] | None = Field(None, description="Challenge rating")
 
     # Abilities
-    trait: Optional[List[Union[Ability, Dict[str, Any]]]] = Field(
-        None, description="Traits"
-    )
-    action: Optional[List[Union[Ability, Dict[str, Any]]]] = Field(
-        None, description="Actions"
-    )
-    legendary_actions: Optional[int] = Field(
+    trait: list[Ability | dict[str, Any]] | None = Field(None, description="Traits")
+    action: list[Ability | dict[str, Any]] | None = Field(None, description="Actions")
+    legendary_actions: int | None = Field(
         None, alias="legendaryActions", description="Number of legendary actions"
     )
-    legendary: Optional[List[Union[Ability, Dict[str, Any]]]] = Field(
+    legendary: list[Ability | dict[str, Any]] | None = Field(
         None, description="Legendary actions"
     )
-    reaction: Optional[List[Union[Ability, Dict[str, Any]]]] = Field(
+    reaction: list[Ability | dict[str, Any]] | None = Field(
         None, description="Reactions"
     )
-    bonus: Optional[List[Union[Ability, Dict[str, Any]]]] = Field(
+    bonus: list[Ability | dict[str, Any]] | None = Field(
         None, description="Bonus actions"
     )
 
     # Resistances and immunities
-    resist: Optional[List[Union[str, Dict[str, Any]]]] = Field(
+    resist: list[str | dict[str, Any]] | None = Field(
         None, description="Damage resistances"
     )
-    immune: Optional[List[Union[str, Dict[str, Any]]]] = Field(
+    immune: list[str | dict[str, Any]] | None = Field(
         None, description="Damage immunities"
     )
-    vulnerable: Optional[List[Union[str, Dict[str, Any]]]] = Field(
+    vulnerable: list[str | dict[str, Any]] | None = Field(
         None, description="Damage vulnerabilities"
     )
-    conditionImmune: Optional[List[Union[str, Dict[str, Any]]]] = Field(
+    conditionImmune: list[str | dict[str, Any]] | None = Field(
         None, description="Condition immunities"
     )
 

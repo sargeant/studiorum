@@ -1,7 +1,7 @@
 """Protocol interfaces for breaking circular dependencies and tight coupling."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Protocol, Type, runtime_checkable
+from typing import Any, Optional, Protocol, runtime_checkable
 
 from .models.content import BaseContent, ContentType
 
@@ -11,7 +11,7 @@ class ContentLoader(Protocol):
     """Protocol for content loading functionality."""
 
     def load_content(
-        self, data: Dict[str, Any], content_type: ContentType
+        self, data: dict[str, Any], content_type: ContentType
     ) -> BaseContent:
         """Load content from data dictionary.
 
@@ -24,7 +24,7 @@ class ContentLoader(Protocol):
         """
         ...
 
-    def get_supported_types(self) -> List[ContentType]:
+    def get_supported_types(self) -> list[ContentType]:
         """Get list of supported content types.
 
         Returns:
@@ -49,7 +49,7 @@ class ContentTypeResolver(Protocol):
         ...
 
     def register_type(
-        self, content_class: Type[BaseContent], content_type: ContentType
+        self, content_class: type[BaseContent], content_type: ContentType
     ) -> None:
         """Register a content class with its type.
 
@@ -64,7 +64,7 @@ class ContentTypeResolver(Protocol):
 class ContentIndexer(Protocol):
     """Protocol for content indexing functionality."""
 
-    def find(self, content_type: ContentType, name: str) -> Optional[BaseContent]:
+    def find(self, content_type: ContentType, name: str) -> BaseContent | None:
         """Find content by type and name.
 
         Args:
@@ -76,7 +76,7 @@ class ContentIndexer(Protocol):
         """
         ...
 
-    def find_all(self, content_type: ContentType) -> List[BaseContent]:
+    def find_all(self, content_type: ContentType) -> list[BaseContent]:
         """Find all content of a given type.
 
         Args:
@@ -100,7 +100,7 @@ class ContentIndexer(Protocol):
 class TagResolver(Protocol):
     """Protocol for tag resolution functionality."""
 
-    def resolve_tag(self, tag: str) -> Optional[str]:
+    def resolve_tag(self, tag: str) -> str | None:
         """Resolve a tag to its content.
 
         Args:
@@ -125,10 +125,10 @@ class ContentTypeRegistry:
     """Registry for content types to break circular dependencies."""
 
     def __init__(self):
-        self._type_map: Dict[Type[BaseContent], ContentType] = {}
+        self._type_map: dict[type[BaseContent], ContentType] = {}
 
     def register(
-        self, content_class: Type[BaseContent], content_type: ContentType
+        self, content_class: type[BaseContent], content_type: ContentType
     ) -> None:
         """Register a content class with its type.
 
@@ -161,7 +161,7 @@ class ContentTypeRegistry:
 
         raise ValueError(f"Unknown content type for {content_class}")
 
-    def get_all_types(self) -> List[ContentType]:
+    def get_all_types(self) -> list[ContentType]:
         """Get all registered content types.
 
         Returns:
@@ -187,9 +187,9 @@ class ServiceLocator:
     """Service locator for dependency injection."""
 
     def __init__(self):
-        self._services: Dict[Type, Any] = {}
+        self._services: dict[type, Any] = {}
 
-    def register(self, service_type: Type, service_instance: Any) -> None:
+    def register(self, service_type: type, service_instance: Any) -> None:
         """Register a service instance.
 
         Args:
@@ -198,7 +198,7 @@ class ServiceLocator:
         """
         self._services[service_type] = service_instance
 
-    def get(self, service_type: Type) -> Any:
+    def get(self, service_type: type) -> Any:
         """Get a service instance.
 
         Args:
@@ -214,7 +214,7 @@ class ServiceLocator:
             raise ValueError(f"Service {service_type} is not registered")
         return self._services[service_type]
 
-    def has(self, service_type: Type) -> bool:
+    def has(self, service_type: type) -> bool:
         """Check if a service is registered.
 
         Args:

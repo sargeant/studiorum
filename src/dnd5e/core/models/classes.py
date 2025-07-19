@@ -1,6 +1,6 @@
 """Pydantic models for character classes."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -30,32 +30,30 @@ class Class(BaseContent):
     """A character class."""
 
     # Core fields - optional for sidekicks
-    hd: Optional[Dict[str, int]] = None
-    proficiency: Optional[List[str]] = None
-    class_features: Optional[List[Any]] = Field(default=None, alias="classFeatures")
+    hd: dict[str, int] | None = None
+    proficiency: list[str] | None = None
+    class_features: list[Any] | None = Field(default=None, alias="classFeatures")
 
     # Sidekick identification
-    is_sidekick: Optional[bool] = Field(default=None, alias="isSidekick")
+    is_sidekick: bool | None = Field(default=None, alias="isSidekick")
 
     # Optional fields
-    spellcasting_ability: Optional[str] = Field(
-        default=None, alias="spellcastingAbility"
-    )
-    caster_progression: Optional[str] = Field(default=None, alias="casterProgression")
-    cantrip_progression: Optional[List[int]] = Field(
+    spellcasting_ability: str | None = Field(default=None, alias="spellcastingAbility")
+    caster_progression: str | None = Field(default=None, alias="casterProgression")
+    cantrip_progression: list[int] | None = Field(
         default=None, alias="cantripProgression"
     )
-    spells_known_progression: Optional[List[int]] = Field(
+    spells_known_progression: list[int] | None = Field(
         default=None, alias="spellsKnownProgression"
     )
-    starting_proficiencies: Optional[Dict[str, Any]] = Field(
+    starting_proficiencies: dict[str, Any] | None = Field(
         default=None, alias="startingProficiencies"
     )
-    starting_equipment: Optional[Dict[str, Any]] = Field(
+    starting_equipment: dict[str, Any] | None = Field(
         default=None, alias="startingEquipment"
     )
-    multiclassing: Optional[Dict[str, Any]] = None
-    subclasses: List[Subclass] = Field(default_factory=list)
+    multiclassing: dict[str, Any] | None = None
+    subclasses: list[Subclass] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def validate_required_fields_for_regular_classes(self):

@@ -1,0 +1,127 @@
+% Enhanced race template using DND-5e-LaTeX-Template environments
+% Designed for comprehensive D&D race rendering
+
+<@ if use_subsection @>
+\subsection{<# name #>}
+<@ else @>
+\subsubsection{<# name #>}
+<@ endif @>
+
+<@ if description @>
+<# description #>
+
+<@ endif @>
+
+<@ if racial_traits @>
+\textbf{<# name #> Traits}
+
+Your <# name.lower() #> character has the following racial traits.
+
+<@ if ability_score_info @>
+\textbf{Ability Score Increase.} <# ability_score_info #>
+
+<@ endif @>
+
+<@ if age_info @>
+\textbf{Age.} <# age_info #>
+
+<@ endif @>
+
+<@ if size_info @>
+\textbf{Size.} <# size_info #>
+
+<@ endif @>
+
+<@ if speed_info @>
+\textbf{Speed.} <# speed_info #>
+
+<@ endif @>
+
+<@ if darkvision_info @>
+\textbf{Darkvision.} <# darkvision_info #>
+
+<@ endif @>
+
+<@ for trait in racial_traits @>
+\textbf{<# trait.name #>.} <# trait.description #>
+
+<@ endfor @>
+
+<@ if proficiencies_info @>
+<@ for proficiency in proficiencies_info @>
+\textbf{<# proficiency.name #>.} <# proficiency.description #>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if resistances_info @>
+<@ for resistance in resistances_info @>
+\textbf{<# resistance.name #>.} <# resistance.description #>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if spells_info @>
+\textbf{<# spells_info.name #>.} <# spells_info.description #>
+
+<@ endif @>
+
+<@ if languages_info @>
+\textbf{Languages.} <# languages_info #>
+
+<@ endif @>
+
+<@ endif @>
+
+<@ if subraces @>
+\subsubsection{Subraces}
+<@ if subrace_intro @>
+<# subrace_intro #>
+
+<@ endif @>
+
+<@ for subrace in subraces @>
+\paragraph{<# subrace.name #>}
+<@ if subrace.description @>
+<# subrace.description #>
+
+<@ endif @>
+
+<@ if subrace.ability_score_info @>
+\textbf{Ability Score Increase.} <# subrace.ability_score_info #>
+
+<@ endif @>
+
+<@ for trait in subrace.traits @>
+\textbf{<# trait.name #>.} <# trait.description #>
+
+<@ endfor @>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if variant_traits @>
+\begin{DndSidebar}{Variant <# name #>}
+<@ if variant_intro @>
+<# variant_intro #>
+
+<@ endif @>
+
+<@ for trait in variant_traits @>
+\textbf{<# trait.name #>.} <# trait.description #>
+
+<@ endfor @>
+\end{DndSidebar}
+<@ endif @>
+
+<@ if racial_feat @>
+\begin{DndComment}{<# name #> Feat}
+<# racial_feat.description #>
+\end{DndComment}
+<@ endif @>
+
+<@ if source_reference @>
+\begin{flushright}
+\footnotesize\textit{Source: <# source_reference #>}
+\end{flushright}
+<@ endif @>

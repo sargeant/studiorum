@@ -1,14 +1,17 @@
 """New tag resolver facade providing backward compatibility."""
 
 import logging
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
+from typing import Any
+
+from dnd5e.core.logging import get_logger
 
 from .content_tracker import ContentTracker
 from .tag_handlers import TagHandler
 from .tag_parser import TagParseError, TagParser
 from .tag_renderer import RendererContext, TagRenderer
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class NewTagResolverFacade:
@@ -20,7 +23,7 @@ class NewTagResolverFacade:
         self.renderer = TagRenderer(omnidexer)
 
         # For backward compatibility with custom handlers
-        self._custom_handlers: Dict[str, Callable] = {}
+        self._custom_handlers: dict[str, Callable] = {}
 
     def process_text(self, text: str) -> str:
         """Process text with tags and return rendered output.
@@ -62,7 +65,7 @@ class NewTagResolverFacade:
         """Register a new-style tag handler."""
         self.renderer.register_handler(handler)
 
-    def get_tracked_content_for_appendix(self) -> List[tuple]:
+    def get_tracked_content_for_appendix(self) -> list[tuple]:
         """Get tracked content for appendix generation.
 
         Returns content in the format: [(type, name, source), ...]
@@ -70,7 +73,7 @@ class NewTagResolverFacade:
         tracked_content = self.renderer.get_tracked_content()
         return [content.to_tuple() for content in tracked_content]
 
-    def get_tracked_content_detailed(self) -> Dict[str, List[Dict[str, str]]]:
+    def get_tracked_content_detailed(self) -> dict[str, list[dict[str, str]]]:
         """Get detailed tracked content for appendix generation."""
         return self.renderer.get_tracked_content_for_appendix()
 
@@ -78,7 +81,7 @@ class NewTagResolverFacade:
         """Clear all tracked content."""
         self.renderer.clear_tracked_content()
 
-    def get_content_statistics(self) -> Dict[str, int]:
+    def get_content_statistics(self) -> dict[str, int]:
         """Get statistics about tracked content."""
         return self.renderer.get_content_statistics()
 
@@ -92,7 +95,7 @@ class NewTagResolverFacade:
         except Exception as e:
             logger.warning("Unexpected error tracking document content: %s", e)
 
-    def get_supported_tag_types(self) -> List[str]:
+    def get_supported_tag_types(self) -> list[str]:
         """Get all supported tag types."""
         return self.renderer.get_supported_tag_types()
 
@@ -102,7 +105,7 @@ class NewTagResolverFacade:
 
     # Backward compatibility properties and methods
     @property
-    def _tag_handlers(self) -> Dict[str, Any]:
+    def _tag_handlers(self) -> dict[str, Any]:
         """Backward compatibility property."""
         # Return a dict-like view of handlers for backward compatibility
         return self._custom_handlers

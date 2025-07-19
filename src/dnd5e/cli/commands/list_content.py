@@ -2,7 +2,6 @@
 
 import asyncio
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich import print as rprint
@@ -19,7 +18,7 @@ console = Console()
 
 @app.command("files")
 def list_files(
-    directory: Optional[Path] = typer.Option(
+    directory: Path | None = typer.Option(
         None, "--dir", "-d", help="Directory to scan"
     ),
     pattern: str = typer.Option(
@@ -35,11 +34,8 @@ def list_files(
     if directory is None:
         # Default directories
         directories = [
-            Path("json_data/adventures"),
-            Path("json_data/books"),
-            Path("json_data/supplements"),
-            Path("data/adventure"),
-            Path("data/book"),
+            Path("srd-data/adventure"),
+            Path("srd-data/book"),
             Path("homebrew"),
         ]
     else:
@@ -64,10 +60,8 @@ def list_files(
 
     if total_files == 0:
         rprint("[yellow]No JSON files found in search directories[/yellow]")
-        rprint(
-            "Make sure you have cloned the 5etools-src repository and created symlinks:"
-        )
-        rprint("  ln -s ../5etools-src/data data")
+        rprint("Make sure you have SRD data available. Run the extraction script:")
+        rprint("  python extract_srd_content.py")
     else:
         console.print(table)
         rprint(f"\n[dim]Found {total_files} files[/dim]")
@@ -75,14 +69,14 @@ def list_files(
 
 @app.command("content")
 def list_content(
-    content_type: Optional[str] = typer.Option(
+    content_type: str | None = typer.Option(
         None, "--type", "-t", help="Content type (spell, creature, item, etc.)"
     ),
-    source: Optional[str] = typer.Option(
+    source: str | None = typer.Option(
         None, "--source", "-s", help="Filter by source book"
     ),
     limit: int = typer.Option(20, "--limit", "-l", help="Limit number of results"),
-    search: Optional[str] = typer.Option(None, "--search", help="Search content names"),
+    search: str | None = typer.Option(None, "--search", help="Search content names"),
 ):
     """
     📋 List loaded content items

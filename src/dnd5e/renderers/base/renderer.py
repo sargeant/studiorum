@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from dnd5e.core.models.content import BaseContent
 
@@ -20,7 +20,7 @@ class BaseRenderer(ABC):
     regardless of output format (LaTeX, HTML, Markdown, etc.).
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize renderer with optional configuration.
 
         Args:
@@ -36,7 +36,7 @@ class BaseRenderer(ABC):
 
     @abstractmethod
     def render(
-        self, content: BaseContent, context: Optional[Dict[str, Any]] = None
+        self, content: BaseContent, context: dict[str, Any] | None = None
     ) -> str:
         """Render content to the target format.
 
@@ -56,7 +56,7 @@ class BaseRenderer(ABC):
         self,
         content: BaseContent,
         output_path: Path,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> None:
         """Render content and write to file.
 

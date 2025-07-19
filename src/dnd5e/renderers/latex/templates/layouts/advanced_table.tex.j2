@@ -1,0 +1,140 @@
+<# Advanced table formatting template #>
+<# Provides intelligent table formatting with DndTable environments #>
+
+<# Macro for creating optimized DndTable #>
+<# macro dnd_table(content, header=None, column_spec="l X", width=None, caption=None, zebra=false) #>
+<# set options = [] #>
+<# if header #>
+<# set _ = options.append("header=" + header) #>
+<# endif #>
+<# if width #>
+<# set _ = options.append("width=" + width) #>
+<# endif #>
+<# if zebra #>
+<# set _ = options.append("zebra") #>
+<# endif #>
+
+<# if options #>
+\begin{DndTable}[<# options | join(",") #>]{<# column_spec #>}
+<# else #>
+\begin{DndTable}{<# column_spec #>}
+<# endif #>
+<# content #>
+\end{DndTable}
+
+<# if caption #>
+\captionof{table}{<# caption #>}
+<# endif #>
+<# endmacro #>
+
+<# Macro for spell list tables #>
+<# macro spell_table(spells, level=None) #>
+<# if level is not none #>
+\begin{DndTable}[header=<# level #>-Level Spells]{l X c}
+\textbf{Spell} & \textbf{Description} & \textbf{Page} \\
+<# else #>
+\begin{DndTable}[header=Spells]{l X c c}
+\textbf{Spell} & \textbf{Description} & \textbf{Level} & \textbf{Page} \\
+<# endif #>
+<# for spell in spells #>
+<# spell.name #> & <# spell.description | truncate(60) #> & <# if level is none #><# spell.level #> & <# endif #><# spell.page | default("--") #> \\
+<# endfor #>
+\end{DndTable}
+<# endmacro #>
+
+<# Macro for item tables #>
+<# macro item_table(items, show_cost=true, show_weight=false) #>
+<# if show_cost and show_weight #>
+\begin{DndTable}[header=Equipment]{l X r r}
+\textbf{Item} & \textbf{Description} & \textbf{Weight} & \textbf{Cost} \\
+<# elif show_cost #>
+\begin{DndTable}[header=Equipment]{l X r}
+\textbf{Item} & \textbf{Description} & \textbf{Cost} \\
+<# elif show_weight #>
+\begin{DndTable}[header=Equipment]{l X r}
+\textbf{Item} & \textbf{Description} & \textbf{Weight} \\
+<# else #>
+\begin{DndTable}[header=Equipment]{l X}
+\textbf{Item} & \textbf{Description} \\
+<# endif #>
+<# for item in items #>
+<# item.name #> & <# item.description | truncate(80) #><# if show_weight #> & <# item.weight | default("--") #><# endif #><# if show_cost #> & <# item.cost | default("--") #><# endif #> \\
+<# endfor #>
+\end{DndTable}
+<# endmacro #>
+
+<# Macro for class feature tables #>
+<# macro class_table(class_data) #>
+<# set columns = class_data.columns | default(["Level", "Proficiency Bonus", "Features"]) #>
+<# set column_count = columns | length #>
+<# if column_count <= 3 #>
+<# set column_spec = "c l X" #>
+<# elif column_count <= 5 #>
+<# set column_spec = "c l X c c" #>
+<# else #>
+<# set column_spec = "c l X" + " c" * (column_count - 3) #>
+<# endif #>
+
+\begin{DndTable}[header=Class Features,width=\textwidth]{<# column_spec #>}
+<# for col in columns #>\textbf{<# col #>}<# if not loop.last #> & <# endif #><# endfor #> \\
+<# for row in class_data.rows #>
+<# for cell in row #><# cell #><# if not loop.last #> & <# endif #><# endfor #> \\
+<# endfor #>
+\end{DndTable}
+<# endmacro #>
+
+<# Macro for ability score tables #>
+<# macro ability_table(abilities) #>
+\begin{DndTable}[header=Ability Scores]{l c c c}
+\textbf{Ability} & \textbf{Score} & \textbf{Modifier} & \textbf{Save} \\
+<# for ability in abilities #>
+<# ability.name #> & <# ability.score #> & <# ability.modifier #> & <# ability.save #> \\
+<# endfor #>
+\end{DndTable}
+<# endmacro #>
+
+<# Macro for random tables #>
+<# macro random_table(table_data, dice="d20") #>
+\begin{DndTable}[header=<# table_data.title | default("Random Table") #>]{c X}
+\textbf{<# dice #>} & \textbf{Result} \\
+<# for entry in table_data.entries #>
+<# entry.roll #> & <# entry.result #> \\
+<# endfor #>
+\end{DndTable}
+<# endmacro #>
+
+<# Macro for long tables that span pages #>
+<# macro long_table(content, header=None, column_spec="l X") #>
+\begin{longtable}{<# column_spec #>}
+<# if header #>
+\caption{<# header #>} \\
+\toprule
+<# endif #>
+<# content #>
+<# if header #>
+\bottomrule
+<# endif #>
+\end{longtable}
+<# endmacro #>
+
+<# Utility macros for table cells #>
+<# macro table_header_row(headers) #>
+<# for header in headers #>\textbf{<# header #>}<# if not loop.last #> & <# endif #><# endfor #> \\
+<# endmacro #>
+
+<# macro table_data_row(cells) #>
+<# for cell in cells #><# cell #><# if not loop.last #> & <# endif #><# endfor #> \\
+<# endmacro #>
+
+<# macro table_rule(type="midrule") #>
+\<# type #>
+<# endmacro #>
+
+<# Responsive table that adjusts to content width #>
+<# macro responsive_table(content, min_width="0.6\\textwidth", max_width="\\textwidth") #>
+\resizebox{<# max_width #>}{!}{%
+\begin{minipage}{<# min_width #>}
+<# content #>
+\end{minipage}%
+}
+<# endmacro #>

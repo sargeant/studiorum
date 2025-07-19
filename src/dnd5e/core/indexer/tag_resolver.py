@@ -1,11 +1,11 @@
 """Tag resolution system for processing {@type name|source|display} tags."""
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional
 
-from ..config.settings import get_logger
 from ..loaders.omnidexer import Omnidexer
+from ..logging import get_logger
 from ..models.content import ContentType
 
 logger = get_logger(__name__)
@@ -17,9 +17,9 @@ class TagMatch:
 
     tag_type: str
     name: str
-    source: Optional[str] = None
-    display_text: Optional[str] = None
-    page: Optional[str] = None
+    source: str | None = None
+    display_text: str | None = None
+    page: str | None = None
     full_match: str = ""
 
     @classmethod
@@ -51,7 +51,7 @@ class TagResolver:
 
     def __init__(self, omnidexer: Omnidexer):
         self.omnidexer = omnidexer
-        self._tag_handlers: Dict[str, Callable[[TagMatch], str]] = {}
+        self._tag_handlers: dict[str, Callable[[TagMatch], str]] = {}
         self._register_default_handlers()
 
     def _register_default_handlers(self):

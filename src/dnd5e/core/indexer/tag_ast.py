@@ -1,7 +1,7 @@
 """AST nodes for the tag resolution system."""
 
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -16,9 +16,9 @@ class TextSpan:
 class ASTNode:
     """Base class for all AST nodes."""
 
-    def __init__(self, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, original_text_span: TextSpan | None = None):
         self.original_text_span = original_text_span
-        self.children: List[ASTNode] = []
+        self.children: list[ASTNode] = []
 
     def add_child(self, child: "ASTNode") -> None:
         """Add a child node."""
@@ -32,14 +32,14 @@ class ASTNode:
 class DocumentNode(ASTNode):
     """Root node containing the entire document."""
 
-    def __init__(self, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, original_text_span: TextSpan | None = None):
         super().__init__(original_text_span)
 
 
 class TextNode(ASTNode):
     """Node representing plain text content."""
 
-    def __init__(self, text: str, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, text: str, original_text_span: TextSpan | None = None):
         super().__init__(original_text_span)
         self.text = text
 
@@ -50,7 +50,7 @@ class TextNode(ASTNode):
 class TagNode(ASTNode):
     """Base class for all tag nodes."""
 
-    def __init__(self, tag_type: str, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, tag_type: str, original_text_span: TextSpan | None = None):
         super().__init__(original_text_span)
         self.tag_type = tag_type
 
@@ -67,10 +67,10 @@ class CreatureTagNode(TagNode):
     def __init__(
         self,
         name: str,
-        source: Optional[str] = None,
-        display_text_nodes: Optional[List[ASTNode]] = None,
-        page: Optional[str] = None,
-        original_text_span: Optional[TextSpan] = None,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+        original_text_span: TextSpan | None = None,
     ):
         super().__init__("creature", original_text_span)
         self.name = name
@@ -91,10 +91,10 @@ class SpellTagNode(TagNode):
     def __init__(
         self,
         name: str,
-        source: Optional[str] = None,
-        display_text_nodes: Optional[List[ASTNode]] = None,
-        page: Optional[str] = None,
-        original_text_span: Optional[TextSpan] = None,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+        original_text_span: TextSpan | None = None,
     ):
         super().__init__("spell", original_text_span)
         self.name = name
@@ -115,10 +115,10 @@ class ItemTagNode(TagNode):
     def __init__(
         self,
         name: str,
-        source: Optional[str] = None,
-        display_text_nodes: Optional[List[ASTNode]] = None,
-        page: Optional[str] = None,
-        original_text_span: Optional[TextSpan] = None,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+        original_text_span: TextSpan | None = None,
     ):
         super().__init__("item", original_text_span)
         self.name = name
@@ -139,10 +139,10 @@ class ClassTagNode(TagNode):
     def __init__(
         self,
         name: str,
-        source: Optional[str] = None,
-        display_text_nodes: Optional[List[ASTNode]] = None,
-        page: Optional[str] = None,
-        original_text_span: Optional[TextSpan] = None,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+        original_text_span: TextSpan | None = None,
     ):
         super().__init__("class", original_text_span)
         self.name = name
@@ -163,10 +163,10 @@ class RaceTagNode(TagNode):
     def __init__(
         self,
         name: str,
-        source: Optional[str] = None,
-        display_text_nodes: Optional[List[ASTNode]] = None,
-        page: Optional[str] = None,
-        original_text_span: Optional[TextSpan] = None,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+        original_text_span: TextSpan | None = None,
     ):
         super().__init__("race", original_text_span)
         self.name = name
@@ -187,10 +187,10 @@ class BackgroundTagNode(TagNode):
     def __init__(
         self,
         name: str,
-        source: Optional[str] = None,
-        display_text_nodes: Optional[List[ASTNode]] = None,
-        page: Optional[str] = None,
-        original_text_span: Optional[TextSpan] = None,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+        original_text_span: TextSpan | None = None,
     ):
         super().__init__("background", original_text_span)
         self.name = name
@@ -211,10 +211,10 @@ class FeatTagNode(TagNode):
     def __init__(
         self,
         name: str,
-        source: Optional[str] = None,
-        display_text_nodes: Optional[List[ASTNode]] = None,
-        page: Optional[str] = None,
-        original_text_span: Optional[TextSpan] = None,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+        original_text_span: TextSpan | None = None,
     ):
         super().__init__("feat", original_text_span)
         self.name = name
@@ -237,8 +237,8 @@ class BoldTagNode(TagNode):
 
     def __init__(
         self,
-        content_nodes: List[ASTNode],
-        original_text_span: Optional[TextSpan] = None,
+        content_nodes: list[ASTNode],
+        original_text_span: TextSpan | None = None,
     ):
         super().__init__("bold", original_text_span)
         self.content_nodes = content_nodes
@@ -253,8 +253,8 @@ class ItalicTagNode(TagNode):
 
     def __init__(
         self,
-        content_nodes: List[ASTNode],
-        original_text_span: Optional[TextSpan] = None,
+        content_nodes: list[ASTNode],
+        original_text_span: TextSpan | None = None,
     ):
         super().__init__("italic", original_text_span)
         self.content_nodes = content_nodes
@@ -267,7 +267,7 @@ class ItalicTagNode(TagNode):
 class DiceTagNode(TagNode):
     """Node representing a dice expression tag."""
 
-    def __init__(self, expression: str, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, expression: str, original_text_span: TextSpan | None = None):
         super().__init__("dice", original_text_span)
         self.expression = expression
 
@@ -281,7 +281,7 @@ class DiceTagNode(TagNode):
 class HitTagNode(TagNode):
     """Node representing a hit bonus tag."""
 
-    def __init__(self, bonus: str, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, bonus: str, original_text_span: TextSpan | None = None):
         super().__init__("hit", original_text_span)
         self.bonus = bonus
 
@@ -292,7 +292,7 @@ class HitTagNode(TagNode):
 class DCTagNode(TagNode):
     """Node representing a difficulty class tag."""
 
-    def __init__(self, dc: str, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, dc: str, original_text_span: TextSpan | None = None):
         super().__init__("dc", original_text_span)
         self.dc = dc
 
@@ -303,7 +303,7 @@ class DCTagNode(TagNode):
 class DamageTagNode(TagNode):
     """Node representing a damage type tag."""
 
-    def __init__(self, damage_type: str, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, damage_type: str, original_text_span: TextSpan | None = None):
         super().__init__("damage", original_text_span)
         self.damage_type = damage_type
 
@@ -314,7 +314,7 @@ class DamageTagNode(TagNode):
 class ConditionTagNode(TagNode):
     """Node representing a condition tag."""
 
-    def __init__(self, condition: str, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, condition: str, original_text_span: TextSpan | None = None):
         super().__init__("condition", original_text_span)
         self.condition = condition
 
@@ -325,7 +325,7 @@ class ConditionTagNode(TagNode):
 class ChanceTagNode(TagNode):
     """Node representing a percentage chance tag."""
 
-    def __init__(self, percentage: str, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, percentage: str, original_text_span: TextSpan | None = None):
         super().__init__("chance", original_text_span)
         self.percentage = percentage
 
@@ -336,7 +336,7 @@ class ChanceTagNode(TagNode):
 class RechargeTagNode(TagNode):
     """Node representing a recharge tag."""
 
-    def __init__(self, recharge: str, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, recharge: str, original_text_span: TextSpan | None = None):
         super().__init__("recharge", original_text_span)
         self.recharge = recharge
 
@@ -353,10 +353,10 @@ class AdventureTagNode(TagNode):
     def __init__(
         self,
         name: str,
-        source: Optional[str] = None,
-        display_text_nodes: Optional[List[ASTNode]] = None,
-        page: Optional[str] = None,
-        original_text_span: Optional[TextSpan] = None,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+        original_text_span: TextSpan | None = None,
     ):
         super().__init__("adventure", original_text_span)
         self.name = name
@@ -377,9 +377,9 @@ class BookTagNode(TagNode):
     def __init__(
         self,
         name: str,
-        source: Optional[str] = None,
-        page: Optional[str] = None,
-        original_text_span: Optional[TextSpan] = None,
+        source: str | None = None,
+        page: str | None = None,
+        original_text_span: TextSpan | None = None,
     ):
         super().__init__("book", original_text_span)
         self.name = name
@@ -396,7 +396,7 @@ class BookTagNode(TagNode):
 class FilterTagNode(TagNode):
     """Node representing a filter tag (ignored in output)."""
 
-    def __init__(self, content: str, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, content: str, original_text_span: TextSpan | None = None):
         super().__init__("filter", original_text_span)
         self.content = content
 
@@ -407,7 +407,7 @@ class FilterTagNode(TagNode):
 class LoaderTagNode(TagNode):
     """Node representing a loader tag (ignored in output)."""
 
-    def __init__(self, content: str, original_text_span: Optional[TextSpan] = None):
+    def __init__(self, content: str, original_text_span: TextSpan | None = None):
         super().__init__("loader", original_text_span)
         self.content = content
 

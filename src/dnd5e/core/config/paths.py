@@ -1,7 +1,6 @@
 """Path configuration and management."""
 
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -13,7 +12,7 @@ class PathConfig(BaseModel):
     """Configuration for data file paths."""
 
     root_path: Path = Field(..., description="Root project directory")
-    data_path: Optional[Path] = Field(
+    data_path: Path | None = Field(
         None, description="External data directory (5etools-src)"
     )
     assets_path: Path = Field(..., description="Assets directory")
@@ -33,7 +32,7 @@ class PathConfig(BaseModel):
             build_path=root_path / settings.build_path,
         )
 
-    def get_data_paths(self) -> Dict[ContentType, List[Path]]:
+    def get_data_paths(self) -> dict[ContentType, list[Path]]:
         """Get data file paths organized by content type."""
         paths = {}
 
@@ -42,15 +41,10 @@ class PathConfig(BaseModel):
         if self.data_path and self.data_path.exists():
             data_dirs.append(self.data_path)
 
-        # Check for symlinked data directory
-        data_symlink = self.root_path / "data"
-        if data_symlink.exists() and data_symlink.is_symlink():
-            data_dirs.append(data_symlink)
-
-        # Check for local json_data directory
-        local_data = self.root_path / "json_data"
-        if local_data.exists():
-            data_dirs.append(local_data)
+        # Check for srd-data directory
+        srd_data = self.root_path / "srd-data"
+        if srd_data.exists():
+            data_dirs.append(srd_data)
 
         # Map content types to subdirectories and file patterns
         content_mappings = {
@@ -100,7 +94,7 @@ class PathConfig(BaseModel):
 
         return paths
 
-    def get_asset_paths(self) -> Dict[str, Path]:
+    def get_asset_paths(self) -> dict[str, Path]:
         """Get asset file paths."""
         return {
             "fonts": self.assets_path / "fonts",
@@ -119,10 +113,10 @@ class PathConfig(BaseModel):
 
 
 # Global path config instance
-_path_config: Optional[PathConfig] = None
+_path_config: PathConfig | None = None
 
 
-def get_path_config(root_path: Optional[Path] = None) -> PathConfig:
+def get_path_config(root_path: Path | None = None) -> PathConfig:
     """Get global path configuration."""
     global _path_config
     if _path_config is None:

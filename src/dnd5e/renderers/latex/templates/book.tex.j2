@@ -1,0 +1,106 @@
+% Book template for D&D 5e adventures and sourcebooks
+% Uses dndbook document class with structured content support
+
+<@ extends "base.tex.j2" @>
+
+<@ block document_packages @>
+<# super() #>
+
+% Additional packages for book layout
+\usepackage{multicol}
+\usepackage{wrapfig}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\usepackage{titlesec}
+
+% DND book-specific environments
+\tcbuselibrary{breakable}
+<@ endblock @>
+
+<@ block document_config @>
+<# super() #>
+
+% Book-specific configuration
+\setlength{\columnsep}{1cm}
+\setlength{\columnseprule}{0.1pt}
+
+% Enhanced chapter and section styling for books
+<@ if not use_dnd_template_styling @>
+\titleformat{\chapter}[display]
+    {\normalfont\scshape\Huge\color{DndRed}}
+    {\chaptertitlename\ \thechapter}{0pt}{\Huge}
+
+\titleformat{\section}
+    {\normalfont\scshape\Large\color{DndRed}}
+    {\thesection}{1em}{}
+
+\titleformat{\subsection}
+    {\normalfont\scshape\large}
+    {\thesubsection}{1em}{}
+<@ endif @>
+
+% Configure section numbering depth for books
+<@ if metadata and metadata.numbering_depth @>
+\setcounter{secnumdepth}{<# metadata.numbering_depth #>}
+<@ endif @>
+<@ endblock @>
+
+<#-- Fallback document body for legacy content (when not using structured sections) --#>
+<@ block document_body @>
+<#-- This block provides compatibility with legacy templates --#>
+<#-- Structured content is now handled by the document_structure block in base.tex.j2 --#>
+
+<#-- Legacy chapter rendering --#>
+<@ if chapters @>
+<@ for chapter in chapters @>
+\chapter{<# chapter.title | latex_escape #>}
+<@ if chapter.subtitle @>
+\textit{<# chapter.subtitle | latex_escape #>}
+<@ endif @>
+
+<@ for section in chapter.sections @>
+\section{<# section.title | latex_escape #>}
+<# section.content #>
+
+<@ if section.subsections @>
+<@ for subsection in section.subsections @>
+\subsection{<# subsection.title | latex_escape #>}
+<# subsection.content #>
+<@ endfor @>
+<@ endif @>
+
+<@ endfor @>
+
+<@ if chapter.appendices @>
+<@ for appendix in chapter.appendices @>
+\section*{<# appendix.title | latex_escape #>}
+\addcontentsline{toc}{section}{<# appendix.title | latex_escape #>}
+<# appendix.content #>
+<@ endfor @>
+<@ endif @>
+
+<@ endfor @>
+<@ endif @>
+
+<#-- Legacy content type rendering --#>
+<@ if spells @>
+\chapter{Spells}
+<@ for spell in spells @>
+% Spell content will be rendered by content renderers
+<@ endfor @>
+<@ endif @>
+
+<@ if creatures @>
+\chapter{Creatures}
+<@ for creature in creatures @>
+% Creature content will be rendered by content renderers
+<@ endfor @>
+<@ endif @>
+
+<@ if items @>
+\chapter{Magic Items}
+<@ for item in items @>
+% Item content will be rendered by content renderers
+<@ endfor @>
+<@ endif @>
+<@ endblock @>

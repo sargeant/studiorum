@@ -1,0 +1,71 @@
+% Enhanced book template using DND-5e-LaTeX-Template document class
+% Designed for high-quality D&D book generation
+
+\documentclass[<# document_options #>]{dndbook}
+
+% Required packages for enhanced features
+\usepackage{bookmark}
+\usepackage{imakeidx}
+\makeindex[columns=2,title=Index]
+
+% DND template configuration
+<@ if fonts_dir @>
+\DndSetThemeColor[<# theme_color | default("PhbLightGreen") #>]
+<@ endif @>
+
+% Document metadata
+\title{<# title #>}
+<@ if author @>
+\author{<# author #>}
+<@ endif @>
+<@ if date @>
+\date{<# date #>}
+<@ endif @>
+
+\begin{document}
+
+<@ if show_title_page @>
+% Title page
+\maketitle
+
+<@ if dedication @>
+\newpage
+\null\vfill
+\begin{center}
+\textit{<# dedication #>}
+\end{center}
+\vfill\null
+<@ endif @>
+
+<@ if credits @>
+\newpage
+\section*{Credits}
+<# credits #>
+<@ endif @>
+
+<@ endif @>
+
+<@ if show_toc @>
+% Table of contents
+\newpage
+\tableofcontents
+<@ endif @>
+
+% Main content
+\newpage
+<# content #>
+
+<@ if show_index @>
+% Index
+\newpage
+\printindex
+<@ endif @>
+
+<@ if show_appendices @>
+% Appendices
+\newpage
+\appendix
+<# appendices #>
+<@ endif @>
+
+\end{document}

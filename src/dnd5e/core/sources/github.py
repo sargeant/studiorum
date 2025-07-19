@@ -6,8 +6,8 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-from ..config.settings import get_logger
 from ..config.sources import ContentSource, SourceType
+from ..logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -125,7 +125,7 @@ class GitHubSourceManager:
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
 
-    def get_repository_info(self, source: ContentSource) -> Optional[dict]:
+    def get_repository_info(self, source: ContentSource) -> dict | None:
         """Get information about a cloned repository."""
         repo_path = self.get_repo_path(source)
 

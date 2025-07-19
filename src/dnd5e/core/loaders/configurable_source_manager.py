@@ -1,10 +1,10 @@
 """Configurable source manager that integrates with the new content source system."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from ..config.settings import get_logger
 from ..config.sources import get_content_config
+from ..logging import get_logger
 from ..models.content import ContentType
 from ..sources import ContentSourceManager
 from .base import SourceManager
@@ -19,15 +19,15 @@ class ConfigurableSourceManager(SourceManager):
         """Initialize with content configuration."""
         self.config = get_content_config()
         self.content_manager = ContentSourceManager(self.config)
-        self._data_paths_cache: Optional[Dict[ContentType, List[Path]]] = None
-        self._source_info_cache: Optional[Dict[str, Dict[str, Any]]] = None
+        self._data_paths_cache: dict[ContentType, list[Path]] | None = None
+        self._source_info_cache: dict[str, dict[str, Any]] | None = None
 
     async def ensure_sources_ready(self) -> None:
         """Ensure all content sources are available and indexed."""
         await self.content_manager.ensure_all_sources()
         await self.content_manager.build_content_index()
 
-    def get_data_paths(self) -> Dict[ContentType, List[Path]]:
+    def get_data_paths(self) -> dict[ContentType, list[Path]]:
         """Return paths to data files organized by content type."""
         if self._data_paths_cache is not None:
             return self._data_paths_cache
@@ -130,7 +130,7 @@ class ConfigurableSourceManager(SourceManager):
 
         return data_paths
 
-    def resolve_source(self, source_abbrev: str) -> Optional[Dict[str, Any]]:
+    def resolve_source(self, source_abbrev: str) -> dict[str, Any] | None:
         """Resolve source abbreviation to full source information."""
         if self._source_info_cache is None:
             self._build_source_info_cache()
@@ -345,13 +345,13 @@ class ConfigurableSourceManager(SourceManager):
         self._data_paths_cache = None
         self._source_info_cache = None
 
-    def get_all_sources(self) -> List[str]:
+    def get_all_sources(self) -> list[str]:
         """Get list of all available source abbreviations."""
         if self._source_info_cache is None:
             self._build_source_info_cache()
         return list(self._source_info_cache.keys())
 
-    def get_content_statistics(self) -> Dict[str, Any]:
+    def get_content_statistics(self) -> dict[str, Any]:
         """Get statistics about available content."""
         stats = {"sources": len(self.config.get_enabled_sources())}
 

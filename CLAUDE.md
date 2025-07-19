@@ -14,6 +14,7 @@ The project uses a standard Python package structure:
 
 - This project is managed by uv
 - always use `head` to limit the number of lines of output you see from testing, in case it explodes. 50 is usually a good start, but use your judgement. Because the default content has thousands of entries to load, single validation errors can generate 30k lines of debug output.
+- If you need to run LaTex, suppress stdout/stderr since it's so noisy. If you encounter errors, then carefully extract the errors from the output. Don't try to process it all.
 - Please follow the TDD workflow described below anytime I ask for TDD or test-driven.
 
 ## Gemini

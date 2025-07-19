@@ -1,7 +1,6 @@
 """Base content models for all D&D content types."""
 
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -49,9 +48,9 @@ class Source(BaseModel):
     abbreviation: str = Field(
         ..., description="Source book abbreviation (e.g., 'PHB', 'MM')"
     )
-    name: Optional[str] = Field(None, description="Full source book name")
-    page: Optional[int] = Field(None, description="Page number reference")
-    url: Optional[str] = Field(None, description="URL reference")
+    name: str | None = Field(None, description="Full source book name")
+    page: int | None = Field(None, description="Page number reference")
+    url: str | None = Field(None, description="URL reference")
 
     def model_post_init(self, __context):
         """Set name to abbreviation if not provided."""

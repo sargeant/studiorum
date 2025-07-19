@@ -1,6 +1,6 @@
 """Book data models."""
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -11,11 +11,11 @@ class BookChapter(BaseModel):
     """Represents a chapter within a book."""
 
     name: str = Field(..., description="Chapter name")
-    ordinal: Optional[Dict[str, Any]] = Field(None, description="Chapter numbering")
-    headers: Optional[List[Union[str, Dict[str, Any]]]] = Field(
+    ordinal: dict[str, Any] | None = Field(None, description="Chapter numbering")
+    headers: list[str | dict[str, Any]] | None = Field(
         None, description="Section headers"
     )
-    entries: List[Any] = Field(default_factory=list, description="Chapter content")
+    entries: list[Any] = Field(default_factory=list, description="Chapter content")
 
     def get_chapter_number(self) -> str:
         """Get formatted chapter number."""
@@ -57,7 +57,7 @@ class BookChapter(BaseModel):
             return result
         return v
 
-    def get_formatted_headers(self) -> List[str]:
+    def get_formatted_headers(self) -> list[str]:
         """Get formatted header texts."""
         if not self.headers:
             return []
@@ -79,13 +79,11 @@ class BookChapter(BaseModel):
 class BookMetadata(BaseModel):
     """Book metadata and publishing information."""
 
-    id: Optional[str] = Field(None, description="Book ID")
-    published: Optional[str] = Field(None, description="Publication date")
-    author: Optional[List[str]] = Field(None, description="Book authors")
-    contents: Optional[List[Dict[str, Any]]] = Field(
-        None, description="Table of contents"
-    )
-    cover: Optional[Dict[str, Any]] = Field(None, description="Cover image")
+    id: str | None = Field(None, description="Book ID")
+    published: str | None = Field(None, description="Publication date")
+    author: list[str] | None = Field(None, description="Book authors")
+    contents: list[dict[str, Any]] | None = Field(None, description="Table of contents")
+    cover: dict[str, Any] | None = Field(None, description="Cover image")
 
     @field_validator("author", mode="before")
     @classmethod
@@ -115,16 +113,16 @@ class BookMetadata(BaseModel):
 class Book(BaseContent):
     """Represents a D&D rulebook or supplement."""
 
-    id: Optional[str] = Field(None, description="Book identifier")
-    contents: List[BookChapter] = Field(
+    id: str | None = Field(None, description="Book identifier")
+    contents: list[BookChapter] = Field(
         default_factory=list, description="Book chapters"
     )
-    metadata: Optional[BookMetadata] = Field(None, description="Book metadata")
+    metadata: BookMetadata | None = Field(None, description="Book metadata")
 
     # Book-specific fields
-    published: Optional[str] = Field(None, description="Publication date")
-    author: Optional[List[str]] = Field(None, description="Authors")
-    cover: Optional[Dict[str, Any]] = Field(None, description="Cover image")
+    published: str | None = Field(None, description="Publication date")
+    author: list[str] | None = Field(None, description="Authors")
+    cover: dict[str, Any] | None = Field(None, description="Cover image")
 
     @field_validator("author", mode="before")
     @classmethod

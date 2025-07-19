@@ -76,3 +76,14 @@ coverage.xml
 .claude/
 .gemini/
 original-code/
+
+# AI development notes
+CLAUDE.md
+
+# Coverage reports
+htmlcov/
+
+# Caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/

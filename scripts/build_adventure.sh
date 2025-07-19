@@ -35,9 +35,9 @@ usage() {
     echo "  --help            Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0 json_data/adventures/cos.json"
-    echo "  $0 json_data/adventures/netherdeep.json --with-images"
-    echo "  $0 json_data/books/book-egw.json --book-mode"
+    echo "  $0 srd-data/adventures/cos.json"
+    echo "  $0 srd-data/adventures/netherdeep.json --with-images"
+    echo "  $0 srd-data/books/book-egw.json --book-mode"
 }
 
 # Parse arguments
@@ -118,17 +118,17 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "Compiling to PDF..."
     cd "$BUILD_DIR"
-    
+
     # Set font paths for LaTeX
     export OSFONTDIR="$ASSETS_DIR/fonts"
-    
+
     # Run xelatex (may need multiple passes for TOC)
     echo "Running xelatex (pass 1)..."
     xelatex -interaction=nonstopmode "$BASENAME.tex"
-    
+
     echo "Running xelatex (pass 2)..."
     xelatex -interaction=nonstopmode "$BASENAME.tex"
-    
+
     if [ -f "$BASENAME.pdf" ]; then
         echo "PDF generated successfully: $BUILD_DIR/$BASENAME.pdf"
     else

@@ -2,15 +2,15 @@
 
 import asyncio
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 
-from ..config.settings import get_logger
 from ..config.sources import (
     ContentConfiguration,
     ContentSource,
     SourceType,
     get_content_config,
 )
+from ..logging import get_logger
 from .github import GitHubSourceManager
 
 logger = get_logger(__name__)
@@ -19,11 +19,11 @@ logger = get_logger(__name__)
 class ContentSourceManager:
     """Manages all content sources and provides unified access."""
 
-    def __init__(self, config: Optional[ContentConfiguration] = None):
+    def __init__(self, config: ContentConfiguration | None = None):
         """Initialize content source manager."""
         self.config = config or get_content_config()
         self.github_manager = GitHubSourceManager(self.config.cache_dir)
-        self._content_index: Dict[str, List[Path]] = {}
+        self._content_index: dict[str, list[Path]] = {}
         self._index_built = False
 
     async def ensure_all_sources(self) -> None:
@@ -105,7 +105,7 @@ class ContentSourceManager:
         )
         self._index_built = True
 
-    async def _get_source_files(self, source: ContentSource) -> List[Path]:
+    async def _get_source_files(self, source: ContentSource) -> list[Path]:
         """Get list of content files from a source."""
         if source.type == SourceType.GITHUB:
             # Ensure repository is available first
@@ -132,7 +132,7 @@ class ContentSourceManager:
             logger.warning(f"Unsupported source type: {source.type}")
             return []
 
-    def get_all_content_files(self) -> Dict[str, List[Path]]:
+    def get_all_content_files(self) -> dict[str, list[Path]]:
         """Get all indexed content files by source."""
         if not self._index_built:
             raise RuntimeError(
@@ -141,7 +141,7 @@ class ContentSourceManager:
 
         return self._content_index.copy()
 
-    def get_source_files(self, source_name: str) -> List[Path]:
+    def get_source_files(self, source_name: str) -> list[Path]:
         """Get content files from a specific source."""
         if not self._index_built:
             raise RuntimeError(
@@ -150,7 +150,7 @@ class ContentSourceManager:
 
         return self._content_index.get(source_name, [])
 
-    def get_files_by_pattern(self, pattern: str) -> Dict[str, List[Path]]:
+    def get_files_by_pattern(self, pattern: str) -> dict[str, list[Path]]:
         """Get files matching a pattern from all sources."""
         if not self._index_built:
             raise RuntimeError(
@@ -165,7 +165,7 @@ class ContentSourceManager:
 
         return results
 
-    def get_source_info(self, source_name: str) -> Optional[Dict]:
+    def get_source_info(self, source_name: str) -> dict | None:
         """Get information about a specific source."""
         source = self.config.get_source_by_name(source_name)
         if not source:
@@ -238,7 +238,7 @@ class ContentSourceManager:
             logger.error(f"Failed to remove data for source '{source_name}': {e}")
             return False
 
-    def get_statistics(self) -> Dict:
+    def get_statistics(self) -> dict:
         """Get statistics about all sources."""
         if not self._index_built:
             return {"error": "Content index not built"}

@@ -1,7 +1,7 @@
 """Item data models."""
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -46,19 +46,17 @@ class ItemProperty(BaseModel):
     """Represents an item property."""
 
     name: str = Field(..., description="Property name")
-    description: Optional[str] = Field(None, description="Property description")
+    description: str | None = Field(None, description="Property description")
 
 
 class WeaponData(BaseModel):
     """Weapon-specific data."""
 
-    damage: Optional[str] = Field(None, description="Damage dice")
-    damage_type: Optional[str] = Field(
-        None, alias="damageType", description="Damage type"
-    )
-    properties: Optional[List[str]] = Field(None, description="Weapon properties")
-    range: Optional[str] = Field(None, description="Weapon range")
-    weapon_category: Optional[str] = Field(
+    damage: str | None = Field(None, description="Damage dice")
+    damage_type: str | None = Field(None, alias="damageType", description="Damage type")
+    properties: list[str] | None = Field(None, description="Weapon properties")
+    range: str | None = Field(None, description="Weapon range")
+    weapon_category: str | None = Field(
         None, alias="weaponCategory", description="Weapon category"
     )
 
@@ -66,64 +64,56 @@ class WeaponData(BaseModel):
 class ArmorData(BaseModel):
     """Armor-specific data."""
 
-    ac: Optional[int] = Field(None, description="Base armor class")
-    ac_from: Optional[List[str]] = Field(
+    ac: int | None = Field(None, description="Base armor class")
+    ac_from: list[str] | None = Field(
         None, alias="acFrom", description="AC calculation method"
     )
-    strength: Optional[int] = Field(None, description="Strength requirement")
-    stealth: Optional[bool] = Field(None, description="Stealth disadvantage")
-    armor_type: Optional[str] = Field(None, alias="armorType", description="Armor type")
+    strength: int | None = Field(None, description="Strength requirement")
+    stealth: bool | None = Field(None, description="Stealth disadvantage")
+    armor_type: str | None = Field(None, alias="armorType", description="Armor type")
 
 
 class Item(BaseContent):
     """Represents a D&D item."""
 
-    type: Union[str, ItemType] = Field(..., description="Item type")
-    rarity: Optional[Union[str, ItemRarity]] = Field(None, description="Item rarity")
-    weight: Optional[Union[int, float]] = Field(
-        None, description="Item weight in pounds"
-    )
-    value: Optional[Union[int, float, Dict[str, Any]]] = Field(
-        None, description="Item value"
-    )
-    entries: Optional[List[Union[str, Dict[str, Any]]]] = Field(
+    type: str | ItemType = Field(..., description="Item type")
+    rarity: str | ItemRarity | None = Field(None, description="Item rarity")
+    weight: int | float | None = Field(None, description="Item weight in pounds")
+    value: int | float | dict[str, Any] | None = Field(None, description="Item value")
+    entries: list[str | dict[str, Any]] | None = Field(
         None, description="Item description"
     )
 
     # Optional item-specific data
-    weapon_data: Optional[WeaponData] = Field(
+    weapon_data: WeaponData | None = Field(
         None, description="Weapon-specific properties"
     )
-    armor_data: Optional[ArmorData] = Field(
-        None, description="Armor-specific properties"
-    )
+    armor_data: ArmorData | None = Field(None, description="Armor-specific properties")
 
     # Magic item properties
-    requires_attunement: Optional[Union[bool, str]] = Field(
+    requires_attunement: bool | str | None = Field(
         None, alias="reqAttune", description="Attunement requirement"
     )
-    charges: Optional[Union[int, str, Dict[str, Any]]] = Field(
-        None, description="Item charges"
-    )
-    recharge: Optional[str] = Field(None, description="Recharge conditions")
+    charges: int | str | dict[str, Any] | None = Field(None, description="Item charges")
+    recharge: str | None = Field(None, description="Recharge conditions")
 
     # Weapon properties (for backwards compatibility)
-    damage: Optional[str] = Field(None, description="Weapon damage")
-    damage_type: Optional[str] = Field(
+    damage: str | None = Field(None, description="Weapon damage")
+    damage_type: str | None = Field(
         None, alias="damageType", description="Weapon damage type"
     )
-    properties: Optional[List[str]] = Field(None, description="Weapon properties")
-    range: Optional[str] = Field(None, description="Weapon range")
-    weapon_category: Optional[str] = Field(
+    properties: list[str] | None = Field(None, description="Weapon properties")
+    range: str | None = Field(None, description="Weapon range")
+    weapon_category: str | None = Field(
         None, alias="weaponCategory", description="Weapon category"
     )
 
     # Armor properties (for backwards compatibility)
-    ac: Optional[int] = Field(None, description="Armor class")
-    ac_from: Optional[List[str]] = Field(None, alias="acFrom", description="AC sources")
-    strength: Optional[int] = Field(None, description="Strength requirement")
-    stealth: Optional[bool] = Field(None, description="Stealth disadvantage")
-    armor_type: Optional[str] = Field(None, alias="armorType", description="Armor type")
+    ac: int | None = Field(None, description="Armor class")
+    ac_from: list[str] | None = Field(None, alias="acFrom", description="AC sources")
+    strength: int | None = Field(None, description="Strength requirement")
+    stealth: bool | None = Field(None, description="Stealth disadvantage")
+    armor_type: str | None = Field(None, alias="armorType", description="Armor type")
 
     def model_post_init(self, __context) -> None:
         """Post-process parsed data."""
@@ -216,7 +206,7 @@ class Item(BaseContent):
         if not self.value:
             return ""
 
-        if isinstance(self.value, (int, float)):
+        if isinstance(self.value, int | float):
             # Convert to copper pieces for calculation
             copper_value = (
                 int(self.value * 100) if isinstance(self.value, float) else self.value

@@ -2,9 +2,9 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Type
+from typing import Any
 
-from ..config.settings import get_logger
+from ..logging import get_logger
 from ..models.content import ContentType
 from ..models.fluff import (
     BackgroundFluff,
@@ -45,7 +45,7 @@ class FluffDataLoader(DataLoader[BaseFluff]):
             ContentType.BACKGROUND: ["backgroundFluff", "background_fluff"],
         }
 
-    async def load(self, path: Path) -> List[BaseFluff]:
+    async def load(self, path: Path) -> list[BaseFluff]:
         """Load fluff data with liberal parsing."""
         try:
             logger.info(f"Loading {self._content_type.value} fluff data from {path}")
@@ -90,12 +90,12 @@ class FluffDataLoader(DataLoader[BaseFluff]):
     def get_content_type(self) -> ContentType:
         return self._content_type
 
-    def get_model_class(self) -> Type[BaseFluff]:
+    def get_model_class(self) -> type[BaseFluff]:
         return self._fluff_model_map.get(self._content_type, BaseFluff)
 
     def _extract_fluff_content(
-        self, data: Dict[str, Any], path: Path
-    ) -> List[Dict[str, Any]]:
+        self, data: dict[str, Any], path: Path
+    ) -> list[dict[str, Any]]:
         """Extract fluff content from various JSON structures."""
         # Try specific fluff keys first
         fluff_keys = self._fluff_key_map.get(self._content_type, [])
@@ -129,7 +129,7 @@ class FluffDataLoader(DataLoader[BaseFluff]):
         return []
 
     def _parse_fluff_item(
-        self, item: Dict[str, Any], model_class: Type[BaseFluff], path: Path
+        self, item: dict[str, Any], model_class: type[BaseFluff], path: Path
     ) -> BaseFluff:
         """Parse fluff item with liberal validation."""
         try:
@@ -140,7 +140,7 @@ class FluffDataLoader(DataLoader[BaseFluff]):
             return self._liberal_parse(item, model_class, path)
 
     def _liberal_parse(
-        self, item: Dict[str, Any], model_class: Type[BaseFluff], path: Path
+        self, item: dict[str, Any], model_class: type[BaseFluff], path: Path
     ) -> BaseFluff:
         """Liberal parsing that extracts what it can and ignores errors."""
         # Start with basic required fields
