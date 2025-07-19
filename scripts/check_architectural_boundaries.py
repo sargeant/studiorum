@@ -12,7 +12,6 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
 
 
 @dataclass
@@ -20,8 +19,8 @@ class Layer:
     """Represents an architectural layer."""
 
     name: str
-    path_patterns: List[str]
-    allowed_dependencies: List[str]
+    path_patterns: list[str]
+    allowed_dependencies: list[str]
     description: str
 
 
@@ -46,10 +45,10 @@ class ArchitecturalBoundaryChecker:
     def __init__(self, source_path: Path):
         self.source_path = source_path
         self.layers = self._define_layers()
-        self.module_layer_map: Dict[str, str] = {}
-        self.violations: List[Violation] = []
+        self.module_layer_map: dict[str, str] = {}
+        self.violations: list[Violation] = []
 
-    def _define_layers(self) -> List[Layer]:
+    def _define_layers(self) -> list[Layer]:
         """Define the architectural layers for 5e2pdf."""
         return [
             Layer(
@@ -78,7 +77,7 @@ class ArchitecturalBoundaryChecker:
             ),
         ]
 
-    def _get_module_layer(self, module_name: str) -> Optional[str]:
+    def _get_module_layer(self, module_name: str) -> str | None:
         """Get the layer for a module."""
         for layer in self.layers:
             for pattern in layer.path_patterns:
@@ -121,7 +120,7 @@ class ArchitecturalBoundaryChecker:
 
             # Check imports
             for node in ast.walk(tree):
-                if isinstance(node, (ast.Import, ast.ImportFrom)):
+                if isinstance(node, ast.Import | ast.ImportFrom):
                     self._check_import(node, module_name, from_layer)
 
         except Exception as e:
@@ -172,7 +171,7 @@ class ArchitecturalBoundaryChecker:
                 continue  # Skip hidden files
             self.analyze_file(file_path)
 
-    def get_statistics(self) -> Dict[str, int]:
+    def get_statistics(self) -> dict[str, int]:
         """Get statistics about the analysis."""
         layer_counts = defaultdict(int)
         violation_counts = defaultdict(int)

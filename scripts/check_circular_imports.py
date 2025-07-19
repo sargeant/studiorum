@@ -12,7 +12,6 @@ import sys
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
 
 
 @dataclass
@@ -20,7 +19,7 @@ class ImportInfo:
     """Information about an import statement."""
 
     module: str
-    imported_name: Optional[str] = None
+    imported_name: str | None = None
     line_number: int = 0
     is_from_import: bool = False
 
@@ -29,7 +28,7 @@ class ImportInfo:
 class CircularDependency:
     """Represents a circular dependency chain."""
 
-    modules: List[str]
+    modules: list[str]
     description: str
 
     def __str__(self) -> str:
@@ -43,7 +42,7 @@ class ImportAnalyzer(ast.NodeVisitor):
     def __init__(self, file_path: Path, base_path: Path):
         self.file_path = file_path
         self.base_path = base_path
-        self.imports: List[ImportInfo] = []
+        self.imports: list[ImportInfo] = []
         self.module_name = self._get_module_name()
 
     def _get_module_name(self) -> str:
@@ -119,9 +118,9 @@ class CircularImportDetector:
 
     def __init__(self, source_path: Path):
         self.source_path = source_path
-        self.dependencies: Dict[str, Set[str]] = defaultdict(set)
-        self.module_files: Dict[str, Path] = {}
-        self.import_details: Dict[str, List[ImportInfo]] = {}
+        self.dependencies: dict[str, set[str]] = defaultdict(set)
+        self.module_files: dict[str, Path] = {}
+        self.import_details: dict[str, list[ImportInfo]] = {}
 
     def analyze_project(self) -> None:
         """Analyze all Python files in the project."""
@@ -150,13 +149,13 @@ class CircularImportDetector:
             except Exception as e:
                 print(f"Warning: Could not analyze {file_path}: {e}")
 
-    def find_circular_dependencies(self) -> List[CircularDependency]:
+    def find_circular_dependencies(self) -> list[CircularDependency]:
         """Find circular dependencies using DFS."""
         visited = set()
         rec_stack = set()
         cycles = []
 
-        def dfs(module: str, path: List[str]) -> None:
+        def dfs(module: str, path: list[str]) -> None:
             if module in rec_stack:
                 # Found a cycle
                 cycle_start = path.index(module)
@@ -185,7 +184,7 @@ class CircularImportDetector:
 
         return cycles
 
-    def _describe_cycle(self, cycle: List[str]) -> str:
+    def _describe_cycle(self, cycle: list[str]) -> str:
         """Create a description of the circular dependency."""
         descriptions = []
 
@@ -208,7 +207,7 @@ class CircularImportDetector:
 
         return "; ".join(descriptions)
 
-    def get_import_statistics(self) -> Dict[str, int]:
+    def get_import_statistics(self) -> dict[str, int]:
         """Get statistics about imports in the project."""
         stats = {
             "total_modules": len(self.module_files),

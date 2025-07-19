@@ -1,0 +1,313 @@
+"""LaTeX-enhanced tag renderer for advanced cross-references and hyperlinks."""
+
+from __future__ import annotations
+
+import logging
+from typing import TYPE_CHECKING, Any
+
+from .content_tracker import ContentTracker
+from .tag_ast import ASTNode, DocumentNode, TagNode, TextNode
+from .tag_handlers import TagHandler, get_default_handlers
+from .tag_renderer import RendererContext, TagRenderer
+
+logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from ...loaders.omnidexer import Omnidexer
+
+
+class LaTeXRendererContext(RendererContext):
+    """Enhanced context for LaTeX-specific rendering with cross-references."""
+
+    def __init__(
+        self,
+        renderer: LaTeXTagRenderer,
+        omnidexer: Omnidexer | None = None,
+        cross_ref_manager: CrossReferenceManager | None = None,
+        hyperlink_manager: HyperlinkManager | None = None,
+    ):
+        super().__init__(renderer, omnidexer)
+        self.cross_ref_manager = cross_ref_manager
+        self.hyperlink_manager = hyperlink_manager
+        self.latex_mode = True  # Flag for handlers to enable LaTeX features
+
+
+class LaTeXTagRenderer(TagRenderer):
+    """Enhanced tag renderer with LaTeX-specific features for cross-references and hyperlinks."""
+
+    def __init__(
+        self,
+        omnidexer: Omnidexer | None = None,
+        cross_ref_manager: CrossReferenceManager | None = None,
+        hyperlink_manager: HyperlinkManager | None = None,
+    ):
+        super().__init__(omnidexer)
+
+        # LaTeX-specific managers
+        self.cross_ref_manager = cross_ref_manager or CrossReferenceManager()
+        self.hyperlink_manager = hyperlink_manager or HyperlinkManager()
+
+        # Enhanced content tracker for LaTeX
+        self.latex_content_tracker = LaTeXContentTracker()
+
+    def render_document(self, document: DocumentNode) -> str:
+        """Render document with LaTeX context."""
+        context = LaTeXRendererContext(
+            self, self.omnidexer, self.cross_ref_manager, self.hyperlink_manager
+        )
+        return self.render_node(document, context)
+
+    def render_node(self, node: ASTNode, context: RendererContext | None = None) -> str:
+        """Render node with LaTeX enhancements."""
+        if context is None:
+            context = LaTeXRendererContext(
+                self, self.omnidexer, self.cross_ref_manager, self.hyperlink_manager
+            )
+
+        if isinstance(node, TagNode):
+            # Enhanced handling for content reference tags
+            if self._is_content_reference_tag(node):
+                return self._render_content_reference(node, context)
+
+        # Fall back to standard rendering
+        return super().render_node(node, context)
+
+    def _is_content_reference_tag(self, node: TagNode) -> bool:
+        """Check if tag is a content reference that should get cross-references."""
+        content_ref_types = {
+            "creature",
+            "spell",
+            "item",
+            "class",
+            "race",
+            "background",
+            "feat",
+            "condition",
+            "adventure",
+            "book",
+        }
+        return node.tag_type in content_ref_types
+
+    def _render_content_reference(
+        self, node: TagNode, context: LaTeXRendererContext
+    ) -> str:
+        """Render content reference with cross-reference and hyperlink support."""
+        # Get base rendering from standard handler
+        handler = self._handlers.get(node.tag_type)
+        if not handler:
+            return self._fallback_render(node)
+
+        try:
+            # Track content as usual
+            handler.track_content(node, self.content_tracker)
+
+            # Get base rendered text
+            base_text = handler.render(node, context)
+
+            # Add LaTeX enhancements if in LaTeX mode
+            if isinstance(context, LaTeXRendererContext):
+                return self._enhance_with_cross_reference(node, base_text, context)
+
+            return base_text
+
+        except Exception as e:
+            logger.error(f"Error rendering content reference {node.tag_type}: {e}")
+            return self._fallback_render(node)
+
+    def _enhance_with_cross_reference(
+        self, node: TagNode, base_text: str, context: LaTeXRendererContext
+    ) -> str:
+        """Enhance rendered text with cross-references and hyperlinks."""
+        # Generate unique reference ID
+        ref_id = self._generate_reference_id(node)
+
+        # Register this content for cross-referencing
+        context.cross_ref_manager.register_content(
+            content_type=node.tag_type,
+            name=getattr(node, "name", ""),
+            ref_id=ref_id,
+            source=getattr(node, "source", None),
+        )
+
+        # Create hyperlinked version if enabled
+        if context.hyperlink_manager.should_create_hyperlink(node.tag_type):
+            return context.hyperlink_manager.create_hyperlink(
+                text=base_text, ref_id=ref_id, content_type=node.tag_type
+            )
+
+        return base_text
+
+    def _generate_reference_id(self, node: TagNode) -> str:
+        """Generate unique LaTeX reference ID for content."""
+        # Create safe LaTeX label from content type and name
+        content_type = node.tag_type
+        name = getattr(node, "name", "")
+
+        # Sanitize name for LaTeX labels
+        safe_name = self._sanitize_for_label(name)
+
+        return f"{content_type}:{safe_name}"
+
+    def _sanitize_for_label(self, text: str | None) -> str:
+        """Sanitize text for use in LaTeX labels."""
+        import re
+
+        # Handle None or empty text
+        if not text:
+            return "unnamed"
+
+        # Convert to lowercase and replace non-alphanumeric with hyphens
+        sanitized = re.sub(r"[^a-zA-Z0-9]+", "-", text.lower())
+
+        # Remove leading/trailing hyphens
+        sanitized = sanitized.strip("-")
+
+        # Ensure it's not empty
+        return sanitized if sanitized else "unnamed"
+
+    def get_cross_reference_database(self) -> dict[str, Any]:
+        """Get all registered cross-references for document processing."""
+        return self.cross_ref_manager.get_all_references()
+
+    def get_latex_content_tracker(self) -> LaTeXContentTracker:
+        """Get the enhanced content tracker."""
+        return self.latex_content_tracker
+
+    def enable_hyperlinks(self, enable: bool = True) -> None:
+        """Enable or disable hyperlink generation."""
+        self.hyperlink_manager.enabled = enable
+
+    def set_cross_reference_format(self, ref_format: str) -> None:
+        """Set the format for cross-references (page, section, etc.)."""
+        self.cross_ref_manager.set_reference_format(ref_format)
+
+
+class CrossReferenceManager:
+    """Manages cross-references and LaTeX label generation."""
+
+    def __init__(self):
+        self.references: dict[str, dict[str, Any]] = {}
+        self.reference_format = "page"  # "page", "section", "name"
+
+    def register_content(
+        self, content_type: str, name: str, ref_id: str, source: str | None = None
+    ) -> None:
+        """Register content for cross-referencing."""
+        self.references[ref_id] = {
+            "content_type": content_type,
+            "name": name,
+            "source": source,
+            "label": ref_id,
+            "registered": True,
+        }
+
+    def get_reference(self, ref_id: str) -> dict[str, Any] | None:
+        """Get reference information by ID."""
+        return self.references.get(ref_id)
+
+    def get_all_references(self) -> dict[str, Any]:
+        """Get all registered references."""
+        return self.references.copy()
+
+    def set_reference_format(self, ref_format: str) -> None:
+        """Set the format for generating references."""
+        valid_formats = {"page", "section", "name"}
+        if ref_format in valid_formats:
+            self.reference_format = ref_format
+        else:
+            raise ValueError(f"Invalid reference format: {ref_format}")
+
+    def clear_references(self) -> None:
+        """Clear all registered references."""
+        self.references.clear()
+
+
+class HyperlinkManager:
+    """Manages hyperlink generation for PDF navigation."""
+
+    def __init__(self):
+        self.enabled = True
+        self.hyperlink_styles = {
+            "creature": {"color": "black", "border": False},
+            "spell": {"color": "blue", "border": False},
+            "item": {"color": "purple", "border": False},
+            "condition": {"color": "red", "border": False},
+            "default": {"color": "black", "border": False},
+        }
+
+    def should_create_hyperlink(self, content_type: str) -> bool:
+        """Check if hyperlinks should be created for this content type."""
+        return self.enabled
+
+    def create_hyperlink(self, text: str, ref_id: str, content_type: str) -> str:
+        """Create a LaTeX hyperlink with appropriate styling."""
+        if not self.enabled:
+            return text
+
+        # Create hyperref command
+        hyperlink = f"\\hyperref[{ref_id}]{{{text}}}"
+
+        # Add page reference if enabled
+        if self._should_add_page_reference(content_type):
+            hyperlink += f" (p. \\pageref{{{ref_id}}})"
+
+        return hyperlink
+
+    def _should_add_page_reference(self, content_type: str) -> bool:
+        """Check if page references should be added for this content type."""
+        # Only add page references for major content types
+        major_types = {"creature", "spell", "item", "class", "race"}
+        return content_type in major_types
+
+    def set_hyperlink_style(
+        self, content_type: str, color: str, border: bool = False
+    ) -> None:
+        """Set hyperlink style for a content type."""
+        self.hyperlink_styles[content_type] = {"color": color, "border": border}
+
+
+class LaTeXContentTracker(ContentTracker):
+    """Enhanced content tracker with LaTeX-specific metadata."""
+
+    def __init__(self):
+        super().__init__()
+        self.latex_metadata: dict[str, dict[str, Any]] = {}
+
+    def track_latex_content(
+        self,
+        content_type: str,
+        name: str,
+        source: str | None = None,
+        page: str | None = None,
+        ref_id: str | None = None,
+        latex_label: str | None = None,
+    ) -> None:
+        """Track content with LaTeX-specific metadata."""
+        # Use parent tracking
+        self.track_content(content_type, name, source, page)
+
+        # Add LaTeX metadata
+        key = f"{content_type}:{name}"
+        self.latex_metadata[key] = {
+            "ref_id": ref_id,
+            "latex_label": latex_label,
+            "hyperlink_target": True,
+        }
+
+    def get_latex_metadata(self, content_type: str, name: str) -> dict[str, Any] | None:
+        """Get LaTeX metadata for content."""
+        key = f"{content_type}:{name}"
+        return self.latex_metadata.get(key)
+
+    def export_for_latex_appendix(self) -> dict[str, list[dict[str, Any]]]:
+        """Export content with LaTeX metadata for appendix generation."""
+        exported = self.export_for_appendix()
+
+        # Enhance with LaTeX metadata
+        for content_type, items in exported.items():
+            for item in items:
+                key = f"{content_type}:{item['name']}"
+                latex_meta = self.latex_metadata.get(key, {})
+                item.update(latex_meta)
+
+        return exported
