@@ -63,9 +63,6 @@ Thumbs.db
 # Cache directories
 .cache/
 
-# External repositories
-5etools-src/
-
 # Generated reports
 validation_report.json
 validation_report.txt.coverage
@@ -75,9 +72,6 @@ coverage.xml
 # AI tools
 .claude/
 .gemini/
-original-code/
-
-# AI development notes
 CLAUDE.md
 
 # Coverage reports
@@ -87,3 +81,9 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 .pytest_cache/
+
+# Output directory
+output/
+
+# Developer notes
+notes/
