@@ -1,23 +1,21 @@
 # 5e2pdf: D&D 5e to PDF Converter
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/sargeant/5e2pdf/actions)
+[![Test Status](https://img.shields.io/github/actions/workflow/status/sargeant/5e2pdf/tests.yml)](https://github.com/sargeant/5e2pdf/actions)
 [![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-
-This project converts Dungeons & Dragons 5th Edition content from 5e.tools-compatible JSON data into beautifully formatted PDF documents.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## What is this?
 
 5e2pdf is a powerful command-line tool for D&D players and Dungeon Masters who want to create high-quality, printable documents from digital source files. Whether you're compiling a custom spellbook, a bestiary for your campaign, or a full adventure module, this tool gives you the power to turn JSON data into professional-looking PDFs.
 
+The JSON data uses the same format as 5e.tools – which means you can still load your homebrew and use their dynamic website with the interactive features.
+
 ## Features
 
 - **High-Quality PDF Output**: Generates clean, readable PDFs using LaTeX.
 - **5e.tools Compatibility**: Works with the widely-used 5e.tools JSON format.
-- **Content Management**: Easily manage multiple content sources (official, homebrew, local).
+- **Content Management**: Easily manage multiple content sources.
 - **Modern CLI**: A powerful and easy-to-use command-line interface.
-- **Tag Resolution**: Automatically resolves and formats over 25 different D&D `{@tags}`.
-- **Extensible Architecture**: Designed to be extended with new content types and output formats.
 
 ## Quick Start
 
@@ -33,7 +31,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 Check out the guide to [installing uv](https://docs.astral.sh/uv/getting-started/installation/)
-for other methods.
+for other packaging methods.
 
 ### 2. Install the Project
 
@@ -107,7 +105,7 @@ Contributions are welcome! Whether you're fixing a bug, adding a feature, or imp
 
     ```bash
     uv run pytest
-    uv run ruff check .
+    uv run ruff check src tests
     uv run mypy src/
     ```
 
