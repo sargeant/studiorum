@@ -66,7 +66,7 @@ class SidebarManager(ContentLayoutManager):
 
     def can_handle(self, context: LayoutContext) -> bool:
         """Handle sidebar management when explicitly requested or beneficial."""
-        return (
+        return bool(
             context.hints
             and context.hints.sidebar_type is not None
             and context.sidebar_count < self.max_sidebars_per_page
@@ -101,7 +101,11 @@ class SidebarManager(ContentLayoutManager):
             return context.hints.sidebar_position
 
         # Use sidebar type default
+        if context.hints is None:
+            return FloatPosition.HERE
         sidebar_type = context.hints.sidebar_type
+        if sidebar_type is None:
+            return FloatPosition.HERE
         default_pos = self.sidebar_positions.get(sidebar_type, FloatPosition.HERE)
 
         # Optimize based on context
@@ -241,7 +245,7 @@ class SidebarManager(ContentLayoutManager):
             else:
                 options.append(f"width={width}")
 
-        return ",".join(options) if options else None
+        return ",".join(options) if options else ""
 
     def create_read_aloud_text(self, content: str, title: str = "Read Aloud") -> str:
         """Create a read-aloud text box for adventure content."""

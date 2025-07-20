@@ -14,7 +14,7 @@ from .tag_handlers import TagHandler, get_default_handlers
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from ...loaders.omnidexer import Omnidexer
+    from dnd5e.loaders.omnidexer import Omnidexer
 
 
 class RendererContext:

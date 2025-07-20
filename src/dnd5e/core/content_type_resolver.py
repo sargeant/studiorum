@@ -7,7 +7,7 @@ from .models.content import BaseContent, ContentType
 class RegistryBasedContentTypeResolver:
     """Content type resolver using registry pattern to avoid circular imports."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._registry = get_content_type_registry()
         self._initialized = False
 
@@ -59,7 +59,10 @@ class RegistryBasedContentTypeResolver:
             Resolved content type
         """
         self._ensure_initialized()
-        return self._registry.get_type(content)
+        result = self._registry.get_type(content)
+        if result is None:
+            raise ValueError(f"Unknown content type for {type(content).__name__}")
+        return result
 
     def register_type(
         self, content_class: type[BaseContent], content_type: ContentType

@@ -74,10 +74,13 @@ class MultiColumnManager(ContentLayoutManager):
         """Determine the optimal number of columns for the content."""
         # Check hints first
         if context.hints and hasattr(context.hints, "column_count"):
-            return getattr(context.hints, "column_count", self.default_columns)
+            column_count = getattr(context.hints, "column_count", self.default_columns)
+            return (
+                int(column_count) if column_count is not None else self.default_columns
+            )
 
         # Use content type preferences
-        return self.content_columns.get(context.content_type, self.default_columns)
+        return int(self.content_columns.get(context.content_type, self.default_columns))
 
     def _should_use_columns(self, context: LayoutContext) -> bool:
         """Determine if columns should be used for this content."""

@@ -51,6 +51,9 @@ class GitHubSourceManager:
             cmd = ["git", "clone", "--depth", "1"]
             if source.branch and source.branch != "master":
                 cmd.extend(["--branch", source.branch])
+
+            if source.url is None:
+                raise ValueError(f"Source {source.name} has no URL configured")
             cmd.extend([source.url, str(repo_path)])
 
             # Run git clone

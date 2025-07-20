@@ -52,7 +52,7 @@ class Source(BaseModel):
     page: int | None = Field(None, description="Page number reference")
     url: str | None = Field(None, description="URL reference")
 
-    def model_post_init(self, __context):
+    def model_post_init(self, __context: dict | None) -> None:
         """Set name to abbreviation if not provided."""
         if self.name is None:
             self.name = self.abbreviation
@@ -76,13 +76,14 @@ class BaseContent(BaseModel):
 
     @field_validator("source", mode="before")
     @classmethod
-    def parse_source(cls, v):
+    def parse_source(cls, v: str | dict[str, str]) -> dict[str, str]:
         """Handle both string and dict source formats for liberal parsing."""
         if isinstance(v, str):
             return {"abbreviation": v, "name": v}
         elif isinstance(v, dict):
             return v
-        return v
+        # Fallback - convert to string and create dict
+        return {"abbreviation": str(v), "name": str(v)}
 
     def __str__(self) -> str:
         return f"{self.name} ({self.source.abbreviation})"

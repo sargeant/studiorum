@@ -15,7 +15,7 @@ from .tag_renderer import RendererContext, TagRenderer
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from ...loaders.omnidexer import Omnidexer
+    from dnd5e.loaders.omnidexer import Omnidexer
 
 
 class LaTeXRendererContext(RendererContext):
@@ -69,6 +69,14 @@ class LaTeXTagRenderer(TagRenderer):
         if isinstance(node, TagNode):
             # Enhanced handling for content reference tags
             if self._is_content_reference_tag(node):
+                # Ensure we have LaTeX context for content references
+                if not isinstance(context, LaTeXRendererContext):
+                    context = LaTeXRendererContext(
+                        self,
+                        self.omnidexer,
+                        self.cross_ref_manager,
+                        self.hyperlink_manager,
+                    )
                 return self._render_content_reference(node, context)
 
         # Fall back to standard rendering
@@ -124,15 +132,19 @@ class LaTeXTagRenderer(TagRenderer):
         ref_id = self._generate_reference_id(node)
 
         # Register this content for cross-referencing
-        context.cross_ref_manager.register_content(
-            content_type=node.tag_type,
-            name=getattr(node, "name", ""),
-            ref_id=ref_id,
-            source=getattr(node, "source", None),
-        )
+        if context.cross_ref_manager is not None:
+            context.cross_ref_manager.register_content(
+                content_type=node.tag_type,
+                name=getattr(node, "name", ""),
+                ref_id=ref_id,
+                source=getattr(node, "source", None),
+            )
 
         # Create hyperlinked version if enabled
-        if context.hyperlink_manager.should_create_hyperlink(node.tag_type):
+        if (
+            context.hyperlink_manager is not None
+            and context.hyperlink_manager.should_create_hyperlink(node.tag_type)
+        ):
             return context.hyperlink_manager.create_hyperlink(
                 text=base_text, ref_id=ref_id, content_type=node.tag_type
             )
@@ -187,7 +199,7 @@ class LaTeXTagRenderer(TagRenderer):
 class CrossReferenceManager:
     """Manages cross-references and LaTeX label generation."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.references: dict[str, dict[str, Any]] = {}
         self.reference_format = "page"  # "page", "section", "name"
 
@@ -227,7 +239,7 @@ class CrossReferenceManager:
 class HyperlinkManager:
     """Manages hyperlink generation for PDF navigation."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.enabled = True
         self.hyperlink_styles = {
             "creature": {"color": "black", "border": False},
@@ -271,7 +283,7 @@ class HyperlinkManager:
 class LaTeXContentTracker(ContentTracker):
     """Enhanced content tracker with LaTeX-specific metadata."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.latex_metadata: dict[str, dict[str, Any]] = {}
 
@@ -286,7 +298,7 @@ class LaTeXContentTracker(ContentTracker):
     ) -> None:
         """Track content with LaTeX-specific metadata."""
         # Use parent tracking
-        self.track_content(content_type, name, source, page)
+        self.add_content(content_type, name, source, page)
 
         # Add LaTeX metadata
         key = f"{content_type}:{name}"

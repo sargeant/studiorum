@@ -62,7 +62,7 @@ class DocumentCover(BaseModel):
 
     @field_validator("image_path", mode="before")
     @classmethod
-    def parse_image_path(cls, v):
+    def parse_image_path(cls, v: str | Path | None) -> Path | None:
         """Parse image path from string or Path."""
         if isinstance(v, str):
             return Path(v)
@@ -126,7 +126,7 @@ class DocumentMetadata(BaseModel):
 
     @field_validator("date", mode="before")
     @classmethod
-    def parse_date(cls, v):
+    def parse_date(cls, v: str | datetime | None) -> datetime | None:
         """Parse date from various formats."""
         if isinstance(v, str):
             # Try to parse common date formats
@@ -135,13 +135,13 @@ class DocumentMetadata(BaseModel):
                     return datetime.strptime(v, fmt)
                 except ValueError:
                     continue
-            # If parsing fails, keep as string
-            return v
+            # If parsing fails, raise an error
+            raise ValueError(f"Unable to parse date: {v}")
         return v
 
     @field_validator("logo_path", mode="before")
     @classmethod
-    def parse_logo_path(cls, v):
+    def parse_logo_path(cls, v: str | Path | None) -> Path | None:
         """Parse logo path from string or Path."""
         if isinstance(v, str):
             return Path(v)

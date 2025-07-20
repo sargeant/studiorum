@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from dnd5e.core.logging import get_logger
 
+from .content import BaseContent
+
 logger = get_logger(__name__)
 
 
@@ -91,24 +93,14 @@ class FluffEntry(BaseModel):
         return " ".join(text_parts)
 
 
-class BaseFluff(BaseModel):
+class BaseFluff(BaseContent):
     """Base fluff content with liberal parsing."""
 
-    name: str
-    source: str | dict[str, str]
     entries: list[FluffEntry] = Field(default_factory=list)
     images: list[FluffImage] = Field(default_factory=list)
 
     # Additional fields that might be present
     extra_data: dict[str, Any] = Field(default_factory=dict, exclude=True)
-
-    @field_validator("source", mode="before")
-    @classmethod
-    def parse_source(cls, v):
-        """Handle both string and dict source formats."""
-        if isinstance(v, str):
-            return {"abbreviation": v, "name": v}
-        return v
 
     @field_validator("entries", mode="before")
     @classmethod
