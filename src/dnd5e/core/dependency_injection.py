@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Optional, Protocol, TypeVar, runtime_checkable
+from typing import Any, Optional, Protocol, TypeVar, cast, runtime_checkable
 
 from .interfaces import (
     ContentIndexer,
@@ -66,7 +66,7 @@ class DependencyContainer:
         """
         self._services[service_type] = ServiceRegistration(
             service_type=service_type,
-            factory=lambda _: instance,
+            factory=LambdaServiceFactory(lambda _: instance),
             singleton=True,
             instance=instance,
         )
@@ -94,7 +94,7 @@ class DependencyContainer:
 
         # Return existing singleton instance if available
         if registration.singleton and registration.instance is not None:
-            return registration.instance
+            return cast(T, registration.instance)
 
         # Create new instance
         self._building.add(service_type)
@@ -102,7 +102,7 @@ class DependencyContainer:
             instance = registration.factory.create(self)
             if registration.singleton:
                 registration.instance = instance
-            return instance
+            return cast(T, instance)
         finally:
             self._building.discard(service_type)
 
@@ -161,7 +161,7 @@ def inject(*dependencies: type) -> Any:
             container = get_dependency_container()
 
             # Resolve dependencies
-            injected_args = []
+            injected_args: list[Any] = []
             for dep_type in dependencies:
                 injected_args.append(container.resolve(dep_type))
 
@@ -212,19 +212,21 @@ def configure_services() -> None:
     def create_tag_resolver(container: DependencyContainer) -> Any:
         from .indexer.tag_resolver import TagResolver
 
-        indexer = container.resolve(ContentIndexer)
-        return TagResolver(indexer)
+        # ContentIndexer is registered as Omnidexer, so this cast is safe
+        indexer = container.resolve(ContentIndexer)  # type: ignore[type-abstract]
+        return TagResolver(indexer)  # type: ignore[arg-type]
 
     container.register(TagResolver, LambdaServiceFactory(create_tag_resolver))
 
     # Register service locator for backward compatibility
     service_locator = get_service_locator()
     service_locator.register(
-        ContentTypeResolver, container.resolve(ContentTypeResolver)
+        ContentTypeResolver,
+        container.resolve(ContentTypeResolver),  # type: ignore[type-abstract]
     )
-    service_locator.register(ContentLoader, container.resolve(ContentLoader))
-    service_locator.register(ContentIndexer, container.resolve(ContentIndexer))
-    service_locator.register(TagResolver, container.resolve(TagResolver))
+    service_locator.register(ContentLoader, container.resolve(ContentLoader))  # type: ignore[type-abstract]
+    service_locator.register(ContentIndexer, container.resolve(ContentIndexer))  # type: ignore[type-abstract]
+    service_locator.register(TagResolver, container.resolve(TagResolver))  # type: ignore[type-abstract]
 
 
 # Auto-configure services when module is imported
