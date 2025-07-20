@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 class ConfigurableSourceManager(SourceManager):
     """Source manager that uses configurable content sources."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize with content configuration."""
         self.config = get_content_config()
         self.content_manager = ContentSourceManager(self.config)

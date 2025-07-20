@@ -9,7 +9,7 @@ from ..models.content import BaseContent, ContentType
 class ContentFactory:
     """Factory for creating content instances based on content type."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._registry = get_content_type_registry()
         self._class_map: dict[ContentType, type[BaseContent]] = {}
         self._initialized = False

@@ -1,6 +1,7 @@
 """Info command for 5e2pdf CLI."""
 
 import asyncio
+from typing import Any
 
 import typer
 from rich import print as rprint
@@ -146,7 +147,7 @@ def show_file_info(
         raise typer.Exit(1)
 
 
-def _display_content_details(item) -> None:
+def _display_content_details(item: Any) -> None:
     """Display detailed information about a content item."""
     from dnd5e.core.models.creatures import Creature
     from dnd5e.core.models.items import Item
@@ -176,7 +177,7 @@ def _display_content_details(item) -> None:
         _display_item_details(item)
 
 
-def _display_spell_details(spell) -> None:
+def _display_spell_details(spell: Any) -> None:
     """Display detailed spell information."""
     details = f"""
 [cyan]Level:[/cyan] {spell.get_level_text()}
@@ -202,7 +203,7 @@ def _display_spell_details(spell) -> None:
         )
 
 
-def _display_creature_details(creature) -> None:
+def _display_creature_details(creature: Any) -> None:
     """Display detailed creature information."""
     size = creature.size[0] if creature.size else "Medium"
     cr = getattr(creature, "cr", "Unknown")
@@ -235,7 +236,7 @@ def _display_creature_details(creature) -> None:
     )
 
 
-def _display_item_details(item) -> None:
+def _display_item_details(item: Any) -> None:
     """Display detailed item information."""
     item_type = getattr(item, "type", "Item")
     rarity = getattr(item, "rarity", None)

@@ -174,7 +174,7 @@ class ContentOrganizer:
             Sorted list of spells
         """
 
-        def spell_sort_key(spell):
+        def spell_sort_key(spell: BaseContent) -> tuple[int, str, str]:
             level = getattr(spell, "level", 0)
             school = getattr(spell, "school", "")
             name = spell.name.lower()
@@ -192,7 +192,7 @@ class ContentOrganizer:
             Sorted list of creatures
         """
 
-        def creature_sort_key(creature):
+        def creature_sort_key(creature: BaseContent) -> tuple[float, str]:
             # Extract challenge rating
             cr = getattr(creature, "cr", 0)
             if isinstance(cr, dict):
@@ -224,7 +224,7 @@ class ContentOrganizer:
             Sorted list of items
         """
 
-        def item_sort_key(item):
+        def item_sort_key(item: BaseContent) -> tuple[str, int, str]:
             item_type = getattr(item, "type", "")
             rarity = getattr(item, "rarity", "common")
 

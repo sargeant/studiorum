@@ -2,6 +2,7 @@
 
 import asyncio
 from pathlib import Path
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -88,7 +89,7 @@ def setup_wizard() -> None:
         console.print("[bold]5e2pdf sources scan[/bold]")
 
 
-def _setup_defaults(config_manager) -> None:
+def _setup_defaults(config_manager: Any) -> None:
     """Set up default sources."""
     console.print("\n[cyan]Setting up default sources...[/cyan]")
 
@@ -105,7 +106,7 @@ def _setup_defaults(config_manager) -> None:
     console.print(table)
 
 
-def _setup_custom(config_manager) -> None:
+def _setup_custom(config_manager: Any) -> None:
     """Set up custom sources."""
     console.print("\n[cyan]Custom setup - Add sources manually[/cyan]")
 
@@ -132,7 +133,7 @@ def _setup_custom(config_manager) -> None:
     config_manager.update_config(config)
 
 
-def _setup_local(config_manager) -> None:
+def _setup_local(config_manager: Any) -> None:
     """Set up local directory sources only."""
     console.print("\n[cyan]Local setup - Add local directories[/cyan]")
 
@@ -179,7 +180,7 @@ def _setup_local(config_manager) -> None:
     config_manager.update_config(config)
 
 
-def _add_source_interactive(config) -> bool:
+def _add_source_interactive(config: Any) -> bool:
     """Interactively add a source to config."""
     name = Prompt.ask("Source name")
 

@@ -107,7 +107,7 @@ class RenderContext:
 
         return True
 
-    def copy(self, **updates) -> RenderContext:
+    def copy(self, **updates: Any) -> RenderContext:
         """Create a copy of this context with optional updates.
 
         Args:

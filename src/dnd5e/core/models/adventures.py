@@ -34,7 +34,7 @@ class AdventureChapter(BaseModel):
 
     @field_validator("headers", mode="before")
     @classmethod
-    def parse_headers(cls, v):
+    def parse_headers(cls, v: Any) -> Any:
         """Parse headers from various formats."""
         if not v:
             return v
@@ -115,7 +115,7 @@ class Adventure(BaseContent):
     group: str | None = Field(None, description="Adventure group")
     cover: dict[str, Any] | None = Field(None, description="Cover image")
 
-    def model_post_init(self, __context) -> None:
+    def model_post_init(self, __context: Any) -> None:
         """Post-process parsed data."""
         # Create metadata from individual fields if not present
         if not self.metadata and any(

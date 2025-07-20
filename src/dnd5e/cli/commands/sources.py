@@ -200,7 +200,7 @@ def update_sources(
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
-    async def _update():
+    async def _update() -> None:
         if name:
             # Update specific source
             console.print(f"Updating source '{name}'...")

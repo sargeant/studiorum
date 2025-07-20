@@ -266,7 +266,7 @@ def create_latex_tag_integration(
 
 
 def integrate_with_latex_renderer(
-    latex_content_renderer,
+    latex_content_renderer: Any,
     omnidexer: Omnidexer | None = None,
     config: dict[str, Any] | None = None,
 ) -> None:

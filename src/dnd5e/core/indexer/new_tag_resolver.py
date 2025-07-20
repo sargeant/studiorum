@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 class TagResolverFacade:
     """Facade providing backward compatibility with the old TagResolver API."""
 
-    def __init__(self, omnidexer=None):
+    def __init__(self, omnidexer: Any = None) -> None:
         self.omnidexer = omnidexer
         self.parser = TagParser()
         self.renderer = TagRenderer(omnidexer)

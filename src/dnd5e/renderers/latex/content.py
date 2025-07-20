@@ -3665,12 +3665,12 @@ class LaTeXFeatRenderer(LaTeXContentRenderer):
 class LaTeXContentRendererRegistry:
     """Registry for LaTeX content renderers."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize renderer registry."""
         self._renderers: dict[ContentType, ContentRenderer] = {}
         self._register_default_renderers()
 
-    def _register_default_renderers(self):
+    def _register_default_renderers(self) -> None:
         """Register default content renderers."""
         self.register_renderer(ContentType.SPELL, LaTeXSpellRenderer())
         self.register_renderer(ContentType.CREATURE, LaTeXCreatureRenderer())
@@ -3681,7 +3681,9 @@ class LaTeXContentRendererRegistry:
         self.register_renderer(ContentType.BACKGROUND, LaTeXBackgroundRenderer())
         self.register_renderer(ContentType.FEAT, LaTeXFeatRenderer())
 
-    def register_renderer(self, content_type: ContentType, renderer: ContentRenderer):
+    def register_renderer(
+        self, content_type: ContentType, renderer: ContentRenderer
+    ) -> None:
         """Register a renderer for a content type.
 
         Args:

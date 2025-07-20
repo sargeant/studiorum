@@ -527,18 +527,18 @@ class ItemProcessor(ContentProcessor):
 class ContentProcessorRegistry:
     """Registry for content processors."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize processor registry."""
         self._processors: dict[ContentType, ContentProcessor] = {}
         self._register_default_processors()
 
-    def _register_default_processors(self):
+    def _register_default_processors(self) -> None:
         """Register default content processors."""
         self.register_processor(SpellProcessor())
         self.register_processor(CreatureProcessor())
         self.register_processor(ItemProcessor())
 
-    def register_processor(self, processor: ContentProcessor):
+    def register_processor(self, processor: ContentProcessor) -> None:
         """Register a content processor.
 
         Args:

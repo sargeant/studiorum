@@ -218,7 +218,7 @@ class TagASTTransformer(Transformer):
 class TagParser:
     """Main parser class for D&D 5e.tools tags."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Load grammar from file
         grammar_path = Path(__file__).parent / "tag_grammar.lark"
         with open(grammar_path) as f:

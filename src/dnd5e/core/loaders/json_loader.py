@@ -559,7 +559,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return " ".join(text_parts) if text_parts else ""
 
-    def _extract_text_from_entries(self, entries) -> list[str]:
+    def _extract_text_from_entries(self, entries: Any) -> list[str]:
         """Recursively extract text from complex entry structures."""
         text_parts = []
 

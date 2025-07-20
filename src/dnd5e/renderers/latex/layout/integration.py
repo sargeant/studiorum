@@ -11,7 +11,7 @@ from .layout_engine import LayoutEngine
 class LayoutIntegrationMixin:
     """Mixin class that adds layout capabilities to content renderers."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the mixin with layout engine."""
         super().__init__(*args, **kwargs)
 
