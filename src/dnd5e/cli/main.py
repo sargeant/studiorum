@@ -13,6 +13,7 @@ from dnd5e.core.config.settings import get_settings
 from dnd5e.core.indexer.tag_resolver import TagResolver
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.logging.logger import setup_logging
+from dnd5e.core.models.content import BaseContent
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
@@ -32,7 +33,7 @@ _tag_resolver: TagResolver | None = None
 
 
 @app.command("version")
-def show_version():
+def show_version() -> None:
     """Show version information."""
     rprint("[bold blue]5e2pdf[/bold blue] [green]v2.0.0[/green] - Modern Architecture")
     rprint("Convert D&D 5e JSON → LaTeX → PDF")
@@ -41,7 +42,7 @@ def show_version():
 @app.callback()
 def main(
     verbose: bool = typer.Option(False, "--verbose", help="Enable verbose output"),
-):
+) -> None:
     """
     🎲 **5e2pdf** - Modern D&D 5e content converter
 
@@ -94,27 +95,27 @@ try:
 except ImportError:
     # Fallback placeholder commands if imports fail
     @app.command("convert")
-    def convert_command():
+    def convert_command() -> None:
         """Convert content to LaTeX/PDF (placeholder)."""
         rprint("[yellow]Convert command not yet implemented[/yellow]")
 
     @app.command("list")
-    def list_command():
+    def list_command() -> None:
         """List available content (placeholder)."""
         rprint("[yellow]List command not yet implemented[/yellow]")
 
     @app.command("info")
-    def info_command():
+    def info_command() -> None:
         """Show content information (placeholder)."""
         rprint("[yellow]Info command not yet implemented[/yellow]")
 
     @app.command("setup")
-    def setup_command():
+    def setup_command() -> None:
         """Setup wizard (placeholder)."""
         rprint("[yellow]Setup command not yet implemented[/yellow]")
 
     @app.command("stats")
-    def stats_command():
+    def stats_command() -> None:
         """Show content statistics (placeholder)."""
         rprint("[yellow]Stats command not yet implemented[/yellow]")
 
@@ -124,7 +125,7 @@ def serve_api(
     host: str = typer.Option("localhost", "--host", help="Host to bind to"),
     port: int = typer.Option(8000, "--port", help="Port to bind to"),
     reload: bool = typer.Option(False, "--reload", help="Enable auto-reload"),
-):
+) -> None:
     """
     🚀 **API Server** - Start REST API server (Future Feature)
 
@@ -143,7 +144,7 @@ def quick_convert(
     ),
     with_images: bool = typer.Option(False, "--images", help="Include images"),
     compile_pdf: bool = typer.Option(False, "--pdf", help="Compile to PDF"),
-):
+) -> None:
     """
     ⚡ **Quick Convert** - Fast single-file conversion
 
@@ -151,7 +152,7 @@ def quick_convert(
     Perfect for quick conversions and testing.
     """
 
-    async def _quick_convert():
+    async def _quick_convert() -> None:
         try:
             # Validate input
             if not input_file.exists():
@@ -178,7 +179,7 @@ def quick_convert(
                 data = json.load(f)
 
             # Simple content detection and loading
-            content_items = []
+            content_items: list[BaseContent] = []
             for key, items in data.items():
                 if isinstance(items, list):
                     for item_data in items:

@@ -3,6 +3,7 @@
 import os
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 import yaml
 from pydantic import BaseModel, Field, field_validator
@@ -52,7 +53,7 @@ class ContentSource(BaseModel):
 
     @field_validator("url")
     @classmethod
-    def validate_url(cls, v: str | None, info) -> str | None:
+    def validate_url(cls, v: str | None, info: Any) -> str | None:
         """Validate URL is provided for web/github sources."""
         if info.data.get("type") in [SourceType.GITHUB, SourceType.WEB] and not v:
             raise ValueError(f"URL is required for {info.data.get('type')} sources")
@@ -60,7 +61,7 @@ class ContentSource(BaseModel):
 
     @field_validator("path")
     @classmethod
-    def validate_path(cls, v: str | Path | None, info) -> Path | None:
+    def validate_path(cls, v: str | Path | None, info: Any) -> Path | None:
         """Validate path is provided for directory sources."""
         if info.data.get("type") == SourceType.DIRECTORY:
             if not v:
@@ -103,7 +104,7 @@ class ContentConfiguration(BaseModel):
         default=3600, description="Content index cache TTL in seconds"
     )
 
-    def model_post_init(self, __context) -> None:
+    def model_post_init(self, __context: Any) -> None:
         """Post-process configuration after parsing."""
         # Ensure directories exist
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -210,6 +211,7 @@ class ContentConfigManager:
                 path=Path("srd-data"),
                 enabled=True,
                 priority=1,
+                url=None,
             )
         )
 

@@ -26,7 +26,7 @@ class ReferenceContext:
 class ReferenceResolver:
     """Resolves and manages references in LaTeX documents."""
 
-    def __init__(self, tag_integration):
+    def __init__(self, tag_integration: Any) -> None:
         """Initialize with tag integration system."""
         self.tag_integration = tag_integration
         self.reference_cache: dict[str, str] = {}
@@ -94,7 +94,7 @@ class ReferenceResolver:
 
         # Cache result
         self.reference_cache[cache_key] = result
-        return result
+        return str(result)
 
     def _apply_basic_formatting(self, content_type: str, text: str) -> str:
         """Apply basic LaTeX formatting based on content type."""
@@ -161,7 +161,7 @@ class ReferenceResolver:
             f"{content_type}:{name}", context.current_page
         )
 
-        return label
+        return str(label)
 
     def resolve_adventure_reference(
         self,
@@ -226,10 +226,12 @@ class ReferenceResolver:
         # Create section label (sanitized)
         section_label = self._sanitize_section_label(section_name)
 
-        return hyperlink_mgr.create_section_reference(
-            text=section_name,
-            section_label=section_label,
-            ref_type=ref_type,
+        return str(
+            hyperlink_mgr.create_section_reference(
+                text=section_name,
+                section_label=section_label,
+                ref_type=ref_type,
+            )
         )
 
     def _sanitize_section_label(self, section_name: str) -> str:
@@ -249,7 +251,7 @@ class ReferenceResolver:
 
     def find_unresolved_references(self) -> list[dict[str, str]]:
         """Find references that couldn't be resolved."""
-        issues = []
+        issues: list[dict[str, str]] = []
         cross_ref_mgr = self.tag_integration.cross_ref_manager
 
         if not cross_ref_mgr:
@@ -282,7 +284,7 @@ class ReferenceResolver:
         cross_ref_mgr = self.tag_integration.cross_ref_manager
         content_tracker = self.tag_integration.content_tracker
 
-        report = {
+        report: dict[str, Any] = {
             "total_references": len(self.reference_cache),
             "forward_references": len(self.forward_references),
             "backward_references": len(self.backward_references),

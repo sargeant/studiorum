@@ -24,7 +24,7 @@ class Reference:
 class ReferenceIndex:
     """Indexes cross-references between content for generating lists and citations."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Forward references: content -> what it references
         self._forward_refs: dict[str, list[Reference]] = defaultdict(list)
 
@@ -41,7 +41,7 @@ class ReferenceIndex:
         target_name: str,
         target_source: str | None = None,
         context: str = "",
-    ):
+    ) -> None:
         """Add a reference from source content to target content."""
 
         source_key = self._get_content_key(source)
@@ -89,7 +89,7 @@ class ReferenceIndex:
 
     def get_reference_statistics(self) -> dict[str, Any]:
         """Get statistics about references in the index."""
-        stats = {
+        stats: dict[str, Any] = {
             "total_references": sum(len(refs) for refs in self._forward_refs.values()),
             "content_with_references": len(self._forward_refs),
             "referenced_content": len(self._backward_refs),

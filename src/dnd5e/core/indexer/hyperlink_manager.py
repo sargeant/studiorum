@@ -24,7 +24,7 @@ class HyperlinkStyle:
 class HyperlinkManager:
     """Manages hyperlink generation and styling for PDF navigation."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.enabled = True
         self.auto_page_refs = True
 
@@ -280,7 +280,7 @@ class HyperlinkManager:
         """Get statistics about hyperlinks in content."""
         import re
 
-        stats = {
+        stats: dict[str, Any] = {
             "total_internal_links": 0,
             "total_external_links": 0,
             "by_content_type": {},

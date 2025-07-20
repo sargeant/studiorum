@@ -2,6 +2,7 @@
 
 import asyncio
 from pathlib import Path
+from typing import Any
 
 import typer
 from rich import print as rprint
@@ -24,7 +25,7 @@ def list_files(
     pattern: str = typer.Option(
         "*.json", "--pattern", "-p", help="File pattern to match"
     ),
-):
+) -> None:
     """
     📁 List available JSON files
 
@@ -77,7 +78,7 @@ def list_content(
     ),
     limit: int = typer.Option(20, "--limit", "-l", help="Limit number of results"),
     search: str | None = typer.Option(None, "--search", help="Search content names"),
-):
+) -> None:
     """
     📋 List loaded content items
 
@@ -85,7 +86,7 @@ def list_content(
     Useful for finding specific spells, creatures, items, etc.
     """
 
-    async def _list_content():
+    async def _list_content() -> None:
         try:
             # Load omnidexer
             with Progress() as progress:
@@ -162,14 +163,14 @@ def list_content(
 
 
 @app.command("sources")
-def list_sources():
+def list_sources() -> None:
     """
     📚 List available source books
 
     Shows all source books that have content loaded in the system.
     """
 
-    async def _list_sources():
+    async def _list_sources() -> None:
         try:
             # Load omnidexer
             with Progress() as progress:
@@ -215,7 +216,7 @@ def _format_file_size(size_bytes: int) -> str:
         return f"{size_bytes / (1024 * 1024):.1f} MB"
 
 
-def _get_content_details(item) -> str:
+def _get_content_details(item: Any) -> str:
     """Get brief details about a content item."""
     from dnd5e.core.models.creatures import Creature
     from dnd5e.core.models.items import Item

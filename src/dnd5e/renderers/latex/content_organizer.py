@@ -1,7 +1,7 @@
 """Content organization utilities for document structure."""
 
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import Any
 
 from ...core.models.content import BaseContent, ContentType
@@ -29,7 +29,7 @@ class ContentOrganizer:
         }
 
     def organize_content(
-        self, content_items: list[BaseContent]
+        self, content_items: Sequence[BaseContent]
     ) -> dict[str, list[BaseContent]]:
         """Organize content items by type and sort appropriately.
 
@@ -40,7 +40,7 @@ class ContentOrganizer:
             Dictionary mapping content types to sorted lists
         """
         # Group by content type
-        grouped = self._group_by_content_type(content_items)
+        grouped = self._group_by_content_type(list(content_items))
 
         # Sort each group appropriately
         for content_type, items in grouped.items():
@@ -79,7 +79,9 @@ class ContentOrganizer:
         Returns:
             Nested dictionary: source -> content_type -> items
         """
-        organized = defaultdict(lambda: defaultdict(list))
+        organized: dict[str, dict[str, list[Any]]] = defaultdict(
+            lambda: defaultdict(list)
+        )
 
         for item in content_items:
             source_key = item.source.abbreviation
@@ -174,7 +176,7 @@ class ContentOrganizer:
             Sorted list of spells
         """
 
-        def spell_sort_key(spell):
+        def spell_sort_key(spell: BaseContent) -> tuple[int, str, str]:
             level = getattr(spell, "level", 0)
             school = getattr(spell, "school", "")
             name = spell.name.lower()
@@ -192,7 +194,7 @@ class ContentOrganizer:
             Sorted list of creatures
         """
 
-        def creature_sort_key(creature):
+        def creature_sort_key(creature: BaseContent) -> tuple[float, str]:
             # Extract challenge rating
             cr = getattr(creature, "cr", 0)
             if isinstance(cr, dict):
@@ -224,7 +226,7 @@ class ContentOrganizer:
             Sorted list of items
         """
 
-        def item_sort_key(item):
+        def item_sort_key(item: BaseContent) -> tuple[str, int, str]:
             item_type = getattr(item, "type", "")
             rarity = getattr(item, "rarity", "common")
 
@@ -332,7 +334,11 @@ class ContentOrganizer:
             title=title,
             level=level,
             numbered=True,
+            label=None,
             content_items=items,
+            page_break_before=False,
+            page_break_after=False,
+            two_column=None,
         )
 
         # Create subsections for complex content types
@@ -370,7 +376,11 @@ class ContentOrganizer:
                 title=level_key,
                 level=SectionLevel.SECTION,
                 numbered=True,
+                label=None,
                 content_items=by_level[level_key],
+                page_break_before=False,
+                page_break_after=False,
+                two_column=None,
             )
             subsections.append(subsection)
 
@@ -403,7 +413,11 @@ class ContentOrganizer:
                     title=cr_key,
                     level=SectionLevel.SECTION,
                     numbered=True,
+                    label=None,
                     content_items=by_cr[cr_key],
+                    page_break_before=False,
+                    page_break_after=False,
+                    two_column=None,
                 )
                 subsections.append(subsection)
 
@@ -435,7 +449,11 @@ class ContentOrganizer:
                 title=item_type,
                 level=SectionLevel.SECTION,
                 numbered=True,
+                label=None,
                 content_items=by_type[item_type],
+                page_break_before=False,
+                page_break_after=False,
+                two_column=None,
             )
             subsections.append(subsection)
 

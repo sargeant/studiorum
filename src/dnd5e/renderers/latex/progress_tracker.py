@@ -3,7 +3,7 @@
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Optional, Protocol
+from typing import Any, Optional, Protocol
 
 try:
     from rich.console import Console
@@ -149,7 +149,7 @@ class RichProgressReporter:
 class SimpleProgressReporter:
     """Simple text-based progress reporter."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize simple progress reporter."""
         self.current_pass = 0
         self.total_passes = 0
@@ -267,7 +267,7 @@ class ProgressTracker:
             return NoProgressReporter()
 
     @contextmanager
-    def compilation(self, engine: str, total_passes: int):
+    def compilation(self, engine: str, total_passes: int) -> Any:
         """Context manager for tracking full compilation.
 
         Args:
@@ -293,7 +293,7 @@ class ProgressTracker:
             self._reporter.finish_compilation(success, duration)
 
     @contextmanager
-    def compilation_pass(self, pass_number: int, description: str):
+    def compilation_pass(self, pass_number: int, description: str) -> Any:
         """Context manager for tracking a single compilation pass.
 
         Args:

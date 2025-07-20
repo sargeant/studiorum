@@ -104,11 +104,7 @@ class TableFormatter(ContentLayoutManager):
             "\\begin{array}",
             "&" in content and "\\\\" in content,  # LaTeX table syntax
         ]
-        return any(
-            indicator
-            for indicator in indicators
-            if isinstance(indicator, bool) or indicator in content
-        )
+        return any(indicators)
 
     def _is_list_data(self, content: str) -> bool:
         """Check if content is structured list data that would benefit from tables."""

@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 class ConfigurableSourceManager(SourceManager):
     """Source manager that uses configurable content sources."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize with content configuration."""
         self.config = get_content_config()
         self.content_manager = ContentSourceManager(self.config)
@@ -135,7 +135,11 @@ class ConfigurableSourceManager(SourceManager):
         if self._source_info_cache is None:
             self._build_source_info_cache()
 
-        return self._source_info_cache.get(source_abbrev)
+        return (
+            self._source_info_cache.get(source_abbrev)
+            if self._source_info_cache
+            else None
+        )
 
     def get_source_priority(self, source_abbrev: str) -> int:
         """Get priority for a source (lower numbers = higher priority)."""
@@ -349,17 +353,17 @@ class ConfigurableSourceManager(SourceManager):
         """Get list of all available source abbreviations."""
         if self._source_info_cache is None:
             self._build_source_info_cache()
-        return list(self._source_info_cache.keys())
+        return list(self._source_info_cache.keys()) if self._source_info_cache else []
 
     def get_content_statistics(self) -> dict[str, Any]:
         """Get statistics about available content."""
-        stats = {"sources": len(self.config.get_enabled_sources())}
+        stats: dict[str, Any] = {"sources": len(self.config.get_enabled_sources())}
 
         data_paths = self.get_data_paths()
         stats["content_types"] = len(data_paths)
         stats["total_files"] = sum(len(paths) for paths in data_paths.values())
 
-        by_type = {}
+        by_type: dict[str, int] = {}
         for content_type, paths in data_paths.items():
             by_type[content_type.value] = len(paths)
         stats["by_type"] = by_type

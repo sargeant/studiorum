@@ -21,7 +21,7 @@ app = typer.Typer(help="Manage content sources")
 
 
 @app.command("list")
-def list_sources():
+def list_sources() -> None:
     """List all configured content sources."""
     config = get_content_config()
 
@@ -71,7 +71,7 @@ def add_source(
     auto_update: bool = typer.Option(
         True, "--auto-update/--no-auto-update", help="Enable automatic updates"
     ),
-):
+) -> None:
     """Add a new content source."""
 
     # Validate source type
@@ -94,6 +94,7 @@ def add_source(
 
     # Validate directory path exists
     if source_type_enum == SourceType.DIRECTORY:
+        assert path is not None  # Already validated above
         dir_path = Path(path).expanduser().resolve()
         if not dir_path.exists():
             console.print(f"[red]Error:[/red] Directory does not exist: {dir_path}")
@@ -155,7 +156,7 @@ def remove_source(
     remove_data: bool = typer.Option(
         False, "--remove-data", help="Also remove cached data"
     ),
-):
+) -> None:
     """Remove a content source."""
     config_manager = get_config_manager()
     config = config_manager.get_config()
@@ -195,18 +196,19 @@ def remove_source(
 @app.command("update")
 def update_sources(
     name: str | None = typer.Argument(None, help="Name of specific source to update"),
-):
+) -> None:
     """Update content sources."""
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
-    async def _update():
+    async def _update() -> bool:
         if name:
             # Update specific source
             console.print(f"Updating source '{name}'...")
             success = await source_manager.update_source(name)
             if success:
                 console.print(f"[green]✅ Successfully updated '{name}'[/green]")
+                return True
             else:
                 console.print(f"[red]❌ Failed to update '{name}'[/red]")
                 return False
@@ -216,11 +218,10 @@ def update_sources(
             try:
                 await source_manager.ensure_all_sources()
                 console.print("[green]✅ All sources updated successfully[/green]")
+                return True
             except Exception as e:
                 console.print(f"[red]❌ Failed to update sources: {e}[/red]")
                 return False
-
-        return True
 
     success = asyncio.run(_update())
     if not success:
@@ -230,13 +231,13 @@ def update_sources(
 @app.command("info")
 def source_info(
     name: str = typer.Argument(..., help="Name of the source to show info for"),
-):
+) -> None:
     """Show detailed information about a content source."""
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
     # Build content index if needed
-    async def _get_info():
+    async def _get_info() -> dict | None:
         await source_manager.build_content_index()
         return source_manager.get_source_info(name)
 
@@ -282,12 +283,12 @@ def source_info(
 
 
 @app.command("scan")
-def scan_content():
+def scan_content() -> None:
     """Scan and rebuild the content index."""
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
-    async def _scan():
+    async def _scan() -> None:
         console.print("Ensuring all sources are available...")
         await source_manager.ensure_all_sources()
 
@@ -316,7 +317,7 @@ def scan_content():
 
 
 @app.command("defaults")
-def setup_defaults():
+def setup_defaults() -> None:
     """Set up default content sources (SRD)."""
     config_manager = get_config_manager()
 

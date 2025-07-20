@@ -54,7 +54,7 @@ class TagResolver:
         self._tag_handlers: dict[str, Callable[[TagMatch], str]] = {}
         self._register_default_handlers()
 
-    def _register_default_handlers(self):
+    def _register_default_handlers(self) -> None:
         """Register default tag handlers for common content types."""
         self._tag_handlers.update(
             {
@@ -90,7 +90,9 @@ class TagResolver:
             }
         )
 
-    def register_tag_handler(self, tag_type: str, handler: Callable[[TagMatch], str]):
+    def register_tag_handler(
+        self, tag_type: str, handler: Callable[[TagMatch], str]
+    ) -> None:
         """Register a custom tag handler."""
         self._tag_handlers[tag_type] = handler
         logger.info(f"Registered handler for tag type: {tag_type}")
@@ -100,7 +102,7 @@ class TagResolver:
         if not text or "{@" not in text:
             return text
 
-        def replace_tag(match):
+        def replace_tag(match: re.Match[str]) -> str:
             try:
                 tag_match = TagMatch.parse(
                     match.group(1),  # tag_type

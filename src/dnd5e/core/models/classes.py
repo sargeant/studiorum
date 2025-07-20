@@ -56,7 +56,7 @@ class Class(BaseContent):
     subclasses: list[Subclass] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def validate_required_fields_for_regular_classes(self):
+    def validate_required_fields_for_regular_classes(self) -> "Class":
         """Validate that required fields are present for regular (non-sidekick) classes."""
         # If this is not a sidekick class, certain fields are required
         if not self.is_sidekick:

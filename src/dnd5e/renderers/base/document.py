@@ -1,6 +1,7 @@
 """Document-level renderer interface."""
 
 from abc import abstractmethod
+from collections.abc import Sequence
 from pathlib import Path
 
 from ...core.models.content import BaseContent
@@ -17,7 +18,7 @@ class DocumentRenderer(BaseRenderer):
 
     @abstractmethod
     def render_document(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: Sequence[BaseContent], context: RenderContext
     ) -> str:
         """Render a complete document from multiple content items.
 

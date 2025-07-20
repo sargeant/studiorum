@@ -3,7 +3,7 @@
 from typing import Any, Optional
 
 from ....core.models.content import ContentType
-from ..base import RenderContext
+from ...base.context import RenderContext
 from .base import LayoutHint, LayoutStrategy
 from .layout_engine import LayoutEngine
 
@@ -11,7 +11,7 @@ from .layout_engine import LayoutEngine
 class LayoutIntegrationMixin:
     """Mixin class that adds layout capabilities to content renderers."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the mixin with layout engine."""
         super().__init__(*args, **kwargs)
 
@@ -94,7 +94,10 @@ class LayoutIntegrationMixin:
 
         # Use context strategy if available
         if context and hasattr(context, "layout_strategy"):
-            return context.layout_strategy
+            strategy = context.layout_strategy
+            if isinstance(strategy, LayoutStrategy) or strategy is None:
+                return strategy
+            return None
 
         # Let layout engine decide
         return None

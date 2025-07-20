@@ -66,10 +66,13 @@ class TypographyManager(ContentLayoutManager):
 
     def can_handle(self, context: LayoutContext) -> bool:
         """Handle typography for content that benefits from enhancement."""
-        return context.hints and (
-            context.hints.use_drop_cap
-            or context.hints.emphasis_level > 0
-            or self._content_needs_typography(context)
+        return bool(
+            context.hints
+            and (
+                context.hints.use_drop_cap
+                or context.hints.emphasis_level > 0
+                or self._content_needs_typography(context)
+            )
         )
 
     def get_priority(self) -> int:

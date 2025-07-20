@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from dnd5e.core.logging import get_logger
 
+from .content import BaseContent
+
 logger = get_logger(__name__)
 
 
@@ -33,7 +35,7 @@ class FluffEntry(BaseModel):
     name: str | None = None
     entries: str | dict[str, Any] | list[Any] | None = Field(default=None)
 
-    def model_post_init(self, __context):
+    def model_post_init(self, __context: Any) -> None:
         """Post-process content after model initialization."""
         # If entries field has content but content is empty, use entries
         if self.entries is not None and not self.content:
@@ -44,7 +46,7 @@ class FluffEntry(BaseModel):
 
     @field_validator("content", mode="before")
     @classmethod
-    def parse_content(cls, v):
+    def parse_content(cls, v: Any) -> str:
         """Extract text content from various structures."""
         if isinstance(v, str):
             return v
@@ -68,11 +70,11 @@ class FluffEntry(BaseModel):
             if "entries" in v:
                 return cls._extract_text_from_entries(v["entries"])
             elif "text" in v:
-                return v["text"]
+                return str(v["text"])
         return str(v) if v else ""
 
     @staticmethod
-    def _extract_text_from_entries(entries) -> str:
+    def _extract_text_from_entries(entries: Any) -> str:
         """Recursively extract text from nested entries."""
         text_parts = []
         if isinstance(entries, list):
@@ -91,28 +93,18 @@ class FluffEntry(BaseModel):
         return " ".join(text_parts)
 
 
-class BaseFluff(BaseModel):
+class BaseFluff(BaseContent):
     """Base fluff content with liberal parsing."""
 
-    name: str
-    source: str | dict[str, str]
     entries: list[FluffEntry] = Field(default_factory=list)
     images: list[FluffImage] = Field(default_factory=list)
 
     # Additional fields that might be present
     extra_data: dict[str, Any] = Field(default_factory=dict, exclude=True)
 
-    @field_validator("source", mode="before")
-    @classmethod
-    def parse_source(cls, v):
-        """Handle both string and dict source formats."""
-        if isinstance(v, str):
-            return {"abbreviation": v, "name": v}
-        return v
-
     @field_validator("entries", mode="before")
     @classmethod
-    def parse_entries(cls, v):
+    def parse_entries(cls, v: Any) -> list[Any]:
         """Liberal parsing of entries field."""
         if not v:
             return []
@@ -153,7 +145,7 @@ class BaseFluff(BaseModel):
 
     @field_validator("images", mode="before")
     @classmethod
-    def parse_images(cls, v):
+    def parse_images(cls, v: Any) -> list[Any]:
         """Liberal parsing of images field."""
         if not v:
             return []

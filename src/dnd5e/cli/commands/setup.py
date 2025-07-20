@@ -2,6 +2,7 @@
 
 import asyncio
 from pathlib import Path
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -22,7 +23,7 @@ app = typer.Typer(help="Setup and configuration wizard")
 
 
 @app.command("wizard")
-def setup_wizard():
+def setup_wizard() -> None:
     """Interactive setup wizard for first-time configuration."""
     console.print(
         Panel.fit(
@@ -88,7 +89,7 @@ def setup_wizard():
         console.print("[bold]5e2pdf sources scan[/bold]")
 
 
-def _setup_defaults(config_manager):
+def _setup_defaults(config_manager: Any) -> None:
     """Set up default sources."""
     console.print("\n[cyan]Setting up default sources...[/cyan]")
 
@@ -105,7 +106,7 @@ def _setup_defaults(config_manager):
     console.print(table)
 
 
-def _setup_custom(config_manager):
+def _setup_custom(config_manager: Any) -> None:
     """Set up custom sources."""
     console.print("\n[cyan]Custom setup - Add sources manually[/cyan]")
 
@@ -120,6 +121,7 @@ def _setup_custom(config_manager):
                 path=Path("srd-data"),
                 enabled=True,
                 priority=1,
+                url=None,
             )
         )
 
@@ -132,7 +134,7 @@ def _setup_custom(config_manager):
     config_manager.update_config(config)
 
 
-def _setup_local(config_manager):
+def _setup_local(config_manager: Any) -> None:
     """Set up local directory sources only."""
     console.print("\n[cyan]Local setup - Add local directories[/cyan]")
 
@@ -166,6 +168,7 @@ def _setup_local(config_manager):
                     path=path,
                     enabled=True,
                     priority=len(config.content_sources) + 1,
+                    url=None,
                 )
             )
             console.print(f"[green]✅ Added local source '{name}'[/green]")
@@ -179,13 +182,13 @@ def _setup_local(config_manager):
     config_manager.update_config(config)
 
 
-def _add_source_interactive(config):
+def _add_source_interactive(config: Any) -> bool:
     """Interactively add a source to config."""
     name = Prompt.ask("Source name")
 
     if config.get_source_by_name(name):
         console.print(f"[red]Error:[/red] Source '{name}' already exists")
-        return
+        return False
 
     source_type = Prompt.ask("Source type", choices=["github", "directory"])
 
@@ -202,11 +205,14 @@ def _add_source_interactive(config):
                     branch=branch,
                     enabled=True,
                     priority=len(config.content_sources) + 1,
+                    path=None,
                 )
             )
             console.print(f"[green]✅ Added GitHub source '{name}'[/green]")
+            return True
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")
+            return False
 
     elif source_type == "directory":
         path_str = Prompt.ask("Directory path")
@@ -214,7 +220,7 @@ def _add_source_interactive(config):
 
         if not path.exists() or not path.is_dir():
             console.print(f"[red]Error:[/red] Invalid directory: {path}")
-            return
+            return False
 
         try:
             config.add_source(
@@ -224,21 +230,26 @@ def _add_source_interactive(config):
                     path=path,
                     enabled=True,
                     priority=len(config.content_sources) + 1,
+                    url=None,
                 )
             )
             console.print(f"[green]✅ Added directory source '{name}'[/green]")
+            return True
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")
+            return False
+
+    return False  # Should not reach here
 
 
-def _scan_content():
+def _scan_content() -> None:
     """Download and scan content."""
     console.print("\n[cyan]Downloading and scanning content...[/cyan]")
 
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
-    async def _do_scan():
+    async def _do_scan() -> None:
         try:
             await source_manager.ensure_all_sources()
             await source_manager.build_content_index()
@@ -269,7 +280,7 @@ def _scan_content():
 
 
 @app.command("check")
-def check_setup():
+def check_setup() -> None:
     """Check current setup and configuration."""
     config = get_content_config()
 
@@ -285,7 +296,7 @@ def check_setup():
     # Check source availability
     source_manager = ContentSourceManager(config)
 
-    async def _check():
+    async def _check() -> None:
         try:
             await source_manager.ensure_all_sources()
             await source_manager.build_content_index()
@@ -323,7 +334,7 @@ def check_setup():
 
 
 @app.command("reset")
-def reset_setup():
+def reset_setup() -> None:
     """Reset configuration to defaults."""
     if not Confirm.ask("This will reset all configuration to defaults. Continue?"):
         console.print("Reset cancelled.")

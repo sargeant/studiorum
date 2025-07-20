@@ -100,7 +100,7 @@ class PathConfig(BaseModel):
             "packages": self.assets_path / "packages",
         }
 
-    def ensure_directories(self):
+    def ensure_directories(self) -> None:
         """Ensure all required directories exist."""
         self.output_path.mkdir(parents=True, exist_ok=True)
         self.build_path.mkdir(parents=True, exist_ok=True)

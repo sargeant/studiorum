@@ -29,7 +29,7 @@ class CrossReference:
 class CrossReferenceManager:
     """Manages cross-references and LaTeX label generation for documents."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.references: dict[str, CrossReference] = {}
         self.reference_format = "page"  # "page", "section", "name", "full"
         self.label_prefix = ""  # Optional prefix for all labels
@@ -197,7 +197,7 @@ class CrossReferenceManager:
 
     def get_reference_statistics(self) -> dict[str, Any]:
         """Get statistics about references."""
-        stats = {
+        stats: dict[str, Any] = {
             "total_references": len(self.references),
             "by_type": {},
             "most_referenced": [],
@@ -272,7 +272,7 @@ class CrossReferenceManager:
 
         return groups
 
-    def validate_references(self) -> list[dict[str, str]]:
+    def validate_references(self) -> list[dict[str, str | None]]:
         """Validate all references and return any issues."""
         issues = []
 

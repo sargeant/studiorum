@@ -1,10 +1,15 @@
 """LaTeX document renderer implementation."""
 
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
 from ...core.models.content import BaseContent, ContentType
-from ...core.models.document_metadata import DocumentMetadata, DocumentType
+from ...core.models.document_metadata import (
+    ContentSection,
+    DocumentMetadata,
+    DocumentType,
+)
 from ..base import DocumentRenderer, RenderContext, RenderingError
 from .compilation_config import CompilationConfig, CompilationResult, LaTeXEngine
 from .compiler import LaTeXCompiler
@@ -53,7 +58,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return self.render_document([content], render_context)
 
     def render_document(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: Sequence[BaseContent], context: RenderContext
     ) -> str:
         """Render a complete LaTeX document.
 
@@ -76,7 +81,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             raise RenderingError(f"Failed to render LaTeX document: {e}") from e
 
     def render_structured_document(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: Sequence[BaseContent], context: RenderContext
     ) -> str:
         """Render a structured LaTeX document using DocumentStructureBuilder.
 
@@ -92,7 +97,24 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         if not metadata:
             # Create default metadata if none provided
             metadata = DocumentMetadata(
-                title=context.title or "D&D 5e Content", document_type=DocumentType.BOOK
+                title=context.title or "D&D 5e Content",
+                subtitle=None,
+                short_title=None,
+                editor=None,
+                date=None,
+                version=None,
+                edition=None,
+                publisher=None,
+                document_type=DocumentType.BOOK,
+                include_toc=True,
+                include_index=False,
+                include_bibliography=False,
+                include_glossary=False,
+                cover=None,
+                logo_path=None,
+                subject=None,
+                description=None,
+                use_parts=False,
             )
 
         # Initialize structure builder
@@ -100,9 +122,10 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         self.content_organizer.document_type = metadata.document_type
 
         # Organize content and build structure
-        self.content_organizer.organize_content(content_items)
+        content_list = list(content_items)
+        self.content_organizer.organize_content(content_list)
         sections, document_context = self._structure_builder.build_document_structure(
-            content_items, context
+            content_list, context
         )
 
         # Create template context
@@ -143,7 +166,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return rendered_document
 
     def render_legacy_document(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: Sequence[BaseContent], context: RenderContext
     ) -> str:
         """Render a document using the legacy approach.
 
@@ -154,6 +177,9 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Complete LaTeX document
         """
+        # Convert sequence to list for internal processing
+        content_list = list(content_items)
+
         # Build document sections
         sections = []
 
@@ -161,16 +187,16 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         sections.append(self.render_document_header(context))
 
         # Table of contents (if enabled)
-        if context.include_toc and len(content_items) > 1:
-            sections.append(self.render_table_of_contents(content_items, context))
+        if context.include_toc and len(content_list) > 1:
+            sections.append(self.render_table_of_contents(content_list, context))
 
         # Main content
-        for item in content_items:
+        for item in content_list:
             sections.append(self.render_content_item(item, context))
 
         # Index (if enabled)
         if context.include_index:
-            sections.append(self.render_index(content_items, context))
+            sections.append(self.render_index(content_list, context))
 
         # Document footer
         sections.append(self.render_document_footer(context))
@@ -178,7 +204,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return "\n\n".join(filter(None, sections))
 
     def _render_content_in_sections(
-        self, document: str, sections, context: RenderContext
+        self, document: str, sections: list[ContentSection], context: RenderContext
     ) -> str:
         """Render content items within document sections.
 
@@ -190,8 +216,6 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Document with content rendered in sections
         """
-        from ...core.models.document_metadata import ContentSection
-
         # This is a placeholder implementation
         # In practice, we would need to replace section placeholders
         # with actual rendered content
@@ -434,7 +458,7 @@ This content type is not yet fully supported by the rendering system.
         if "keep_temp_files" in config:
             compilation_config.keep_intermediate_files = config["keep_temp_files"]
 
-        if "output_dir" in config:
+        if "output_dir" in config and config["output_dir"] is not None:
             compilation_config.output_dir = Path(config["output_dir"])
 
         return compilation_config
@@ -465,7 +489,7 @@ This content type is not yet fully supported by the rendering system.
 
     def compile_document_to_pdf(
         self,
-        content_items: list[BaseContent],
+        content_items: Sequence[BaseContent],
         output_path: Path | None = None,
         context: RenderContext | None = None,
     ) -> CompilationResult:
@@ -486,6 +510,7 @@ This content type is not yet fully supported by the rendering system.
         latex_source = self.render_document(content_items, context)
 
         # Determine output configuration
+        working_dir: Path | None
         if output_path:
             output_name = output_path.stem
             working_dir = output_path.parent

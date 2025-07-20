@@ -18,7 +18,7 @@ console = Console()
 class DNDTemplateManager:
     """Manages DND-5e-LaTeX-Template integration and configuration."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize DND template manager."""
         self.template_files = [
             "dndbook.cls",
@@ -278,7 +278,7 @@ kpsewhich dndarticle.cls
 """
         return guide.strip()
 
-    def print_status_report(self):
+    def print_status_report(self) -> None:
         """Print comprehensive status report."""
         console.print("\n[bold blue]DND-5e-LaTeX-Template Status Report[/bold blue]")
         console.print("=" * 50)

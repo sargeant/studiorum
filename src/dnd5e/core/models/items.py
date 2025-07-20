@@ -115,7 +115,7 @@ class Item(BaseContent):
     stealth: bool | None = Field(None, description="Stealth disadvantage")
     armor_type: str | None = Field(None, alias="armorType", description="Armor type")
 
-    def model_post_init(self, __context) -> None:
+    def model_post_init(self, __context: Any) -> None:
         """Post-process parsed data."""
         # Create weapon_data from individual weapon fields
         if any(
@@ -129,20 +129,20 @@ class Item(BaseContent):
         ):
             self.weapon_data = WeaponData(
                 damage=self.damage,
-                damage_type=self.damage_type,
+                damageType=self.damage_type,
                 properties=self.properties,
                 range=self.range,
-                weapon_category=self.weapon_category,
+                weaponCategory=self.weapon_category,
             )
 
         # Create armor_data from individual armor fields
         if any([self.ac, self.ac_from, self.strength, self.stealth, self.armor_type]):
             self.armor_data = ArmorData(
                 ac=self.ac,
-                ac_from=self.ac_from,
+                acFrom=self.ac_from,
                 strength=self.strength,
                 stealth=self.stealth,
-                armor_type=self.armor_type,
+                armorType=self.armor_type,
             )
 
     def is_magic_item(self) -> bool:
@@ -240,7 +240,7 @@ class Item(BaseContent):
             return ""
         return self._extract_text_from_entries(self.entries)
 
-    def _extract_text_from_entries(self, entries) -> str:
+    def _extract_text_from_entries(self, entries: Any) -> str:
         """Recursively extract text from complex entry structures."""
         text_parts = []
 

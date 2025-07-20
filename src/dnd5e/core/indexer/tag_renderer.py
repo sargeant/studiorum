@@ -14,7 +14,7 @@ from .tag_handlers import TagHandler, get_default_handlers
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from ...loaders.omnidexer import Omnidexer
+    from dnd5e.loaders.omnidexer import Omnidexer  # type: ignore[import-untyped]
 
 
 class RendererContext:
@@ -172,7 +172,7 @@ class TagRenderer:
         """Get all tracked content for appendix generation."""
         return self.content_tracker.get_tracked_content()
 
-    def get_tracked_content_for_appendix(self) -> dict[str, list[dict[str, str]]]:
+    def get_tracked_content_for_appendix(self) -> dict[str, list[dict[str, str | int]]]:
         """Get tracked content formatted for appendix generation."""
         return self.content_tracker.export_for_appendix()
 

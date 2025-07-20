@@ -34,7 +34,7 @@ def convert_adventure(
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
     ),
-):
+) -> None:
     """
     📖 Convert adventure JSON to LaTeX
 
@@ -42,7 +42,7 @@ def convert_adventure(
     formatted LaTeX document matching official book styling.
     """
 
-    async def _convert():
+    async def _convert() -> None:
         try:
             # Validate input
             if not input_file.exists():
@@ -140,7 +140,7 @@ def convert_book(
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
     ),
-):
+) -> None:
     """
     📚 Convert book JSON to LaTeX
 
@@ -148,7 +148,7 @@ def convert_book(
     formatted LaTeX document matching official book styling.
     """
 
-    async def _convert():
+    async def _convert() -> None:
         try:
             # Validate input
             if not input_file.exists():
@@ -199,15 +199,25 @@ def convert_book(
                 if isinstance(section, dict) and section.get("type") == "section":
                     chapter = BookChapter(
                         name=section.get("name", "Untitled Chapter"),
+                        ordinal=None,
+                        headers=None,
                         entries=section.get("entries", []),
                     )
                     chapters.append(chapter)
 
             # Create a complete book object
+            from dnd5e.core.models.content import Source
+
             book = Book(
                 name=book_name,
-                source={"abbreviation": book_id},
+                source=Source(
+                    abbreviation=book_id, name=book_name, page=None, url=None
+                ),
                 id=book_id,
+                metadata=None,
+                published=None,
+                author=None,
+                cover=None,
                 contents=chapters,
             )
 
@@ -265,7 +275,7 @@ def convert_supplement(
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
     ),
-):
+) -> None:
     """
     📄 Convert supplement JSON to LaTeX
 
@@ -273,7 +283,7 @@ def convert_supplement(
     format into a formatted supplement document.
     """
 
-    async def _convert():
+    async def _convert() -> None:
         try:
             # Validate input
             if not input_file.exists():
@@ -339,7 +349,7 @@ def convert_supplement(
                                         ).title(),
                                     }
                                 content_items.append(
-                                    model_class.model_validate(item_data)
+                                    model_class.model_validate(item_data)  # type: ignore[attr-defined]
                                 )
                             except Exception as e:
                                 rprint(
@@ -388,7 +398,7 @@ def convert_supplement(
     asyncio.run(_convert())
 
 
-async def _compile_pdf(latex_path: Path):
+async def _compile_pdf(latex_path: Path) -> None:
     """Compile LaTeX to PDF using xelatex."""
     import subprocess
 

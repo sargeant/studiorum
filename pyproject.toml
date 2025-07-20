@@ -149,3 +149,8 @@ markers = [
 ]
 asyncio_mode = "auto"
 filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]
+
+[dependency-groups]
+dev = [
+    "types-pyyaml>=6.0.12.20250516",
+]

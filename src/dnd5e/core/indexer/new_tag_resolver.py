@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 class TagResolverFacade:
     """Facade providing backward compatibility with the old TagResolver API."""
 
-    def __init__(self, omnidexer=None):
+    def __init__(self, omnidexer: Any = None) -> None:
         self.omnidexer = omnidexer
         self.parser = TagParser()
         self.renderer = TagRenderer(omnidexer)
@@ -76,7 +76,7 @@ class TagResolverFacade:
         tracked_content = self.renderer.get_tracked_content()
         return [content.to_tuple() for content in tracked_content]
 
-    def get_tracked_content_detailed(self) -> dict[str, list[dict[str, str]]]:
+    def get_tracked_content_detailed(self) -> dict[str, list[dict[str, str | int]]]:
         """Get detailed tracked content for appendix generation."""
         return self.renderer.get_tracked_content_for_appendix()
 

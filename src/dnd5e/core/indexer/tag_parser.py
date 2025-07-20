@@ -101,7 +101,7 @@ class TagASTTransformer(Transformer):
 
     def content_part(self, children: list[Any]) -> list[ASTNode]:
         """Transform content part (may contain nested tags)."""
-        nodes = []
+        nodes: list[ASTNode] = []
         current_text = ""
 
         for child in children:
@@ -150,7 +150,7 @@ class TagASTTransformer(Transformer):
         page = parts[3] if len(parts) > 3 and parts[3] else None
 
         # Create display text nodes
-        display_text_nodes = None
+        display_text_nodes: list[ASTNode] | None = None
         if display_text:
             display_text_nodes = [TextNode(display_text)]
 
@@ -172,15 +172,15 @@ class TagASTTransformer(Transformer):
 
         # Formatting tags
         elif tag_type in ("bold", "b"):
-            content_nodes = (
+            bold_content_nodes: list[ASTNode] = (
                 display_text_nodes if display_text_nodes else [TextNode(name)]
             )
-            return BoldTagNode(content_nodes)
+            return BoldTagNode(bold_content_nodes)
         elif tag_type in ("italic", "i"):
-            content_nodes = (
+            italic_content_nodes: list[ASTNode] = (
                 display_text_nodes if display_text_nodes else [TextNode(name)]
             )
-            return ItalicTagNode(content_nodes)
+            return ItalicTagNode(italic_content_nodes)
         elif tag_type == "dice":
             return DiceTagNode(name)
 
@@ -218,7 +218,7 @@ class TagASTTransformer(Transformer):
 class TagParser:
     """Main parser class for D&D 5e.tools tags."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Load grammar from file
         grammar_path = Path(__file__).parent / "tag_grammar.lark"
         with open(grammar_path) as f:

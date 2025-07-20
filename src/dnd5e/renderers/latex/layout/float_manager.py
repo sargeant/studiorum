@@ -45,7 +45,7 @@ class FloatManager(ContentLayoutManager):
 
     def can_handle(self, context: LayoutContext) -> bool:
         """Handle float management for appropriate content."""
-        return (
+        return bool(
             context.hints
             and context.hints.allow_float
             and self._should_float_content(context)

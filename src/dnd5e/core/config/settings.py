@@ -2,45 +2,77 @@
 
 import logging
 from pathlib import Path
+from typing import Any
 
 import colorlog
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application settings with environment variable support."""
 
     # Logging configuration
-    log_level: str = Field(default="WARNING", env="LOG_LEVEL")
+    log_level: str = Field(
+        default="WARNING",
+        description="Logging level for the application",
+        alias="LOG_LEVEL",
+    )
     log_format: str = Field(
         default=(
             "%(log_color)s%(levelname)-8s%(reset)s "
             "%(blue)s%(name)s%(reset)s: %(message)s"
-        )
+        ),
+        description="Log format string for colorlog",
     )
 
     # Data paths
-    data_path: Path | None = Field(default=None, env="DATA_PATH")
-    assets_path: Path = Field(default=Path("assets"), env="ASSETS_PATH")
-    output_path: Path = Field(default=Path("output"), env="OUTPUT_PATH")
-    build_path: Path = Field(default=Path("build"), env="BUILD_PATH")
+    data_path: Path | None = Field(
+        default=None, description="Path to D&D 5e data files", alias="DATA_PATH"
+    )
+    assets_path: Path = Field(
+        default=Path("assets"), description="Path to asset files", alias="ASSETS_PATH"
+    )
+    output_path: Path = Field(
+        default=Path("output"),
+        description="Path for generated output files",
+        alias="OUTPUT_PATH",
+    )
+    build_path: Path = Field(
+        default=Path("build"),
+        description="Path for build artifacts",
+        alias="BUILD_PATH",
+    )
 
     # Processing options
-    max_workers: int = Field(default=4, env="MAX_WORKERS")
-    enable_caching: bool = Field(default=True, env="ENABLE_CACHING")
-    cache_ttl: int = Field(default=3600, env="CACHE_TTL")  # seconds
+    max_workers: int = Field(
+        default=4, description="Maximum number of worker processes", alias="MAX_WORKERS"
+    )
+    enable_caching: bool = Field(
+        default=True, description="Enable content caching", alias="ENABLE_CACHING"
+    )
+    cache_ttl: int = Field(
+        default=3600, description="Cache time-to-live in seconds", alias="CACHE_TTL"
+    )
 
     # LaTeX options
-    latex_engine: str = Field(default="xelatex", env="LATEX_ENGINE")
-    font_dir: Path | None = Field(default=None, env="FONT_DIR")
+    latex_engine: str = Field(
+        default="xelatex",
+        description="LaTeX engine to use for compilation",
+        alias="LATEX_ENGINE",
+    )
+    font_dir: Path | None = Field(
+        default=None, description="Directory containing custom fonts", alias="FONT_DIR"
+    )
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        env_prefix="",
+    )
 
-    def model_post_init(self, __context) -> None:
+    def model_post_init(self, __context: Any) -> None:
         """Post-process settings after parsing."""
         pass
 
