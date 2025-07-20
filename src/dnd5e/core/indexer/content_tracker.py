@@ -154,10 +154,8 @@ class ContentTracker:
                     entry["page"] = content.page
 
                 # Add reference count
-                entry["reference_count"] = str(
-                    self.get_content_count(
-                        content.content_type, content.name, content.source
-                    )
+                entry["reference_count"] = self.get_content_count(
+                    content.content_type, content.name, content.source
                 )
 
                 result[content_type].append(entry)
