@@ -64,7 +64,7 @@ class LaTeXDocumentConfig(BaseModel):
     )
 
     @validator("document_class")
-    def validate_document_class(cls, v):
+    def validate_document_class(cls, v: str) -> str:
         """Validate document class selection."""
         valid_classes = ["dndbook", "dndarticle"]
         if v not in valid_classes:
@@ -72,7 +72,7 @@ class LaTeXDocumentConfig(BaseModel):
         return v
 
     @validator("font_scheme")
-    def validate_font_scheme(cls, v):
+    def validate_font_scheme(cls, v: str) -> str:
         """Validate font scheme selection."""
         valid_schemes = ["dmsguild", "commercial", "system"]
         if v not in valid_schemes:
@@ -80,7 +80,7 @@ class LaTeXDocumentConfig(BaseModel):
         return v
 
     @validator("paper_size")
-    def validate_paper_size(cls, v):
+    def validate_paper_size(cls, v: str) -> str:
         """Validate paper size selection."""
         valid_sizes = ["letterpaper", "a4paper", "a5paper"]
         if v not in valid_sizes:
@@ -88,7 +88,7 @@ class LaTeXDocumentConfig(BaseModel):
         return v
 
     @validator("font_size")
-    def validate_font_size(cls, v):
+    def validate_font_size(cls, v: str) -> str:
         """Validate font size selection."""
         valid_sizes = ["10pt", "11pt", "12pt"]
         if v not in valid_sizes:
@@ -190,7 +190,7 @@ class LaTeXEngineConfig(BaseModel):
     verbose: bool = Field(default=False, description="Enable verbose output")
 
     @validator("engine")
-    def validate_engine(cls, v):
+    def validate_engine(cls, v: str) -> str:
         """Validate LaTeX engine selection."""
         valid_engines = ["pdflatex", "lualatex", "xelatex"]
         if v not in valid_engines:
@@ -198,7 +198,7 @@ class LaTeXEngineConfig(BaseModel):
         return v
 
     @validator("interaction_mode")
-    def validate_interaction_mode(cls, v):
+    def validate_interaction_mode(cls, v: str) -> str:
         """Validate interaction mode."""
         valid_modes = ["nonstopmode", "batchmode", "scrollmode", "errorstopmode"]
         if v not in valid_modes:

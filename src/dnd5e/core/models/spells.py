@@ -16,14 +16,14 @@ class SpellComponent(BaseModel):
 
     @field_validator("material", mode="before")
     @classmethod
-    def parse_material(cls, v):
+    def parse_material(cls, v: Any) -> bool | str:
         """Handle both boolean and string material components."""
         if isinstance(v, bool):
             return v
         elif isinstance(v, str):
             return v
         elif isinstance(v, dict) and "text" in v:
-            return v["text"]
+            return str(v["text"])
         return bool(v)
 
 
@@ -125,7 +125,7 @@ class Spell(BaseContent):
 
     @field_validator("school", mode="before")
     @classmethod
-    def parse_school(cls, v):
+    def parse_school(cls, v: Any) -> str:
         """Parse school abbreviations to full names."""
         school_map = {
             "A": "Abjuration",
@@ -137,11 +137,11 @@ class Spell(BaseContent):
             "N": "Necromancy",
             "T": "Transmutation",
         }
-        return school_map.get(v, v)
+        return school_map.get(v, str(v))
 
     @field_validator("casting_time", mode="before")
     @classmethod
-    def parse_casting_time(cls, v):
+    def parse_casting_time(cls, v: Any) -> list[SpellTime] | Any:
         """Parse casting time from various formats."""
         if isinstance(v, list):
             return [
@@ -152,7 +152,7 @@ class Spell(BaseContent):
 
     @field_validator("range", mode="before")
     @classmethod
-    def parse_range(cls, v):
+    def parse_range(cls, v: Any) -> SpellRange | Any:
         """Parse range from various formats."""
         if isinstance(v, dict):
             return SpellRange.model_validate(v)
@@ -160,7 +160,7 @@ class Spell(BaseContent):
 
     @field_validator("duration", mode="before")
     @classmethod
-    def parse_duration(cls, v):
+    def parse_duration(cls, v: Any) -> list[SpellDuration] | Any:
         """Parse duration from various formats."""
         if isinstance(v, list):
             parsed_durations = []
@@ -227,7 +227,7 @@ class Spell(BaseContent):
             return ""
         return self._extract_text_from_entries(self.higher_level)
 
-    def _extract_text_from_entries(self, entries) -> str:
+    def _extract_text_from_entries(self, entries: Any) -> str:
         """Recursively extract text from complex entry structures."""
         text_parts = []
 

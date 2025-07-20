@@ -97,16 +97,46 @@ class CreatureType(BaseModel):
     tags: list[str | dict[str, Any]] | None = Field(None, description="Additional tags")
 
     @classmethod
-    def model_validate(cls, v):
+    def model_validate(
+        cls,
+        obj: Any,
+        *,
+        strict: bool | None = None,
+        from_attributes: bool | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> "CreatureType":
         """Handle string input and special dict formats by wrapping in type field."""
-        if isinstance(v, str):
-            return super().model_validate({"type": v})
-        elif isinstance(v, dict):
+        if isinstance(obj, str):
+            return super().model_validate(
+                {"type": obj},
+                strict=strict,
+                from_attributes=from_attributes,
+                context=context,
+                by_alias=by_alias,
+                by_name=by_name,
+            )
+        elif isinstance(obj, dict):
             # If dict doesn't have 'type' key but has other recognizable keys,
             # wrap the entire dict as the type
-            if "type" not in v and ("choose" in v or "special" in v):
-                return super().model_validate({"type": v})
-        return super().model_validate(v)
+            if "type" not in obj and ("choose" in obj or "special" in obj):
+                return super().model_validate(
+                    {"type": obj},
+                    strict=strict,
+                    from_attributes=from_attributes,
+                    context=context,
+                    by_alias=by_alias,
+                    by_name=by_name,
+                )
+        return super().model_validate(
+            obj,
+            strict=strict,
+            from_attributes=from_attributes,
+            context=context,
+            by_alias=by_alias,
+            by_name=by_name,
+        )
 
     def __str__(self) -> str:
         if isinstance(self.type, dict):
@@ -164,7 +194,7 @@ class Ability(BaseModel):
         """Extract text from complex entry structures."""
         return self._extract_text_from_entries(self.entries)
 
-    def _extract_text_from_entries(self, entries) -> str:
+    def _extract_text_from_entries(self, entries: Any) -> str:
         """Recursively extract text from complex entry structures."""
         text_parts = []
 
@@ -265,39 +295,39 @@ class Creature(BaseContent):
 
     @field_validator("type", mode="before")
     @classmethod
-    def parse_type(cls, v):
+    def parse_type(cls, v: Any) -> CreatureType | Any:
         """Parse creature type from various formats."""
         if isinstance(v, str):
-            return CreatureType(type=v)
+            return CreatureType(type=v)  # type: ignore[call-arg]
         elif isinstance(v, dict):
             if "type" in v:
                 return CreatureType.model_validate(v)
             else:
                 # Handle choice format and other dict structures
-                return CreatureType(type=v)
+                return CreatureType(type=v)  # type: ignore[call-arg]
         return v
 
     @field_validator("ac", mode="before")
     @classmethod
-    def parse_ac(cls, v):
+    def parse_ac(cls, v: Any) -> list[ArmorClass | int] | Any:
         """Parse AC from various formats."""
         if isinstance(v, list):
             result = []
             for item in v:
                 if isinstance(item, int):
-                    result.append(ArmorClass(ac=item))
+                    result.append(ArmorClass(ac=item))  # type: ignore[call-arg]
                 elif isinstance(item, dict):
                     result.append(ArmorClass.model_validate(item))
                 else:
                     result.append(item)
             return result
         elif isinstance(v, int):
-            return [ArmorClass(ac=v)]
+            return [ArmorClass(ac=v)]  # type: ignore[call-arg]
         return v
 
     @field_validator("hp", mode="before")
     @classmethod
-    def parse_hp(cls, v):
+    def parse_hp(cls, v: Any) -> HitPoints | Any:
         """Parse HP from various formats."""
         if isinstance(v, dict):
             return HitPoints.model_validate(v)
@@ -305,7 +335,7 @@ class Creature(BaseContent):
 
     @field_validator("speed", mode="before")
     @classmethod
-    def parse_speed(cls, v):
+    def parse_speed(cls, v: Any) -> Speed | Any:
         """Parse speed from various formats."""
         if isinstance(v, dict):
             return Speed.model_validate(v)
@@ -313,7 +343,7 @@ class Creature(BaseContent):
 
     @field_validator("trait", "action", "legendary", "reaction", "bonus", mode="before")
     @classmethod
-    def parse_abilities(cls, v):
+    def parse_abilities(cls, v: Any) -> list[Ability] | Any:
         """Parse ability lists from various formats."""
         if isinstance(v, list):
             result = []
