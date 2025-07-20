@@ -7,13 +7,11 @@ from typing import TYPE_CHECKING, Any
 
 from dnd5e.core.logging import get_logger
 
+from ...core.indexer.cross_reference_manager import CrossReferenceManager
+from ...core.indexer.hyperlink_manager import HyperlinkManager
 from ...core.indexer.latex_content_tracker import LaTeXContentTracker
 from ...core.indexer.latex_tag_handlers import get_latex_enhanced_handlers
-from ...core.indexer.latex_tag_renderer import (
-    CrossReferenceManager,
-    HyperlinkManager,
-    LaTeXTagRenderer,
-)
+from ...core.indexer.latex_tag_renderer import LaTeXTagRenderer
 from ...core.indexer.new_tag_resolver import TagResolverFacade
 
 logger = get_logger(__name__)
@@ -161,20 +159,23 @@ class LaTeXTagIntegration:
 
         return stats
 
-    def validate_tags_and_references(self, content: str) -> list[dict[str, str]]:
+    def validate_tags_and_references(self, content: str) -> list[dict[str, str | None]]:
         """Validate tags and cross-references in content."""
-        issues = []
+        issues: list[dict[str, str | None]] = []
 
         # Validate content tracker
-        issues.extend(self.content_tracker.validate_cross_references())
+        content_issues = self.content_tracker.validate_cross_references()
+        issues.extend(content_issues)  # type: ignore[arg-type]
 
         # Validate cross-references
         if self.cross_ref_manager:
-            issues.extend(self.cross_ref_manager.validate_references())
+            cross_ref_issues = self.cross_ref_manager.validate_references()
+            issues.extend(cross_ref_issues)
 
         # Validate hyperlinks
         if self.hyperlink_manager:
-            issues.extend(self.hyperlink_manager.validate_hyperlinks(content))
+            hyperlink_issues = self.hyperlink_manager.validate_hyperlinks(content)
+            issues.extend(hyperlink_issues)  # type: ignore[arg-type]
 
         return issues
 
@@ -218,7 +219,7 @@ class LaTeXTagResolverFacade(TagResolverFacade):
         # Don't call super().__init__ to avoid creating a separate renderer
         self.omnidexer = omnidexer
         self.renderer = latex_renderer
-        self.parser = (
+        self.parser: Any = (
             latex_renderer.parser if hasattr(latex_renderer, "parser") else None
         )
 
@@ -227,7 +228,11 @@ class LaTeXTagResolverFacade(TagResolverFacade):
 
     def get_latex_content_tracker(self) -> LaTeXContentTracker:
         """Get the LaTeX-enhanced content tracker."""
-        return self.renderer.get_latex_content_tracker()
+        if hasattr(self.renderer, "latex_content_tracker"):
+            return self.renderer.latex_content_tracker  # type: ignore[no-any-return]
+        else:
+            # Fallback to regular content tracker (should be LaTeX type in this context)
+            return self.renderer.content_tracker  # type: ignore[return-value]
 
     def get_cross_reference_manager(self) -> CrossReferenceManager | None:
         """Get the cross-reference manager."""
