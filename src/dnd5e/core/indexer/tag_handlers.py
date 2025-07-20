@@ -1,7 +1,7 @@
 """Tag handlers for the new tag resolution system."""
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from .content_tracker import ContentTracker
 from .tag_ast import (
@@ -159,10 +159,16 @@ class BoldTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type in ("bold", "b")
 
-    def render(self, node: BoldTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render bold formatting."""
+        # Type check and cast to specific node type
+        assert isinstance(node, BoldTagNode), f"Expected BoldTagNode, got {type(node)}"
+        bold_node = cast(BoldTagNode, node)
+
         # Render content nodes recursively
-        content = "".join(context.render_node(child) for child in node.content_nodes)
+        content = "".join(
+            context.render_node(child) for child in bold_node.content_nodes
+        )
         return f"\\textbf{{{content}}}"
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
@@ -176,10 +182,18 @@ class ItalicTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type in ("italic", "i")
 
-    def render(self, node: ItalicTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render italic formatting."""
+        # Type check and cast to specific node type
+        assert isinstance(node, ItalicTagNode), (
+            f"Expected ItalicTagNode, got {type(node)}"
+        )
+        italic_node = cast(ItalicTagNode, node)
+
         # Render content nodes recursively
-        content = "".join(context.render_node(child) for child in node.content_nodes)
+        content = "".join(
+            context.render_node(child) for child in italic_node.content_nodes
+        )
         return f"\\textit{{{content}}}"
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
@@ -193,9 +207,13 @@ class DiceTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "dice"
 
-    def render(self, node: DiceTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render dice expression."""
-        return f"\\texttt{{{node.expression}}}"
+        # Type check and cast to specific node type
+        assert isinstance(node, DiceTagNode), f"Expected DiceTagNode, got {type(node)}"
+        dice_node = cast(DiceTagNode, node)
+
+        return f"\\texttt{{{dice_node.expression}}}"
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
         """Dice tags don't need content tracking."""
@@ -208,9 +226,13 @@ class HitTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "hit"
 
-    def render(self, node: HitTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render hit bonus."""
-        bonus = node.bonus
+        # Type check and cast to specific node type
+        assert isinstance(node, HitTagNode), f"Expected HitTagNode, got {type(node)}"
+        hit_node = cast(HitTagNode, node)
+
+        bonus = hit_node.bonus
         if not bonus.startswith(("+", "-")):
             bonus = f"+{bonus}"
         return bonus
@@ -226,9 +248,13 @@ class DCTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "dc"
 
-    def render(self, node: DCTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render difficulty class."""
-        return f"DC {node.dc}"
+        # Type check and cast to specific node type
+        assert isinstance(node, DCTagNode), f"Expected DCTagNode, got {type(node)}"
+        dc_node = cast(DCTagNode, node)
+
+        return f"DC {dc_node.dc}"
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
         """DC tags don't need content tracking."""
@@ -241,9 +267,15 @@ class DamageTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "damage"
 
-    def render(self, node: DamageTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render damage type."""
-        return node.damage_type
+        # Type check and cast to specific node type
+        assert isinstance(node, DamageTagNode), (
+            f"Expected DamageTagNode, got {type(node)}"
+        )
+        damage_node = cast(DamageTagNode, node)
+
+        return damage_node.damage_type
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
         """Damage tags don't need content tracking."""
@@ -256,9 +288,15 @@ class ConditionTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "condition"
 
-    def render(self, node: ConditionTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render condition."""
-        return f"\\textit{{{node.condition}}}"
+        # Type check and cast to specific node type
+        assert isinstance(node, ConditionTagNode), (
+            f"Expected ConditionTagNode, got {type(node)}"
+        )
+        condition_node = cast(ConditionTagNode, node)
+
+        return f"\\textit{{{condition_node.condition}}}"
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
         """Condition tags don't need content tracking."""
@@ -271,9 +309,15 @@ class ChanceTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "chance"
 
-    def render(self, node: ChanceTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render percentage chance."""
-        return f"{node.percentage}\\%"
+        # Type check and cast to specific node type
+        assert isinstance(node, ChanceTagNode), (
+            f"Expected ChanceTagNode, got {type(node)}"
+        )
+        chance_node = cast(ChanceTagNode, node)
+
+        return f"{chance_node.percentage}\\%"
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
         """Chance tags don't need content tracking."""
@@ -286,9 +330,15 @@ class RechargeTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "recharge"
 
-    def render(self, node: RechargeTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render recharge information."""
-        recharge = node.recharge
+        # Type check and cast to specific node type
+        assert isinstance(node, RechargeTagNode), (
+            f"Expected RechargeTagNode, got {type(node)}"
+        )
+        recharge_node = cast(RechargeTagNode, node)
+
+        recharge = recharge_node.recharge
         if "-" in recharge:
             return f"(Recharge {recharge})"
         else:
@@ -305,25 +355,43 @@ class AdventureTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "adventure"
 
-    def render(self, node: AdventureTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render adventure reference."""
-        if hasattr(node, "display_text_nodes") and node.display_text_nodes:
+        # Type check and cast to specific node type
+        assert isinstance(node, AdventureTagNode), (
+            f"Expected AdventureTagNode, got {type(node)}"
+        )
+        adventure_node = cast(AdventureTagNode, node)
+
+        if (
+            hasattr(adventure_node, "display_text_nodes")
+            and adventure_node.display_text_nodes
+        ):
             # Use display text
             display_text = "".join(
-                context.render_node(child) for child in node.display_text_nodes
+                context.render_node(child)
+                for child in adventure_node.display_text_nodes
             )
-            if node.page:
-                return f"{display_text} (p. {node.page})"
+            if adventure_node.page:
+                return f"{display_text} (p. {adventure_node.page})"
             return display_text
         else:
             # Use adventure name
-            if node.page:
-                return f"{node.name} (p. {node.page})"
-            return node.name
+            if adventure_node.page:
+                return f"{adventure_node.name} (p. {adventure_node.page})"
+            return adventure_node.name
 
-    def track_content(self, node: AdventureTagNode, tracker: ContentTracker) -> None:
+    def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
         """Track adventure for appendix."""
-        tracker.add_content("adventure", node.name, node.source, node.page)
+        # Type check and cast to specific node type
+        assert isinstance(node, AdventureTagNode), (
+            f"Expected AdventureTagNode, got {type(node)}"
+        )
+        adventure_node = cast(AdventureTagNode, node)
+
+        tracker.add_content(
+            "adventure", adventure_node.name, adventure_node.source, adventure_node.page
+        )
 
 
 class BookTagHandler(TagHandler):
@@ -332,15 +400,23 @@ class BookTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "book"
 
-    def render(self, node: BookTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render book reference."""
-        if node.page:
-            return f"{node.name}, p. {node.page}"
-        return node.name
+        # Type check and cast to specific node type
+        assert isinstance(node, BookTagNode), f"Expected BookTagNode, got {type(node)}"
+        book_node = cast(BookTagNode, node)
 
-    def track_content(self, node: BookTagNode, tracker: ContentTracker) -> None:
+        if book_node.page:
+            return f"{book_node.name}, p. {book_node.page}"
+        return book_node.name
+
+    def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
         """Track book for appendix."""
-        tracker.add_content("book", node.name, node.source, node.page)
+        # Type check and cast to specific node type
+        assert isinstance(node, BookTagNode), f"Expected BookTagNode, got {type(node)}"
+        book_node = cast(BookTagNode, node)
+
+        tracker.add_content("book", book_node.name, book_node.source, book_node.page)
 
 
 class FilterTagHandler(TagHandler):
@@ -349,8 +425,12 @@ class FilterTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "filter"
 
-    def render(self, node: FilterTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Filter tags are omitted from output."""
+        # Type check (though we don't use the node)
+        assert isinstance(node, FilterTagNode), (
+            f"Expected FilterTagNode, got {type(node)}"
+        )
         return ""
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
@@ -364,8 +444,12 @@ class LoaderTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "loader"
 
-    def render(self, node: LoaderTagNode, context: "RendererContext") -> str:
+    def render(self, node: TagNode, context: "RendererContext") -> str:
         """Loader tags are omitted from output."""
+        # Type check (though we don't use the node)
+        assert isinstance(node, LoaderTagNode), (
+            f"Expected LoaderTagNode, got {type(node)}"
+        )
         return ""
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
