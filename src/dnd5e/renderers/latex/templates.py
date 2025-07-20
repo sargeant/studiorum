@@ -1,5 +1,6 @@
 """LaTeX template engine for D&D-style documents."""
 
+import re
 from pathlib import Path
 from typing import Any, Optional
 
@@ -284,16 +285,15 @@ class LaTeXTemplateEngine:
         Returns:
             Template with conditionals processed
         """
-        import re
 
         # Handle {% if var %} blocks
-        def replace_if_block(match: Any) -> str:
+        def replace_if_block(match: re.Match[str]) -> str:
             condition = match.group(1).strip()
             content = match.group(2)
 
             # Simple truthiness check
             if condition in variables and variables[condition]:
-                return content
+                return content or ""
             return ""
 
         # Process if blocks
@@ -301,7 +301,7 @@ class LaTeXTemplateEngine:
         template = re.sub(pattern, replace_if_block, template, flags=re.DOTALL)
 
         # Handle {% for item in items %} blocks (basic implementation)
-        def replace_for_block(match: Any) -> str:
+        def replace_for_block(match: re.Match[str]) -> str:
             var_name = match.group(1).strip()
             list_name = match.group(2).strip()
             content = match.group(3)

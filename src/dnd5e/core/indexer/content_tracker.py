@@ -144,7 +144,7 @@ class ContentTracker:
             result[content_type] = []
 
             for content in type_content:
-                entry = {
+                entry: dict[str, str | int] = {
                     "name": content.name,
                     "type": content.content_type,
                 }

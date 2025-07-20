@@ -8,7 +8,7 @@ import threading
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 from dnd5e.core.logging import get_logger
 
@@ -209,7 +209,7 @@ class CacheManager:
         """Clean up cache if it exceeds size limit."""
         try:
             # Get all cache files with metadata
-            cache_info = []
+            cache_info: list[dict[str, Any]] = []
             for meta_file in self.cache_dir.glob("*.meta"):
                 try:
                     with open(meta_file) as f:
@@ -234,7 +234,11 @@ class CacheManager:
                     meta_file.unlink(missing_ok=True)
 
             # Check total size
-            total_size = sum(int(info["size"]) for info in cache_info)
+            total_size = sum(
+                int(info["size"])
+                for info in cache_info
+                if isinstance(info["size"], int | str)
+            )
 
             if total_size > self.max_cache_size:
                 # Remove oldest entries until under limit
@@ -245,14 +249,16 @@ class CacheManager:
                 )
 
                 for info in cache_info:
-                    cache_file = info["cache_file"]
-                    meta_file = info["meta_file"]
+                    cache_file = cast(Path, info["cache_file"])
+                    meta_file = cast(Path, info["meta_file"])
                     if isinstance(cache_file, Path):
                         cache_file.unlink(missing_ok=True)
                     if isinstance(meta_file, Path):
                         meta_file.unlink(missing_ok=True)
 
-                    total_size -= int(info["size"])
+                    total_size -= (
+                        int(info["size"]) if isinstance(info["size"], int | str) else 0
+                    )
                     if total_size <= self.max_cache_size * 0.8:  # Leave some headroom
                         break
 

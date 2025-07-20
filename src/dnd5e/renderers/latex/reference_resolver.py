@@ -284,7 +284,7 @@ class ReferenceResolver:
         cross_ref_mgr = self.tag_integration.cross_ref_manager
         content_tracker = self.tag_integration.content_tracker
 
-        report = {
+        report: dict[str, Any] = {
             "total_references": len(self.reference_cache),
             "forward_references": len(self.forward_references),
             "backward_references": len(self.backward_references),
