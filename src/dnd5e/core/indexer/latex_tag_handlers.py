@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Union
 
 from dnd5e.core.logging import get_logger
 
@@ -23,15 +23,18 @@ logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from .latex_tag_renderer import LaTeXRendererContext
+    from .tag_renderer import RendererContext
 
 
 class LaTeXBaseContentTagHandler(BaseContentTagHandler):
     """Enhanced base handler for content reference tags with LaTeX cross-references."""
 
-    def __init__(self, tag_type: str, latex_format: str):
+    def __init__(self, tag_type: str, latex_format: str) -> None:
         super().__init__(tag_type, latex_format)
 
-    def render(self, node: TagNode, context: LaTeXRendererContext) -> str:
+    def render(
+        self, node: TagNode, context: LaTeXRendererContext | RendererContext
+    ) -> str:
         """Render content reference with LaTeX enhancements."""
         # Get display text
         if hasattr(node, "display_text_nodes") and node.display_text_nodes:
@@ -49,7 +52,11 @@ class LaTeXBaseContentTagHandler(BaseContentTagHandler):
 
         # Add LaTeX enhancements if in LaTeX mode
         if hasattr(context, "latex_mode") and context.latex_mode:
-            return self._add_latex_enhancements(node, formatted_text, context)
+            # Type narrow to LaTeXRendererContext for enhanced features
+            from typing import cast
+
+            latex_context = cast("LaTeXRendererContext", context)
+            return self._add_latex_enhancements(node, formatted_text, latex_context)
 
         return formatted_text
 
@@ -62,17 +69,17 @@ class LaTeXBaseContentTagHandler(BaseContentTagHandler):
             return formatted_text
 
         # Register with cross-reference manager
-        if context.cross_ref_manager:
-            ref_id = context.cross_ref_manager.register_content(
+        if hasattr(context, "cross_ref_manager") and context.cross_ref_manager:
+            ref_id = context.cross_ref_manager.register_content(  # type: ignore[call-arg,func-returns-value]
                 content_type=self.tag_type,
                 name=name,
                 source=getattr(node, "source", None),
-                page=getattr(node, "page", None),
             )
 
             # Create hyperlink if enabled
             if (
-                context.hyperlink_manager
+                hasattr(context, "hyperlink_manager")
+                and context.hyperlink_manager
                 and context.hyperlink_manager.should_create_hyperlink(self.tag_type)
             ):
                 return context.hyperlink_manager.create_hyperlink(
@@ -85,56 +92,58 @@ class LaTeXBaseContentTagHandler(BaseContentTagHandler):
 class LaTeXCreatureTagHandler(LaTeXBaseContentTagHandler):
     """Enhanced creature tag handler with cross-references."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("creature", "\\textbf{{{}}}")
 
 
 class LaTeXSpellTagHandler(LaTeXBaseContentTagHandler):
     """Enhanced spell tag handler with cross-references."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("spell", "\\textit{{{}}}")
 
 
 class LaTeXItemTagHandler(LaTeXBaseContentTagHandler):
     """Enhanced item tag handler with cross-references."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("item", "\\textit{{{}}}")
 
 
 class LaTeXClassTagHandler(LaTeXBaseContentTagHandler):
     """Enhanced class tag handler with cross-references."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("class", "\\textbf{{{}}}")
 
 
 class LaTeXRaceTagHandler(LaTeXBaseContentTagHandler):
     """Enhanced race tag handler with cross-references."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("race", "{}")  # No special formatting for races
 
 
 class LaTeXBackgroundTagHandler(LaTeXBaseContentTagHandler):
     """Enhanced background tag handler with cross-references."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("background", "{}")  # No special formatting
 
 
 class LaTeXFeatTagHandler(LaTeXBaseContentTagHandler):
     """Enhanced feat tag handler with cross-references."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("feat", "\\textbf{{{}}}")
 
 
 class LaTeXConditionTagHandler(ConditionTagHandler):
     """Enhanced condition tag handler with cross-references."""
 
-    def render(self, node: TagNode, context: LaTeXRendererContext) -> str:
+    def render(
+        self, node: TagNode, context: LaTeXRendererContext | RendererContext
+    ) -> str:
         """Render condition with potential cross-reference."""
         condition = getattr(node, "condition", "")
         formatted_text = f"\\textit{{{condition}}}"
@@ -146,22 +155,31 @@ class LaTeXConditionTagHandler(ConditionTagHandler):
         return formatted_text
 
     def _add_condition_enhancements(
-        self, condition: str, formatted_text: str, context: LaTeXRendererContext
+        self,
+        condition: str,
+        formatted_text: str,
+        context: LaTeXRendererContext | RendererContext,
     ) -> str:
         """Add cross-references for conditions."""
         # Register condition for cross-referencing
-        if context.cross_ref_manager:
+        if hasattr(context, "cross_ref_manager") and context.cross_ref_manager:
             ref_id = context.cross_ref_manager.register_content(
                 content_type="condition", name=condition
             )
 
             # Create hyperlink for conditions
             if (
-                context.hyperlink_manager
+                hasattr(context, "hyperlink_manager")
+                and context.hyperlink_manager
                 and context.hyperlink_manager.should_create_hyperlink("condition")
             ):
-                return context.hyperlink_manager.create_hyperlink(
+                hyperlink_result = context.hyperlink_manager.create_hyperlink(
                     text=formatted_text, ref_id=ref_id, content_type="condition"
+                )
+                return (
+                    str(hyperlink_result)
+                    if hyperlink_result is not None
+                    else formatted_text
                 )
 
         return formatted_text
@@ -170,10 +188,28 @@ class LaTeXConditionTagHandler(ConditionTagHandler):
 class LaTeXAdventureTagHandler(AdventureTagHandler):
     """Enhanced adventure tag handler with cross-references."""
 
-    def render(self, node: TagNode, context: LaTeXRendererContext) -> str:
+    def render(
+        self, node: TagNode, context: LaTeXRendererContext | RendererContext
+    ) -> str:
         """Render adventure reference with enhancements."""
-        # Get base rendering
-        base_text = super().render(node, context)
+        # Get base rendering - need to pass correct node type to parent
+        if hasattr(node, "adventure") or hasattr(node, "name"):
+            from .tag_ast import AdventureTagNode
+
+            if not isinstance(node, AdventureTagNode):
+                # Create compatible node for parent handler
+                adventure_node = AdventureTagNode(
+                    name=getattr(node, "adventure", getattr(node, "name", "")),
+                    page=getattr(node, "page", None),
+                )
+                base_text = super().render(adventure_node, context)
+            else:
+                base_text = super().render(node, context)
+        else:
+            # Fallback to basic rendering if not an adventure node
+            name = getattr(node, "name", str(node))
+            page = getattr(node, "page", None)
+            base_text = f"{name}" + (f" (p. {page})" if page else "")
 
         # Add LaTeX enhancements if in LaTeX mode
         if hasattr(context, "latex_mode") and context.latex_mode:
@@ -182,7 +218,10 @@ class LaTeXAdventureTagHandler(AdventureTagHandler):
         return base_text
 
     def _add_adventure_enhancements(
-        self, node: TagNode, base_text: str, context: LaTeXRendererContext
+        self,
+        node: TagNode,
+        base_text: str,
+        context: LaTeXRendererContext | RendererContext,
     ) -> str:
         """Add cross-references for adventure content."""
         name = getattr(node, "name", "")
@@ -190,34 +229,43 @@ class LaTeXAdventureTagHandler(AdventureTagHandler):
             return base_text
 
         # Register adventure for cross-referencing
-        if context.cross_ref_manager:
+        if hasattr(context, "cross_ref_manager") and context.cross_ref_manager:
             ref_id = context.cross_ref_manager.register_content(
                 content_type="adventure",
                 name=name,
                 source=getattr(node, "source", None),
-                page=getattr(node, "page", None),
             )
 
             # Create hyperlink if enabled
             if (
-                context.hyperlink_manager
+                hasattr(context, "hyperlink_manager")
+                and context.hyperlink_manager
                 and context.hyperlink_manager.should_create_hyperlink("adventure")
             ):
                 # Extract just the adventure name for hyperlink, keep page reference
                 if " (p. " in base_text:
                     adventure_part, page_part = base_text.split(" (p. ", 1)
-                    hyperlinked_adventure = context.hyperlink_manager.create_hyperlink(
+                    hyperlink_result = context.hyperlink_manager.create_hyperlink(
                         text=f"\\textit{{{adventure_part}}}",
                         ref_id=ref_id,
                         content_type="adventure",
-                        include_page_ref=False,
+                    )
+                    hyperlinked_adventure = (
+                        str(hyperlink_result)
+                        if hyperlink_result is not None
+                        else f"\\textit{{{adventure_part}}}"
                     )
                     return f"{hyperlinked_adventure} (p. {page_part}"
                 else:
-                    return context.hyperlink_manager.create_hyperlink(
+                    hyperlink_result = context.hyperlink_manager.create_hyperlink(
                         text=f"\\textit{{{base_text}}}",
                         ref_id=ref_id,
                         content_type="adventure",
+                    )
+                    return (
+                        str(hyperlink_result)
+                        if hyperlink_result is not None
+                        else f"\\textit{{{base_text}}}"
                     )
 
         return f"\\textit{{{base_text}}}"  # At least italicize adventure names
@@ -226,10 +274,28 @@ class LaTeXAdventureTagHandler(AdventureTagHandler):
 class LaTeXBookTagHandler(BookTagHandler):
     """Enhanced book tag handler with cross-references."""
 
-    def render(self, node: TagNode, context: LaTeXRendererContext) -> str:
+    def render(
+        self, node: TagNode, context: LaTeXRendererContext | RendererContext
+    ) -> str:
         """Render book reference with enhancements."""
-        # Get base rendering
-        base_text = super().render(node, context)
+        # Get base rendering - need to pass correct node type to parent
+        if hasattr(node, "book") or hasattr(node, "name"):
+            from .tag_ast import BookTagNode
+
+            if not isinstance(node, BookTagNode):
+                # Create compatible node for parent handler
+                book_node = BookTagNode(
+                    name=getattr(node, "book", getattr(node, "name", "")),
+                    page=getattr(node, "page", None),
+                )
+                base_text = super().render(book_node, context)
+            else:
+                base_text = super().render(node, context)
+        else:
+            # Fallback to basic rendering if not a book node
+            name = getattr(node, "name", str(node))
+            page = getattr(node, "page", None)
+            base_text = f"{name}" + (f", p. {page}" if page else "")
 
         # Add LaTeX enhancements if in LaTeX mode
         if hasattr(context, "latex_mode") and context.latex_mode:
@@ -238,7 +304,10 @@ class LaTeXBookTagHandler(BookTagHandler):
         return base_text
 
     def _add_book_enhancements(
-        self, node: TagNode, base_text: str, context: LaTeXRendererContext
+        self,
+        node: TagNode,
+        base_text: str,
+        context: LaTeXRendererContext | RendererContext,
     ) -> str:
         """Add cross-references for book content."""
         name = getattr(node, "name", "")
@@ -246,34 +315,43 @@ class LaTeXBookTagHandler(BookTagHandler):
             return base_text
 
         # Register book for cross-referencing
-        if context.cross_ref_manager:
+        if hasattr(context, "cross_ref_manager") and context.cross_ref_manager:
             ref_id = context.cross_ref_manager.register_content(
                 content_type="book",
                 name=name,
                 source=getattr(node, "source", None),
-                page=getattr(node, "page", None),
             )
 
             # Create hyperlink if enabled
             if (
-                context.hyperlink_manager
+                hasattr(context, "hyperlink_manager")
+                and context.hyperlink_manager
                 and context.hyperlink_manager.should_create_hyperlink("book")
             ):
                 # Extract just the book name for hyperlink, keep page reference
                 if ", p. " in base_text:
                     book_part, page_part = base_text.split(", p. ", 1)
-                    hyperlinked_book = context.hyperlink_manager.create_hyperlink(
+                    hyperlink_result = context.hyperlink_manager.create_hyperlink(
                         text=f"\\textit{{{book_part}}}",
                         ref_id=ref_id,
                         content_type="book",
-                        include_page_ref=False,
+                    )
+                    hyperlinked_book = (
+                        str(hyperlink_result)
+                        if hyperlink_result is not None
+                        else f"\\textit{{{book_part}}}"
                     )
                     return f"{hyperlinked_book}, p. {page_part}"
                 else:
-                    return context.hyperlink_manager.create_hyperlink(
+                    hyperlink_result = context.hyperlink_manager.create_hyperlink(
                         text=f"\\textit{{{base_text}}}",
                         ref_id=ref_id,
                         content_type="book",
+                    )
+                    return (
+                        str(hyperlink_result)
+                        if hyperlink_result is not None
+                        else f"\\textit{{{base_text}}}"
                     )
 
         return f"\\textit{{{base_text}}}"  # At least italicize book names
@@ -285,7 +363,9 @@ class LaTeXScaledDiceTagHandler(TagHandler):
     def handles(self, tag_type: str) -> bool:
         return tag_type == "scaledice"
 
-    def render(self, node: TagNode, context: LaTeXRendererContext) -> str:
+    def render(
+        self, node: TagNode, context: LaTeXRendererContext | RendererContext
+    ) -> str:
         """Render scaled dice expression."""
         # Extract scaled dice information
         expression = getattr(node, "expression", "")
@@ -304,13 +384,15 @@ class LaTeXScaledDiceTagHandler(TagHandler):
 class LaTeXFilterTagHandler(TagHandler):
     """Enhanced filter tag handler that can optionally preserve content for debugging."""
 
-    def __init__(self, preserve_for_debug: bool = False):
+    def __init__(self, preserve_for_debug: bool = False) -> None:
         self.preserve_for_debug = preserve_for_debug
 
     def handles(self, tag_type: str) -> bool:
         return tag_type == "filter"
 
-    def render(self, node: TagNode, context: LaTeXRendererContext) -> str:
+    def render(
+        self, node: TagNode, context: LaTeXRendererContext | RendererContext
+    ) -> str:
         """Render filter tag (usually empty)."""
         if self.preserve_for_debug:
             # Preserve filter content as LaTeX comment for debugging
@@ -347,8 +429,8 @@ def get_latex_enhanced_handlers(
 
 
 def register_latex_handlers(
-    renderer, cross_ref_manager: CrossReferenceManager | None = None
-):
+    renderer: Any, cross_ref_manager: CrossReferenceManager | None = None
+) -> None:
     """Register LaTeX-enhanced handlers with a renderer."""
     # Get LaTeX handlers
     latex_handlers = get_latex_enhanced_handlers()
@@ -372,9 +454,9 @@ def create_content_reference_factory(
 
     for content_type, latex_format in content_types.items():
         # Create closure to capture variables
-        def create_handler_class(ct, lf):
+        def create_handler_class(ct: str, lf: str) -> type[LaTeXBaseContentTagHandler]:
             class DynamicContentHandler(LaTeXBaseContentTagHandler):
-                def __init__(self):
+                def __init__(self) -> None:
                     super().__init__(ct, lf)
 
             return DynamicContentHandler
