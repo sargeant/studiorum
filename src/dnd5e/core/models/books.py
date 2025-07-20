@@ -36,7 +36,7 @@ class BookChapter(BaseModel):
 
     @field_validator("headers", mode="before")
     @classmethod
-    def parse_headers(cls, v):
+    def parse_headers(cls, v: Any) -> Any:
         """Parse headers from various formats."""
         if not v:
             return v
@@ -87,7 +87,7 @@ class BookMetadata(BaseModel):
 
     @field_validator("author", mode="before")
     @classmethod
-    def parse_author(cls, v):
+    def parse_author(cls, v: Any) -> list[str] | None:
         """Handle both string and list formats for author field."""
         if v is None:
             return None
@@ -126,7 +126,7 @@ class Book(BaseContent):
 
     @field_validator("author", mode="before")
     @classmethod
-    def parse_author(cls, v):
+    def parse_author(cls, v: Any) -> list[str] | None:
         """Handle both string and list formats for author field."""
         if v is None:
             return None
@@ -136,7 +136,7 @@ class Book(BaseContent):
             return v
         return [str(v)]  # Convert other types to string then list
 
-    def model_post_init(self, __context) -> None:
+    def model_post_init(self, __context: Any) -> None:
         """Post-process parsed data."""
         # Create metadata from individual fields if not present
         if not self.metadata and any(

@@ -35,7 +35,7 @@ class FluffEntry(BaseModel):
     name: str | None = None
     entries: str | dict[str, Any] | list[Any] | None = Field(default=None)
 
-    def model_post_init(self, __context):
+    def model_post_init(self, __context: Any) -> None:
         """Post-process content after model initialization."""
         # If entries field has content but content is empty, use entries
         if self.entries is not None and not self.content:
@@ -46,7 +46,7 @@ class FluffEntry(BaseModel):
 
     @field_validator("content", mode="before")
     @classmethod
-    def parse_content(cls, v):
+    def parse_content(cls, v: Any) -> str:
         """Extract text content from various structures."""
         if isinstance(v, str):
             return v
@@ -74,7 +74,7 @@ class FluffEntry(BaseModel):
         return str(v) if v else ""
 
     @staticmethod
-    def _extract_text_from_entries(entries) -> str:
+    def _extract_text_from_entries(entries: Any) -> str:
         """Recursively extract text from nested entries."""
         text_parts = []
         if isinstance(entries, list):
@@ -104,7 +104,7 @@ class BaseFluff(BaseContent):
 
     @field_validator("entries", mode="before")
     @classmethod
-    def parse_entries(cls, v):
+    def parse_entries(cls, v: Any) -> list[Any]:
         """Liberal parsing of entries field."""
         if not v:
             return []
@@ -145,7 +145,7 @@ class BaseFluff(BaseContent):
 
     @field_validator("images", mode="before")
     @classmethod
-    def parse_images(cls, v):
+    def parse_images(cls, v: Any) -> list[Any]:
         """Liberal parsing of images field."""
         if not v:
             return []

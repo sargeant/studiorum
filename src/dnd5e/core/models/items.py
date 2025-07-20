@@ -115,7 +115,7 @@ class Item(BaseContent):
     stealth: bool | None = Field(None, description="Stealth disadvantage")
     armor_type: str | None = Field(None, alias="armorType", description="Armor type")
 
-    def model_post_init(self, __context) -> None:
+    def model_post_init(self, __context: Any) -> None:
         """Post-process parsed data."""
         # Create weapon_data from individual weapon fields
         if any(
@@ -240,7 +240,7 @@ class Item(BaseContent):
             return ""
         return self._extract_text_from_entries(self.entries)
 
-    def _extract_text_from_entries(self, entries) -> str:
+    def _extract_text_from_entries(self, entries: Any) -> str:
         """Recursively extract text from complex entry structures."""
         text_parts = []
 
