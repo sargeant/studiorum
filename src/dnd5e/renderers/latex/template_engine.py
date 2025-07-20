@@ -61,7 +61,7 @@ class LaTeXTemplateEngine:
         # Template cache
         self._template_cache = {}
 
-    def _add_latex_filters(self):
+    def _add_latex_filters(self) -> None:
         """Add LaTeX-specific filters to Jinja2 environment."""
 
         def latex_escape(value: str) -> str:
@@ -274,7 +274,7 @@ class LaTeXTemplateEngine:
             templates.append(template_name)
         return sorted(templates)
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear template cache."""
         self._template_cache.clear()
 
@@ -302,7 +302,7 @@ class LaTeXTemplateEngine:
         """
         return self.get_template_path(template_name).exists()
 
-    def create_template_context(self, **kwargs) -> dict[str, Any]:
+    def create_template_context(self, **kwargs: Any) -> dict[str, Any]:
         """Create template context with common variables.
 
         Args:
@@ -351,7 +351,7 @@ class LaTeXTemplateEngine:
         }
 
     def create_dnd_template_context(
-        self, content_type: str = "book", **kwargs
+        self, content_type: str = "book", **kwargs: Any
     ) -> dict[str, Any]:
         """Create template context optimized for DND template usage.
 
@@ -400,7 +400,7 @@ class LaTeXTemplateEngine:
         return context
 
     def render_dnd_template(
-        self, template_name: str, content_type: str = "book", **kwargs
+        self, template_name: str, content_type: str = "book", **kwargs: Any
     ) -> str:
         """Render template with DND-specific configuration.
 
@@ -436,6 +436,6 @@ class LaTeXTemplateEngine:
         """
         return self.dnd_manager.create_installation_guide()
 
-    def print_dnd_status_report(self):
+    def print_dnd_status_report(self) -> None:
         """Print comprehensive DND template status report."""
         self.dnd_manager.print_status_report()
