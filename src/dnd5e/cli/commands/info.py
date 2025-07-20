@@ -22,7 +22,7 @@ def show_content_info(
         None, "--type", "-t", help="Content type (spell, creature, item)"
     ),
     source: str | None = typer.Option(None, "--source", "-s", help="Source book"),
-):
+) -> None:
     """
     🔍 Show detailed information about a specific content item
 
@@ -30,7 +30,7 @@ def show_content_info(
     including all attributes and formatted descriptions.
     """
 
-    async def _show_info():
+    async def _show_info() -> None:
         try:
             # Load omnidexer
             with Progress() as progress:
@@ -77,7 +77,7 @@ def show_content_info(
 @app.command("file")
 def show_file_info(
     file_path: str = typer.Argument(..., help="Path to JSON file"),
-):
+) -> None:
     """
     📄 Show information about a JSON file
 
@@ -146,7 +146,7 @@ def show_file_info(
         raise typer.Exit(1)
 
 
-def _display_content_details(item):
+def _display_content_details(item) -> None:
     """Display detailed information about a content item."""
     from dnd5e.core.models.creatures import Creature
     from dnd5e.core.models.items import Item
@@ -176,7 +176,7 @@ def _display_content_details(item):
         _display_item_details(item)
 
 
-def _display_spell_details(spell):
+def _display_spell_details(spell) -> None:
     """Display detailed spell information."""
     details = f"""
 [cyan]Level:[/cyan] {spell.get_level_text()}
@@ -202,7 +202,7 @@ def _display_spell_details(spell):
         )
 
 
-def _display_creature_details(creature):
+def _display_creature_details(creature) -> None:
     """Display detailed creature information."""
     size = creature.size[0] if creature.size else "Medium"
     cr = getattr(creature, "cr", "Unknown")
@@ -235,7 +235,7 @@ def _display_creature_details(creature):
     )
 
 
-def _display_item_details(item):
+def _display_item_details(item) -> None:
     """Display detailed item information."""
     item_type = getattr(item, "type", "Item")
     rarity = getattr(item, "rarity", None)

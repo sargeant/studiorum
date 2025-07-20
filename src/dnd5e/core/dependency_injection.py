@@ -39,7 +39,7 @@ class ServiceRegistration:
 class DependencyContainer:
     """Dependency injection container."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._services: dict[type, ServiceRegistration] = {}
         self._building: set[type] = set()
 
@@ -121,7 +121,7 @@ class DependencyContainer:
 class LambdaServiceFactory:
     """Service factory using a lambda function."""
 
-    def __init__(self, factory_func):
+    def __init__(self, factory_func) -> None:
         self.factory_func = factory_func
 
     def create(self, container: DependencyContainer) -> Any:
@@ -132,7 +132,7 @@ class LambdaServiceFactory:
 class ClassServiceFactory:
     """Service factory for class instantiation."""
 
-    def __init__(self, service_class: type, *args, **kwargs):
+    def __init__(self, service_class: type, *args, **kwargs) -> None:
         self.service_class = service_class
         self.args = args
         self.kwargs = kwargs
@@ -142,7 +142,7 @@ class ClassServiceFactory:
         return self.service_class(*self.args, **self.kwargs)
 
 
-def inject(*dependencies: type):
+def inject(*dependencies: type) -> Any:
     """Decorator for dependency injection into functions.
 
     Args:
@@ -155,9 +155,9 @@ def inject(*dependencies: type):
             pass
     """
 
-    def decorator(func):
+    def decorator(func) -> Any:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs) -> Any:
             container = get_dependency_container()
 
             # Resolve dependencies
@@ -201,7 +201,7 @@ def configure_services() -> None:
     container.register_instance(ContentLoader, get_content_factory())
 
     # Register omnidexer as content indexer
-    def create_omnidexer(container: DependencyContainer):
+    def create_omnidexer(container: DependencyContainer) -> Any:
         from .loaders.omnidexer import Omnidexer
 
         return Omnidexer()
@@ -209,7 +209,7 @@ def configure_services() -> None:
     container.register(ContentIndexer, LambdaServiceFactory(create_omnidexer))
 
     # Register tag resolver
-    def create_tag_resolver(container: DependencyContainer):
+    def create_tag_resolver(container: DependencyContainer) -> Any:
         from .indexer.tag_resolver import TagResolver
 
         indexer = container.resolve(ContentIndexer)

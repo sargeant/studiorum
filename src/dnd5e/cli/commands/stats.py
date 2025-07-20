@@ -17,7 +17,7 @@ console = Console()
 
 
 @app.command("overview")
-def show_overview():
+def show_overview() -> None:
     """
     📊 Show overall content statistics
 
@@ -25,7 +25,7 @@ def show_overview():
     counts by type, source, and other metrics.
     """
 
-    async def _show_overview():
+    async def _show_overview() -> None:
         try:
             # Load omnidexer
             with Progress() as progress:
@@ -98,7 +98,7 @@ def show_overview():
 @app.command("content")
 def show_content_stats(
     content_type: str = typer.Argument(..., help="Content type to analyze"),
-):
+) -> None:
     """
     🔍 Show detailed statistics for a specific content type
 
@@ -106,7 +106,7 @@ def show_content_stats(
     including breakdowns by various attributes.
     """
 
-    async def _show_content_stats():
+    async def _show_content_stats() -> None:
         try:
             # Load omnidexer
             with Progress() as progress:
@@ -164,7 +164,7 @@ def show_content_stats(
 
 
 @app.command("sources")
-def show_source_stats():
+def show_source_stats() -> None:
     """
     📚 Show statistics by source book
 
@@ -172,7 +172,7 @@ def show_source_stats():
     showing what each book contributes to the collection.
     """
 
-    async def _show_source_stats():
+    async def _show_source_stats() -> None:
         try:
             # Load omnidexer
             with Progress() as progress:
@@ -231,7 +231,7 @@ def show_source_stats():
     asyncio.run(_show_source_stats())
 
 
-def _analyze_spells(spells):
+def _analyze_spells(spells: list) -> dict:
     """Analyze spell-specific statistics."""
     from dnd5e.core.models.spells import Spell
 
@@ -270,7 +270,7 @@ def _analyze_spells(spells):
     console.print(school_table)
 
 
-def _analyze_creatures(creatures):
+def _analyze_creatures(creatures: list) -> dict:
     """Analyze creature-specific statistics."""
     from dnd5e.core.models.creatures import Creature
 
@@ -296,7 +296,7 @@ def _analyze_creatures(creatures):
     cr_table.add_column("Count", justify="right", style="green")
 
     # Sort CRs numerically where possible
-    def sort_cr(cr_str):
+    def sort_cr(cr_str: str) -> tuple:
         try:
             if "/" in str(cr_str):
                 # Handle fractional CRs like "1/2", "1/4"
@@ -337,7 +337,7 @@ def _analyze_creatures(creatures):
     console.print(size_table)
 
 
-def _analyze_items(items):
+def _analyze_items(items: list) -> dict:
     """Analyze item-specific statistics."""
     from dnd5e.core.models.items import Item
 
@@ -378,7 +378,7 @@ def _analyze_items(items):
     console.print(rarity_table)
 
 
-def _show_source_breakdown(content_items, content_type):
+def _show_source_breakdown(content_items: list, content_type: str) -> None:
     """Show source breakdown for content items."""
     source_counts = {}
 

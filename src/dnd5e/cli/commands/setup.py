@@ -22,7 +22,7 @@ app = typer.Typer(help="Setup and configuration wizard")
 
 
 @app.command("wizard")
-def setup_wizard():
+def setup_wizard() -> None:
     """Interactive setup wizard for first-time configuration."""
     console.print(
         Panel.fit(
@@ -88,7 +88,7 @@ def setup_wizard():
         console.print("[bold]5e2pdf sources scan[/bold]")
 
 
-def _setup_defaults(config_manager):
+def _setup_defaults(config_manager) -> None:
     """Set up default sources."""
     console.print("\n[cyan]Setting up default sources...[/cyan]")
 
@@ -105,7 +105,7 @@ def _setup_defaults(config_manager):
     console.print(table)
 
 
-def _setup_custom(config_manager):
+def _setup_custom(config_manager) -> None:
     """Set up custom sources."""
     console.print("\n[cyan]Custom setup - Add sources manually[/cyan]")
 
@@ -132,7 +132,7 @@ def _setup_custom(config_manager):
     config_manager.update_config(config)
 
 
-def _setup_local(config_manager):
+def _setup_local(config_manager) -> None:
     """Set up local directory sources only."""
     console.print("\n[cyan]Local setup - Add local directories[/cyan]")
 
@@ -179,7 +179,7 @@ def _setup_local(config_manager):
     config_manager.update_config(config)
 
 
-def _add_source_interactive(config):
+def _add_source_interactive(config) -> bool:
     """Interactively add a source to config."""
     name = Prompt.ask("Source name")
 
@@ -231,14 +231,14 @@ def _add_source_interactive(config):
             console.print(f"[red]Error:[/red] {e}")
 
 
-def _scan_content():
+def _scan_content() -> None:
     """Download and scan content."""
     console.print("\n[cyan]Downloading and scanning content...[/cyan]")
 
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
-    async def _do_scan():
+    async def _do_scan() -> None:
         try:
             await source_manager.ensure_all_sources()
             await source_manager.build_content_index()
@@ -269,7 +269,7 @@ def _scan_content():
 
 
 @app.command("check")
-def check_setup():
+def check_setup() -> None:
     """Check current setup and configuration."""
     config = get_content_config()
 
@@ -285,7 +285,7 @@ def check_setup():
     # Check source availability
     source_manager = ContentSourceManager(config)
 
-    async def _check():
+    async def _check() -> None:
         try:
             await source_manager.ensure_all_sources()
             await source_manager.build_content_index()
@@ -323,7 +323,7 @@ def check_setup():
 
 
 @app.command("reset")
-def reset_setup():
+def reset_setup() -> None:
     """Reset configuration to defaults."""
     if not Confirm.ask("This will reset all configuration to defaults. Continue?"):
         console.print("Reset cancelled.")

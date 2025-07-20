@@ -34,7 +34,7 @@ def convert_adventure(
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
     ),
-):
+) -> None:
     """
     📖 Convert adventure JSON to LaTeX
 
@@ -42,7 +42,7 @@ def convert_adventure(
     formatted LaTeX document matching official book styling.
     """
 
-    async def _convert():
+    async def _convert() -> None:
         try:
             # Validate input
             if not input_file.exists():
@@ -140,7 +140,7 @@ def convert_book(
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
     ),
-):
+) -> None:
     """
     📚 Convert book JSON to LaTeX
 
@@ -148,7 +148,7 @@ def convert_book(
     formatted LaTeX document matching official book styling.
     """
 
-    async def _convert():
+    async def _convert() -> None:
         try:
             # Validate input
             if not input_file.exists():
@@ -265,7 +265,7 @@ def convert_supplement(
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
     ),
-):
+) -> None:
     """
     📄 Convert supplement JSON to LaTeX
 
@@ -273,7 +273,7 @@ def convert_supplement(
     format into a formatted supplement document.
     """
 
-    async def _convert():
+    async def _convert() -> None:
         try:
             # Validate input
             if not input_file.exists():
@@ -388,7 +388,7 @@ def convert_supplement(
     asyncio.run(_convert())
 
 
-async def _compile_pdf(latex_path: Path):
+async def _compile_pdf(latex_path: Path) -> None:
     """Compile LaTeX to PDF using xelatex."""
     import subprocess
 
