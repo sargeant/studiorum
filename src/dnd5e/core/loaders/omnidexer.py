@@ -96,20 +96,20 @@ class Omnidexer:
         ContentType.ITEM_FLUFF,
     )
 
-    def _register_default_loaders(self):
+    def _register_default_loaders(self) -> None:
         """Register default data loaders for common content types."""
         self._register_loaders_for_type(JsonDataLoader, self._JSON_CONTENT_TYPES)
         self._register_loaders_for_type(FluffDataLoader, self._FLUFF_CONTENT_TYPES)
 
     def _register_loaders_for_type(
         self, loader_cls: type[DataLoader], content_types: tuple[ContentType, ...]
-    ):
+    ) -> None:
         """Helper to register loaders for a given loader class and content types."""
         for content_type in content_types:
-            loader = loader_cls.create_for_type(content_type)
+            loader = loader_cls.create_for_type(content_type)  # type: ignore[attr-defined]
             self.register_loader(content_type, loader)
 
-    def register_loader(self, content_type: ContentType, loader: DataLoader):
+    def register_loader(self, content_type: ContentType, loader: DataLoader) -> None:
         """Register a data loader for a specific content type."""
         self._loaders[content_type] = loader
         logger.info(f"Registered loader for {content_type.value}")
@@ -144,14 +144,14 @@ class Omnidexer:
         results = await asyncio.gather(*load_tasks, return_exceptions=True)
 
         # Process results
-        load_stats = defaultdict(int)
+        load_stats: dict[str, int] = defaultdict(int)
         total_loaded = 0
         for result in results:
             if isinstance(result, Exception):
                 logger.error(f"Loading task failed: {result}")
             elif isinstance(result, dict):
-                for content_type, count in result.items():
-                    load_stats[content_type] += count
+                for content_type_str, count in result.items():
+                    load_stats[content_type_str] += count
                     total_loaded += count
 
         logger.info(
@@ -159,7 +159,7 @@ class Omnidexer:
         )
         self._log_index_stats()
 
-        return dict(load_stats)
+        return load_stats
 
     async def _load_content_type(
         self, content_type: ContentType, path: Path
@@ -188,7 +188,7 @@ class Omnidexer:
             logger.error(f"Failed to load {content_type.value} from {path}: {e}")
             return {}
 
-    def _add_to_index(self, content: BaseContent, content_type: ContentType):
+    def _add_to_index(self, content: BaseContent, content_type: ContentType) -> None:
         """Add content item to all indexes."""
         entry = IndexEntry.create(content, content_type)
 
@@ -311,7 +311,7 @@ class Omnidexer:
 
     def get_statistics(self) -> dict[str, Any]:
         """Get statistics about the loaded index."""
-        stats = {
+        stats: dict[str, Any] = {
             "total_items": len(self._index),
             "by_type": {},
             "by_source": {},
@@ -332,7 +332,7 @@ class Omnidexer:
         """Check if a content type has been loaded."""
         return content_type in self._loaded_types
 
-    def _log_index_stats(self):
+    def _log_index_stats(self) -> None:
         """Log statistics about the loaded index."""
         stats = self.get_statistics()
 
