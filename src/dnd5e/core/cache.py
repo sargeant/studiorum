@@ -145,7 +145,12 @@ class CacheManager:
                 meta_path.unlink(missing_ok=True)
 
     def cached_call(
-        self, key: str, func: Callable, *args, ttl: timedelta | None = None, **kwargs
+        self,
+        key: str,
+        func: Callable[..., Any],
+        *args: Any,
+        ttl: timedelta | None = None,
+        **kwargs: Any,
     ) -> Any:
         """
         Call function with caching.
@@ -229,17 +234,25 @@ class CacheManager:
                     meta_file.unlink(missing_ok=True)
 
             # Check total size
-            total_size = sum(info["size"] for info in cache_info)
+            total_size = sum(int(info["size"]) for info in cache_info)
 
             if total_size > self.max_cache_size:
                 # Remove oldest entries until under limit
-                cache_info.sort(key=lambda x: x["created_at"])
+                cache_info.sort(
+                    key=lambda x: x["created_at"]
+                    if isinstance(x["created_at"], datetime)
+                    else datetime.min
+                )
 
                 for info in cache_info:
-                    info["cache_file"].unlink(missing_ok=True)
-                    info["meta_file"].unlink(missing_ok=True)
+                    cache_file = info["cache_file"]
+                    meta_file = info["meta_file"]
+                    if isinstance(cache_file, Path):
+                        cache_file.unlink(missing_ok=True)
+                    if isinstance(meta_file, Path):
+                        meta_file.unlink(missing_ok=True)
 
-                    total_size -= info["size"]
+                    total_size -= int(info["size"])
                     if total_size <= self.max_cache_size * 0.8:  # Leave some headroom
                         break
 
@@ -261,7 +274,9 @@ def get_cache() -> CacheManager:
     return _cache_manager
 
 
-def cached(key_func: Callable | None = None, ttl: timedelta | None = None):
+def cached(
+    key_func: Callable[..., str] | None = None, ttl: timedelta | None = None
+) -> Callable[..., Any]:
     """
     Decorator for caching function results.
 
@@ -276,8 +291,8 @@ def cached(key_func: Callable | None = None, ttl: timedelta | None = None):
             return result
     """
 
-    def decorator(func):
-        def wrapper(*args, **kwargs):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Generate cache key
             if key_func:
                 key = key_func(*args, **kwargs)

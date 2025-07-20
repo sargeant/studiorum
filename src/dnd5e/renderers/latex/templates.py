@@ -19,10 +19,10 @@ class LaTeXTemplateEngine:
         """
         self.config = config or {}
         self.templates_dir = Path(self.config.get("templates_dir", "templates"))
-        self._template_cache = {}
+        self._template_cache: dict[str, str] = {}
         self._load_builtin_templates()
 
-    def _load_builtin_templates(self):
+    def _load_builtin_templates(self) -> None:
         """Load built-in LaTeX templates."""
 
         self._template_cache["document_header"] = r"""
@@ -287,7 +287,7 @@ class LaTeXTemplateEngine:
         import re
 
         # Handle {% if var %} blocks
-        def replace_if_block(match):
+        def replace_if_block(match: Any) -> str:
             condition = match.group(1).strip()
             content = match.group(2)
 
@@ -301,7 +301,7 @@ class LaTeXTemplateEngine:
         template = re.sub(pattern, replace_if_block, template, flags=re.DOTALL)
 
         # Handle {% for item in items %} blocks (basic implementation)
-        def replace_for_block(match):
+        def replace_for_block(match: Any) -> str:
             var_name = match.group(1).strip()
             list_name = match.group(2).strip()
             content = match.group(3)

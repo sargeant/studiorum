@@ -12,7 +12,7 @@ class TrackedContent:
     source: str | None = None
     page: str | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Normalize the content after initialization."""
         self.content_type = self.content_type.lower()
         self.name = self.name.strip()
@@ -29,7 +29,7 @@ class TrackedContent:
         """Hash based on type, name, and source."""
         return hash(self.to_tuple())
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Equality based on type, name, and source."""
         if not isinstance(other, TrackedContent):
             return False
@@ -39,7 +39,7 @@ class TrackedContent:
 class ContentTracker:
     """Tracks content references for appendix generation."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._tracked_content: set[TrackedContent] = set()
         self._content_counts: dict[tuple[str, str, str | None], int] = {}
 
@@ -135,9 +135,9 @@ class ContentTracker:
                 content.content_type, content.name, content.source, content.page
             )
 
-    def export_for_appendix(self) -> dict[str, list[dict[str, str]]]:
+    def export_for_appendix(self) -> dict[str, list[dict[str, str | int]]]:
         """Export tracked content in a format suitable for appendix generation."""
-        result = {}
+        result: dict[str, list[dict[str, str | int]]] = {}
 
         for content_type in self.get_content_types():
             type_content = self.get_tracked_content_by_type(content_type)
@@ -154,8 +154,10 @@ class ContentTracker:
                     entry["page"] = content.page
 
                 # Add reference count
-                entry["reference_count"] = self.get_content_count(
-                    content.content_type, content.name, content.source
+                entry["reference_count"] = str(
+                    self.get_content_count(
+                        content.content_type, content.name, content.source
+                    )
                 )
 
                 result[content_type].append(entry)
