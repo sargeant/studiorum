@@ -294,6 +294,9 @@ class DocumentStructureBuilder:
             level=SectionLevel.CHAPTER,
             numbered=True,
             label=f"ch:{self._generate_label(title)}",
+            page_break_before=False,
+            page_break_after=False,
+            two_column=None,
         )
 
         # Add chapter content
@@ -309,6 +312,9 @@ class DocumentStructureBuilder:
                         level=SectionLevel.SECTION,
                         numbered=True,
                         label=f"sec:{self._generate_label(header)}",
+                        page_break_before=False,
+                        page_break_after=False,
+                        two_column=None,
                     )
                     section.subsections.append(subsection)
 
@@ -362,6 +368,9 @@ class DocumentStructureBuilder:
             numbered=True,
             label=f"ch:{self._generate_label(content_type)}",
             content_items=items,
+            page_break_before=False,
+            page_break_after=False,
+            two_column=None,
         )
 
         return section
@@ -388,6 +397,9 @@ class DocumentStructureBuilder:
             numbered=True,
             label=f"sec:{self._generate_label(content_type)}",
             content_items=items,
+            page_break_before=False,
+            page_break_after=False,
+            two_column=None,
         )
 
         return section

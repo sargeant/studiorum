@@ -121,6 +121,7 @@ def _setup_custom(config_manager: Any) -> None:
                 path=Path("srd-data"),
                 enabled=True,
                 priority=1,
+                url=None,
             )
         )
 
@@ -167,6 +168,7 @@ def _setup_local(config_manager: Any) -> None:
                     path=path,
                     enabled=True,
                     priority=len(config.content_sources) + 1,
+                    url=None,
                 )
             )
             console.print(f"[green]✅ Added local source '{name}'[/green]")
@@ -186,7 +188,7 @@ def _add_source_interactive(config: Any) -> bool:
 
     if config.get_source_by_name(name):
         console.print(f"[red]Error:[/red] Source '{name}' already exists")
-        return
+        return False
 
     source_type = Prompt.ask("Source type", choices=["github", "directory"])
 
@@ -203,11 +205,14 @@ def _add_source_interactive(config: Any) -> bool:
                     branch=branch,
                     enabled=True,
                     priority=len(config.content_sources) + 1,
+                    path=None,
                 )
             )
             console.print(f"[green]✅ Added GitHub source '{name}'[/green]")
+            return True
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")
+            return False
 
     elif source_type == "directory":
         path_str = Prompt.ask("Directory path")
@@ -215,7 +220,7 @@ def _add_source_interactive(config: Any) -> bool:
 
         if not path.exists() or not path.is_dir():
             console.print(f"[red]Error:[/red] Invalid directory: {path}")
-            return
+            return False
 
         try:
             config.add_source(
@@ -225,11 +230,16 @@ def _add_source_interactive(config: Any) -> bool:
                     path=path,
                     enabled=True,
                     priority=len(config.content_sources) + 1,
+                    url=None,
                 )
             )
             console.print(f"[green]✅ Added directory source '{name}'[/green]")
+            return True
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")
+            return False
+
+    return False  # Should not reach here
 
 
 def _scan_content() -> None:

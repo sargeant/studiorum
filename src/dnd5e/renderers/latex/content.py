@@ -705,7 +705,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         if hasattr(source, "abbreviation"):
             # Pydantic Source model
-            abbr = source.abbreviation
+            abbr = str(source.abbreviation)
             page = getattr(source, "page", None)
             if page:
                 return f"{abbr}, p. {page}"
@@ -1739,8 +1739,8 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
             "rarity_text": self._format_rarity_enhanced(
                 item.rarity, item.requires_attunement
             ),
-            "value_text": self._format_value(item.value),
-            "weight_text": self._format_weight(item.weight),
+            "value_text": self._format_value(item.value) or "",
+            "weight_text": self._format_weight(item.weight) or "",
             "description": self._format_entries(getattr(item, "entries", []), context),
         }
 
@@ -1805,7 +1805,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
 
         if hasattr(item_type, "value"):
             # Enum type
-            return item_type.value.replace("_", " ").title()
+            return str(item_type.value).replace("_", " ").title()
         elif isinstance(item_type, str):
             return item_type.replace("_", " ").title()
         else:
@@ -1922,7 +1922,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         if damage and damage_type:
             return f"{damage} {damage_type}"
         elif damage:
-            return damage
+            return str(damage)
         else:
             return None
 
@@ -2078,7 +2078,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         if strength_req:
             stats["strength_req"] = str(strength_req)
 
-        stats["stealth_disadvantage"] = getattr(item, "stealth", False)
+        stats["stealth_disadvantage"] = str(getattr(item, "stealth", False))
 
         return stats
 
@@ -2122,7 +2122,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
 
         if hasattr(source, "abbreviation"):
             # Pydantic Source model
-            abbr = source.abbreviation
+            abbr = str(source.abbreviation)
             page = getattr(source, "page", None)
             if page:
                 return f"{abbr}, p. {page}"
@@ -2273,7 +2273,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
 
         # Class features
         variables["class_features"] = self._build_class_features(
-            class_obj.class_features, context
+            class_obj.class_features or [], context
         )
 
         # Subclasses
@@ -2520,7 +2520,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
         Returns:
             List of formatted subclasses
         """
-        formatted_subclasses: list[str] = []
+        formatted_subclasses: list[dict[str, Any]] = []
         for subclass in subclasses:
             if hasattr(subclass, "name"):
                 formatted_subclasses.append(
@@ -2609,7 +2609,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
 
         if hasattr(source, "abbreviation"):
             # Pydantic Source model
-            abbr = source.abbreviation
+            abbr = str(source.abbreviation)
             page = getattr(source, "page", None)
             if page:
                 return f"{abbr}, p. {page}"
@@ -2788,9 +2788,14 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
 
         # Languages
         if race.language_proficiencies:
-            variables["languages_info"] = self._format_language_proficiencies(
-                race.language_proficiencies
-            )
+            # Convert language proficiencies to strings if they're dictionaries
+            lang_list = []
+            for lang in race.language_proficiencies:
+                if isinstance(lang, dict):
+                    lang_list.append(lang.get("name", str(lang)))
+                else:
+                    lang_list.append(str(lang))
+            variables["languages_info"] = self._format_language_proficiencies(lang_list)
 
         # Subraces (placeholder - would need subrace data structure)
         variables["subraces"] = None
@@ -2966,37 +2971,55 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
 
         # Skill proficiencies
         if race.skill_proficiencies:
+            skill_names = [
+                skill.get("name", str(skill)) if isinstance(skill, dict) else str(skill)
+                for skill in race.skill_proficiencies
+            ]
             proficiencies.append(
                 {
                     "name": "Skills",
-                    "description": f"You have proficiency in the {', '.join(race.skill_proficiencies)} skill(s).",
+                    "description": f"You have proficiency in the {', '.join(skill_names)} skill(s).",
                 }
             )
 
         # Weapon proficiencies
         if race.weapon_proficiencies:
+            weapon_names = [
+                weapon.get("name", str(weapon))
+                if isinstance(weapon, dict)
+                else str(weapon)
+                for weapon in race.weapon_proficiencies
+            ]
             proficiencies.append(
                 {
                     "name": "Weapons",
-                    "description": f"You have proficiency with {', '.join(race.weapon_proficiencies)}.",
+                    "description": f"You have proficiency with {', '.join(weapon_names)}.",
                 }
             )
 
         # Armor proficiencies
         if race.armor_proficiencies:
+            armor_names = [
+                armor.get("name", str(armor)) if isinstance(armor, dict) else str(armor)
+                for armor in race.armor_proficiencies
+            ]
             proficiencies.append(
                 {
                     "name": "Armor",
-                    "description": f"You have proficiency with {', '.join(race.armor_proficiencies)}.",
+                    "description": f"You have proficiency with {', '.join(armor_names)}.",
                 }
             )
 
         # Tool proficiencies
         if race.tool_proficiencies:
+            tool_names = [
+                tool.get("name", str(tool)) if isinstance(tool, dict) else str(tool)
+                for tool in race.tool_proficiencies
+            ]
             proficiencies.append(
                 {
                     "name": "Tools",
-                    "description": f"You have proficiency with {', '.join(race.tool_proficiencies)}.",
+                    "description": f"You have proficiency with {', '.join(tool_names)}.",
                 }
             )
 
@@ -3099,7 +3122,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
 
         if hasattr(source, "abbreviation"):
             # Pydantic Source model
-            abbr = source.abbreviation
+            abbr = str(source.abbreviation)
             page = getattr(source, "page", None)
             if page:
                 return f"{abbr}, p. {page}"

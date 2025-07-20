@@ -207,7 +207,7 @@ def show_source_stats() -> None:
 
                 # Get primary content type for this source
                 source_items = omnidexer.get_all_by_source(source)
-                content_types = {}
+                content_types: dict[str, int] = {}
                 for item in source_items:
                     ct = ContentType.from_content(item).value
                     content_types[ct] = content_types.get(ct, 0) + 1
@@ -236,8 +236,8 @@ def _analyze_spells(spells: list) -> dict:
     from dnd5e.core.models.spells import Spell
 
     # Level distribution
-    level_counts = {}
-    school_counts = {}
+    level_counts: dict[int, int] = {}
+    school_counts: dict[str, int] = {}
 
     for spell in spells:
         if isinstance(spell, Spell):
@@ -269,15 +269,20 @@ def _analyze_spells(spells: list) -> dict:
 
     console.print(school_table)
 
+    return {
+        "level_counts": level_counts,
+        "school_counts": school_counts,
+    }
+
 
 def _analyze_creatures(creatures: list) -> dict:
     """Analyze creature-specific statistics."""
     from dnd5e.core.models.creatures import Creature
 
     # CR distribution
-    cr_counts = {}
-    size_counts = {}
-    type_counts = {}
+    cr_counts: dict[str, int] = {}
+    size_counts: dict[str, int] = {}
+    type_counts: dict[str, int] = {}
 
     for creature in creatures:
         if isinstance(creature, Creature):
@@ -288,7 +293,8 @@ def _analyze_creatures(creatures: list) -> dict:
                 size = creature.size[0]
                 size_counts[size] = size_counts.get(size, 0) + 1
 
-            type_counts[creature.type] = type_counts.get(creature.type, 0) + 1
+            creature_type = str(creature.type)
+            type_counts[creature_type] = type_counts.get(creature_type, 0) + 1
 
     # CR table (top 10)
     cr_table = Table(title="🐉 Creatures by Challenge Rating")
@@ -296,7 +302,7 @@ def _analyze_creatures(creatures: list) -> dict:
     cr_table.add_column("Count", justify="right", style="green")
 
     # Sort CRs numerically where possible
-    def sort_cr(cr_str: str) -> tuple:
+    def sort_cr(cr_str: str) -> float:
         try:
             if "/" in str(cr_str):
                 # Handle fractional CRs like "1/2", "1/4"
@@ -305,7 +311,7 @@ def _analyze_creatures(creatures: list) -> dict:
             return float(cr_str)
         except (ValueError, TypeError, ZeroDivisionError):
             # Put non-numeric CRs at the end for sorting
-            return 999
+            return 999.0
 
     sorted_crs = sorted(cr_counts.items(), key=lambda x: sort_cr(x[0]))
     for cr, count in sorted_crs[:10]:
@@ -336,14 +342,20 @@ def _analyze_creatures(creatures: list) -> dict:
 
     console.print(size_table)
 
+    return {
+        "cr_counts": cr_counts,
+        "size_counts": size_counts,
+        "type_counts": type_counts,
+    }
+
 
 def _analyze_items(items: list) -> dict:
     """Analyze item-specific statistics."""
     from dnd5e.core.models.items import Item
 
     # Type and rarity distribution
-    type_counts = {}
-    rarity_counts = {}
+    type_counts: dict[str, int] = {}
+    rarity_counts: dict[str, int] = {}
 
     for item in items:
         if isinstance(item, Item):
@@ -377,10 +389,15 @@ def _analyze_items(items: list) -> dict:
 
     console.print(rarity_table)
 
+    return {
+        "type_counts": type_counts,
+        "rarity_counts": rarity_counts,
+    }
+
 
 def _show_source_breakdown(content_items: list, content_type: str) -> None:
     """Show source breakdown for content items."""
-    source_counts = {}
+    source_counts: dict[str, int] = {}
 
     for item in content_items:
         source = item.source.abbreviation

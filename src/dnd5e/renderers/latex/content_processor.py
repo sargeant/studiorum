@@ -112,7 +112,7 @@ class SpellProcessor(ContentProcessor):
             if isinstance(entry, str):
                 matches = re.findall(dice_pattern, entry)
                 if matches:
-                    return matches[0]
+                    return str(matches[0])
 
         return None
 
@@ -509,7 +509,12 @@ class ItemProcessor(ContentProcessor):
             return "Priceless"
 
         try:
-            value = float(item.value)
+            if isinstance(item.value, int | float):
+                value = float(item.value)
+            elif isinstance(item.value, str):
+                value = float(item.value)
+            else:
+                return "Unknown"
             if value >= 50000:  # 500+ gp
                 return "Expensive"
             elif value >= 10000:  # 100+ gp

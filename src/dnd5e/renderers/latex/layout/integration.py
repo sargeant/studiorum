@@ -94,7 +94,10 @@ class LayoutIntegrationMixin:
 
         # Use context strategy if available
         if context and hasattr(context, "layout_strategy"):
-            return context.layout_strategy
+            strategy = context.layout_strategy
+            if isinstance(strategy, LayoutStrategy) or strategy is None:
+                return strategy
+            return None
 
         # Let layout engine decide
         return None

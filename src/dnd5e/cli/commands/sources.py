@@ -94,6 +94,7 @@ def add_source(
 
     # Validate directory path exists
     if source_type_enum == SourceType.DIRECTORY:
+        assert path is not None  # Already validated above
         dir_path = Path(path).expanduser().resolve()
         if not dir_path.exists():
             console.print(f"[red]Error:[/red] Directory does not exist: {dir_path}")
@@ -200,13 +201,14 @@ def update_sources(
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
-    async def _update() -> None:
+    async def _update() -> bool:
         if name:
             # Update specific source
             console.print(f"Updating source '{name}'...")
             success = await source_manager.update_source(name)
             if success:
                 console.print(f"[green]✅ Successfully updated '{name}'[/green]")
+                return True
             else:
                 console.print(f"[red]❌ Failed to update '{name}'[/red]")
                 return False
@@ -216,11 +218,10 @@ def update_sources(
             try:
                 await source_manager.ensure_all_sources()
                 console.print("[green]✅ All sources updated successfully[/green]")
+                return True
             except Exception as e:
                 console.print(f"[red]❌ Failed to update sources: {e}[/red]")
                 return False
-
-        return True
 
     success = asyncio.run(_update())
     if not success:

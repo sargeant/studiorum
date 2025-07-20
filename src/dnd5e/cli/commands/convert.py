@@ -206,11 +206,13 @@ def convert_book(
                     chapters.append(chapter)
 
             # Create a complete book object
-            from dnd5e.core.models.sources import Source
+            from dnd5e.core.models.content import Source
 
             book = Book(
                 name=book_name,
-                source=Source(abbreviation=book_id, name=book_name),
+                source=Source(
+                    abbreviation=book_id, name=book_name, page=None, url=None
+                ),
                 id=book_id,
                 metadata=None,
                 published=None,

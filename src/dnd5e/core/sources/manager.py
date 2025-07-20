@@ -191,8 +191,8 @@ class ContentSourceManager:
         }
 
         if source.type == SourceType.GITHUB:
-            info["url"] = source.url
-            info["branch"] = source.branch
+            info["url"] = source.url or ""
+            info["branch"] = source.branch or ""
             # Get git repository info
             git_info = self.github_manager.get_repository_info(source)
             if git_info:
