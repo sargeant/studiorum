@@ -89,7 +89,7 @@ class ReferenceIndex:
 
     def get_reference_statistics(self) -> dict[str, Any]:
         """Get statistics about references in the index."""
-        stats = {
+        stats: dict[str, Any] = {
             "total_references": sum(len(refs) for refs in self._forward_refs.values()),
             "content_with_references": len(self._forward_refs),
             "referenced_content": len(self._backward_refs),

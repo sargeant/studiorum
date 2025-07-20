@@ -150,14 +150,26 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         # Direct content arrays
         if self._content_type == ContentType.SPELL and "spell" in data:
-            return data["spell"]
+            spell_data = data["spell"]
+            if isinstance(spell_data, list):
+                return spell_data
+            return []
         elif self._content_type == ContentType.CREATURE and "monster" in data:
-            return data["monster"]
+            monster_data = data["monster"]
+            if isinstance(monster_data, list):
+                return monster_data
+            return []
         elif self._content_type == ContentType.ITEM and "item" in data:
-            return data["item"]
+            item_data = data["item"]
+            if isinstance(item_data, list):
+                return item_data
+            return []
         elif self._content_type == ContentType.ADVENTURE:
             if "adventure" in data:
-                return data["adventure"]
+                adventure_data = data["adventure"]
+                if isinstance(adventure_data, list):
+                    return adventure_data
+                return []
             elif "adventureData" in data:
                 # Handle adventure data format
                 adventure_data = data["adventureData"]
@@ -166,7 +178,10 @@ class JsonDataLoader(DataLoader[BaseContent]):
             return []
         elif self._content_type == ContentType.BOOK:
             if "book" in data:
-                return data["book"]
+                book_data = data["book"]
+                if isinstance(book_data, list):
+                    return book_data
+                return []
             elif "bookData" in data:
                 # Handle book data format
                 book_data = data["bookData"]
@@ -174,23 +189,41 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     return book_data
             return []
         elif self._content_type == ContentType.FEAT and "feat" in data:
-            return data["feat"]
+            feat_data = data["feat"]
+            if isinstance(feat_data, list):
+                return feat_data
+            return []
         elif self._content_type == ContentType.RACE and "race" in data:
-            return data["race"]
+            race_data = data["race"]
+            if isinstance(race_data, list):
+                return race_data
+            return []
         elif self._content_type == ContentType.BACKGROUND and "background" in data:
-            return data["background"]
+            background_data = data["background"]
+            if isinstance(background_data, list):
+                return background_data
+            return []
         elif self._content_type == ContentType.CLASS and "class" in data:
-            return data["class"]
+            class_data = data["class"]
+            if isinstance(class_data, list):
+                return class_data
+            return []
 
         # Generic fallbacks
         content_type_name = self._content_type.value
         if content_type_name in data:
-            return data[content_type_name]
+            generic_data = data[content_type_name]
+            if isinstance(generic_data, list):
+                return generic_data
+            return []
 
         # Try plural forms
         plural_name = content_type_name + "s"
         if plural_name in data:
-            return data[plural_name]
+            plural_data = data[plural_name]
+            if isinstance(plural_data, list):
+                return plural_data
+            return []
 
         # If the data itself is a list, use it directly
         if isinstance(data, list):

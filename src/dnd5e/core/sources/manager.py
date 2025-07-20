@@ -66,13 +66,19 @@ class ContentSourceManager:
 
     async def _ensure_directory_source(self, source: ContentSource) -> None:
         """Ensure a directory source is available."""
-        if not source.path or not source.path.exists():
+        if not source.path:
+            raise FileNotFoundError(
+                f"Directory source path not specified for: {source.name}"
+            )
+
+        path = Path(source.path)
+        if not path.exists():
             logger.error(
                 f"Directory source '{source.name}' path does not exist: {source.path}"
             )
             raise FileNotFoundError(f"Directory source path not found: {source.path}")
 
-        if not source.path.is_dir():
+        if not path.is_dir():
             logger.error(
                 f"Directory source '{source.name}' path is not a directory: {source.path}"
             )
@@ -113,12 +119,16 @@ class ContentSourceManager:
             return self.github_manager.list_content_files(source)
 
         elif source.type == SourceType.DIRECTORY:
-            if not source.path or not source.path.exists():
+            if not source.path:
+                return []
+
+            path = Path(source.path)
+            if not path.exists():
                 return []
 
             # Find all JSON files in directory
             json_files = []
-            for json_file in source.path.rglob("*.json"):
+            for json_file in path.rglob("*.json"):
                 try:
                     if json_file.stat().st_size < 50:  # Skip very small files
                         continue

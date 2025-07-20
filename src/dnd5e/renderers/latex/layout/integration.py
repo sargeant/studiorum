@@ -3,7 +3,7 @@
 from typing import Any, Optional
 
 from ....core.models.content import ContentType
-from ..base import RenderContext
+from ...base.context import RenderContext
 from .base import LayoutHint, LayoutStrategy
 from .layout_engine import LayoutEngine
 

@@ -111,7 +111,11 @@ class LayoutEngine:
     ) -> LayoutStrategy:
         """Determine the optimal layout strategy for content."""
         # Use explicit hint first
-        if hints and hasattr(hints, "strategy"):
+        if (
+            hints
+            and hasattr(hints, "strategy")
+            and isinstance(hints.strategy, LayoutStrategy)
+        ):
             return hints.strategy
 
         # Use content type preferences

@@ -59,7 +59,7 @@ class LaTeXTemplateEngine:
         self._add_latex_filters()
 
         # Template cache
-        self._template_cache = {}
+        self._template_cache: dict[str, Template] = {}
 
     def _add_latex_filters(self) -> None:
         """Add LaTeX-specific filters to Jinja2 environment."""

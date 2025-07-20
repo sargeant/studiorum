@@ -312,7 +312,9 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
 
         return ", ".join(duration_parts) if duration_parts else "Unknown"
 
-    def _format_entries(self, entries: list[str], context: RenderContext) -> str:
+    def _format_entries(
+        self, entries: list[str | dict[str, Any]], context: RenderContext
+    ) -> str:
         """Format spell description entries.
 
         Args:
@@ -710,7 +712,7 @@ class LaTeXSpellRenderer(LaTeXContentRenderer):
             return abbr
         elif isinstance(source, dict):
             # Dictionary format
-            abbr = source.get("abbreviation", "")
+            abbr = str(source.get("abbreviation", ""))
             page = source.get("page")
             if page:
                 return f"{abbr}, p. {page}"
@@ -770,7 +772,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
             Dictionary of template variables
         """
         # Basic info
-        variables = {
+        variables: dict[str, Any] = {
             "name": self.escape_latex(creature.name),
             "size_text": self._format_size(creature.size),
             "type_text": self._format_type(creature.type),
@@ -935,7 +937,7 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
         return size_map.get(size_data[0], size_data[0])
 
-    def _format_alignment(self, alignment: list[str]) -> str:
+    def _format_alignment(self, alignment: list[str | dict[str, Any]]) -> str:
         """Format creature alignment.
 
         Args:
@@ -957,10 +959,21 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
 
         parts = []
         for align in alignment:
-            if align in alignment_map:
-                parts.append(alignment_map[align])
-            else:
-                parts.append(align.lower())
+            if isinstance(align, str):
+                if align in alignment_map:
+                    parts.append(alignment_map[align])
+                else:
+                    parts.append(align.lower())
+            elif isinstance(align, dict):
+                # Handle dict-based alignment data
+                if "alignment" in align:
+                    align_str = str(align["alignment"])
+                    if align_str in alignment_map:
+                        parts.append(alignment_map[align_str])
+                    else:
+                        parts.append(align_str.lower())
+                else:
+                    parts.append(str(align))
 
         return " ".join(parts) if parts else "unaligned"
 
@@ -1317,11 +1330,11 @@ class LaTeXCreatureRenderer(LaTeXContentRenderer):
             # Pydantic CreatureType model
             base_type = type_data.type
             if isinstance(base_type, dict):
-                return base_type.get("type", "humanoid")
+                return str(base_type.get("type", "humanoid"))
             return str(base_type)
         elif isinstance(type_data, dict):
             # Dictionary format
-            return type_data.get("type", "humanoid")
+            return str(type_data.get("type", "humanoid"))
         else:
             return str(type_data)
 
@@ -1626,7 +1639,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
         variables = {
             "name": self.escape_latex(item.name),
             "is_table_format": False,
-            "use_subsection": context.get("use_subsections", True),
+            "use_subsection": getattr(context, "use_subsections", True),
         }
 
         # Item metadata line
@@ -2116,7 +2129,7 @@ class LaTeXItemRenderer(LaTeXContentRenderer):
             return abbr
         elif isinstance(source, dict):
             # Dictionary format
-            abbr = source.get("abbreviation", "")
+            abbr = str(source.get("abbreviation", ""))
             page = source.get("page")
             if page:
                 return f"{abbr}, p. {page}"
@@ -2227,7 +2240,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
         # Basic info
         variables = {
             "name": self.escape_latex(class_obj.name),
-            "use_subsection": context.get("use_subsections", True),
+            "use_subsection": getattr(context, "use_subsections", True),
             "description": self._extract_class_description(class_obj),
         }
 
@@ -2603,7 +2616,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
             return abbr
         elif isinstance(source, dict):
             # Dictionary format
-            abbr = source.get("abbreviation", "")
+            abbr = str(source.get("abbreviation", ""))
             page = source.get("page")
             if page:
                 return f"{abbr}, p. {page}"
@@ -2732,7 +2745,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
         # Basic info
         variables = {
             "name": self.escape_latex(race.name),
-            "use_subsection": context.get("use_subsections", True),
+            "use_subsection": getattr(context, "use_subsections", True),
             "description": self._format_entries(getattr(race, "entries", []), context),
         }
 
@@ -3093,7 +3106,7 @@ class LaTeXRaceRenderer(LaTeXContentRenderer):
             return abbr
         elif isinstance(source, dict):
             # Dictionary format
-            abbr = source.get("abbreviation", "")
+            abbr = str(source.get("abbreviation", ""))
             page = source.get("page")
             if page:
                 return f"{abbr}, p. {page}"

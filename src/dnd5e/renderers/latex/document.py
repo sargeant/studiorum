@@ -122,9 +122,10 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         self.content_organizer.document_type = metadata.document_type
 
         # Organize content and build structure
-        self.content_organizer.organize_content(content_items)
+        content_list = list(content_items)
+        self.content_organizer.organize_content(content_list)
         sections, document_context = self._structure_builder.build_document_structure(
-            content_items, context
+            content_list, context
         )
 
         # Create template context
@@ -176,6 +177,9 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Complete LaTeX document
         """
+        # Convert sequence to list for internal processing
+        content_list = list(content_items)
+
         # Build document sections
         sections = []
 
@@ -183,16 +187,16 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         sections.append(self.render_document_header(context))
 
         # Table of contents (if enabled)
-        if context.include_toc and len(content_items) > 1:
-            sections.append(self.render_table_of_contents(content_items, context))
+        if context.include_toc and len(content_list) > 1:
+            sections.append(self.render_table_of_contents(content_list, context))
 
         # Main content
-        for item in content_items:
+        for item in content_list:
             sections.append(self.render_content_item(item, context))
 
         # Index (if enabled)
         if context.include_index:
-            sections.append(self.render_index(content_items, context))
+            sections.append(self.render_index(content_list, context))
 
         # Document footer
         sections.append(self.render_document_footer(context))
@@ -506,6 +510,7 @@ This content type is not yet fully supported by the rendering system.
         latex_source = self.render_document(content_items, context)
 
         # Determine output configuration
+        working_dir: Path | None
         if output_path:
             output_name = output_path.stem
             working_dir = output_path.parent
