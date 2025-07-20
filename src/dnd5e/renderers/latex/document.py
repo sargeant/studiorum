@@ -4,7 +4,11 @@ from pathlib import Path
 from typing import Any
 
 from ...core.models.content import BaseContent, ContentType
-from ...core.models.document_metadata import DocumentMetadata, DocumentType
+from ...core.models.document_metadata import (
+    ContentSection,
+    DocumentMetadata,
+    DocumentType,
+)
 from ..base import DocumentRenderer, RenderContext, RenderingError
 from .compilation_config import CompilationConfig, CompilationResult, LaTeXEngine
 from .compiler import LaTeXCompiler
@@ -178,7 +182,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return "\n\n".join(filter(None, sections))
 
     def _render_content_in_sections(
-        self, document: str, sections, context: RenderContext
+        self, document: str, sections: list[ContentSection], context: RenderContext
     ) -> str:
         """Render content items within document sections.
 
@@ -190,8 +194,6 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Document with content rendered in sections
         """
-        from ...core.models.document_metadata import ContentSection
-
         # This is a placeholder implementation
         # In practice, we would need to replace section placeholders
         # with actual rendered content
