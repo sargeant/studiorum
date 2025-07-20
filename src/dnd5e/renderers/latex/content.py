@@ -2507,7 +2507,7 @@ class LaTeXClassRenderer(LaTeXContentRenderer):
         Returns:
             List of formatted subclasses
         """
-        formatted_subclasses = []
+        formatted_subclasses: list[str] = []
         for subclass in subclasses:
             if hasattr(subclass, "name"):
                 formatted_subclasses.append(
@@ -3266,10 +3266,10 @@ class LaTeXAdventureRenderer(LaTeXContentRenderer):
         adventure_hook = None
         summary = None
         background = None
-        encounters = []
-        npcs = []
-        locations = []
-        random_encounters = []
+        encounters: list[dict[str, Any]] = []
+        npcs: list[dict[str, Any]] = []
+        locations: list[dict[str, Any]] = []
+        random_encounters: list[dict[str, Any]] = []
         conclusion = None
 
         # Process entries to extract structured content
@@ -3442,7 +3442,8 @@ class LaTeXBackgroundRenderer(LaTeXContentRenderer):
                 else:
                     # Simple dict format
                     text = prof.get("text", prof.get("name", str(prof)))
-                    formatted_parts.append(self.escape_latex(text))
+                    if text:
+                        formatted_parts.append(self.escape_latex(str(text)))
 
         return ", ".join(formatted_parts)
 

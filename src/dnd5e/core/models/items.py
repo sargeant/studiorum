@@ -129,20 +129,20 @@ class Item(BaseContent):
         ):
             self.weapon_data = WeaponData(
                 damage=self.damage,
-                damage_type=self.damage_type,
+                damageType=self.damage_type,
                 properties=self.properties,
                 range=self.range,
-                weapon_category=self.weapon_category,
+                weaponCategory=self.weapon_category,
             )
 
         # Create armor_data from individual armor fields
         if any([self.ac, self.ac_from, self.strength, self.stealth, self.armor_type]):
             self.armor_data = ArmorData(
                 ac=self.ac,
-                ac_from=self.ac_from,
+                acFrom=self.ac_from,
                 strength=self.strength,
                 stealth=self.stealth,
-                armor_type=self.armor_type,
+                armorType=self.armor_type,
             )
 
     def is_magic_item(self) -> bool:

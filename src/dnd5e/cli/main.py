@@ -13,6 +13,7 @@ from dnd5e.core.config.settings import get_settings
 from dnd5e.core.indexer.tag_resolver import TagResolver
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.logging.logger import setup_logging
+from dnd5e.core.models.content import BaseContent
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
@@ -178,7 +179,7 @@ def quick_convert(
                 data = json.load(f)
 
             # Simple content detection and loading
-            content_items = []
+            content_items: list[BaseContent] = []
             for key, items in data.items():
                 if isinstance(items, list):
                     for item_data in items:

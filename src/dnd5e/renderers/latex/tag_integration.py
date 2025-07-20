@@ -17,7 +17,7 @@ from ...core.indexer.new_tag_resolver import TagResolverFacade
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from ...loaders.omnidexer import Omnidexer
+    from ...loaders.omnidexer import Omnidexer  # type: ignore[import-untyped]
 
 
 class LaTeXTagIntegration:

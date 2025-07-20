@@ -1,5 +1,6 @@
 """LaTeX document renderer implementation."""
 
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -57,7 +58,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return self.render_document([content], render_context)
 
     def render_document(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: Sequence[BaseContent], context: RenderContext
     ) -> str:
         """Render a complete LaTeX document.
 
@@ -80,7 +81,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             raise RenderingError(f"Failed to render LaTeX document: {e}") from e
 
     def render_structured_document(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: Sequence[BaseContent], context: RenderContext
     ) -> str:
         """Render a structured LaTeX document using DocumentStructureBuilder.
 
@@ -96,7 +97,24 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         if not metadata:
             # Create default metadata if none provided
             metadata = DocumentMetadata(
-                title=context.title or "D&D 5e Content", document_type=DocumentType.BOOK
+                title=context.title or "D&D 5e Content",
+                subtitle=None,
+                short_title=None,
+                editor=None,
+                date=None,
+                version=None,
+                edition=None,
+                publisher=None,
+                document_type=DocumentType.BOOK,
+                include_toc=True,
+                include_index=False,
+                include_bibliography=False,
+                include_glossary=False,
+                cover=None,
+                logo_path=None,
+                subject=None,
+                description=None,
+                use_parts=False,
             )
 
         # Initialize structure builder
@@ -147,7 +165,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return rendered_document
 
     def render_legacy_document(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: Sequence[BaseContent], context: RenderContext
     ) -> str:
         """Render a document using the legacy approach.
 
@@ -436,7 +454,7 @@ This content type is not yet fully supported by the rendering system.
         if "keep_temp_files" in config:
             compilation_config.keep_intermediate_files = config["keep_temp_files"]
 
-        if "output_dir" in config:
+        if "output_dir" in config and config["output_dir"] is not None:
             compilation_config.output_dir = Path(config["output_dir"])
 
         return compilation_config
@@ -467,7 +485,7 @@ This content type is not yet fully supported by the rendering system.
 
     def compile_document_to_pdf(
         self,
-        content_items: list[BaseContent],
+        content_items: Sequence[BaseContent],
         output_path: Path | None = None,
         context: RenderContext | None = None,
     ) -> CompilationResult:

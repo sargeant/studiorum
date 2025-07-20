@@ -211,6 +211,7 @@ class ContentConfigManager:
                 path=Path("srd-data"),
                 enabled=True,
                 priority=1,
+                url=None,
             )
         )
 

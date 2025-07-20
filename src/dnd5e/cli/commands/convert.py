@@ -199,15 +199,23 @@ def convert_book(
                 if isinstance(section, dict) and section.get("type") == "section":
                     chapter = BookChapter(
                         name=section.get("name", "Untitled Chapter"),
+                        ordinal=None,
+                        headers=None,
                         entries=section.get("entries", []),
                     )
                     chapters.append(chapter)
 
             # Create a complete book object
+            from dnd5e.core.models.sources import Source
+
             book = Book(
                 name=book_name,
-                source={"abbreviation": book_id},
+                source=Source(abbreviation=book_id, name=book_name),
                 id=book_id,
+                metadata=None,
+                published=None,
+                author=None,
+                cover=None,
                 contents=chapters,
             )
 
@@ -339,7 +347,7 @@ def convert_supplement(
                                         ).title(),
                                     }
                                 content_items.append(
-                                    model_class.model_validate(item_data)
+                                    model_class.model_validate(item_data)  # type: ignore[attr-defined]
                                 )
                             except Exception as e:
                                 rprint(

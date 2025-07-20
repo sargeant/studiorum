@@ -146,7 +146,14 @@ class Adventure(BaseContent):
         if self.metadata:
             return self.metadata.get_level_range()
         elif self.level:
-            return AdventureMetadata(level=self.level).get_level_range()
+            return AdventureMetadata(
+                id=None,
+                published=None,
+                storyline=None,
+                level=self.level,
+                group=None,
+                cover=None,
+            ).get_level_range()
         return ""
 
     def get_storyline_text(self) -> str:

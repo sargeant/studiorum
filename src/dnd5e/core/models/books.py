@@ -146,6 +146,7 @@ class Book(BaseContent):
                 id=self.id,
                 published=self.published,
                 author=self.author,
+                contents=None,
                 cover=self.cover,
             )
 
@@ -158,5 +159,11 @@ class Book(BaseContent):
         if self.metadata:
             return self.metadata.get_authors_text()
         elif self.author:
-            return BookMetadata(author=self.author).get_authors_text()
+            return BookMetadata(
+                id=None,
+                published=None,
+                author=self.author,
+                contents=None,
+                cover=None,
+            ).get_authors_text()
         return ""
