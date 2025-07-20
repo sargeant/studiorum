@@ -124,7 +124,7 @@ class TagResolver(Protocol):
 class ContentTypeRegistry:
     """Registry for content types to break circular dependencies."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._type_map: dict[type[BaseContent], ContentType] = {}
 
     def register(
@@ -186,7 +186,7 @@ def get_content_type_registry() -> ContentTypeRegistry:
 class ServiceLocator:
     """Service locator for dependency injection."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._services: dict[type, Any] = {}
 
     def register(self, service_type: type, service_instance: Any) -> None:

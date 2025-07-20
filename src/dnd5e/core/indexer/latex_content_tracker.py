@@ -33,7 +33,7 @@ class LaTeXTrackedContent(TrackedContent):
 class LaTeXContentTracker(ContentTracker):
     """Enhanced content tracker with LaTeX-specific features."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.latex_content: dict[str, LaTeXTrackedContent] = {}
         self.reference_counts: dict[str, int] = {}

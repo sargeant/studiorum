@@ -24,7 +24,7 @@ class HyperlinkStyle:
 class HyperlinkManager:
     """Manages hyperlink generation and styling for PDF navigation."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.enabled = True
         self.auto_page_refs = True
 

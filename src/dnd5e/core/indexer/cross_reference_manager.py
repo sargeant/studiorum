@@ -29,7 +29,7 @@ class CrossReference:
 class CrossReferenceManager:
     """Manages cross-references and LaTeX label generation for documents."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.references: dict[str, CrossReference] = {}
         self.reference_format = "page"  # "page", "section", "name", "full"
         self.label_prefix = ""  # Optional prefix for all labels
