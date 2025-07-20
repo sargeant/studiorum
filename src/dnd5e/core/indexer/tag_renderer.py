@@ -172,7 +172,7 @@ class TagRenderer:
         """Get all tracked content for appendix generation."""
         return self.content_tracker.get_tracked_content()
 
-    def get_tracked_content_for_appendix(self) -> dict[str, list[dict[str, str]]]:
+    def get_tracked_content_for_appendix(self) -> dict[str, list[dict[str, str | int]]]:
         """Get tracked content formatted for appendix generation."""
         return self.content_tracker.export_for_appendix()
 

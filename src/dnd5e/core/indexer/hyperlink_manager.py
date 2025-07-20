@@ -280,7 +280,7 @@ class HyperlinkManager:
         """Get statistics about hyperlinks in content."""
         import re
 
-        stats = {
+        stats: dict[str, Any] = {
             "total_internal_links": 0,
             "total_external_links": 0,
             "by_content_type": {},

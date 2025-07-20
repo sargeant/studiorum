@@ -320,17 +320,20 @@ class LaTeXConfig(BaseModel):
         Returns:
             Configuration dictionary optimized for content type
         """
-        config = {
+        class_options_list = list(self.document.get_class_options_list())
+        config: dict[str, str | list[str]] = {
             "template": self.template.get_template_for_content_type(content_type),
             "document_class": self.document.document_class,
-            "class_options": self.document.get_class_options_list(),
+            "class_options": class_options_list,
         }
 
         # Content-specific optimizations
         if content_type in ["adventure", "sourcebook"]:
             config["document_class"] = "dndbook"
             if self.document.fancy_headers:
-                config["class_options"].append("fancy")
+                class_options = list(config["class_options"])
+                class_options.append("fancy")
+                config["class_options"] = class_options
 
         elif content_type in ["supplement", "reference"]:
             config["document_class"] = "dndbook"

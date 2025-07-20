@@ -79,7 +79,9 @@ class ContentOrganizer:
         Returns:
             Nested dictionary: source -> content_type -> items
         """
-        organized = defaultdict(lambda: defaultdict(list))
+        organized: dict[str, dict[str, list[Any]]] = defaultdict(
+            lambda: defaultdict(list)
+        )
 
         for item in content_items:
             source_key = item.source.abbreviation

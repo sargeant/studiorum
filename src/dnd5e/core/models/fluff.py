@@ -70,7 +70,7 @@ class FluffEntry(BaseModel):
             if "entries" in v:
                 return cls._extract_text_from_entries(v["entries"])
             elif "text" in v:
-                return v["text"]
+                return str(v["text"])
         return str(v) if v else ""
 
     @staticmethod

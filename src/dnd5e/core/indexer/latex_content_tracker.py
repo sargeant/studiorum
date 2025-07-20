@@ -54,7 +54,7 @@ class LaTeXContentTracker(ContentTracker):
     ) -> str:
         """Track content with LaTeX-specific metadata."""
         # Use parent tracking for basic functionality
-        self.track_content(content_type, name, source, page)
+        self.add_content(content_type, name, source, page)
 
         # Create or update LaTeX content entry
         content_key = self._create_content_key(content_type, name, source)
@@ -184,7 +184,7 @@ class LaTeXContentTracker(ContentTracker):
                 by_type[content_type] = []
 
             # Create appendix entry
-            entry = {
+            entry: dict[str, Any] = {
                 "name": content.name,
                 "source": content.source,
                 "page": content.page,
@@ -250,7 +250,7 @@ class LaTeXContentTracker(ContentTracker):
 
     def generate_latex_appendix_structure(self) -> dict[str, Any]:
         """Generate structure for LaTeX appendix compilation."""
-        structure = {
+        structure: dict[str, Any] = {
             "sections": {},
             "indices": {},
             "cross_references": {},
