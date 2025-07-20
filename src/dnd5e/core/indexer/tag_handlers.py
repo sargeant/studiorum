@@ -107,49 +107,49 @@ class BaseContentTagHandler(TagHandler):
 class CreatureTagHandler(BaseContentTagHandler):
     """Handler for creature reference tags."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("creature", "\\textbf{{{}}}")
 
 
 class SpellTagHandler(BaseContentTagHandler):
     """Handler for spell reference tags."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("spell", "\\textit{{{}}}")
 
 
 class ItemTagHandler(BaseContentTagHandler):
     """Handler for item reference tags."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("item", "\\textit{{{}}}")
 
 
 class ClassTagHandler(BaseContentTagHandler):
     """Handler for class reference tags."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("class", "\\textbf{{{}}}")
 
 
 class RaceTagHandler(BaseContentTagHandler):
     """Handler for race reference tags."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("race", "{}")  # No special formatting for races
 
 
 class BackgroundTagHandler(BaseContentTagHandler):
     """Handler for background reference tags."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("background", "{}")  # No special formatting
 
 
 class FeatTagHandler(BaseContentTagHandler):
     """Handler for feat reference tags."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("feat", "\\textbf{{{}}}")
 
 
