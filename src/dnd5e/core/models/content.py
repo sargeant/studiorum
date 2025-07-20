@@ -1,6 +1,9 @@
 """Base content models for all D&D content types."""
 
+from __future__ import annotations
+
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -23,7 +26,7 @@ class ContentType(str, Enum):
     ITEM_FLUFF = "itemFluff"
 
     @classmethod
-    def from_content(cls, content: "BaseContent") -> "ContentType":
+    def from_content(cls, content: BaseContent) -> ContentType:
         """Determine content type from content object.
 
         Args:
@@ -76,11 +79,14 @@ class BaseContent(BaseModel):
 
     @field_validator("source", mode="before")
     @classmethod
-    def parse_source(cls, v: str | dict[str, str]) -> dict[str, str]:
+    def parse_source(cls, v: str | dict[str, str] | Source) -> dict[str, str] | Source:
         """Handle both string and dict source formats for liberal parsing."""
         if isinstance(v, str):
             return {"abbreviation": v, "name": v}
         elif isinstance(v, dict):
+            return v
+        elif hasattr(v, "abbreviation") and hasattr(v, "name"):
+            # If it's already a Source object, return it as-is
             return v
         # Fallback - convert to string and create dict
         return {"abbreviation": str(v), "name": str(v)}
