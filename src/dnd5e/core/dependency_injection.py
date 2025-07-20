@@ -121,7 +121,7 @@ class DependencyContainer:
 class LambdaServiceFactory:
     """Service factory using a lambda function."""
 
-    def __init__(self, factory_func) -> None:
+    def __init__(self, factory_func: Any) -> None:
         self.factory_func = factory_func
 
     def create(self, container: DependencyContainer) -> Any:
@@ -132,7 +132,7 @@ class LambdaServiceFactory:
 class ClassServiceFactory:
     """Service factory for class instantiation."""
 
-    def __init__(self, service_class: type, *args, **kwargs) -> None:
+    def __init__(self, service_class: type, *args: Any, **kwargs: Any) -> None:
         self.service_class = service_class
         self.args = args
         self.kwargs = kwargs
@@ -155,9 +155,9 @@ def inject(*dependencies: type) -> Any:
             pass
     """
 
-    def decorator(func) -> Any:
+    def decorator(func: Any) -> Any:
         @wraps(func)
-        def wrapper(*args, **kwargs) -> Any:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             container = get_dependency_container()
 
             # Resolve dependencies
