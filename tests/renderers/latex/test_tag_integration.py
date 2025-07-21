@@ -147,6 +147,7 @@ class TestLaTeXTagIntegration:
         self.integration.configure_hyperlink_styles(styles)
 
         # Verify styles were applied
+        assert self.integration.hyperlink_manager is not None
         creature_style = self.integration.hyperlink_manager.content_styles["creature"]
         assert creature_style.color == "red"
         assert creature_style.font_style == "bold"

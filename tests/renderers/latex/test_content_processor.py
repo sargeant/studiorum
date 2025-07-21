@@ -178,6 +178,7 @@ class TestSpellProcessor:
         ]
 
         result = self.processor._extract_upcast_effects(spell)
+        assert result is not None
         assert "4th level or higher" in result
         assert "1d6 for each slot level" in result
 

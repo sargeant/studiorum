@@ -318,7 +318,7 @@ class TestLaTeXItemRenderer:
         ) as mock_render:
             mock_render.return_value = "\\begin{DndTable}[header=Items]{X l l}"
 
-            result = self.renderer.render_item_table(items, self.context)
+            result = self.renderer.render_item_table(items, self.context)  # type: ignore[arg-type]
 
             assert "\\begin{DndTable}" in result
             mock_render.assert_called_once()
@@ -337,7 +337,7 @@ class TestLaTeXItemRenderer:
             item.is_weapon.return_value = True
             item.is_armor.return_value = False
 
-        columns = self.renderer._determine_table_columns(items)
+        columns = self.renderer._determine_table_columns(items)  # type: ignore[arg-type]
 
         # Should include weapon-specific columns
         assert "damage" in columns.get("headers", [])
@@ -355,7 +355,7 @@ class TestLaTeXItemRenderer:
             item.is_weapon.return_value = False
             item.is_armor.return_value = True
 
-        columns = self.renderer._determine_table_columns(items)
+        columns = self.renderer._determine_table_columns(items)  # type: ignore[arg-type]
 
         # Should include armor-specific columns
         assert "ac" in columns.get("headers", [])

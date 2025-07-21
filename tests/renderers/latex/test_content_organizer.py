@@ -73,17 +73,21 @@ class TestContentOrganizer:
             MockSpell("Cantrip", level=0, school="transmutation"),
         ]
 
-        sorted_spells = self.organizer._sort_spells(spells)
+        sorted_spells = self.organizer._sort_spells(spells)  # type: ignore[arg-type]
 
         # Should be sorted by level first
-        assert sorted_spells[0].level == 0  # Cantrips first
-        assert sorted_spells[1].level == 1
-        assert sorted_spells[2].level == 1
-        assert sorted_spells[3].level == 3
-        assert sorted_spells[4].level == 3
+        assert (
+            isinstance(sorted_spells[0], MockSpell) and sorted_spells[0].level == 0
+        )  # Cantrips first
+        assert isinstance(sorted_spells[1], MockSpell) and sorted_spells[1].level == 1
+        assert isinstance(sorted_spells[2], MockSpell) and sorted_spells[2].level == 1
+        assert isinstance(sorted_spells[3], MockSpell) and sorted_spells[3].level == 3
+        assert isinstance(sorted_spells[4], MockSpell) and sorted_spells[4].level == 3
 
         # Within same level, should be sorted by school then name
-        level_1_spells = [s for s in sorted_spells if s.level == 1]
+        level_1_spells = [
+            s for s in sorted_spells if isinstance(s, MockSpell) and s.level == 1
+        ]
         assert (
             level_1_spells[0].school == "enchantment"
         )  # "enchantment" before "evocation"
@@ -99,10 +103,10 @@ class TestContentOrganizer:
             MockCreature("Kobold", cr=0.125),
         ]
 
-        sorted_creatures = self.organizer._sort_creatures(creatures)
+        sorted_creatures = self.organizer._sort_creatures(creatures)  # type: ignore[arg-type]
 
         # Should be sorted by CR ascending
-        crs = [c.cr for c in sorted_creatures]
+        crs = [c.cr for c in sorted_creatures if isinstance(c, MockCreature)]
         assert crs == [0.125, 0.25, 0.5, 5.0, 15.0]
 
     def test_sort_creatures_string_cr(self) -> None:
@@ -114,7 +118,7 @@ class TestContentOrganizer:
             MockCreature("Very Weak", cr="1/8"),
         ]
 
-        sorted_creatures = self.organizer._sort_creatures(creatures)
+        sorted_creatures = self.organizer._sort_creatures(creatures)  # type: ignore[arg-type]
 
         # Should handle string CRs correctly
         assert sorted_creatures[0].name == "Very Weak"  # 1/8 = 0.125
@@ -132,10 +136,10 @@ class TestContentOrganizer:
             MockItem("Legendary Sword", "weapon", "legendary"),
         ]
 
-        sorted_items = self.organizer._sort_items(items)
+        sorted_items = self.organizer._sort_items(items)  # type: ignore[arg-type]
 
         # Should group by type first
-        types = [item.type for item in sorted_items]
+        types = [item.type for item in sorted_items if isinstance(item, MockItem)]
         # All items of same type should be grouped together
         potion_indices = [i for i, t in enumerate(types) if t == "potion"]
         [i for i, t in enumerate(types) if t == "ring"]
@@ -157,7 +161,7 @@ class TestContentOrganizer:
             MockContent("cherry"),  # lowercase to test case insensitivity
         ]
 
-        sorted_content = self.organizer._sort_alphabetically(content)
+        sorted_content = self.organizer._sort_alphabetically(content)  # type: ignore[arg-type]
         names = [c.name for c in sorted_content]
 
         assert names == ["Apple", "Banana", "cherry", "Zebra"]
@@ -205,13 +209,17 @@ class TestContentOrganizer:
 
             # Check sorting within each group
             spells = organized["spell"]
+            assert isinstance(spells[0], MockSpell)
             assert (
                 spells[0].level == 1
             )  # Magic Missile (level 1) before Fireball (level 3)
+            assert isinstance(spells[1], MockSpell)
             assert spells[1].level == 3
 
             creatures = organized["creature"]
+            assert isinstance(creatures[0], MockCreature)
             assert creatures[0].cr == 0.25  # Goblin before Dragon
+            assert isinstance(creatures[1], MockCreature)
             assert creatures[1].cr == 15.0
 
     def test_organize_by_source(self) -> None:
@@ -234,7 +242,7 @@ class TestContentOrganizer:
 
             mock_from_content.side_effect = side_effect
 
-            organized = self.organizer.organize_by_source(content_items)
+            organized = self.organizer.organize_by_source(content_items)  # type: ignore[arg-type]
 
             assert "PHB" in organized
             assert "MM" in organized
@@ -257,7 +265,7 @@ class TestContentOrganizer:
             MockSpell("Level 9 Spell", level=9),
         ]
 
-        organized = self.organizer.organize_by_level(spells)
+        organized = self.organizer.organize_by_level(spells)  # type: ignore[arg-type]
 
         assert "Cantrips" in organized
         assert "Level 1 Spells" in organized
@@ -274,7 +282,7 @@ class TestContentOrganizer:
             MockCreature("Epic", cr=20.0),
         ]
 
-        organized = self.organizer.organize_by_level(creatures)
+        organized = self.organizer.organize_by_level(creatures)  # type: ignore[arg-type]
 
         assert "CR 0-1/2" in organized
         assert "CR 1-4" in organized
@@ -295,7 +303,7 @@ class TestContentOrganizer:
             "creature": [MockCreature("Dragon")],
         }
 
-        sections = self.organizer.create_hierarchical_sections(organized_content)
+        sections = self.organizer.create_hierarchical_sections(organized_content)  # type: ignore[arg-type]
 
         assert len(sections) == 2
         assert any(section.title == "Spells" for section in sections)
@@ -310,7 +318,7 @@ class TestContentOrganizer:
         self.organizer.document_type = DocumentType.ARTICLE
         items = [MockSpell("Test Spell")]
 
-        section = self.organizer._create_section_for_content_type("spell", items)
+        section = self.organizer._create_section_for_content_type("spell", items)  # type: ignore[arg-type]
 
         assert section.level == SectionLevel.SECTION  # Articles use sections
         assert section.title == "Spells"
@@ -321,7 +329,7 @@ class TestContentOrganizer:
         self.organizer.document_type = DocumentType.BOOK
         items = [MockSpell("Test Spell")]
 
-        section = self.organizer._create_section_for_content_type("spell", items)
+        section = self.organizer._create_section_for_content_type("spell", items)  # type: ignore[arg-type]
 
         assert section.level == SectionLevel.CHAPTER  # Books use chapters
         assert section.title == "Spells"
@@ -335,7 +343,7 @@ class TestContentOrganizer:
             MockSpell("Level 2", level=2),
         ]
 
-        subsections = self.organizer._create_spell_subsections(spells)
+        subsections = self.organizer._create_spell_subsections(spells)  # type: ignore[arg-type]
 
         # Should create subsections for each level
         level_titles = [sub.title for sub in subsections]
@@ -355,7 +363,7 @@ class TestContentOrganizer:
             MockCreature("High", cr=12.0),
         ]
 
-        subsections = self.organizer._create_creature_subsections(creatures)
+        subsections = self.organizer._create_creature_subsections(creatures)  # type: ignore[arg-type]
 
         # Should create subsections for CR ranges
         cr_titles = [sub.title for sub in subsections]
@@ -372,7 +380,7 @@ class TestContentOrganizer:
             MockItem("Dagger", "weapon"),
         ]
 
-        subsections = self.organizer._create_item_subsections(items)
+        subsections = self.organizer._create_item_subsections(items)  # type: ignore[arg-type]
 
         # Should create subsections for each item type
         type_titles = [sub.title for sub in subsections]

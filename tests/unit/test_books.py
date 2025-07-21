@@ -428,6 +428,7 @@ class TestBook:
         book = Book.model_validate(data)
 
         # Should keep original metadata, not create new one
+        assert book.metadata is not None
         assert book.metadata.id == "phb-2024"
         assert book.metadata.author == ["Mike Mearls", "Jeremy Crawford"]
         assert book.id == "different-id"  # Individual field should still be set
@@ -614,6 +615,7 @@ class TestBookIntegration:
         assert book.name == "Player's Handbook"
         assert book.source.abbreviation == "PHB"
         assert book.id == "phb-2024"
+        assert book.author is not None
         assert len(book.author) == 3
 
         # Chapters
@@ -635,6 +637,7 @@ class TestBookIntegration:
         assert book.metadata is not None
         assert book.metadata.id == "phb-meta-2024"  # From metadata, not book
         assert book.metadata.author == ["Meta Author"]  # From metadata
+        assert book.metadata.contents is not None
         assert len(book.metadata.contents) == 3
 
     def test_book_chapter_count_complex(self, complex_book_data: Any) -> None:

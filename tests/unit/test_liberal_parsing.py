@@ -239,6 +239,7 @@ class TestLiberalParsing:
             # Should load creature with default alignment
             assert len(creatures) == 1
             assert creatures[0].name == "Creature Missing Alignment"
+            assert isinstance(creatures[0], Creature)
             assert creatures[0].alignment == ["N"]  # Default neutral alignment
 
         Path(f.name).unlink()  # Clean up
@@ -520,6 +521,7 @@ class TestLiberalParsing:
         }
 
         creature = Creature.model_validate(creature_data)
+        assert creature.skill is not None
         assert creature.skill["perception"] == "+5"
         assert "other" in creature.skill
 
@@ -668,6 +670,7 @@ class TestLiberalParsing:
             # Should successfully parse the ultra-complex spell
             assert len(spells) == 1
             spell = spells[0]
+            assert isinstance(spell, Spell)
             assert spell.name == "Ultra Complex Spell"
 
             # Test text extraction works with highly nested structure
