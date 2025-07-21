@@ -1,9 +1,11 @@
 """Main CLI application for 5e2pdf."""
 
 import asyncio
+import json
 import logging
 from pathlib import Path
 
+import aiofiles
 import typer
 from rich import print as rprint
 from rich.console import Console
@@ -173,10 +175,9 @@ def quick_convert(
                 progress.update(load_task, completed=100)
 
             # Load content from file
-            import json
-
-            with open(input_file) as f:
-                data = json.load(f)
+            async with aiofiles.open(input_file) as f:
+                content = await f.read()
+                data = json.loads(content)
 
             # Simple content detection and loading
             content_items: list[BaseContent] = []
@@ -228,7 +229,8 @@ def quick_convert(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(result, encoding="utf-8")
+            async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
+                await f.write(result)
 
             rprint(
                 f"[green]✓[/green] Converted {len(content_items)} items to {output_path}"
