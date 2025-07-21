@@ -6,11 +6,11 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.indexer.tag_resolver import TagResolver
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.loaders.source_manager import FileSystemSourceManager
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.models.spells import Spell
+from dnd5e.core.indexer.tag_resolver import TagResolver  # type: ignore
+from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
+from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
+from dnd5e.core.models.creatures import Creature  # type: ignore
+from dnd5e.core.models.spells import Spell  # type: ignore
 
 
 @pytest.fixture
@@ -66,19 +66,19 @@ def sample_creature_data() -> dict[str, Any]:
 
 
 @pytest.fixture
-def sample_spell(sample_spell_data) -> Spell:
+def sample_spell(sample_spell_data: Any) -> Spell:
     """Create a sample spell object."""
     return Spell.model_validate(sample_spell_data)
 
 
 @pytest.fixture
-def sample_creature(sample_creature_data) -> Creature:
+def sample_creature(sample_creature_data: Any) -> Creature:
     """Create a sample creature object."""
     return Creature.model_validate(sample_creature_data)
 
 
 @pytest.fixture
-def temp_data_dir(tmp_path) -> Path:
+def temp_data_dir(tmp_path: Path) -> Path:
     """Create a temporary data directory with sample files."""
     data_dir = tmp_path / "data"
     data_dir.mkdir()
@@ -92,7 +92,7 @@ def temp_data_dir(tmp_path) -> Path:
 
 @pytest.fixture
 async def loaded_omnidexer(
-    temp_data_dir, sample_spell_data, sample_creature_data
+    temp_data_dir: Any, sample_spell_data: Any, sample_creature_data: Any
 ) -> Omnidexer:
     """Create an omnidexer with loaded test data."""
     import json
@@ -105,11 +105,11 @@ async def loaded_omnidexer(
     creature_file.write_text(json.dumps({"monster": [sample_creature_data]}))
 
     # Create source manager pointing to temp directory
-    source_manager = FileSystemSourceManager(temp_data_dir.parent)
+    source_manager: Any = FileSystemSourceManager(temp_data_dir.parent)
     source_manager.path_config.data_path = temp_data_dir
 
     # Create and load omnidexer
-    omnidexer = Omnidexer(source_manager)
+    omnidexer: Any = Omnidexer(source_manager)
     await omnidexer.load_all_data()
 
     return omnidexer

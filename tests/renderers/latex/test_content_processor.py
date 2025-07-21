@@ -5,12 +5,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.models.items import Item
-from dnd5e.core.models.spells import Spell
-from dnd5e.renderers.base import RenderContext
-from dnd5e.renderers.latex.content_processor import (
+from dnd5e.core.models.content import ContentType  # type: ignore
+from dnd5e.core.models.creatures import Creature  # type: ignore
+from dnd5e.core.models.items import Item  # type: ignore
+from dnd5e.core.models.spells import Spell  # type: ignore
+from dnd5e.renderers.base import RenderContext  # type: ignore
+from dnd5e.renderers.latex.content_processor import (  # type: ignore
     ContentProcessor,
     ContentProcessorRegistry,
     CreatureProcessor,
@@ -22,27 +22,27 @@ from dnd5e.renderers.latex.content_processor import (
 class TestSpellProcessor:
     """Test cases for spell content processor."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.processor = SpellProcessor()
         self.context = Mock(spec=RenderContext)
 
-    def test_supports_content_type(self):
+    def test_supports_content_type(self) -> None:
         """Test content type support."""
         assert self.processor.supports_content_type(ContentType.SPELL)
         assert not self.processor.supports_content_type(ContentType.CREATURE)
         assert not self.processor.supports_content_type(ContentType.ITEM)
 
-    def test_process_invalid_content_type(self):
+    def test_process_invalid_content_type(self) -> None:
         """Test processing with invalid content type."""
-        invalid_content = Mock(spec=Creature)
+        invalid_content: Any = Mock(spec=Creature)
 
         with pytest.raises(ValueError, match="Expected Spell, got"):
             self.processor.process(invalid_content, self.context)
 
-    def test_process_basic_spell(self):
+    def test_process_basic_spell(self) -> None:
         """Test processing basic spell data."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.level = 3
         spell.entries = ["A bright streak flashes from your pointing finger."]
         spell.higher_level = [
@@ -74,7 +74,7 @@ class TestSpellProcessor:
         assert "fire" in result["spell_tags"]
         assert "save" in result["spell_tags"]
 
-    def test_get_spell_level_ordinal(self):
+    def test_get_spell_level_ordinal(self) -> None:
         """Test spell level ordinal conversion."""
         assert self.processor._get_spell_level_ordinal(0) == "Cantrip"
         assert self.processor._get_spell_level_ordinal(1) == "1st"
@@ -84,9 +84,9 @@ class TestSpellProcessor:
         assert self.processor._get_spell_level_ordinal(9) == "9th"
         assert self.processor._get_spell_level_ordinal(10) == "10th"
 
-    def test_extract_damage_dice(self):
+    def test_extract_damage_dice(self) -> None:
         """Test damage dice extraction from spell entries."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.entries = [
             "The target takes 3d6 fire damage.",
             "Additional text without dice.",
@@ -96,17 +96,17 @@ class TestSpellProcessor:
         result = self.processor._extract_damage_dice(spell)
         assert result == "3d6"
 
-    def test_extract_damage_dice_no_entries(self):
+    def test_extract_damage_dice_no_entries(self) -> None:
         """Test damage dice extraction with no entries."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.entries = []
 
         result = self.processor._extract_damage_dice(spell)
         assert result is None
 
-    def test_extract_spell_tags(self):
+    def test_extract_spell_tags(self) -> None:
         """Test spell tag extraction."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.damage_inflict = ["fire", "cold"]
         spell.saving_throw = ["dexterity"]
         spell.spell_attack = ["ranged"]
@@ -118,60 +118,60 @@ class TestSpellProcessor:
         assert "save" in result
         assert "attack" in result
 
-    def test_has_verbal_component_object(self):
+    def test_has_verbal_component_object(self) -> None:
         """Test verbal component detection with component object."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.components = Mock()
         spell.components.verbal = True
 
         result = self.processor._has_verbal_component(spell)
         assert result is True
 
-    def test_has_verbal_component_dict(self):
+    def test_has_verbal_component_dict(self) -> None:
         """Test verbal component detection with component dict."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.components = {"v": True, "s": False}
 
         result = self.processor._has_verbal_component(spell)
         assert result is True
 
-    def test_extract_material_component_object(self):
+    def test_extract_material_component_object(self) -> None:
         """Test material component extraction with component object."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.components = Mock()
         spell.components.material = "a pinch of sulfur"
 
         result = self.processor._extract_material_component(spell)
         assert result == "a pinch of sulfur"
 
-    def test_extract_material_component_dict(self):
+    def test_extract_material_component_dict(self) -> None:
         """Test material component extraction with component dict."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.components = {"m": "a diamond worth 1000 gp"}
 
         result = self.processor._extract_material_component(spell)
         assert result == "a diamond worth 1000 gp"
 
-    def test_requires_concentration_true(self):
+    def test_requires_concentration_true(self) -> None:
         """Test concentration requirement detection (true case)."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.duration = [Mock()]
         spell.duration[0].concentration = True
 
         result = self.processor._requires_concentration(spell)
         assert result is True
 
-    def test_requires_concentration_dict(self):
+    def test_requires_concentration_dict(self) -> None:
         """Test concentration requirement detection with dict."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.duration = [{"concentration": True, "type": "timed"}]
 
         result = self.processor._requires_concentration(spell)
         assert result is True
 
-    def test_extract_upcast_effects(self):
+    def test_extract_upcast_effects(self) -> None:
         """Test upcast effects extraction."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.higher_level = [
             "When you cast this spell using a spell slot of 4th level or higher,",
             "the damage increases by 1d6 for each slot level above 3rd.",
@@ -181,9 +181,9 @@ class TestSpellProcessor:
         assert "4th level or higher" in result
         assert "1d6 for each slot level" in result
 
-    def test_get_class_availability(self):
+    def test_get_class_availability(self) -> None:
         """Test class availability extraction."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.classes = {
             "fromClassList": [
                 {"name": "Bard"},
@@ -203,27 +203,27 @@ class TestSpellProcessor:
 class TestCreatureProcessor:
     """Test cases for creature content processor."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.processor = CreatureProcessor()
         self.context = Mock(spec=RenderContext)
 
-    def test_supports_content_type(self):
+    def test_supports_content_type(self) -> None:
         """Test content type support."""
         assert self.processor.supports_content_type(ContentType.CREATURE)
         assert not self.processor.supports_content_type(ContentType.SPELL)
         assert not self.processor.supports_content_type(ContentType.ITEM)
 
-    def test_process_invalid_content_type(self):
+    def test_process_invalid_content_type(self) -> None:
         """Test processing with invalid content type."""
-        invalid_content = Mock(spec=Spell)
+        invalid_content: Any = Mock(spec=Spell)
 
         with pytest.raises(ValueError, match="Expected Creature, got"):
             self.processor.process(invalid_content, self.context)
 
-    def test_process_basic_creature(self):
+    def test_process_basic_creature(self) -> None:
         """Test processing basic creature data."""
-        creature = Mock(spec=Creature)
+        creature: Any = Mock(spec=Creature)
         creature.cr = "5"
         creature.size = ["L"]
         creature.strength = 18
@@ -252,24 +252,24 @@ class TestCreatureProcessor:
         assert "large" in result["creature_tags"]
         assert "dragon" in result["creature_tags"]
 
-    def test_get_numeric_cr_fractions(self):
+    def test_get_numeric_cr_fractions(self) -> None:
         """Test numeric CR conversion for fractions."""
         assert self.processor._get_numeric_cr("1/8") == 0.125
         assert self.processor._get_numeric_cr("1/4") == 0.25
         assert self.processor._get_numeric_cr("1/2") == 0.5
 
-    def test_get_numeric_cr_integers(self):
+    def test_get_numeric_cr_integers(self) -> None:
         """Test numeric CR conversion for integers."""
         assert self.processor._get_numeric_cr("1") == 1.0
         assert self.processor._get_numeric_cr("5") == 5.0
         assert self.processor._get_numeric_cr("20") == 20.0
 
-    def test_get_numeric_cr_invalid(self):
+    def test_get_numeric_cr_invalid(self) -> None:
         """Test numeric CR conversion for invalid values."""
         assert self.processor._get_numeric_cr("invalid") == 0.0
         assert self.processor._get_numeric_cr(None) == 0.0
 
-    def test_get_cr_category(self):
+    def test_get_cr_category(self) -> None:
         """Test CR category assignment."""
         assert self.processor._get_cr_category("0") == "Trivial"
         assert self.processor._get_cr_category("1/4") == "Low"
@@ -278,7 +278,7 @@ class TestCreatureProcessor:
         assert self.processor._get_cr_category("15") == "Epic"
         assert self.processor._get_cr_category("25") == "Legendary"
 
-    def test_get_size_category(self):
+    def test_get_size_category(self) -> None:
         """Test size category conversion."""
         assert self.processor._get_size_category(["T"]) == "Tiny"
         assert self.processor._get_size_category(["S"]) == "Small"
@@ -288,7 +288,7 @@ class TestCreatureProcessor:
         assert self.processor._get_size_category(["G"]) == "Gargantuan"
         assert self.processor._get_size_category([]) == "Medium"
 
-    def test_calculate_proficiency_bonus(self):
+    def test_calculate_proficiency_bonus(self) -> None:
         """Test proficiency bonus calculation."""
         assert self.processor._calculate_proficiency_bonus("1") == 2
         assert self.processor._calculate_proficiency_bonus("4") == 2
@@ -298,9 +298,9 @@ class TestCreatureProcessor:
         assert self.processor._calculate_proficiency_bonus("20") == 6
         assert self.processor._calculate_proficiency_bonus("30") == 9
 
-    def test_calculate_ability_modifiers(self):
+    def test_calculate_ability_modifiers(self) -> None:
         """Test ability modifier calculation."""
-        creature = Mock(spec=Creature)
+        creature: Any = Mock(spec=Creature)
         creature.strength = 18
         creature.dexterity = 14
         creature.constitution = 16
@@ -317,9 +317,9 @@ class TestCreatureProcessor:
         assert result["wis"] == 1  # (12-10)//2
         assert result["cha"] == 0  # (10-10)//2
 
-    def test_calculate_passive_perception_with_proficiency(self):
+    def test_calculate_passive_perception_with_proficiency(self) -> None:
         """Test passive perception calculation with perception proficiency."""
-        creature = Mock(spec=Creature)
+        creature: Any = Mock(spec=Creature)
         creature.wisdom = 14  # +2 modifier
         creature.cr = "5"  # +3 proficiency bonus
         creature.skill = {"perception": "+5"}
@@ -327,9 +327,9 @@ class TestCreatureProcessor:
         result = self.processor._calculate_passive_perception(creature)
         assert result == 15  # 10 + 2 (wis) + 3 (prof)
 
-    def test_calculate_passive_perception_without_proficiency(self):
+    def test_calculate_passive_perception_without_proficiency(self) -> None:
         """Test passive perception calculation without perception proficiency."""
-        creature = Mock(spec=Creature)
+        creature: Any = Mock(spec=Creature)
         creature.wisdom = 14  # +2 modifier
         creature.cr = "5"  # +3 proficiency bonus
         creature.skill = {}  # No perception skill
@@ -337,9 +337,9 @@ class TestCreatureProcessor:
         result = self.processor._calculate_passive_perception(creature)
         assert result == 12  # 10 + 2 (wis), no proficiency
 
-    def test_is_spellcaster_true(self):
+    def test_is_spellcaster_true(self) -> None:
         """Test spellcaster detection (true case)."""
-        creature = Mock(spec=Creature)
+        creature: Any = Mock(spec=Creature)
         creature.trait = [
             {
                 "name": "Spellcasting",
@@ -350,9 +350,9 @@ class TestCreatureProcessor:
         result = self.processor._is_spellcaster(creature)
         assert result is True
 
-    def test_is_spellcaster_false(self):
+    def test_is_spellcaster_false(self) -> None:
         """Test spellcaster detection (false case)."""
-        creature = Mock(spec=Creature)
+        creature: Any = Mock(spec=Creature)
         creature.trait = [
             {
                 "name": "Keen Senses",
@@ -363,9 +363,9 @@ class TestCreatureProcessor:
         result = self.processor._is_spellcaster(creature)
         assert result is False
 
-    def test_is_legendary_true(self):
+    def test_is_legendary_true(self) -> None:
         """Test legendary creature detection (true case)."""
-        creature = Mock(spec=Creature)
+        creature: Any = Mock(spec=Creature)
         creature.legendary = [
             {"name": "Tail Attack", "entries": ["The creature makes a tail attack."]}
         ]
@@ -373,17 +373,17 @@ class TestCreatureProcessor:
         result = self.processor._is_legendary(creature)
         assert result is True
 
-    def test_is_legendary_false(self):
+    def test_is_legendary_false(self) -> None:
         """Test legendary creature detection (false case)."""
-        creature = Mock(spec=Creature)
+        creature: Any = Mock(spec=Creature)
         creature.legendary = []
 
         result = self.processor._is_legendary(creature)
         assert result is False
 
-    def test_extract_creature_tags(self):
+    def test_extract_creature_tags(self) -> None:
         """Test creature tag extraction."""
-        creature = Mock(spec=Creature)
+        creature: Any = Mock(spec=Creature)
         creature.size = ["L"]
         creature.type = "dragon"
         creature.cr = "8"
@@ -406,27 +406,27 @@ class TestCreatureProcessor:
 class TestItemProcessor:
     """Test cases for item content processor."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.processor = ItemProcessor()
         self.context = Mock(spec=RenderContext)
 
-    def test_supports_content_type(self):
+    def test_supports_content_type(self) -> None:
         """Test content type support."""
         assert self.processor.supports_content_type(ContentType.ITEM)
         assert not self.processor.supports_content_type(ContentType.SPELL)
         assert not self.processor.supports_content_type(ContentType.CREATURE)
 
-    def test_process_invalid_content_type(self):
+    def test_process_invalid_content_type(self) -> None:
         """Test processing with invalid content type."""
-        invalid_content = Mock(spec=Spell)
+        invalid_content: Any = Mock(spec=Spell)
 
         with pytest.raises(ValueError, match="Expected Item, got"):
             self.processor.process(invalid_content, self.context)
 
-    def test_process_basic_item(self):
+    def test_process_basic_item(self) -> None:
         """Test processing basic item data."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
         item.is_weapon.return_value = True
         item.is_armor.return_value = False
         item.is_magic_item.return_value = False
@@ -444,27 +444,27 @@ class TestItemProcessor:
         assert result["item_properties"] == ["versatile", "finesse"]
         assert result["value_tier"] == "Moderate"
 
-    def test_get_item_category_weapon(self):
+    def test_get_item_category_weapon(self) -> None:
         """Test item category determination for weapons."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
         item.is_weapon.return_value = True
         item.is_armor.return_value = False
 
         result = self.processor._get_item_category(item)
         assert result == "Weapon"
 
-    def test_get_item_category_armor(self):
+    def test_get_item_category_armor(self) -> None:
         """Test item category determination for armor."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
         item.is_weapon.return_value = False
         item.is_armor.return_value = True
 
         result = self.processor._get_item_category(item)
         assert result == "Armor"
 
-    def test_get_item_category_magic_item(self):
+    def test_get_item_category_magic_item(self) -> None:
         """Test item category determination for magic items."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
         item.is_weapon.return_value = False
         item.is_armor.return_value = False
         item.is_magic_item.return_value = True
@@ -472,9 +472,9 @@ class TestItemProcessor:
         result = self.processor._get_item_category(item)
         assert result == "Magic Item"
 
-    def test_get_rarity_tier(self):
+    def test_get_rarity_tier(self) -> None:
         """Test rarity tier determination."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
 
         item.rarity = "common"
         assert self.processor._get_rarity_tier(item) == "Common"
@@ -491,59 +491,59 @@ class TestItemProcessor:
         item.rarity = "legendary"
         assert self.processor._get_rarity_tier(item) == "Legendary"
 
-    def test_requires_attunement_boolean(self):
+    def test_requires_attunement_boolean(self) -> None:
         """Test attunement requirement with boolean value."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
         item.requires_attunement = True
 
         result = self.processor._requires_attunement(item)
         assert result is True
 
-    def test_requires_attunement_string(self):
+    def test_requires_attunement_string(self) -> None:
         """Test attunement requirement with string value."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
         item.requires_attunement = "by a spellcaster"
 
         result = self.processor._requires_attunement(item)
         assert result is True
 
-    def test_get_damage_output_weapon(self):
+    def test_get_damage_output_weapon(self) -> None:
         """Test damage output extraction for weapons."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
         item.is_weapon.return_value = True
         item.damage = "1d8"
 
         result = self.processor._get_damage_output(item)
         assert result == "1d8"
 
-    def test_get_damage_output_non_weapon(self):
+    def test_get_damage_output_non_weapon(self) -> None:
         """Test damage output extraction for non-weapons."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
         item.is_weapon.return_value = False
 
         result = self.processor._get_damage_output(item)
         assert result is None
 
-    def test_get_armor_rating_armor(self):
+    def test_get_armor_rating_armor(self) -> None:
         """Test armor rating extraction for armor."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
         item.is_armor.return_value = True
         item.ac = 16
 
         result = self.processor._get_armor_rating(item)
         assert result == 16
 
-    def test_get_armor_rating_non_armor(self):
+    def test_get_armor_rating_non_armor(self) -> None:
         """Test armor rating extraction for non-armor."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
         item.is_armor.return_value = False
 
         result = self.processor._get_armor_rating(item)
         assert result is None
 
-    def test_get_value_tier(self):
+    def test_get_value_tier(self) -> None:
         """Test value tier determination."""
-        item = Mock(spec=Item)
+        item: Any = Mock(spec=Item)
 
         item.value = 50  # Less than 1 gp
         assert self.processor._get_value_tier(item) == "Cheap"
@@ -567,9 +567,9 @@ class TestItemProcessor:
 class TestContentProcessorRegistry:
     """Test cases for content processor registry."""
 
-    def test_init_registers_default_processors(self):
+    def test_init_registers_default_processors(self) -> None:
         """Test that initialization registers default processors."""
-        registry = ContentProcessorRegistry()
+        registry: Any = ContentProcessorRegistry()
 
         assert ContentType.SPELL in registry._processors
         assert ContentType.CREATURE in registry._processors
@@ -579,10 +579,10 @@ class TestContentProcessorRegistry:
         assert isinstance(registry._processors[ContentType.CREATURE], CreatureProcessor)
         assert isinstance(registry._processors[ContentType.ITEM], ItemProcessor)
 
-    def test_register_processor(self):
+    def test_register_processor(self) -> None:
         """Test processor registration."""
-        registry = ContentProcessorRegistry()
-        custom_processor = Mock(spec=ContentProcessor)
+        registry: Any = ContentProcessorRegistry()
+        custom_processor: Any = Mock(spec=ContentProcessor)
         custom_processor.supports_content_type.return_value = True
 
         registry.register_processor(custom_processor)
@@ -592,27 +592,27 @@ class TestContentProcessorRegistry:
             if custom_processor.supports_content_type(content_type):
                 assert registry._processors[content_type] == custom_processor
 
-    def test_get_processor_exists(self):
+    def test_get_processor_exists(self) -> None:
         """Test getting existing processor."""
-        registry = ContentProcessorRegistry()
+        registry: Any = ContentProcessorRegistry()
 
         processor = registry.get_processor(ContentType.SPELL)
         assert processor is not None
         assert isinstance(processor, SpellProcessor)
 
-    def test_get_processor_not_exists(self):
+    def test_get_processor_not_exists(self) -> None:
         """Test getting non-existing processor."""
-        registry = ContentProcessorRegistry()
+        registry: Any = ContentProcessorRegistry()
 
         # Mock a content type that doesn't have a processor
-        fake_content_type = Mock()
+        fake_content_type: Any = Mock()
         processor = registry.get_processor(fake_content_type)
         assert processor is None
 
-    def test_process_content_with_processor(self):
+    def test_process_content_with_processor(self) -> None:
         """Test content processing with available processor."""
-        registry = ContentProcessorRegistry()
-        spell = Mock(spec=Spell)
+        registry: Any = ContentProcessorRegistry()
+        spell: Any = Mock(spec=Spell)
         spell.level = 1
         spell.entries = []
         spell.higher_level = []
@@ -622,7 +622,7 @@ class TestContentProcessorRegistry:
         spell.components.material = None
         spell.duration = []
         spell.classes = {}
-        context = Mock(spec=RenderContext)
+        context: Any = Mock(spec=RenderContext)
 
         # Mock the content type detection
         with patch(
@@ -635,17 +635,17 @@ class TestContentProcessorRegistry:
             assert isinstance(result, dict)
             assert "spell_level_ordinal" in result
 
-    def test_process_content_without_processor(self):
+    def test_process_content_without_processor(self) -> None:
         """Test content processing without available processor."""
-        registry = ContentProcessorRegistry()
-        unknown_content = Mock()
-        context = Mock(spec=RenderContext)
+        registry: Any = ContentProcessorRegistry()
+        unknown_content: Any = Mock()
+        context: Any = Mock(spec=RenderContext)
 
         # Mock the content type detection to return unknown type
         with patch(
             "dnd5e.renderers.latex.content_processor.ContentType.from_content"
         ) as mock_from_content:
-            fake_content_type = Mock()
+            fake_content_type: Any = Mock()
             mock_from_content.return_value = fake_content_type
 
             result = registry.process_content(unknown_content, context)

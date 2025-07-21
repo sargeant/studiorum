@@ -1,16 +1,18 @@
 """Tests for book models."""
 
+from typing import Any
+
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.models.books import Book, BookChapter, BookMetadata
-from dnd5e.core.models.content import Source
+from dnd5e.core.models.books import Book, BookChapter, BookMetadata  # type: ignore
+from dnd5e.core.models.content import Source  # type: ignore
 
 
 class TestBookChapter:
     """Tests for BookChapter model."""
 
-    def test_book_chapter_creation_minimal(self):
+    def test_book_chapter_creation_minimal(self) -> None:
         """Test basic BookChapter creation with minimal data."""
         data = {"name": "Introduction"}
         chapter = BookChapter.model_validate(data)
@@ -20,7 +22,7 @@ class TestBookChapter:
         assert chapter.headers is None
         assert chapter.entries == []
 
-    def test_book_chapter_creation_full(self):
+    def test_book_chapter_creation_full(self) -> None:
         """Test BookChapter creation with all fields."""
         data = {
             "name": "Getting Started",
@@ -35,62 +37,62 @@ class TestBookChapter:
         assert chapter.headers == ["Overview", "Prerequisites"]
         assert len(chapter.entries) == 2
 
-    def test_book_chapter_get_chapter_number_chapter(self):
+    def test_book_chapter_get_chapter_number_chapter(self) -> None:
         """Test get_chapter_number for chapter type."""
-        chapter = BookChapter(
+        chapter: Any = BookChapter(
             name="Test Chapter", ordinal={"type": "chapter", "identifier": 5}
         )
 
         result = chapter.get_chapter_number()
         assert result == "Chapter 5"
 
-    def test_book_chapter_get_chapter_number_part(self):
+    def test_book_chapter_get_chapter_number_part(self) -> None:
         """Test get_chapter_number for part type."""
-        chapter = BookChapter(
+        chapter: Any = BookChapter(
             name="Test Part", ordinal={"type": "part", "identifier": 2}
         )
 
         result = chapter.get_chapter_number()
         assert result == "Part 2"
 
-    def test_book_chapter_get_chapter_number_appendix(self):
+    def test_book_chapter_get_chapter_number_appendix(self) -> None:
         """Test get_chapter_number for appendix type."""
-        chapter = BookChapter(
+        chapter: Any = BookChapter(
             name="Test Appendix", ordinal={"type": "appendix", "identifier": 3}
         )
 
         result = chapter.get_chapter_number()
         assert result == "Appendix 3"
 
-    def test_book_chapter_get_chapter_number_unknown_type(self):
+    def test_book_chapter_get_chapter_number_unknown_type(self) -> None:
         """Test get_chapter_number for unknown type."""
-        chapter = BookChapter(
+        chapter: Any = BookChapter(
             name="Test Section", ordinal={"type": "section", "identifier": 7}
         )
 
         result = chapter.get_chapter_number()
         assert result == "7"
 
-    def test_book_chapter_get_chapter_number_no_ordinal(self):
+    def test_book_chapter_get_chapter_number_no_ordinal(self) -> None:
         """Test get_chapter_number with no ordinal data."""
-        chapter = BookChapter(name="Test Chapter")
+        chapter: Any = BookChapter(name="Test Chapter")
 
         result = chapter.get_chapter_number()
         assert result == ""
 
-    def test_book_chapter_get_chapter_number_missing_fields(self):
+    def test_book_chapter_get_chapter_number_missing_fields(self) -> None:
         """Test get_chapter_number with incomplete ordinal data."""
         # Missing identifier - falls back to str(ordinal)
-        chapter = BookChapter(name="Test Chapter", ordinal={"type": "chapter"})
+        chapter: Any = BookChapter(name="Test Chapter", ordinal={"type": "chapter"})
         result = chapter.get_chapter_number()
         assert result == "{'type': 'chapter'}"
 
         # Missing type - uses default "chapter" but has identifier
-        chapter = BookChapter(name="Test Chapter", ordinal={"identifier": 1})
-        result = chapter.get_chapter_number()
+        chapter2: Any = BookChapter(name="Test Chapter", ordinal={"identifier": 1})
+        result = chapter2.get_chapter_number()
         assert result == "Chapter 1"
 
-    def test_book_chapter_get_chapter_number_various_identifiers(self):
+    def test_book_chapter_get_chapter_number_various_identifiers(self) -> None:
         """Test get_chapter_number with various identifier types."""
         test_cases = [
             ("chapter", 1, "Chapter 1"),
@@ -104,25 +106,25 @@ class TestBookChapter:
         ]
 
         for ordinal_type, identifier, expected in test_cases:
-            chapter = BookChapter(
+            chapter: Any = BookChapter(
                 name=f"Test {ordinal_type}",
                 ordinal={"type": ordinal_type, "identifier": identifier},
             )
             result = chapter.get_chapter_number()
             assert result == expected
 
-    def test_book_chapter_get_formatted_headers_strings(self):
+    def test_book_chapter_get_formatted_headers_strings(self) -> None:
         """Test get_formatted_headers with string headers."""
-        chapter = BookChapter(
+        chapter: Any = BookChapter(
             name="Test Chapter", headers=["Introduction", "Overview", "Getting Started"]
         )
 
         result = chapter.get_formatted_headers()
         assert result == ["Introduction", "Overview", "Getting Started"]
 
-    def test_book_chapter_get_formatted_headers_dicts(self):
+    def test_book_chapter_get_formatted_headers_dicts(self) -> None:
         """Test get_formatted_headers with dict headers."""
-        chapter = BookChapter(
+        chapter: Any = BookChapter(
             name="Test Chapter",
             headers=[
                 {"type": "section", "header": "Overview"},
@@ -134,9 +136,9 @@ class TestBookChapter:
         result = chapter.get_formatted_headers()
         assert result == ["Overview", "Details", "Summary"]
 
-    def test_book_chapter_get_formatted_headers_mixed(self):
+    def test_book_chapter_get_formatted_headers_mixed(self) -> None:
         """Test get_formatted_headers with mixed string/dict headers."""
-        chapter = BookChapter(
+        chapter: Any = BookChapter(
             name="Test Chapter",
             headers=[
                 "Introduction",
@@ -149,23 +151,23 @@ class TestBookChapter:
         result = chapter.get_formatted_headers()
         assert result == ["Introduction", "Overview", "Conclusion", "Details"]
 
-    def test_book_chapter_get_formatted_headers_no_headers(self):
+    def test_book_chapter_get_formatted_headers_no_headers(self) -> None:
         """Test get_formatted_headers with no headers."""
-        chapter = BookChapter(name="Test Chapter")
+        chapter: Any = BookChapter(name="Test Chapter")
 
         result = chapter.get_formatted_headers()
         assert result == []
 
-    def test_book_chapter_get_formatted_headers_empty_headers(self):
+    def test_book_chapter_get_formatted_headers_empty_headers(self) -> None:
         """Test get_formatted_headers with empty headers list."""
-        chapter = BookChapter(name="Test Chapter", headers=[])
+        chapter: Any = BookChapter(name="Test Chapter", headers=[])
 
         result = chapter.get_formatted_headers()
         assert result == []
 
-    def test_book_chapter_get_formatted_headers_dict_without_header(self):
+    def test_book_chapter_get_formatted_headers_dict_without_header(self) -> None:
         """Test get_formatted_headers with dict headers missing header field."""
-        chapter = BookChapter(
+        chapter: Any = BookChapter(
             name="Test Chapter",
             headers=[
                 {"type": "section", "entries": []},
@@ -183,7 +185,7 @@ class TestBookChapter:
         ]
         assert result == expected
 
-    def test_book_chapter_parse_headers_validator_with_dict_extraction(self):
+    def test_book_chapter_parse_headers_validator_with_dict_extraction(self) -> None:
         """Test parse_headers validator extracts header fields from dicts."""
         data = {
             "name": "Test Chapter",
@@ -198,14 +200,14 @@ class TestBookChapter:
         # Validator should extract "header" fields and convert others to string
         assert chapter.headers == ["Header 1", "Header 2", "{'no_header': 'value'}"]
 
-    def test_book_chapter_parse_headers_validator_list(self):
+    def test_book_chapter_parse_headers_validator_list(self) -> None:
         """Test parse_headers validator with list input."""
         data = {"name": "Test Chapter", "headers": ["Header 1", "Header 2"]}
         chapter = BookChapter.model_validate(data)
 
         assert chapter.headers == ["Header 1", "Header 2"]
 
-    def test_book_chapter_validation_name_required(self):
+    def test_book_chapter_validation_name_required(self) -> None:
         """Test that name field is required."""
         with pytest.raises(ValidationError) as exc_info:
             BookChapter.model_validate({})
@@ -217,7 +219,7 @@ class TestBookChapter:
 class TestBookMetadata:
     """Tests for BookMetadata model."""
 
-    def test_book_metadata_creation_empty(self):
+    def test_book_metadata_creation_empty(self) -> None:
         """Test BookMetadata creation with no fields."""
         metadata = BookMetadata.model_validate({})
 
@@ -227,7 +229,7 @@ class TestBookMetadata:
         assert metadata.contents is None
         assert metadata.cover is None
 
-    def test_book_metadata_creation_full(self):
+    def test_book_metadata_creation_full(self) -> None:
         """Test BookMetadata creation with all fields."""
         data = {
             "id": "phb-2024",
@@ -244,65 +246,65 @@ class TestBookMetadata:
         assert metadata.contents == [{"name": "Chapter 1", "page": 1}]
         assert metadata.cover == {"url": "cover.jpg", "width": 400, "height": 600}
 
-    def test_book_metadata_get_authors_text_single_author(self):
+    def test_book_metadata_get_authors_text_single_author(self) -> None:
         """Test get_authors_text with single author."""
-        metadata = BookMetadata(author=["John Smith"])
+        metadata: Any = BookMetadata(author=["John Smith"])
 
         result = metadata.get_authors_text()
         assert result == "John Smith"
 
-    def test_book_metadata_get_authors_text_two_authors(self):
+    def test_book_metadata_get_authors_text_two_authors(self) -> None:
         """Test get_authors_text with two authors."""
-        metadata = BookMetadata(author=["John Smith", "Jane Doe"])
+        metadata: Any = BookMetadata(author=["John Smith", "Jane Doe"])
 
         result = metadata.get_authors_text()
         assert result == "John Smith and Jane Doe"
 
-    def test_book_metadata_get_authors_text_three_authors(self):
+    def test_book_metadata_get_authors_text_three_authors(self) -> None:
         """Test get_authors_text with three authors."""
-        metadata = BookMetadata(author=["John Smith", "Jane Doe", "Bob Johnson"])
+        metadata: Any = BookMetadata(author=["John Smith", "Jane Doe", "Bob Johnson"])
 
         result = metadata.get_authors_text()
         assert result == "John Smith, Jane Doe, and Bob Johnson"
 
-    def test_book_metadata_get_authors_text_four_authors(self):
+    def test_book_metadata_get_authors_text_four_authors(self) -> None:
         """Test get_authors_text with four authors."""
-        metadata = BookMetadata(
+        metadata: Any = BookMetadata(
             author=["John Smith", "Jane Doe", "Bob Johnson", "Alice Brown"]
         )
 
         result = metadata.get_authors_text()
         assert result == "John Smith, Jane Doe, Bob Johnson, and Alice Brown"
 
-    def test_book_metadata_get_authors_text_no_authors(self):
+    def test_book_metadata_get_authors_text_no_authors(self) -> None:
         """Test get_authors_text with no authors."""
-        metadata = BookMetadata()
+        metadata: Any = BookMetadata()
 
         result = metadata.get_authors_text()
         assert result == ""
 
-    def test_book_metadata_get_authors_text_empty_list(self):
+    def test_book_metadata_get_authors_text_empty_list(self) -> None:
         """Test get_authors_text with empty author list."""
-        metadata = BookMetadata(author=[])
+        metadata: Any = BookMetadata(author=[])
 
         result = metadata.get_authors_text()
         assert result == ""
 
-    def test_book_metadata_parse_author_string_input(self):
+    def test_book_metadata_parse_author_string_input(self) -> None:
         """Test parse_author validator with string input."""
         data = {"author": "Single Author"}
         metadata = BookMetadata.model_validate(data)
 
         assert metadata.author == ["Single Author"]
 
-    def test_book_metadata_parse_author_list_input(self):
+    def test_book_metadata_parse_author_list_input(self) -> None:
         """Test parse_author validator with list input."""
         data = {"author": ["Author 1", "Author 2"]}
         metadata = BookMetadata.model_validate(data)
 
         assert metadata.author == ["Author 1", "Author 2"]
 
-    def test_book_metadata_parse_author_none_input(self):
+    def test_book_metadata_parse_author_none_input(self) -> None:
         """Test parse_author validator with None input."""
         data = {"author": None}
         metadata = BookMetadata.model_validate(data)
@@ -314,12 +316,12 @@ class TestBook:
     """Tests for Book model."""
 
     @pytest.fixture
-    def sample_source(self):
+    def sample_source(self) -> Any:
         """Sample source for testing."""
         return Source(abbreviation="PHB", name="Player's Handbook")
 
     @pytest.fixture
-    def sample_chapter_data(self):
+    def sample_chapter_data(self) -> Any:
         """Sample chapter data for testing."""
         return {
             "name": "Introduction",
@@ -329,7 +331,7 @@ class TestBook:
         }
 
     @pytest.fixture
-    def sample_metadata_data(self):
+    def sample_metadata_data(self) -> Any:
         """Sample metadata for testing."""
         return {
             "id": "phb-2024",
@@ -338,7 +340,7 @@ class TestBook:
             "cover": {"url": "cover.jpg"},
         }
 
-    def test_book_creation_minimal(self, sample_source):
+    def test_book_creation_minimal(self, sample_source: Any) -> None:
         """Test Book creation with minimal required data."""
         data = {"name": "Player's Handbook", "source": sample_source}
         book = Book.model_validate(data)
@@ -352,7 +354,9 @@ class TestBook:
         assert book.author is None
         assert book.cover is None
 
-    def test_book_creation_with_chapters(self, sample_source, sample_chapter_data):
+    def test_book_creation_with_chapters(
+        self, sample_source: Any, sample_chapter_data: Any
+    ) -> None:
         """Test Book creation with chapters."""
         data = {
             "name": "Player's Handbook",
@@ -366,7 +370,9 @@ class TestBook:
         assert isinstance(book.contents[0], BookChapter)
         assert book.contents[0].name == "Introduction"
 
-    def test_book_creation_with_metadata(self, sample_source, sample_metadata_data):
+    def test_book_creation_with_metadata(
+        self, sample_source: Any, sample_metadata_data: Any
+    ) -> None:
         """Test Book creation with metadata."""
         data = {
             "name": "Player's Handbook",
@@ -380,7 +386,9 @@ class TestBook:
         assert book.metadata.id == "phb-2024"
         assert book.metadata.author == ["Mike Mearls", "Jeremy Crawford"]
 
-    def test_book_creation_with_individual_metadata_fields(self, sample_source):
+    def test_book_creation_with_individual_metadata_fields(
+        self, sample_source: Any
+    ) -> None:
         """Test Book creation with individual metadata fields."""
         data = {
             "name": "Player's Handbook",
@@ -407,8 +415,8 @@ class TestBook:
         assert book.metadata.cover == {"url": "cover.jpg"}
 
     def test_book_model_post_init_no_metadata_creation(
-        self, sample_source, sample_metadata_data
-    ):
+        self, sample_source: Any, sample_metadata_data: Any
+    ) -> None:
         """Test that model_post_init doesn't create metadata when it already exists."""
         data = {
             "name": "Player's Handbook",
@@ -425,7 +433,9 @@ class TestBook:
         assert book.id == "different-id"  # Individual field should still be set
         assert book.author == ["Different Author"]
 
-    def test_book_model_post_init_partial_metadata_creation(self, sample_source):
+    def test_book_model_post_init_partial_metadata_creation(
+        self, sample_source: Any
+    ) -> None:
         """Test model_post_init creates metadata from partial fields."""
         data = {
             "name": "Player's Handbook",
@@ -442,53 +452,59 @@ class TestBook:
         assert book.metadata.id is None
         assert book.metadata.cover is None
 
-    def test_book_get_chapter_count_zero(self, sample_source):
+    def test_book_get_chapter_count_zero(self, sample_source: Any) -> None:
         """Test get_chapter_count with no chapters."""
-        book = Book(name="Empty Book", source=sample_source)
+        book: Any = Book(name="Empty Book", source=sample_source)
 
         result = book.get_chapter_count()
         assert result == 0
 
-    def test_book_get_chapter_count_multiple(self, sample_source):
+    def test_book_get_chapter_count_multiple(self, sample_source: Any) -> None:
         """Test get_chapter_count with multiple chapters."""
         chapters = [
             BookChapter(name="Chapter 1"),
             BookChapter(name="Chapter 2"),
             BookChapter(name="Chapter 3"),
         ]
-        book = Book(name="Multi-Chapter Book", source=sample_source, contents=chapters)
+        book: Any = Book(
+            name="Multi-Chapter Book", source=sample_source, contents=chapters
+        )
 
         result = book.get_chapter_count()
         assert result == 3
 
-    def test_book_get_authors_text_from_metadata(self, sample_source):
+    def test_book_get_authors_text_from_metadata(self, sample_source: Any) -> None:
         """Test get_authors_text when metadata exists."""
-        metadata = BookMetadata(author=["John Smith", "Jane Doe"])
-        book = Book(name="Test Book", source=sample_source, metadata=metadata)
+        metadata: Any = BookMetadata(author=["John Smith", "Jane Doe"])
+        book: Any = Book(name="Test Book", source=sample_source, metadata=metadata)
 
         result = book.get_authors_text()
         assert result == "John Smith and Jane Doe"
 
-    def test_book_get_authors_text_fallback_to_individual(self, sample_source):
+    def test_book_get_authors_text_fallback_to_individual(
+        self, sample_source: Any
+    ) -> None:
         """Test get_authors_text fallback when no metadata."""
-        book = Book(
+        book: Any = Book(
             name="Test Book", source=sample_source, author=["Individual Author"]
         )
 
         result = book.get_authors_text()
         assert result == "Individual Author"
 
-    def test_book_get_authors_text_no_authors(self, sample_source):
+    def test_book_get_authors_text_no_authors(self, sample_source: Any) -> None:
         """Test get_authors_text with no authors anywhere."""
-        book = Book(name="Test Book", source=sample_source)
+        book: Any = Book(name="Test Book", source=sample_source)
 
         result = book.get_authors_text()
         assert result == ""
 
-    def test_book_get_authors_text_metadata_takes_precedence(self, sample_source):
+    def test_book_get_authors_text_metadata_takes_precedence(
+        self, sample_source: Any
+    ) -> None:
         """Test that metadata authors take precedence over individual field."""
-        metadata = BookMetadata(author=["Metadata Author"])
-        book = Book(
+        metadata: Any = BookMetadata(author=["Metadata Author"])
+        book: Any = Book(
             name="Test Book",
             source=sample_source,
             metadata=metadata,
@@ -498,14 +514,14 @@ class TestBook:
         result = book.get_authors_text()
         assert result == "Metadata Author"
 
-    def test_book_parse_author_string_input(self, sample_source):
+    def test_book_parse_author_string_input(self, sample_source: Any) -> None:
         """Test parse_author validator with string input."""
         data = {"name": "Test Book", "source": sample_source, "author": "Single Author"}
         book = Book.model_validate(data)
 
         assert book.author == ["Single Author"]
 
-    def test_book_parse_author_list_input(self, sample_source):
+    def test_book_parse_author_list_input(self, sample_source: Any) -> None:
         """Test parse_author validator with list input."""
         data = {
             "name": "Test Book",
@@ -516,9 +532,9 @@ class TestBook:
 
         assert book.author == ["Author 1", "Author 2"]
 
-    def test_book_inheritance_from_base_content(self, sample_source):
+    def test_book_inheritance_from_base_content(self, sample_source: Any) -> None:
         """Test that Book properly inherits from BaseContent."""
-        book = Book(name="Test Book", source=sample_source)
+        book: Any = Book(name="Test Book", source=sample_source)
 
         # Should have BaseContent properties
         assert hasattr(book, "name")
@@ -526,14 +542,14 @@ class TestBook:
         assert book.name == "Test Book"
         assert book.source == sample_source
 
-    def test_book_validation_name_required(self, sample_source):
+    def test_book_validation_name_required(self, sample_source: Any) -> None:
         """Test that name field is required (inherited from BaseContent)."""
         with pytest.raises(ValidationError) as exc_info:
             Book.model_validate({"source": sample_source})
 
         assert "name" in str(exc_info.value)
 
-    def test_book_validation_source_required(self):
+    def test_book_validation_source_required(self) -> None:
         """Test that source field is required (inherited from BaseContent)."""
         with pytest.raises(ValidationError) as exc_info:
             Book.model_validate({"name": "Test Book"})
@@ -545,7 +561,7 @@ class TestBookIntegration:
     """Integration tests for book models working together."""
 
     @pytest.fixture
-    def complex_book_data(self):
+    def complex_book_data(self) -> Any:
         """Complex book data for integration testing."""
         return {
             "name": "Player's Handbook",
@@ -590,7 +606,7 @@ class TestBookIntegration:
             },
         }
 
-    def test_complex_book_creation(self, complex_book_data):
+    def test_complex_book_creation(self, complex_book_data: Any) -> None:
         """Test creation of complex book with all features."""
         book = Book.model_validate(complex_book_data)
 
@@ -621,13 +637,15 @@ class TestBookIntegration:
         assert book.metadata.author == ["Meta Author"]  # From metadata
         assert len(book.metadata.contents) == 3
 
-    def test_book_chapter_count_complex(self, complex_book_data):
+    def test_book_chapter_count_complex(self, complex_book_data: Any) -> None:
         """Test chapter count with complex book."""
         book = Book.model_validate(complex_book_data)
 
         assert book.get_chapter_count() == 3
 
-    def test_book_authors_text_with_metadata_precedence(self, complex_book_data):
+    def test_book_authors_text_with_metadata_precedence(
+        self, complex_book_data: Any
+    ) -> None:
         """Test that metadata authors take precedence."""
         book = Book.model_validate(complex_book_data)
 
@@ -635,7 +653,7 @@ class TestBookIntegration:
         result = book.get_authors_text()
         assert result == "Meta Author"
 
-    def test_round_trip_serialization(self, complex_book_data):
+    def test_round_trip_serialization(self, complex_book_data: Any) -> None:
         """Test that book can be serialized and deserialized."""
         # Create book from data
         original_book = Book.model_validate(complex_book_data)
@@ -661,7 +679,7 @@ class TestBookIntegration:
             assert new_ch.get_chapter_number() == orig_ch.get_chapter_number()
             assert new_ch.get_formatted_headers() == orig_ch.get_formatted_headers()
 
-    def test_book_without_metadata_auto_creation(self):
+    def test_book_without_metadata_auto_creation(self) -> None:
         """Test book with individual fields creates metadata automatically."""
         data = {
             "name": "Simple Book",

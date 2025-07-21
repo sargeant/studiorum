@@ -2,23 +2,24 @@
 
 import tempfile
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.renderers.latex.compilation_config import (
+from dnd5e.renderers.latex.compilation_config import (  # type: ignore
     CompilationConfig,
     CompilationMode,
     CompilationResult,
     LaTeXEngine,
 )
-from dnd5e.renderers.latex.compiler import LaTeXCompiler
+from dnd5e.renderers.latex.compiler import LaTeXCompiler  # type: ignore
 
 
 class TestLaTeXCompiler:
     """Tests for LaTeX compiler."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         # Create config that won't actually try to compile
         self.config = CompilationConfig(
@@ -26,27 +27,27 @@ class TestLaTeXCompiler:
         )
         self.compiler = LaTeXCompiler(self.config)
 
-    def test_compiler_initialization(self):
+    def test_compiler_initialization(self) -> None:
         """Test compiler initialization."""
         assert self.compiler.config == self.config
         assert self.compiler.error_parser is not None
         assert self.compiler.progress_tracker is not None
 
-    def test_compiler_initialization_with_default_config(self):
+    def test_compiler_initialization_with_default_config(self) -> None:
         """Test compiler initialization with default config."""
-        compiler = LaTeXCompiler()
+        compiler: Any = LaTeXCompiler()
         assert compiler.config is not None
         assert compiler.config.primary_engine == LaTeXEngine.LUALATEX
 
-    def test_compiler_initialization_validation_error(self):
+    def test_compiler_initialization_validation_error(self) -> None:
         """Test compiler initialization with invalid config."""
-        invalid_config = CompilationConfig(max_passes=0)
+        invalid_config: Any = CompilationConfig(max_passes=0)
 
         with pytest.raises(ValueError, match="Invalid configuration"):
             LaTeXCompiler(invalid_config)
 
     @patch("subprocess.run")
-    def test_check_engine_availability_success(self, mock_run):
+    def test_check_engine_availability_success(self, mock_run: Any) -> None:
         """Test successful engine availability check."""
         mock_run.return_value = Mock(returncode=0)
 
@@ -59,7 +60,7 @@ class TestLaTeXCompiler:
         assert "--version" in args
 
     @patch("subprocess.run")
-    def test_check_engine_availability_failure(self, mock_run):
+    def test_check_engine_availability_failure(self, mock_run: Any) -> None:
         """Test failed engine availability check."""
         mock_run.return_value = Mock(returncode=1)
 
@@ -67,7 +68,7 @@ class TestLaTeXCompiler:
         assert result is False
 
     @patch("subprocess.run")
-    def test_check_engine_availability_timeout(self, mock_run):
+    def test_check_engine_availability_timeout(self, mock_run: Any) -> None:
         """Test engine availability check with timeout."""
         from subprocess import TimeoutExpired
 
@@ -77,20 +78,20 @@ class TestLaTeXCompiler:
         assert result is False
 
     @patch("subprocess.run")
-    def test_check_engine_availability_file_not_found(self, mock_run):
+    def test_check_engine_availability_file_not_found(self, mock_run: Any) -> None:
         """Test engine availability check with file not found."""
         mock_run.side_effect = FileNotFoundError()
 
         result = self.compiler._check_engine_availability(LaTeXEngine.LUALATEX)
         assert result is False
 
-    def test_check_dependencies_success(self):
+    def test_check_dependencies_success(self) -> None:
         """Test successful dependency check."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".tex", delete=False) as f:
             f.write(
                 "\\documentclass{dndbook}\n\\usepackage{dnd}\n\\usepackage{fontspec}\n"
             )
-            tex_file = Path(f.name)
+            tex_file: Any = Path(f.name)
 
         try:
             # Override config to check dependencies
@@ -102,11 +103,11 @@ class TestLaTeXCompiler:
         finally:
             tex_file.unlink()
 
-    def test_check_dependencies_missing_packages(self):
+    def test_check_dependencies_missing_packages(self) -> None:
         """Test dependency check with missing packages."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".tex", delete=False) as f:
             f.write("\\documentclass{article}\n")
-            tex_file = Path(f.name)
+            tex_file: Any = Path(f.name)
 
         try:
             # Override config to check dependencies
@@ -120,43 +121,43 @@ class TestLaTeXCompiler:
         finally:
             tex_file.unlink()
 
-    def test_check_dependencies_file_error(self):
+    def test_check_dependencies_file_error(self) -> None:
         """Test dependency check with file read error."""
-        nonexistent_file = Path("/nonexistent/file.tex")
+        nonexistent_file: Any = Path("/nonexistent/file.tex")
 
         missing = self.compiler._check_dependencies(nonexistent_file)
         assert len(missing) == 1
         assert "Error reading LaTeX file" in missing[0]
 
-    def test_needs_additional_pass_rerun_warning(self):
+    def test_needs_additional_pass_rerun_warning(self) -> None:
         """Test detection of need for additional pass from rerun warning."""
         stdout = "LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right."
 
         result = self.compiler._needs_additional_pass(stdout, Path("/tmp"))
         assert result is True
 
-    def test_needs_additional_pass_missing_toc(self):
+    def test_needs_additional_pass_missing_toc(self) -> None:
         """Test detection of need for additional pass from missing TOC."""
         stdout = "No file document.toc."
 
         result = self.compiler._needs_additional_pass(stdout, Path("/tmp"))
         assert result is True
 
-    def test_needs_additional_pass_undefined_label(self):
+    def test_needs_additional_pass_undefined_label(self) -> None:
         """Test detection of need for additional pass from undefined label."""
         stdout = "LaTeX Warning: Label `sec:intro' undefined on input line 10."
 
         result = self.compiler._needs_additional_pass(stdout, Path("/tmp"))
         assert result is True
 
-    def test_needs_additional_pass_false(self):
+    def test_needs_additional_pass_false(self) -> None:
         """Test detection when no additional pass is needed."""
         stdout = "Output written on document.pdf (1 page, 12345 bytes)."
 
         result = self.compiler._needs_additional_pass(stdout, Path("/tmp"))
         assert result is False
 
-    def test_get_pass_description(self):
+    def test_get_pass_description(self) -> None:
         """Test pass description generation."""
         assert self.compiler._get_pass_description(1, 4) == "Initial compilation"
         assert (
@@ -168,11 +169,11 @@ class TestLaTeXCompiler:
         assert self.compiler._get_pass_description(5, 5) == "Additional pass 5"
 
     @patch("subprocess.run")
-    def test_get_available_engines(self, mock_run):
+    def test_get_available_engines(self, mock_run: Any) -> None:
         """Test getting available engines."""
 
         # Mock successful checks for LuaLaTeX and XeLaTeX, failed for PDFLaTeX
-        def mock_subprocess_run(cmd, **kwargs):
+        def mock_subprocess_run(cmd: Any, **kwargs: Any) -> Any:
             if cmd[0] == "lualatex":
                 return Mock(returncode=0)
             elif cmd[0] == "xelatex":
@@ -190,11 +191,11 @@ class TestLaTeXCompiler:
         assert LaTeXEngine.PDFLATEX not in available
 
     @patch("subprocess.run")
-    def test_validate_environment(self, mock_run):
+    def test_validate_environment(self, mock_run: Any) -> None:
         """Test environment validation."""
 
         # Mock LuaLaTeX available, others not
-        def mock_subprocess_run(cmd, **kwargs):
+        def mock_subprocess_run(cmd: Any, **kwargs: Any) -> Any:
             if cmd[0] == "lualatex":
                 return Mock(returncode=0)
             elif cmd[0] == "kpsewhich":
@@ -210,7 +211,7 @@ class TestLaTeXCompiler:
         assert results["engine_pdflatex"] is False
         assert results["dnd_template"] is True
 
-    def test_compile_document_simple(self):
+    def test_compile_document_simple(self) -> None:
         """Test simple document compilation (mocked)."""
         latex_content = """\\documentclass{article}
 \\begin{document}
@@ -218,7 +219,7 @@ Hello World
 \\end{document}"""
 
         with patch.object(self.compiler, "_compile_in_directory") as mock_compile:
-            mock_result = CompilationResult(
+            mock_result: Any = CompilationResult(
                 success=True,
                 engine_used=LaTeXEngine.LUALATEX,
                 passes_completed=1,
@@ -237,13 +238,13 @@ Hello World
             assert args[1] == "test"
             assert isinstance(args[2], Path)  # working directory
 
-    def test_compile_document_with_working_dir(self):
+    def test_compile_document_with_working_dir(self) -> None:
         """Test document compilation with specified working directory."""
         latex_content = "\\documentclass{article}\\begin{document}Test\\end{document}"
-        working_dir = Path("/tmp/test")
+        working_dir: Any = Path("/tmp/test")
 
         with patch.object(self.compiler, "_compile_in_directory") as mock_compile:
-            mock_result = CompilationResult(
+            mock_result: Any = CompilationResult(
                 success=True,
                 engine_used=LaTeXEngine.LUALATEX,
                 passes_completed=1,
@@ -258,14 +259,14 @@ Hello World
             assert args[2] == working_dir
 
     @patch("subprocess.run")
-    def test_run_compilation_pass_success(self, mock_run):
+    def test_run_compilation_pass_success(self, mock_run: Any) -> None:
         """Test successful compilation pass."""
         mock_run.return_value = Mock(
             returncode=0, stdout="Output written on document.pdf", stderr=""
         )
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            tex_file = Path(temp_dir) / "test.tex"
+            tex_file: Any = Path(temp_dir) / "test.tex"
             tex_file.write_text(
                 "\\documentclass{article}\\begin{document}Test\\end{document}"
             )
@@ -281,14 +282,14 @@ Hello World
             assert comp_pass.duration is not None
 
     @patch("subprocess.run")
-    def test_run_compilation_pass_failure(self, mock_run):
+    def test_run_compilation_pass_failure(self, mock_run: Any) -> None:
         """Test failed compilation pass."""
         mock_run.return_value = Mock(
             returncode=1, stdout="", stderr="! LaTeX Error: Something went wrong"
         )
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            tex_file = Path(temp_dir) / "test.tex"
+            tex_file: Any = Path(temp_dir) / "test.tex"
             tex_file.write_text(
                 "\\documentclass{article}\\begin{document}Test\\end{document}"
             )
@@ -302,14 +303,14 @@ Hello World
             assert "LaTeX Error" in comp_pass.stderr
 
     @patch("subprocess.run")
-    def test_run_compilation_pass_timeout(self, mock_run):
+    def test_run_compilation_pass_timeout(self, mock_run: Any) -> None:
         """Test compilation pass timeout."""
         from subprocess import TimeoutExpired
 
         mock_run.side_effect = TimeoutExpired("lualatex", 10)
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            tex_file = Path(temp_dir) / "test.tex"
+            tex_file: Any = Path(temp_dir) / "test.tex"
             tex_file.write_text(
                 "\\documentclass{article}\\begin{document}Test\\end{document}"
             )
@@ -322,11 +323,13 @@ Hello World
             assert comp_pass.return_code == -1
             assert "timed out" in comp_pass.stderr
 
-    def test_analyze_compilation_errors(self):
+    def test_analyze_compilation_errors(self) -> None:
         """Test compilation error analysis."""
-        from dnd5e.renderers.latex.compilation_config import CompilationPass
+        from dnd5e.renderers.latex.compilation_config import (
+            CompilationPass,  # type: ignore
+        )
 
-        comp_pass = CompilationPass(
+        comp_pass: Any = CompilationPass(
             pass_number=1,
             engine=LaTeXEngine.LUALATEX,
             command=["lualatex", "test.tex"],
@@ -344,11 +347,13 @@ Hello World
         error_messages = [error.message for error in errors]
         assert any("File not found" in msg for msg in error_messages)
 
-    def test_analyze_compilation_errors_timeout(self):
+    def test_analyze_compilation_errors_timeout(self) -> None:
         """Test compilation error analysis for timeout."""
-        from dnd5e.renderers.latex.compilation_config import CompilationPass
+        from dnd5e.renderers.latex.compilation_config import (
+            CompilationPass,  # type: ignore
+        )
 
-        comp_pass = CompilationPass(
+        comp_pass: Any = CompilationPass(
             pass_number=1,
             engine=LaTeXEngine.LUALATEX,
             command=["lualatex", "test.tex"],
@@ -364,7 +369,7 @@ Hello World
 
         # Should detect timeout
         error_categories = [error.category for error in errors]
-        from dnd5e.renderers.latex.error_parser import ErrorCategory
+        from dnd5e.renderers.latex.error_parser import ErrorCategory  # type: ignore
 
         assert ErrorCategory.TIMEOUT_ERROR in error_categories
 
@@ -372,7 +377,7 @@ Hello World
 class TestLaTeXCompilerIntegration:
     """Integration tests for LaTeX compiler."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.config = CompilationConfig(
             show_progress=False,
@@ -382,7 +387,7 @@ class TestLaTeXCompilerIntegration:
         )
         self.compiler = LaTeXCompiler(self.config)
 
-    def test_compile_simple_document_no_latex(self):
+    def test_compile_simple_document_no_latex(self) -> None:
         """Test compiling when no LaTeX engines are available."""
         # Mock no engines available
         with patch.object(
@@ -396,7 +401,7 @@ class TestLaTeXCompilerIntegration:
             assert result.success is False
             assert "No LaTeX engines available" in result.error_message
 
-    def test_compile_with_dependency_error(self):
+    def test_compile_with_dependency_error(self) -> None:
         """Test compilation with dependency check failure."""
         # Enable dependency checking
         self.compiler.config.check_dependencies = True
@@ -415,11 +420,11 @@ class TestLaTeXCompilerIntegration:
             assert "Missing dependencies" in result.error_message
 
     @patch("subprocess.run")
-    def test_compile_with_engine_fallback(self, mock_run):
+    def test_compile_with_engine_fallback(self, mock_run: Any) -> None:
         """Test compilation with engine fallback."""
 
         # Mock first engine (LuaLaTeX) not available, second (XeLaTeX) available
-        def mock_availability_check(engine):
+        def mock_availability_check(engine: Any) -> bool:
             if engine == LaTeXEngine.LUALATEX:
                 return False
             elif engine == LaTeXEngine.XELATEX:
@@ -445,11 +450,11 @@ class TestLaTeXCompilerIntegration:
             assert result.success is True
             assert result.engine_used == LaTeXEngine.XELATEX
 
-    def test_compiler_with_different_modes(self):
+    def test_compiler_with_different_modes(self) -> None:
         """Test compiler behavior with different compilation modes."""
         # Test draft mode
         draft_config = CompilationConfig.for_mode(CompilationMode.DRAFT)
-        draft_compiler = LaTeXCompiler(draft_config)
+        draft_compiler: Any = LaTeXCompiler(draft_config)
 
         assert draft_compiler.config.max_passes == 1
         assert draft_compiler.config.show_progress is False
@@ -457,7 +462,7 @@ class TestLaTeXCompilerIntegration:
 
         # Test final mode
         final_config = CompilationConfig.for_mode(CompilationMode.FINAL)
-        final_compiler = LaTeXCompiler(final_config)
+        final_compiler: Any = LaTeXCompiler(final_config)
 
         assert final_compiler.config.max_passes == 5
         assert final_compiler.config.check_dependencies is True

@@ -1,17 +1,19 @@
 """Tests for Omnidexer system."""
 
+from typing import Any
+
 import pytest
 
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.loaders.omnidexer import IndexEntry, Omnidexer
-from dnd5e.core.loaders.source_manager import FileSystemSourceManager
-from dnd5e.core.models.content import ContentType
+from dnd5e.core.loaders.json_loader import JsonDataLoader  # type: ignore
+from dnd5e.core.loaders.omnidexer import IndexEntry, Omnidexer  # type: ignore
+from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
+from dnd5e.core.models.content import ContentType  # type: ignore
 
 
 class TestIndexEntry:
     """Tests for IndexEntry class."""
 
-    def test_index_entry_creation(self, sample_spell):
+    def test_index_entry_creation(self, sample_spell: Any) -> None:
         """Test IndexEntry creation."""
         entry = IndexEntry.create(sample_spell, ContentType.SPELL)
 
@@ -25,15 +27,15 @@ class TestIndexEntry:
 class TestOmnidexer:
     """Tests for Omnidexer class."""
 
-    def test_omnidexer_creation(self):
+    def test_omnidexer_creation(self) -> None:
         """Test basic omnidexer creation."""
-        omnidexer = Omnidexer()
+        omnidexer: Any = Omnidexer()
         assert omnidexer is not None
         assert len(omnidexer._loaders) > 0  # Should have default loaders
 
-    def test_loader_registration(self):
+    def test_loader_registration(self) -> None:
         """Test registering custom loaders."""
-        omnidexer = Omnidexer()
+        omnidexer: Any = Omnidexer()
         loader = JsonDataLoader.create_for_type(ContentType.SPELL)
         omnidexer.register_loader(ContentType.SPELL, loader)
 
@@ -41,19 +43,19 @@ class TestOmnidexer:
         assert omnidexer._loaders[ContentType.SPELL] == loader
 
     @pytest.mark.asyncio
-    async def test_empty_data_loading(self, temp_data_dir):
+    async def test_empty_data_loading(self, temp_data_dir: Any) -> None:
         """Test loading with no data files."""
-        source_manager = FileSystemSourceManager(temp_data_dir.parent)
+        source_manager: Any = FileSystemSourceManager(temp_data_dir.parent)
         source_manager.path_config.data_path = temp_data_dir
 
-        omnidexer = Omnidexer(source_manager)
+        omnidexer: Any = Omnidexer(source_manager)
         stats = await omnidexer.load_all_data()
 
         # Should handle empty directories gracefully
         assert isinstance(stats, dict)
 
     @pytest.mark.asyncio
-    async def test_data_loading_and_indexing(self, loaded_omnidexer):
+    async def test_data_loading_and_indexing(self, loaded_omnidexer: Any) -> None:
         """Test data loading and indexing."""
         omnidexer = loaded_omnidexer
         stats = omnidexer.get_statistics()
@@ -63,7 +65,7 @@ class TestOmnidexer:
         assert ContentType.CREATURE.value in stats["by_type"]
 
     @pytest.mark.asyncio
-    async def test_find_by_type_and_name(self, loaded_omnidexer):
+    async def test_find_by_type_and_name(self, loaded_omnidexer: Any) -> None:
         """Test finding content by type and name."""
         omnidexer = loaded_omnidexer
 
@@ -82,7 +84,7 @@ class TestOmnidexer:
         assert not_found is None
 
     @pytest.mark.asyncio
-    async def test_find_without_source(self, loaded_omnidexer):
+    async def test_find_without_source(self, loaded_omnidexer: Any) -> None:
         """Test finding content without specifying source."""
         omnidexer = loaded_omnidexer
         spell = omnidexer.find(ContentType.SPELL, "Fireball")
@@ -90,7 +92,7 @@ class TestOmnidexer:
         assert spell.name == "Fireball"
 
     @pytest.mark.asyncio
-    async def test_find_all_by_name(self, loaded_omnidexer):
+    async def test_find_all_by_name(self, loaded_omnidexer: Any) -> None:
         """Test finding all content with same name."""
         omnidexer = loaded_omnidexer
         spells = omnidexer.find_all(ContentType.SPELL, "Fireball")
@@ -98,7 +100,7 @@ class TestOmnidexer:
         assert all(spell.name == "Fireball" for spell in spells)
 
     @pytest.mark.asyncio
-    async def test_get_all_by_type(self, loaded_omnidexer):
+    async def test_get_all_by_type(self, loaded_omnidexer: Any) -> None:
         """Test getting all content of a specific type."""
         omnidexer = loaded_omnidexer
         all_spells = omnidexer.get_all_by_type(ContentType.SPELL)
@@ -114,7 +116,7 @@ class TestOmnidexer:
         )  # Creature-specific check
 
     @pytest.mark.asyncio
-    async def test_get_all_by_source(self, loaded_omnidexer):
+    async def test_get_all_by_source(self, loaded_omnidexer: Any) -> None:
         """Test getting all content from a specific source."""
         omnidexer = loaded_omnidexer
         phb_content = omnidexer.get_all_by_source("PHB")
@@ -126,7 +128,7 @@ class TestOmnidexer:
         assert all(content.source.abbreviation == "MM" for content in mm_content)
 
     @pytest.mark.asyncio
-    async def test_search_functionality(self, loaded_omnidexer):
+    async def test_search_functionality(self, loaded_omnidexer: Any) -> None:
         """Test search functionality."""
         omnidexer = loaded_omnidexer
 
@@ -141,7 +143,7 @@ class TestOmnidexer:
         assert all(hasattr(result, "level") for result in spell_results)
 
     @pytest.mark.asyncio
-    async def test_search_by_name_prefix(self, loaded_omnidexer):
+    async def test_search_by_name_prefix(self, loaded_omnidexer: Any) -> None:
         """Test prefix-based search."""
         omnidexer = loaded_omnidexer
         results = omnidexer.search_by_name_prefix("Fire")
@@ -149,7 +151,7 @@ class TestOmnidexer:
         assert any(result.name.startswith("Fire") for result in results)
 
     @pytest.mark.asyncio
-    async def test_is_loaded_check(self, loaded_omnidexer):
+    async def test_is_loaded_check(self, loaded_omnidexer: Any) -> None:
         """Test checking if content types are loaded."""
         omnidexer = loaded_omnidexer
         assert omnidexer.is_loaded(ContentType.SPELL)
@@ -159,7 +161,7 @@ class TestOmnidexer:
         assert not omnidexer.is_loaded(ContentType.SPELL_FLUFF)
 
     @pytest.mark.asyncio
-    async def test_statistics(self, loaded_omnidexer):
+    async def test_statistics(self, loaded_omnidexer: Any) -> None:
         """Test statistics generation."""
         omnidexer = loaded_omnidexer
         stats = omnidexer.get_statistics()

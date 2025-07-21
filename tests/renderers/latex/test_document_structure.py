@@ -1,11 +1,12 @@
 """Tests for LaTeX document structure system."""
 
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent, Source
-from dnd5e.core.models.document_metadata import (
+from dnd5e.core.models.content import BaseContent, Source  # type: ignore
+from dnd5e.core.models.document_metadata import (  # type: ignore
     ContentSection,
     DocumentAuthor,
     DocumentMetadata,
@@ -13,8 +14,10 @@ from dnd5e.core.models.document_metadata import (
     DocumentType,
     SectionLevel,
 )
-from dnd5e.renderers.base.context import RenderContext
-from dnd5e.renderers.latex.document_structure import DocumentStructureBuilder
+from dnd5e.renderers.base.context import RenderContext  # type: ignore
+from dnd5e.renderers.latex.document_structure import (
+    DocumentStructureBuilder,  # type: ignore
+)
 
 
 class MockContent(BaseContent):
@@ -28,9 +31,9 @@ class MockContent(BaseContent):
 class TestDocumentMetadata:
     """Tests for DocumentMetadata model."""
 
-    def test_default_metadata(self):
+    def test_default_metadata(self) -> None:
         """Test default metadata creation."""
-        metadata = DocumentMetadata(title="Test Document")
+        metadata: Any = DocumentMetadata(title="Test Document")
 
         assert metadata.title == "Test Document"
         assert metadata.subtitle is None
@@ -39,21 +42,21 @@ class TestDocumentMetadata:
         assert metadata.include_index is False
         assert metadata.use_parts is False
 
-    def test_metadata_with_authors(self):
+    def test_metadata_with_authors(self) -> None:
         """Test metadata with author information."""
         authors = [
             DocumentAuthor(name="John Doe", email="john@example.com"),
             DocumentAuthor(name="Jane Smith"),
         ]
 
-        metadata = DocumentMetadata(
+        metadata: Any = DocumentMetadata(
             title="Test Document", authors=authors, subtitle="A Test"
         )
 
         assert len(metadata.authors) == 2
         assert metadata.get_author_list() == "John Doe and Jane Smith"
 
-    def test_metadata_multiple_authors(self):
+    def test_metadata_multiple_authors(self) -> None:
         """Test metadata with multiple authors."""
         authors = [
             DocumentAuthor(name="Alice"),
@@ -61,40 +64,44 @@ class TestDocumentMetadata:
             DocumentAuthor(name="Charlie"),
         ]
 
-        metadata = DocumentMetadata(title="Test", authors=authors)
+        metadata: Any = DocumentMetadata(title="Test", authors=authors)
         assert metadata.get_author_list() == "Alice, Bob, and Charlie"
 
-    def test_document_class_for_type(self):
+    def test_document_class_for_type(self) -> None:
         """Test document class selection based on type."""
-        book_metadata = DocumentMetadata(title="Book", document_type=DocumentType.BOOK)
-        article_metadata = DocumentMetadata(
+        book_metadata: Any = DocumentMetadata(
+            title="Book", document_type=DocumentType.BOOK
+        )
+        article_metadata: Any = DocumentMetadata(
             title="Article", document_type=DocumentType.ARTICLE
         )
 
         assert book_metadata.get_document_class_for_type() == "dndbook"
         assert article_metadata.get_document_class_for_type() == "dndarticle"
 
-    def test_frontmatter_usage(self):
+    def test_frontmatter_usage(self) -> None:
         """Test frontmatter usage determination."""
-        book_metadata = DocumentMetadata(
+        book_metadata: Any = DocumentMetadata(
             title="Book",
             document_type=DocumentType.BOOK,
             structure=DocumentStructure.FRONTMATTER_MAINMATTER_BACKMATTER,
         )
-        article_metadata = DocumentMetadata(
+        article_metadata: Any = DocumentMetadata(
             title="Article", document_type=DocumentType.ARTICLE
         )
 
         assert book_metadata.should_use_frontmatter() is True
         assert article_metadata.should_use_frontmatter() is False
 
-    def test_max_section_level(self):
+    def test_max_section_level(self) -> None:
         """Test maximum section level determination."""
-        book_metadata = DocumentMetadata(title="Book", document_type=DocumentType.BOOK)
-        article_metadata = DocumentMetadata(
+        book_metadata: Any = DocumentMetadata(
+            title="Book", document_type=DocumentType.BOOK
+        )
+        article_metadata: Any = DocumentMetadata(
             title="Article", document_type=DocumentType.ARTICLE
         )
-        part_metadata = DocumentMetadata(title="Book", use_parts=True)
+        part_metadata: Any = DocumentMetadata(title="Book", use_parts=True)
 
         assert book_metadata.get_max_section_level() == SectionLevel.CHAPTER
         assert article_metadata.get_max_section_level() == SectionLevel.SECTION
@@ -104,9 +111,9 @@ class TestDocumentMetadata:
 class TestContentSection:
     """Tests for ContentSection model."""
 
-    def test_basic_section(self):
+    def test_basic_section(self) -> None:
         """Test basic section creation."""
-        section = ContentSection(
+        section: Any = ContentSection(
             title="Test Chapter",
             level=SectionLevel.CHAPTER,
             numbered=True,
@@ -119,31 +126,35 @@ class TestContentSection:
         assert section.label == "ch:test"
         assert section.get_latex_command() == "chapter"
 
-    def test_unnumbered_section(self):
+    def test_unnumbered_section(self) -> None:
         """Test unnumbered section."""
-        section = ContentSection(
+        section: Any = ContentSection(
             title="Appendix", level=SectionLevel.SECTION, numbered=False
         )
 
         assert section.get_latex_command() == "section*"
 
-    def test_section_depth(self):
+    def test_section_depth(self) -> None:
         """Test section depth calculation."""
-        part = ContentSection(title="Part", level=SectionLevel.PART)
-        chapter = ContentSection(title="Chapter", level=SectionLevel.CHAPTER)
-        section = ContentSection(title="Section", level=SectionLevel.SECTION)
-        subsection = ContentSection(title="Subsection", level=SectionLevel.SUBSECTION)
+        part: Any = ContentSection(title="Part", level=SectionLevel.PART)
+        chapter: Any = ContentSection(title="Chapter", level=SectionLevel.CHAPTER)
+        section: Any = ContentSection(title="Section", level=SectionLevel.SECTION)
+        subsection: Any = ContentSection(
+            title="Subsection", level=SectionLevel.SUBSECTION
+        )
 
         assert part.get_depth() == -1
         assert chapter.get_depth() == 0
         assert section.get_depth() == 1
         assert subsection.get_depth() == 2
 
-    def test_add_subsection(self):
+    def test_add_subsection(self) -> None:
         """Test adding subsections with proper hierarchy."""
-        chapter = ContentSection(title="Chapter", level=SectionLevel.CHAPTER)
-        section = ContentSection(title="Section", level=SectionLevel.SECTION)
-        subsection = ContentSection(title="Subsection", level=SectionLevel.SUBSECTION)
+        chapter: Any = ContentSection(title="Chapter", level=SectionLevel.CHAPTER)
+        section: Any = ContentSection(title="Section", level=SectionLevel.SECTION)
+        subsection: Any = ContentSection(
+            title="Subsection", level=SectionLevel.SUBSECTION
+        )
 
         chapter.add_subsection(section)
         section.add_subsection(subsection)
@@ -153,24 +164,24 @@ class TestContentSection:
         assert chapter.subsections[0] == section
         assert section.subsections[0] == subsection
 
-    def test_invalid_subsection_hierarchy(self):
+    def test_invalid_subsection_hierarchy(self) -> None:
         """Test that invalid subsection hierarchy raises error."""
-        section = ContentSection(title="Section", level=SectionLevel.SECTION)
-        chapter = ContentSection(title="Chapter", level=SectionLevel.CHAPTER)
+        section: Any = ContentSection(title="Section", level=SectionLevel.SECTION)
+        chapter: Any = ContentSection(title="Chapter", level=SectionLevel.CHAPTER)
 
         with pytest.raises(ValueError, match="must be deeper than parent level"):
             section.add_subsection(chapter)
 
-    def test_get_all_content_items(self):
+    def test_get_all_content_items(self) -> None:
         """Test getting all content items including subsections."""
-        item1 = MockContent("Item 1")
-        item2 = MockContent("Item 2")
-        item3 = MockContent("Item 3")
+        item1: Any = MockContent("Item 1")
+        item2: Any = MockContent("Item 2")
+        item3: Any = MockContent("Item 3")
 
-        chapter = ContentSection(
+        chapter: Any = ContentSection(
             title="Chapter", level=SectionLevel.CHAPTER, content_items=[item1]
         )
-        section = ContentSection(
+        section: Any = ContentSection(
             title="Section", level=SectionLevel.SECTION, content_items=[item2, item3]
         )
 
@@ -186,7 +197,7 @@ class TestContentSection:
 class TestDocumentStructureBuilder:
     """Tests for DocumentStructureBuilder class."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.metadata = DocumentMetadata(
             title="Test Adventure",
@@ -196,12 +207,12 @@ class TestDocumentStructureBuilder:
         self.builder = DocumentStructureBuilder(self.metadata)
         self.context = RenderContext()
 
-    def test_builder_initialization(self):
+    def test_builder_initialization(self) -> None:
         """Test builder initialization."""
         assert self.builder.metadata == self.metadata
         assert self.builder._section_counter == 0
 
-    def test_organize_content_by_type(self):
+    def test_organize_content_by_type(self) -> None:
         """Test content organization by type."""
         content_items = [
             MockContent("Spell 1", "spell"),
@@ -217,17 +228,17 @@ class TestDocumentStructureBuilder:
             "dnd5e.core.models.content.ContentType.from_content"
         ) as mock_from_content:
 
-            def side_effect(content):
+            def side_effect(content: Any) -> Any:
                 if content._content_type == "spell":
-                    from dnd5e.core.models.content import ContentType
+                    from dnd5e.core.models.content import ContentType  # type: ignore
 
                     return ContentType.SPELL
                 elif content._content_type == "creature":
-                    from dnd5e.core.models.content import ContentType
+                    from dnd5e.core.models.content import ContentType  # type: ignore
 
                     return ContentType.CREATURE
                 elif content._content_type == "item":
-                    from dnd5e.core.models.content import ContentType
+                    from dnd5e.core.models.content import ContentType  # type: ignore
 
                     return ContentType.ITEM
                 else:
@@ -244,20 +255,20 @@ class TestDocumentStructureBuilder:
             assert len(organized["creature"]) == 1
             assert len(organized["item"]) == 1
 
-    def test_build_adventure_structure(self):
+    def test_build_adventure_structure(self) -> None:
         """Test building adventure document structure."""
         # Create mock adventure content with proper attributes
-        chapter1 = Mock()
+        chapter1: Any = Mock()
         chapter1.name = "Chapter 1"
         chapter1.headers = ["Introduction", "Background"]
         chapter1.entries = []
 
-        chapter2 = Mock()
+        chapter2: Any = Mock()
         chapter2.name = "Chapter 2"
         chapter2.headers = ["The Quest Begins"]
         chapter2.entries = []
 
-        adventure = Mock()
+        adventure: Any = Mock()
         adventure.name = "Test Adventure"
         adventure.contents = [chapter1, chapter2]
 
@@ -271,7 +282,7 @@ class TestDocumentStructureBuilder:
         assert sections[0].title == "Chapter 1"
         assert sections[0].level == SectionLevel.CHAPTER
 
-    def test_build_supplement_structure(self):
+    def test_build_supplement_structure(self) -> None:
         """Test building supplement document structure."""
         content_items = [
             MockContent("Spell 1", "spell"),
@@ -286,17 +297,17 @@ class TestDocumentStructureBuilder:
             "dnd5e.core.models.content.ContentType.from_content"
         ) as mock_from_content:
 
-            def side_effect(content):
+            def side_effect(content: Any) -> Any:
                 if content._content_type == "spell":
-                    from dnd5e.core.models.content import ContentType
+                    from dnd5e.core.models.content import ContentType  # type: ignore
 
                     return ContentType.SPELL
                 elif content._content_type == "creature":
-                    from dnd5e.core.models.content import ContentType
+                    from dnd5e.core.models.content import ContentType  # type: ignore
 
                     return ContentType.CREATURE
                 elif content._content_type == "item":
-                    from dnd5e.core.models.content import ContentType
+                    from dnd5e.core.models.content import ContentType  # type: ignore
 
                     return ContentType.ITEM
                 else:
@@ -318,7 +329,7 @@ class TestDocumentStructureBuilder:
             assert "Creatures and NPCs" in chapter_titles
             assert "Magic Items and Equipment" in chapter_titles
 
-    def test_build_article_structure(self):
+    def test_build_article_structure(self) -> None:
         """Test building article document structure."""
         # Use pre-organized content to avoid ContentType resolution
         organized_content = {"unknown": [MockContent("Content 1")]}
@@ -330,9 +341,9 @@ class TestDocumentStructureBuilder:
         assert len(sections) >= 1
         assert sections[0].level == SectionLevel.SECTION
 
-    def test_generate_latex_structure(self):
+    def test_generate_latex_structure(self) -> None:
         """Test LaTeX structure command generation."""
-        section = ContentSection(
+        section: Any = ContentSection(
             title="Test Chapter",
             level=SectionLevel.CHAPTER,
             numbered=True,
@@ -353,7 +364,7 @@ class TestDocumentStructureBuilder:
         assert "\\clearpage" in chapter_commands  # page break before
         assert "\\chapter{Test Chapter}\\label{ch:test}" in chapter_commands
 
-    def test_create_document_context(self):
+    def test_create_document_context(self) -> None:
         """Test document context creation."""
         sections = [
             ContentSection(title="Chapter 1", level=SectionLevel.CHAPTER),
@@ -368,7 +379,7 @@ class TestDocumentStructureBuilder:
         assert context["use_frontmatter"] is True
         assert context["total_sections"] == 2
 
-    def test_format_content_type_title(self):
+    def test_format_content_type_title(self) -> None:
         """Test content type title formatting."""
         assert self.builder._format_content_type_title("spell") == "Spells"
         assert (
@@ -382,7 +393,7 @@ class TestDocumentStructureBuilder:
             self.builder._format_content_type_title("unknown") == "Additional Content"
         )
 
-    def test_generate_label(self):
+    def test_generate_label(self) -> None:
         """Test LaTeX label generation."""
         label1 = self.builder._generate_label("Test Chapter")
         label2 = self.builder._generate_label("Another Section")
@@ -391,7 +402,7 @@ class TestDocumentStructureBuilder:
         assert "another-section" in label2
         assert label1 != label2  # Should be unique due to counter
 
-    def test_build_document_structure_integration(self):
+    def test_build_document_structure_integration(self) -> None:
         """Test complete document structure building."""
         content_items = [
             MockContent("Content 1", "unknown"),
@@ -414,9 +425,9 @@ class TestDocumentStructureBuilder:
 class TestDocumentStructureIntegration:
     """Integration tests for document structure system."""
 
-    def test_book_document_structure(self):
+    def test_book_document_structure(self) -> None:
         """Test complete book document structure."""
-        metadata = DocumentMetadata(
+        metadata: Any = DocumentMetadata(
             title="Player's Handbook",
             subtitle="Core Rules",
             document_type=DocumentType.BOOK,
@@ -425,14 +436,14 @@ class TestDocumentStructureIntegration:
             include_index=True,
         )
 
-        builder = DocumentStructureBuilder(metadata)
+        builder: Any = DocumentStructureBuilder(metadata)
         content_items = [
             MockContent("Fireball", "unknown"),
             MockContent("Dragon", "unknown"),
             MockContent("Magic Sword", "unknown"),
         ]
 
-        context = RenderContext()
+        context: Any = RenderContext()
 
         # Use a simple patch to bypass ContentType resolution
         with patch.object(builder, "_organize_content_by_type") as mock_organize:
@@ -452,17 +463,17 @@ class TestDocumentStructureIntegration:
             assert "\\frontmatter" in latex_commands
             assert "\\mainmatter" in latex_commands
 
-    def test_article_document_structure(self):
+    def test_article_document_structure(self) -> None:
         """Test complete article document structure."""
-        metadata = DocumentMetadata(
+        metadata: Any = DocumentMetadata(
             title="Spell Compendium",
             document_type=DocumentType.ARTICLE,
             include_toc=False,
         )
 
-        builder = DocumentStructureBuilder(metadata)
+        builder: Any = DocumentStructureBuilder(metadata)
         content_items = [MockContent("Magic Missile", "unknown")]
-        context = RenderContext()
+        context: Any = RenderContext()
 
         # Use a simple patch to bypass ContentType resolution
         with patch.object(builder, "_organize_content_by_type") as mock_organize:
@@ -480,13 +491,13 @@ class TestDocumentStructureIntegration:
             for section in sections:
                 assert section.level == SectionLevel.SECTION
 
-    def test_supplement_document_organization(self):
+    def test_supplement_document_organization(self) -> None:
         """Test supplement document with multiple content types."""
-        metadata = DocumentMetadata(
+        metadata: Any = DocumentMetadata(
             title="Homebrew Compendium", document_type=DocumentType.SUPPLEMENT
         )
 
-        builder = DocumentStructureBuilder(metadata)
+        builder: Any = DocumentStructureBuilder(metadata)
         content_items = [
             MockContent("Custom Spell", "unknown"),
             MockContent("Homebrew Race", "unknown"),
@@ -494,7 +505,7 @@ class TestDocumentStructureIntegration:
             MockContent("Magic Item", "unknown"),
         ]
 
-        context = RenderContext()
+        context: Any = RenderContext()
 
         # Use a simple patch to simulate organized content
         organized_content = {

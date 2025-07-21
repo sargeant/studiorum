@@ -7,22 +7,23 @@ inconsistent and complex data structures from 5etools.
 import json
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import pytest
 
-from dnd5e.core.loaders.fluff_loader import FluffDataLoader
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.models.items import Item
-from dnd5e.core.models.spells import Spell
+from dnd5e.core.loaders.fluff_loader import FluffDataLoader  # type: ignore
+from dnd5e.core.loaders.json_loader import JsonDataLoader  # type: ignore
+from dnd5e.core.models.content import ContentType  # type: ignore
+from dnd5e.core.models.creatures import Creature  # type: ignore
+from dnd5e.core.models.items import Item  # type: ignore
+from dnd5e.core.models.spells import Spell  # type: ignore
 
 
 class TestLiberalParsing:
     """Test liberal parsing capabilities."""
 
     @pytest.mark.asyncio
-    async def test_foundry_file_detection_and_skip(self):
+    async def test_foundry_file_detection_and_skip(self) -> None:
         """Test that Foundry VTT files are detected and skipped."""
         foundry_data = {
             "spell": [
@@ -52,7 +53,7 @@ class TestLiberalParsing:
         print("✅ Foundry VTT file detection and skip working")
 
     @pytest.mark.asyncio
-    async def test_template_file_detection_and_skip(self):
+    async def test_template_file_detection_and_skip(self) -> None:
         """Test that template files are detected and skipped."""
         template_data = {
             "monster": [
@@ -88,7 +89,7 @@ class TestLiberalParsing:
         print("✅ Template file detection and skip working")
 
     @pytest.mark.asyncio
-    async def test_copy_template_detection_and_skip(self):
+    async def test_copy_template_detection_and_skip(self) -> None:
         """Test that copy-template items are detected and skipped."""
         copy_template_data = {
             "monster": [
@@ -149,7 +150,7 @@ class TestLiberalParsing:
         print("✅ Copy-template detection and skip working")
 
     @pytest.mark.asyncio
-    async def test_fluff_file_detection_and_liberal_parsing(self):
+    async def test_fluff_file_detection_and_liberal_parsing(self) -> None:
         """Test that fluff files are detected and parsed liberally."""
         fluff_data = {
             "spellFluff": [
@@ -204,7 +205,7 @@ class TestLiberalParsing:
         print("✅ Fluff file detection and liberal parsing working")
 
     @pytest.mark.asyncio
-    async def test_missing_required_fields_default_handling(self):
+    async def test_missing_required_fields_default_handling(self) -> None:
         """Test that missing required fields are handled with defaults."""
         creature_data = {
             "monster": [
@@ -243,7 +244,7 @@ class TestLiberalParsing:
         Path(f.name).unlink()  # Clean up
         print("✅ Missing required fields default handling working")
 
-    def test_complex_spell_entry_text_extraction(self):
+    def test_complex_spell_entry_text_extraction(self) -> None:
         """Test text extraction from complex spell entry structures."""
         complex_spell_data = {
             "name": "Complex Spell",
@@ -321,7 +322,7 @@ class TestLiberalParsing:
 
         print("✅ Complex spell entry text extraction working")
 
-    def test_complex_creature_ability_text_extraction(self):
+    def test_complex_creature_ability_text_extraction(self) -> None:
         """Test text extraction from complex creature ability structures."""
         complex_ability_data = {
             "name": "Complex Ability",
@@ -351,7 +352,7 @@ class TestLiberalParsing:
             ],
         }
 
-        from dnd5e.core.models.creatures import Ability
+        from dnd5e.core.models.creatures import Ability  # type: ignore
 
         ability = Ability.model_validate(complex_ability_data)
 
@@ -367,7 +368,7 @@ class TestLiberalParsing:
 
         print("✅ Complex creature ability text extraction working")
 
-    def test_complex_item_entry_text_extraction(self):
+    def test_complex_item_entry_text_extraction(self) -> None:
         """Test text extraction from complex item entry structures."""
         complex_item_data = {
             "name": "Complex Magic Item",
@@ -418,7 +419,7 @@ class TestLiberalParsing:
 
         print("✅ Complex item entry text extraction working")
 
-    def test_creature_type_choice_format_handling(self):
+    def test_creature_type_choice_format_handling(self) -> None:
         """Test handling of creature type choice formats."""
         choice_type_data = {
             "type": {"choose": ["celestial", "fiend"]},
@@ -426,16 +427,16 @@ class TestLiberalParsing:
             "tags": None,
         }
 
-        from dnd5e.core.models.creatures import CreatureType
+        from dnd5e.core.models.creatures import CreatureType  # type: ignore
 
         creature_type = CreatureType.model_validate(choice_type_data)
 
-        type_str = str(creature_type)
+        type_str: Any = str(creature_type)
         assert "celestial or fiend" in type_str
 
         print("✅ Creature type choice format handling working")
 
-    def test_creature_alignment_nested_format_handling(self):
+    def test_creature_alignment_nested_format_handling(self) -> None:
         """Test handling of nested creature alignment formats."""
         complex_alignment = [{"alignment": ["L", "N"]}, "G", {"alignment": ["C", "E"]}]
 
@@ -469,14 +470,14 @@ class TestLiberalParsing:
 
         print("✅ Complex alignment format handling working")
 
-    def test_hp_and_ac_special_format_handling(self):
+    def test_hp_and_ac_special_format_handling(self) -> None:
         """Test handling of special HP and AC formats."""
         # Test special HP format
         special_hp_data = {
             "special": "5 + five times your level (the homunculus has a number of Hit Dice equal to your level)"
         }
 
-        from dnd5e.core.models.creatures import HitPoints
+        from dnd5e.core.models.creatures import HitPoints  # type: ignore
 
         hp = HitPoints.model_validate(special_hp_data)
         assert "5 + five times your level" in str(hp)
@@ -484,14 +485,14 @@ class TestLiberalParsing:
         # Test special AC format
         special_ac_data = {"special": "11 + the level of the spell (natural armor)"}
 
-        from dnd5e.core.models.creatures import ArmorClass
+        from dnd5e.core.models.creatures import ArmorClass  # type: ignore
 
         ac = ArmorClass.model_validate(special_ac_data)
         assert "11 + the level of the spell" in str(ac)
 
         print("✅ Special HP and AC format handling working")
 
-    def test_skill_complex_format_handling(self):
+    def test_skill_complex_format_handling(self) -> None:
         """Test handling of complex skill bonus formats."""
         complex_skills = {
             "perception": "+5",
@@ -525,7 +526,7 @@ class TestLiberalParsing:
         print("✅ Complex skill format handling working")
 
     @pytest.mark.asyncio
-    async def test_liberal_parsing_stress_test(self):
+    async def test_liberal_parsing_stress_test(self) -> None:
         """Stress test liberal parsing with highly complex nested structures."""
         extremely_complex_data = {
             "spell": [

@@ -1,10 +1,11 @@
 """Tests for LaTeX error parsing."""
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 
-from dnd5e.renderers.latex.error_parser import (
+from dnd5e.renderers.latex.error_parser import (  # type: ignore
     ErrorCategory,
     ErrorSeverity,
     LaTeXError,
@@ -15,7 +16,7 @@ from dnd5e.renderers.latex.error_parser import (
 class TestErrorSeverity:
     """Tests for error severity enum."""
 
-    def test_severity_values(self):
+    def test_severity_values(self) -> None:
         """Test severity enum values."""
         assert ErrorSeverity.INFO.value == "info"
         assert ErrorSeverity.WARNING.value == "warning"
@@ -26,7 +27,7 @@ class TestErrorSeverity:
 class TestErrorCategory:
     """Tests for error category enum."""
 
-    def test_category_values(self):
+    def test_category_values(self) -> None:
         """Test category enum values."""
         assert ErrorCategory.MISSING_PACKAGE.value == "missing_package"
         assert ErrorCategory.MISSING_FILE.value == "missing_file"
@@ -41,9 +42,9 @@ class TestErrorCategory:
 class TestLaTeXError:
     """Tests for LaTeX error representation."""
 
-    def test_basic_error(self):
+    def test_basic_error(self) -> None:
         """Test basic error creation."""
-        error = LaTeXError(
+        error: Any = LaTeXError(
             severity=ErrorSeverity.ERROR,
             category=ErrorCategory.SYNTAX_ERROR,
             message="Undefined control sequence",
@@ -57,9 +58,9 @@ class TestLaTeXError:
         assert error.context is None
         assert error.suggestion is None
 
-    def test_error_with_location(self):
+    def test_error_with_location(self) -> None:
         """Test error with file and line information."""
-        error = LaTeXError(
+        error: Any = LaTeXError(
             severity=ErrorSeverity.ERROR,
             category=ErrorCategory.SYNTAX_ERROR,
             message="Missing brace",
@@ -70,9 +71,9 @@ class TestLaTeXError:
         assert error.file_path == "document.tex"
         assert error.line_number == 42
 
-    def test_error_with_context_and_suggestion(self):
+    def test_error_with_context_and_suggestion(self) -> None:
         """Test error with context and suggestion."""
-        error = LaTeXError(
+        error: Any = LaTeXError(
             severity=ErrorSeverity.ERROR,
             category=ErrorCategory.MISSING_PACKAGE,
             message="Package not found",
@@ -83,20 +84,20 @@ class TestLaTeXError:
         assert error.context == "\\usepackage{nonexistent}"
         assert error.suggestion == "Install the package or check the name"
 
-    def test_str_representation_basic(self):
+    def test_str_representation_basic(self) -> None:
         """Test string representation of basic error."""
-        error = LaTeXError(
+        error: Any = LaTeXError(
             severity=ErrorSeverity.ERROR,
             category=ErrorCategory.SYNTAX_ERROR,
             message="Undefined control sequence",
         )
 
-        str_repr = str(error)
+        str_repr: Any = str(error)
         assert "ERROR: Undefined control sequence" in str_repr
 
-    def test_str_representation_with_location(self):
+    def test_str_representation_with_location(self) -> None:
         """Test string representation with location."""
-        error = LaTeXError(
+        error: Any = LaTeXError(
             severity=ErrorSeverity.ERROR,
             category=ErrorCategory.SYNTAX_ERROR,
             message="Missing brace",
@@ -104,26 +105,26 @@ class TestLaTeXError:
             line_number=42,
         )
 
-        str_repr = str(error)
+        str_repr: Any = str(error)
         assert "ERROR: Missing brace" in str_repr
         assert "at document.tex:42" in str_repr
 
-    def test_str_representation_with_file_only(self):
+    def test_str_representation_with_file_only(self) -> None:
         """Test string representation with file but no line."""
-        error = LaTeXError(
+        error: Any = LaTeXError(
             severity=ErrorSeverity.WARNING,
             category=ErrorCategory.UNKNOWN,
             message="Some warning",
             file_path="document.tex",
         )
 
-        str_repr = str(error)
+        str_repr: Any = str(error)
         assert "WARNING: Some warning" in str_repr
         assert "in document.tex" in str_repr
 
-    def test_str_representation_full(self):
+    def test_str_representation_full(self) -> None:
         """Test string representation with all fields."""
-        error = LaTeXError(
+        error: Any = LaTeXError(
             severity=ErrorSeverity.FATAL,
             category=ErrorCategory.MISSING_PACKAGE,
             message="Package not found",
@@ -133,7 +134,7 @@ class TestLaTeXError:
             suggestion="Install the missing package",
         )
 
-        str_repr = str(error)
+        str_repr: Any = str(error)
         assert "FATAL: Package not found" in str_repr
         assert "at document.tex:10" in str_repr
         assert "Context: \\usepackage{missing}" in str_repr
@@ -143,18 +144,18 @@ class TestLaTeXError:
 class TestLaTeXErrorParser:
     """Tests for LaTeX error parser."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.parser = LaTeXErrorParser()
 
-    def test_parser_initialization(self):
+    def test_parser_initialization(self) -> None:
         """Test parser initialization."""
         assert self.parser._error_patterns is not None
         assert self.parser._suggestion_rules is not None
         assert len(self.parser._error_patterns) > 0
         assert len(self.parser._suggestion_rules) > 0
 
-    def test_parse_missing_file_error(self):
+    def test_parse_missing_file_error(self) -> None:
         """Test parsing missing file error."""
         log_content = "! LaTeX Error: File `missing.sty' not found."
 
@@ -167,7 +168,7 @@ class TestLaTeXErrorParser:
         assert "missing.sty" in error.message
         assert error.suggestion is not None
 
-    def test_parse_package_error(self):
+    def test_parse_package_error(self) -> None:
         """Test parsing package error."""
         log_content = (
             "! Package fontspec Error: The font 'missing-font' cannot be found."
@@ -181,7 +182,7 @@ class TestLaTeXErrorParser:
         assert error.category == ErrorCategory.MISSING_PACKAGE
         assert "fontspec" in error.message
 
-    def test_parse_undefined_control_sequence(self):
+    def test_parse_undefined_control_sequence(self) -> None:
         """Test parsing undefined control sequence error."""
         log_content = "! Undefined control sequence."
 
@@ -193,7 +194,7 @@ class TestLaTeXErrorParser:
         assert error.category == ErrorCategory.SYNTAX_ERROR
         assert "Undefined command" in error.message
 
-    def test_parse_font_error(self):
+    def test_parse_font_error(self) -> None:
         """Test parsing font error."""
         log_content = (
             "! Font TU/cmr/m/n/10=file not loadable: Metric (TFM) file not found."
@@ -207,7 +208,7 @@ class TestLaTeXErrorParser:
         assert error.category == ErrorCategory.FONT_ERROR
         assert "Font loading error" in error.message
 
-    def test_parse_fontspec_error(self):
+    def test_parse_fontspec_error(self) -> None:
         """Test parsing fontspec error."""
         log_content = "fontspec error: 'Font not found'"
 
@@ -219,7 +220,7 @@ class TestLaTeXErrorParser:
         assert error.category == ErrorCategory.FONT_ERROR
         assert "Fontspec error" in error.message
 
-    def test_parse_dnd_package_error(self):
+    def test_parse_dnd_package_error(self) -> None:
         """Test parsing DND package error."""
         log_content = "! Package dnd Error: Invalid option for dndbook class"
 
@@ -231,7 +232,7 @@ class TestLaTeXErrorParser:
         assert error.category == ErrorCategory.TEMPLATE_ERROR
         assert "DND template error" in error.message
 
-    def test_parse_warning(self):
+    def test_parse_warning(self) -> None:
         """Test parsing LaTeX warning."""
         log_content = "LaTeX Warning: Reference `undefined-ref' on page 1 undefined"
 
@@ -243,7 +244,7 @@ class TestLaTeXErrorParser:
         assert error.category == ErrorCategory.UNKNOWN
         assert "Warning" in error.message
 
-    def test_parse_multiple_errors(self):
+    def test_parse_multiple_errors(self) -> None:
         """Test parsing multiple errors."""
         log_content = """! LaTeX Error: File `missing.sty' not found.
 ! Undefined control sequence.
@@ -258,19 +259,19 @@ LaTeX Warning: Reference undefined"""
         assert ErrorCategory.SYNTAX_ERROR in categories
         assert ErrorCategory.UNKNOWN in categories
 
-    def test_parse_empty_log(self):
+    def test_parse_empty_log(self) -> None:
         """Test parsing empty log."""
         errors = self.parser.parse_log("")
         assert len(errors) == 0
 
-    def test_parse_no_errors(self):
+    def test_parse_no_errors(self) -> None:
         """Test parsing log with no errors."""
         log_content = "This is pdfTeX, Version 3.14159265-2.6-1.40.21\nOutput written on document.pdf (1 page)."
 
         errors = self.parser.parse_log(log_content)
         assert len(errors) == 0
 
-    def test_analyze_compilation_failure_timeout(self):
+    def test_analyze_compilation_failure_timeout(self) -> None:
         """Test analyzing compilation failure due to timeout."""
         errors = self.parser.analyze_compilation_failure(
             return_code=1, stdout="", stderr="", timeout_occurred=True
@@ -282,7 +283,7 @@ LaTeX Warning: Reference undefined"""
         assert error.category == ErrorCategory.TIMEOUT_ERROR
         assert "timed out" in error.message
 
-    def test_analyze_compilation_failure_with_stderr(self):
+    def test_analyze_compilation_failure_with_stderr(self) -> None:
         """Test analyzing compilation failure with stderr."""
         stderr = "! LaTeX Error: File not found"
 
@@ -295,7 +296,7 @@ LaTeX Warning: Reference undefined"""
         error_messages = [error.message for error in errors]
         assert any("File not found" in msg for msg in error_messages)
 
-    def test_analyze_compilation_failure_generic(self):
+    def test_analyze_compilation_failure_generic(self) -> None:
         """Test analyzing generic compilation failure."""
         errors = self.parser.analyze_compilation_failure(
             return_code=2, stdout="", stderr="", timeout_occurred=False
@@ -307,7 +308,7 @@ LaTeX Warning: Reference undefined"""
         assert error.category == ErrorCategory.COMPILATION_ERROR
         assert "exit code 2" in error.message
 
-    def test_analyze_compilation_success(self):
+    def test_analyze_compilation_success(self) -> None:
         """Test analyzing successful compilation."""
         errors = self.parser.analyze_compilation_failure(
             return_code=0,
@@ -319,14 +320,14 @@ LaTeX Warning: Reference undefined"""
         # Should not generate errors for successful compilation
         assert len(errors) == 0
 
-    def test_get_error_summary_empty(self):
+    def test_get_error_summary_empty(self) -> None:
         """Test error summary for empty error list."""
         summary = self.parser.get_error_summary([])
         assert summary == "No errors found."
 
-    def test_get_error_summary_single_error(self):
+    def test_get_error_summary_single_error(self) -> None:
         """Test error summary for single error."""
-        error = LaTeXError(
+        error: Any = LaTeXError(
             severity=ErrorSeverity.ERROR,
             category=ErrorCategory.SYNTAX_ERROR,
             message="Test error",
@@ -338,7 +339,7 @@ LaTeX Warning: Reference undefined"""
         assert "Test error" in summary
         assert "Fix the syntax" in summary
 
-    def test_get_error_summary_multiple_severities(self):
+    def test_get_error_summary_multiple_severities(self) -> None:
         """Test error summary with multiple severities."""
         errors = [
             LaTeXError(
@@ -365,7 +366,7 @@ LaTeX Warning: Reference undefined"""
         assert "Fatal error" in summary
         assert "Syntax error" in summary
 
-    def test_get_error_summary_limits_critical_errors(self):
+    def test_get_error_summary_limits_critical_errors(self) -> None:
         """Test that error summary limits critical errors shown."""
         # Create 5 errors
         errors = [
@@ -386,9 +387,9 @@ LaTeX Warning: Reference undefined"""
         # Should not show all 5
         assert summary.count("Error") <= 3
 
-    def test_suggestions_for_categories(self):
+    def test_suggestions_for_categories(self) -> None:
         """Test that suggestions are provided for different categories."""
-        parser = LaTeXErrorParser()
+        parser: Any = LaTeXErrorParser()
 
         # Test each category has suggestions
         categories_with_suggestions = [

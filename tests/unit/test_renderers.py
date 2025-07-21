@@ -1,12 +1,13 @@
 """Tests for rendering system."""
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 
-from dnd5e.core.models.content import ContentType
-from dnd5e.renderers.base import RenderContext, RenderingError
-from dnd5e.renderers.latex import (
+from dnd5e.core.models.content import ContentType  # type: ignore
+from dnd5e.renderers.base import RenderContext, RenderingError  # type: ignore
+from dnd5e.renderers.latex import (  # type: ignore
     LaTeXCreatureRenderer,
     LaTeXDocumentRenderer,
     LaTeXItemRenderer,
@@ -18,16 +19,16 @@ from dnd5e.renderers.latex import (
 class TestRenderContext:
     """Tests for RenderContext class."""
 
-    def test_render_context_creation(self):
+    def test_render_context_creation(self) -> None:
         """Test basic render context creation."""
-        context = RenderContext()
+        context: Any = RenderContext()
         assert context.include_images is False
         assert context.include_toc is True
         assert context.include_items is True
 
-    def test_render_context_with_options(self):
+    def test_render_context_with_options(self) -> None:
         """Test render context with custom options."""
-        context = RenderContext(
+        context: Any = RenderContext(
             title="Test Document",
             include_images=True,
             include_toc=False,
@@ -39,9 +40,9 @@ class TestRenderContext:
         assert context.include_toc is False
         assert context.page_size == "a4paper"
 
-    def test_should_include_content_type(self):
+    def test_should_include_content_type(self) -> None:
         """Test content type inclusion filtering."""
-        context = RenderContext(
+        context: Any = RenderContext(
             include_items=False, include_creatures=True, include_spells=True
         )
 
@@ -49,9 +50,9 @@ class TestRenderContext:
         assert context.should_include_content_type("creature")
         assert context.should_include_content_type("spell")
 
-    def test_context_copy(self):
+    def test_context_copy(self) -> None:
         """Test context copying with updates."""
-        original = RenderContext(title="Original", include_images=False)
+        original: Any = RenderContext(title="Original", include_images=False)
         copy = original.copy(title="Updated", include_images=True)
 
         assert original.title == "Original"
@@ -59,33 +60,33 @@ class TestRenderContext:
         assert copy.title == "Updated"
         assert copy.include_images is True
 
-    def test_get_image_path(self, tmp_path):
+    def test_get_image_path(self, tmp_path: Any) -> None:
         """Test image path resolution."""
         images_dir = tmp_path / "images"
         images_dir.mkdir()
 
-        context = RenderContext(images_dir=images_dir)
+        context: Any = RenderContext(images_dir=images_dir)
 
         image_path = context.get_image_path("test.png")
         assert image_path == images_dir / "test.png"
 
         # Test with no images_dir
-        context_no_dir = RenderContext()
+        context_no_dir: Any = RenderContext()
         assert context_no_dir.get_image_path("test.png") is None
 
 
 class TestLaTeXTemplateEngine:
     """Tests for LaTeX template engine."""
 
-    def test_template_engine_creation(self):
+    def test_template_engine_creation(self) -> None:
         """Test template engine creation."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
         assert engine is not None
         assert engine.templates_dir is not None
 
-    def test_builtin_templates_loaded(self):
+    def test_builtin_templates_loaded(self) -> None:
         """Test that built-in templates are available."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         required_templates = [
             "spell",
@@ -96,9 +97,9 @@ class TestLaTeXTemplateEngine:
         for template_name in required_templates:
             assert engine.template_exists(template_name)
 
-    def test_render_simple_template(self):
+    def test_render_simple_template(self) -> None:
         """Test rendering template with variables."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         # Create a simple test template
         test_template = engine.templates_dir / "test.tex.j2"
@@ -110,9 +111,9 @@ class TestLaTeXTemplateEngine:
         finally:
             test_template.unlink(missing_ok=True)
 
-    def test_render_template_with_conditionals(self):
+    def test_render_template_with_conditionals(self) -> None:
         """Test template with conditional blocks."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         # Create a conditional test template
         conditional_template = engine.templates_dir / "conditional.tex.j2"
@@ -136,9 +137,9 @@ Age: <# age #>
         finally:
             conditional_template.unlink(missing_ok=True)
 
-    def test_unknown_template(self):
+    def test_unknown_template(self) -> None:
         """Test error handling for unknown template."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         with pytest.raises(
             FileNotFoundError, match="Template 'unknown.tex.j2' not found"
@@ -149,21 +150,21 @@ Age: <# age #>
 class TestLaTeXSpellRenderer:
     """Tests for LaTeX spell renderer."""
 
-    def test_spell_renderer_creation(self):
+    def test_spell_renderer_creation(self) -> None:
         """Test spell renderer creation."""
-        renderer = LaTeXSpellRenderer()
+        renderer: Any = LaTeXSpellRenderer()
         assert renderer.output_format == "latex"
         assert ContentType.SPELL in renderer.supported_content_types
 
-    def test_can_render_spell(self, sample_spell):
+    def test_can_render_spell(self, sample_spell: Any) -> None:
         """Test spell renderer can handle spells."""
-        renderer = LaTeXSpellRenderer()
+        renderer: Any = LaTeXSpellRenderer()
         assert renderer.can_render(sample_spell)
 
-    def test_render_spell_content(self, sample_spell):
+    def test_render_spell_content(self, sample_spell: Any) -> None:
         """Test rendering spell content."""
-        renderer = LaTeXSpellRenderer()
-        context = RenderContext()
+        renderer: Any = LaTeXSpellRenderer()
+        context: Any = RenderContext()
 
         result = renderer.render_content(sample_spell, context)
 
@@ -176,17 +177,17 @@ class TestLaTeXSpellRenderer:
         assert "V, S, M" in result
         assert "Instantaneous" in result
 
-    def test_render_spell_with_wrong_type(self, sample_creature):
+    def test_render_spell_with_wrong_type(self, sample_creature: Any) -> None:
         """Test error when rendering wrong content type."""
-        renderer = LaTeXSpellRenderer()
-        context = RenderContext()
+        renderer: Any = LaTeXSpellRenderer()
+        context: Any = RenderContext()
 
         with pytest.raises(ValueError, match="Expected Spell, got"):
             renderer.render_content(sample_creature, context)
 
-    def test_format_casting_time(self):
+    def test_format_casting_time(self) -> None:
         """Test casting time formatting."""
-        renderer = LaTeXSpellRenderer()
+        renderer: Any = LaTeXSpellRenderer()
 
         # Single action
         time_data = [{"number": 1, "unit": "action"}]
@@ -198,9 +199,9 @@ class TestLaTeXSpellRenderer:
         result = renderer._format_casting_time(time_data)
         assert result == "3 rounds"
 
-    def test_format_range(self):
+    def test_format_range(self) -> None:
         """Test range formatting."""
-        renderer = LaTeXSpellRenderer()
+        renderer: Any = LaTeXSpellRenderer()
 
         # Point range
         range_data = {"type": "point", "distance": {"type": "feet", "amount": 150}}
@@ -217,9 +218,9 @@ class TestLaTeXSpellRenderer:
         result = renderer._format_range(range_data)
         assert result == "Touch"
 
-    def test_format_components(self):
+    def test_format_components(self) -> None:
         """Test components formatting."""
-        renderer = LaTeXSpellRenderer()
+        renderer: Any = LaTeXSpellRenderer()
 
         # VSM components
         components = {"v": True, "s": True, "m": "a tiny ball of bat guano and sulfur"}
@@ -236,21 +237,21 @@ class TestLaTeXSpellRenderer:
 class TestLaTeXCreatureRenderer:
     """Tests for LaTeX creature renderer."""
 
-    def test_creature_renderer_creation(self):
+    def test_creature_renderer_creation(self) -> None:
         """Test creature renderer creation."""
-        renderer = LaTeXCreatureRenderer()
+        renderer: Any = LaTeXCreatureRenderer()
         assert renderer.output_format == "latex"
         assert ContentType.CREATURE in renderer.supported_content_types
 
-    def test_can_render_creature(self, sample_creature):
+    def test_can_render_creature(self, sample_creature: Any) -> None:
         """Test creature renderer can handle creatures."""
-        renderer = LaTeXCreatureRenderer()
+        renderer: Any = LaTeXCreatureRenderer()
         assert renderer.can_render(sample_creature)
 
-    def test_render_creature_content(self, sample_creature):
+    def test_render_creature_content(self, sample_creature: Any) -> None:
         """Test rendering creature content."""
-        renderer = LaTeXCreatureRenderer()
-        context = RenderContext()
+        renderer: Any = LaTeXCreatureRenderer()
+        context: Any = RenderContext()
 
         result = renderer.render_content(sample_creature, context)
 
@@ -264,25 +265,25 @@ class TestLaTeXCreatureRenderer:
         assert "546" in result  # HP
         assert "40 ft." in result  # Speed
 
-    def test_format_size(self):
+    def test_format_size(self) -> None:
         """Test size formatting."""
-        renderer = LaTeXCreatureRenderer()
+        renderer: Any = LaTeXCreatureRenderer()
 
         assert renderer._format_size(["G"]) == "Gargantuan"
         assert renderer._format_size(["M"]) == "Medium"
         assert renderer._format_size(["T"]) == "Tiny"
 
-    def test_format_alignment(self):
+    def test_format_alignment(self) -> None:
         """Test alignment formatting."""
-        renderer = LaTeXCreatureRenderer()
+        renderer: Any = LaTeXCreatureRenderer()
 
         assert renderer._format_alignment(["C", "E"]) == "chaotic evil"
         assert renderer._format_alignment(["L", "G"]) == "lawful good"
         assert renderer._format_alignment(["N"]) == "neutral"
 
-    def test_format_ac(self):
+    def test_format_ac(self) -> None:
         """Test AC formatting."""
-        renderer = LaTeXCreatureRenderer()
+        renderer: Any = LaTeXCreatureRenderer()
 
         # AC with armor type
         ac_data = [{"ac": 18, "from": ["natural armor"]}]
@@ -294,9 +295,9 @@ class TestLaTeXCreatureRenderer:
         result = renderer._format_ac(ac_data)
         assert result == "12"
 
-    def test_format_ability_score(self):
+    def test_format_ability_score(self) -> None:
         """Test ability score formatting."""
-        renderer = LaTeXCreatureRenderer()
+        renderer: Any = LaTeXCreatureRenderer()
 
         # High score (positive modifier)
         result = renderer._format_ability_score(16)
@@ -314,23 +315,23 @@ class TestLaTeXCreatureRenderer:
 class TestLaTeXItemRenderer:
     """Tests for LaTeX item renderer."""
 
-    def test_item_renderer_creation(self):
+    def test_item_renderer_creation(self) -> None:
         """Test item renderer creation."""
-        renderer = LaTeXItemRenderer()
+        renderer: Any = LaTeXItemRenderer()
         assert renderer.output_format == "latex"
         assert ContentType.ITEM in renderer.supported_content_types
 
-    def test_format_rarity(self):
+    def test_format_rarity(self) -> None:
         """Test rarity formatting."""
-        renderer = LaTeXItemRenderer()
+        renderer: Any = LaTeXItemRenderer()
 
         assert renderer._format_rarity("uncommon") == ", uncommon"
         assert renderer._format_rarity("legendary") == ", legendary"
         assert renderer._format_rarity(None) == ""
 
-    def test_format_properties(self):
+    def test_format_properties(self) -> None:
         """Test properties formatting."""
-        renderer = LaTeXItemRenderer()
+        renderer: Any = LaTeXItemRenderer()
 
         properties = ["finesse", "light", "thrown"]
         result = renderer._format_properties(properties)
@@ -343,18 +344,22 @@ class TestLaTeXItemRenderer:
 class TestLaTeXDocumentRenderer:
     """Tests for LaTeX document renderer."""
 
-    def test_document_renderer_creation(self):
+    def test_document_renderer_creation(self) -> None:
         """Test document renderer creation."""
-        renderer = LaTeXDocumentRenderer()
+        renderer: Any = LaTeXDocumentRenderer()
         assert renderer.output_format == "latex"
         assert renderer.template_engine is not None
         assert renderer.content_registry is not None
 
     @pytest.mark.asyncio
-    async def test_render_single_spell(self, sample_spell, tag_resolver):
+    async def test_render_single_spell(
+        self, sample_spell: Any, tag_resolver: Any
+    ) -> None:
         """Test rendering single spell as document."""
-        renderer = LaTeXDocumentRenderer()
-        context = RenderContext(title="Test Spell Document", tag_resolver=tag_resolver)
+        renderer: Any = LaTeXDocumentRenderer()
+        context: Any = RenderContext(
+            title="Test Spell Document", tag_resolver=tag_resolver
+        )
 
         result = renderer.render_document([sample_spell], context)
 
@@ -367,11 +372,11 @@ class TestLaTeXDocumentRenderer:
 
     @pytest.mark.asyncio
     async def test_render_multiple_content(
-        self, sample_spell, sample_creature, tag_resolver
-    ):
+        self, sample_spell: Any, sample_creature: Any, tag_resolver: Any
+    ) -> None:
         """Test rendering multiple content items."""
-        renderer = LaTeXDocumentRenderer()
-        context = RenderContext(
+        renderer: Any = LaTeXDocumentRenderer()
+        context: Any = RenderContext(
             title="Mixed Content Document",
             include_toc=True,
             tag_resolver=tag_resolver,
@@ -386,10 +391,10 @@ class TestLaTeXDocumentRenderer:
         assert "Ancient Red Dragon" in result
         assert "\\end{document}" in result
 
-    def test_render_document_header(self):
+    def test_render_document_header(self) -> None:
         """Test document header rendering."""
-        renderer = LaTeXDocumentRenderer()
-        context = RenderContext(
+        renderer: Any = LaTeXDocumentRenderer()
+        context: Any = RenderContext(
             title="Test Document",
             author="Test Author",
             page_size="a4paper",
@@ -403,19 +408,21 @@ class TestLaTeXDocumentRenderer:
         assert "\\author{Test Author}" in result
         assert "\\begin{document}" in result
 
-    def test_render_document_footer(self):
+    def test_render_document_footer(self) -> None:
         """Test document footer rendering."""
-        renderer = LaTeXDocumentRenderer()
-        context = RenderContext()
+        renderer: Any = LaTeXDocumentRenderer()
+        context: Any = RenderContext()
 
         result = renderer.render_document_footer(context)
         assert result == "\\end{document}"
 
     @pytest.mark.asyncio
-    async def test_content_filtering(self, sample_spell, sample_creature, tag_resolver):
+    async def test_content_filtering(
+        self, sample_spell: Any, sample_creature: Any, tag_resolver: Any
+    ) -> None:
         """Test content filtering based on context."""
-        renderer = LaTeXDocumentRenderer()
-        context = RenderContext(
+        renderer: Any = LaTeXDocumentRenderer()
+        context: Any = RenderContext(
             include_spells=True, include_creatures=False, tag_resolver=tag_resolver
         )
 
@@ -426,10 +433,10 @@ class TestLaTeXDocumentRenderer:
         assert "Fireball" in result
         assert "Ancient Red Dragon" not in result
 
-    def test_render_to_file(self, sample_spell, tmp_path):
+    def test_render_to_file(self, sample_spell: Any, tmp_path: Any) -> None:
         """Test rendering document to file."""
-        renderer = LaTeXDocumentRenderer()
-        context = RenderContext(title="File Test")
+        renderer: Any = LaTeXDocumentRenderer()
+        context: Any = RenderContext(title="File Test")
         output_path = tmp_path / "test.tex"
 
         renderer.render_document_to_file([sample_spell], output_path, context)
@@ -439,11 +446,11 @@ class TestLaTeXDocumentRenderer:
         assert "\\documentclass" in content
         assert "Fireball" in content
 
-    def test_render_to_file_error_handling(self, sample_spell):
+    def test_render_to_file_error_handling(self, sample_spell: Any) -> None:
         """Test error handling when rendering to file fails."""
-        renderer = LaTeXDocumentRenderer()
-        context = RenderContext()
-        invalid_path = Path("/invalid/path/test.tex")
+        renderer: Any = LaTeXDocumentRenderer()
+        context: Any = RenderContext()
+        invalid_path: Any = Path("/invalid/path/test.tex")
 
         with pytest.raises(RenderingError):
             renderer.render_document_to_file([sample_spell], invalid_path, context)
@@ -453,7 +460,7 @@ class TestRendererIntegration:
     """Integration tests for renderer system."""
 
     @pytest.mark.asyncio
-    async def test_full_rendering_pipeline(self, loaded_omnidexer):
+    async def test_full_rendering_pipeline(self, loaded_omnidexer: Any) -> None:
         """Test complete rendering pipeline with real data."""
         omnidexer = loaded_omnidexer
 
@@ -465,8 +472,8 @@ class TestRendererIntegration:
         assert creature is not None
 
         # Create renderer and context
-        renderer = LaTeXDocumentRenderer()
-        context = RenderContext(
+        renderer: Any = LaTeXDocumentRenderer()
+        context: Any = RenderContext(
             title="Integration Test Document",
             include_toc=True,
             include_index=False,
@@ -490,20 +497,22 @@ class TestRendererIntegration:
         assert "Gargantuan dragon" in result
 
     @pytest.mark.asyncio
-    async def test_error_handling_unknown_content_type(self, loaded_omnidexer):
+    async def test_error_handling_unknown_content_type(
+        self, loaded_omnidexer: Any
+    ) -> None:
         """Test handling of unknown content types."""
         omnidexer = loaded_omnidexer
 
         # Create a mock content object of unknown type
-        from dnd5e.core.models.content import BaseContent, Source
+        from dnd5e.core.models.content import BaseContent, Source  # type: ignore
 
-        unknown_content = BaseContent(
+        unknown_content: Any = BaseContent(
             name="Unknown Content",
             source=Source(abbreviation="TEST", name="Test Source"),
         )
 
-        renderer = LaTeXDocumentRenderer()
-        context = RenderContext(omnidexer=omnidexer)
+        renderer: Any = LaTeXDocumentRenderer()
+        context: Any = RenderContext(omnidexer=omnidexer)
 
         # Should use fallback rendering
         result = renderer.render_content_item(unknown_content, context)

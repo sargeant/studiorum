@@ -6,24 +6,26 @@ can handle all available data without warnings or unknown data structures.
 
 import asyncio
 import logging
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.loaders.source_manager import FileSystemSourceManager
-from dnd5e.core.logging import get_logger
-from dnd5e.core.models.content import ContentType
+from dnd5e.core.loaders.json_loader import JsonDataLoader  # type: ignore
+from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
+from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
+from dnd5e.core.logging import get_logger  # type: ignore
+from dnd5e.core.models.content import ContentType  # type: ignore
 
 
 class LogCapture:
     """Capture logging output for analysis."""
 
-    def __init__(self, level=logging.WARNING):
-        self.records = []
+    def __init__(self, level: Any = logging.WARNING) -> None:
+        self.records: list[Any] = []
         self.level = level
 
-    def filter(self, record):
+    def filter(self, record: Any) -> bool:
         if record.levelno >= self.level:
             self.records.append(record)
         return False  # Don't actually log
@@ -33,7 +35,7 @@ class TestDataValidationStress:
     """Stress tests for data validation across all available content."""
 
     @pytest.fixture(autouse=True)
-    def setup_log_capture(self):
+    def setup_log_capture(self) -> Generator[None, None, None]:
         """Set up log capture for each test."""
         self.log_capture = LogCapture()
         self.handler = logging.StreamHandler()
@@ -57,7 +59,7 @@ class TestDataValidationStress:
 
     def get_validation_warnings(self) -> list[str]:
         """Extract validation warning messages."""
-        warnings = []
+        warnings: list[Any] = []
         for record in self.log_capture.records:
             if "Validation failed" in record.getMessage():
                 warnings.append(record.getMessage())
@@ -65,7 +67,7 @@ class TestDataValidationStress:
 
     def get_unknown_data_warnings(self) -> list[str]:
         """Extract warnings about unknown or unhandled data."""
-        unknown_warnings = []
+        unknown_warnings: list[Any] = []
         for record in self.log_capture.records:
             message = record.getMessage()
             if any(
@@ -84,9 +86,9 @@ class TestDataValidationStress:
         return unknown_warnings
 
     @pytest.mark.asyncio
-    async def test_load_all_spells_no_validation_errors(self):
+    async def test_load_all_spells_no_validation_errors(self) -> None:
         """Test loading all spell data without validation errors."""
-        source_manager = FileSystemSourceManager()
+        source_manager: Any = FileSystemSourceManager()
         spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
         data_paths = source_manager.get_data_paths()
         spell_files = data_paths.get(ContentType.SPELL, [])
@@ -107,7 +109,7 @@ class TestDataValidationStress:
         validation_warnings = self.get_validation_warnings()
 
         # Allow a small percentage of validation warnings for edge cases
-        warning_threshold = max(1, total_spells * 0.02)  # 2% threshold
+        warning_threshold: Any = max(1, total_spells * 0.02)  # 2% threshold
 
         assert len(validation_warnings) <= warning_threshold, (
             f"Too many validation warnings ({len(validation_warnings)} > {warning_threshold}) "
@@ -119,9 +121,9 @@ class TestDataValidationStress:
         )
 
     @pytest.mark.asyncio
-    async def test_load_all_creatures_no_validation_errors(self):
+    async def test_load_all_creatures_no_validation_errors(self) -> None:
         """Test loading all creature data without validation errors."""
-        source_manager = FileSystemSourceManager()
+        source_manager: Any = FileSystemSourceManager()
         creature_loader = JsonDataLoader.create_for_type(ContentType.CREATURE)
         data_paths = source_manager.get_data_paths()
         creature_files = data_paths.get(ContentType.CREATURE, [])
@@ -142,7 +144,7 @@ class TestDataValidationStress:
         validation_warnings = self.get_validation_warnings()
 
         # Allow a small percentage of validation warnings for edge cases
-        warning_threshold = max(1, total_creatures * 0.02)  # 2% threshold
+        warning_threshold: Any = max(1, total_creatures * 0.02)  # 2% threshold
 
         assert len(validation_warnings) <= warning_threshold, (
             f"Too many validation warnings ({len(validation_warnings)} > {warning_threshold}) "
@@ -154,9 +156,9 @@ class TestDataValidationStress:
         )
 
     @pytest.mark.asyncio
-    async def test_load_all_items_no_validation_errors(self):
+    async def test_load_all_items_no_validation_errors(self) -> None:
         """Test loading all item data without validation errors."""
-        source_manager = FileSystemSourceManager()
+        source_manager: Any = FileSystemSourceManager()
         item_loader = JsonDataLoader.create_for_type(ContentType.ITEM)
         data_paths = source_manager.get_data_paths()
         item_files = data_paths.get(ContentType.ITEM, [])
@@ -177,7 +179,7 @@ class TestDataValidationStress:
         validation_warnings = self.get_validation_warnings()
 
         # Allow a small percentage of validation warnings for edge cases
-        warning_threshold = max(1, total_items * 0.02)  # 2% threshold
+        warning_threshold: Any = max(1, total_items * 0.02)  # 2% threshold
 
         assert len(validation_warnings) <= warning_threshold, (
             f"Too many validation warnings ({len(validation_warnings)} > {warning_threshold}) "
@@ -189,10 +191,10 @@ class TestDataValidationStress:
         )
 
     @pytest.mark.asyncio
-    async def test_omnidexer_full_data_load(self):
+    async def test_omnidexer_full_data_load(self) -> None:
         """Test loading all available data through the omnidexer."""
-        source_manager = FileSystemSourceManager()
-        omnidexer = Omnidexer(source_manager)
+        source_manager: Any = FileSystemSourceManager()
+        omnidexer: Any = Omnidexer(source_manager)
 
         # Load all data
         load_stats = await omnidexer.load_all_data()
@@ -200,7 +202,7 @@ class TestDataValidationStress:
         # Verify data was loaded
         assert load_stats, "No data was loaded"
 
-        total_items = sum(load_stats.values())
+        total_items: Any = sum(load_stats.values())
         assert total_items > 0, "No items were loaded"
 
         # Check for validation warnings
@@ -208,8 +210,8 @@ class TestDataValidationStress:
         unknown_warnings = self.get_unknown_data_warnings()
 
         # Calculate acceptable warning thresholds
-        validation_threshold = max(5, total_items * 0.01)  # 1% threshold, min 5
-        unknown_threshold = max(2, total_items * 0.005)  # 0.5% threshold, min 2
+        validation_threshold: Any = max(5, total_items * 0.01)  # 1% threshold, min 5
+        unknown_threshold: Any = max(2, total_items * 0.005)  # 0.5% threshold, min 2
 
         assert len(validation_warnings) <= validation_threshold, (
             f"Too many validation warnings ({len(validation_warnings)} > {validation_threshold}) "
@@ -227,7 +229,7 @@ class TestDataValidationStress:
         print(f"   Load stats: {load_stats}")
 
     @pytest.mark.asyncio
-    async def test_complex_data_structures_validation(self):
+    async def test_complex_data_structures_validation(self) -> None:
         """Test that complex data structures are properly handled."""
         complex_spell_data = {
             "name": "Complex Test Spell",
@@ -303,7 +305,7 @@ class TestDataValidationStress:
         }
 
         # Test spell validation
-        from dnd5e.core.models.spells import Spell
+        from dnd5e.core.models.spells import Spell  # type: ignore
 
         spell = Spell.model_validate(complex_spell_data)
         assert spell.name == "Complex Test Spell"
@@ -315,7 +317,7 @@ class TestDataValidationStress:
         )  # Should extract text from complex structure
 
         # Test creature validation
-        from dnd5e.core.models.creatures import Creature
+        from dnd5e.core.models.creatures import Creature  # type: ignore
 
         creature = Creature.model_validate(complex_creature_data)
         assert creature.name == "Complex Test Creature"
@@ -324,14 +326,14 @@ class TestDataValidationStress:
         print("✅ Complex data structures validated successfully")
 
     @pytest.mark.asyncio
-    async def test_file_format_detection_accuracy(self):
+    async def test_file_format_detection_accuracy(self) -> None:
         """Test that file format detection correctly identifies different file types."""
-        source_manager = FileSystemSourceManager()
+        source_manager: Any = FileSystemSourceManager()
         spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
 
         # Get all data files
         data_paths = source_manager.get_data_paths()
-        all_files = []
+        all_files: list[Any] = []
         for file_list in data_paths.values():
             all_files.extend(file_list)
 
@@ -380,11 +382,11 @@ class TestDataValidationStress:
             "No files were processed normally - format detection may be too aggressive"
         )
 
-    def test_edge_case_data_structures(self):
+    def test_edge_case_data_structures(self) -> None:
         """Test validation of edge case data structures."""
-        from dnd5e.core.models.creatures import Creature
-        from dnd5e.core.models.items import Item
-        from dnd5e.core.models.spells import Spell
+        from dnd5e.core.models.creatures import Creature  # type: ignore
+        from dnd5e.core.models.items import Item  # type: ignore
+        from dnd5e.core.models.spells import Spell  # type: ignore
 
         # Test spell with minimal data
         minimal_spell = {
@@ -449,20 +451,20 @@ class TestDataValidationStress:
         print("✅ Edge case data structures validated successfully")
 
     @pytest.mark.asyncio
-    async def test_memory_usage_during_full_load(self):
+    async def test_memory_usage_during_full_load(self) -> None:
         """Test memory usage doesn't grow excessively during full data load."""
         try:
             import os
 
-            import psutil
+            import psutil  # type: ignore
         except ImportError:
             pytest.skip("psutil not installed - skipping memory usage test")
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
 
-        source_manager = FileSystemSourceManager()
-        omnidexer = Omnidexer(source_manager)
+        source_manager: Any = FileSystemSourceManager()
+        omnidexer: Any = Omnidexer(source_manager)
 
         # Load all data
         load_stats = await omnidexer.load_all_data()
@@ -470,7 +472,7 @@ class TestDataValidationStress:
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
         memory_increase = final_memory - initial_memory
 
-        total_items = sum(load_stats.values())
+        total_items: Any = sum(load_stats.values())
 
         # Memory shouldn't increase by more than 500MB for reasonable datasets
         # Adjust this threshold based on your dataset size
@@ -489,11 +491,11 @@ class TestDataValidationStress:
     @pytest.mark.asyncio
     async def test_concurrent_data_loading(self) -> None:
         """Test that concurrent data loading works without issues."""
-        source_manager = FileSystemSourceManager()
+        source_manager: Any = FileSystemSourceManager()
 
         # Create multiple omnidexers to test concurrent loading
-        async def load_data() -> dict[str, int]:
-            omnidexer = Omnidexer(source_manager)
+        async def load_data() -> Any:
+            omnidexer: Any = Omnidexer(source_manager)
             return await omnidexer.load_all_data()
 
         # Run 3 concurrent loads
@@ -505,10 +507,12 @@ class TestDataValidationStress:
         assert all(results), "Some concurrent loads failed"
 
         # Results should be consistent (within small variance for non-deterministic loading)
-        first_total = sum(results[0].values())
+        first_total: Any = sum(results[0].values())
         for i, result in enumerate(results[1:], 1):
-            total = sum(result.values())
-            variance = abs(total - first_total) / first_total if first_total > 0 else 0
+            total: Any = sum(result.values())
+            variance: Any = (
+                abs(total - first_total) / first_total if first_total > 0 else 0
+            )
             assert variance < 0.1, (  # 10% variance allowed
                 f"Concurrent load {i} had {variance:.1%} variance from first load "
                 f"({total} vs {first_total} items)"
@@ -518,7 +522,7 @@ class TestDataValidationStress:
             f"✅ Concurrent loading successful: {[sum(r.values()) for r in results]} items"
         )
 
-    def test_validation_error_categorization(self):
+    def test_validation_error_categorization(self) -> None:
         """Test that validation errors are properly categorized."""
         validation_warnings = self.get_validation_warnings()
 
@@ -526,7 +530,7 @@ class TestDataValidationStress:
             pytest.skip("No validation warnings to categorize")
 
         # Categorize validation errors
-        categories = {
+        categories: dict[str, list[Any]] = {
             "missing_fields": [],
             "type_errors": [],
             "format_errors": [],
@@ -551,7 +555,9 @@ class TestDataValidationStress:
                 print(f"    Sample: {errors[0][:100]}...")
 
         # Most errors should be categorizable
-        unknown_ratio = len(categories["unknown_errors"]) / len(validation_warnings)
+        unknown_ratio: Any = len(categories["unknown_errors"]) / len(
+            validation_warnings
+        )
         assert unknown_ratio < 0.2, (  # Less than 20% should be unknown
             f"Too many unknown validation errors ({unknown_ratio:.1%})"
         )
