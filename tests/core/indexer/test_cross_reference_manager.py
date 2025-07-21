@@ -1,8 +1,10 @@
 """Tests for cross-reference manager."""
 
+from typing import Any
+
 import pytest
 
-from dnd5e.core.indexer.cross_reference_manager import (
+from dnd5e.core.indexer.cross_reference_manager import (  # type: ignore
     CrossReference,
     CrossReferenceManager,
 )
@@ -11,9 +13,9 @@ from dnd5e.core.indexer.cross_reference_manager import (
 class TestCrossReference:
     """Test CrossReference dataclass."""
 
-    def test_cross_reference_creation(self):
+    def test_cross_reference_creation(self) -> None:
         """Test creating cross-reference."""
-        ref = CrossReference(
+        ref: Any = CrossReference(
             id="creature:dragon",
             content_type="creature",
             name="Dragon",
@@ -30,9 +32,9 @@ class TestCrossReference:
         assert ref.latex_label == "creature:dragon"
         assert ref.referenced_count == 0
 
-    def test_cross_reference_defaults(self):
+    def test_cross_reference_defaults(self) -> None:
         """Test cross-reference with default values."""
-        ref = CrossReference(
+        ref: Any = CrossReference(
             id="spell:fireball",
             content_type="spell",
             name="Fireball",
@@ -48,18 +50,18 @@ class TestCrossReference:
 class TestCrossReferenceManager:
     """Test cross-reference manager."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.manager = CrossReferenceManager()
 
-    def test_manager_initialization(self):
+    def test_manager_initialization(self) -> None:
         """Test manager initialization."""
         assert len(self.manager.references) == 0
         assert self.manager.reference_format == "page"
         assert self.manager.label_prefix == ""
         assert self.manager.auto_page_refs is True
 
-    def test_register_content(self):
+    def test_register_content(self) -> None:
         """Test content registration."""
         ref_id = self.manager.register_content(
             content_type="creature",
@@ -78,7 +80,7 @@ class TestCrossReferenceManager:
         assert ref.page == "98"
         assert ref.referenced_count == 1
 
-    def test_register_duplicate_content(self):
+    def test_register_duplicate_content(self) -> None:
         """Test registering same content multiple times."""
         ref_id1 = self.manager.register_content("spell", "Fireball")
         ref_id2 = self.manager.register_content("spell", "Fireball")
@@ -87,7 +89,7 @@ class TestCrossReferenceManager:
         assert len(self.manager.references) == 1
         assert self.manager.references[ref_id1].referenced_count == 2
 
-    def test_generate_reference_id(self):
+    def test_generate_reference_id(self) -> None:
         """Test reference ID generation."""
         test_cases = [
             ("creature", "Ancient Red Dragon", "creature:ancient-red-dragon"),
@@ -106,7 +108,7 @@ class TestCrossReferenceManager:
             expected = expected.replace("creature:", f"{content_type}:")
             assert result == expected
 
-    def test_generate_latex_label(self):
+    def test_generate_latex_label(self) -> None:
         """Test LaTeX label generation."""
         ref_id = "creature:dragon"
         label = self.manager.generate_latex_label(ref_id)
@@ -117,7 +119,7 @@ class TestCrossReferenceManager:
         label_with_prefix = self.manager.generate_latex_label(ref_id)
         assert label_with_prefix == "doc:creature:dragon"
 
-    def test_sanitize_for_id(self):
+    def test_sanitize_for_id(self) -> None:
         """Test ID sanitization."""
         test_cases = [
             ("Ancient Red Dragon", "ancient-red-dragon"),
@@ -132,7 +134,7 @@ class TestCrossReferenceManager:
             result = self.manager._sanitize_for_id(input_text)
             assert result == expected
 
-    def test_get_reference(self):
+    def test_get_reference(self) -> None:
         """Test getting reference by ID."""
         ref_id = self.manager.register_content("item", "Sword of Sharpness")
         ref = self.manager.get_reference(ref_id)
@@ -144,7 +146,7 @@ class TestCrossReferenceManager:
         # Test non-existent reference
         assert self.manager.get_reference("non:existent") is None
 
-    def test_get_reference_by_name(self):
+    def test_get_reference_by_name(self) -> None:
         """Test getting reference by name and type."""
         self.manager.register_content("spell", "Magic Missile")
         ref = self.manager.get_reference_by_name("spell", "Magic Missile")
@@ -153,7 +155,7 @@ class TestCrossReferenceManager:
         assert ref.name == "Magic Missile"
         assert ref.content_type == "spell"
 
-    def test_create_latex_reference(self):
+    def test_create_latex_reference(self) -> None:
         """Test creating LaTeX reference commands."""
         ref_id = self.manager.register_content("creature", "Dragon")
 
@@ -172,14 +174,14 @@ class TestCrossReferenceManager:
         pageref = self.manager.create_latex_reference(ref_id, ref_type="pageref")
         assert pageref == "\\pageref{creature:dragon}"
 
-    def test_create_latex_label(self):
+    def test_create_latex_label(self) -> None:
         """Test creating LaTeX label commands."""
         ref_id = self.manager.register_content("spell", "Fireball")
         label = self.manager.create_latex_label(ref_id)
 
         assert label == "\\label{spell:fireball}"
 
-    def test_get_references_by_type(self):
+    def test_get_references_by_type(self) -> None:
         """Test getting references by content type."""
         self.manager.register_content("creature", "Dragon")
         self.manager.register_content("creature", "Orc")
@@ -193,7 +195,7 @@ class TestCrossReferenceManager:
         assert all(ref.content_type == "creature" for ref in creatures)
         assert all(ref.content_type == "spell" for ref in spells)
 
-    def test_reference_statistics(self):
+    def test_reference_statistics(self) -> None:
         """Test reference statistics generation."""
         # Register various content
         self.manager.register_content("creature", "Dragon")
@@ -212,7 +214,7 @@ class TestCrossReferenceManager:
         assert stats["most_referenced"][0]["name"] == "Dragon"
         assert stats["most_referenced"][0]["count"] == 2
 
-    def test_export_for_latex_document(self):
+    def test_export_for_latex_document(self) -> None:
         """Test exporting for LaTeX document."""
         self.manager.register_content("creature", "Dragon", source="MM", page="88")
         self.manager.register_content("spell", "Fireball", source="PHB", page="241")
@@ -244,13 +246,13 @@ class TestCrossReferenceManager:
         assert len(export["by_type"]["creature"]) == 1
         assert len(export["by_type"]["spell"]) == 1
 
-    def test_validate_references(self):
+    def test_validate_references(self) -> None:
         """Test reference validation."""
         # Valid reference
         self.manager.register_content("creature", "Dragon")
 
         # Create invalid reference by manipulating internal state
-        invalid_ref = CrossReference(
+        invalid_ref: Any = CrossReference(
             id="invalid:ref",
             content_type="creature",
             name="Invalid",
@@ -264,7 +266,7 @@ class TestCrossReferenceManager:
         assert len(issues) >= 1
         assert any(issue["type"] == "invalid_label" for issue in issues)
 
-    def test_set_reference_format(self):
+    def test_set_reference_format(self) -> None:
         """Test setting reference format."""
         self.manager.set_reference_format("section")
         assert self.manager.reference_format == "section"
@@ -272,7 +274,7 @@ class TestCrossReferenceManager:
         with pytest.raises(ValueError):
             self.manager.set_reference_format("invalid")
 
-    def test_set_label_prefix(self):
+    def test_set_label_prefix(self) -> None:
         """Test setting label prefix."""
         self.manager.set_label_prefix("my-doc")
         assert self.manager.label_prefix == "my-doc"
@@ -281,7 +283,7 @@ class TestCrossReferenceManager:
         self.manager.set_label_prefix("Special!@#Characters")
         assert self.manager.label_prefix == "special-characters"
 
-    def test_clear_references(self):
+    def test_clear_references(self) -> None:
         """Test clearing all references."""
         self.manager.register_content("creature", "Dragon")
         self.manager.register_content("spell", "Fireball")
@@ -292,9 +294,9 @@ class TestCrossReferenceManager:
 
         assert len(self.manager.references) == 0
 
-    def test_merge_references(self):
+    def test_merge_references(self) -> None:
         """Test merging references from another manager."""
-        other_manager = CrossReferenceManager()
+        other_manager: Any = CrossReferenceManager()
         other_manager.register_content("creature", "Dragon")
         other_manager.register_content("spell", "Fireball")
 
@@ -314,22 +316,22 @@ class TestCrossReferenceManager:
 class TestCrossReferenceManagerEdgeCases:
     """Test edge cases and error conditions."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.manager = CrossReferenceManager()
 
-    def test_empty_name_handling(self):
+    def test_empty_name_handling(self) -> None:
         """Test handling of empty names."""
         ref_id = self.manager.register_content("creature", "")
         assert ref_id == "creature:unnamed"
 
-    def test_none_name_handling(self):
+    def test_none_name_handling(self) -> None:
         """Test handling of None names."""
         # This should probably raise an error or be handled gracefully
         with pytest.raises((TypeError, AttributeError)):
             self.manager.register_content("creature", None)
 
-    def test_unicode_names(self):
+    def test_unicode_names(self) -> None:
         """Test handling of Unicode names."""
         ref_id = self.manager.register_content(
             "creature", "Дракон"
@@ -338,7 +340,7 @@ class TestCrossReferenceManagerEdgeCases:
         assert ref_id.startswith("creature:")
         assert ref_id != "creature:дракон"  # Should be sanitized
 
-    def test_very_long_names(self):
+    def test_very_long_names(self) -> None:
         """Test handling of very long names."""
         long_name = "A" * 1000
         ref_id = self.manager.register_content("creature", long_name)

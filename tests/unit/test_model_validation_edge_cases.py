@@ -4,21 +4,23 @@ This module tests specific edge cases and complex data structures
 that might cause validation issues.
 """
 
-from dnd5e.core.models.creatures import (
+from typing import Any, cast
+
+from dnd5e.core.models.creatures import (  # type: ignore
     Ability,
     ArmorClass,
     Creature,
     CreatureType,
     HitPoints,
 )
-from dnd5e.core.models.items import Item
-from dnd5e.core.models.spells import Spell
+from dnd5e.core.models.items import Item  # type: ignore
+from dnd5e.core.models.spells import Spell  # type: ignore
 
 
 class TestModelValidationEdgeCases:
     """Test edge cases for model validation."""
 
-    def test_spell_complex_entries_structures(self):
+    def test_spell_complex_entries_structures(self) -> None:
         """Test spell validation with various complex entry structures."""
         test_cases = [
             # Nested entries with lists
@@ -101,7 +103,7 @@ class TestModelValidationEdgeCases:
 
         print(f"✅ {len(test_cases)} complex spell entry structures validated")
 
-    def test_spell_higher_level_variations(self):
+    def test_spell_higher_level_variations(self) -> None:
         """Test spell validation with various higher level entry formats."""
         test_cases = [
             # Simple higher level
@@ -162,7 +164,8 @@ class TestModelValidationEdgeCases:
         }
 
         for i, higher_level_data in enumerate(test_cases):
-            spell_data = {**base_spell, **higher_level_data}
+            spell_data = dict(base_spell)
+            spell_data.update(cast(dict, higher_level_data))
             spell = Spell.model_validate(spell_data)
 
             higher_text = spell.get_higher_level_text()
@@ -170,7 +173,7 @@ class TestModelValidationEdgeCases:
 
         print(f"✅ {len(test_cases)} higher level spell variations validated")
 
-    def test_creature_type_variations(self):
+    def test_creature_type_variations(self) -> None:
         """Test creature type validation with various formats."""
         test_cases = [
             # Simple string type
@@ -199,14 +202,14 @@ class TestModelValidationEdgeCases:
         ]
 
         for i, type_data in enumerate(test_cases):
-            creature_type = CreatureType.model_validate(type_data["type"])
-            type_str = str(creature_type)
+            creature_type = CreatureType.model_validate(cast(dict, type_data)["type"])
+            type_str: Any = str(creature_type)
             assert type_str, f"Failed to generate type string for test case {i}"
             assert len(type_str) > 0, f"Empty type string for test case {i}"
 
         print(f"✅ {len(test_cases)} creature type variations validated")
 
-    def test_creature_alignment_variations(self):
+    def test_creature_alignment_variations(self) -> None:
         """Test creature alignment validation with various formats."""
         base_creature = {
             "name": "Test Creature",
@@ -239,7 +242,8 @@ class TestModelValidationEdgeCases:
         ]
 
         for i, alignment_data in enumerate(alignment_test_cases):
-            creature_data = {**base_creature, **alignment_data}
+            creature_data = dict(base_creature)
+            creature_data.update(cast(dict, alignment_data))
             creature = Creature.model_validate(creature_data)
 
             alignment_text = creature._get_alignment_text()
@@ -249,7 +253,7 @@ class TestModelValidationEdgeCases:
 
         print(f"✅ {len(alignment_test_cases)} creature alignment variations validated")
 
-    def test_creature_hp_variations(self):
+    def test_creature_hp_variations(self) -> None:
         """Test creature HP validation with various formats."""
         test_cases = [
             # Standard format
@@ -266,7 +270,7 @@ class TestModelValidationEdgeCases:
 
         for i, hp_data in enumerate(test_cases):
             hp = HitPoints.model_validate(hp_data)
-            hp_str = str(hp)
+            hp_str: Any = str(hp)
             assert hp_str, f"Failed to generate HP string for test case {i}"
             assert hp_str != "Unknown", (
                 f"HP string defaulted to Unknown for test case {i}"
@@ -274,7 +278,7 @@ class TestModelValidationEdgeCases:
 
         print(f"✅ {len(test_cases)} creature HP variations validated")
 
-    def test_creature_ac_variations(self):
+    def test_creature_ac_variations(self) -> None:
         """Test creature AC validation with various formats."""
         test_cases = [
             # Standard format
@@ -291,7 +295,7 @@ class TestModelValidationEdgeCases:
 
         for i, ac_data in enumerate(test_cases):
             ac = ArmorClass.model_validate(ac_data)
-            ac_str = str(ac)
+            ac_str: Any = str(ac)
             assert ac_str, f"Failed to generate AC string for test case {i}"
             assert ac_str != "Unknown", (
                 f"AC string defaulted to Unknown for test case {i}"
@@ -299,7 +303,7 @@ class TestModelValidationEdgeCases:
 
         print(f"✅ {len(test_cases)} creature AC variations validated")
 
-    def test_creature_ability_complex_entries(self):
+    def test_creature_ability_complex_entries(self) -> None:
         """Test creature ability validation with complex entry structures."""
         test_cases = [
             # Simple ability
@@ -338,7 +342,7 @@ class TestModelValidationEdgeCases:
 
         for i, ability_data in enumerate(test_cases):
             ability = Ability.model_validate(ability_data)
-            assert ability.name == ability_data["name"]
+            assert ability.name == cast(dict, ability_data)["name"]
 
             description = ability.get_description_text()
             assert description, (
@@ -347,7 +351,7 @@ class TestModelValidationEdgeCases:
 
         print(f"✅ {len(test_cases)} creature ability variations validated")
 
-    def test_item_complex_entries(self):
+    def test_item_complex_entries(self) -> None:
         """Test item validation with complex entry structures."""
         test_cases = [
             # Item with properties list
@@ -421,9 +425,9 @@ class TestModelValidationEdgeCases:
 
         print(f"✅ {len(test_cases)} item entry variations validated")
 
-    def test_source_format_variations(self):
+    def test_source_format_variations(self) -> None:
         """Test that various source formats are handled correctly."""
-        from dnd5e.core.models.content import Source
+        from dnd5e.core.models.content import Source  # type: ignore
 
         test_cases = [
             # String source
@@ -456,14 +460,14 @@ class TestModelValidationEdgeCases:
                     "entries": ["Test"],
                 }
                 spell = Spell.model_validate(spell_data)
-                assert spell.source.abbreviation == source_data
+                assert spell.source.abbreviation == cast(str, source_data)
             else:
                 source = Source.model_validate(source_data)
-                assert source.abbreviation == source_data["abbreviation"]
+                assert source.abbreviation == cast(dict, source_data)["abbreviation"]
 
         print(f"✅ {len(test_cases)} source format variations validated")
 
-    def test_damage_resistance_immunity_formats(self):
+    def test_damage_resistance_immunity_formats(self) -> None:
         """Test creature damage resistance/immunity with various formats."""
         base_creature = {
             "name": "Test Creature",
@@ -512,7 +516,8 @@ class TestModelValidationEdgeCases:
         ]
 
         for i, resistance_data in enumerate(resistance_test_cases):
-            creature_data = {**base_creature, **resistance_data}
+            creature_data = dict(base_creature)
+            creature_data.update(cast(dict, resistance_data))
             creature = Creature.model_validate(creature_data)
             assert creature.name == "Test Creature"
 
@@ -520,7 +525,7 @@ class TestModelValidationEdgeCases:
             f"✅ {len(resistance_test_cases)} damage resistance/immunity variations validated"
         )
 
-    def test_skill_bonus_formats(self):
+    def test_skill_bonus_formats(self) -> None:
         """Test creature skill bonus validation with various formats."""
         test_cases = [
             # Simple skill bonuses
@@ -560,13 +565,14 @@ class TestModelValidationEdgeCases:
         }
 
         for i, skill_data in enumerate(test_cases):
-            creature_data = {**base_creature, **skill_data}
+            creature_data = dict(base_creature)
+            creature_data.update(cast(dict, skill_data))
             creature = Creature.model_validate(creature_data)
             assert creature.name == "Test Creature"
 
         print(f"✅ {len(test_cases)} skill bonus format variations validated")
 
-    def test_passive_perception_formats(self):
+    def test_passive_perception_formats(self) -> None:
         """Test creature passive perception with various formats."""
         test_cases = [
             # Standard integer
@@ -598,7 +604,8 @@ class TestModelValidationEdgeCases:
         }
 
         for i, passive_data in enumerate(test_cases):
-            creature_data = {**base_creature, **passive_data}
+            creature_data = dict(base_creature)
+            creature_data.update(cast(dict, passive_data))
 
             # For string passive values, we expect validation warnings but not failures
             try:
@@ -612,7 +619,7 @@ class TestModelValidationEdgeCases:
 
         print(f"✅ {len(test_cases)} passive perception format variations tested")
 
-    def test_challenge_rating_formats(self):
+    def test_challenge_rating_formats(self) -> None:
         """Test creature challenge rating with various formats."""
         test_cases = [
             # Standard string
@@ -647,7 +654,8 @@ class TestModelValidationEdgeCases:
         }
 
         for i, cr_data in enumerate(test_cases):
-            creature_data = {**base_creature, **cr_data}
+            creature_data = dict(base_creature)
+            creature_data.update(cast(dict, cr_data))
             creature = Creature.model_validate(creature_data)
 
             cr_text = creature.get_cr_text()

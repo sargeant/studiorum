@@ -1,41 +1,42 @@
 """Tests for the Jinja2-based LaTeX template engine."""
 
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
 from jinja2 import TemplateNotFound, TemplateSyntaxError
 
-from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
+from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine  # type: ignore
 
 
 class TestLaTeXTemplateEngine:
     """Test cases for LaTeX template engine."""
 
-    def test_init_default_config(self):
+    def test_init_default_config(self) -> None:
         """Test engine initialization with default configuration."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         assert engine.config == {}
         assert engine.debug is False
         assert engine.templates_dir == Path("src/dnd5e/renderers/latex/templates")
         assert engine.env is not None
 
-    def test_init_custom_config(self):
+    def test_init_custom_config(self) -> None:
         """Test engine initialization with custom configuration."""
         config = {
             "templates_dir": "custom/templates",
             "debug": True,
         }
-        engine = LaTeXTemplateEngine(config)
+        engine: Any = LaTeXTemplateEngine(config)
 
         assert engine.config == config
         assert engine.debug is True
         assert engine.templates_dir == Path("custom/templates")
 
-    def test_latex_escape_filter(self):
+    def test_latex_escape_filter(self) -> None:
         """Test LaTeX escaping filter."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         # Test basic escaping (note: backslash is escaped first)
         assert engine.env.filters["latex_escape"]("Hello & World") == "Hello \\& World"
@@ -55,9 +56,9 @@ class TestLaTeXTemplateEngine:
         assert engine.env.filters["latex_escape"](123) == "123"
         assert engine.env.filters["latex_escape"](None) == "None"
 
-    def test_latex_formatting_filters(self):
+    def test_latex_formatting_filters(self) -> None:
         """Test LaTeX formatting filters."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         # Test bold filter
         assert engine.env.filters["latex_bold"]("Hello") == "\\textbf{Hello}"
@@ -77,9 +78,9 @@ class TestLaTeXTemplateEngine:
             == "Line 1 \\\\ Line 2"
         )
 
-    def test_dnd_ability_modifier_filter(self):
+    def test_dnd_ability_modifier_filter(self) -> None:
         """Test D&D ability modifier filter."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
         filter_func = engine.env.filters["dnd_ability_modifier"]
 
         # Test standard ability scores
@@ -100,9 +101,9 @@ class TestLaTeXTemplateEngine:
         assert filter_func("invalid") == "invalid"
         assert filter_func(None) == "None"
 
-    def test_dnd_challenge_rating_filter(self):
+    def test_dnd_challenge_rating_filter(self) -> None:
         """Test D&D challenge rating filter."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
         filter_func = engine.env.filters["dnd_challenge_rating"]
 
         # Test fractional CRs
@@ -125,9 +126,9 @@ class TestLaTeXTemplateEngine:
         # Test invalid input
         assert filter_func("invalid") == "invalid"
 
-    def test_dnd_spell_level_filter(self):
+    def test_dnd_spell_level_filter(self) -> None:
         """Test D&D spell level filter."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
         filter_func = engine.env.filters["dnd_spell_level"]
 
         # Test spell levels
@@ -145,10 +146,10 @@ class TestLaTeXTemplateEngine:
         # Test invalid input
         assert filter_func("invalid") == "invalid"
 
-    def test_create_template_context(self):
+    def test_create_template_context(self) -> None:
         """Test template context creation."""
         config = {"debug": True}
-        engine = LaTeXTemplateEngine(config)
+        engine: Any = LaTeXTemplateEngine(config)
 
         context = engine.create_template_context(
             title="Test Document", author="Test Author"
@@ -159,9 +160,9 @@ class TestLaTeXTemplateEngine:
         assert context["title"] == "Test Document"
         assert context["author"] == "Test Author"
 
-    def test_template_exists(self):
+    def test_template_exists(self) -> None:
         """Test template existence check."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         # Test with existing template
         base_template = engine.templates_dir / "base.tex.j2"
@@ -172,9 +173,9 @@ class TestLaTeXTemplateEngine:
         # Test with non-existing template
         assert engine.template_exists("nonexistent") is False
 
-    def test_get_template_path(self):
+    def test_get_template_path(self) -> None:
         """Test template path resolution."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         # Test without extension
         path = engine.get_template_path("base")
@@ -186,9 +187,9 @@ class TestLaTeXTemplateEngine:
         assert path.name == "base.tex.j2"
         assert path.parent == engine.templates_dir
 
-    def test_list_templates(self):
+    def test_list_templates(self) -> None:
         """Test template listing."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         templates = engine.list_templates()
         assert isinstance(templates, list)
@@ -199,24 +200,24 @@ class TestLaTeXTemplateEngine:
             if engine.template_exists(template):
                 assert template in templates
 
-    def test_validate_template_valid(self):
+    def test_validate_template_valid(self) -> None:
         """Test template validation with valid template."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         # Test with existing template
         if engine.template_exists("base"):
             assert engine.validate_template("base") is True
 
-    def test_validate_template_invalid(self):
+    def test_validate_template_invalid(self) -> None:
         """Test template validation with invalid template."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         # Test with non-existing template
         assert engine.validate_template("nonexistent") is False
 
-    def test_clear_cache(self):
+    def test_clear_cache(self) -> None:
         """Test template cache clearing."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         # Add something to cache
         engine._template_cache["test"] = "cached_value"
@@ -226,18 +227,18 @@ class TestLaTeXTemplateEngine:
         engine.clear_cache()
         assert len(engine._template_cache) == 0
 
-    def test_render_template_not_found(self):
+    def test_render_template_not_found(self) -> None:
         """Test rendering with non-existent template."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         with pytest.raises(
             FileNotFoundError, match="Template 'nonexistent.tex.j2' not found"
         ):
             engine.render_template("nonexistent", {})
 
-    def test_post_process_output(self):
+    def test_post_process_output(self) -> None:
         """Test output post-processing."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         # Test removing excessive blank lines
         input_text = "Line 1\n\n\n\nLine 2\n\n\n\nLine 3"
@@ -252,9 +253,9 @@ class TestLaTeXTemplateEngine:
         assert "\\end{itemize}" in result
 
     @patch("dnd5e.renderers.latex.template_engine.FileSystemLoader")
-    def test_jinja_environment_configuration(self, mock_loader):
+    def test_jinja_environment_configuration(self, mock_loader: Any) -> None:
         """Test Jinja2 environment configuration."""
-        engine = LaTeXTemplateEngine()
+        engine: Any = LaTeXTemplateEngine()
 
         # Check environment configuration
         assert engine.env.trim_blocks is True
@@ -273,11 +274,11 @@ class TestLaTeXTemplateEngine:
 class TestTemplateRendering:
     """Test cases for template rendering with real templates."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.engine = LaTeXTemplateEngine()
 
-    def test_render_simple_template(self):
+    def test_render_simple_template(self) -> None:
         """Test rendering a simple template."""
         # Create a temporary template for testing
         template_path = self.engine.templates_dir / "test_simple.tex.j2"
@@ -314,7 +315,7 @@ class TestTemplateRendering:
             if template_path.exists():
                 template_path.unlink()
 
-    def test_render_template_with_conditionals(self):
+    def test_render_template_with_conditionals(self) -> None:
         """Test rendering template with conditional blocks."""
         template_path = self.engine.templates_dir / "test_conditionals.tex.j2"
         template_content = """
@@ -355,7 +356,7 @@ class TestTemplateRendering:
             if template_path.exists():
                 template_path.unlink()
 
-    def test_render_template_with_loops(self):
+    def test_render_template_with_loops(self) -> None:
         """Test rendering template with loop constructs."""
         template_path = self.engine.templates_dir / "test_loops.tex.j2"
         template_content = """
@@ -389,7 +390,7 @@ class TestTemplateRendering:
             if template_path.exists():
                 template_path.unlink()
 
-    def test_render_template_inheritance(self):
+    def test_render_template_inheritance(self) -> None:
         """Test template inheritance functionality."""
         # Create base template
         base_template_path = self.engine.templates_dir / "test_base.tex.j2"

@@ -5,14 +5,14 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.classes import Class
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.models.items import Item
-from dnd5e.core.models.races import Race
-from dnd5e.core.models.spells import Spell
-from dnd5e.renderers.base import RenderContext
-from dnd5e.renderers.latex.content import (
+from dnd5e.core.models.classes import Class  # type: ignore
+from dnd5e.core.models.content import ContentType  # type: ignore
+from dnd5e.core.models.creatures import Creature  # type: ignore
+from dnd5e.core.models.items import Item  # type: ignore
+from dnd5e.core.models.races import Race  # type: ignore
+from dnd5e.core.models.spells import Spell  # type: ignore
+from dnd5e.renderers.base import RenderContext  # type: ignore
+from dnd5e.renderers.latex.content import (  # type: ignore
     LaTeXClassRenderer,
     LaTeXContentRendererRegistry,
     LaTeXCreatureRenderer,
@@ -38,7 +38,7 @@ class TestEnhancedLaTeXCreatureRenderer:
 
     def test_enhanced_creature_rendering_uses_dnd_template(self) -> None:
         """Test that enhanced creature renderer uses DND template format."""
-        creature = Mock(spec=Creature)
+        creature: Any = Mock(spec=Creature)
         creature.name = "Ancient Red Dragon"
         creature.size = ["G"]
         creature.type = "dragon"
@@ -66,7 +66,7 @@ class TestEnhancedLaTeXCreatureRenderer:
             # Verify that creature_dnd template is used by default
             assert mock_render.call_args[0][0] == "creature_dnd"
 
-    def test_parse_ac_data_basic(self):
+    def test_parse_ac_data_basic(self) -> None:
         """Test parsing AC data structures."""
         # Test with natural armor
         ac_data = [{"ac": 15, "from": ["natural armor"]}]
@@ -82,7 +82,7 @@ class TestEnhancedLaTeXCreatureRenderer:
         assert result["source"] is None
         assert result["text"] == "13"
 
-    def test_format_cr_enhanced_basic(self):
+    def test_format_cr_enhanced_basic(self) -> None:
         """Test enhanced CR formatting with experience points."""
         # Test that it returns a string with CR and XP
         result = self.renderer._format_cr_enhanced("5")
@@ -103,20 +103,20 @@ class TestEnhancedLaTeXCreatureRenderer:
 class TestEnhancedLaTeXSpellRenderer:
     """Test cases for enhanced LaTeX spell renderer using DND environments."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.renderer = LaTeXSpellRenderer()
         self.context = Mock(spec=RenderContext)
         self.context.tag_resolver = Mock()
         self.context.tag_resolver.process_text.side_effect = lambda x: x
 
-    def test_supported_content_types(self):
+    def test_supported_content_types(self) -> None:
         """Test supported content types."""
         assert self.renderer.supported_content_types == {ContentType.SPELL}
 
-    def test_enhanced_spell_rendering_uses_dnd_template(self):
+    def test_enhanced_spell_rendering_uses_dnd_template(self) -> None:
         """Test that enhanced spell renderer uses DND spell header format."""
-        spell = Mock(spec=Spell)
+        spell: Any = Mock(spec=Spell)
         spell.name = "Fireball"
         spell.level = 3
         spell.school = "V"
@@ -146,7 +146,7 @@ class TestEnhancedLaTeXSpellRenderer:
             # Verify that spell_dnd template is used by default
             assert mock_render.call_args[0][0] == "spell_dnd"
 
-    def test_expand_school_abbreviation(self):
+    def test_expand_school_abbreviation(self) -> None:
         """Test school abbreviation expansion."""
         assert self.renderer._expand_school_abbreviation("A") == "Abjuration"
         assert self.renderer._expand_school_abbreviation("C") == "Conjuration"
@@ -158,7 +158,7 @@ class TestEnhancedLaTeXSpellRenderer:
         assert self.renderer._expand_school_abbreviation("T") == "Transmutation"
         assert self.renderer._expand_school_abbreviation("Unknown") == "Unknown"
 
-    def test_format_level_school_text(self):
+    def test_format_level_school_text(self) -> None:
         """Test level and school text formatting."""
         # Test cantrip
         result = self.renderer._format_level_school(0, "V")
@@ -172,7 +172,7 @@ class TestEnhancedLaTeXSpellRenderer:
         result = self.renderer._format_level_school(5, "E")
         assert result == "5th-level enchantment"
 
-    def test_format_casting_time_enhanced(self):
+    def test_format_casting_time_enhanced(self) -> None:
         """Test enhanced casting time formatting."""
         # Test standard action
         time_data = [{"number": 1, "unit": "action"}]
@@ -184,7 +184,7 @@ class TestEnhancedLaTeXSpellRenderer:
         result = self.renderer._format_casting_time_enhanced(time_data)
         assert "10 minute" in result
 
-    def test_format_range_enhanced(self):
+    def test_format_range_enhanced(self) -> None:
         """Test enhanced range formatting with special cases."""
         # Test self range
         range_data = {"type": "point", "distance": {"type": "self"}}
@@ -200,23 +200,23 @@ class TestEnhancedLaTeXSpellRenderer:
 class TestLaTeXItemRenderer:
     """Test cases for enhanced LaTeX item renderer with table formatting."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.renderer = LaTeXItemRenderer()
         self.context = Mock(spec=RenderContext)
         self.context.tag_resolver = Mock()
         self.context.tag_resolver.process_text.side_effect = lambda x: x
 
-    def test_supported_content_types(self):
+    def test_supported_content_types(self) -> None:
         """Test supported content types."""
         assert self.renderer.supported_content_types == {ContentType.ITEM}
 
-    def test_render_item_table_multiple_items(self):
+    def test_render_item_table_multiple_items(self) -> None:
         """Test rendering multiple items as a table."""
-        items = []
+        items: list[Any] = []
 
         # Create individual mocks with proper attributes
-        longsword = Mock(spec=Item)
+        longsword: Any = Mock(spec=Item)
         longsword.name = "Longsword"
         longsword.type = "M"
         longsword.rarity = "common"
@@ -229,7 +229,7 @@ class TestLaTeXItemRenderer:
         longsword.is_armor = Mock(return_value=False)
         items.append(longsword)
 
-        chain_mail = Mock(spec=Item)
+        chain_mail: Any = Mock(spec=Item)
         chain_mail.name = "Chain Mail"
         chain_mail.type = "HA"
         chain_mail.rarity = "common"
@@ -242,7 +242,7 @@ class TestLaTeXItemRenderer:
         chain_mail.is_armor = Mock(return_value=True)
         items.append(chain_mail)
 
-        ring = Mock(spec=Item)
+        ring: Any = Mock(spec=Item)
         ring.name = "Ring of Protection"
         ring.type = "R"
         ring.rarity = "rare"
@@ -269,9 +269,9 @@ class TestLaTeXItemRenderer:
             # Verify that item_dnd template is used
             assert mock_render.call_args[0][0] == "item_dnd"
 
-    def test_determine_table_columns_basic(self):
+    def test_determine_table_columns_basic(self) -> None:
         """Test table column determination."""
-        test_item = Mock(spec=Item)
+        test_item: Any = Mock(spec=Item)
         test_item.name = "Test Item"
         test_item.type = "G"
         test_item.rarity = None
@@ -296,20 +296,20 @@ class TestLaTeXItemRenderer:
 class TestLaTeXClassRenderer:
     """Test cases for LaTeX class renderer."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.renderer = LaTeXClassRenderer()
         self.context = Mock(spec=RenderContext)
         self.context.tag_resolver = Mock()
         self.context.tag_resolver.process_text.side_effect = lambda x: x
 
-    def test_supported_content_types(self):
+    def test_supported_content_types(self) -> None:
         """Test supported content types."""
         assert self.renderer.supported_content_types == {ContentType.CLASS}
 
-    def test_render_content_class_basic(self):
+    def test_render_content_class_basic(self) -> None:
         """Test basic class rendering."""
-        class_data = Mock(spec=Class)
+        class_data: Any = Mock(spec=Class)
         class_data.name = "Fighter"
         # Add required source attribute
         class_data.source = Mock()
@@ -345,20 +345,20 @@ class TestLaTeXClassRenderer:
 class TestLaTeXRaceRenderer:
     """Test cases for LaTeX race renderer."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.renderer = LaTeXRaceRenderer()
         self.context = Mock(spec=RenderContext)
         self.context.tag_resolver = Mock()
         self.context.tag_resolver.process_text.side_effect = lambda x: x
 
-    def test_supported_content_types(self):
+    def test_supported_content_types(self) -> None:
         """Test supported content types."""
         assert self.renderer.supported_content_types == {ContentType.RACE}
 
-    def test_render_content_race_basic(self):
+    def test_render_content_race_basic(self) -> None:
         """Test basic race rendering."""
-        race_data = Mock(spec=Race)
+        race_data: Any = Mock(spec=Race)
         race_data.name = "Elf"
         # Add required source attribute
         race_data.source = Mock()
@@ -398,9 +398,9 @@ class TestLaTeXRaceRenderer:
 class TestEnhancedContentRendererRegistry:
     """Test cases for enhanced content renderer registry with all renderer types."""
 
-    def test_registry_includes_all_enhanced_renderers(self):
+    def test_registry_includes_all_enhanced_renderers(self) -> None:
         """Test that registry includes all enhanced renderer types."""
-        registry = LaTeXContentRendererRegistry()
+        registry: Any = LaTeXContentRendererRegistry()
 
         # Test that all content types have renderers
         assert ContentType.SPELL in registry._renderers
@@ -418,9 +418,9 @@ class TestEnhancedContentRendererRegistry:
         assert isinstance(registry._renderers[ContentType.CLASS], LaTeXClassRenderer)
         assert isinstance(registry._renderers[ContentType.RACE], LaTeXRaceRenderer)
 
-    def test_get_renderer_enhanced_types(self):
+    def test_get_renderer_enhanced_types(self) -> None:
         """Test getting renderers for enhanced content types."""
-        registry = LaTeXContentRendererRegistry()
+        registry: Any = LaTeXContentRendererRegistry()
 
         class_renderer = registry.get_renderer(ContentType.CLASS)
         race_renderer = registry.get_renderer(ContentType.RACE)

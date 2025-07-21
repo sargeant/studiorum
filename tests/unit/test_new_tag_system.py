@@ -1,28 +1,33 @@
 """Tests for the new AST-based tag resolution system."""
 
 # Import the new tag system components
-from dnd5e.core.indexer.content_tracker import ContentTracker, TrackedContent
-from dnd5e.core.indexer.new_tag_resolver import TagResolverFacade
-from dnd5e.core.indexer.tag_ast import (
+from typing import Any
+
+from dnd5e.core.indexer.content_tracker import (  # type: ignore
+    ContentTracker,
+    TrackedContent,
+)
+from dnd5e.core.indexer.new_tag_resolver import TagResolverFacade  # type: ignore
+from dnd5e.core.indexer.tag_ast import (  # type: ignore
     CreatureTagNode,
     TextNode,
 )
-from dnd5e.core.indexer.tag_parser import TagParser
+from dnd5e.core.indexer.tag_parser import TagParser  # type: ignore
 
 
 class MockTagNode:
     """Mock AST node for testing purposes."""
 
-    def __init__(self, tag_type: str, original_text_span=None):
+    def __init__(self, tag_type: str, original_text_span: Any = None):
         self.tag_type = tag_type
-        self.children = []
+        self.children: list[Any] = []
         self.original_text_span = original_text_span
 
 
 class MockTextNode:
     """Mock text node for testing purposes."""
 
-    def __init__(self, text: str, original_text_span=None):
+    def __init__(self, text: str, original_text_span: Any = None):
         self.text = text
         self.original_text_span = original_text_span
 
@@ -31,7 +36,11 @@ class MockCreatureTagNode(MockTagNode):
     """Mock creature tag node for testing purposes."""
 
     def __init__(
-        self, name: str, source=None, display_text_nodes=None, original_text_span=None
+        self,
+        name: str,
+        source: Any = None,
+        display_text_nodes: Any = None,
+        original_text_span: Any = None,
     ):
         super().__init__("creature", original_text_span)
         self.name = name
@@ -46,7 +55,11 @@ class MockSpellTagNode(MockTagNode):
     """Mock spell tag node for testing purposes."""
 
     def __init__(
-        self, name: str, source=None, display_text_nodes=None, original_text_span=None
+        self,
+        name: str,
+        source: Any = None,
+        display_text_nodes: Any = None,
+        original_text_span: Any = None,
     ):
         super().__init__("spell", original_text_span)
         self.name = name
@@ -60,7 +73,7 @@ class MockSpellTagNode(MockTagNode):
 class MockDiceTagNode(MockTagNode):
     """Mock dice tag node for testing purposes."""
 
-    def __init__(self, expression: str, original_text_span=None):
+    def __init__(self, expression: str, original_text_span: Any = None):
         super().__init__("dice", original_text_span)
         self.expression = expression
 
@@ -68,20 +81,20 @@ class MockDiceTagNode(MockTagNode):
 class TestTagParser:
     """Tests for the new lark-based tag parser."""
 
-    def test_parser_handles_simple_text(self):
+    def test_parser_handles_simple_text(self) -> None:
         """Test that plain text without tags is parsed correctly."""
         text = "This is plain text with no tags."
-        parser = TagParser()
+        parser: Any = TagParser()
         ast = parser.parse(text)
 
         assert len(ast.children) == 1
         assert isinstance(ast.children[0], TextNode)
         assert ast.children[0].text == text
 
-    def test_parser_handles_simple_creature_tag(self):
+    def test_parser_handles_simple_creature_tag(self) -> None:
         """Test parsing a simple creature tag."""
         text = "{@creature Ancient Red Dragon|MM}"
-        parser = TagParser()
+        parser: Any = TagParser()
         ast = parser.parse(text)
 
         assert len(ast.children) == 1
@@ -91,9 +104,9 @@ class TestTagParser:
         assert len(ast.children[0].display_text_nodes) == 1
         assert ast.children[0].display_text_nodes[0].text == "Ancient Red Dragon"
 
-    def test_parser_handles_creature_tag_with_display_text(self):
+    def test_parser_handles_creature_tag_with_display_text(self) -> None:
         """Test parsing creature tag with custom display text."""
-        # parser = TagParser()
+        # parser: Any = TagParser()
         # ast = parser.parse(text)
         #
         # creature_node = ast.children[0]
@@ -104,10 +117,10 @@ class TestTagParser:
         # assert creature_node.display_text_nodes[0].text == "great wyrm"
         pass  # Placeholder for now
 
-    def test_parser_handles_nested_tags(self):
+    def test_parser_handles_nested_tags(self) -> None:
         """Test parsing nested tags within display text."""
         # This should parse to a creature tag with display_text containing both text and a bold tag
-        # parser = TagParser()
+        # parser: Any = TagParser()
         # ast = parser.parse(text)
         #
         # creature_node = ast.children[0]
@@ -118,9 +131,9 @@ class TestTagParser:
         # assert isinstance(creature_node.display_text_nodes[2], TextNode)
         pass  # Placeholder for now
 
-    def test_parser_handles_mixed_content(self):
+    def test_parser_handles_mixed_content(self) -> None:
         """Test parsing text with multiple tags and plain text."""
-        # parser = TagParser()
+        # parser: Any = TagParser()
         # ast = parser.parse(text)
         #
         # assert len(ast.children) == 5  # "Cast ", spell_tag, " at the ", creature_tag, "!"
@@ -131,9 +144,9 @@ class TestTagParser:
         # assert isinstance(ast.children[4], TextNode)
         pass  # Placeholder for now
 
-    def test_parser_handles_escaped_characters(self):
+    def test_parser_handles_escaped_characters(self) -> None:
         """Test parsing tags with escaped pipes and braces."""
-        # parser = TagParser()
+        # parser: Any = TagParser()
         # ast = parser.parse(text)
         #
         # creature_node = ast.children[0]
@@ -141,10 +154,10 @@ class TestTagParser:
         # assert creature_node.display_text_nodes[0].text == "display}with}braces"  # Escaped braces
         pass  # Placeholder for now
 
-    def test_parser_error_handling_malformed_tags(self):
+    def test_parser_error_handling_malformed_tags(self) -> None:
         """Test parser error handling for malformed tags."""
 
-        # parser = TagParser()
+        # parser: Any = TagParser()
         # for case in malformed_cases:
         #     try:
         #         ast = parser.parse(case)
@@ -160,35 +173,35 @@ class TestTagParser:
 class TestTagHandlers:
     """Tests for individual tag handlers."""
 
-    def test_creature_handler(self):
+    def test_creature_handler(self) -> None:
         """Test creature tag handler rendering and content tracking."""
-        # handler = CreatureTagHandler()
+        # handler: Any = CreatureTagHandler()
         # assert handler.handles("creature")
         # assert not handler.handles("spell")
         #
-        # node = MockCreatureTagNode("Ancient Red Dragon", "MM")
-        # context = MockRendererContext()
+        # node: Any = MockCreatureTagNode("Ancient Red Dragon", "MM")
+        # context: Any = MockRendererContext()
         # result = handler.render(node, context)
         #
         # assert result == "\\textbf{Ancient Red Dragon}"
         pass  # Placeholder for now
 
-    def test_creature_handler_with_display_text(self):
+    def test_creature_handler_with_display_text(self) -> None:
         """Test creature handler with custom display text."""
-        # handler = CreatureTagHandler()
+        # handler: Any = CreatureTagHandler()
         # display_nodes = [MockTextNode("great wyrm")]
-        # node = MockCreatureTagNode("Ancient Red Dragon", "MM", display_nodes)
-        # context = MockRendererContext()
+        # node: Any = MockCreatureTagNode("Ancient Red Dragon", "MM", display_nodes)
+        # context: Any = MockRendererContext()
         # result = handler.render(node, context)
         #
         # assert result == "\\textbf{great wyrm}"
         pass  # Placeholder for now
 
-    def test_creature_handler_content_tracking(self):
+    def test_creature_handler_content_tracking(self) -> None:
         """Test creature handler content tracking."""
-        # handler = CreatureTagHandler()
-        # tracker = ContentTracker()
-        # node = MockCreatureTagNode("Ancient Red Dragon", "MM")
+        # handler: Any = CreatureTagHandler()
+        # tracker: Any = ContentTracker()
+        # node: Any = MockCreatureTagNode("Ancient Red Dragon", "MM")
         #
         # handler.track_content(node, tracker)
         # tracked = tracker.get_tracked_content()
@@ -197,25 +210,25 @@ class TestTagHandlers:
         # assert ("creature", "Ancient Red Dragon", "MM") in tracked
         pass  # Placeholder for now
 
-    def test_spell_handler(self):
+    def test_spell_handler(self) -> None:
         """Test spell tag handler rendering."""
-        # handler = SpellTagHandler()
+        # handler: Any = SpellTagHandler()
         # assert handler.handles("spell")
         #
-        # node = MockSpellTagNode("Fireball", "PHB")
-        # context = MockRendererContext()
+        # node: Any = MockSpellTagNode("Fireball", "PHB")
+        # context: Any = MockRendererContext()
         # result = handler.render(node, context)
         #
         # assert result == "\\textit{Fireball}"
         pass  # Placeholder for now
 
-    def test_dice_handler(self):
+    def test_dice_handler(self) -> None:
         """Test dice tag handler rendering."""
-        # handler = DiceTagHandler()
+        # handler: Any = DiceTagHandler()
         # assert handler.handles("dice")
         #
-        # node = MockDiceTagNode("1d20+5")
-        # context = MockRendererContext()
+        # node: Any = MockDiceTagNode("1d20+5")
+        # context: Any = MockRendererContext()
         # result = handler.render(node, context)
         #
         # assert result == "\\texttt{1d20+5}"
@@ -225,44 +238,44 @@ class TestTagHandlers:
 class TestTagRenderer:
     """Tests for the tag renderer/dispatcher."""
 
-    def test_renderer_registration(self):
+    def test_renderer_registration(self) -> None:
         """Test tag handler registration."""
-        # renderer = TagRenderer()
-        # handler = CreatureTagHandler()
+        # renderer: Any = TagRenderer()
+        # handler: Any = CreatureTagHandler()
         # renderer.register_handler(handler)
         #
         # assert "creature" in renderer._handlers
         # assert renderer._handlers["creature"] == handler
         pass  # Placeholder for now
 
-    def test_renderer_text_node(self):
+    def test_renderer_text_node(self) -> None:
         """Test rendering text nodes."""
-        # renderer = TagRenderer()
-        # context = MockRendererContext()
-        # node = MockTextNode("plain text")
+        # renderer: Any = TagRenderer()
+        # context: Any = MockRendererContext()
+        # node: Any = MockTextNode("plain text")
         # result = renderer.render_node(node, context)
         #
         # assert result == "plain text"
         pass  # Placeholder for now
 
-    def test_renderer_tag_node(self):
+    def test_renderer_tag_node(self) -> None:
         """Test rendering tag nodes."""
-        # renderer = TagRenderer()
+        # renderer: Any = TagRenderer()
         # renderer.register_handler(CreatureTagHandler())
-        # context = MockRendererContext()
+        # context: Any = MockRendererContext()
         #
-        # node = MockCreatureTagNode("Ancient Red Dragon", "MM")
+        # node: Any = MockCreatureTagNode("Ancient Red Dragon", "MM")
         # result = renderer.render_node(node, context)
         #
         # assert result == "\\textbf{Ancient Red Dragon}"
         pass  # Placeholder for now
 
-    def test_renderer_unknown_tag_fallback(self):
+    def test_renderer_unknown_tag_fallback(self) -> None:
         """Test fallback for unknown tag types."""
-        # renderer = TagRenderer()
-        # context = MockRendererContext()
+        # renderer: Any = TagRenderer()
+        # context: Any = MockRendererContext()
         #
-        # node = MockTagNode("unknown_type")
+        # node: Any = MockTagNode("unknown_type")
         # result = renderer.render_node(node, context)
         #
         # # Should fallback to original tag format or error message
@@ -273,9 +286,9 @@ class TestTagRenderer:
 class TestContentTracker:
     """Tests for content tracking functionality."""
 
-    def test_content_tracker_basic_tracking(self):
+    def test_content_tracker_basic_tracking(self) -> None:
         """Test basic content tracking."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
         tracker.add_content("creature", "Ancient Red Dragon", "MM")
         tracker.add_content("spell", "Fireball", "PHB")
 
@@ -287,9 +300,9 @@ class TestContentTracker:
         assert ("creature", "Ancient Red Dragon", "MM") in types_and_names
         assert ("spell", "Fireball", "PHB") in types_and_names
 
-    def test_content_tracker_deduplication(self):
+    def test_content_tracker_deduplication(self) -> None:
         """Test that duplicate content is not tracked multiple times."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
         tracker.add_content("spell", "Fireball", "PHB")
         tracker.add_content("spell", "Fireball", "PHB")  # Duplicate
         tracker.add_content(
@@ -317,9 +330,9 @@ class TestContentTracker:
         assert "Fireball" in names
         assert "fireball" in names
 
-    def test_content_tracker_sorting(self):
+    def test_content_tracker_sorting(self) -> None:
         """Test that tracked content is returned in sorted order."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
         tracker.add_content("spell", "Zephyr Strike", "PHB")
         tracker.add_content("creature", "Ancient Red Dragon", "MM")
         tracker.add_content("spell", "Fireball", "PHB")
@@ -336,9 +349,9 @@ class TestContentTracker:
         actual_order = [(c.content_type, c.name, c.source) for c in tracked]
         assert actual_order == expected_order
 
-    def test_content_tracker_clear(self):
+    def test_content_tracker_clear(self) -> None:
         """Test clearing tracked content."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
         tracker.add_content("spell", "Fireball", "PHB")
         tracker.add_content("creature", "Dragon", "MM")
         assert len(tracker.get_tracked_content()) == 2
@@ -349,30 +362,30 @@ class TestContentTracker:
         assert tracker.get_content_count("spell", "Fireball", "PHB") == 0
         assert len(tracker.get_content_types()) == 0
 
-    def test_tracked_content_normalization(self):
+    def test_tracked_content_normalization(self) -> None:
         """Test TrackedContent normalization in __post_init__."""
         # Test content_type normalization (lowercase)
-        content = TrackedContent("SPELL", "Fireball", "PHB")
+        content: Any = TrackedContent("SPELL", "Fireball", "PHB")
         assert content.content_type == "spell"
 
         # Test name stripping
-        content = TrackedContent("spell", "  Fireball  ", "PHB")
-        assert content.name == "Fireball"
+        content2: Any = TrackedContent("spell", "  Fireball  ", "PHB")
+        assert content2.name == "Fireball"
 
         # Test source stripping
-        content = TrackedContent("spell", "Fireball", "  PHB  ")
-        assert content.source == "PHB"
+        content3: Any = TrackedContent("spell", "Fireball", "  PHB  ")
+        assert content3.source == "PHB"
 
         # Test page stripping
-        content = TrackedContent("spell", "Fireball", "PHB", "  123  ")
-        assert content.page == "123"
+        content4: Any = TrackedContent("spell", "Fireball", "PHB", "  123  ")
+        assert content4.page == "123"
 
-    def test_tracked_content_equality_and_hashing(self):
+    def test_tracked_content_equality_and_hashing(self) -> None:
         """Test TrackedContent equality and hashing behavior."""
-        content1 = TrackedContent("spell", "Fireball", "PHB")
-        content2 = TrackedContent("spell", "Fireball", "PHB")
-        content3 = TrackedContent("spell", "Fireball", "MM")
-        content4 = TrackedContent("creature", "Fireball", "PHB")
+        content1: Any = TrackedContent("spell", "Fireball", "PHB")
+        content2: Any = TrackedContent("spell", "Fireball", "PHB")
+        content3: Any = TrackedContent("spell", "Fireball", "MM")
+        content4: Any = TrackedContent("creature", "Fireball", "PHB")
 
         # Test equality
         assert content1 == content2
@@ -388,20 +401,20 @@ class TestContentTracker:
         content_set = {content1, content2, content3}
         assert len(content_set) == 2  # content1 and content2 are duplicates
 
-    def test_tracked_content_to_tuple(self):
+    def test_tracked_content_to_tuple(self) -> None:
         """Test TrackedContent to_tuple method."""
-        content = TrackedContent("spell", "Fireball", "PHB", "123")
+        content: Any = TrackedContent("spell", "Fireball", "PHB", "123")
         tuple_result = content.to_tuple()
         assert tuple_result == ("spell", "Fireball", "PHB")
 
         # Test with None source
-        content_no_source = TrackedContent("spell", "Fireball", None)
+        content_no_source: Any = TrackedContent("spell", "Fireball", None)
         tuple_result = content_no_source.to_tuple()
         assert tuple_result == ("spell", "Fireball", None)
 
-    def test_get_tracked_content_by_type(self):
+    def test_get_tracked_content_by_type(self) -> None:
         """Test filtering tracked content by type."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
         tracker.add_content("spell", "Fireball", "PHB")
         tracker.add_content("spell", "Lightning Bolt", "PHB")
         tracker.add_content("creature", "Dragon", "MM")
@@ -423,9 +436,9 @@ class TestContentTracker:
         nonexistent = tracker.get_tracked_content_by_type("nonexistent")
         assert len(nonexistent) == 0
 
-    def test_get_content_count(self):
+    def test_get_content_count(self) -> None:
         """Test getting reference counts for specific content."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
 
         # Add same content multiple times
         tracker.add_content("spell", "Fireball", "PHB")
@@ -448,9 +461,9 @@ class TestContentTracker:
         count_whitespace = tracker.get_content_count("spell", "  Fireball  ", "PHB")
         assert count_whitespace == 3
 
-    def test_get_content_types(self):
+    def test_get_content_types(self) -> None:
         """Test getting all tracked content types."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
 
         # Empty tracker
         assert tracker.get_content_types() == []
@@ -465,9 +478,9 @@ class TestContentTracker:
         assert set(types) == {"creature", "item", "spell"}
         assert types == sorted(types)  # Should be sorted
 
-    def test_get_statistics(self):
+    def test_get_statistics(self) -> None:
         """Test getting tracking statistics."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
 
         # Empty tracker
         stats = tracker.get_statistics()
@@ -486,9 +499,9 @@ class TestContentTracker:
         assert stats["spell_count"] == 2
         assert stats["creature_count"] == 1
 
-    def test_has_content(self):
+    def test_has_content(self) -> None:
         """Test checking if specific content exists."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
         tracker.add_content("spell", "Fireball", "PHB")
 
         # Test existing content
@@ -507,9 +520,9 @@ class TestContentTracker:
         assert tracker.has_content("spell", "Cantrip", None)
         assert not tracker.has_content("spell", "Cantrip", "PHB")
 
-    def test_remove_content(self):
+    def test_remove_content(self) -> None:
         """Test removing specific content."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
         tracker.add_content("spell", "Fireball", "PHB")
         tracker.add_content("spell", "Lightning Bolt", "PHB")
 
@@ -529,13 +542,13 @@ class TestContentTracker:
         # Remaining content should be unaffected
         assert tracker.has_content("spell", "Lightning Bolt", "PHB")
 
-    def test_merge_tracker(self):
+    def test_merge_tracker(self) -> None:
         """Test merging two trackers."""
-        tracker1 = ContentTracker()
+        tracker1: Any = ContentTracker()
         tracker1.add_content("spell", "Fireball", "PHB")
         tracker1.add_content("creature", "Dragon", "MM")
 
-        tracker2 = ContentTracker()
+        tracker2: Any = ContentTracker()
         tracker2.add_content("spell", "Lightning Bolt", "PHB")
         tracker2.add_content("spell", "Fireball", "PHB")  # Duplicate
         tracker2.add_content("item", "Sword", "DMG")
@@ -550,9 +563,9 @@ class TestContentTracker:
         assert tracker1.get_content_count("spell", "Fireball", "PHB") == 2
         assert tracker1.get_content_count("spell", "Lightning Bolt", "PHB") == 1
 
-    def test_export_for_appendix(self):
+    def test_export_for_appendix(self) -> None:
         """Test exporting content for appendix generation."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
         tracker.add_content("spell", "Fireball", "PHB", "251")
         tracker.add_content("spell", "Fireball", "PHB")  # Duplicate reference
         tracker.add_content("creature", "Ancient Red Dragon", "MM", "98")
@@ -580,24 +593,24 @@ class TestContentTracker:
         assert creature_entry["name"] == "Ancient Red Dragon"
         assert creature_entry["reference_count"] == 1
 
-    def test_content_with_pages(self):
+    def test_content_with_pages(self) -> None:
         """Test content tracking with page numbers."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
         tracker.add_content("spell", "Fireball", "PHB", "251")
         tracker.add_content("creature", "Dragon", "MM")  # No page
 
         content_list = tracker.get_tracked_content()
 
         # Find the entries
-        fireball = next(c for c in content_list if c.name == "Fireball")
-        dragon = next(c for c in content_list if c.name == "Dragon")
+        fireball: Any = next(c for c in content_list if c.name == "Fireball")
+        dragon: Any = next(c for c in content_list if c.name == "Dragon")
 
         assert fireball.page == "251"
         assert dragon.page is None
 
-    def test_edge_cases(self):
+    def test_edge_cases(self) -> None:
         """Test edge cases and boundary conditions."""
-        tracker = ContentTracker()
+        tracker: Any = ContentTracker()
 
         # Empty strings
         tracker.add_content("", "", "")
@@ -619,9 +632,9 @@ class TestContentTracker:
 class TestTagResolverFacade:
     """Tests for the backward compatibility facade."""
 
-    def test_facade_api_compatibility(self):
+    def test_facade_api_compatibility(self) -> None:
         """Test that the facade maintains the old API."""
-        facade = TagResolverFacade()
+        facade: Any = TagResolverFacade()
 
         # Should have the same method as the old TagResolver
         assert hasattr(facade, "process_text")
@@ -633,9 +646,9 @@ class TestTagResolverFacade:
         assert "\\textit{Fireball}" in result
         assert "\\textbf{Ancient Red Dragon}" in result
 
-    def test_facade_new_functionality(self):
+    def test_facade_new_functionality(self) -> None:
         """Test that the facade exposes new functionality."""
-        facade = TagResolverFacade()
+        facade: Any = TagResolverFacade()
 
         # Process some text with tags
         text = "Cast {@spell Fireball|PHB} at the {@creature Ancient Red Dragon|MM}!"
@@ -651,10 +664,10 @@ class TestTagResolverFacade:
 class TestIntegrationScenarios:
     """Integration tests for complete tag processing scenarios."""
 
-    def test_complex_document_processing(self):
+    def test_complex_document_processing(self) -> None:
         """Test processing a complex document with multiple tag types."""
 
-        # facade = TagResolverFacade()
+        # facade: Any = TagResolverFacade()
         # result = facade.process_text(document)
         #
         # # Check that all tags are processed correctly
@@ -675,13 +688,13 @@ class TestIntegrationScenarios:
         # assert set(tracked) == expected_tracked
         pass  # Placeholder for now
 
-    def test_performance_with_large_document(self):
+    def test_performance_with_large_document(self) -> None:
         """Test performance with a large document containing many tags."""
         # Create a large document with 1000 tags
         tags = [f"{{@spell Spell{i}|PHB}}" for i in range(1000)]
         " ".join(tags)
 
-        # facade = TagResolverFacade()
+        # facade: Any = TagResolverFacade()
         #
         # import time
         # start_time = time.time()
@@ -696,10 +709,10 @@ class TestIntegrationScenarios:
         # assert len(tracked) == 1000
         pass  # Placeholder for now
 
-    def test_error_recovery(self):
+    def test_error_recovery(self) -> None:
         """Test that the system recovers gracefully from parsing errors."""
 
-        # facade = TagResolverFacade()
+        # facade: Any = TagResolverFacade()
         # result = facade.process_text(document)
         #
         # # Should process valid tags and handle malformed ones gracefully

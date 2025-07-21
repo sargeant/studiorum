@@ -1,10 +1,11 @@
 """Comprehensive tests for tag_parser.py to improve test coverage."""
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 
-from dnd5e.core.indexer.tag_ast import (
+from dnd5e.core.indexer.tag_ast import (  # type: ignore
     AdventureTagNode,
     BackgroundTagNode,
     BoldTagNode,
@@ -29,7 +30,7 @@ from dnd5e.core.indexer.tag_ast import (
     TagNode,
     TextNode,
 )
-from dnd5e.core.indexer.tag_parser import (
+from dnd5e.core.indexer.tag_parser import (  # type: ignore
     TagASTTransformer,
     TagParseError,
     TagParser,
@@ -39,23 +40,23 @@ from dnd5e.core.indexer.tag_parser import (
 class TestTagParseError:
     """Tests for TagParseError exception."""
 
-    def test_tag_parse_error_basic(self):
+    def test_tag_parse_error_basic(self) -> None:
         """Test basic TagParseError creation."""
-        error = TagParseError("Test error")
+        error: Any = TagParseError("Test error")
         assert str(error) == "Test error"
         assert error.position is None
         assert error.text is None
 
-    def test_tag_parse_error_with_position(self):
+    def test_tag_parse_error_with_position(self) -> None:
         """Test TagParseError with position information."""
-        error = TagParseError("Test error", position=15)
+        error: Any = TagParseError("Test error", position=15)
         assert str(error) == "Test error"
         assert error.position == 15
         assert error.text is None
 
-    def test_tag_parse_error_with_text_and_position(self):
+    def test_tag_parse_error_with_text_and_position(self) -> None:
         """Test TagParseError with all parameters."""
-        error = TagParseError("Test error", position=15, text="sample text")
+        error: Any = TagParseError("Test error", position=15, text="sample text")
         assert str(error) == "Test error"
         assert error.position == 15
         assert error.text == "sample text"
@@ -64,19 +65,19 @@ class TestTagParseError:
 class TestTagASTTransformer:
     """Tests for TagASTTransformer class."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.original_text = "Test text with {@creature Dragon|MM} tags"
         self.transformer = TagASTTransformer(self.original_text)
 
-    def test_transformer_initialization(self):
+    def test_transformer_initialization(self) -> None:
         """Test transformer initialization."""
         assert self.transformer.original_text == self.original_text
 
-    def test_document_transform(self):
+    def test_document_transform(self) -> None:
         """Test document transformation."""
-        text_node = TextNode("Hello")
-        creature_node = CreatureTagNode("Dragon", "MM")
+        text_node: Any = TextNode("Hello")
+        creature_node: Any = CreatureTagNode("Dragon", "MM")
         children = [text_node, creature_node, None]  # Include None to test filtering
 
         result = self.transformer.document(children)
@@ -86,7 +87,7 @@ class TestTagASTTransformer:
         assert result.children[0] == text_node
         assert result.children[1] == creature_node
 
-    def test_text_transform(self):
+    def test_text_transform(self) -> None:
         """Test text transformation from tokens."""
         from lark import Token
 
@@ -96,7 +97,7 @@ class TestTagASTTransformer:
         assert isinstance(result, TextNode)
         assert result.text == "Hello world"
 
-    def test_text_fragment_transform(self):
+    def test_text_fragment_transform(self) -> None:
         """Test text fragment transformation."""
         from lark import Token
 
@@ -105,7 +106,7 @@ class TestTagASTTransformer:
 
         assert result == "Hello world"
 
-    def test_tag_type_transform(self):
+    def test_tag_type_transform(self) -> None:
         """Test tag type transformation."""
         from lark import Token
 
@@ -114,7 +115,7 @@ class TestTagASTTransformer:
 
         assert result == "creature"
 
-    def test_escaped_char_transform(self):
+    def test_escaped_char_transform(self) -> None:
         """Test escaped character transformation."""
         from lark import Token
 
@@ -133,12 +134,12 @@ class TestTagASTTransformer:
         result = self.transformer.escaped_char(tokens)
         assert result == "\\n"
 
-    def test_tag_transform_missing_type(self):
+    def test_tag_transform_missing_type(self) -> None:
         """Test tag transformation with missing type."""
         with pytest.raises(TagParseError, match="Tag missing type"):
             self.transformer.tag([])
 
-    def test_tag_transform_with_string_parts(self):
+    def test_tag_transform_with_string_parts(self) -> None:
         """Test tag transformation with string parts."""
         children = ["creature", "Dragon", "MM", "dragon"]
         result = self.transformer.tag(children)
@@ -149,20 +150,20 @@ class TestTagASTTransformer:
         assert len(result.display_text_nodes) == 1
         assert result.display_text_nodes[0].text == "dragon"
 
-    def test_tag_transform_with_list_parts(self):
+    def test_tag_transform_with_list_parts(self) -> None:
         """Test tag transformation with list parts (nested content)."""
         # Create mock ASTNodes for the list part
-        text_node1 = TextNode("nested")
-        text_node2 = TextNode("content")
+        text_node1: Any = TextNode("nested")
+        text_node2: Any = TextNode("content")
         children = ["creature", [text_node1, text_node2]]
         result = self.transformer.tag(children)
 
         assert isinstance(result, CreatureTagNode)
         assert result.name == "nestedcontent"  # From _render_content_part
 
-    def test_content_part_transform(self):
+    def test_content_part_transform(self) -> None:
         """Test content part transformation."""
-        tag_node = TagNode("test")
+        tag_node: Any = TagNode("test")
         children = [tag_node, "more text"]
 
         result = self.transformer.content_part(children)
@@ -172,7 +173,7 @@ class TestTagASTTransformer:
         assert isinstance(result[1], TextNode)
         assert result[1].text == "more text"
 
-    def test_content_part_transform_only_text(self):
+    def test_content_part_transform_only_text(self) -> None:
         """Test content part transformation with only text."""
         children = ["hello", " ", "world"]
 
@@ -182,26 +183,26 @@ class TestTagASTTransformer:
         assert isinstance(result[0], TextNode)
         assert result[0].text == "hello world"
 
-    def test_render_content_part_with_mixed_nodes(self):
+    def test_render_content_part_with_mixed_nodes(self) -> None:
         """Test _render_content_part with mixed node types."""
-        text_node = TextNode("plain text")
-        tag_node = TagNode("test")
+        text_node: Any = TextNode("plain text")
+        tag_node: Any = TagNode("test")
         nodes = [text_node, tag_node]
 
         result = self.transformer._render_content_part(nodes)
 
         assert result == "plain text{@test...}"
 
-    def test_render_content_part_text_only(self):
+    def test_render_content_part_text_only(self) -> None:
         """Test _render_content_part with text only."""
-        text_node = TextNode("plain text")
+        text_node: Any = TextNode("plain text")
         nodes = [text_node]
 
         result = self.transformer._render_content_part(nodes)
 
         assert result == "plain text"
 
-    def test_create_tag_node_creature(self):
+    def test_create_tag_node_creature(self) -> None:
         """Test creation of creature tag node."""
         result = self.transformer._create_tag_node(
             "creature", ["Dragon", "MM", "great wyrm", "98"]
@@ -214,7 +215,7 @@ class TestTagASTTransformer:
         assert result.display_text_nodes[0].text == "great wyrm"
         assert result.page == "98"
 
-    def test_create_tag_node_spell(self):
+    def test_create_tag_node_spell(self) -> None:
         """Test creation of spell tag node."""
         result = self.transformer._create_tag_node("spell", ["Fireball", "PHB"])
 
@@ -222,7 +223,7 @@ class TestTagASTTransformer:
         assert result.name == "Fireball"
         assert result.source == "PHB"
 
-    def test_create_tag_node_item(self):
+    def test_create_tag_node_item(self) -> None:
         """Test creation of item tag node."""
         result = self.transformer._create_tag_node("item", ["Sword +1", "DMG"])
 
@@ -230,7 +231,7 @@ class TestTagASTTransformer:
         assert result.name == "Sword +1"
         assert result.source == "DMG"
 
-    def test_create_tag_node_class(self):
+    def test_create_tag_node_class(self) -> None:
         """Test creation of class tag node."""
         result = self.transformer._create_tag_node("class", ["Fighter", "PHB"])
 
@@ -238,7 +239,7 @@ class TestTagASTTransformer:
         assert result.name == "Fighter"
         assert result.source == "PHB"
 
-    def test_create_tag_node_race(self):
+    def test_create_tag_node_race(self) -> None:
         """Test creation of race tag node."""
         result = self.transformer._create_tag_node("race", ["Elf", "PHB"])
 
@@ -246,7 +247,7 @@ class TestTagASTTransformer:
         assert result.name == "Elf"
         assert result.source == "PHB"
 
-    def test_create_tag_node_background(self):
+    def test_create_tag_node_background(self) -> None:
         """Test creation of background tag node."""
         result = self.transformer._create_tag_node("background", ["Acolyte", "PHB"])
 
@@ -254,7 +255,7 @@ class TestTagASTTransformer:
         assert result.name == "Acolyte"
         assert result.source == "PHB"
 
-    def test_create_tag_node_feat(self):
+    def test_create_tag_node_feat(self) -> None:
         """Test creation of feat tag node."""
         result = self.transformer._create_tag_node("feat", ["Alert", "PHB"])
 
@@ -262,7 +263,7 @@ class TestTagASTTransformer:
         assert result.name == "Alert"
         assert result.source == "PHB"
 
-    def test_create_tag_node_bold(self):
+    def test_create_tag_node_bold(self) -> None:
         """Test creation of bold tag node."""
         result = self.transformer._create_tag_node("bold", ["important text"])
 
@@ -270,7 +271,7 @@ class TestTagASTTransformer:
         assert len(result.content_nodes) == 1
         assert result.content_nodes[0].text == "important text"
 
-    def test_create_tag_node_bold_alias(self):
+    def test_create_tag_node_bold_alias(self) -> None:
         """Test creation of bold tag node with 'b' alias."""
         result = self.transformer._create_tag_node("b", ["important text"])
 
@@ -278,7 +279,7 @@ class TestTagASTTransformer:
         assert len(result.content_nodes) == 1
         assert result.content_nodes[0].text == "important text"
 
-    def test_create_tag_node_italic(self):
+    def test_create_tag_node_italic(self) -> None:
         """Test creation of italic tag node."""
         result = self.transformer._create_tag_node("italic", ["emphasized text"])
 
@@ -286,7 +287,7 @@ class TestTagASTTransformer:
         assert len(result.content_nodes) == 1
         assert result.content_nodes[0].text == "emphasized text"
 
-    def test_create_tag_node_italic_alias(self):
+    def test_create_tag_node_italic_alias(self) -> None:
         """Test creation of italic tag node with 'i' alias."""
         result = self.transformer._create_tag_node("i", ["emphasized text"])
 
@@ -294,56 +295,56 @@ class TestTagASTTransformer:
         assert len(result.content_nodes) == 1
         assert result.content_nodes[0].text == "emphasized text"
 
-    def test_create_tag_node_dice(self):
+    def test_create_tag_node_dice(self) -> None:
         """Test creation of dice tag node."""
         result = self.transformer._create_tag_node("dice", ["1d20+5"])
 
         assert isinstance(result, DiceTagNode)
         assert result.expression == "1d20+5"
 
-    def test_create_tag_node_hit(self):
+    def test_create_tag_node_hit(self) -> None:
         """Test creation of hit tag node."""
         result = self.transformer._create_tag_node("hit", ["+5"])
 
         assert isinstance(result, HitTagNode)
         assert result.bonus == "+5"
 
-    def test_create_tag_node_dc(self):
+    def test_create_tag_node_dc(self) -> None:
         """Test creation of DC tag node."""
         result = self.transformer._create_tag_node("dc", ["15"])
 
         assert isinstance(result, DCTagNode)
         assert result.dc == "15"
 
-    def test_create_tag_node_damage(self):
+    def test_create_tag_node_damage(self) -> None:
         """Test creation of damage tag node."""
         result = self.transformer._create_tag_node("damage", ["fire"])
 
         assert isinstance(result, DamageTagNode)
         assert result.damage_type == "fire"
 
-    def test_create_tag_node_condition(self):
+    def test_create_tag_node_condition(self) -> None:
         """Test creation of condition tag node."""
         result = self.transformer._create_tag_node("condition", ["charmed"])
 
         assert isinstance(result, ConditionTagNode)
         assert result.condition == "charmed"
 
-    def test_create_tag_node_chance(self):
+    def test_create_tag_node_chance(self) -> None:
         """Test creation of chance tag node."""
         result = self.transformer._create_tag_node("chance", ["50"])
 
         assert isinstance(result, ChanceTagNode)
         assert result.percentage == "50"
 
-    def test_create_tag_node_recharge(self):
+    def test_create_tag_node_recharge(self) -> None:
         """Test creation of recharge tag node."""
         result = self.transformer._create_tag_node("recharge", ["5-6"])
 
         assert isinstance(result, RechargeTagNode)
         assert result.recharge == "5-6"
 
-    def test_create_tag_node_adventure(self):
+    def test_create_tag_node_adventure(self) -> None:
         """Test creation of adventure tag node."""
         result = self.transformer._create_tag_node(
             "adventure", ["Lost Mine", "LMoP", "adventure", "5"]
@@ -354,7 +355,7 @@ class TestTagASTTransformer:
         assert result.source == "LMoP"
         assert result.page == "5"
 
-    def test_create_tag_node_book(self):
+    def test_create_tag_node_book(self) -> None:
         """Test creation of book tag node."""
         result = self.transformer._create_tag_node(
             "book", ["Player's Handbook", "PHB", "", "100"]
@@ -365,28 +366,28 @@ class TestTagASTTransformer:
         assert result.source == "PHB"
         assert result.page == "100"
 
-    def test_create_tag_node_filter(self):
+    def test_create_tag_node_filter(self) -> None:
         """Test creation of filter tag node."""
         result = self.transformer._create_tag_node("filter", ["spells"])
 
         assert isinstance(result, FilterTagNode)
         assert result.content == "spells"
 
-    def test_create_tag_node_loader(self):
+    def test_create_tag_node_loader(self) -> None:
         """Test creation of loader tag node."""
         result = self.transformer._create_tag_node("loader", ["bestiary"])
 
         assert isinstance(result, LoaderTagNode)
         assert result.content == "bestiary"
 
-    def test_create_tag_node_unknown(self):
+    def test_create_tag_node_unknown(self) -> None:
         """Test creation of unknown tag type."""
         result = self.transformer._create_tag_node("unknown", ["data"])
 
         assert isinstance(result, TagNode)
         assert result.tag_type == "unknown"
 
-    def test_create_tag_node_with_empty_parts(self):
+    def test_create_tag_node_with_empty_parts(self) -> None:
         """Test creation with empty parts list."""
         result = self.transformer._create_tag_node("creature", [])
 
@@ -394,7 +395,7 @@ class TestTagASTTransformer:
         assert result.name == ""
         assert result.source is None
 
-    def test_create_tag_node_with_empty_source(self):
+    def test_create_tag_node_with_empty_source(self) -> None:
         """Test creation with empty source."""
         result = self.transformer._create_tag_node("creature", ["Dragon", ""])
 
@@ -402,17 +403,17 @@ class TestTagASTTransformer:
         assert result.name == "Dragon"
         assert result.source is None
 
-    def test_create_tag_node_bold_with_display_text(self):
+    def test_create_tag_node_bold_with_display_text(self) -> None:
         """Test creation of bold tag with custom display text."""
         # Simulate having display_text_nodes
-        transformer = TagASTTransformer("test")
+        transformer: Any = TagASTTransformer("test")
         result = transformer._create_tag_node("bold", ["text", "", "display"])
 
         assert isinstance(result, BoldTagNode)
         assert len(result.content_nodes) == 1
         assert result.content_nodes[0].text == "display"
 
-    def test_create_tag_node_bold_without_display_text(self):
+    def test_create_tag_node_bold_without_display_text(self) -> None:
         """Test creation of bold tag without display text."""
         result = self.transformer._create_tag_node("bold", ["text"])
 
@@ -420,14 +421,14 @@ class TestTagASTTransformer:
         assert len(result.content_nodes) == 1
         assert result.content_nodes[0].text == "text"
 
-    def test_content_part_edge_case(self):
+    def test_content_part_edge_case(self) -> None:
         """Test edge case in content_part transformation."""
 
         # Test with mixed children including an unknown type
         class UnknownNode:
             pass
 
-        unknown_node = UnknownNode()
+        unknown_node: Any = UnknownNode()
         children = ["text", unknown_node, TagNode("test"), "more text"]
 
         result = self.transformer.content_part(children)
@@ -440,19 +441,19 @@ class TestTagASTTransformer:
 class TestTagParser:
     """Tests for TagParser class."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.parser = TagParser()
 
-    def test_parser_initialization(self):
+    def test_parser_initialization(self) -> None:
         """Test parser initialization."""
         assert self.parser.parser is not None
 
-    def test_parser_initialization_missing_grammar(self, monkeypatch):
+    def test_parser_initialization_missing_grammar(self, monkeypatch: Any) -> None:
         """Test parser initialization with missing grammar file."""
 
         # Mock the Path existence check instead
-        def mock_open_func(*args, **kwargs):
+        def mock_open_func(*args: Any, **kwargs: Any) -> None:
             raise FileNotFoundError("Grammar file not found")
 
         monkeypatch.setattr("builtins.open", mock_open_func)
@@ -461,21 +462,21 @@ class TestTagParser:
         with pytest.raises(FileNotFoundError, match="Grammar file not found"):
             TagParser()
 
-    def test_parse_empty_text(self):
+    def test_parse_empty_text(self) -> None:
         """Test parsing empty text."""
         result = self.parser.parse("")
 
         assert isinstance(result, DocumentNode)
         assert len(result.children) == 0
 
-    def test_parse_none_text(self):
+    def test_parse_none_text(self) -> None:
         """Test parsing None text."""
         result = self.parser.parse(None)
 
         assert isinstance(result, DocumentNode)
         assert len(result.children) == 0
 
-    def test_parse_plain_text(self):
+    def test_parse_plain_text(self) -> None:
         """Test parsing plain text without tags."""
         text = "This is plain text without any tags."
         result = self.parser.parse(text)
@@ -485,7 +486,7 @@ class TestTagParser:
         assert isinstance(result.children[0], TextNode)
         assert result.children[0].text == text
 
-    def test_parse_simple_creature_tag(self):
+    def test_parse_simple_creature_tag(self) -> None:
         """Test parsing simple creature tag."""
         text = "{@creature Ancient Red Dragon|MM}"
         result = self.parser.parse(text)
@@ -496,7 +497,7 @@ class TestTagParser:
         assert result.children[0].name == "Ancient Red Dragon"
         assert result.children[0].source == "MM"
 
-    def test_parse_creature_tag_with_display_text(self):
+    def test_parse_creature_tag_with_display_text(self) -> None:
         """Test parsing creature tag with display text."""
         text = "{@creature Ancient Red Dragon|MM|great wyrm}"
         result = self.parser.parse(text)
@@ -510,7 +511,7 @@ class TestTagParser:
         assert len(creature_node.display_text_nodes) == 1
         assert creature_node.display_text_nodes[0].text == "great wyrm"
 
-    def test_parse_creature_tag_with_page(self):
+    def test_parse_creature_tag_with_page(self) -> None:
         """Test parsing creature tag with page number."""
         text = "{@creature Ancient Red Dragon|MM|great wyrm|98}"
         result = self.parser.parse(text)
@@ -519,7 +520,7 @@ class TestTagParser:
         assert isinstance(creature_node, CreatureTagNode)
         assert creature_node.page == "98"
 
-    def test_parse_mixed_content(self):
+    def test_parse_mixed_content(self) -> None:
         """Test parsing text with mixed content."""
         text = "Cast {@spell Fireball|PHB} at the {@creature Ancient Red Dragon|MM}!"
         result = self.parser.parse(text)
@@ -543,7 +544,7 @@ class TestTagParser:
         assert isinstance(result.children[4], TextNode)
         assert result.children[4].text == "!"
 
-    def test_parse_escaped_characters(self):
+    def test_parse_escaped_characters(self) -> None:
         """Test parsing tags with escaped characters."""
         text = r"{@creature Name\|with\|pipes|MM|display\}with\}braces}"
         result = self.parser.parse(text)
@@ -559,7 +560,7 @@ class TestTagParser:
         assert creature_node.source == "MM"
         # The current implementation may not handle all escape sequences perfectly
 
-    def test_parse_various_tag_types(self):
+    def test_parse_various_tag_types(self) -> None:
         """Test parsing various tag types."""
         test_cases = [
             ("{@spell Fireball|PHB}", SpellTagNode),
@@ -591,7 +592,7 @@ class TestTagParser:
             assert len(result.children) == 1
             assert isinstance(result.children[0], expected_type)
 
-    def test_parse_malformed_tags_error_recovery(self):
+    def test_parse_malformed_tags_error_recovery(self) -> None:
         """Test parser error recovery with malformed tags."""
         malformed_cases = [
             "{@creature}",  # Missing content
@@ -608,10 +609,10 @@ class TestTagParser:
             assert len(result.children) >= 1
             # At least some content should be preserved
 
-    def test_parse_exception_handling(self, monkeypatch):
+    def test_parse_exception_handling(self, monkeypatch: Any) -> None:
         """Test handling of unexpected exceptions during parsing."""
 
-        def mock_parse_with_regex_fallback(text):
+        def mock_parse_with_regex_fallback(text: Any) -> None:
             raise Exception("Unexpected error")
 
         monkeypatch.setattr(
@@ -627,10 +628,10 @@ class TestTagParser:
         assert isinstance(result.children[0], TextNode)
         assert result.children[0].text == text
 
-    def test_parse_tag_parse_error_handling(self, monkeypatch):
+    def test_parse_tag_parse_error_handling(self, monkeypatch: Any) -> None:
         """Test handling of TagParseError during parsing."""
 
-        def mock_parse_with_regex_fallback(text):
+        def mock_parse_with_regex_fallback(text: Any) -> None:
             raise TagParseError("Parsing failed")
 
         monkeypatch.setattr(
@@ -646,55 +647,55 @@ class TestTagParser:
         assert isinstance(result.children[0], TextNode)
         assert result.children[0].text == text
 
-    def test_split_tag_content_simple(self):
+    def test_split_tag_content_simple(self) -> None:
         """Test splitting simple tag content."""
         result = self.parser._split_tag_content("name|source|display")
 
         assert result == ["name", "source", "display"]
 
-    def test_split_tag_content_escaped_pipes(self):
+    def test_split_tag_content_escaped_pipes(self) -> None:
         """Test splitting tag content with escaped pipes."""
         result = self.parser._split_tag_content(r"name\|with\|pipes|source")
 
         assert result == ["name|with|pipes", "source"]
 
-    def test_split_tag_content_escaped_braces(self):
+    def test_split_tag_content_escaped_braces(self) -> None:
         """Test splitting tag content with escaped braces."""
         result = self.parser._split_tag_content(r"name\}with\}braces|source")
 
         assert result == ["name}with}braces", "source"]
 
-    def test_split_tag_content_escaped_at_end(self):
+    def test_split_tag_content_escaped_at_end(self) -> None:
         """Test splitting tag content with escape at end."""
         result = self.parser._split_tag_content("name|source\\")
 
         assert result == ["name", "source\\"]
 
-    def test_split_tag_content_mixed_escapes(self):
+    def test_split_tag_content_mixed_escapes(self) -> None:
         """Test splitting tag content with mixed escape sequences."""
         result = self.parser._split_tag_content(r"name\|test|source\}test|display\x")
 
         assert result == ["name|test", "source}test", "display\\x"]
 
-    def test_split_tag_content_no_pipes(self):
+    def test_split_tag_content_no_pipes(self) -> None:
         """Test splitting tag content without pipes."""
         result = self.parser._split_tag_content("single_part")
 
         assert result == ["single_part"]
 
-    def test_split_tag_content_empty(self):
+    def test_split_tag_content_empty(self) -> None:
         """Test splitting empty tag content."""
         result = self.parser._split_tag_content("")
 
         assert result == [""]
 
-    def test_split_tag_content_only_pipes(self):
+    def test_split_tag_content_only_pipes(self) -> None:
         """Test splitting tag content with only pipes."""
         result = self.parser._split_tag_content("|||")
 
         assert result == ["", "", "", ""]
 
-    def test_parse_tag_content_simple(self):
+    def test_parse_tag_content_simple(self) -> None:
         """Test parsing simple tag content."""
         result = self.parser._parse_tag_content("creature", "Dragon|MM")
 
@@ -702,7 +703,7 @@ class TestTagParser:
         assert result.name == "Dragon"
         assert result.source == "MM"
 
-    def test_parse_tag_content_with_display_text(self):
+    def test_parse_tag_content_with_display_text(self) -> None:
         """Test parsing tag content with display text."""
         result = self.parser._parse_tag_content("creature", "Dragon|MM|great wyrm")
 
@@ -712,7 +713,7 @@ class TestTagParser:
         assert len(result.display_text_nodes) == 1
         assert result.display_text_nodes[0].text == "great wyrm"
 
-    def test_parse_with_regex_fallback_no_tags(self):
+    def test_parse_with_regex_fallback_no_tags(self) -> None:
         """Test regex fallback with no tags."""
         text = "Plain text without tags"
         result = self.parser._parse_with_regex_fallback(text)
@@ -722,7 +723,7 @@ class TestTagParser:
         assert isinstance(result.children[0], TextNode)
         assert result.children[0].text == text
 
-    def test_parse_with_regex_fallback_single_tag(self):
+    def test_parse_with_regex_fallback_single_tag(self) -> None:
         """Test regex fallback with single tag."""
         text = "{@creature Dragon|MM}"
         result = self.parser._parse_with_regex_fallback(text)
@@ -731,7 +732,7 @@ class TestTagParser:
         assert len(result.children) == 1
         assert isinstance(result.children[0], CreatureTagNode)
 
-    def test_parse_with_regex_fallback_text_before_tag(self):
+    def test_parse_with_regex_fallback_text_before_tag(self) -> None:
         """Test regex fallback with text before tag."""
         text = "Meet the {@creature Dragon|MM}"
         result = self.parser._parse_with_regex_fallback(text)
@@ -742,7 +743,7 @@ class TestTagParser:
         assert result.children[0].text == "Meet the "
         assert isinstance(result.children[1], CreatureTagNode)
 
-    def test_parse_with_regex_fallback_text_after_tag(self):
+    def test_parse_with_regex_fallback_text_after_tag(self) -> None:
         """Test regex fallback with text after tag."""
         text = "{@creature Dragon|MM} is powerful"
         result = self.parser._parse_with_regex_fallback(text)
@@ -753,7 +754,7 @@ class TestTagParser:
         assert isinstance(result.children[1], TextNode)
         assert result.children[1].text == " is powerful"
 
-    def test_parse_with_regex_fallback_multiple_tags(self):
+    def test_parse_with_regex_fallback_multiple_tags(self) -> None:
         """Test regex fallback with multiple tags."""
         text = "{@creature Dragon|MM} casts {@spell Fireball|PHB}"
         result = self.parser._parse_with_regex_fallback(text)
@@ -765,7 +766,7 @@ class TestTagParser:
         assert result.children[1].text == " casts "
         assert isinstance(result.children[2], SpellTagNode)
 
-    def test_parse_complex_content_with_whitespace(self):
+    def test_parse_complex_content_with_whitespace(self) -> None:
         """Test parsing content with various whitespace patterns."""
         text = "  {@creature   Dragon  |  MM  }  "
         result = self.parser.parse(text)
@@ -774,7 +775,7 @@ class TestTagParser:
         assert isinstance(result, DocumentNode)
         assert len(result.children) == 3  # leading space, tag, trailing space
 
-    def test_parse_tag_with_numbers_in_name(self):
+    def test_parse_tag_with_numbers_in_name(self) -> None:
         """Test parsing tags with numbers in names."""
         text = "{@spell Fireball 2nd Level|PHB}"
         result = self.parser.parse(text)
@@ -783,7 +784,7 @@ class TestTagParser:
         assert isinstance(spell_node, SpellTagNode)
         assert "2nd Level" in spell_node.name
 
-    def test_parse_tag_with_special_characters(self):
+    def test_parse_tag_with_special_characters(self) -> None:
         """Test parsing tags with special characters."""
         text = "{@item Bag of Holding|DMG}"
         result = self.parser.parse(text)
@@ -792,7 +793,7 @@ class TestTagParser:
         assert isinstance(item_node, ItemTagNode)
         assert "of" in item_node.name
 
-    def test_parse_consecutive_tags(self):
+    def test_parse_consecutive_tags(self) -> None:
         """Test parsing consecutive tags without text between."""
         text = "{@creature Dragon|MM}{@spell Fireball|PHB}"
         result = self.parser.parse(text)
@@ -802,7 +803,7 @@ class TestTagParser:
         assert isinstance(result.children[0], CreatureTagNode)
         assert isinstance(result.children[1], SpellTagNode)
 
-    def test_parse_empty_tag_parts(self):
+    def test_parse_empty_tag_parts(self) -> None:
         """Test parsing tags with empty parts."""
         text = "{@creature Dragon||display|}"
         result = self.parser.parse(text)
@@ -814,7 +815,7 @@ class TestTagParser:
         assert creature_node.display_text_nodes[0].text == "display"
         # Last empty part is page, should be None
 
-    def test_grammar_file_exists(self):
+    def test_grammar_file_exists(self) -> None:
         """Test that grammar file exists."""
         grammar_path = (
             Path(__file__).parent.parent.parent
@@ -822,14 +823,14 @@ class TestTagParser:
         )
         assert grammar_path.exists(), f"Grammar file not found at {grammar_path}"
 
-    def test_parser_initialization_lark_error(self, monkeypatch):
+    def test_parser_initialization_lark_error(self, monkeypatch: Any) -> None:
         """Test parser initialization with Lark parser creation error."""
 
         # Mock Lark to raise an exception during initialization
-        def mock_lark(*args, **kwargs):
+        def mock_lark(*args: Any, **kwargs: Any) -> None:
             raise Exception("Lark parser error")
 
-        import dnd5e.core.indexer.tag_parser
+        import dnd5e.core.indexer.tag_parser  # type: ignore
 
         monkeypatch.setattr(dnd5e.core.indexer.tag_parser, "Lark", mock_lark)
 

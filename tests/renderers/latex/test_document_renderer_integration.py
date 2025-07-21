@@ -1,14 +1,18 @@
 """Integration tests for LaTeX document renderer with compiler."""
 
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent, Source
-from dnd5e.renderers.base.context import RenderContext
-from dnd5e.renderers.latex.compilation_config import CompilationResult, LaTeXEngine
-from dnd5e.renderers.latex.document import LaTeXDocumentRenderer
+from dnd5e.core.models.content import BaseContent, Source  # type: ignore
+from dnd5e.renderers.base.context import RenderContext  # type: ignore
+from dnd5e.renderers.latex.compilation_config import (  # type: ignore
+    CompilationResult,
+    LaTeXEngine,
+)
+from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
 
 
 class MockContent(BaseContent):
@@ -21,12 +25,12 @@ class MockContent(BaseContent):
 class TestLaTeXDocumentRendererIntegration:
     """Integration tests for LaTeX document renderer with compiler."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         config = {"show_progress": False, "compilation_timeout": 10, "max_passes": 2}
         self.renderer = LaTeXDocumentRenderer(config)
 
-    def test_renderer_initialization_with_compiler(self):
+    def test_renderer_initialization_with_compiler(self) -> None:
         """Test renderer initialization includes compiler."""
         assert self.renderer.compiler is not None
         assert self.renderer.compiler.config is not None
@@ -34,7 +38,7 @@ class TestLaTeXDocumentRendererIntegration:
         assert self.renderer.compiler.config.timeout_seconds == 10
         assert self.renderer.compiler.config.max_passes == 2
 
-    def test_create_compilation_config_defaults(self):
+    def test_create_compilation_config_defaults(self) -> None:
         """Test compilation config creation with defaults."""
         config = self.renderer._create_compilation_config()
 
@@ -42,7 +46,7 @@ class TestLaTeXDocumentRendererIntegration:
         assert config.show_progress is True  # Default
         assert config.timeout_seconds == 300  # Default
 
-    def test_create_compilation_config_from_renderer_config(self):
+    def test_create_compilation_config_from_renderer_config(self) -> None:
         """Test compilation config creation from renderer config."""
         renderer_config = {
             "latex_engine": "xelatex",
@@ -62,7 +66,7 @@ class TestLaTeXDocumentRendererIntegration:
         assert config.keep_intermediate_files is True
         assert config.output_dir == Path("/tmp/output")
 
-    def test_create_compilation_config_invalid_engine(self):
+    def test_create_compilation_config_invalid_engine(self) -> None:
         """Test compilation config with invalid engine name."""
         renderer_config = {"latex_engine": "invalid_engine"}
 
@@ -71,12 +75,12 @@ class TestLaTeXDocumentRendererIntegration:
         # Should keep default engine
         assert config.primary_engine == LaTeXEngine.LUALATEX
 
-    def test_compile_to_pdf_single_content(self):
+    def test_compile_to_pdf_single_content(self) -> None:
         """Test compiling single content item to PDF."""
-        content = MockContent("Test Spell")
+        content: Any = MockContent("Test Spell")
 
         # Mock the compiler to return success
-        mock_result = CompilationResult(
+        mock_result: Any = CompilationResult(
             success=True,
             engine_used=LaTeXEngine.LUALATEX,
             passes_completed=1,
@@ -100,12 +104,12 @@ class TestLaTeXDocumentRendererIntegration:
             assert args[1] == "Test Spell"  # output name
             assert args[2] is None  # working directory
 
-    def test_compile_to_pdf_with_output_path(self):
+    def test_compile_to_pdf_with_output_path(self) -> None:
         """Test compiling with specified output path."""
-        content = MockContent("Test Item")
-        output_path = Path("/tmp/custom_output.pdf")
+        content: Any = MockContent("Test Item")
+        output_path: Any = Path("/tmp/custom_output.pdf")
 
-        mock_result = CompilationResult(
+        mock_result: Any = CompilationResult(
             success=True,
             engine_used=LaTeXEngine.LUALATEX,
             passes_completed=1,
@@ -126,16 +130,16 @@ class TestLaTeXDocumentRendererIntegration:
             assert args[1] == "custom_output"  # output name from path
             assert args[2] == output_path.parent  # working directory
 
-    def test_compile_to_pdf_with_context(self):
+    def test_compile_to_pdf_with_context(self) -> None:
         """Test compiling with render context."""
-        content = MockContent("Test Monster")
+        content: Any = MockContent("Test Monster")
         context = {
             "title": "Monster Manual",
             "author": "Test Author",
             "include_toc": True,
         }
 
-        mock_result = CompilationResult(
+        mock_result: Any = CompilationResult(
             success=True,
             engine_used=LaTeXEngine.LUALATEX,
             passes_completed=2,
@@ -156,7 +160,7 @@ class TestLaTeXDocumentRendererIntegration:
             assert isinstance(latex_source, str)
             assert len(latex_source) > 0
 
-    def test_compile_document_to_pdf_multiple_content(self):
+    def test_compile_document_to_pdf_multiple_content(self) -> None:
         """Test compiling multiple content items to PDF."""
         content_items = [
             MockContent("Spell 1"),
@@ -164,9 +168,9 @@ class TestLaTeXDocumentRendererIntegration:
             MockContent("Monster 1"),
         ]
 
-        context = RenderContext(title="Test Compendium", include_toc=True)
+        context: Any = RenderContext(title="Test Compendium", include_toc=True)
 
-        mock_result = CompilationResult(
+        mock_result: Any = CompilationResult(
             success=True,
             engine_used=LaTeXEngine.LUALATEX,
             passes_completed=3,
@@ -190,12 +194,12 @@ class TestLaTeXDocumentRendererIntegration:
             assert isinstance(args[0], str)  # LaTeX source
             assert args[1] == "Test Compendium"  # output name from context
 
-    def test_compile_document_to_pdf_with_output_path(self):
+    def test_compile_document_to_pdf_with_output_path(self) -> None:
         """Test compiling multiple content items with output path."""
         content_items = [MockContent("Test Content")]
-        output_path = Path("/custom/path/output.pdf")
+        output_path: Any = Path("/custom/path/output.pdf")
 
-        mock_result = CompilationResult(
+        mock_result: Any = CompilationResult(
             success=True,
             engine_used=LaTeXEngine.LUALATEX,
             passes_completed=1,
@@ -219,11 +223,11 @@ class TestLaTeXDocumentRendererIntegration:
                     mock_mkdir.assert_called_once()
                     mock_rename.assert_called_once_with(output_path)
 
-    def test_compile_document_to_pdf_failure(self):
+    def test_compile_document_to_pdf_failure(self) -> None:
         """Test compilation failure handling."""
         content_items = [MockContent("Test Content")]
 
-        mock_result = CompilationResult(
+        mock_result: Any = CompilationResult(
             success=False,
             engine_used=LaTeXEngine.LUALATEX,
             passes_completed=0,
@@ -240,7 +244,7 @@ class TestLaTeXDocumentRendererIntegration:
             assert result.error_message == "Package not found"
             assert result.passes_completed == 0
 
-    def test_validate_latex_environment(self):
+    def test_validate_latex_environment(self) -> None:
         """Test LaTeX environment validation."""
         mock_validation = {
             "engine_lualatex": True,
@@ -261,7 +265,7 @@ class TestLaTeXDocumentRendererIntegration:
 
             mock_validate.assert_called_once()
 
-    def test_get_available_engines(self):
+    def test_get_available_engines(self) -> None:
         """Test getting available LaTeX engines."""
         mock_engines = [LaTeXEngine.LUALATEX, LaTeXEngine.XELATEX]
 
@@ -276,13 +280,13 @@ class TestLaTeXDocumentRendererIntegration:
 
             mock_get.assert_called_once()
 
-    def test_renderer_output_format(self):
+    def test_renderer_output_format(self) -> None:
         """Test renderer output format."""
         assert self.renderer.output_format == "latex"
 
-    def test_render_and_compile_integration(self):
+    def test_render_and_compile_integration(self) -> None:
         """Test integration between rendering and compilation."""
-        content = MockContent("Integration Test")
+        content: Any = MockContent("Integration Test")
 
         # Mock successful rendering (this would normally generate LaTeX)
         with patch.object(self.renderer, "render_document") as mock_render:
@@ -291,7 +295,7 @@ class TestLaTeXDocumentRendererIntegration:
             )
 
             # Mock successful compilation
-            mock_result = CompilationResult(
+            mock_result: Any = CompilationResult(
                 success=True,
                 engine_used=LaTeXEngine.LUALATEX,
                 passes_completed=1,
@@ -312,7 +316,7 @@ class TestLaTeXDocumentRendererIntegration:
                 assert render_args[0] == [content]  # content items
                 assert isinstance(render_args[1], RenderContext)  # render context
 
-    def test_compiler_config_validation(self):
+    def test_compiler_config_validation(self) -> None:
         """Test that invalid compiler config raises appropriate error."""
         invalid_config = {
             "max_passes": 0,  # Invalid
@@ -322,21 +326,24 @@ class TestLaTeXDocumentRendererIntegration:
         with pytest.raises(ValueError, match="Invalid configuration"):
             LaTeXDocumentRenderer(invalid_config)
 
-    def test_render_with_structured_document(self):
+    def test_render_with_structured_document(self) -> None:
         """Test rendering with structured document metadata."""
-        from dnd5e.core.models.document_metadata import DocumentMetadata, DocumentType
+        from dnd5e.core.models.document_metadata import (  # type: ignore
+            DocumentMetadata,
+            DocumentType,
+        )
 
         content_items = [MockContent("Test Spell")]
 
-        metadata = DocumentMetadata(
+        metadata: Any = DocumentMetadata(
             title="Spell Compendium",
             document_type=DocumentType.SUPPLEMENT,
             include_toc=True,
         )
 
-        context = RenderContext(metadata=metadata)
+        context: Any = RenderContext(metadata=metadata)
 
-        mock_result = CompilationResult(
+        mock_result: Any = CompilationResult(
             success=True,
             engine_used=LaTeXEngine.LUALATEX,
             passes_completed=2,

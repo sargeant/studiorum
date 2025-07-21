@@ -8,47 +8,49 @@ import asyncio
 import logging
 import time
 from collections import defaultdict
+from collections.abc import Generator
 from pathlib import Path
+from typing import Any
 
 import pytest
 
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.loaders.source_manager import FileSystemSourceManager
-from dnd5e.core.logging import get_logger
-from dnd5e.core.models.content import ContentType
+from dnd5e.core.loaders.json_loader import JsonDataLoader  # type: ignore
+from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
+from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
+from dnd5e.core.logging import get_logger  # type: ignore
+from dnd5e.core.models.content import ContentType  # type: ignore
 
 
 class ValidationReport:
     """Collects and analyzes validation results."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.total_items = 0
         self.successful_items = 0
-        self.validation_warnings = []
-        self.file_skips = defaultdict(int)
-        self.load_times = {}
-        self.content_stats = defaultdict(int)
+        self.validation_warnings: list[Any] = []
+        self.file_skips: Any = defaultdict(int)
+        self.load_times: dict[str, Any] = {}
+        self.content_stats: Any = defaultdict(int)
 
     def add_load_result(
         self, content_type: str, file_path: Path, items_loaded: int, load_time: float
-    ):
+    ) -> None:
         """Add results from loading a single file."""
         self.content_stats[content_type] += items_loaded
         self.successful_items += items_loaded
         self.load_times[str(file_path)] = load_time
 
-    def add_validation_warning(self, warning: str):
+    def add_validation_warning(self, warning: str) -> None:
         """Add a validation warning."""
         self.validation_warnings.append(warning)
 
-    def add_file_skip(self, skip_type: str):
+    def add_file_skip(self, skip_type: str) -> None:
         """Add a file skip."""
         self.file_skips[skip_type] += 1
 
     def generate_summary(self) -> str:
         """Generate a comprehensive validation summary."""
-        total_files = len(self.load_times) + sum(self.file_skips.values())
+        total_files: Any = len(self.load_times) + sum(self.file_skips.values())
         avg_load_time = (
             sum(self.load_times.values()) / len(self.load_times)
             if self.load_times
@@ -100,11 +102,19 @@ class TestFullDatasetValidation:
     """Integration tests for full dataset validation."""
 
     @pytest.fixture(autouse=True)
-    def setup_logging_capture(self):
+    def setup_logging_capture(self) -> Generator[None, None, None]:
         """Set up logging capture for validation analysis."""
-        self.log_records = []
-        self.handler = logging.Handler()
-        self.handler.emit = lambda record: self.log_records.append(record)
+        self.log_records: list[Any] = []
+
+        class TestHandler(logging.Handler):
+            def __init__(self, records_list: list) -> None:
+                super().__init__()
+                self.records_list = records_list
+
+            def emit(self, record: Any) -> None:
+                self.records_list.append(record)
+
+        self.handler = TestHandler(self.log_records)
 
         # Add to relevant loggers
         loggers = [
@@ -124,7 +134,7 @@ class TestFullDatasetValidation:
 
     def extract_validation_warnings(self) -> list[str]:
         """Extract validation warnings from log records."""
-        warnings = []
+        warnings: list[Any] = []
         for record in self.log_records:
             if (
                 record.levelno >= logging.WARNING
@@ -135,7 +145,7 @@ class TestFullDatasetValidation:
 
     def extract_file_skips(self) -> dict[str, int]:
         """Extract file skip information from log records."""
-        skips = defaultdict(int)
+        skips: Any = defaultdict(int)
         for record in self.log_records:
             message = record.getMessage()
             if "Skipping index/list file" in message:
@@ -152,15 +162,15 @@ class TestFullDatasetValidation:
                 skips["copy_template"] += 1
             elif "No content found" in message:
                 skips["empty_content"] += 1
-        return skips
+        return dict(skips)
 
     @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_full_spell_dataset_validation(self):
+    async def test_full_spell_dataset_validation(self) -> None:
         """Test validation of the complete spell dataset."""
-        report = ValidationReport()  # Initialize report
+        report: Any = ValidationReport()  # Initialize report
 
-        source_manager = FileSystemSourceManager()
+        source_manager: Any = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
         spell_files = data_paths.get(ContentType.SPELL, [])
 
@@ -193,7 +203,7 @@ class TestFullDatasetValidation:
 
         # Validation thresholds
         total_spells = report.content_stats["spells"]
-        warning_threshold = max(10, total_spells * 0.01)  # 1% or minimum 10
+        warning_threshold: Any = max(10, total_spells * 0.01)  # 1% or minimum 10
 
         assert len(validation_warnings) <= warning_threshold, (
             f"Too many validation warnings: {len(validation_warnings)} > {warning_threshold} "
@@ -204,11 +214,11 @@ class TestFullDatasetValidation:
 
     @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_full_creature_dataset_validation(self):
+    async def test_full_creature_dataset_validation(self) -> None:
         """Test validation of the complete creature dataset."""
-        report = ValidationReport()  # Initialize report
+        report: Any = ValidationReport()  # Initialize report
 
-        source_manager = FileSystemSourceManager()
+        source_manager: Any = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
         creature_files = data_paths.get(ContentType.CREATURE, [])
 
@@ -243,7 +253,7 @@ class TestFullDatasetValidation:
 
         # Validation thresholds
         total_creatures = report.content_stats["creatures"]
-        warning_threshold = max(15, total_creatures * 0.015)  # 1.5% or minimum 15
+        warning_threshold: Any = max(15, total_creatures * 0.015)  # 1.5% or minimum 15
 
         assert len(validation_warnings) <= warning_threshold, (
             f"Too many validation warnings: {len(validation_warnings)} > {warning_threshold} "
@@ -254,11 +264,11 @@ class TestFullDatasetValidation:
 
     @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_full_item_dataset_validation(self):
+    async def test_full_item_dataset_validation(self) -> None:
         """Test validation of the complete item dataset."""
-        report = ValidationReport()  # Initialize report
+        report: Any = ValidationReport()  # Initialize report
 
-        source_manager = FileSystemSourceManager()
+        source_manager: Any = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
         item_files = data_paths.get(ContentType.ITEM, [])
 
@@ -291,7 +301,7 @@ class TestFullDatasetValidation:
 
         # Validation thresholds
         total_items = report.content_stats["items"]
-        warning_threshold = max(5, total_items * 0.005)  # 0.5% or minimum 5
+        warning_threshold: Any = max(5, total_items * 0.005)  # 0.5% or minimum 5
 
         assert len(validation_warnings) <= warning_threshold, (
             f"Too many validation warnings: {len(validation_warnings)} > {warning_threshold} "
@@ -302,10 +312,10 @@ class TestFullDatasetValidation:
 
     @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_omnidexer_full_dataset_load(self):
+    async def test_omnidexer_full_dataset_load(self) -> None:
         """Test the omnidexer loading the complete dataset."""
-        source_manager = FileSystemSourceManager()
-        omnidexer = Omnidexer(source_manager)
+        source_manager: Any = FileSystemSourceManager()
+        omnidexer: Any = Omnidexer(source_manager)
 
         print("\n🌟 Testing omnidexer full dataset load...")
 
@@ -318,7 +328,7 @@ class TestFullDatasetValidation:
         file_skips = self.extract_file_skips()
 
         # Generate comprehensive report
-        total_items = sum(load_stats.values())
+        total_items: Any = sum(load_stats.values())
 
         print("\n📊 OMNIDEXER LOAD RESULTS:")
         print(f"Total load time: {total_load_time:.2f}s")
@@ -337,8 +347,8 @@ class TestFullDatasetValidation:
                 print(f"  {skip_type}: {count}")
 
         # Validation thresholds
-        warning_threshold = max(20, total_items * 0.01)  # 1% or minimum 20
-        skip_threshold = max(10, len(load_stats) * 0.2)  # 20% of total files
+        warning_threshold: Any = max(20, total_items * 0.01)  # 1% or minimum 20
+        skip_threshold: Any = max(10, len(load_stats) * 0.2)  # 20% of total files
 
         # Adjust expectations based on available data
         # In test environments, we may only have minimal sample data
@@ -361,9 +371,9 @@ class TestFullDatasetValidation:
 
     @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_data_consistency_across_loaders(self):
+    async def test_data_consistency_across_loaders(self) -> None:
         """Test that different loaders produce consistent results."""
-        source_manager = FileSystemSourceManager()
+        source_manager: Any = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
 
         # Test spell consistency
@@ -371,9 +381,9 @@ class TestFullDatasetValidation:
         if spell_files:
             spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
 
-            loads = []
+            loads: list[Any] = []
             for _ in range(3):  # Load same files 3 times
-                all_spells = []
+                all_spells: list[Any] = []
                 for spell_file in spell_files:
                     if spell_file.exists():
                         spells = await spell_loader.load(spell_file)
@@ -389,27 +399,27 @@ class TestFullDatasetValidation:
 
     @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_memory_efficiency_large_dataset(self):
+    async def test_memory_efficiency_large_dataset(self) -> None:
         """Test memory efficiency when loading large datasets."""
         try:
             import os
 
-            import psutil
+            import psutil  # type: ignore
         except ImportError:
             pytest.skip("psutil not installed - skipping memory usage test")
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
 
-        source_manager = FileSystemSourceManager()
-        omnidexer = Omnidexer(source_manager)
+        source_manager: Any = FileSystemSourceManager()
+        omnidexer: Any = Omnidexer(source_manager)
 
         # Load full dataset
         load_stats = await omnidexer.load_all_data()
 
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
         memory_increase = final_memory - initial_memory
-        total_items = sum(load_stats.values())
+        total_items: Any = sum(load_stats.values())
 
         memory_per_item = memory_increase / total_items if total_items > 0 else 0
 
@@ -441,11 +451,11 @@ class TestFullDatasetValidation:
 
     @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_concurrent_dataset_loading(self):
+    async def test_concurrent_dataset_loading(self) -> None:
         """Test concurrent loading of dataset doesn't cause issues."""
-        source_manager = FileSystemSourceManager()
+        source_manager: Any = FileSystemSourceManager()
 
-        async def load_subset():
+        async def load_subset() -> int:
             """Load a subset of the data."""
             Omnidexer(source_manager)
             # Load just spells for faster concurrent test
@@ -474,7 +484,7 @@ class TestFullDatasetValidation:
 
         print(f"✅ Concurrent loading test passed: {results[0]} items per load")
 
-    def test_validation_warning_categorization_full_dataset(self):
+    def test_validation_warning_categorization_full_dataset(self) -> None:
         """Categorize and analyze all validation warnings from full dataset."""
         validation_warnings = self.extract_validation_warnings()
 
@@ -483,7 +493,7 @@ class TestFullDatasetValidation:
             return
 
         # Categorize warnings
-        categories = {
+        categories: dict[str, list[Any]] = {
             "missing_required_fields": [],
             "type_validation_errors": [],
             "parsing_errors": [],
@@ -519,7 +529,7 @@ class TestFullDatasetValidation:
                 print(f"    Sample: {sample}")
 
         # Analysis assertions
-        total_warnings = len(validation_warnings)
+        total_warnings: Any = len(validation_warnings)
         unknown_ratio = (
             len(categories["unknown_structure_errors"]) / total_warnings
             if total_warnings > 0

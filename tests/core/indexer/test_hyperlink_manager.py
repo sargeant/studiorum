@@ -1,25 +1,30 @@
 """Tests for hyperlink manager."""
 
+from typing import Any
+
 import pytest
 
-from dnd5e.core.indexer.hyperlink_manager import HyperlinkManager, HyperlinkStyle
+from dnd5e.core.indexer.hyperlink_manager import (  # type: ignore
+    HyperlinkManager,
+    HyperlinkStyle,
+)
 
 
 class TestHyperlinkStyle:
     """Test HyperlinkStyle dataclass."""
 
-    def test_hyperlink_style_defaults(self):
+    def test_hyperlink_style_defaults(self) -> None:
         """Test default hyperlink style."""
-        style = HyperlinkStyle()
+        style: Any = HyperlinkStyle()
 
         assert style.color == "black"
         assert style.border is False
         assert style.underline is False
         assert style.font_style == "normal"
 
-    def test_hyperlink_style_custom(self):
+    def test_hyperlink_style_custom(self) -> None:
         """Test custom hyperlink style."""
-        style = HyperlinkStyle(
+        style: Any = HyperlinkStyle(
             color="blue",
             border=True,
             underline=True,
@@ -35,11 +40,11 @@ class TestHyperlinkStyle:
 class TestHyperlinkManager:
     """Test hyperlink manager."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.manager = HyperlinkManager()
 
-    def test_manager_initialization(self):
+    def test_manager_initialization(self) -> None:
         """Test manager initialization."""
         assert self.manager.enabled is True
         assert self.manager.auto_page_refs is True
@@ -47,7 +52,7 @@ class TestHyperlinkManager:
         assert "spell" in self.manager.content_styles
         assert "default" in self.manager.content_styles
 
-    def test_should_create_hyperlink(self):
+    def test_should_create_hyperlink(self) -> None:
         """Test hyperlink creation conditions."""
         # Should create for most content types
         assert self.manager.should_create_hyperlink("creature")
@@ -62,7 +67,7 @@ class TestHyperlinkManager:
         self.manager.enable_hyperlinks(False)
         assert not self.manager.should_create_hyperlink("creature")
 
-    def test_create_basic_hyperlink(self):
+    def test_create_basic_hyperlink(self) -> None:
         """Test creating basic hyperlinks."""
         hyperlink = self.manager.create_hyperlink(
             text="Dragon",
@@ -74,7 +79,7 @@ class TestHyperlinkManager:
         assert "\\textbf{Dragon}" in hyperlink
         assert "\\pageref{creature:dragon}" in hyperlink
 
-    def test_create_hyperlink_no_page_ref(self):
+    def test_create_hyperlink_no_page_ref(self) -> None:
         """Test creating hyperlink without page reference."""
         hyperlink = self.manager.create_hyperlink(
             text="Dragon",
@@ -87,9 +92,9 @@ class TestHyperlinkManager:
         assert "\\textbf{Dragon}" in hyperlink
         assert "\\pageref" not in hyperlink
 
-    def test_create_hyperlink_custom_style(self):
+    def test_create_hyperlink_custom_style(self) -> None:
         """Test creating hyperlink with custom style."""
-        custom_style = HyperlinkStyle(
+        custom_style: Any = HyperlinkStyle(
             color="red",
             font_style="italic",
         )
@@ -105,12 +110,12 @@ class TestHyperlinkManager:
         assert "\\hyperref[creature:dragon]" in hyperlink
         assert "\\textit{Dragon}" in hyperlink  # Should use italic from custom style
 
-    def test_apply_text_formatting(self):
+    def test_apply_text_formatting(self) -> None:
         """Test text formatting application."""
-        style_normal = HyperlinkStyle(font_style="normal")
-        style_bold = HyperlinkStyle(font_style="bold")
-        style_italic = HyperlinkStyle(font_style="italic")
-        style_bolditalic = HyperlinkStyle(font_style="bolditalic")
+        style_normal: Any = HyperlinkStyle(font_style="normal")
+        style_bold: Any = HyperlinkStyle(font_style="bold")
+        style_italic: Any = HyperlinkStyle(font_style="italic")
+        style_bolditalic: Any = HyperlinkStyle(font_style="bolditalic")
 
         assert self.manager._apply_text_formatting("text", style_normal) == "text"
         assert (
@@ -125,7 +130,7 @@ class TestHyperlinkManager:
             == "\\textbf{\\textit{text}}"
         )
 
-    def test_content_type_styles(self):
+    def test_content_type_styles(self) -> None:
         """Test content type specific styles."""
         # Test creature (should be bold)
         creature_link = self.manager.create_hyperlink(
@@ -145,7 +150,7 @@ class TestHyperlinkManager:
         )
         assert "\\textit{Fireball}" in spell_link
 
-    def test_create_external_link(self):
+    def test_create_external_link(self) -> None:
         """Test creating external URL links."""
         external_link = self.manager.create_external_link(
             text="D&D Beyond",
@@ -155,7 +160,7 @@ class TestHyperlinkManager:
         assert "\\href{https://www.dndbeyond.com}" in external_link
         assert "D&D Beyond" in external_link
 
-    def test_create_section_reference(self):
+    def test_create_section_reference(self) -> None:
         """Test creating section references."""
         # Test nameref
         nameref = self.manager.create_section_reference(
@@ -181,7 +186,7 @@ class TestHyperlinkManager:
         )
         assert pageref == "page \\pageref{sec:introduction}"
 
-    def test_create_footnote_reference(self):
+    def test_create_footnote_reference(self) -> None:
         """Test creating footnote references."""
         footnote_ref = self.manager.create_footnote_reference(
             text="Note",
@@ -190,15 +195,15 @@ class TestHyperlinkManager:
 
         assert footnote_ref == "\\footref{fn:note1}"
 
-    def test_set_content_style(self):
+    def test_set_content_style(self) -> None:
         """Test setting custom content styles."""
-        custom_style = HyperlinkStyle(color="purple", font_style="bold")
+        custom_style: Any = HyperlinkStyle(color="purple", font_style="bold")
         self.manager.set_content_style("custom", custom_style)
 
         assert "custom" in self.manager.content_styles
         assert self.manager.content_styles["custom"] == custom_style
 
-    def test_set_page_reference_types(self):
+    def test_set_page_reference_types(self) -> None:
         """Test setting page reference types."""
         new_types = {"creature", "spell"}
         self.manager.set_page_reference_types(new_types)
@@ -220,7 +225,7 @@ class TestHyperlinkManager:
         )
         assert "\\pageref" not in item_link
 
-    def test_enable_disable_features(self):
+    def test_enable_disable_features(self) -> None:
         """Test enabling/disabling features."""
         # Test hyperlinks
         self.manager.enable_hyperlinks(False)
@@ -244,7 +249,7 @@ class TestHyperlinkManager:
         )
         assert "\\pageref" not in hyperlink
 
-    def test_get_latex_packages(self):
+    def test_get_latex_packages(self) -> None:
         """Test getting required LaTeX packages."""
         packages = self.manager.get_latex_packages()
 
@@ -252,7 +257,7 @@ class TestHyperlinkManager:
         for package in expected_packages:
             assert package in packages
 
-    def test_get_latex_setup_commands(self):
+    def test_get_latex_setup_commands(self) -> None:
         """Test getting LaTeX setup commands."""
         commands = self.manager.get_latex_setup_commands()
 
@@ -260,14 +265,14 @@ class TestHyperlinkManager:
         assert any("colorlinks=true" in cmd for cmd in commands)
         assert any("}" in cmd for cmd in commands)  # Should close hypersetup
 
-    def test_create_bookmark(self):
+    def test_create_bookmark(self) -> None:
         """Test creating PDF bookmarks."""
         bookmark = self.manager.create_bookmark("Chapter 1", level=1)
 
         assert "\\pdfbookmark[1]{Chapter 1}" in bookmark
         assert "chapter-1" in bookmark  # Sanitized ID
 
-    def test_sanitize_bookmark_id(self):
+    def test_sanitize_bookmark_id(self) -> None:
         """Test bookmark ID sanitization."""
         test_cases = [
             ("Chapter 1", "chapter-1"),
@@ -280,7 +285,7 @@ class TestHyperlinkManager:
             result = self.manager._sanitize_bookmark_id(input_text)
             assert result == expected
 
-    def test_validate_hyperlinks(self):
+    def test_validate_hyperlinks(self) -> None:
         """Test hyperlink validation."""
         content = """
         \\hyperref[creature:dragon]{Dragon}
@@ -301,7 +306,7 @@ class TestHyperlinkManager:
         # Note: The validation logic needs to be more sophisticated
         # This test shows the expected structure
 
-    def test_get_hyperlink_statistics(self):
+    def test_get_hyperlink_statistics(self) -> None:
         """Test getting hyperlink statistics."""
         content = """
         \\hyperref[creature:dragon]{Dragon}
@@ -324,11 +329,11 @@ class TestHyperlinkManager:
 class TestHyperlinkManagerEdgeCases:
     """Test edge cases and error conditions."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.manager = HyperlinkManager()
 
-    def test_empty_text(self):
+    def test_empty_text(self) -> None:
         """Test handling of empty text."""
         hyperlink = self.manager.create_hyperlink(
             text="",
@@ -339,7 +344,7 @@ class TestHyperlinkManagerEdgeCases:
         # Should handle empty text gracefully
         assert "\\hyperref[creature:dragon]" in hyperlink
 
-    def test_special_characters_in_text(self):
+    def test_special_characters_in_text(self) -> None:
         """Test handling of special LaTeX characters in text."""
         hyperlink = self.manager.create_hyperlink(
             text="Dragon & Wyvern",
@@ -351,7 +356,7 @@ class TestHyperlinkManagerEdgeCases:
         # Should include the text as-is (escaping should be handled elsewhere)
         assert "Dragon & Wyvern" in hyperlink
 
-    def test_invalid_ref_id(self):
+    def test_invalid_ref_id(self) -> None:
         """Test handling of invalid reference IDs."""
         # Should handle gracefully without crashing
         hyperlink = self.manager.create_hyperlink(
@@ -362,7 +367,7 @@ class TestHyperlinkManagerEdgeCases:
 
         assert hyperlink is not None
 
-    def test_unknown_content_type(self):
+    def test_unknown_content_type(self) -> None:
         """Test handling of unknown content types."""
         hyperlink = self.manager.create_hyperlink(
             text="Test",
@@ -373,7 +378,7 @@ class TestHyperlinkManagerEdgeCases:
         # Should use default style
         assert hyperlink is not None
 
-    def test_disabled_manager(self):
+    def test_disabled_manager(self) -> None:
         """Test behavior when manager is disabled."""
         self.manager.enable_hyperlinks(False)
 

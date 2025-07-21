@@ -1,11 +1,12 @@
 """Tests for LaTeX compilation progress tracking."""
 
 import time
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.renderers.latex.progress_tracker import (
+from dnd5e.renderers.latex.progress_tracker import (  # type: ignore
     CompilationProgress,
     NoProgressReporter,
     ProgressTracker,
@@ -13,7 +14,9 @@ from dnd5e.renderers.latex.progress_tracker import (
 )
 
 try:
-    from dnd5e.renderers.latex.progress_tracker import RichProgressReporter
+    from dnd5e.renderers.latex.progress_tracker import (
+        RichProgressReporter,  # type: ignore
+    )
 
     RICH_AVAILABLE = True
 except ImportError:
@@ -23,9 +26,9 @@ except ImportError:
 class TestCompilationProgress:
     """Tests for compilation progress tracking."""
 
-    def test_compilation_progress_initialization(self):
+    def test_compilation_progress_initialization(self) -> None:
         """Test compilation progress initialization."""
-        progress = CompilationProgress("lualatex", 3)
+        progress: Any = CompilationProgress("lualatex", 3)
 
         assert progress.engine == "lualatex"
         assert progress.total_passes == 3
@@ -36,9 +39,9 @@ class TestCompilationProgress:
         assert progress.overall_progress == 0.0
         assert progress.start_time == 0.0
 
-    def test_update_overall_progress(self):
+    def test_update_overall_progress(self) -> None:
         """Test overall progress calculation."""
-        progress = CompilationProgress("lualatex", 4)
+        progress: Any = CompilationProgress("lualatex", 4)
 
         # First pass, 50% complete
         progress.current_pass = 1
@@ -64,27 +67,27 @@ class TestCompilationProgress:
         # Should be 100% overall
         assert progress.overall_progress == 1.0
 
-    def test_update_overall_progress_edge_cases(self):
+    def test_update_overall_progress_edge_cases(self) -> None:
         """Test overall progress calculation edge cases."""
         # Zero passes
-        progress = CompilationProgress("lualatex", 0)
+        progress: Any = CompilationProgress("lualatex", 0)
         progress.update_overall_progress()
         assert progress.overall_progress == 0.0
 
         # Progress never exceeds 1.0
-        progress = CompilationProgress("lualatex", 1)
-        progress.current_pass = 1
-        progress.pass_progress = 2.0  # Invalid value
-        progress.update_overall_progress()
-        assert progress.overall_progress == 1.0
+        progress2: Any = CompilationProgress("lualatex", 1)
+        progress2.current_pass = 1
+        progress2.pass_progress = 2.0  # Invalid value
+        progress2.update_overall_progress()
+        assert progress2.overall_progress == 1.0
 
 
 class TestNoProgressReporter:
     """Tests for no-op progress reporter."""
 
-    def test_no_op_methods(self):
+    def test_no_op_methods(self) -> None:
         """Test that all methods are no-ops."""
-        reporter = NoProgressReporter()
+        reporter: Any = NoProgressReporter()
 
         # Should not raise any exceptions
         reporter.start_compilation("lualatex", 3)
@@ -101,9 +104,9 @@ class TestNoProgressReporter:
 class TestSimpleProgressReporter:
     """Tests for simple progress reporter."""
 
-    def test_simple_reporter_workflow(self):
+    def test_simple_reporter_workflow(self) -> None:
         """Test complete workflow with simple reporter."""
-        reporter = SimpleProgressReporter()
+        reporter: Any = SimpleProgressReporter()
 
         # Should initialize correctly
         assert reporter.current_pass == 0
@@ -134,18 +137,18 @@ class TestSimpleProgressReporter:
             assert any("Starting LaTeX compilation" in call for call in print_calls)
             assert any("SUCCESS" in call for call in print_calls)
 
-    def test_simple_reporter_error_display(self):
+    def test_simple_reporter_error_display(self) -> None:
         """Test error display in simple reporter."""
-        reporter = SimpleProgressReporter()
+        reporter: Any = SimpleProgressReporter()
 
         with patch("builtins.print") as mock_print:
             reporter.show_error("Test error message")
 
             mock_print.assert_called_once_with("ERROR: Test error message")
 
-    def test_simple_reporter_failure(self):
+    def test_simple_reporter_failure(self) -> None:
         """Test failure reporting in simple reporter."""
-        reporter = SimpleProgressReporter()
+        reporter: Any = SimpleProgressReporter()
 
         with patch("builtins.print") as mock_print:
             reporter.start_compilation("lualatex", 2)
@@ -162,32 +165,32 @@ class TestSimpleProgressReporter:
 class TestRichProgressReporter:
     """Tests for rich progress reporter."""
 
-    def test_rich_reporter_initialization(self):
+    def test_rich_reporter_initialization(self) -> None:
         """Test rich reporter initialization."""
         with patch("dnd5e.renderers.latex.progress_tracker.Console"):
-            reporter = RichProgressReporter()
+            reporter: Any = RichProgressReporter()
             assert reporter.console is not None
             assert reporter.progress is None
             assert reporter.main_task is None
             assert reporter.pass_task is None
 
-    def test_rich_reporter_with_custom_console(self):
+    def test_rich_reporter_with_custom_console(self) -> None:
         """Test rich reporter with custom console."""
-        mock_console = Mock()
-        reporter = RichProgressReporter(mock_console)
+        mock_console: Any = Mock()
+        reporter: Any = RichProgressReporter(mock_console)
         assert reporter.console == mock_console
 
-    def test_rich_reporter_workflow(self):
+    def test_rich_reporter_workflow(self) -> None:
         """Test complete workflow with rich reporter."""
-        mock_console = Mock()
+        mock_console: Any = Mock()
 
         with patch(
             "dnd5e.renderers.latex.progress_tracker.Progress"
         ) as mock_progress_class:
-            mock_progress = Mock()
+            mock_progress: Any = Mock()
             mock_progress_class.return_value = mock_progress
 
-            reporter = RichProgressReporter(mock_console)
+            reporter: Any = RichProgressReporter(mock_console)
 
             # Test workflow
             reporter.start_compilation("lualatex", 3)
@@ -208,10 +211,10 @@ class TestRichProgressReporter:
             reporter.finish_compilation(True, 75.0)
             mock_progress.stop.assert_called_once()
 
-    def test_rich_reporter_error_display(self):
+    def test_rich_reporter_error_display(self) -> None:
         """Test error display in rich reporter."""
-        mock_console = Mock()
-        reporter = RichProgressReporter(mock_console)
+        mock_console: Any = Mock()
+        reporter: Any = RichProgressReporter(mock_console)
 
         reporter.show_error("Test error message")
         mock_console.print.assert_called_once()
@@ -221,7 +224,7 @@ class TestRichProgressReporter:
         assert "Error:" in call_args
         assert "Test error message" in call_args
 
-    def test_rich_reporter_unavailable(self):
+    def test_rich_reporter_unavailable(self) -> None:
         """Test rich reporter when rich is not available."""
         with patch("dnd5e.renderers.latex.progress_tracker.RICH_AVAILABLE", False):
             with pytest.raises(ImportError, match="Rich library not available"):
@@ -231,38 +234,38 @@ class TestRichProgressReporter:
 class TestProgressTracker:
     """Tests for progress tracker."""
 
-    def test_progress_tracker_initialization(self):
+    def test_progress_tracker_initialization(self) -> None:
         """Test progress tracker initialization."""
-        tracker = ProgressTracker(style="simple")
+        tracker: Any = ProgressTracker(style="simple")
 
         assert tracker.style == "simple"
         assert tracker._reporter is not None
         assert isinstance(tracker._reporter, SimpleProgressReporter)
 
-    def test_progress_tracker_none_style(self):
+    def test_progress_tracker_none_style(self) -> None:
         """Test progress tracker with none style."""
-        tracker = ProgressTracker(style="none")
+        tracker: Any = ProgressTracker(style="none")
 
         assert isinstance(tracker._reporter, NoProgressReporter)
 
     @pytest.mark.skipif(not RICH_AVAILABLE, reason="Rich library not available")
-    def test_progress_tracker_rich_style(self):
+    def test_progress_tracker_rich_style(self) -> None:
         """Test progress tracker with rich style."""
-        tracker = ProgressTracker(style="rich")
+        tracker: Any = ProgressTracker(style="rich")
 
         assert isinstance(tracker._reporter, RichProgressReporter)
 
-    def test_progress_tracker_rich_fallback(self):
+    def test_progress_tracker_rich_fallback(self) -> None:
         """Test progress tracker falls back when rich unavailable."""
         with patch("dnd5e.renderers.latex.progress_tracker.RICH_AVAILABLE", False):
-            tracker = ProgressTracker(style="rich")
+            tracker: Any = ProgressTracker(style="rich")
 
             # Should fall back to no-op reporter
             assert isinstance(tracker._reporter, NoProgressReporter)
 
-    def test_compilation_context_manager(self):
+    def test_compilation_context_manager(self) -> None:
         """Test compilation context manager."""
-        tracker = ProgressTracker(style="simple")
+        tracker: Any = ProgressTracker(style="simple")
 
         with patch.object(tracker._reporter, "start_compilation") as mock_start:
             with patch.object(tracker._reporter, "finish_compilation") as mock_finish:
@@ -280,9 +283,9 @@ class TestProgressTracker:
                 assert finish_args[0] is True  # success
                 assert finish_args[1] > 0  # duration
 
-    def test_compilation_context_manager_with_exception(self):
+    def test_compilation_context_manager_with_exception(self) -> None:
         """Test compilation context manager with exception."""
-        tracker = ProgressTracker(style="simple")
+        tracker: Any = ProgressTracker(style="simple")
 
         with patch.object(tracker._reporter, "start_compilation") as mock_start:
             with patch.object(tracker._reporter, "finish_compilation") as mock_finish:
@@ -293,9 +296,9 @@ class TestProgressTracker:
                 mock_start.assert_called_once()
                 mock_finish.assert_called_once()
 
-    def test_compilation_pass_context_manager(self):
+    def test_compilation_pass_context_manager(self) -> None:
         """Test compilation pass context manager."""
-        tracker = ProgressTracker(style="simple")
+        tracker: Any = ProgressTracker(style="simple")
 
         # Initialize compilation first
         tracker._progress = CompilationProgress("lualatex", 3)
@@ -316,9 +319,9 @@ class TestProgressTracker:
                 assert finish_args[0] is True  # success
                 assert finish_args[1] > 0  # duration
 
-    def test_compilation_pass_context_manager_with_exception(self):
+    def test_compilation_pass_context_manager_with_exception(self) -> None:
         """Test compilation pass context manager with exception."""
-        tracker = ProgressTracker(style="simple")
+        tracker: Any = ProgressTracker(style="simple")
         tracker._progress = CompilationProgress("lualatex", 3)
 
         with patch.object(tracker._reporter, "start_pass") as mock_start:
@@ -337,9 +340,9 @@ class TestProgressTracker:
                 # Check that failure flag is set
                 assert hasattr(tracker, "_compilation_failed")
 
-    def test_update_progress(self):
+    def test_update_progress(self) -> None:
         """Test progress update."""
-        tracker = ProgressTracker(style="simple")
+        tracker: Any = ProgressTracker(style="simple")
         tracker._progress = CompilationProgress("lualatex", 3)
 
         with patch.object(tracker._reporter, "update_pass_progress") as mock_update:
@@ -350,27 +353,27 @@ class TestProgressTracker:
 
             mock_update.assert_called_once_with(0.7, "Processing files")
 
-    def test_show_error(self):
+    def test_show_error(self) -> None:
         """Test error display."""
-        tracker = ProgressTracker(style="simple")
+        tracker: Any = ProgressTracker(style="simple")
 
         with patch.object(tracker._reporter, "show_error") as mock_error:
             tracker.show_error("Test error message")
 
             mock_error.assert_called_once_with("Test error message")
 
-    def test_progress_property(self):
+    def test_progress_property(self) -> None:
         """Test progress property access."""
-        tracker = ProgressTracker(style="simple")
+        tracker: Any = ProgressTracker(style="simple")
 
         # Should return the internal progress object
         progress = tracker.progress
         assert isinstance(progress, CompilationProgress)
         assert progress == tracker._progress
 
-    def test_full_workflow_integration(self):
+    def test_full_workflow_integration(self) -> None:
         """Test full workflow integration."""
-        tracker = ProgressTracker(style="simple")
+        tracker: Any = ProgressTracker(style="simple")
 
         with patch.object(tracker._reporter, "start_compilation"):
             with patch.object(tracker._reporter, "finish_compilation"):

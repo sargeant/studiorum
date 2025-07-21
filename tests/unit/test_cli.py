@@ -1,36 +1,37 @@
 """Tests for CLI system."""
 
 import json
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.main import app
+from dnd5e.cli.main import app  # type: ignore
 
 
 class TestCLIMain:
     """Tests for main CLI application."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.runner = CliRunner()
 
-    def test_cli_help(self):
+    def test_cli_help(self) -> None:
         """Test CLI help command."""
         result = self.runner.invoke(app, ["--help"])
         assert result.exit_code == 0
         assert "5e2pdf" in result.stdout
         assert "Convert D&D 5e JSON data" in result.stdout
 
-    def test_cli_version(self):
+    def test_cli_version(self) -> None:
         """Test CLI version command."""
         result = self.runner.invoke(app, ["version"])
         assert result.exit_code == 0
         assert "5e2pdf" in result.stdout
         assert "v2.0.0" in result.stdout
 
-    def test_cli_no_args(self):
+    def test_cli_no_args(self) -> None:
         """Test CLI with no arguments shows usage."""
         result = self.runner.invoke(app, [])
         # CLI should either show help (exit 0) or show usage error (exit 2)
@@ -39,7 +40,7 @@ class TestCLIMain:
         output = result.stdout + result.stderr
         assert "Usage:" in output
 
-    def test_quick_convert_missing_file(self):
+    def test_quick_convert_missing_file(self) -> None:
         """Test quick convert with missing input file."""
         result = self.runner.invoke(app, ["quick", "nonexistent.json"])
         assert result.exit_code == 1
@@ -49,29 +50,29 @@ class TestCLIMain:
 class TestCLICommands:
     """Tests for CLI command modules."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.runner = CliRunner()
 
-    def test_convert_help(self):
+    def test_convert_help(self) -> None:
         """Test convert command help."""
         result = self.runner.invoke(app, ["convert", "--help"])
         assert result.exit_code == 0
         assert "Convert D&D content" in result.stdout
 
-    def test_list_help(self):
+    def test_list_help(self) -> None:
         """Test list command help."""
         result = self.runner.invoke(app, ["list", "--help"])
         assert result.exit_code == 0
         assert "List available" in result.stdout
 
-    def test_info_help(self):
+    def test_info_help(self) -> None:
         """Test info command help."""
         result = self.runner.invoke(app, ["info", "--help"])
         assert result.exit_code == 0
         assert "Show detailed information" in result.stdout
 
-    def test_stats_help(self):
+    def test_stats_help(self) -> None:
         """Test stats command help."""
         result = self.runner.invoke(app, ["stats", "--help"])
         assert result.exit_code == 0
@@ -81,12 +82,12 @@ class TestCLICommands:
 class TestCLIIntegration:
     """Integration tests for CLI with mock data."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.runner = CliRunner()
 
     @pytest.mark.asyncio
-    async def test_quick_convert_integration(self, tmp_path):
+    async def test_quick_convert_integration(self, tmp_path: Any) -> None:
         """Test quick convert with mock data."""
         # Create mock JSON file
         mock_data = {
@@ -117,8 +118,8 @@ class TestCLIIntegration:
             patch("dnd5e.cli.main.get_omnidexer") as mock_omnidexer,
             patch("dnd5e.cli.main.get_tag_resolver") as mock_tag_resolver,
         ):
-            mock_omni = Mock()
-            mock_tag = Mock()
+            mock_omni: Any = Mock()
+            mock_tag: Any = Mock()
             mock_omnidexer.return_value = mock_omni
             mock_tag_resolver.return_value = mock_tag
 
@@ -133,24 +134,24 @@ class TestCLIIntegration:
 class TestCLIFileOperations:
     """Tests for file operation commands."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.runner = CliRunner()
 
-    def test_list_files_no_directories(self):
+    def test_list_files_no_directories(self) -> None:
         """Test list files when no data directories exist."""
         with patch("pathlib.Path.exists", return_value=False):
             result = self.runner.invoke(app, ["list", "files"])
             # Should handle missing directories gracefully
             assert result.exit_code == 0
 
-    def test_info_file_nonexistent(self):
+    def test_info_file_nonexistent(self) -> None:
         """Test info command with nonexistent file."""
         result = self.runner.invoke(app, ["info", "file", "nonexistent.json"])
         assert result.exit_code == 1
         assert "not found" in result.stdout
 
-    def test_info_file_invalid_json(self, tmp_path):
+    def test_info_file_invalid_json(self, tmp_path: Any) -> None:
         """Test info command with invalid JSON file."""
         invalid_file = tmp_path / "invalid.json"
         invalid_file.write_text("{ invalid json }")
@@ -163,24 +164,24 @@ class TestCLIFileOperations:
 class TestCLIErrorHandling:
     """Tests for CLI error handling."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.runner = CliRunner()
 
-    def test_unknown_command(self):
+    def test_unknown_command(self) -> None:
         """Test handling of unknown commands."""
         result = self.runner.invoke(app, ["unknown-command"])
         assert result.exit_code != 0
 
-    def test_convert_missing_file(self):
+    def test_convert_missing_file(self) -> None:
         """Test convert command with missing file."""
         result = self.runner.invoke(app, ["convert", "adventure", "missing.json"])
         assert result.exit_code == 1
 
-    def test_info_content_not_found(self):
+    def test_info_content_not_found(self) -> None:
         """Test info content command with non-existent content."""
         with patch("dnd5e.cli.main.get_omnidexer") as mock_omnidexer:
-            mock_omni = Mock()
+            mock_omni: Any = Mock()
             mock_omni.find.return_value = None
             mock_omnidexer.return_value = mock_omni
 
@@ -192,18 +193,18 @@ class TestCLIErrorHandling:
 class TestCacheSystem:
     """Tests for caching system."""
 
-    def test_cache_creation(self):
+    def test_cache_creation(self) -> None:
         """Test cache manager creation."""
-        from dnd5e.core.cache import CacheManager
+        from dnd5e.core.cache import CacheManager  # type: ignore
 
-        cache = CacheManager()
+        cache: Any = CacheManager()
         assert cache.cache_dir.exists()
 
-    def test_cache_set_get(self):
+    def test_cache_set_get(self) -> None:
         """Test basic cache operations."""
-        from dnd5e.core.cache import CacheManager
+        from dnd5e.core.cache import CacheManager  # type: ignore
 
-        cache = CacheManager()
+        cache: Any = CacheManager()
 
         # Set and get value
         cache.set("test_key", "test_value")
@@ -214,11 +215,11 @@ class TestCacheSystem:
         result = cache.get("missing_key", "default")
         assert result == "default"
 
-    def test_cache_invalidation(self):
+    def test_cache_invalidation(self) -> None:
         """Test cache invalidation."""
-        from dnd5e.core.cache import CacheManager
+        from dnd5e.core.cache import CacheManager  # type: ignore
 
-        cache = CacheManager()
+        cache: Any = CacheManager()
 
         cache.set("test_key", "test_value")
         assert cache.get("test_key") == "test_value"
@@ -226,11 +227,11 @@ class TestCacheSystem:
         cache.invalidate("test_key")
         assert cache.get("test_key") is None
 
-    def test_cache_clear(self):
+    def test_cache_clear(self) -> None:
         """Test cache clearing."""
-        from dnd5e.core.cache import CacheManager
+        from dnd5e.core.cache import CacheManager  # type: ignore
 
-        cache = CacheManager()
+        cache: Any = CacheManager()
 
         cache.set("key1", "value1")
         cache.set("key2", "value2")
@@ -240,11 +241,11 @@ class TestCacheSystem:
         assert cache.get("key1") is None
         assert cache.get("key2") is None
 
-    def test_cache_stats(self):
+    def test_cache_stats(self) -> None:
         """Test cache statistics."""
-        from dnd5e.core.cache import CacheManager
+        from dnd5e.core.cache import CacheManager  # type: ignore
 
-        cache = CacheManager()
+        cache: Any = CacheManager()
         cache.set("test_key", "test_value")
 
         stats = cache.get_stats()
@@ -252,30 +253,30 @@ class TestCacheSystem:
         assert "total_size_mb" in stats
         assert stats["total_entries"] >= 1
 
-    def test_cached_decorator(self):
+    def test_cached_decorator(self) -> None:
         """Test cached function decorator."""
-        from dnd5e.core.cache import cached
+        from dnd5e.core.cache import cached  # type: ignore
 
         call_count = 0
 
         @cached(key_func=lambda x: f"test_func:{x}")
-        def expensive_function(x):
+        def expensive_function(x: Any) -> Any:
             nonlocal call_count
             call_count += 1
             return x * 2
 
         # First call
-        result1 = expensive_function(5)
+        result1: Any = expensive_function(5)
         assert result1 == 10
         assert call_count == 1
 
         # Second call should use cache
-        result2 = expensive_function(5)
+        result2: Any = expensive_function(5)
         assert result2 == 10
         assert call_count == 1  # Should not increment
 
         # Different argument should call function
-        result3 = expensive_function(10)
+        result3: Any = expensive_function(10)
         assert result3 == 20
         assert call_count == 2
 
@@ -287,7 +288,7 @@ class TestCLIAsyncOperations:
         reason="Complex global state mocking - core functionality tested elsewhere"
     )
     @pytest.mark.asyncio
-    async def test_async_omnidexer_loading(self):
+    async def test_async_omnidexer_loading(self) -> None:
         """Test async omnidexer loading in CLI context."""
         # This test is skipped because mocking global state with caching
         # is complex and the core omnidexer functionality is tested elsewhere
@@ -297,7 +298,7 @@ class TestCLIAsyncOperations:
         reason="Complex global state mocking - core functionality tested elsewhere"
     )
     @pytest.mark.asyncio
-    async def test_async_tag_resolver_creation(self):
+    async def test_async_tag_resolver_creation(self) -> None:
         """Test async tag resolver creation."""
         # This test is skipped because mocking global state with caching
         # is complex and the core tag resolver functionality is tested elsewhere

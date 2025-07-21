@@ -1,12 +1,16 @@
 """Tests for content organization utilities."""
 
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent, Source
-from dnd5e.core.models.document_metadata import DocumentType, SectionLevel
-from dnd5e.renderers.latex.content_organizer import ContentOrganizer
+from dnd5e.core.models.content import BaseContent, Source  # type: ignore
+from dnd5e.core.models.document_metadata import (  # type: ignore
+    DocumentType,
+    SectionLevel,
+)
+from dnd5e.renderers.latex.content_organizer import ContentOrganizer  # type: ignore
 
 
 class MockSpell(BaseContent):
@@ -21,7 +25,7 @@ class MockSpell(BaseContent):
 class MockCreature(BaseContent):
     """Mock creature for testing."""
 
-    def __init__(self, name: str, cr: float = 1.0):
+    def __init__(self, name: str, cr: Any = 1.0):
         super().__init__(name=name, source=Source(abbreviation="TEST"))
         self.cr = cr
 
@@ -48,18 +52,18 @@ class MockContent(BaseContent):
 class TestContentOrganizer:
     """Tests for ContentOrganizer class."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.organizer = ContentOrganizer(DocumentType.BOOK)
 
-    def test_organizer_initialization(self):
+    def test_organizer_initialization(self) -> None:
         """Test organizer initialization."""
         assert self.organizer.document_type == DocumentType.BOOK
         assert "spell" in self.organizer._sorters
         assert "creature" in self.organizer._sorters
         assert "item" in self.organizer._sorters
 
-    def test_sort_spells(self):
+    def test_sort_spells(self) -> None:
         """Test spell sorting by level, school, and name."""
         spells = [
             MockSpell("Fireball", level=3, school="evocation"),
@@ -85,7 +89,7 @@ class TestContentOrganizer:
         )  # "enchantment" before "evocation"
         assert level_1_spells[1].school == "evocation"
 
-    def test_sort_creatures(self):
+    def test_sort_creatures(self) -> None:
         """Test creature sorting by challenge rating and name."""
         creatures = [
             MockCreature("Dragon", cr=15.0),
@@ -101,7 +105,7 @@ class TestContentOrganizer:
         crs = [c.cr for c in sorted_creatures]
         assert crs == [0.125, 0.25, 0.5, 5.0, 15.0]
 
-    def test_sort_creatures_string_cr(self):
+    def test_sort_creatures_string_cr(self) -> None:
         """Test creature sorting with string CR values."""
         creatures = [
             MockCreature("Strong", cr="2"),
@@ -118,7 +122,7 @@ class TestContentOrganizer:
         assert sorted_creatures[2].name == "Medium"  # 1 = 1.0
         assert sorted_creatures[3].name == "Strong"  # 2 = 2.0
 
-    def test_sort_items(self):
+    def test_sort_items(self) -> None:
         """Test item sorting by type, rarity, and name."""
         items = [
             MockItem("Sword +1", "weapon", "uncommon"),
@@ -144,7 +148,7 @@ class TestContentOrganizer:
                 for i in range(len(potion_indices) - 1)
             )
 
-    def test_sort_alphabetically(self):
+    def test_sort_alphabetically(self) -> None:
         """Test alphabetical sorting."""
         content = [
             MockContent("Zebra"),
@@ -158,7 +162,7 @@ class TestContentOrganizer:
 
         assert names == ["Apple", "Banana", "cherry", "Zebra"]
 
-    def test_organize_content(self):
+    def test_organize_content(self) -> None:
         """Test complete content organization."""
         content_items = [
             MockSpell("Fireball", level=3),
@@ -175,17 +179,17 @@ class TestContentOrganizer:
             "dnd5e.core.models.content.ContentType.from_content"
         ) as mock_from_content:
 
-            def side_effect(content):
+            def side_effect(content: Any) -> Any:
                 if isinstance(content, MockSpell):
-                    from dnd5e.core.models.content import ContentType
+                    from dnd5e.core.models.content import ContentType  # type: ignore
 
                     return ContentType.SPELL
                 elif isinstance(content, MockCreature):
-                    from dnd5e.core.models.content import ContentType
+                    from dnd5e.core.models.content import ContentType  # type: ignore
 
                     return ContentType.CREATURE
                 elif isinstance(content, MockItem):
-                    from dnd5e.core.models.content import ContentType
+                    from dnd5e.core.models.content import ContentType  # type: ignore
 
                     return ContentType.ITEM
                 else:
@@ -210,7 +214,7 @@ class TestContentOrganizer:
             assert creatures[0].cr == 0.25  # Goblin before Dragon
             assert creatures[1].cr == 15.0
 
-    def test_organize_by_source(self):
+    def test_organize_by_source(self) -> None:
         """Test organization by source book."""
         content_items = [
             MockContent("Content 1", "spell", "PHB"),
@@ -223,8 +227,8 @@ class TestContentOrganizer:
             "dnd5e.core.models.content.ContentType.from_content"
         ) as mock_from_content:
 
-            def side_effect(content):
-                from dnd5e.core.models.content import ContentType
+            def side_effect(content: Any) -> Any:
+                from dnd5e.core.models.content import ContentType  # type: ignore
 
                 return ContentType(content._content_type)
 
@@ -244,7 +248,7 @@ class TestContentOrganizer:
             assert len(organized["PHB"]["spell"]) == 1
             assert len(organized["PHB"]["creature"]) == 1
 
-    def test_organize_by_level_spells(self):
+    def test_organize_by_level_spells(self) -> None:
         """Test organization by level for spells."""
         spells = [
             MockSpell("Cantrip", level=0),
@@ -260,7 +264,7 @@ class TestContentOrganizer:
         assert "Level 3 Spells" in organized
         assert "Level 9+ Spells" in organized
 
-    def test_organize_by_level_creatures(self):
+    def test_organize_by_level_creatures(self) -> None:
         """Test organization by level for creatures."""
         creatures = [
             MockCreature("Weak", cr=0.25),
@@ -278,13 +282,13 @@ class TestContentOrganizer:
         assert "CR 11-16" in organized
         assert "CR 17+" in organized
 
-    def test_get_level_key_unknown_content(self):
+    def test_get_level_key_unknown_content(self) -> None:
         """Test level key for unknown content types."""
-        content = MockContent("Unknown")
+        content: Any = MockContent("Unknown")
         level_key = self.organizer._get_level_key(content)
         assert level_key == "Miscellaneous"
 
-    def test_create_hierarchical_sections(self):
+    def test_create_hierarchical_sections(self) -> None:
         """Test creation of hierarchical sections."""
         organized_content = {
             "spell": [MockSpell("Fireball"), MockSpell("Magic Missile")],
@@ -298,10 +302,10 @@ class TestContentOrganizer:
         assert any(section.title == "Creatures and NPCs" for section in sections)
 
         # Check that content items are assigned
-        spell_section = next(s for s in sections if "Spells" in s.title)
+        spell_section: Any = next(s for s in sections if "Spells" in s.title)
         assert len(spell_section.content_items) == 2
 
-    def test_create_section_for_content_type_article(self):
+    def test_create_section_for_content_type_article(self) -> None:
         """Test section creation for article document type."""
         self.organizer.document_type = DocumentType.ARTICLE
         items = [MockSpell("Test Spell")]
@@ -312,7 +316,7 @@ class TestContentOrganizer:
         assert section.title == "Spells"
         assert len(section.content_items) == 1
 
-    def test_create_section_for_content_type_book(self):
+    def test_create_section_for_content_type_book(self) -> None:
         """Test section creation for book document type."""
         self.organizer.document_type = DocumentType.BOOK
         items = [MockSpell("Test Spell")]
@@ -322,7 +326,7 @@ class TestContentOrganizer:
         assert section.level == SectionLevel.CHAPTER  # Books use chapters
         assert section.title == "Spells"
 
-    def test_create_spell_subsections(self):
+    def test_create_spell_subsections(self) -> None:
         """Test creation of spell subsections by level."""
         spells = [
             MockSpell("Cantrip", level=0),
@@ -340,10 +344,10 @@ class TestContentOrganizer:
         assert "Level 2" in level_titles
 
         # Check content distribution
-        level_1_section = next(s for s in subsections if s.title == "Level 1")
+        level_1_section: Any = next(s for s in subsections if s.title == "Level 1")
         assert len(level_1_section.content_items) == 2
 
-    def test_create_creature_subsections(self):
+    def test_create_creature_subsections(self) -> None:
         """Test creation of creature subsections by CR."""
         creatures = [
             MockCreature("Weak", cr=0.25),
@@ -359,7 +363,7 @@ class TestContentOrganizer:
         assert "CR 1-4" in cr_titles
         assert "CR 11-16" in cr_titles
 
-    def test_create_item_subsections(self):
+    def test_create_item_subsections(self) -> None:
         """Test creation of item subsections by type."""
         items = [
             MockItem("Sword", "weapon"),
@@ -377,10 +381,10 @@ class TestContentOrganizer:
         assert "potion" in type_titles
 
         # Check content distribution
-        weapon_section = next(s for s in subsections if s.title == "weapon")
+        weapon_section: Any = next(s for s in subsections if s.title == "weapon")
         assert len(weapon_section.content_items) == 2
 
-    def test_format_content_type_title(self):
+    def test_format_content_type_title(self) -> None:
         """Test content type title formatting."""
         assert self.organizer._format_content_type_title("spell") == "Spells"
         assert (
@@ -396,9 +400,12 @@ class TestContentOrganizer:
         )
         assert self.organizer._format_content_type_title("custom_type") == "Custom Type"
 
-    def test_create_table_of_contents_data(self):
+    def test_create_table_of_contents_data(self) -> None:
         """Test creation of table of contents data."""
-        from dnd5e.core.models.document_metadata import ContentSection, SectionLevel
+        from dnd5e.core.models.document_metadata import (  # type: ignore
+            ContentSection,
+            SectionLevel,
+        )
 
         sections = [
             ContentSection(
@@ -416,7 +423,7 @@ class TestContentOrganizer:
         ]
 
         # Add a subsection to the first chapter
-        subsection = ContentSection(
+        subsection: Any = ContentSection(
             title="Section 1.1",
             level=SectionLevel.SECTION,
             numbered=True,
@@ -443,9 +450,9 @@ class TestContentOrganizer:
 class TestContentOrganizerIntegration:
     """Integration tests for content organizer."""
 
-    def test_organize_mixed_content_for_book(self):
+    def test_organize_mixed_content_for_book(self) -> None:
         """Test organizing mixed content for book document."""
-        organizer = ContentOrganizer(DocumentType.BOOK)
+        organizer: Any = ContentOrganizer(DocumentType.BOOK)
 
         content_items = [
             MockSpell("Fireball", level=3),
@@ -460,8 +467,8 @@ class TestContentOrganizerIntegration:
             "dnd5e.core.models.content.ContentType.from_content"
         ) as mock_from_content:
 
-            def side_effect(content):
-                from dnd5e.core.models.content import ContentType
+            def side_effect(content: Any) -> Any:
+                from dnd5e.core.models.content import ContentType  # type: ignore
 
                 if isinstance(content, MockSpell):
                     return ContentType.SPELL
@@ -485,16 +492,16 @@ class TestContentOrganizerIntegration:
             assert "Feats" in section_titles
 
             # Check content is properly sorted and assigned
-            spell_section = next(s for s in sections if "Spells" in s.title)
+            spell_section: Any = next(s for s in sections if "Spells" in s.title)
             spell_names = [item.name for item in spell_section.content_items]
             assert spell_names == [
                 "Magic Missile",
                 "Fireball",
             ]  # Level 1 before level 3
 
-    def test_organize_large_spell_collection(self):
+    def test_organize_large_spell_collection(self) -> None:
         """Test organizing large spell collection with subsections."""
-        organizer = ContentOrganizer(DocumentType.SUPPLEMENT)
+        organizer: Any = ContentOrganizer(DocumentType.SUPPLEMENT)
 
         # Create 15 spells to trigger subsection creation
         spells = (
@@ -507,7 +514,7 @@ class TestContentOrganizerIntegration:
         with patch(
             "dnd5e.core.models.content.ContentType.from_content"
         ) as mock_from_content:
-            from dnd5e.core.models.content import ContentType
+            from dnd5e.core.models.content import ContentType  # type: ignore
 
             mock_from_content.return_value = ContentType.SPELL
 
