@@ -399,6 +399,7 @@ class TestLaTeXCompilerIntegration:
 
             result = self.compiler.compile_document(latex_content, "test")
             assert result.success is False
+            assert result.error_message is not None
             assert "No LaTeX engines available" in result.error_message
 
     def test_compile_with_dependency_error(self) -> None:
@@ -417,6 +418,7 @@ class TestLaTeXCompilerIntegration:
 
             result = self.compiler.compile_document(latex_content, "test")
             assert result.success is False
+            assert result.error_message is not None
             assert "Missing dependencies" in result.error_message
 
     @patch("subprocess.run")

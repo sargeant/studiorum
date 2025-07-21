@@ -148,6 +148,7 @@ class TestTagASTTransformer:
         assert result.name == "Dragon"
         assert result.source == "MM"
         assert len(result.display_text_nodes) == 1
+        assert isinstance(result.display_text_nodes[0], TextNode)
         assert result.display_text_nodes[0].text == "dragon"
 
     def test_tag_transform_with_list_parts(self) -> None:
@@ -212,6 +213,7 @@ class TestTagASTTransformer:
         assert result.name == "Dragon"
         assert result.source == "MM"
         assert len(result.display_text_nodes) == 1
+        assert isinstance(result.display_text_nodes[0], TextNode)
         assert result.display_text_nodes[0].text == "great wyrm"
         assert result.page == "98"
 
@@ -269,6 +271,7 @@ class TestTagASTTransformer:
 
         assert isinstance(result, BoldTagNode)
         assert len(result.content_nodes) == 1
+        assert isinstance(result.content_nodes[0], TextNode)
         assert result.content_nodes[0].text == "important text"
 
     def test_create_tag_node_bold_alias(self) -> None:
@@ -277,6 +280,7 @@ class TestTagASTTransformer:
 
         assert isinstance(result, BoldTagNode)
         assert len(result.content_nodes) == 1
+        assert isinstance(result.content_nodes[0], TextNode)
         assert result.content_nodes[0].text == "important text"
 
     def test_create_tag_node_italic(self) -> None:
@@ -285,6 +289,7 @@ class TestTagASTTransformer:
 
         assert isinstance(result, ItalicTagNode)
         assert len(result.content_nodes) == 1
+        assert isinstance(result.content_nodes[0], TextNode)
         assert result.content_nodes[0].text == "emphasized text"
 
     def test_create_tag_node_italic_alias(self) -> None:
@@ -293,6 +298,7 @@ class TestTagASTTransformer:
 
         assert isinstance(result, ItalicTagNode)
         assert len(result.content_nodes) == 1
+        assert isinstance(result.content_nodes[0], TextNode)
         assert result.content_nodes[0].text == "emphasized text"
 
     def test_create_tag_node_dice(self) -> None:
@@ -411,6 +417,7 @@ class TestTagASTTransformer:
 
         assert isinstance(result, BoldTagNode)
         assert len(result.content_nodes) == 1
+        assert isinstance(result.content_nodes[0], TextNode)
         assert result.content_nodes[0].text == "display"
 
     def test_create_tag_node_bold_without_display_text(self) -> None:
@@ -419,6 +426,7 @@ class TestTagASTTransformer:
 
         assert isinstance(result, BoldTagNode)
         assert len(result.content_nodes) == 1
+        assert isinstance(result.content_nodes[0], TextNode)
         assert result.content_nodes[0].text == "text"
 
     def test_content_part_edge_case(self) -> None:
@@ -471,7 +479,7 @@ class TestTagParser:
 
     def test_parse_none_text(self) -> None:
         """Test parsing None text."""
-        result = self.parser.parse(None)
+        result = self.parser.parse(None)  # type: ignore[arg-type]
 
         assert isinstance(result, DocumentNode)
         assert len(result.children) == 0
@@ -509,6 +517,7 @@ class TestTagParser:
         assert creature_node.name == "Ancient Red Dragon"
         assert creature_node.source == "MM"
         assert len(creature_node.display_text_nodes) == 1
+        assert isinstance(creature_node.display_text_nodes[0], TextNode)
         assert creature_node.display_text_nodes[0].text == "great wyrm"
 
     def test_parse_creature_tag_with_page(self) -> None:
@@ -711,6 +720,7 @@ class TestTagParser:
         assert result.name == "Dragon"
         assert result.source == "MM"
         assert len(result.display_text_nodes) == 1
+        assert isinstance(result.display_text_nodes[0], TextNode)
         assert result.display_text_nodes[0].text == "great wyrm"
 
     def test_parse_with_regex_fallback_no_tags(self) -> None:
@@ -812,6 +822,7 @@ class TestTagParser:
         assert isinstance(creature_node, CreatureTagNode)
         assert creature_node.name == "Dragon"
         assert creature_node.source is None  # Empty source
+        assert isinstance(creature_node.display_text_nodes[0], TextNode)
         assert creature_node.display_text_nodes[0].text == "display"
         # Last empty part is page, should be None
 

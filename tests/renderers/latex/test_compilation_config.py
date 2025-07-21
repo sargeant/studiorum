@@ -195,7 +195,7 @@ class TestCompilationConfig:
         config: Any = CompilationConfig(
             max_passes=0,
             timeout_seconds=5,
-            output_dir="not_a_path",  # Should be Path object
+            output_dir="not_a_path",  # type: ignore[arg-type]  # Should be Path object
         )
 
         errors = config.validate()

@@ -102,6 +102,7 @@ class TestTagParser:
         assert ast.children[0].name == "Ancient Red Dragon"
         assert ast.children[0].source == "MM"
         assert len(ast.children[0].display_text_nodes) == 1
+        assert isinstance(ast.children[0].display_text_nodes[0], TextNode)
         assert ast.children[0].display_text_nodes[0].text == "Ancient Red Dragon"
 
     def test_parser_handles_creature_tag_with_display_text(self) -> None:

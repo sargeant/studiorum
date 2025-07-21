@@ -109,7 +109,7 @@ async def loaded_omnidexer(
     source_manager.path_config.data_path = temp_data_dir
 
     # Create and load omnidexer
-    omnidexer: Any = Omnidexer(source_manager)
+    omnidexer = Omnidexer(source_manager)
     await omnidexer.load_all_data()
 
     return omnidexer

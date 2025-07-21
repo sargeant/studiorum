@@ -18,7 +18,7 @@ from .tag_renderer import RendererContext, TagRenderer
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from dnd5e.loaders.omnidexer import Omnidexer  # type: ignore[import-untyped]
+    from dnd5e.core.loaders.omnidexer import Omnidexer
 
 
 class LaTeXRendererContext(RendererContext):

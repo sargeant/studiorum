@@ -310,6 +310,7 @@ class TestCrossReferenceManager:
         # Should have 2 unique references, with Dragon having count of 2
         assert len(self.manager.references) == 2
         dragon_ref = self.manager.get_reference("creature:dragon")
+        assert dragon_ref is not None
         assert dragon_ref.referenced_count == 2
 
 
@@ -329,7 +330,7 @@ class TestCrossReferenceManagerEdgeCases:
         """Test handling of None names."""
         # This should probably raise an error or be handled gracefully
         with pytest.raises((TypeError, AttributeError)):
-            self.manager.register_content("creature", None)
+            self.manager.register_content("creature", None)  # type: ignore[arg-type]
 
     def test_unicode_names(self) -> None:
         """Test handling of Unicode names."""

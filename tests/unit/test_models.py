@@ -237,6 +237,7 @@ class TestCreature:
             }
         ]
         creature = Creature.model_validate(data)
+        assert creature.trait is not None
         assert len(creature.trait) == 1
         assert isinstance(creature.trait[0], Ability)
         assert creature.trait[0].name == "Keen Sight"

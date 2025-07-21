@@ -60,7 +60,7 @@ class TestBaseRenderer:
     def test_base_renderer_cannot_be_instantiated(self) -> None:
         """Test that BaseRenderer cannot be instantiated directly."""
         with pytest.raises(TypeError):
-            BaseRenderer()
+            BaseRenderer()  # type: ignore[abstract]
 
     def test_concrete_renderer_creation(self) -> None:
         """Test that concrete renderer can be created."""
@@ -284,7 +284,7 @@ class TestBaseRenderer:
             pass
 
         with pytest.raises(TypeError) as exc_info:
-            IncompleteRenderer()
+            IncompleteRenderer()  # type: ignore[abstract]
 
         # Should mention both missing abstract methods
         error_msg: Any = str(exc_info.value)
@@ -301,7 +301,7 @@ class TestBaseRenderer:
             # Missing render method
 
         with pytest.raises(TypeError):
-            PartialRenderer()
+            PartialRenderer()  # type: ignore[abstract]
 
     def test_render_to_file_error_message_format(self, tmp_path: Any) -> None:
         """Test the specific format of RenderingError messages."""

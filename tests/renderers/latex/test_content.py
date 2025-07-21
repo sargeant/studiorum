@@ -329,13 +329,13 @@ class TestLaTeXSpellRenderer:
     def test_format_entries_strings(self) -> None:
         """Test formatting string entries."""
         entries = ["First entry", "Second entry"]
-        result = self.renderer._format_entries(entries, self.context)
+        result = self.renderer._format_entries(entries, self.context)  # type: ignore[arg-type]
         assert result == "First entry\n\nSecond entry"
 
     def test_format_entries_mixed(self) -> None:
         """Test formatting mixed entries."""
         entries = ["String entry", {"type": "list", "items": ["item1", "item2"]}]
-        result = self.renderer._format_entries(entries, self.context)
+        result = self.renderer._format_entries(entries, self.context)  # type: ignore[arg-type]
         assert "String entry" in result
         assert "{'type': 'list', 'items': ['item1', 'item2']}" in result
 
@@ -626,6 +626,7 @@ class TestLaTeXCreatureRenderer:
         """Test formatting damage list with mixed types."""
         damage_data = ["fire", {"type": "cold", "note": "except from magic"}]
         result = self.renderer._format_damage_list(damage_data)
+        assert result is not None
         assert "fire" in result
         assert "cold" in result
 
@@ -683,6 +684,7 @@ class TestLaTeXCreatureRenderer:
         ]
         result = self.renderer._format_traits(traits_data, self.context)
 
+        assert result is not None
         assert len(result) == 2
         assert result[0]["name"] == "Keen Sight"
         assert "advantage on sight-based perception checks" in result[0]["description"]
@@ -707,6 +709,7 @@ class TestLaTeXCreatureRenderer:
         ]
         result = self.renderer._format_actions(actions_data, self.context)
 
+        assert result is not None
         assert len(result) == 2
         assert result[0]["name"] == "Multiattack"
         assert "makes two attacks" in result[0]["description"]
@@ -811,13 +814,13 @@ class TestLaTeXItemRenderer:
     def test_format_entries_strings(self) -> None:
         """Test formatting string entries."""
         entries = ["First paragraph", "Second paragraph"]
-        result = self.renderer._format_entries(entries, self.context)
+        result = self.renderer._format_entries(entries, self.context)  # type: ignore[arg-type]
         assert result == "First paragraph\n\nSecond paragraph"
 
     def test_format_entries_mixed(self) -> None:
         """Test formatting mixed entries."""
         entries = ["String entry", {"type": "table", "caption": "Test Table"}]
-        result = self.renderer._format_entries(entries, self.context)
+        result = self.renderer._format_entries(entries, self.context)  # type: ignore[arg-type]
         assert "String entry" in result
         assert "table" in result
 

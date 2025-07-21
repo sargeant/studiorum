@@ -246,7 +246,7 @@ class TestDocumentStructureBuilder:
 
             mock_from_content.side_effect = side_effect
 
-            organized = self.builder._organize_content_by_type(content_items)
+            organized = self.builder._organize_content_by_type(content_items)  # type: ignore[arg-type]
 
             assert "spell" in organized
             assert "creature" in organized
@@ -315,7 +315,7 @@ class TestDocumentStructureBuilder:
 
             mock_from_content.side_effect = side_effect
 
-            organized_content = self.builder._organize_content_by_type(content_items)
+            organized_content = self.builder._organize_content_by_type(content_items)  # type: ignore[arg-type]
 
             # Change to supplement document type
             self.metadata.document_type = DocumentType.SUPPLEMENT
@@ -334,7 +334,8 @@ class TestDocumentStructureBuilder:
         # Use pre-organized content to avoid ContentType resolution
         organized_content = {"unknown": [MockContent("Content 1")]}
         sections = self.builder._build_article_structure(
-            organized_content, self.context
+            organized_content,  # type: ignore[arg-type]
+            self.context,
         )
 
         # Article should use sections, not chapters
@@ -414,7 +415,8 @@ class TestDocumentStructureBuilder:
             mock_organize.return_value = {"unknown": content_items}
 
             sections, document_context = self.builder.build_document_structure(
-                content_items, self.context
+                content_items,  # type: ignore[arg-type]
+                self.context,
             )
 
             assert len(sections) >= 1  # Should have at least one section
