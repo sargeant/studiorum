@@ -334,8 +334,8 @@ class TestDocumentStructureBuilder:
         # Use pre-organized content to avoid ContentType resolution
         organized_content = {"unknown": [MockContent("Content 1")]}
         sections = self.builder._build_article_structure(
-            organized_content,
-            self.context,  # type: ignore[arg-type]
+            organized_content,  # type: ignore[arg-type]
+            self.context,
         )
 
         # Article should use sections, not chapters
@@ -415,8 +415,8 @@ class TestDocumentStructureBuilder:
             mock_organize.return_value = {"unknown": content_items}
 
             sections, document_context = self.builder.build_document_structure(
-                content_items,
-                self.context,  # type: ignore[arg-type]
+                content_items,  # type: ignore[arg-type]
+                self.context,
             )
 
             assert len(sections) >= 1  # Should have at least one section
