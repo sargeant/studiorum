@@ -1,8 +1,10 @@
 """Convert command for 5e2pdf CLI."""
 
 import asyncio
+import json
 from pathlib import Path
 
+import aiofiles
 import typer
 from rich import print as rprint
 from rich.console import Console
@@ -68,10 +70,9 @@ def convert_adventure(
                 progress.update(load_task, completed=100)
 
             # Load adventure content
-            import json
-
-            with open(input_file) as f:
-                adventure_data = json.load(f)
+            async with aiofiles.open(input_file) as f:
+                content = await f.read()
+                adventure_data = json.loads(content)
 
             # Parse adventure
             from dnd5e.core.models.adventures import Adventure
@@ -113,7 +114,8 @@ def convert_adventure(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(result, encoding="utf-8")
+            async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
+                await f.write(result)
 
             rprint(f"[green]✓[/green] Adventure converted: {output_path}")
 
@@ -172,10 +174,9 @@ def convert_book(
                 progress.update(load_task, completed=100)
 
             # Load book content
-            import json
-
-            with open(input_file) as f:
-                book_data = json.load(f)
+            async with aiofiles.open(input_file) as f:
+                content = await f.read()
+                book_data = json.loads(content)
 
             # Parse book
             from dnd5e.core.models.books import Book, BookChapter
@@ -246,7 +247,8 @@ def convert_book(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(result, encoding="utf-8")
+            async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
+                await f.write(result)
 
             rprint(f"[green]✓[/green] Book converted: {output_path}")
 
@@ -309,10 +311,9 @@ def convert_supplement(
                 progress.update(load_task, completed=100)
 
             # Load supplement content
-            import json
-
-            with open(input_file) as f:
-                supplement_data = json.load(f)
+            async with aiofiles.open(input_file) as f:
+                content = await f.read()
+                supplement_data = json.loads(content)
 
             # Parse various content types
             content_items = []
@@ -381,7 +382,8 @@ def convert_supplement(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(result, encoding="utf-8")
+            async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
+                await f.write(result)
 
             rprint(
                 f"[green]✓[/green] Supplement converted ({len(content_items)} items): {output_path}"

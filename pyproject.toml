@@ -20,6 +20,7 @@ dependencies = [
     "rich>=13.0.0",
     "pyyaml>=6.0.0",
     "jinja2>=3.0.0",
+    "aiofiles>=23.0.0",
 ]
 
 [project.optional-dependencies]
@@ -151,3 +152,8 @@ markers = [
 ]
 asyncio_mode = "auto"
 filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]
+
+[dependency-groups]
+dev = [
+    "types-aiofiles>=24.1.0.20250708",
+]
