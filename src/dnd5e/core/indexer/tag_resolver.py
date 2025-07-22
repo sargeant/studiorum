@@ -3,10 +3,14 @@
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from ..loaders.omnidexer import Omnidexer
 from ..logging import get_logger
 from ..models.content import ContentType
+
+if TYPE_CHECKING:
+    from .refactored_tag_resolver import RefactoredTagResolver
 
 logger = get_logger(__name__)
 
@@ -314,6 +318,19 @@ class LaTeXTagResolver(TagResolver):
     def __init__(self, omnidexer: Omnidexer):
         super().__init__(omnidexer)
         # LaTeX-specific handlers can be added here
+
+    @classmethod
+    def create_refactored(cls, omnidexer: Omnidexer) -> "RefactoredTagResolver":
+        """Create a refactored version that separates resolution from formatting.
+
+        This is a migration helper to enable the new architecture while
+        maintaining compatibility with existing code.
+        """
+        from ...renderers.latex.tag_renderer import LaTeXTagRenderer
+        from .refactored_tag_resolver import RefactoredTagResolver
+
+        renderer = LaTeXTagRenderer()
+        return RefactoredTagResolver(omnidexer, renderer)
 
     def _handle_creature_tag(self, tag: TagMatch) -> str:
         """Enhanced creature tag handling for LaTeX."""
