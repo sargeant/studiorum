@@ -14,7 +14,7 @@ from dnd5e.cli.main import get_omnidexer
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
 
-app = typer.Typer(help="List available D&D content")
+app: typer.Typer = typer.Typer(help="List available D&D content")
 console = Console()
 
 

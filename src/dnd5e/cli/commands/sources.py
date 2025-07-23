@@ -17,7 +17,7 @@ from dnd5e.core.config.sources import (
 from dnd5e.core.sources import ContentSourceManager
 
 console = Console()
-app = typer.Typer(help="Manage content sources")
+app: typer.Typer = typer.Typer(help="Manage content sources")
 
 
 @app.command("list")

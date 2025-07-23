@@ -13,7 +13,7 @@ from dnd5e.cli.main import get_omnidexer
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers import ContentResolver
 
-app = typer.Typer(help="Show detailed information about content")
+app: typer.Typer = typer.Typer(help="Show detailed information about content")
 console = Console()
 
 

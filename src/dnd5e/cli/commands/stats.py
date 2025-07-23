@@ -12,7 +12,7 @@ from rich.table import Table
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
 
-app = typer.Typer(help="Show content statistics and analysis")
+app: typer.Typer = typer.Typer(help="Show content statistics and analysis")
 console = Console()
 
 

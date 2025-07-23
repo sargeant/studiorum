@@ -16,7 +16,7 @@ from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
-app = typer.Typer(help="Convert D&D content to LaTeX/PDF")
+app: typer.Typer = typer.Typer(help="Convert D&D content to LaTeX/PDF")
 console = Console()
 
 

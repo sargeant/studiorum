@@ -19,7 +19,7 @@ from dnd5e.core.config.sources import (
 from dnd5e.core.sources import ContentSourceManager
 
 console = Console()
-app = typer.Typer(help="Setup and configuration wizard")
+app: typer.Typer = typer.Typer(help="Setup and configuration wizard")
 
 
 @app.command("wizard")
