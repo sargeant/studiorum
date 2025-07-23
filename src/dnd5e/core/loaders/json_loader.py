@@ -187,6 +187,12 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 book_data = data["bookData"]
                 if isinstance(book_data, list) and book_data:
                     return book_data
+            elif "data" in data:
+                # Handle 5etools book data format with data array
+                # Return the entire file as a single book, not individual sections
+                book_data = data["data"]
+                if isinstance(book_data, list) and book_data:
+                    return [data]  # Wrap entire file structure as single book
             return []
         elif self._content_type == ContentType.FEAT and "feat" in data:
             feat_data = data["feat"]
@@ -275,6 +281,34 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 logger.debug(
                     f"Added inferred type '{item_type}' for item {item.get('name', 'unknown')}"
                 )
+
+        elif self._content_type == ContentType.BOOK:
+            # Add missing name field for 5etools book format
+            if "name" not in item and "data" in item:
+                # For 5etools format, derive book name from source or use generic name
+                source = item.get("source")
+                if source:
+                    abbrev = None
+                    # Handle both dict and object source formats
+                    if isinstance(source, dict):
+                        abbrev = source.get("abbreviation")
+                    elif hasattr(source, "abbreviation"):
+                        abbrev = source.abbreviation
+
+                    if abbrev:
+                        # Convert abbreviation to readable name
+                        name_map = {
+                            "PHB": "Player's Handbook",
+                            "MM": "Monster Manual",
+                            "DMG": "Dungeon Master's Guide",
+                            "XPHB": "Player's Handbook (2024)",
+                        }
+                        item["name"] = name_map.get(abbrev, abbrev)
+                    else:
+                        item["name"] = "Unknown Book"
+                else:
+                    item["name"] = "Unknown Book"
+                logger.debug(f"Added name '{item['name']}' for book")
 
         return item
 

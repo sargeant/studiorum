@@ -89,14 +89,8 @@ def list_content(
 
     async def _list_content() -> None:
         try:
-            # Load omnidexer
-            with Progress() as progress:
-                load_task = progress.add_task(
-                    "[cyan]Loading content data...", total=None
-                )
-                omnidexer = Omnidexer()
-                await omnidexer.load_all_data()
-                progress.update(load_task, completed=100)
+            # Load omnidexer (get_omnidexer handles its own progress display)
+            omnidexer = await get_omnidexer()
 
             # Filter content
             if content_type:
@@ -173,14 +167,8 @@ def list_sources() -> None:
 
     async def _list_sources() -> None:
         try:
-            # Load omnidexer
-            with Progress() as progress:
-                load_task = progress.add_task(
-                    "[cyan]Loading content data...", total=None
-                )
-                omnidexer = Omnidexer()
-                await omnidexer.load_all_data()
-                progress.update(load_task, completed=100)
+            # Load omnidexer (get_omnidexer handles its own progress display)
+            omnidexer = await get_omnidexer()
 
             # Get statistics
             stats = omnidexer.get_statistics()
@@ -218,13 +206,8 @@ def list_adventures() -> None:
 
     async def _list_adventures() -> None:
         try:
-            # Load omnidexer
-            with Progress() as progress:
-                load_task = progress.add_task(
-                    "[cyan]Loading content data...", total=None
-                )
-                omnidexer = await get_omnidexer()
-                progress.update(load_task, completed=100)
+            # Load omnidexer (get_omnidexer handles its own progress display)
+            omnidexer = await get_omnidexer()
 
             # Get all adventures
             adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
@@ -269,13 +252,8 @@ def list_books() -> None:
 
     async def _list_books() -> None:
         try:
-            # Load omnidexer
-            with Progress() as progress:
-                load_task = progress.add_task(
-                    "[cyan]Loading content data...", total=None
-                )
-                omnidexer = await get_omnidexer()
-                progress.update(load_task, completed=100)
+            # Load omnidexer (get_omnidexer handles its own progress display)
+            omnidexer = await get_omnidexer()
 
             # Get all books
             books = omnidexer.get_all_by_type(ContentType.BOOK)

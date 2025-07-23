@@ -842,7 +842,7 @@ class TestLaTeXContentRendererRegistry:
     def test_init(self) -> None:
         """Test registry initialization."""
         registry: Any = LaTeXContentRendererRegistry()
-        assert len(registry._renderers) == 8
+        assert len(registry._renderers) == 9
         assert ContentType.SPELL in registry._renderers
         assert ContentType.CREATURE in registry._renderers
         assert ContentType.ITEM in registry._renderers

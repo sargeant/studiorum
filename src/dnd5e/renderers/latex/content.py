@@ -4,6 +4,7 @@ from typing import Any
 
 from ...core.models.adventures import Adventure
 from ...core.models.backgrounds import Background
+from ...core.models.books import Book
 from ...core.models.classes import Class
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.creatures import Creature
@@ -3699,6 +3700,250 @@ class LaTeXFeatRenderer(LaTeXContentRenderer):
         return "\n\n".join(text_parts)
 
 
+class LaTeXBookRenderer(LaTeXContentRenderer):
+    """Enhanced LaTeX renderer for book content using DND template environments."""
+
+    def __init__(self, config: dict[str, Any] | None = None):
+        """Initialize book renderer.
+
+        Args:
+            config: Configuration options including use_dnd_template flag
+        """
+        super().__init__(config)
+        self.use_dnd_template = config.get("use_dnd_template", True) if config else True
+
+    @property
+    def supported_content_types(self) -> set[ContentType]:
+        """Return supported content types."""
+        return {ContentType.BOOK}
+
+    def render_content(self, content: BaseContent, context: RenderContext) -> str:
+        """Render book content to LaTeX using DND template environments.
+
+        Args:
+            content: Book content to render
+            context: Rendering context
+
+        Returns:
+            LaTeX markup string
+        """
+        if not isinstance(content, Book):
+            raise ValueError(f"Expected Book, got {type(content)}")
+
+        # Build template variables for book rendering
+        variables = self._build_book_variables(content, context)
+
+        # Use book template
+        template_name = "book_dnd" if self.use_dnd_template else "book"
+        return self.template_engine.render_template(template_name, variables)
+
+    def _build_book_variables(
+        self, book: Book, context: RenderContext
+    ) -> dict[str, Any]:
+        """Build comprehensive template variables for book rendering.
+
+        Args:
+            book: Book to build variables for
+            context: Rendering context
+
+        Returns:
+            Dictionary of template variables
+        """
+        variables = {
+            "book": book,
+            "name": book.name,
+            "source": book.source.name if book.source else "",
+            "source_abbr": book.source.abbreviation if book.source else "",
+            "authors": book.get_authors_text(),
+            "chapters": [],
+            "metadata": book.metadata,
+        }
+
+        # Process chapters
+        for chapter in book.contents:
+            chapter_vars = {
+                "name": chapter.name,
+                "number": chapter.get_chapter_number(),
+                "headers": chapter.get_formatted_headers(),
+                "entries": self._process_entries(chapter.entries, context),
+            }
+            variables["chapters"].append(chapter_vars)
+
+        return variables
+
+    def _process_entries(self, entries: list[Any], context: RenderContext) -> list[str]:
+        """Process chapter entries into LaTeX content.
+
+        Args:
+            entries: List of entry objects/strings
+            context: Rendering context
+
+        Returns:
+            List of processed LaTeX strings
+        """
+        processed = []
+
+        for entry in entries:
+            if isinstance(entry, str):
+                # Plain text entry
+                processed.append(self.process_text_with_tags(entry, context))
+            elif isinstance(entry, dict):
+                processed.append(self._process_entry_dict(entry, context))
+            else:
+                # Fallback for other types
+                processed.append(str(entry))
+
+        return processed
+
+    def _process_entry_dict(self, entry: dict[str, Any], context: RenderContext) -> str:
+        """Process a dictionary entry into LaTeX.
+
+        Args:
+            entry: Entry dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        entry_type = entry.get("type", "")
+
+        if entry_type == "section":
+            return self._process_section(entry, context)
+        elif entry_type == "entries":
+            return self._process_entries_block(entry, context)
+        elif entry_type == "insetReadaloud":
+            return self._process_inset_readaloud(entry, context)
+        elif entry_type == "inset":
+            return self._process_inset(entry, context)
+        elif entry_type == "image":
+            return self._process_image(entry, context)
+        else:
+            # Generic entry with name and entries
+            name = entry.get("name", "")
+            entries = entry.get("entries", [])
+
+            result = []
+            if name:
+                result.append(f"\\subsection{{{self.escape_latex(name)}}}")
+
+            if entries:
+                processed_entries = self._process_entries(entries, context)
+                result.extend(processed_entries)
+
+            return "\n\n".join(result)
+
+    def _process_section(self, section: dict[str, Any], context: RenderContext) -> str:
+        """Process a section entry.
+
+        Args:
+            section: Section dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = section.get("name", "")
+        entries = section.get("entries", [])
+
+        result = []
+        if name:
+            result.append(f"\\section{{{self.escape_latex(name)}}}")
+
+        if entries:
+            processed_entries = self._process_entries(entries, context)
+            result.extend(processed_entries)
+
+        return "\n\n".join(result)
+
+    def _process_entries_block(
+        self, block: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Process an entries block.
+
+        Args:
+            block: Entries block dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = block.get("name", "")
+        entries = block.get("entries", [])
+
+        result = []
+        if name:
+            result.append(f"\\subsection{{{self.escape_latex(name)}}}")
+
+        if entries:
+            processed_entries = self._process_entries(entries, context)
+            result.extend(processed_entries)
+
+        return "\n\n".join(result)
+
+    def _process_inset_readaloud(
+        self, inset: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Process a read-aloud inset.
+
+        Args:
+            inset: Inset dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        entries = inset.get("entries", [])
+        processed_entries = self._process_entries(entries, context)
+        content = "\n".join(processed_entries)
+
+        if self.use_dnd_template:
+            return f"\\begin{{readaloud}}\n{content}\n\\end{{readaloud}}"
+        else:
+            return f"\\begin{{quotation}}\\em\n{content}\n\\end{{quotation}}"
+
+    def _process_inset(self, inset: dict[str, Any], context: RenderContext) -> str:
+        """Process a generic inset.
+
+        Args:
+            inset: Inset dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = inset.get("name", "")
+        entries = inset.get("entries", [])
+        processed_entries = self._process_entries(entries, context)
+        content = "\n".join(processed_entries)
+
+        if self.use_dnd_template:
+            if name:
+                return f"\\begin{{dndbox}}[{self.escape_latex(name)}]\n{content}\n\\end{{dndbox}}"
+            else:
+                return f"\\begin{{dndbox}}\n{content}\n\\end{{dndbox}}"
+        else:
+            result = []
+            if name:
+                result.append(f"\\textbf{{{self.escape_latex(name)}}}")
+            result.append(f"\\begin{{quotation}}\n{content}\n\\end{{quotation}}")
+            return "\n\n".join(result)
+
+    def _process_image(self, image: dict[str, Any], context: RenderContext) -> str:
+        """Process an image entry.
+
+        Args:
+            image: Image dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        # For now, just add a placeholder comment
+        href = image.get("href", {})
+        path = href.get("path", "")
+        return f"% Image: {path}"
+
+
 class LaTeXContentRendererRegistry:
     """Registry for LaTeX content renderers."""
 
@@ -3717,6 +3962,7 @@ class LaTeXContentRendererRegistry:
         self.register_renderer(ContentType.ADVENTURE, LaTeXAdventureRenderer())
         self.register_renderer(ContentType.BACKGROUND, LaTeXBackgroundRenderer())
         self.register_renderer(ContentType.FEAT, LaTeXFeatRenderer())
+        self.register_renderer(ContentType.BOOK, LaTeXBookRenderer())
 
     def register_renderer(
         self, content_type: ContentType, renderer: ContentRenderer

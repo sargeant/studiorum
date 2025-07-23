@@ -182,6 +182,14 @@ class ContentResolver:
                 query=abbreviation,
             )
         elif len(exact_matches) > 1:
+            # Try to resolve ambiguity by preferring non-versioned content
+            preferred_match = self._select_preferred_match(exact_matches)
+            if preferred_match:
+                return ContentResolutionResult(
+                    status=ResolutionStatus.EXACT_MATCH,
+                    content=preferred_match,
+                    query=abbreviation,
+                )
             return ContentResolutionResult(
                 status=ResolutionStatus.MULTIPLE_MATCHES,
                 matches=exact_matches,
@@ -222,3 +230,56 @@ class ContentResolver:
             suggestions=suggestions,
             query=abbreviation,
         )
+
+    def _select_preferred_match(self, matches: list[BaseContent]) -> BaseContent | None:
+        """Select the preferred match from multiple exact matches.
+
+        When multiple content items have the same abbreviation, this method
+        applies heuristics to select the most appropriate one:
+        1. Prefer items without year suffixes in parentheses (e.g., "PHB" over "PHB (2014)")
+        2. Prefer shorter names when all else is equal
+        3. Return None if no clear preference can be determined
+
+        Args:
+            matches: List of content items with identical abbreviations
+
+        Returns:
+            The preferred match, or None if no clear preference exists
+        """
+        if not matches:
+            return None
+        if len(matches) == 1:
+            return matches[0]
+
+        # Priority 1: Prefer items without year suffixes in parentheses
+        non_versioned = [
+            match for match in matches if not self._has_year_suffix(match.name)
+        ]
+
+        if len(non_versioned) == 1:
+            return non_versioned[0]
+        elif len(non_versioned) > 1:
+            # Multiple non-versioned matches, use shorter name as tiebreaker
+            return min(non_versioned, key=lambda x: len(x.name))
+
+        # Priority 2: If all have year suffixes, prefer the shortest name
+        return min(matches, key=lambda x: len(x.name))
+
+    def _has_year_suffix(self, name: str) -> bool:
+        """Check if a name has a year suffix in parentheses.
+
+        Examples:
+        - "Player's Handbook (2014)" -> True
+        - "Player's Handbook" -> False
+        - "Xanathar's Guide (2017)" -> True
+
+        Args:
+            name: The name to check
+
+        Returns:
+            True if the name has a year suffix in parentheses
+        """
+        import re
+
+        # Look for pattern like "(2014)" or "(2024)" at the end of the name
+        return bool(re.search(r"\(\d{4}\)\s*$", name))

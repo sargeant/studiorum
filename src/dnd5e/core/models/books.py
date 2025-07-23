@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .content import BaseContent
 
@@ -109,6 +109,12 @@ class BookMetadata(BaseModel):
         else:
             return f"{', '.join(self.author[:-1])}, and {self.author[-1]}"
 
+    def get_formatted_date(self) -> str:
+        """Get formatted publication date."""
+        if not self.published:
+            return ""
+        return self.published
+
 
 class Book(BaseContent):
     """Represents a D&D rulebook or supplement."""
@@ -135,6 +141,21 @@ class Book(BaseContent):
         if isinstance(v, list):
             return v
         return [str(v)]  # Convert other types to string then list
+
+    @model_validator(mode="before")
+    @classmethod
+    def transform_5etools_format(cls, data: Any) -> Any:
+        """Transform 5etools book format to standard Book format."""
+        if isinstance(data, dict) and "data" in data and "contents" not in data:
+            # Transform 5etools format: move "data" array to "contents" field
+            data_array = data.get("data", [])
+            if isinstance(data_array, list):
+                # Create a copy of the data and transform it
+                transformed = dict(data)
+                transformed["contents"] = data_array
+                # Keep the original data field for reference if needed
+                return transformed
+        return data
 
     def model_post_init(self, __context: Any) -> None:
         """Post-process parsed data."""
