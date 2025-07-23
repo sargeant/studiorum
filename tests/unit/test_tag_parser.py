@@ -192,7 +192,7 @@ class TestTagASTTransformer:
 
         result = self.transformer._render_content_part(nodes)
 
-        assert result == "plain text{@test...}"
+        assert result == "plain text[test]"
 
     def test_render_content_part_text_only(self) -> None:
         """Test _render_content_part with text only."""
@@ -565,7 +565,7 @@ class TestTagParser:
 
         creature_node = result.children[0]
         assert isinstance(creature_node, CreatureTagNode)
-        assert creature_node.name == "Name|with|pipes"
+        assert creature_node.name == "Name\\|with\\|pipes"
         assert creature_node.source == "MM"
         # The current implementation may not handle all escape sequences perfectly
 

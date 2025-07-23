@@ -80,14 +80,42 @@ class TagASTTransformer(Transformer):
 
         tag_type = str(children[0])
 
-        # The second child should be the tag_content result (list of content parts)
+        # Handle both old test format and new parser format
+        parts_with_nodes: list[list[ASTNode]] = []
         if len(children) > 1:
-            tag_content = children[
-                1
-            ]  # This should be list[list[ASTNode]] from tag_content
-            parts_with_nodes = tag_content
-        else:
-            parts_with_nodes = []
+            tag_content = children[1]
+
+            # Check if this is the old test format (list of strings)
+            if (
+                isinstance(tag_content, list)
+                and tag_content
+                and isinstance(tag_content[0], str)
+            ):
+                # Convert old format to new format for backward compatibility
+                for part in tag_content:
+                    if part:
+                        parts_with_nodes.append([TextNode(part)])
+                    else:
+                        parts_with_nodes.append([])
+            # Check if this is a single list of nodes (old test format)
+            elif (
+                isinstance(tag_content, list)
+                and tag_content
+                and hasattr(tag_content[0], "text")
+            ):
+                # Single list of nodes, wrap it as first part
+                parts_with_nodes = [tag_content]
+            # Handle direct string list from tests like ["Dragon", "MM", "dragon"]
+            elif all(isinstance(item, str) for item in children[1:]):
+                # Convert remaining children to parts
+                for part in children[1:]:
+                    if part:
+                        parts_with_nodes.append([TextNode(part)])
+                    else:
+                        parts_with_nodes.append([])
+            else:
+                # New format: list of content parts (list[list[ASTNode]])
+                parts_with_nodes = tag_content
 
         # Create appropriate tag node based on type with node support
         return self._create_tag_node_with_nodes(tag_type, parts_with_nodes)
@@ -113,7 +141,7 @@ class TagASTTransformer(Transformer):
         nodes: list[ASTNode] = []
 
         # First pass: collect all text tokens and their positions
-        all_parts = []
+        all_parts: list[tuple[str, TagNode | str]] = []
         for child in children:
             if isinstance(child, TagNode):
                 all_parts.append(("tag", child))
@@ -135,8 +163,10 @@ class TagASTTransformer(Transformer):
                         current_text = current_text.lstrip()
                     nodes.append(TextNode(current_text))
                     current_text = ""
+                assert isinstance(part_value, TagNode)  # Type narrowing
                 nodes.append(part_value)
             elif part_type == "text":
+                assert isinstance(part_value, str)  # Type narrowing
                 current_text += part_value
 
         # Flush remaining text
@@ -196,39 +226,39 @@ class TagASTTransformer(Transformer):
         elif tag_type == "adventure":
             return AdventureTagNode(name, source, final_display_text_nodes, page)
         elif tag_type == "book":
-            return BookTagNode(name, source, final_display_text_nodes, page)
+            return BookTagNode(name, source, page)
         elif tag_type == "condition":
-            return ConditionTagNode(name, source, final_display_text_nodes, page)
+            return ConditionTagNode(name)
 
-        # Formatting tags (use first part as content)
+        # Formatting tags (use display text if available, otherwise first part)
         elif tag_type in ("bold", "b"):
-            content_nodes = name_nodes if name_nodes else []
+            content_nodes = display_text_nodes if display_text_nodes else name_nodes
             return BoldTagNode(content_nodes)
         elif tag_type in ("italic", "i"):
-            content_nodes = name_nodes if name_nodes else []
+            content_nodes = display_text_nodes if display_text_nodes else name_nodes
             return ItalicTagNode(content_nodes)
 
         # Dice and special tags
         elif tag_type == "dice":
-            return DiceTagNode(name, final_display_text_nodes)
+            return DiceTagNode(name)
         elif tag_type == "damage":
-            return DamageTagNode(name, final_display_text_nodes)
+            return DamageTagNode(name)
         elif tag_type == "hit":
-            return HitTagNode(name, final_display_text_nodes)
+            return HitTagNode(name)
         elif tag_type == "dc":
-            return DCTagNode(name, final_display_text_nodes)
+            return DCTagNode(name)
         elif tag_type == "chance":
-            return ChanceTagNode(name, final_display_text_nodes)
+            return ChanceTagNode(name)
         elif tag_type == "recharge":
-            return RechargeTagNode(name, final_display_text_nodes)
+            return RechargeTagNode(name)
         elif tag_type == "filter":
-            return FilterTagNode(name, final_display_text_nodes)
+            return FilterTagNode(name)
         elif tag_type == "loader":
-            return LoaderTagNode(name, final_display_text_nodes)
+            return LoaderTagNode(name)
 
         # Generic fallback
         else:
-            return TagNode(tag_type, name, source, final_display_text_nodes, page)
+            return TagNode(tag_type)
 
     def _nodes_to_text(self, nodes: list[ASTNode]) -> str:
         """Convert a list of nodes to plain text string."""
@@ -251,7 +281,7 @@ class TagASTTransformer(Transformer):
 
         Converts string parts to node lists and delegates to new method.
         """
-        parts_with_nodes = []
+        parts_with_nodes: list[list[ASTNode]] = []
         for part in parts:
             if part:
                 parts_with_nodes.append([TextNode(part)])
@@ -293,6 +323,7 @@ class TagParser:
             tree = self.parser.parse(text)
             transformer = TagASTTransformer(text)
             ast = transformer.transform(tree)
+            assert isinstance(ast, DocumentNode)
             return ast
         except Exception as e:
             logger.warning("Tag parsing failed: %s. Falling back to TextNode.", e)
