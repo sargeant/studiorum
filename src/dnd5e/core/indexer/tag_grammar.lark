@@ -9,18 +9,16 @@ tag: "{@" tag_type tag_content "}"
 
 tag_type: WORD
 
-tag_content: (pipe_separated_content)*
+tag_content: content_part (pipe_separated_content)*
 
 pipe_separated_content: "|" content_part
 
-content_part: (text_fragment | nested_tag | escaped_char)*
+content_part: (TEXT | nested_tag | escaped_char)*
 
 nested_tag: tag
 
-// Text and content
-text: TEXT_FRAGMENT+
-
-text_fragment: TEXT_CHAR+
+// Text and content (simplified)
+text: TEXT+
 
 // Escaped characters
 escaped_char: ESCAPED_PIPE | ESCAPED_BRACE
@@ -28,8 +26,7 @@ escaped_char: ESCAPED_PIPE | ESCAPED_BRACE
 // Terminals
 ESCAPED_PIPE: "\\|"
 ESCAPED_BRACE: "\\}"
-TEXT_CHAR: /[^{@|\\}]/
-TEXT_FRAGMENT: /[^{@]+/
+TEXT: /(?:[^{}|\\]|{[^@]|\\[{}|])+/
 WORD: /\w+/
 
 %import common.WS

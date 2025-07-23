@@ -847,3 +847,135 @@ class TestTagParser:
 
         with pytest.raises(TagParseError, match="Failed to initialize parser"):
             TagParser()
+
+
+class TestNestedTagParsing:
+    """Tests for nested tag parsing functionality."""
+
+    def setup_method(self) -> None:
+        """Set up test fixtures."""
+        self.parser = TagParser()
+
+    def test_simple_nested_tag(self) -> None:
+        """Test a simple nested tag within another tag."""
+        text = "{@bold This is {@italic nested} text}"
+        result = self.parser.parse(text)
+
+        assert isinstance(result, DocumentNode)
+        assert len(result.children) == 1
+        bold_node = result.children[0]
+        assert isinstance(bold_node, BoldTagNode)
+        assert len(bold_node.content_nodes) == 3
+
+        # Check the content structure
+        assert isinstance(bold_node.content_nodes[0], TextNode)
+        assert bold_node.content_nodes[0].text == " This is "
+        assert isinstance(bold_node.content_nodes[1], ItalicTagNode)
+        assert isinstance(bold_node.content_nodes[2], TextNode)
+        assert bold_node.content_nodes[2].text == " text"
+
+    def test_nested_tag_in_creature_display_text(self) -> None:
+        """Test nested tag within a creature's display text."""
+        text = "{@creature Dragon|MM|a {@bold mighty} beast}"
+        result = self.parser.parse(text)
+
+        assert isinstance(result, DocumentNode)
+        assert len(result.children) == 1
+        creature_node = result.children[0]
+        assert isinstance(creature_node, CreatureTagNode)
+        assert creature_node.name == "Dragon"
+        assert creature_node.source == "MM"
+
+        # Check display text has nested structure
+        assert len(creature_node.display_text_nodes) == 3
+        assert isinstance(creature_node.display_text_nodes[0], TextNode)
+        assert creature_node.display_text_nodes[0].text == "a "
+        assert isinstance(creature_node.display_text_nodes[1], BoldTagNode)
+        assert isinstance(creature_node.display_text_nodes[2], TextNode)
+        assert creature_node.display_text_nodes[2].text == " beast"
+
+    def test_deeply_nested_tags(self) -> None:
+        """Test multiple levels of tag nesting."""
+        text = "{@bold A {@italic B {@bold C} D} E}"
+        result = self.parser.parse(text)
+
+        assert isinstance(result, DocumentNode)
+        assert len(result.children) == 1
+
+        # First level: bold tag
+        bold_outer = result.children[0]
+        assert isinstance(bold_outer, BoldTagNode)
+        assert len(bold_outer.content_nodes) == 3  # "A ", italic_tag, " E"
+
+        # Second level: italic tag
+        italic_middle = bold_outer.content_nodes[1]
+        assert isinstance(italic_middle, ItalicTagNode)
+        assert len(italic_middle.content_nodes) == 3  # "B ", bold_tag, " D"
+
+        # Third level: nested bold tag
+        bold_inner = italic_middle.content_nodes[1]
+        assert isinstance(bold_inner, BoldTagNode)
+        assert len(bold_inner.content_nodes) == 1
+        assert isinstance(bold_inner.content_nodes[0], TextNode)
+        assert bold_inner.content_nodes[0].text == "C"
+
+    def test_consecutive_nested_tags(self) -> None:
+        """Test consecutive nested tags within a parent tag."""
+        text = "{@bold Start {@italic first} and {@italic second} end}"
+        result = self.parser.parse(text)
+
+        assert isinstance(result, DocumentNode)
+        assert len(result.children) == 1
+        bold_node = result.children[0]
+        assert isinstance(bold_node, BoldTagNode)
+        assert len(bold_node.content_nodes) == 5
+
+        # Check sequence: " Start ", italic1, " and ", italic2, " end"
+        assert isinstance(bold_node.content_nodes[0], TextNode)
+        assert bold_node.content_nodes[0].text == " Start "
+        assert isinstance(bold_node.content_nodes[1], ItalicTagNode)
+        assert isinstance(bold_node.content_nodes[2], TextNode)
+        assert bold_node.content_nodes[2].text == " and "
+        assert isinstance(bold_node.content_nodes[3], ItalicTagNode)
+        assert isinstance(bold_node.content_nodes[4], TextNode)
+        assert bold_node.content_nodes[4].text == " end"
+
+    def test_nested_spell_in_creature(self) -> None:
+        """Test nested spell tag within creature display text."""
+        text = "{@creature Ancient Red Dragon|MM|casts {@spell fireball|PHB} spell}"
+        result = self.parser.parse(text)
+
+        assert isinstance(result, DocumentNode)
+        assert len(result.children) == 1
+        creature_node = result.children[0]
+        assert isinstance(creature_node, CreatureTagNode)
+        assert creature_node.name == "Ancient Red Dragon"
+
+        # Check nested spell in display text
+        assert len(creature_node.display_text_nodes) == 3
+        assert isinstance(creature_node.display_text_nodes[0], TextNode)
+        assert creature_node.display_text_nodes[0].text == "casts "
+        assert isinstance(creature_node.display_text_nodes[1], SpellTagNode)
+        spell_node = creature_node.display_text_nodes[1]
+        assert spell_node.name == "fireball"
+        assert spell_node.source == "PHB"
+        assert isinstance(creature_node.display_text_nodes[2], TextNode)
+        assert creature_node.display_text_nodes[2].text == " spell"
+
+    def test_nested_tags_with_escaped_braces(self) -> None:
+        """Test nested tags with escaped brace characters."""
+        text = "{@bold Text with \\{ {@italic nested} \\} braces}"
+        result = self.parser.parse(text)
+
+        assert isinstance(result, DocumentNode)
+        assert len(result.children) == 1
+        bold_node = result.children[0]
+        assert isinstance(bold_node, BoldTagNode)
+
+        # Should have text before, nested tag, and text after with escaped braces
+        assert len(bold_node.content_nodes) == 3
+        assert isinstance(bold_node.content_nodes[0], TextNode)
+        assert "\\{" in bold_node.content_nodes[0].text  # Contains escaped brace
+        assert isinstance(bold_node.content_nodes[1], ItalicTagNode)
+        assert isinstance(bold_node.content_nodes[2], TextNode)
+        assert "\\}" in bold_node.content_nodes[2].text  # Contains escaped brace
