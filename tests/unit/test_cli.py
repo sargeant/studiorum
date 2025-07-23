@@ -279,27 +279,3 @@ class TestCacheSystem:
         result3: Any = expensive_function(10)
         assert result3 == 20
         assert call_count == 2
-
-
-class TestCLIAsyncOperations:
-    """Tests for async CLI operations."""
-
-    @pytest.mark.skip(
-        reason="Complex global state mocking - core functionality tested elsewhere"
-    )
-    @pytest.mark.asyncio
-    async def test_async_omnidexer_loading(self) -> None:
-        """Test async omnidexer loading in CLI context."""
-        # This test is skipped because mocking global state with caching
-        # is complex and the core omnidexer functionality is tested elsewhere
-        pass
-
-    @pytest.mark.skip(
-        reason="Complex global state mocking - core functionality tested elsewhere"
-    )
-    @pytest.mark.asyncio
-    async def test_async_tag_resolver_creation(self) -> None:
-        """Test async tag resolver creation."""
-        # This test is skipped because mocking global state with caching
-        # is complex and the core tag resolver functionality is tested elsewhere
-        pass
