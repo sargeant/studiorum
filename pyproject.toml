@@ -175,4 +175,5 @@ filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]
 [dependency-groups]
 dev = [
     "types-aiofiles>=24.1.0.20250708",
+    "types-psutil>=7.0.0.20250601",
 ]
