@@ -11,6 +11,7 @@ from rich.progress import Progress
 
 from dnd5e.cli.main import get_omnidexer
 from dnd5e.core.models.content import ContentType
+from dnd5e.core.resolvers import ContentResolver
 
 app = typer.Typer(help="Show detailed information about content")
 console = Console()
@@ -18,17 +19,29 @@ console = Console()
 
 @app.command("content")
 def show_content_info(
-    name: str = typer.Argument(..., help="Name of the content item"),
+    name_or_abbreviation: str = typer.Argument(
+        ..., help="Content name or abbreviation (e.g., 'cos', 'phb')"
+    ),
     content_type: str | None = typer.Option(
-        None, "--type", "-t", help="Content type (spell, creature, item)"
+        None,
+        "--type",
+        "-t",
+        help="Content type (adventure, book, spell, creature, item)",
     ),
     source: str | None = typer.Option(None, "--source", "-s", help="Source book"),
 ) -> None:
     """
-    🔍 Show detailed information about a specific content item
+    🔍 Show detailed information about content
 
-    Displays comprehensive details about spells, creatures, items, etc.
-    including all attributes and formatted descriptions.
+    Displays comprehensive details about adventures, books, spells, creatures,
+    items, etc. Supports both content names and abbreviations.
+
+    \b
+    Examples:
+      5e2pdf info content cos                    # Adventure by abbreviation
+      5e2pdf info content phb                    # Book by abbreviation
+      5e2pdf info content "Curse of Strahd"     # Adventure by name
+      5e2pdf info content fireball --type spell # Spell by name
     """
 
     async def _show_info() -> None:
@@ -41,27 +54,59 @@ def show_content_info(
                 omnidexer = await get_omnidexer()
                 progress.update(load_task, completed=100)
 
-            # Find content
+            # Create resolver for abbreviation lookup
+            resolver = ContentResolver(omnidexer)
             content_item = None
 
-            if content_type:
-                try:
-                    ct = ContentType(content_type.lower())
-                    content_item = omnidexer.find(ct, name, source)
-                except ValueError:
-                    rprint(f"[red]Error:[/red] Unknown content type: {content_type}")
-                    raise typer.Exit(1)
-            else:
-                # Search all types
-                for ct in ContentType:
-                    content_item = omnidexer.find(ct, name, source)
-                    if content_item:
-                        break
+            # First try abbreviation-based lookup for adventures and books
+            if not content_type or content_type.lower() in ["adventure", "book"]:
+                # Try adventure abbreviation lookup
+                if not content_type or content_type.lower() == "adventure":
+                    result = resolver.resolve_adventure(name_or_abbreviation)
+                    if result.is_success and result.content:
+                        content_item = result.content
+
+                # Try book abbreviation lookup if not found
+                if not content_item and (
+                    not content_type or content_type.lower() == "book"
+                ):
+                    result = resolver.resolve_book(name_or_abbreviation)
+                    if result.is_success and result.content:
+                        content_item = result.content
+
+            # Fall back to traditional name-based search
+            if not content_item:
+                if content_type:
+                    try:
+                        ct = ContentType(content_type.lower())
+                        content_item = omnidexer.find(ct, name_or_abbreviation, source)
+                    except ValueError:
+                        rprint(
+                            f"[red]Error:[/red] Unknown content type: {content_type}"
+                        )
+                        rprint(
+                            "Available types: adventure, book, spell, creature, item"
+                        )
+                        raise typer.Exit(1)
+                else:
+                    # Search all types by name
+                    for ct in ContentType:
+                        content_item = omnidexer.find(ct, name_or_abbreviation, source)
+                        if content_item:
+                            break
 
             if not content_item:
-                rprint(f"[red]Error:[/red] Content not found: {name}")
+                rprint(f"[red]Error:[/red] Content not found: {name_or_abbreviation}")
                 if source:
                     rprint(f"Searched in source: {source}")
+
+                # Provide helpful suggestions
+                if not content_type or content_type.lower() in ["adventure", "book"]:
+                    rprint(
+                        "\n[yellow]Try one of these commands to see available content:[/yellow]"
+                    )
+                    rprint("  5e2pdf list adventures    # Show available adventures")
+                    rprint("  5e2pdf list books         # Show available books")
                 return
 
             # Display detailed information

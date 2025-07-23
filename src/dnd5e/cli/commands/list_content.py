@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table
 
+from dnd5e.cli.main import get_omnidexer
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
 
@@ -204,6 +205,106 @@ def list_sources() -> None:
             raise typer.Exit(1)
 
     asyncio.run(_list_sources())
+
+
+@app.command("adventures")
+def list_adventures() -> None:
+    """
+    📖 List all available adventures
+
+    Shows all adventures loaded in the system with their abbreviations,
+    making it easy to use them with convert commands.
+    """
+
+    async def _list_adventures() -> None:
+        try:
+            # Load omnidexer
+            with Progress() as progress:
+                load_task = progress.add_task(
+                    "[cyan]Loading content data...", total=None
+                )
+                omnidexer = await get_omnidexer()
+                progress.update(load_task, completed=100)
+
+            # Get all adventures
+            adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
+
+            if not adventures:
+                rprint("[yellow]No adventures found in the system[/yellow]")
+                rprint("Make sure adventure data is loaded properly.")
+                return
+
+            # Display adventures table
+            table = Table(title=f"📖 Available Adventures ({len(adventures)})")
+            table.add_column("Abbreviation", style="cyan", min_width=8)
+            table.add_column("Name", style="green")
+            table.add_column("Source", style="blue")
+
+            for adventure in sorted(
+                adventures, key=lambda x: x.source.abbreviation.lower()
+            ):
+                abbrev = adventure.source.abbreviation.lower()
+                name = adventure.name
+                source = adventure.source.name
+                table.add_row(abbrev, name, source)
+
+            console.print(table)
+            rprint("\n[dim]Use: 5e2pdf convert adventure <abbreviation>[/dim]")
+
+        except Exception as e:
+            rprint(f"[red]Error:[/red] {e}")
+            raise typer.Exit(1)
+
+    asyncio.run(_list_adventures())
+
+
+@app.command("books")
+def list_books() -> None:
+    """
+    📚 List all available books
+
+    Shows all books loaded in the system with their abbreviations,
+    making it easy to use them with convert commands.
+    """
+
+    async def _list_books() -> None:
+        try:
+            # Load omnidexer
+            with Progress() as progress:
+                load_task = progress.add_task(
+                    "[cyan]Loading content data...", total=None
+                )
+                omnidexer = await get_omnidexer()
+                progress.update(load_task, completed=100)
+
+            # Get all books
+            books = omnidexer.get_all_by_type(ContentType.BOOK)
+
+            if not books:
+                rprint("[yellow]No books found in the system[/yellow]")
+                rprint("Make sure book data is loaded properly.")
+                return
+
+            # Display books table
+            table = Table(title=f"📚 Available Books ({len(books)})")
+            table.add_column("Abbreviation", style="cyan", min_width=8)
+            table.add_column("Name", style="green")
+            table.add_column("Source", style="blue")
+
+            for book in sorted(books, key=lambda x: x.source.abbreviation.lower()):
+                abbrev = book.source.abbreviation.lower()
+                name = book.name
+                source = book.source.name
+                table.add_row(abbrev, name, source)
+
+            console.print(table)
+            rprint("\n[dim]Use: 5e2pdf convert book <abbreviation>[/dim]")
+
+        except Exception as e:
+            rprint(f"[red]Error:[/red] {e}")
+            raise typer.Exit(1)
+
+    asyncio.run(_list_books())
 
 
 def _format_file_size(size_bytes: int) -> str:

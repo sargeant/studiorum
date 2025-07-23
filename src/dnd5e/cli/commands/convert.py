@@ -11,6 +11,8 @@ from rich.console import Console
 from rich.progress import Progress
 
 from dnd5e.cli.main import get_omnidexer, get_tag_resolver
+from dnd5e.core.models.content import BaseContent, ContentType
+from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
@@ -18,9 +20,157 @@ app = typer.Typer(help="Convert D&D content to LaTeX/PDF")
 console = Console()
 
 
+async def resolve_content_or_file(
+    content_source: str, content_type: ContentType
+) -> tuple[list[BaseContent], str]:
+    """Resolve input as either file path or content abbreviation.
+
+    Args:
+        content_source: Either a file path or content abbreviation
+        content_type: The type of content to resolve
+
+    Returns:
+        Tuple of (content_items, source_description)
+
+    Raises:
+        typer.Exit: If content cannot be resolved or loaded
+    """
+    # Check if it's a file path
+    file_path = Path(content_source)
+    if file_path.is_file():
+        return await _load_from_file(file_path, content_type)
+
+    # Otherwise, treat as content abbreviation
+    omnidexer = await get_omnidexer()
+    resolver = ContentResolver(omnidexer)
+
+    if content_type == ContentType.ADVENTURE:
+        result = resolver.resolve_adventure(content_source)
+    elif content_type == ContentType.BOOK:
+        result = resolver.resolve_book(content_source)
+    else:
+        result = resolver.resolve_any(content_source, content_type)
+
+    return await _handle_resolution_result(result, content_source, content_type)
+
+
+async def _load_from_file(
+    file_path: Path, content_type: ContentType
+) -> tuple[list[BaseContent], str]:
+    """Load content from a JSON file."""
+    async with aiofiles.open(file_path) as f:
+        content = await f.read()
+        data = json.loads(content)
+
+    if content_type == ContentType.ADVENTURE:
+        from dnd5e.core.models.adventures import Adventure
+
+        # Get adventure data (could be nested)
+        if "adventure" in data:
+            adventure_items = data["adventure"]
+        else:
+            adventure_items = [data]
+
+        content_items: list[BaseContent] = []
+        for item in adventure_items:
+            if isinstance(item, dict):
+                content_items.append(Adventure.model_validate(item))
+
+        if not content_items:
+            rprint("[red]Error:[/red] No valid adventure content found")
+            raise typer.Exit(1)
+
+        return content_items, f"file: {file_path}"
+
+    elif content_type == ContentType.BOOK:
+        from dnd5e.core.models.books import Book, BookChapter
+        from dnd5e.core.models.content import Source
+
+        # Extract book metadata from filename if available
+        book_id = file_path.stem.replace("book-", "").upper()
+        book_name = f"Book: {book_id}"
+
+        # Get book content sections
+        book_sections = []
+        if "data" in data:
+            book_sections = data["data"]
+        elif "book" in data:
+            book_sections = data["book"]
+        else:
+            book_sections = [data] if isinstance(data, dict) else []
+
+        # Convert sections to chapters
+        chapters = []
+        for section in book_sections:
+            if isinstance(section, dict) and section.get("type") == "section":
+                chapter = BookChapter(
+                    name=section.get("name", "Untitled Chapter"),
+                    ordinal=None,
+                    headers=None,
+                    entries=section.get("entries", []),
+                )
+                chapters.append(chapter)
+
+        # Create a complete book object
+        book = Book(
+            name=book_name,
+            source=Source(abbreviation=book_id, name=book_name, page=None, url=None),
+            id=book_id,
+            metadata=None,
+            published=None,
+            author=None,
+            cover=None,
+            contents=chapters,
+        )
+
+        return [book], f"file: {file_path}"
+
+    else:
+        rprint(
+            f"[red]Error:[/red] Unsupported content type for file loading: {content_type}"
+        )
+        raise typer.Exit(1)
+
+
+async def _handle_resolution_result(
+    result: ContentResolutionResult, abbreviation: str, content_type: ContentType
+) -> tuple[list[BaseContent], str]:
+    """Handle the result of content resolution."""
+    if result.is_success and result.content:
+        return [result.content], f"abbreviation: {abbreviation}"
+
+    elif result.needs_user_selection and result.matches:
+        rprint(f"[yellow]Multiple matches found for '{abbreviation}':[/yellow]")
+        for i, content in enumerate(result.matches, 1):
+            rprint(f"  {i}. {content.name} ({content.source.abbreviation})")
+        rprint("Please be more specific or use the full file path.")
+        raise typer.Exit(1)
+
+    elif result.has_suggestions:
+        content_name = content_type.value
+        rprint(f"[red]Error:[/red] {content_name.title()} '{abbreviation}' not found.")
+        rprint("[yellow]Did you mean one of these?[/yellow]")
+        for suggestion in result.suggestions or []:
+            rprint(f"  • {suggestion}")
+        rprint(
+            f"Run [bold]5e2pdf list {content_name}s[/bold] to see all available content."
+        )
+        raise typer.Exit(1)
+
+    else:
+        content_name = content_type.value
+        rprint(f"[red]Error:[/red] {content_name.title()} '{abbreviation}' not found.")
+        rprint(
+            f"Run [bold]5e2pdf list {content_name}s[/bold] to see available content."
+        )
+        raise typer.Exit(1)
+
+
 @app.command("adventure")
 def convert_adventure(
-    input_file: Path = typer.Argument(..., help="Adventure JSON file"),
+    content_source: str = typer.Argument(
+        ..., help="Adventure abbreviation (e.g., 'cos') or file path"
+    ),
     output_file: Path | None = typer.Option(
         None, "--output", "-o", help="Output LaTeX file"
     ),
@@ -37,24 +187,34 @@ def convert_adventure(
     ),
 ) -> None:
     """
-    📖 Convert adventure JSON to LaTeX
+    📖 Convert adventure to LaTeX
 
-    Converts a D&D adventure from 5e.tools JSON format into a beautifully
-    formatted LaTeX document matching official book styling.
+    Converts a D&D adventure to a beautifully formatted LaTeX document
+    matching official book styling.
+
+    \b
+    Examples:
+      5e2pdf convert adventure cos              # Use abbreviation
+      5e2pdf convert adventure /path/to/cos.json  # Use file path
+      5e2pdf list adventures                    # See available content
     """
 
     async def _convert() -> None:
         try:
-            # Validate input
-            if not input_file.exists():
-                rprint(f"[red]Error:[/red] Adventure file not found: {input_file}")
-                raise typer.Exit(1)
+            # Resolve content source (file or abbreviation)
+            content_items, source_desc = await resolve_content_or_file(
+                content_source, ContentType.ADVENTURE
+            )
 
             # Determine output file
             if output_file is None:
-                output_path = (
-                    Path("output/adventures") / input_file.with_suffix(".tex").name
-                )
+                if "file:" in source_desc:
+                    # Use input filename for file-based sources
+                    input_name = Path(content_source).with_suffix(".tex").name
+                else:
+                    # Use content name for abbreviation-based sources
+                    input_name = f"{content_source}.tex"
+                output_path = Path("output/adventures") / input_name
             else:
                 output_path = output_file
 
@@ -66,29 +226,6 @@ def convert_adventure(
                 omnidexer = await get_omnidexer()
                 tag_resolver = await get_tag_resolver()
                 progress.update(load_task, completed=100)
-
-            # Load adventure content
-            async with aiofiles.open(input_file) as f:
-                content = await f.read()
-                adventure_data = json.loads(content)
-
-            # Parse adventure
-            from dnd5e.core.models.adventures import Adventure
-
-            # Get adventure data (could be nested)
-            if "adventure" in adventure_data:
-                adventure_items = adventure_data["adventure"]
-            else:
-                adventure_items = [adventure_data]
-
-            content_items = []
-            for item in adventure_items:
-                if isinstance(item, dict):
-                    content_items.append(Adventure.model_validate(item))
-
-            if not content_items:
-                rprint("[red]Error:[/red] No valid adventure content found")
-                raise typer.Exit(1)
 
             # Create render context
             context = RenderContext(
@@ -115,7 +252,9 @@ def convert_adventure(
             async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
                 await f.write(result)
 
-            rprint(f"[green]✓[/green] Adventure converted: {output_path}")
+            rprint(
+                f"[green]✓[/green] Adventure converted ({source_desc}): {output_path}"
+            )
 
             # Compile PDF if requested
             if compile_pdf:
@@ -130,7 +269,9 @@ def convert_adventure(
 
 @app.command("book")
 def convert_book(
-    input_file: Path = typer.Argument(..., help="Book JSON file"),
+    content_source: str = typer.Argument(
+        ..., help="Book abbreviation (e.g., 'phb') or file path"
+    ),
     output_file: Path | None = typer.Option(
         None, "--output", "-o", help="Output LaTeX file"
     ),
@@ -142,22 +283,34 @@ def convert_book(
     ),
 ) -> None:
     """
-    📚 Convert book JSON to LaTeX
+    📚 Convert book to LaTeX
 
-    Converts a D&D sourcebook from 5e.tools JSON format into a beautifully
-    formatted LaTeX document matching official book styling.
+    Converts a D&D sourcebook to a beautifully formatted LaTeX document
+    matching official book styling.
+
+    \b
+    Examples:
+      5e2pdf convert book phb                   # Use abbreviation
+      5e2pdf convert book /path/to/phb.json     # Use file path
+      5e2pdf list books                         # See available content
     """
 
     async def _convert() -> None:
         try:
-            # Validate input
-            if not input_file.exists():
-                rprint(f"[red]Error:[/red] Book file not found: {input_file}")
-                raise typer.Exit(1)
+            # Resolve content source (file or abbreviation)
+            content_items, source_desc = await resolve_content_or_file(
+                content_source, ContentType.BOOK
+            )
 
             # Determine output file
             if output_file is None:
-                output_path = Path("output/books") / input_file.with_suffix(".tex").name
+                if "file:" in source_desc:
+                    # Use input filename for file-based sources
+                    input_name = Path(content_source).with_suffix(".tex").name
+                else:
+                    # Use content name for abbreviation-based sources
+                    input_name = f"{content_source}.tex"
+                output_path = Path("output/books") / input_name
             else:
                 output_path = output_file
 
@@ -169,61 +322,6 @@ def convert_book(
                 omnidexer = await get_omnidexer()
                 tag_resolver = await get_tag_resolver()
                 progress.update(load_task, completed=100)
-
-            # Load book content
-            async with aiofiles.open(input_file) as f:
-                content = await f.read()
-                book_data = json.loads(content)
-
-            # Parse book
-            from dnd5e.core.models.books import Book, BookChapter
-
-            # Extract book metadata from filename if available
-            book_id = input_file.stem.replace("book-", "").upper()
-            book_name = title or f"Book: {book_id}"
-
-            # Get book content sections
-            book_sections = []
-            if "data" in book_data:
-                book_sections = book_data["data"]
-            elif "book" in book_data:
-                book_sections = book_data["book"]
-            else:
-                book_sections = [book_data] if isinstance(book_data, dict) else []
-
-            # Convert sections to chapters
-            chapters = []
-            for section in book_sections:
-                if isinstance(section, dict) and section.get("type") == "section":
-                    chapter = BookChapter(
-                        name=section.get("name", "Untitled Chapter"),
-                        ordinal=None,
-                        headers=None,
-                        entries=section.get("entries", []),
-                    )
-                    chapters.append(chapter)
-
-            # Create a complete book object
-            from dnd5e.core.models.content import Source
-
-            book = Book(
-                name=book_name,
-                source=Source(
-                    abbreviation=book_id, name=book_name, page=None, url=None
-                ),
-                id=book_id,
-                metadata=None,
-                published=None,
-                author=None,
-                cover=None,
-                contents=chapters,
-            )
-
-            content_items = [book]
-
-            if not content_items:
-                rprint("[red]Error:[/red] No valid book content found")
-                raise typer.Exit(1)
 
             # Create render context
             context = RenderContext(
@@ -247,7 +345,7 @@ def convert_book(
             async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
                 await f.write(result)
 
-            rprint(f"[green]✓[/green] Book converted: {output_path}")
+            rprint(f"[green]✓[/green] Book converted ({source_desc}): {output_path}")
 
             # Compile PDF if requested
             if compile_pdf:

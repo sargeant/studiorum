@@ -1,0 +1,334 @@
+"""Tests for hybrid parameter detection in convert commands."""
+
+import json
+import tempfile
+from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pytest
+
+from dnd5e.cli.commands.convert import (
+    _handle_resolution_result,
+    _load_from_file,
+    resolve_content_or_file,
+)
+from dnd5e.core.models.content import ContentType
+from dnd5e.core.resolvers.content_resolver import (
+    ContentResolutionResult,
+    ResolutionStatus,
+)
+
+
+class TestHybridParameterDetection:
+    """Test hybrid parameter detection functionality."""
+
+    @pytest.mark.asyncio
+    async def test_resolve_content_or_file_with_existing_file(self):
+        """Test that existing files are detected and loaded."""
+        # Create a temporary file with adventure data
+        adventure_data = {
+            "adventure": [
+                {
+                    "name": "Test Adventure",
+                    "source": {"abbreviation": "TEST", "name": "Test Source"},
+                    "id": "test",
+                    "metadata": {},
+                    "published": None,
+                    "author": None,
+                    "cover": None,
+                    "contents": [],
+                }
+            ]
+        }
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(adventure_data, f)
+            file_path = f.name
+
+        try:
+            # Should detect as file and load content
+            content_items, source_desc = await resolve_content_or_file(
+                file_path, ContentType.ADVENTURE
+            )
+
+            assert len(content_items) == 1
+            assert content_items[0].name == "Test Adventure"
+            assert "file:" in source_desc
+            assert file_path in source_desc
+
+        finally:
+            Path(file_path).unlink()  # Clean up
+
+    @pytest.mark.asyncio
+    @patch("dnd5e.cli.commands.convert.get_omnidexer")
+    async def test_resolve_content_or_file_with_abbreviation(self, mock_get_omnidexer):
+        """Test that non-file strings are treated as abbreviations."""
+        # Mock omnidexer and resolver
+        mock_omnidexer = Mock()
+        mock_get_omnidexer.return_value = mock_omnidexer
+
+        # Mock adventure content
+        mock_adventure = Mock()
+        mock_adventure.name = "Curse of Strahd"
+
+        # Mock successful resolution
+        with patch("dnd5e.cli.commands.convert.ContentResolver") as mock_resolver_class:
+            mock_resolver = Mock()
+            mock_resolver_class.return_value = mock_resolver
+
+            # Mock successful adventure resolution
+            mock_result = ContentResolutionResult(
+                status=ResolutionStatus.EXACT_MATCH, content=mock_adventure, query="cos"
+            )
+            mock_resolver.resolve_adventure.return_value = mock_result
+
+            content_items, source_desc = await resolve_content_or_file(
+                "cos", ContentType.ADVENTURE
+            )
+
+            assert len(content_items) == 1
+            assert content_items[0] == mock_adventure
+            assert "abbreviation:" in source_desc
+            assert "cos" in source_desc
+            mock_resolver.resolve_adventure.assert_called_once_with("cos")
+
+    @pytest.mark.asyncio
+    async def test_load_from_file_adventure(self):
+        """Test loading adventure from file."""
+        adventure_data = {
+            "adventure": [
+                {
+                    "name": "Test Adventure",
+                    "source": {"abbreviation": "TEST", "name": "Test Source"},
+                    "id": "test",
+                    "metadata": {},
+                    "published": None,
+                    "author": None,
+                    "cover": None,
+                    "contents": [],
+                }
+            ]
+        }
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(adventure_data, f)
+            file_path = Path(f.name)
+
+        try:
+            content_items, source_desc = await _load_from_file(
+                file_path, ContentType.ADVENTURE
+            )
+
+            assert len(content_items) == 1
+            assert content_items[0].name == "Test Adventure"
+            assert "file:" in source_desc
+
+        finally:
+            file_path.unlink()
+
+    @pytest.mark.asyncio
+    async def test_load_from_file_book(self):
+        """Test loading book from file."""
+        book_data = {
+            "data": [
+                {
+                    "type": "section",
+                    "name": "Chapter 1",
+                    "entries": ["This is chapter 1 content."],
+                }
+            ]
+        }
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(book_data, f)
+            file_path = Path(f.name)
+
+        try:
+            content_items, source_desc = await _load_from_file(
+                file_path, ContentType.BOOK
+            )
+
+            assert len(content_items) == 1
+            assert "Book:" in content_items[0].name
+            assert "file:" in source_desc
+
+        finally:
+            file_path.unlink()
+
+    def test_handle_resolution_result_success(self):
+        """Test handling successful resolution result."""
+        mock_content = Mock()
+        mock_content.name = "Test Content"
+
+        result = ContentResolutionResult(
+            status=ResolutionStatus.EXACT_MATCH, content=mock_content, query="test"
+        )
+
+        with patch("asyncio.run") as mock_run:
+            # Mock the async function to run synchronously for testing
+            async def mock_handler():
+                return await _handle_resolution_result(
+                    result, "test", ContentType.ADVENTURE
+                )
+
+            mock_run.side_effect = lambda coro: coro
+
+            # Run the actual function
+            import asyncio
+
+            content_items, source_desc = asyncio.run(mock_handler())
+
+            assert len(content_items) == 1
+            assert content_items[0] == mock_content
+            assert "abbreviation:" in source_desc
+            assert "test" in source_desc
+
+    def test_handle_resolution_result_multiple_matches(self):
+        """Test handling multiple matches result."""
+        mock_content1 = Mock()
+        mock_content1.name = "Test 1"
+        mock_content1.source.abbreviation = "TEST1"
+
+        mock_content2 = Mock()
+        mock_content2.name = "Test 2"
+        mock_content2.source.abbreviation = "TEST2"
+
+        result = ContentResolutionResult(
+            status=ResolutionStatus.MULTIPLE_MATCHES,
+            matches=[mock_content1, mock_content2],
+            query="test",
+        )
+
+        with pytest.raises(SystemExit):
+            with patch("asyncio.run") as mock_run:
+
+                async def mock_handler():
+                    return await _handle_resolution_result(
+                        result, "test", ContentType.ADVENTURE
+                    )
+
+                mock_run.side_effect = lambda coro: coro
+                import asyncio
+
+                asyncio.run(mock_handler())
+
+    def test_handle_resolution_result_no_match_with_suggestions(self):
+        """Test handling no match with suggestions."""
+        result = ContentResolutionResult(
+            status=ResolutionStatus.NO_MATCH, suggestions=["cos", "lmop"], query="co"
+        )
+
+        with pytest.raises(SystemExit):
+            with patch("asyncio.run") as mock_run:
+
+                async def mock_handler():
+                    return await _handle_resolution_result(
+                        result, "co", ContentType.ADVENTURE
+                    )
+
+                mock_run.side_effect = lambda coro: coro
+                import asyncio
+
+                asyncio.run(mock_handler())
+
+    def test_handle_resolution_result_no_match_no_suggestions(self):
+        """Test handling no match without suggestions."""
+        result = ContentResolutionResult(status=ResolutionStatus.NO_MATCH, query="xyz")
+
+        with pytest.raises(SystemExit):
+            with patch("asyncio.run") as mock_run:
+
+                async def mock_handler():
+                    return await _handle_resolution_result(
+                        result, "xyz", ContentType.ADVENTURE
+                    )
+
+                mock_run.side_effect = lambda coro: coro
+                import asyncio
+
+                asyncio.run(mock_handler())
+
+
+class TestFileVsAbbreviationDetection:
+    """Test detection logic for file vs abbreviation inputs."""
+
+    def test_file_detection_absolute_path(self):
+        """Test that absolute file paths are detected correctly."""
+        with tempfile.NamedTemporaryFile() as f:
+            file_path = Path(f.name)
+            assert file_path.is_file()
+
+    def test_file_detection_relative_path(self):
+        """Test that relative file paths are detected correctly."""
+        with tempfile.NamedTemporaryFile() as f:
+            file_path = Path(f.name)
+            # Get relative path from current directory
+            try:
+                rel_path = file_path.relative_to(Path.cwd())
+                assert rel_path.is_file()
+            except ValueError:
+                # File is not relative to cwd, skip this test
+                pass
+
+    def test_abbreviation_detection(self):
+        """Test that non-file strings are not detected as files."""
+        test_cases = [
+            "cos",
+            "phb",
+            "lmop",
+            "dmg",
+            "nonexistent",
+            "file_that_does_not_exist.json",
+        ]
+
+        for case in test_cases:
+            file_path = Path(case)
+            # These should not be detected as existing files
+            assert not file_path.is_file()
+
+
+class TestErrorHandling:
+    """Test error handling in hybrid parameter detection."""
+
+    @pytest.mark.asyncio
+    async def test_invalid_json_file(self):
+        """Test handling of invalid JSON files."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            f.write("invalid json content {")
+            file_path = Path(f.name)
+
+        try:
+            with pytest.raises(json.JSONDecodeError):
+                await _load_from_file(file_path, ContentType.ADVENTURE)
+        finally:
+            file_path.unlink()
+
+    @pytest.mark.asyncio
+    async def test_empty_adventure_file(self):
+        """Test handling of adventure file with no valid content."""
+        adventure_data = {"adventure": []}  # Empty adventure list
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(adventure_data, f)
+            file_path = Path(f.name)
+
+        try:
+            with pytest.raises(SystemExit):
+                await _load_from_file(file_path, ContentType.ADVENTURE)
+        finally:
+            file_path.unlink()
+
+    @pytest.mark.asyncio
+    async def test_unsupported_content_type_for_file(self):
+        """Test handling of unsupported content type for file loading."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"test": "data"}, f)
+            file_path = Path(f.name)
+
+        try:
+            with pytest.raises(SystemExit):
+                await _load_from_file(
+                    file_path, ContentType.SPELL
+                )  # Unsupported for file loading
+        finally:
+            file_path.unlink()
