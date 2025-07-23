@@ -155,7 +155,8 @@ class TestHybridParameterDetection:
         finally:
             file_path.unlink()
 
-    def test_handle_resolution_result_success(self):
+    @pytest.mark.asyncio
+    async def test_handle_resolution_result_success(self):
         """Test handling successful resolution result."""
         mock_content = Mock()
         mock_content.name = "Test Content"
@@ -164,26 +165,17 @@ class TestHybridParameterDetection:
             status=ResolutionStatus.EXACT_MATCH, content=mock_content, query="test"
         )
 
-        with patch("asyncio.run") as mock_run:
-            # Mock the async function to run synchronously for testing
-            async def mock_handler():
-                return await _handle_resolution_result(
-                    result, "test", ContentType.ADVENTURE
-                )
+        content_items, source_desc = await _handle_resolution_result(
+            result, "test", ContentType.ADVENTURE
+        )
 
-            mock_run.side_effect = lambda coro: coro
+        assert len(content_items) == 1
+        assert content_items[0] == mock_content
+        assert "abbreviation:" in source_desc
+        assert "test" in source_desc
 
-            # Run the actual function
-            import asyncio
-
-            content_items, source_desc = asyncio.run(mock_handler())
-
-            assert len(content_items) == 1
-            assert content_items[0] == mock_content
-            assert "abbreviation:" in source_desc
-            assert "test" in source_desc
-
-    def test_handle_resolution_result_multiple_matches(self):
+    @pytest.mark.asyncio
+    async def test_handle_resolution_result_multiple_matches(self):
         """Test handling multiple matches result."""
         mock_content1 = Mock()
         mock_content1.name = "Test 1"
@@ -199,54 +191,33 @@ class TestHybridParameterDetection:
             query="test",
         )
 
-        with pytest.raises(SystemExit):
-            with patch("asyncio.run") as mock_run:
+        # Import the correct exception type
+        import typer
 
-                async def mock_handler():
-                    return await _handle_resolution_result(
-                        result, "test", ContentType.ADVENTURE
-                    )
+        with pytest.raises(typer.Exit):
+            await _handle_resolution_result(result, "test", ContentType.ADVENTURE)
 
-                mock_run.side_effect = lambda coro: coro
-                import asyncio
-
-                asyncio.run(mock_handler())
-
-    def test_handle_resolution_result_no_match_with_suggestions(self):
+    @pytest.mark.asyncio
+    async def test_handle_resolution_result_no_match_with_suggestions(self):
         """Test handling no match with suggestions."""
         result = ContentResolutionResult(
             status=ResolutionStatus.NO_MATCH, suggestions=["cos", "lmop"], query="co"
         )
 
-        with pytest.raises(SystemExit):
-            with patch("asyncio.run") as mock_run:
+        import typer
 
-                async def mock_handler():
-                    return await _handle_resolution_result(
-                        result, "co", ContentType.ADVENTURE
-                    )
+        with pytest.raises(typer.Exit):
+            await _handle_resolution_result(result, "co", ContentType.ADVENTURE)
 
-                mock_run.side_effect = lambda coro: coro
-                import asyncio
-
-                asyncio.run(mock_handler())
-
-    def test_handle_resolution_result_no_match_no_suggestions(self):
+    @pytest.mark.asyncio
+    async def test_handle_resolution_result_no_match_no_suggestions(self):
         """Test handling no match without suggestions."""
         result = ContentResolutionResult(status=ResolutionStatus.NO_MATCH, query="xyz")
 
-        with pytest.raises(SystemExit):
-            with patch("asyncio.run") as mock_run:
+        import typer
 
-                async def mock_handler():
-                    return await _handle_resolution_result(
-                        result, "xyz", ContentType.ADVENTURE
-                    )
-
-                mock_run.side_effect = lambda coro: coro
-                import asyncio
-
-                asyncio.run(mock_handler())
+        with pytest.raises(typer.Exit):
+            await _handle_resolution_result(result, "xyz", ContentType.ADVENTURE)
 
 
 class TestFileVsAbbreviationDetection:
@@ -313,7 +284,9 @@ class TestErrorHandling:
             file_path = Path(f.name)
 
         try:
-            with pytest.raises(SystemExit):
+            import typer
+
+            with pytest.raises(typer.Exit):
                 await _load_from_file(file_path, ContentType.ADVENTURE)
         finally:
             file_path.unlink()
@@ -326,7 +299,9 @@ class TestErrorHandling:
             file_path = Path(f.name)
 
         try:
-            with pytest.raises(SystemExit):
+            import typer
+
+            with pytest.raises(typer.Exit):
                 await _load_from_file(
                     file_path, ContentType.SPELL
                 )  # Unsupported for file loading
