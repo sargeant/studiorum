@@ -20,7 +20,7 @@ from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
 # Create the main Typer app
-app = typer.Typer(
+app: typer.Typer = typer.Typer(
     name="5e2pdf",
     help="Convert D&D 5e JSON data to beautifully formatted LaTeX/PDF documents",
     rich_markup_mode="rich",
@@ -88,9 +88,9 @@ try:
     from dnd5e.cli.commands.stats import app as stats_app
 
     # Mount sub-applications
-    app.add_typer(convert_app, name="convert")
+    app.add_typer(convert_app, name="convert")  # type: ignore[has-type]
     app.add_typer(list_app, name="list")
-    app.add_typer(info_app, name="info")
+    app.add_typer(info_app, name="info")  # type: ignore[has-type]
     app.add_typer(setup_app, name="setup")
     app.add_typer(sources_app, name="sources")
     app.add_typer(stats_app, name="stats")

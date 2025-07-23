@@ -10,8 +10,7 @@ from rich import print as rprint
 from rich.console import Console
 from rich.progress import Progress
 
-from dnd5e.core.indexer.tag_resolver import TagResolver
-from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.cli.main import get_omnidexer, get_tag_resolver
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
@@ -64,9 +63,8 @@ def convert_adventure(
                 load_task = progress.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = Omnidexer()
-                await omnidexer.load_all_data()
-                tag_resolver = TagResolver(omnidexer)
+                omnidexer = await get_omnidexer()
+                tag_resolver = await get_tag_resolver()
                 progress.update(load_task, completed=100)
 
             # Load adventure content
@@ -168,9 +166,8 @@ def convert_book(
                 load_task = progress.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = Omnidexer()
-                await omnidexer.load_all_data()
-                tag_resolver = TagResolver(omnidexer)
+                omnidexer = await get_omnidexer()
+                tag_resolver = await get_tag_resolver()
                 progress.update(load_task, completed=100)
 
             # Load book content
@@ -305,9 +302,8 @@ def convert_supplement(
                 load_task = progress.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = Omnidexer()
-                await omnidexer.load_all_data()
-                tag_resolver = TagResolver(omnidexer)
+                omnidexer = await get_omnidexer()
+                tag_resolver = await get_tag_resolver()
                 progress.update(load_task, completed=100)
 
             # Load supplement content

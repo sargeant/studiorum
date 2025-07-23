@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress
 
-from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.cli.main import get_omnidexer
 from dnd5e.core.models.content import ContentType
 
 app = typer.Typer(help="Show detailed information about content")
@@ -38,8 +38,7 @@ def show_content_info(
                 load_task = progress.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = Omnidexer()
-                await omnidexer.load_all_data()
+                omnidexer = await get_omnidexer()
                 progress.update(load_task, completed=100)
 
             # Find content
