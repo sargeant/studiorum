@@ -80,42 +80,12 @@ class TagASTTransformer(Transformer):
 
         tag_type = str(children[0])
 
-        # Handle both old test format and new parser format
+        # Extract content parts from Lark grammar output
         parts_with_nodes: list[list[ASTNode]] = []
         if len(children) > 1:
             tag_content = children[1]
-
-            # Check if this is the old test format (list of strings)
-            if (
-                isinstance(tag_content, list)
-                and tag_content
-                and isinstance(tag_content[0], str)
-            ):
-                # Convert old format to new format for backward compatibility
-                for part in tag_content:
-                    if part:
-                        parts_with_nodes.append([TextNode(part)])
-                    else:
-                        parts_with_nodes.append([])
-            # Check if this is a single list of nodes (old test format)
-            elif (
-                isinstance(tag_content, list)
-                and tag_content
-                and hasattr(tag_content[0], "text")
-            ):
-                # Single list of nodes, wrap it as first part
-                parts_with_nodes = [tag_content]
-            # Handle direct string list from tests like ["Dragon", "MM", "dragon"]
-            elif all(isinstance(item, str) for item in children[1:]):
-                # Convert remaining children to parts
-                for part in children[1:]:
-                    if part:
-                        parts_with_nodes.append([TextNode(part)])
-                    else:
-                        parts_with_nodes.append([])
-            else:
-                # New format: list of content parts (list[list[ASTNode]])
-                parts_with_nodes = tag_content
+            # tag_content is list[list[ASTNode]] from tag_content rule
+            parts_with_nodes = tag_content
 
         # Create appropriate tag node based on type with node support
         return self._create_tag_node_with_nodes(tag_type, parts_with_nodes)
@@ -276,27 +246,6 @@ class TagASTTransformer(Transformer):
                     result += "[tag]"
         return result
 
-    def _create_tag_node(self, tag_type: str, parts: list[str]) -> TagNode:
-        """Legacy method for backward compatibility with tests.
-
-        Converts string parts to node lists and delegates to new method.
-        """
-        parts_with_nodes: list[list[ASTNode]] = []
-        for part in parts:
-            if part:
-                parts_with_nodes.append([TextNode(part)])
-            else:
-                parts_with_nodes.append([])
-
-        return self._create_tag_node_with_nodes(tag_type, parts_with_nodes)
-
-    def _render_content_part(self, nodes: list[ASTNode]) -> str:
-        """Legacy method for backward compatibility with tests.
-
-        Converts node list back to string representation.
-        """
-        return self._nodes_to_text(nodes)
-
 
 class TagParser:
     """Main parser class for D&D 5e.tools tags."""
@@ -330,58 +279,3 @@ class TagParser:
             doc = DocumentNode()
             doc.add_child(TextNode(text))
             return doc
-
-    def _split_tag_content(self, content: str) -> list[str]:
-        """Legacy method for backward compatibility with tests.
-
-        Split tag content by pipes, handling escaped characters.
-        """
-        parts = []
-        current_part = ""
-        i = 0
-
-        while i < len(content):
-            char = content[i]
-
-            if char == "\\" and i + 1 < len(content):
-                # Escaped character
-                next_char = content[i + 1]
-                if next_char in ("|", "}"):
-                    current_part += next_char
-                    i += 2
-                else:
-                    current_part += char
-                    i += 1
-            elif char == "|":
-                # Pipe separator
-                parts.append(current_part)
-                current_part = ""
-                i += 1
-            else:
-                current_part += char
-                i += 1
-
-        # Add the last part
-        parts.append(current_part)
-        return parts
-
-    def _parse_tag_content(self, tag_type: str, content: str) -> TagNode:
-        """Legacy method for backward compatibility with tests.
-
-        Parse tag content into appropriate tag node.
-        """
-        # Split by pipe, handling escaped pipes
-        parts = self._split_tag_content(content)
-
-        # Create transformer and build tag
-        transformer = TagASTTransformer(content)
-        return transformer._create_tag_node(tag_type, parts)
-
-    def _parse_with_regex_fallback(self, text: str) -> DocumentNode:
-        """Legacy method for backward compatibility with tests.
-
-        This now just delegates to the main parse method since we removed
-        the regex fallback, but keeping for test compatibility.
-        """
-        # Just use the regular Lark parser - no need for regex fallback anymore
-        return self.parse(text)
