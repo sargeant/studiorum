@@ -3733,8 +3733,8 @@ class LaTeXBookRenderer(LaTeXContentRenderer):
         # Build template variables for book rendering
         variables = self._build_book_variables(content, context)
 
-        # Use book template
-        template_name = "book_dnd" if self.use_dnd_template else "book"
+        # Use content-only template for embedding (prevents document structure duplication)
+        template_name = "book_content" if self.use_dnd_template else "book_content"
         return self.template_engine.render_template(template_name, variables)
 
     def _build_book_variables(
