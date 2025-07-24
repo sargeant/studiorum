@@ -234,3 +234,102 @@ class TestJsonDataLoaderBookIntegration:
         assert creation_chapter.entries[0] == "Create your character..."
         assert creation_chapter.ordinal == {"type": "chapter", "identifier": 1}
         assert creation_chapter.headers == ["Step 1", "Step 2"]
+
+
+class TestJsonDataLoaderSpell:
+    """Tests for JsonDataLoader spell handling with missing required fields."""
+
+    @pytest.fixture
+    def sample_path(self) -> Path:
+        """Sample path for testing."""
+        return Path("/fake/path/spells.json")
+
+    def test_add_missing_required_fields_spell_missing_components(self) -> None:
+        """Test that missing components field gets default empty SpellComponent."""
+        spell_data = {
+            "name": "Test Spell",
+            "level": 1,
+            "school": "A",
+            "time": [{"number": 1, "unit": "action"}],
+            "range": {"type": "point", "distance": {"type": "self"}},
+            "duration": [{"type": "instant"}],
+            "entries": ["A test spell."],
+            "source": "TST",
+            # Missing components field
+        }
+
+        loader = JsonDataLoader(ContentType.SPELL)
+        result = loader._add_missing_required_fields(spell_data)
+
+        assert "components" in result
+        assert (
+            result["components"] == {}
+        )  # Should be empty dict for SpellComponent defaults
+
+    def test_add_missing_required_fields_spell_all_missing(self) -> None:
+        """Test that spell with only name gets all required fields with defaults."""
+        spell_data = {
+            "name": "Incomplete Spell",
+            "source": "TST",
+        }
+
+        loader = JsonDataLoader(ContentType.SPELL)
+        result = loader._add_missing_required_fields(spell_data)
+
+        # Check all required fields have defaults
+        assert result["components"] == {}
+        assert result["level"] == 0  # Cantrip
+        assert result["school"] == "T"  # Transmutation
+        assert result["time"] == [{"number": 1, "unit": "action"}]
+        assert result["range"] == {"type": "point", "distance": {"type": "self"}}
+        assert result["duration"] == [{"type": "instant"}]
+        assert result["entries"] == ["Incomplete spell data."]
+
+    def test_add_missing_required_fields_spell_preserves_existing(self) -> None:
+        """Test that existing spell fields are preserved when adding defaults."""
+        spell_data = {
+            "name": "Partial Spell",
+            "level": 3,
+            "school": "E",
+            "source": "TST",
+            # Missing: components, time, range, duration, entries
+        }
+
+        loader = JsonDataLoader(ContentType.SPELL)
+        result = loader._add_missing_required_fields(spell_data)
+
+        # Existing fields should be preserved
+        assert result["name"] == "Partial Spell"
+        assert result["level"] == 3
+        assert result["school"] == "E"
+        assert result["source"] == "TST"
+
+        # Missing fields should have defaults
+        assert result["components"] == {}
+        assert result["time"] == [{"number": 1, "unit": "action"}]
+        assert result["range"] == {"type": "point", "distance": {"type": "self"}}
+        assert result["duration"] == [{"type": "instant"}]
+        assert result["entries"] == ["Incomplete spell data."]
+
+    def test_add_missing_required_fields_spell_with_existing_components(self) -> None:
+        """Test that existing components field is not overridden."""
+        spell_data = {
+            "name": "Complete Spell",
+            "level": 2,
+            "school": "C",
+            "components": {"v": True, "s": True, "m": "a piece of string"},
+            "time": [{"number": 1, "unit": "action"}],
+            "range": {"type": "point", "distance": {"type": "touch"}},
+            "duration": [
+                {"type": "timed", "duration": {"type": "minute", "amount": 10}}
+            ],
+            "entries": ["A complete spell description."],
+            "source": "TST",
+        }
+
+        loader = JsonDataLoader(ContentType.SPELL)
+        result = loader._add_missing_required_fields(spell_data)
+
+        # All original data should be preserved
+        assert result == spell_data
+        assert result["components"] == {"v": True, "s": True, "m": "a piece of string"}

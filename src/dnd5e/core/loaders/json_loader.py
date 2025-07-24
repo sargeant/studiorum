@@ -310,6 +310,43 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     item["name"] = "Unknown Book"
                 logger.debug(f"Added name '{item['name']}' for book")
 
+        elif self._content_type == ContentType.SPELL:
+            # Add missing required fields for spells
+            defaults_added = []
+
+            if "components" not in item:
+                item["components"] = {}  # Empty dict for SpellComponent defaults
+                defaults_added.append("components")
+
+            if "level" not in item:
+                item["level"] = 0  # Cantrip
+                defaults_added.append("level")
+
+            if "school" not in item:
+                item["school"] = "T"  # Transmutation
+                defaults_added.append("school")
+
+            if "time" not in item:
+                item["time"] = [{"number": 1, "unit": "action"}]
+                defaults_added.append("time")
+
+            if "range" not in item:
+                item["range"] = {"type": "point", "distance": {"type": "self"}}
+                defaults_added.append("range")
+
+            if "duration" not in item:
+                item["duration"] = [{"type": "instant"}]
+                defaults_added.append("duration")
+
+            if "entries" not in item:
+                item["entries"] = ["Incomplete spell data."]
+                defaults_added.append("entries")
+
+            if defaults_added:
+                logger.debug(
+                    f"Added default fields {defaults_added} for spell {item.get('name', 'unknown')}"
+                )
+
         return item
 
     def _infer_source_from_path(self, path: Path) -> str:
