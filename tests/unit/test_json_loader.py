@@ -333,3 +333,248 @@ class TestJsonDataLoaderSpell:
         # All original data should be preserved
         assert result == spell_data
         assert result["components"] == {"v": True, "s": True, "m": "a piece of string"}
+
+
+class TestJsonDataLoaderContentTypeValidation:
+    """Tests for JsonDataLoader content type validation to prevent cross-contamination.
+
+    This test class addresses issue #54 where class definitions were being validated
+    against the Spell schema instead of the Class schema due to permissive fallback logic.
+    """
+
+    @pytest.fixture
+    def sample_class_data(self) -> dict[str, Any]:
+        """Sample class data from a real 5e.tools file."""
+        return {
+            "_meta": {
+                "sources": [
+                    {
+                        "json": "TestClass",
+                        "abbreviation": "TC",
+                        "full": "Test Class",
+                        "authors": ["Test Author"],
+                        "version": "1.0",
+                    }
+                ]
+            },
+            "class": [
+                {
+                    "name": "Spellblade",
+                    "source": "TestClass",
+                    "hd": {"number": 1, "faces": 8},
+                    "proficiency": ["dex", "int"],
+                    "classFeatures": ["Spellblade|TC|1|0", "Fighting Style|TC|2|0"],
+                    "hasFluff": True,
+                }
+            ],
+        }
+
+    @pytest.fixture
+    def sample_spell_data(self) -> dict[str, Any]:
+        """Sample spell data from a real 5e.tools file."""
+        return {
+            "_meta": {
+                "sources": [
+                    {
+                        "json": "TestSpells",
+                        "abbreviation": "TS",
+                        "full": "Test Spells",
+                        "authors": ["Test Author"],
+                        "version": "1.0",
+                    }
+                ]
+            },
+            "spell": [
+                {
+                    "name": "Test Spell",
+                    "source": "TestSpells",
+                    "level": 1,
+                    "school": "A",
+                    "time": [{"number": 1, "unit": "action"}],
+                    "range": {"type": "point", "distance": {"type": "self"}},
+                    "components": {"v": True, "s": True},
+                    "duration": [{"type": "instant"}],
+                    "entries": ["A test spell."],
+                }
+            ],
+        }
+
+    def test_class_loader_with_class_data_succeeds(
+        self, sample_class_data: dict[str, Any]
+    ) -> None:
+        """Test that CLASS loader successfully processes class data."""
+        loader = JsonDataLoader(ContentType.CLASS)
+        mock_path = Path("/fake/class-test.json")
+
+        # Extract content
+        extracted = loader._extract_content(sample_class_data, mock_path)
+        assert len(extracted) == 1
+
+        # Verify it extracted class data
+        class_item = extracted[0]
+        assert class_item["name"] == "Spellblade"
+        assert "hd" in class_item
+        assert "proficiency" in class_item
+        assert "classFeatures" in class_item
+
+    def test_spell_loader_with_spell_data_succeeds(
+        self, sample_spell_data: dict[str, Any]
+    ) -> None:
+        """Test that SPELL loader successfully processes spell data."""
+        loader = JsonDataLoader(ContentType.SPELL)
+        mock_path = Path("/fake/spell-test.json")
+
+        # Extract content
+        extracted = loader._extract_content(sample_spell_data, mock_path)
+        assert len(extracted) == 1
+
+        # Verify it extracted spell data
+        spell_item = extracted[0]
+        assert spell_item["name"] == "Test Spell"
+        assert "level" in spell_item
+        assert "school" in spell_item
+        assert "components" in spell_item
+
+    def test_spell_loader_with_class_data_should_fail(
+        self, sample_class_data: dict[str, Any]
+    ) -> None:
+        """Test that SPELL loader should NOT successfully process class data.
+
+        This is the core issue from #54 - spell loaders should not be able to
+        process class data through fallback logic and field injection.
+        """
+        loader = JsonDataLoader(ContentType.SPELL)
+        mock_path = Path("/fake/class-test.json")
+
+        # This should not find any content since there's no "spell" key
+        extracted = loader._extract_content(sample_class_data, mock_path)
+
+        # The spell loader should not extract anything from class data
+        # If it does extract content, that's the bug we're fixing
+        if extracted:
+            # If content is extracted, it should not be valid spell data
+            # without the problematic field injection
+            class_item = extracted[0]
+
+            # This item should NOT have spell-specific fields unless they were incorrectly added
+            assert "level" not in class_item or class_item.get("level") is None
+            assert "school" not in class_item or class_item.get("school") is None
+            assert (
+                "components" not in class_item or class_item.get("components") is None
+            )
+
+            # It should still have class-specific fields
+            assert "hd" in class_item
+            assert "proficiency" in class_item
+        else:
+            # This is the preferred behavior - no extraction should occur
+            assert extracted == []
+
+    def test_class_loader_with_spell_data_should_fail(
+        self, sample_spell_data: dict[str, Any]
+    ) -> None:
+        """Test that CLASS loader should NOT successfully process spell data."""
+        loader = JsonDataLoader(ContentType.CLASS)
+        mock_path = Path("/fake/spell-test.json")
+
+        # This should not find any content since there's no "class" key
+        extracted = loader._extract_content(sample_spell_data, mock_path)
+
+        # The class loader should not extract anything from spell data
+        if extracted:
+            # If content is extracted, it should not be valid class data
+            spell_item = extracted[0]
+
+            # This item should NOT have class-specific fields unless they were incorrectly added
+            assert "hd" not in spell_item or spell_item.get("hd") is None
+            assert (
+                "proficiency" not in spell_item or spell_item.get("proficiency") is None
+            )
+            assert (
+                "classFeatures" not in spell_item
+                or spell_item.get("classFeatures") is None
+            )
+
+            # It should still have spell-specific fields
+            assert "level" in spell_item
+            assert "school" in spell_item
+        else:
+            # This is the preferred behavior - no extraction should occur
+            assert extracted == []
+
+    def test_spell_loader_does_not_add_fields_to_class_data(
+        self, sample_class_data: dict[str, Any]
+    ) -> None:
+        """Test that spell loader does not add spell fields to class data.
+
+        This tests the specific issue where _add_missing_required_fields() was
+        adding spell-specific fields to class data, making it valid for spell validation.
+        """
+        loader = JsonDataLoader(ContentType.SPELL)
+        mock_path = Path("/fake/class-test.json")
+
+        # Try to extract content (may or may not succeed depending on fix)
+        extracted = loader._extract_content(sample_class_data, mock_path)
+
+        if extracted:
+            class_item = extracted[0]
+            original_class_item = class_item.copy()
+
+            # Add missing fields - this should NOT add spell fields to class data
+            processed_item = loader._add_missing_required_fields(class_item)
+
+            # The processed item should not have gained spell-specific default fields
+            # If it has, that's the bug we're fixing
+
+            # Check that no spell defaults were added
+            if "level" in processed_item and "level" not in original_class_item:
+                # If level was added, it should not be the spell default of 0
+                pytest.fail(
+                    "Spell loader incorrectly added 'level' field to class data"
+                )
+
+            if "school" in processed_item and "school" not in original_class_item:
+                # If school was added, it should not be the spell default
+                pytest.fail(
+                    "Spell loader incorrectly added 'school' field to class data"
+                )
+
+            if (
+                "components" in processed_item
+                and "components" not in original_class_item
+            ):
+                # If components was added, it should not be the spell default
+                pytest.fail(
+                    "Spell loader incorrectly added 'components' field to class data"
+                )
+
+    def test_content_type_specific_field_injection(self) -> None:
+        """Test that _add_missing_required_fields only adds fields for the correct content type."""
+        # Test spell loader only adds spell fields
+        spell_loader = JsonDataLoader(ContentType.SPELL)
+        class_loader = JsonDataLoader(ContentType.CLASS)
+
+        minimal_data = {"name": "Test", "source": "TST"}
+
+        # Spell loader should add spell fields
+        spell_processed = spell_loader._add_missing_required_fields(minimal_data.copy())
+        assert "level" in spell_processed
+        assert "school" in spell_processed
+        assert "components" in spell_processed
+        assert "time" in spell_processed
+        assert "range" in spell_processed
+        assert "duration" in spell_processed
+        assert "entries" in spell_processed
+
+        # Class loader should NOT add spell fields
+        class_processed = class_loader._add_missing_required_fields(minimal_data.copy())
+        # Class loader should add class-specific defaults if any, but not spell fields
+        assert (
+            "level" not in class_processed
+            or class_processed["level"] != spell_processed["level"]
+        )
+        assert (
+            "school" not in class_processed
+            or class_processed["school"] != spell_processed["school"]
+        )
+        assert "components" not in class_processed

@@ -235,16 +235,75 @@ class JsonDataLoader(DataLoader[BaseContent]):
         if isinstance(data, list):
             return data
 
-        # Look for any list in the data as a fallback
+        # Strict content type validation - only allow specific keys for each content type
+        # This prevents cross-contamination between content types (fixes issue #54)
+        allowed_fallback_keys = self._get_allowed_fallback_keys()
+
         for key, value in data.items():
-            if isinstance(value, list) and value:
+            if key in allowed_fallback_keys and isinstance(value, list) and value:
                 logger.debug(
                     f"Using '{key}' array as content for {self._content_type.value}"
                 )
                 return value
 
+        # No valid content found for this content type
+        logger.debug(
+            f"No valid content keys found for {self._content_type.value}. "
+            f"Expected keys: {list(allowed_fallback_keys)} but found: {list(data.keys())}"
+        )
+
         logger.warning(f"No content found for {self._content_type.value} in {path}")
         return []
+
+    def _get_allowed_fallback_keys(self) -> set[str]:
+        """Get the set of JSON keys that are allowed for fallback extraction for this content type.
+
+        This prevents cross-contamination where a spell loader could extract class data
+        through generic fallback logic, which would then have spell defaults injected.
+
+        Returns:
+            Set of allowed JSON keys for this content type
+        """
+        # Map content types to their allowed JSON keys
+        content_type_keys = {
+            ContentType.SPELL: {"spell", "spells"},
+            ContentType.CREATURE: {
+                "creature",
+                "creatures",
+                "monster",
+                "monsters",
+                "bestiary",
+            },
+            ContentType.ITEM: {
+                "item",
+                "items",
+                "baseitem",
+                "baseItems",
+                "magicvariant",
+                "magicVariant",
+            },
+            ContentType.CLASS: {"class", "classes"},
+            ContentType.RACE: {"race", "races"},
+            ContentType.BACKGROUND: {"background", "backgrounds"},
+            ContentType.FEAT: {"feat", "feats"},
+            ContentType.ADVENTURE: {"adventure", "adventures"},
+            ContentType.BOOK: {
+                "book",
+                "books",
+                "bookData",
+                "data",
+            },  # Books have multiple formats
+            ContentType.SPELL_FLUFF: {"spellFluff", "spell_fluff"},
+            ContentType.CREATURE_FLUFF: {
+                "creatureFluff",
+                "creature_fluff",
+                "monsterFluff",
+                "monster_fluff",
+            },
+            ContentType.ITEM_FLUFF: {"itemFluff", "item_fluff"},
+        }
+
+        return content_type_keys.get(self._content_type, set())
 
     def _ensure_source_info(self, item: dict[str, Any], path: Path) -> dict[str, Any]:
         """Ensure item has source information."""
