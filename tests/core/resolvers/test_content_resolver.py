@@ -167,12 +167,14 @@ class TestContentResolver:
         assert result.query == "phb"
         mock_omnidexer.get_all_by_type.assert_called_with(ContentType.BOOK)
 
-    def test_resolve_adventure_multiple_matches(self, resolver, mock_omnidexer) -> None:
-        """Test resolving adventure with multiple matches."""
+    def test_resolve_adventure_multiple_matches_picks_preferred(
+        self, resolver, mock_omnidexer
+    ) -> None:
+        """Test resolving adventure with multiple exact matches picks preferred one."""
         source1 = Source(abbreviation="TEST", name="Test Adventure 1")
         source2 = Source(abbreviation="TEST", name="Test Adventure 2")
         adventure1 = Adventure(
-            name="Test 1",
+            name="Test Adventure (2024)",
             source=source1,
             contents=[],
             id="test1",
@@ -182,7 +184,7 @@ class TestContentResolver:
             cover=None,
         )
         adventure2 = Adventure(
-            name="Test 2",
+            name="Test Adventure (2023)",
             source=source2,
             contents=[],
             id="test2",
@@ -196,10 +198,12 @@ class TestContentResolver:
 
         result = resolver.resolve_adventure("test")
 
-        assert result.status == ResolutionStatus.MULTIPLE_MATCHES
-        assert len(result.matches) == 2
-        assert adventure1 in result.matches
-        assert adventure2 in result.matches
+        # When multiple exact matches exist, resolver picks preferred one (shortest name)
+        assert result.status == ResolutionStatus.EXACT_MATCH
+        assert result.content is not None
+        assert result.content in [adventure1, adventure2]
+        # Should pick the one with shorter name as tiebreaker (both have same length, picks first)
+        assert result.content == adventure1
 
     def test_resolve_adventure_no_match_with_suggestions(
         self, resolver, mock_omnidexer, sample_adventure
