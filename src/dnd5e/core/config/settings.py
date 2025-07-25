@@ -65,6 +65,23 @@ class Settings(BaseSettings):
         default=None, description="Directory containing custom fonts", alias="FONT_DIR"
     )
 
+    # Validation options
+    validation_strictness: str = Field(
+        default="normal",
+        description="Validation strictness level: strict, normal, or lenient",
+        alias="VALIDATION_STRICTNESS",
+    )
+    validation_summary: bool = Field(
+        default=False,
+        description="Enable validation error summary reporting",
+        alias="VALIDATION_SUMMARY",
+    )
+    max_duplicate_errors: int = Field(
+        default=1,
+        description="Maximum times to log identical validation errors",
+        alias="MAX_DUPLICATE_ERRORS",
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

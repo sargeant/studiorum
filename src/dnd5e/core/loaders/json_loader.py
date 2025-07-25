@@ -6,8 +6,11 @@ from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
+from ..config.settings import get_settings
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
+from ..validation.error_tracker import ValidationErrorTracker
+from ..validation.strictness import ValidationStrictness
 from .base import DataLoader
 from .content_factory import ContentFactory, get_content_factory
 
@@ -28,6 +31,8 @@ class JsonDataLoader(DataLoader[BaseContent]):
     ):
         self._content_type = content_type
         self._content_factory = content_factory or get_content_factory()
+        self._error_tracker = ValidationErrorTracker()
+        self._settings = get_settings()
 
     async def load(
         self, path: Path
@@ -89,9 +94,8 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     )
                     validated_content.append(validated_item)
                 except ValidationError as e:
-                    logger.warning(
-                        f"Validation failed for item {item.get('name', 'unknown')} in {path}: {e}"
-                    )
+                    # Handle validation error with enhanced error tracking
+                    self._handle_validation_error(e, item, path)
                 except Exception as e:
                     logger.error(f"Unexpected error validating item in {path}: {e}")
 
@@ -747,3 +751,127 @@ class JsonDataLoader(DataLoader[BaseContent]):
     def create_for_type(cls, content_type: ContentType) -> "JsonDataLoader":
         """Create a JsonDataLoader instance for a given content type."""
         return JsonDataLoader(content_type)
+
+    def load_from_data(self, data: dict[str, Any], path: Path) -> list[BaseContent]:
+        """Load content from already-parsed JSON data.
+
+        Args:
+            data: Parsed JSON data dictionary
+            path: Path to the source file (for error reporting)
+
+        Returns:
+            List of validated content objects
+        """
+        # Extract content based on file structure
+        content_list = self._extract_content(data, path)
+
+        # Validate each item
+        validated_content = []
+        for item in content_list:
+            try:
+                # Skip copy-template items that reference other content
+                if self._is_copy_template(item):
+                    logger.debug(
+                        f"Skipping copy-template item {item.get('name', 'unknown')} in {path}"
+                    )
+                    continue
+
+                # Skip sections when parsing inappropriate content types
+                if item.get("type") == "section" and self._content_type not in [
+                    ContentType.BOOK,
+                    ContentType.ADVENTURE,
+                ]:
+                    logger.debug(
+                        f"Skipping section item when parsing {self._content_type.value}"
+                    )
+                    continue
+
+                # Ensure source information is present
+                item = self._ensure_source_info(item, path)
+
+                # Add missing required fields with reasonable defaults
+                item = self._add_missing_required_fields(item)
+
+                validated_item = self._content_factory.create_content(
+                    item, self._content_type
+                )
+                validated_content.append(validated_item)
+            except ValidationError as e:
+                # Handle validation error with enhanced error tracking
+                self._handle_validation_error(e, item, path)
+            except Exception as e:
+                logger.error(f"Unexpected error validating item in {path}: {e}")
+
+        # Log validation summary if enabled
+        if self._settings.validation_summary:
+            self._log_validation_summary()
+
+        return validated_content
+
+    def _handle_validation_error(
+        self, error: ValidationError, item: dict[str, Any], path: Path
+    ) -> None:
+        """Handle validation errors with deduplication and strictness control.
+
+        Args:
+            error: The ValidationError that occurred
+            item: The item data that failed validation
+            path: Path to the source file
+        """
+        # Create context for error tracking
+        context = {
+            "file": str(path),
+            "item_name": item.get("name", "unknown"),
+            "content_type": self._content_type.value,
+        }
+
+        # Check strictness setting
+        if self._settings.validation_strictness == "strict":
+            # In strict mode, re-raise the validation error
+            raise error
+        elif self._settings.validation_strictness == "lenient":
+            # In lenient mode, only record error but don't log
+            self._error_tracker.record_error(error, context)
+            return
+
+        # Normal mode: use error tracker for deduplication
+        if self._error_tracker.should_log_error(error, context):
+            # Format error message with context and suggestions
+            formatted_message = self._error_tracker.format_error_message(error, context)
+            logger.warning(formatted_message)
+
+        # Always record the error for statistics
+        self._error_tracker.record_error(error, context)
+
+    def _log_validation_summary(self) -> None:
+        """Log a summary of validation errors encountered during processing."""
+        summary = self._error_tracker.get_summary()
+
+        if not summary:
+            logger.info("Validation Summary: No validation errors encountered")
+            return
+
+        total_errors = sum(data["count"] for data in summary.values())
+        total_types = len(summary)
+
+        logger.info(f"Validation Summary: {total_errors} errors of {total_types} types")
+
+        # Log details for each error type
+        for error_sig, data in summary.items():
+            files_count = len(data["files"])
+            logger.info(
+                f"  {data['error_type']}: {data['count']} occurrences "
+                f"across {files_count} files"
+            )
+            logger.debug(f"    Message: {data['message']}")
+            logger.debug(f"    Field: {data['field_path']}")
+
+            # Show a few example files if there are many
+            if files_count <= 3:
+                logger.debug(f"    Files: {', '.join(data['files'])}")
+            else:
+                example_files = data["files"][:3]
+                logger.debug(
+                    f"    Files: {', '.join(example_files)} "
+                    f"(and {files_count - 3} others)"
+                )
