@@ -34,7 +34,7 @@ class LaTeXContentRenderer(ContentRenderer):
         return "latex"
 
     def escape_latex(self, text: str) -> str:
-        """Escape LaTeX special characters.
+        """Escape LaTeX special characters and Unicode characters.
 
         Args:
             text: Text to escape
@@ -59,8 +59,27 @@ class LaTeXContentRenderer(ContentRenderer):
             "~": r"\textasciitilde{}",
         }
 
+        # Unicode characters that need special handling in LaTeX
+        unicode_replacements = {
+            "—": "---",  # Em dash
+            "–": "--",  # En dash
+            """: "``",   # Left double quote
+            """: "''",  # Right double quote
+            "'": "`",  # Left single quote
+            "…": r"\ldots{}",  # Ellipsis
+            "°": r"\textdegree{}",  # Degree symbol
+            "©": r"\copyright{}",  # Copyright symbol
+            "®": r"\textregistered{}",  # Registered trademark
+            "™": r"\texttrademark{}",  # Trademark symbol
+        }
+
         result = text
+        # Apply LaTeX special character escaping first
         for char, replacement in replacements.items():
+            result = result.replace(char, replacement)
+
+        # Then apply Unicode character replacements
+        for char, replacement in unicode_replacements.items():
             result = result.replace(char, replacement)
 
         return result

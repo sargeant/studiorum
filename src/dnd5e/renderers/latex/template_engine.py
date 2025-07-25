@@ -65,7 +65,7 @@ class LaTeXTemplateEngine:
         """Add LaTeX-specific filters to Jinja2 environment."""
 
         def latex_escape(value: str) -> str:
-            """Escape LaTeX special characters."""
+            """Escape LaTeX special characters and Unicode characters."""
             if not isinstance(value, str):
                 value = str(value)
 
@@ -88,6 +88,23 @@ class LaTeXTemplateEngine:
             value = value.replace("__XBACKSLASHX__", r"\textbackslash{}")
             value = value.replace("__XTILDEX__", r"\textasciitilde{}")
             value = value.replace("__XCARETX__", r"\textasciicircum{}")
+
+            # 4. Handle Unicode characters that need special LaTeX treatment
+            unicode_replacements = {
+                "—": "---",  # Em dash
+                "–": "--",  # En dash
+                """: "``",   # Left double quote
+                """: "''",  # Right double quote
+                "'": "`",  # Left single quote
+                "…": r"\ldots{}",  # Ellipsis
+                "°": r"\textdegree{}",  # Degree symbol
+                "©": r"\copyright{}",  # Copyright symbol
+                "®": r"\textregistered{}",  # Registered trademark
+                "™": r"\texttrademark{}",  # Trademark symbol
+            }
+
+            for char, replacement in unicode_replacements.items():
+                value = value.replace(char, replacement)
 
             return value
 

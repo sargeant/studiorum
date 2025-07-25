@@ -104,7 +104,8 @@ class TagResolver:
     def process_text(self, text: str) -> str:
         """Process text and resolve all tags to formatted output."""
         if not text or "{@" not in text:
-            return text
+            # Apply LaTeX escaping to text without tags
+            return self._escape_latex(text)
 
         def replace_tag(match: re.Match[str]) -> str:
             try:
@@ -286,7 +287,7 @@ class TagResolver:
             return f"(Recharge {tag.name}--6)"
 
     def _escape_latex(self, text: str) -> str:
-        """Escape special LaTeX characters in text."""
+        """Escape special LaTeX characters and Unicode characters in text."""
         if not text:
             return ""
 
@@ -308,6 +309,24 @@ class TagResolver:
 
         for char, escape in latex_chars.items():
             result = result.replace(char, escape)
+
+        # Unicode characters that need special handling in LaTeX
+        unicode_replacements = {
+            "—": "---",  # Em dash
+            "–": "--",  # En dash
+            """: "``",   # Left double quote
+            """: "''",  # Right double quote
+            "'": "`",  # Left single quote
+            "…": "\\ldots{}",  # Ellipsis
+            "°": "\\textdegree{}",  # Degree symbol
+            "©": "\\copyright{}",  # Copyright symbol
+            "®": "\\textregistered{}",  # Registered trademark
+            "™": "\\texttrademark{}",  # Trademark symbol
+        }
+
+        # Apply Unicode character replacements
+        for char, replacement in unicode_replacements.items():
+            result = result.replace(char, replacement)
 
         return result
 
