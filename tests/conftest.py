@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.indexer.tag_resolver import TagResolver  # type: ignore
+from dnd5e.core.indexer.new_tag_resolver import TagResolverFacade  # type: ignore
 from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
 from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
 from dnd5e.core.models.creatures import Creature  # type: ignore
@@ -116,6 +116,6 @@ async def loaded_omnidexer(
 
 
 @pytest.fixture
-async def tag_resolver(loaded_omnidexer: Omnidexer) -> TagResolver:
+async def tag_resolver(loaded_omnidexer: Omnidexer) -> TagResolverFacade:
     """Create a tag resolver with loaded data."""
-    return TagResolver(loaded_omnidexer)
+    return TagResolverFacade(loaded_omnidexer)

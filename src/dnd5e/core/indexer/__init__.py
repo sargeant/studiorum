@@ -1,5 +1,6 @@
 """Cross-reference and tag resolution system."""
 
+from .new_tag_resolver import TagResolverFacade
 from .refactored_tag_resolver import RefactoredTagResolver, create_tag_resolver
 from .reference_index import ReferenceIndex
 from .semantic_resolver import SemanticTagResolver
@@ -18,7 +19,9 @@ __all__ = [
     "TagResolver",
     "TagMatch",
     "ReferenceIndex",
-    # New refactored classes
+    # New AST-based system
+    "TagResolverFacade",
+    # Refactored classes (interim)
     "RefactoredTagResolver",
     "SemanticTagResolver",
     "create_tag_resolver",

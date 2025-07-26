@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.progress import Progress
 
 from dnd5e.core.config.settings import get_settings
-from dnd5e.core.indexer.tag_resolver import TagResolver
+from dnd5e.core.indexer.new_tag_resolver import TagResolverFacade
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.logging.logger import setup_logging
 from dnd5e.core.models.content import BaseContent
@@ -31,7 +31,7 @@ console = Console()
 
 # Global state
 _omnidexer: Omnidexer | None = None
-_tag_resolver: TagResolver | None = None
+_tag_resolver: TagResolverFacade | None = None
 
 
 @app.command("version")
@@ -69,12 +69,12 @@ async def get_omnidexer() -> Omnidexer:
     return _omnidexer
 
 
-async def get_tag_resolver() -> TagResolver:
+async def get_tag_resolver() -> TagResolverFacade:
     """Get or create the global tag resolver instance."""
     global _tag_resolver
     if _tag_resolver is None:
         omnidexer = await get_omnidexer()
-        _tag_resolver = TagResolver(omnidexer)
+        _tag_resolver = TagResolverFacade(omnidexer)
     return _tag_resolver
 
 
