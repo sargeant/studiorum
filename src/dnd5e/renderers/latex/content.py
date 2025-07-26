@@ -3768,7 +3768,7 @@ class LaTeXBookRenderer(LaTeXContentRenderer):
         Returns:
             Dictionary of template variables
         """
-        variables = {
+        variables: dict[str, Any] = {
             "book": book,
             "name": book.name,
             "source": book.source.name if book.source else "",
