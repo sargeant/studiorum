@@ -11,7 +11,7 @@ from ..logging import get_logger
 from ..models.content import ContentType
 
 if TYPE_CHECKING:
-    from .refactored_tag_resolver import RefactoredTagResolver
+    pass  # No longer importing RefactoredTagResolver (deleted)
 
 logger = get_logger(__name__)
 
@@ -300,17 +300,13 @@ class LaTeXTagResolver(TagResolver):
         # LaTeX-specific handlers can be added here
 
     @classmethod
-    def create_refactored(cls, omnidexer: Omnidexer) -> "RefactoredTagResolver":
-        """Create a refactored version that separates resolution from formatting.
+    def create_refactored(cls, omnidexer: Omnidexer) -> "LaTeXTagResolver":
+        """Create a LaTeX tag resolver instance.
 
-        This is a migration helper to enable the new architecture while
-        maintaining compatibility with existing code.
+        Note: RefactoredTagResolver has been deprecated and removed.
+        This method now returns a LaTeXTagResolver for compatibility.
         """
-        from ...renderers.latex.tag_renderer import LaTeXTagRenderer
-        from .refactored_tag_resolver import RefactoredTagResolver
-
-        renderer = LaTeXTagRenderer()
-        return RefactoredTagResolver(omnidexer, renderer)
+        return cls(omnidexer)
 
     def _handle_creature_tag(self, tag: TagMatch) -> str:
         """Enhanced creature tag handling for LaTeX."""
