@@ -323,14 +323,34 @@ def convert_book(
                 tag_resolver = await get_tag_resolver()
                 progress.update(load_task, completed=100)
 
+            # Create document metadata for proper DND template rendering
+            from dnd5e.core.models.document_metadata import (
+                DocumentMetadata,
+                DocumentType,
+            )
+
+            # Get book title - handle both dict and object formats
+            if hasattr(content_items[0], "name"):
+                book_title = content_items[0].name
+            elif isinstance(content_items[0], dict):
+                book_title = content_items[0].get("name", "Player's Handbook")
+            else:
+                book_title = "Player's Handbook"
+
+            metadata = DocumentMetadata(
+                title=title or book_title,
+                document_type=DocumentType.BOOK,
+            )
+
             # Create render context
             context = RenderContext(
-                title=title or f"Book: {content_items[0].name}",
+                title=title or f"Book: {book_title}",
                 include_images=with_images,
                 include_toc=True,
                 include_index=with_index,
                 omnidexer=omnidexer,
                 tag_resolver=tag_resolver,
+                metadata=metadata,
             )
 
             # Render document

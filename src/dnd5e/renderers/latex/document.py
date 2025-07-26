@@ -321,11 +321,31 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         # Build index entries
         index_entries = []
         for item in content_items:
+            # Handle both dict and object formats for item name
+            if hasattr(item, "name"):
+                item_name = item.name
+            elif isinstance(item, dict):
+                item_name = item.get("name", "Unnamed Item")
+            else:
+                item_name = "Unnamed Item"
+
+            # Handle both dict and object formats for item source
+            if hasattr(item, "source"):
+                item_source = str(item.source)
+            elif isinstance(item, dict):
+                source_data = item.get("source", {})
+                if isinstance(source_data, dict):
+                    item_source = source_data.get("abbreviation", "Unknown")
+                else:
+                    item_source = str(source_data)
+            else:
+                item_source = "Unknown"
+
             index_entries.append(
                 {
-                    "name": item.name,
+                    "name": item_name,
                     "type": ContentType.from_content(item).value,
-                    "source": str(item.source),
+                    "source": item_source,
                 }
             )
 
@@ -380,8 +400,28 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Basic rendered content
         """
-        escaped_name = self._escape_latex(content.name)
-        source_text = self._escape_latex(str(content.source))
+        # Handle both dict and object formats for content name
+        if hasattr(content, "name"):
+            content_name = content.name
+        elif isinstance(content, dict):
+            content_name = content.get("name", "Unnamed Content")
+        else:
+            content_name = "Unnamed Content"
+
+        # Handle both dict and object formats for content source
+        if hasattr(content, "source"):
+            content_source = str(content.source)
+        elif isinstance(content, dict):
+            source_data = content.get("source", {})
+            if isinstance(source_data, dict):
+                content_source = source_data.get("abbreviation", "Unknown")
+            else:
+                content_source = str(source_data)
+        else:
+            content_source = "Unknown"
+
+        escaped_name = self._escape_latex(content_name)
+        source_text = self._escape_latex(content_source)
 
         return f"""
 \\subsection{{{escaped_name}}}

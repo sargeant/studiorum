@@ -179,7 +179,13 @@ class ContentOrganizer:
         def spell_sort_key(spell: BaseContent) -> tuple[int, str, str]:
             level = getattr(spell, "level", 0)
             school = getattr(spell, "school", "")
-            name = spell.name.lower()
+            # Handle both dict and object formats for name
+            if hasattr(spell, "name"):
+                name = spell.name.lower()
+            elif isinstance(spell, dict):
+                name = spell.get("name", "unnamed").lower()
+            else:
+                name = "unnamed"
             return (level, school, name)
 
         return sorted(spells, key=spell_sort_key)
@@ -211,7 +217,13 @@ class ContentOrganizer:
                     except ValueError:
                         cr = 0
 
-            name = creature.name.lower()
+            # Handle both dict and object formats for name
+            if hasattr(creature, "name"):
+                name = creature.name.lower()
+            elif isinstance(creature, dict):
+                name = creature.get("name", "unnamed").lower()
+            else:
+                name = "unnamed"
             return (cr, name)
 
         return sorted(creatures, key=creature_sort_key)
@@ -241,7 +253,13 @@ class ContentOrganizer:
             }
 
             rarity_num = rarity_order.get(rarity.lower(), 99)
-            name = item.name.lower()
+            # Handle both dict and object formats for name
+            if hasattr(item, "name"):
+                name = item.name.lower()
+            elif isinstance(item, dict):
+                name = item.get("name", "unnamed").lower()
+            else:
+                name = "unnamed"
 
             return (item_type, rarity_num, name)
 
@@ -256,7 +274,17 @@ class ContentOrganizer:
         Returns:
             Sorted list of content
         """
-        return sorted(content, key=lambda x: x.name.lower())
+
+        def get_name(x):
+            # Handle both dict and object formats for name
+            if hasattr(x, "name"):
+                return x.name.lower()
+            elif isinstance(x, dict):
+                return x.get("name", "unnamed").lower()
+            else:
+                return "unnamed"
+
+        return sorted(content, key=get_name)
 
     def _get_level_key(self, content: BaseContent) -> str:
         """Get level-based key for content organization.
