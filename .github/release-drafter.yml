@@ -2,27 +2,46 @@ name-template: 'v$NEXT_PATCH_VERSION'
 tag-template: 'v$NEXT_PATCH_VERSION'
 
 template: |
+  ## What's Changed
+
   $CHANGES
 
-# Configure categories for release notes
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$NEXT_PATCH_VERSION
+
+# Configure categories for release notes (enhanced for conventional commits)
 categories:
-  - title: '✨ Features'
+  - title: '✨ New Features'
     labels:
       - 'feature'
       - 'enhancement'
+    # Match conventional commit types
+    commit-title-pattern: '^feat(\(.*\))?: .*'
   - title: '🐛 Bug Fixes'
     labels:
       - 'bug'
       - 'fix'
-  - title: '🧰 Maintenance'
+    commit-title-pattern: '^fix(\(.*\))?: .*'
+  - title: '📚 Documentation'
+    labels:
+      - 'docs'
+      - 'documentation'
+    commit-title-pattern: '^docs(\(.*\))?: .*'
+  - title: '🧰 Maintenance & Refactoring'
     labels:
       - 'chore'
       - 'dependencies'
       - 'refactor'
       - 'ci'
-  - title: '📚 Documentation'
+    commit-title-pattern: '^(chore|refactor)(\(.*\))?: .*'
+  - title: '🧪 Testing'
     labels:
-      - 'docs'
+      - 'test'
+      - 'testing'
+    commit-title-pattern: '^test(\(.*\))?: .*'
+  - title: '💄 Style & Formatting'
+    labels:
+      - 'style'
+    commit-title-pattern: '^style(\(.*\))?: .*'
 
 # Exclude certain labels from appearing in the release notes
 exclude-labels:
@@ -31,20 +50,64 @@ exclude-labels:
   - 'invalid'
   - 'wontfix'
 
-# Include a section for all pull requests that don't fit into a category
-change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
+# Enhanced change template with better formatting
+change-template: |
+  - $TITLE @$AUTHOR (#$NUMBER)
 
-# Add a "What's Changed" section at the end
-header-template: |-
-  ## What's Changed
+# Better change title pattern to clean up conventional commit titles
+change-title-escapes: '\<*_&'
 
-# Versioning strategy (optional, but good for clarity)
-# If you want to automatically bump the version based on labels, you can add:
-# version-resolver:
-#   major:
-#     labels: ['major']
-#   minor:
-#     labels: ['minor']
-#   patch:
-#     labels: ['patch']
-#   default: patch
+# Auto-labeling based on conventional commit patterns
+autolabeler:
+  - label: 'feature'
+    title:
+      - '/^feat(\(.*\))?: .*/'
+  - label: 'fix'
+    title:
+      - '/^fix(\(.*\))?: .*/'
+  - label: 'docs'
+    title:
+      - '/^docs(\(.*\))?: .*/'
+  - label: 'chore'
+    title:
+      - '/^chore(\(.*\))?: .*/'
+  - label: 'refactor'
+    title:
+      - '/^refactor(\(.*\))?: .*/'
+  - label: 'test'
+    title:
+      - '/^test(\(.*\))?: .*/'
+  - label: 'style'
+    title:
+      - '/^style(\(.*\))?: .*/'
+
+# Enhanced versioning strategy based on conventional commits
+version-resolver:
+  major:
+    labels: ['breaking', 'major']
+  minor:
+    labels: ['feature', 'enhancement', 'minor']
+  patch:
+    labels: ['fix', 'patch', 'chore', 'docs', 'style', 'test', 'refactor']
+  default: patch
+
+# Better sorting of changes
+sort-by: title
+sort-direction: ascending
+
+# Template for individual changes to clean up conventional commit titles
+replacers:
+  - search: '/^feat(\(.*\))?: (.*)/'
+    replace: '$2'
+  - search: '/^fix(\(.*\))?: (.*)/'
+    replace: '$2'
+  - search: '/^docs(\(.*\))?: (.*)/'
+    replace: '$2'
+  - search: '/^chore(\(.*\))?: (.*)/'
+    replace: '$2'
+  - search: '/^refactor(\(.*\))?: (.*)/'
+    replace: '$2'
+  - search: '/^test(\(.*\))?: (.*)/'
+    replace: '$2'
+  - search: '/^style(\(.*\))?: (.*)/'
+    replace: '$2'
