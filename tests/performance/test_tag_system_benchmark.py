@@ -5,12 +5,11 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.indexer.new_tag_resolver import TagResolverFacade
 from dnd5e.core.indexer.tag_resolver import TagResolver
 
 
 class TestTagSystemPerformance:
-    """Performance tests comparing old and new tag systems."""
+    """Performance tests for the AST-based tag system."""
 
     @pytest.fixture
     def sample_text(self) -> str:
@@ -47,27 +46,10 @@ class TestTagSystemPerformance:
 
         return " ".join(parts)
 
-    def test_new_system_basic_performance(
+    def test_tag_system_basic_performance(
         self, sample_text: str, loaded_omnidexer: Any
     ) -> None:
-        """Test performance of new AST-based system."""
-        resolver = TagResolverFacade(loaded_omnidexer)
-
-        start_time = time.time()
-        result = resolver.process_text(sample_text)
-        end_time = time.time()
-
-        processing_time = end_time - start_time
-
-        # Should complete in reasonable time
-        assert processing_time < 1.0  # 1 second threshold
-        assert isinstance(result, str)
-        assert len(result) > 0
-
-    def test_legacy_system_basic_performance(
-        self, sample_text: str, loaded_omnidexer: Any
-    ) -> None:
-        """Test performance of legacy regex-based system."""
+        """Test performance of AST-based tag system."""
         resolver = TagResolver(loaded_omnidexer)
 
         start_time = time.time()
@@ -81,27 +63,10 @@ class TestTagSystemPerformance:
         assert isinstance(result, str)
         assert len(result) > 0
 
-    def test_new_system_large_document_performance(
+    def test_tag_system_with_large_text(
         self, large_text: str, loaded_omnidexer: Any
     ) -> None:
-        """Test new system performance with large documents."""
-        resolver = TagResolverFacade(loaded_omnidexer)
-
-        start_time = time.time()
-        result = resolver.process_text(large_text)
-        end_time = time.time()
-
-        processing_time = end_time - start_time
-
-        # Should handle large documents efficiently
-        assert processing_time < 5.0  # 5 second threshold for large text
-        assert isinstance(result, str)
-        assert len(result) > 0
-
-    def test_legacy_system_large_document_performance(
-        self, large_text: str, loaded_omnidexer: Any
-    ) -> None:
-        """Test legacy system performance with large documents."""
+        """Test performance with large documents."""
         resolver = TagResolver(loaded_omnidexer)
 
         start_time = time.time()
@@ -110,42 +75,16 @@ class TestTagSystemPerformance:
 
         processing_time = end_time - start_time
 
-        # Should handle large documents efficiently
-        assert processing_time < 5.0  # 5 second threshold for large text
+        # Should complete in reasonable time
+        assert processing_time < 1.0  # 1 second threshold
         assert isinstance(result, str)
         assert len(result) > 0
-
-    def test_performance_comparison(
-        self, sample_text: str, loaded_omnidexer: Any
-    ) -> None:
-        """Compare performance between new and legacy systems."""
-        # Test new system
-        new_resolver = TagResolverFacade(loaded_omnidexer)
-        start_time = time.time()
-        new_result = new_resolver.process_text(sample_text)
-        new_time = time.time() - start_time
-
-        # Test legacy system
-        legacy_resolver = TagResolver(loaded_omnidexer)
-        start_time = time.time()
-        legacy_result = legacy_resolver.process_text(sample_text)
-        legacy_time = time.time() - start_time
-
-        # Both should produce results
-        assert isinstance(new_result, str)
-        assert isinstance(legacy_result, str)
-        assert len(new_result) > 0
-        assert len(legacy_result) > 0
-
-        # Performance difference should not be dramatic
-        # New system should be within 3x of legacy system performance
-        assert new_time < legacy_time * 3
 
     def test_memory_usage_basic(self, sample_text: str, loaded_omnidexer: Any) -> None:
         """Test that tag processing doesn't create excessive memory usage."""
         import gc
 
-        resolver = TagResolverFacade(loaded_omnidexer)
+        resolver = TagResolver(loaded_omnidexer)
 
         # Force garbage collection
         gc.collect()
