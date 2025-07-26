@@ -4,12 +4,23 @@ build-backend = "hatchling.build"
 
 [project]
 name = "5e2pdf"
-version = "0.3.0-dev"
+version = "0.3.1"
 description = "Convert D&D 5e JSON data to beautifully formatted LaTeX/PDF documents"
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [{ name = "Sam Sargeant" }]
-keywords = ["dnd", "d&d", "dungeons-dragons", "5e", "latex", "pdf", "cli", "generator", "rpg", "tabletop"]
+keywords = [
+    "dnd",
+    "d&d",
+    "dungeons-dragons",
+    "5e",
+    "latex",
+    "pdf",
+    "cli",
+    "generator",
+    "rpg",
+    "tabletop",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
@@ -53,7 +64,7 @@ dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
-    "psutil>=5.9.0",          # For memory usage testing
+    "psutil>=5.9.0",                 # For memory usage testing
     "types-pyyaml>=6.0.12.20250516",
 ]
 docs = [
