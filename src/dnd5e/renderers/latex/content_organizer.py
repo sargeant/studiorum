@@ -275,12 +275,12 @@ class ContentOrganizer:
             Sorted list of content
         """
 
-        def get_name(x):
+        def get_name(x: Any) -> str:
             # Handle both dict and object formats for name
             if hasattr(x, "name"):
-                return x.name.lower()
+                return str(x.name).lower()
             elif isinstance(x, dict):
-                return x.get("name", "unnamed").lower()
+                return str(x.get("name", "unnamed")).lower()
             else:
                 return "unnamed"
 

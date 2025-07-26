@@ -8,6 +8,7 @@ import jinja2
 from jinja2 import Environment, FileSystemLoader, Template
 
 from ...core.config.latex_config import LaTeXConfig, get_default_latex_config
+from ...core.latex_utils import escape_latex_text
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
 
 
@@ -17,6 +18,18 @@ class LaTeXTemplateEngine:
     Provides template loading, caching, and rendering with LaTeX-specific
     escaping and filters. Supports template inheritance and uses DND-5e-LaTeX-Template
     document classes.
+
+    Security Note:
+        HTML autoescape is disabled as it's inappropriate for LaTeX output.
+        LaTeX has different special characters than HTML ({, }, $, &, %, #, ^, _, ~, \\)
+        and requires custom escaping logic.
+
+        IMPORTANT: All user-provided content must be escaped using the latex_escape
+        filter to prevent LaTeX injection attacks. Template developers should:
+        - Use {{ variable | latex_escape }} for all user input
+        - Mark trusted content as safe: {{ trusted_content | safe }}
+        - Validate input before template rendering
+        - Never allow user control of template structure
     """
 
     def __init__(self, config: dict[str, Any] | None = None):
@@ -46,6 +59,10 @@ class LaTeXTemplateEngine:
             trim_blocks=True,
             lstrip_blocks=True,
             keep_trailing_newline=True,
+            # Disable HTML autoescape - inappropriate for LaTeX output
+            # LaTeX has different special characters than HTML and requires custom escaping
+            # Security: All user input must be properly escaped using latex_escape filter
+            autoescape=False,  # nosec B701
             # Use different delimiters to avoid conflicts with LaTeX
             block_start_string="<@",
             block_end_string="@>",
@@ -68,45 +85,7 @@ class LaTeXTemplateEngine:
             """Escape LaTeX special characters and Unicode characters."""
             if not isinstance(value, str):
                 value = str(value)
-
-            # Use unique placeholders to avoid double-escaping
-            # 1. Replace special LaTeX commands with placeholders
-            value = value.replace("\\", "__XBACKSLASHX__")
-            value = value.replace("~", "__XTILDEX__")
-            value = value.replace("^", "__XCARETX__")
-
-            # 2. Escape remaining characters
-            value = value.replace("&", r"\&")
-            value = value.replace("%", r"\%")
-            value = value.replace("$", r"\$")
-            value = value.replace("#", r"\#")
-            value = value.replace("_", r"\_")
-            value = value.replace("{", r"\{")
-            value = value.replace("}", r"\}")
-
-            # 3. Replace placeholders with LaTeX commands
-            value = value.replace("__XBACKSLASHX__", r"\textbackslash{}")
-            value = value.replace("__XTILDEX__", r"\textasciitilde{}")
-            value = value.replace("__XCARETX__", r"\textasciicircum{}")
-
-            # 4. Handle Unicode characters that need special LaTeX treatment
-            unicode_replacements = {
-                "—": "---",  # Em dash
-                "–": "--",  # En dash
-                """: "``",   # Left double quote
-                """: "''",  # Right double quote
-                "'": "`",  # Left single quote
-                "…": r"\ldots{}",  # Ellipsis
-                "°": r"\textdegree{}",  # Degree symbol
-                "©": r"\copyright{}",  # Copyright symbol
-                "®": r"\textregistered{}",  # Registered trademark
-                "™": r"\texttrademark{}",  # Trademark symbol
-            }
-
-            for char, replacement in unicode_replacements.items():
-                value = value.replace(char, replacement)
-
-            return value
+            return escape_latex_text(value)
 
         def latex_newlines(value: str) -> str:
             """Convert newlines to LaTeX line breaks."""

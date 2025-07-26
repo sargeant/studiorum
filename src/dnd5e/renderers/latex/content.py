@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from ...core.latex_utils import escape_latex_text
 from ...core.models.adventures import Adventure
 from ...core.models.backgrounds import Background
 from ...core.models.books import Book
@@ -42,47 +43,7 @@ class LaTeXContentRenderer(ContentRenderer):
         Returns:
             LaTeX-safe text
         """
-        if not text:
-            return ""
-
-        # LaTeX special characters
-        replacements = {
-            "\\": r"\textbackslash{}",
-            "{": r"\{",
-            "}": r"\}",
-            "$": r"\$",
-            "&": r"\&",
-            "%": r"\%",
-            "#": r"\#",
-            "^": r"\textasciicircum{}",
-            "_": r"\_",
-            "~": r"\textasciitilde{}",
-        }
-
-        # Unicode characters that need special handling in LaTeX
-        unicode_replacements = {
-            "—": "---",  # Em dash
-            "–": "--",  # En dash
-            """: "``",   # Left double quote
-            """: "''",  # Right double quote
-            "'": "`",  # Left single quote
-            "…": r"\ldots{}",  # Ellipsis
-            "°": r"\textdegree{}",  # Degree symbol
-            "©": r"\copyright{}",  # Copyright symbol
-            "®": r"\textregistered{}",  # Registered trademark
-            "™": r"\texttrademark{}",  # Trademark symbol
-        }
-
-        result = text
-        # Apply LaTeX special character escaping first
-        for char, replacement in replacements.items():
-            result = result.replace(char, replacement)
-
-        # Then apply Unicode character replacements
-        for char, replacement in unicode_replacements.items():
-            result = result.replace(char, replacement)
-
-        return result
+        return escape_latex_text(text)
 
     def process_text_with_tags(self, text: str, context: RenderContext) -> str:
         """Process text containing 5etools tags.
@@ -3768,7 +3729,7 @@ class LaTeXBookRenderer(LaTeXContentRenderer):
         Returns:
             Dictionary of template variables
         """
-        variables = {
+        variables: dict[str, Any] = {
             "book": book,
             "name": book.name,
             "source": book.source.name if book.source else "",

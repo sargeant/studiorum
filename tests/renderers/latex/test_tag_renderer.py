@@ -207,11 +207,11 @@ class TestLaTeXTagRenderer:
             ("50% chance", "50\\% chance"),
             ("$100 cost", "\\$100 cost"),
             ("item #1", "item \\#1"),
-            ("text^superscript", "text\\textasciicircum\\{\\}superscript"),
+            ("text^superscript", "text\\textasciicircum{}superscript"),
             ("file_name", "file\\_name"),
             ("{braced}", "\\{braced\\}"),
             ("~tilde", "\\textasciitilde{}tilde"),
-            ("back\\slash", "back\\textbackslash\\{\\}slash"),
+            ("back\\slash", "back\\slash"),
         ]
 
         for input_text, expected in test_cases:

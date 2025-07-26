@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, cast
 
+from ..latex_utils import escape_latex_text
 from .content_tracker import ContentTracker
 from .tag_ast import (
     AdventureTagNode,
@@ -84,24 +85,7 @@ class BaseContentTagHandler(TagHandler):
 
     def _escape_latex(self, text: str) -> str:
         """Escape LaTeX special characters."""
-        # Basic LaTeX escaping
-        replacements = {
-            "\\": "\\textbackslash{}",
-            "{": "\\{",
-            "}": "\\}",
-            "$": "\\$",
-            "&": "\\&",
-            "%": "\\%",
-            "#": "\\#",
-            "^": "\\textasciicircum{}",
-            "_": "\\_",
-            "~": "\\textasciitilde{}",
-        }
-
-        for char, replacement in replacements.items():
-            text = text.replace(char, replacement)
-
-        return text
+        return escape_latex_text(text)
 
 
 class CreatureTagHandler(BaseContentTagHandler):

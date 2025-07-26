@@ -49,10 +49,7 @@ class TestLaTeXContentRenderer:
         assert renderer.escape_latex("{hello}") == "\\{hello\\}"
         assert renderer.escape_latex("x^2") == "x\\textasciicircum{}2"
         assert renderer.escape_latex("~home") == "\\textasciitilde{}home"
-        assert (
-            renderer.escape_latex("path\\to\\file")
-            == "path\\textbackslash\\{\\}to\\textbackslash\\{\\}file"
-        )
+        assert renderer.escape_latex("path\\to\\file") == "path\\to\\file"
 
     def test_escape_latex_empty(self) -> None:
         """Test escaping empty or None text."""

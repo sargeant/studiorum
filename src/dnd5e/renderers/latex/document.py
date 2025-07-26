@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+from ...core.latex_utils import escape_latex_text
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.document_metadata import (
     ContentSection,
@@ -439,27 +440,7 @@ This content type is not yet fully supported by the rendering system.
         Returns:
             LaTeX-safe text
         """
-        if not text:
-            return ""
-
-        replacements = {
-            "\\": r"\textbackslash{}",
-            "{": r"\{",
-            "}": r"\}",
-            "$": r"\$",
-            "&": r"\&",
-            "%": r"\%",
-            "#": r"\#",
-            "^": r"\textasciicircum{}",
-            "_": r"\_",
-            "~": r"\textasciitilde{}",
-        }
-
-        result = text
-        for char, replacement in replacements.items():
-            result = result.replace(char, replacement)
-
-        return result
+        return escape_latex_text(text)
 
     def _create_compilation_config(
         self, config: dict[str, Any] | None = None
