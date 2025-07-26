@@ -175,6 +175,9 @@ filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]
 [dependency-groups]
 dev = [
     "bandit>=1.8.6",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=6.2.1",
     "safety>=3.6.0",
     "types-aiofiles>=24.1.0.20250708",
     "types-psutil>=7.0.0.20250601",
