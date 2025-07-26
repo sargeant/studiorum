@@ -5,6 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from ..latex_utils import escape_latex_text
 from ..loaders.omnidexer import Omnidexer
 from ..logging import get_logger
 from ..models.content import ContentType
@@ -288,47 +289,7 @@ class TagResolver:
 
     def _escape_latex(self, text: str) -> str:
         """Escape special LaTeX characters and Unicode characters in text."""
-        if not text:
-            return ""
-
-        # Must escape backslashes first to avoid double-escaping
-        result = text.replace("\\", "\\textbackslash{}")
-
-        # Then escape other special characters
-        latex_chars = {
-            "&": "\\&",
-            "%": "\\%",
-            "$": "\\$",
-            "#": "\\#",
-            "^": "\\textasciicircum{}",
-            "_": "\\_",
-            "{": "\\{",
-            "}": "\\}",
-            "~": "\\textasciitilde{}",
-        }
-
-        for char, escape in latex_chars.items():
-            result = result.replace(char, escape)
-
-        # Unicode characters that need special handling in LaTeX
-        unicode_replacements = {
-            "—": "---",  # Em dash
-            "–": "--",  # En dash
-            """: "``",   # Left double quote
-            """: "''",  # Right double quote
-            "'": "`",  # Left single quote
-            "…": "\\ldots{}",  # Ellipsis
-            "°": "\\textdegree{}",  # Degree symbol
-            "©": "\\copyright{}",  # Copyright symbol
-            "®": "\\textregistered{}",  # Registered trademark
-            "™": "\\texttrademark{}",  # Trademark symbol
-        }
-
-        # Apply Unicode character replacements
-        for char, replacement in unicode_replacements.items():
-            result = result.replace(char, replacement)
-
-        return result
+        return escape_latex_text(text)
 
 
 class LaTeXTagResolver(TagResolver):

@@ -38,19 +38,21 @@ class TestLaTeXTemplateEngine:
         """Test LaTeX escaping filter."""
         engine: Any = LaTeXTemplateEngine()
 
-        # Test basic escaping (note: backslash is escaped first)
+        # Test basic escaping - using centralized escape_latex_text function
         assert engine.env.filters["latex_escape"]("Hello & World") == "Hello \\& World"
         assert engine.env.filters["latex_escape"]("50% off") == "50\\% off"
         assert engine.env.filters["latex_escape"]("Cost: $5") == "Cost: \\$5"
         assert engine.env.filters["latex_escape"]("Section #1") == "Section \\#1"
-        # Note: The current implementation uses placeholders that get escaped, so results look complex
-        # But they produce correct LaTeX output
-        assert "XCARETX" in engine.env.filters["latex_escape"]("x^2")
+        # The centralized implementation produces final LaTeX output directly
+        assert engine.env.filters["latex_escape"]("x^2") == "x\\textasciicircum{}2"
         assert engine.env.filters["latex_escape"]("file_name") == "file\\_name"
         assert engine.env.filters["latex_escape"]("{hello}") == "\\{hello\\}"
-        assert "XTILDEX" in engine.env.filters["latex_escape"]("~home")
-        # Backslash escaping works correctly
-        assert "XBACKSLASHX" in engine.env.filters["latex_escape"]("path\\to\\file")
+        assert engine.env.filters["latex_escape"]("~home") == "\\textasciitilde{}home"
+        # Backslash escaping produces LaTeX commands with escaped braces
+        assert (
+            engine.env.filters["latex_escape"]("path\\to\\file")
+            == "path\\textbackslash\\{\\}to\\textbackslash\\{\\}file"
+        )
 
         # Test non-string input
         assert engine.env.filters["latex_escape"](123) == "123"

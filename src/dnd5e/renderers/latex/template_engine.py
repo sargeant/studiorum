@@ -8,6 +8,7 @@ import jinja2
 from jinja2 import Environment, FileSystemLoader, Template
 
 from ...core.config.latex_config import LaTeXConfig, get_default_latex_config
+from ...core.latex_utils import escape_latex_text
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
 
 
@@ -68,45 +69,7 @@ class LaTeXTemplateEngine:
             """Escape LaTeX special characters and Unicode characters."""
             if not isinstance(value, str):
                 value = str(value)
-
-            # Use unique placeholders to avoid double-escaping
-            # 1. Replace special LaTeX commands with placeholders
-            value = value.replace("\\", "__XBACKSLASHX__")
-            value = value.replace("~", "__XTILDEX__")
-            value = value.replace("^", "__XCARETX__")
-
-            # 2. Escape remaining characters
-            value = value.replace("&", r"\&")
-            value = value.replace("%", r"\%")
-            value = value.replace("$", r"\$")
-            value = value.replace("#", r"\#")
-            value = value.replace("_", r"\_")
-            value = value.replace("{", r"\{")
-            value = value.replace("}", r"\}")
-
-            # 3. Replace placeholders with LaTeX commands
-            value = value.replace("__XBACKSLASHX__", r"\textbackslash{}")
-            value = value.replace("__XTILDEX__", r"\textasciitilde{}")
-            value = value.replace("__XCARETX__", r"\textasciicircum{}")
-
-            # 4. Handle Unicode characters that need special LaTeX treatment
-            unicode_replacements = {
-                "—": "---",  # Em dash
-                "–": "--",  # En dash
-                """: "``",   # Left double quote
-                """: "''",  # Right double quote
-                "'": "`",  # Left single quote
-                "…": r"\ldots{}",  # Ellipsis
-                "°": r"\textdegree{}",  # Degree symbol
-                "©": r"\copyright{}",  # Copyright symbol
-                "®": r"\textregistered{}",  # Registered trademark
-                "™": r"\texttrademark{}",  # Trademark symbol
-            }
-
-            for char, replacement in unicode_replacements.items():
-                value = value.replace(char, replacement)
-
-            return value
+            return escape_latex_text(value)
 
         def latex_newlines(value: str) -> str:
             """Convert newlines to LaTeX line breaks."""
