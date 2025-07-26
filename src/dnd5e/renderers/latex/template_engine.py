@@ -62,7 +62,7 @@ class LaTeXTemplateEngine:
             # Disable HTML autoescape - inappropriate for LaTeX output
             # LaTeX has different special characters than HTML and requires custom escaping
             # Security: All user input must be properly escaped using latex_escape filter
-            autoescape=False,
+            autoescape=False,  # nosec B701
             # Use different delimiters to avoid conflicts with LaTeX
             block_start_string="<@",
             block_end_string="@>",
