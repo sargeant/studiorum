@@ -7,7 +7,7 @@
 all: check security test
 
 check: ruff mypy imports boundaries
-security: safety bandit
+security: safety bandit-medium
 test: pytest
 
 # Sync environment (dev dependencies)
@@ -38,9 +38,13 @@ boundaries: uv
 safety: uv
 	uv run safety scan
 
-## Static security analysis
-bandit: uv
+## Static security analysis (medium severity)
+bandit-medium: uv
 	uv run bandit --severity-level medium -r src/
+
+## Static security analysis (medium severity)
+bandit: uv
+	uv run bandit -r src/
 
 # Run unit tests
 pytest: uv
