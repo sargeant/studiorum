@@ -48,11 +48,8 @@ class TestLaTeXTemplateEngine:
         assert engine.env.filters["latex_escape"]("file_name") == "file\\_name"
         assert engine.env.filters["latex_escape"]("{hello}") == "\\{hello\\}"
         assert engine.env.filters["latex_escape"]("~home") == "\\textasciitilde{}home"
-        # Backslash escaping produces LaTeX commands with escaped braces
-        assert (
-            engine.env.filters["latex_escape"]("path\\to\\file")
-            == "path\\textbackslash\\{\\}to\\textbackslash\\{\\}file"
-        )
+        # Backslash escaping removed - backslashes pass through unchanged
+        assert engine.env.filters["latex_escape"]("path\\to\\file") == "path\\to\\file"
 
         # Test non-string input
         assert engine.env.filters["latex_escape"](123) == "123"
