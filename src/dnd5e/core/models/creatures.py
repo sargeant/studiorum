@@ -104,8 +104,6 @@ class CreatureType(BaseModel):
         strict: bool | None = None,
         from_attributes: bool | None = None,
         context: Any | None = None,
-        by_alias: bool | None = None,
-        by_name: bool | None = None,
     ) -> "CreatureType":
         """Handle string input and special dict formats by wrapping in type field."""
         if isinstance(obj, str):
@@ -114,8 +112,6 @@ class CreatureType(BaseModel):
                 strict=strict,
                 from_attributes=from_attributes,
                 context=context,
-                by_alias=by_alias,
-                by_name=by_name,
             )
         elif isinstance(obj, dict):
             # If dict doesn't have 'type' key but has other recognizable keys,
@@ -126,16 +122,12 @@ class CreatureType(BaseModel):
                     strict=strict,
                     from_attributes=from_attributes,
                     context=context,
-                    by_alias=by_alias,
-                    by_name=by_name,
                 )
         return super().model_validate(
             obj,
             strict=strict,
             from_attributes=from_attributes,
             context=context,
-            by_alias=by_alias,
-            by_name=by_name,
         )
 
     def __str__(self) -> str:
