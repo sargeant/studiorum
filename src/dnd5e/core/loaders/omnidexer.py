@@ -37,9 +37,9 @@ class IndexEntry:
         else:
             source_abbrev = str(content.source)
 
-        # Generate unique hash
+        # Generate unique hash (using SHA256 for security)
         identifier = f"{content_type.value}:{content.name}:{source_abbrev}"
-        hash_id = hashlib.md5(identifier.encode()).hexdigest()[:8]
+        hash_id = hashlib.sha256(identifier.encode()).hexdigest()[:8]
 
         # Generate lookup key (lowercase for case-insensitive searches)
         lookup_key = f"{content.name}|{source_abbrev}".lower()

@@ -47,6 +47,8 @@ class LaTeXTemplateEngine:
             trim_blocks=True,
             lstrip_blocks=True,
             keep_trailing_newline=True,
+            # Enable autoescape for security (LaTeX templates should escape special chars)
+            autoescape=True,
             # Use different delimiters to avoid conflicts with LaTeX
             block_start_string="<@",
             block_end_string="@>",
