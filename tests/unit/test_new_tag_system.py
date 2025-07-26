@@ -107,16 +107,17 @@ class TestTagParser:
 
     def test_parser_handles_creature_tag_with_display_text(self) -> None:
         """Test parsing creature tag with custom display text."""
-        # parser: Any = TagParser()
-        # ast = parser.parse(text)
-        #
-        # creature_node = ast.children[0]
-        # assert isinstance(creature_node, CreatureTagNode)
-        # assert creature_node.name == "Ancient Red Dragon"
-        # assert creature_node.source == "MM"
-        # assert len(creature_node.display_text_nodes) == 1
-        # assert creature_node.display_text_nodes[0].text == "great wyrm"
-        pass  # Placeholder for now
+        text = "{@creature Ancient Red Dragon|MM|great wyrm}"
+        parser: Any = TagParser()
+        ast = parser.parse(text)
+
+        creature_node = ast.children[0]
+        assert isinstance(creature_node, CreatureTagNode)
+        assert creature_node.name == "Ancient Red Dragon"
+        assert creature_node.source == "MM"
+        assert len(creature_node.display_text_nodes) == 1
+        assert isinstance(creature_node.display_text_nodes[0], TextNode)
+        assert creature_node.display_text_nodes[0].text == "great wyrm"
 
     def test_parser_handles_nested_tags(self) -> None:
         """Test parsing nested tags within display text."""
@@ -134,16 +135,29 @@ class TestTagParser:
 
     def test_parser_handles_mixed_content(self) -> None:
         """Test parsing text with multiple tags and plain text."""
-        # parser: Any = TagParser()
-        # ast = parser.parse(text)
-        #
-        # assert len(ast.children) == 5  # "Cast ", spell_tag, " at the ", creature_tag, "!"
-        # assert isinstance(ast.children[0], TextNode)
-        # assert isinstance(ast.children[1], SpellTagNode)
-        # assert isinstance(ast.children[2], TextNode)
-        # assert isinstance(ast.children[3], CreatureTagNode)
-        # assert isinstance(ast.children[4], TextNode)
-        pass  # Placeholder for now
+        text = "Cast {@spell Fireball|PHB} at the {@creature Ancient Red Dragon|MM}!"
+        parser: Any = TagParser()
+        ast = parser.parse(text)
+
+        assert (
+            len(ast.children) == 5
+        )  # "Cast ", spell_tag, " at the ", creature_tag, "!"
+        assert isinstance(ast.children[0], TextNode)
+        assert ast.children[0].text == "Cast "
+
+        from dnd5e.core.indexer.tag_ast import SpellTagNode
+
+        assert isinstance(ast.children[1], SpellTagNode)
+        assert ast.children[1].name == "Fireball"
+
+        assert isinstance(ast.children[2], TextNode)
+        assert ast.children[2].text == " at the "
+
+        assert isinstance(ast.children[3], CreatureTagNode)
+        assert ast.children[3].name == "Ancient Red Dragon"
+
+        assert isinstance(ast.children[4], TextNode)
+        assert ast.children[4].text == "!"
 
     def test_parser_handles_escaped_characters(self) -> None:
         """Test parsing tags with escaped pipes and braces."""
