@@ -18,6 +18,18 @@ class LaTeXTemplateEngine:
     Provides template loading, caching, and rendering with LaTeX-specific
     escaping and filters. Supports template inheritance and uses DND-5e-LaTeX-Template
     document classes.
+
+    Security Note:
+        HTML autoescape is disabled as it's inappropriate for LaTeX output.
+        LaTeX has different special characters than HTML ({, }, $, &, %, #, ^, _, ~, \\)
+        and requires custom escaping logic.
+
+        IMPORTANT: All user-provided content must be escaped using the latex_escape
+        filter to prevent LaTeX injection attacks. Template developers should:
+        - Use {{ variable | latex_escape }} for all user input
+        - Mark trusted content as safe: {{ trusted_content | safe }}
+        - Validate input before template rendering
+        - Never allow user control of template structure
     """
 
     def __init__(self, config: dict[str, Any] | None = None):
@@ -47,8 +59,10 @@ class LaTeXTemplateEngine:
             trim_blocks=True,
             lstrip_blocks=True,
             keep_trailing_newline=True,
-            # Enable autoescape for security (LaTeX templates should escape special chars)
-            autoescape=True,
+            # Disable HTML autoescape - inappropriate for LaTeX output
+            # LaTeX has different special characters than HTML and requires custom escaping
+            # Security: All user input must be properly escaped using latex_escape filter
+            autoescape=False,
             # Use different delimiters to avoid conflicts with LaTeX
             block_start_string="<@",
             block_end_string="@>",
