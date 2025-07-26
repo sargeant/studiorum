@@ -16,7 +16,7 @@
 % DEBUG: Chapter has <# chapter.entries | length if chapter.entries else 0 #> entries
 <@ if chapter.entries @>
 <@ for entry in chapter.entries @>
-<# entry #>
+<# entry | safe #>
 
 <@ endfor @>
 <@ else @>

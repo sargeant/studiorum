@@ -217,23 +217,31 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Document with content rendered in sections
         """
-        # This is a placeholder implementation
-        # In practice, we would need to replace section placeholders
-        # with actual rendered content
-
         for section in sections:
             if isinstance(section, ContentSection) and section.content_items:
-                # Render each content item in the section
-                rendered_items = []
+                # Render each content item and replace individual placeholders
                 for item in section.content_items:
                     rendered_item = self.render_content_item(item, context)
                     if rendered_item:
-                        rendered_items.append(rendered_item)
+                        # Create placeholder pattern that matches section template output
+                        item_name = getattr(item, "name", "")
+                        item_class = item.__class__.__name__
+                        placeholder_pattern = f"% Content: {item_name} ({item_class})"
 
-                # For now, we'll append a comment indicating where content should go
-                # Future enhancement would replace specific placeholders in the template
+                        # Replace the specific placeholder with rendered content
+                        if placeholder_pattern in document:
+                            document = document.replace(
+                                placeholder_pattern, rendered_item
+                            )
+
+                # Also try the generic content placeholder for compatibility
                 content_placeholder = f"% Content for {section.title}"
                 if content_placeholder in document:
+                    rendered_items = []
+                    for item in section.content_items:
+                        rendered_item = self.render_content_item(item, context)
+                        if rendered_item:
+                            rendered_items.append(rendered_item)
                     document = document.replace(
                         content_placeholder, "\n".join(rendered_items)
                     )
@@ -401,6 +409,9 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Basic rendered content
         """
+        # Check if this is a raw book entry that should be processed recursively
+        if isinstance(content, dict | str) and self._is_book_entry(content, context):
+            return self._render_book_entry(content, context)
         # Handle both dict and object formats for content name
         if hasattr(content, "name"):
             content_name = content.name
@@ -441,6 +452,60 @@ This content type is not yet fully supported by the rendering system.
             LaTeX-safe text
         """
         return escape_latex_text(text)
+
+    def _is_book_entry(self, content: Any, context: RenderContext) -> bool:
+        """Check if content is a raw book entry that should be processed recursively.
+
+        Args:
+            content: Content to check
+            context: Rendering context
+
+        Returns:
+            True if this appears to be a book entry
+        """
+        # Check if we're in a book document context
+        if not hasattr(context, "metadata") or not context.metadata:
+            return False
+
+        if context.metadata.document_type != DocumentType.BOOK:
+            return False
+
+        # Check if content looks like a book entry
+        if isinstance(content, str):
+            return True  # Raw text entries from book chapters
+        elif isinstance(content, dict):
+            # Dict entries with typical book entry structure
+            return any(key in content for key in ["type", "entries", "name"])
+
+        return False
+
+    def _render_book_entry(self, content: Any, context: RenderContext) -> str:
+        """Render a raw book entry using RecursiveEntryProcessor.
+
+        Args:
+            content: Raw book entry (string or dict)
+            context: Rendering context
+
+        Returns:
+            Rendered LaTeX content
+        """
+        # Import here to avoid circular imports
+        from .entry_processor import RecursiveEntryProcessor
+
+        # Use DND template for book entries
+        processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+        if isinstance(content, str):
+            # Process string content with tags
+            if hasattr(context, "tag_resolver") and context.tag_resolver:
+                return context.tag_resolver.process_text(content)
+            else:
+                return self._escape_latex(content)
+        elif isinstance(content, dict):
+            # Process dict entry
+            return processor.process_entry_dict(content, context)
+        else:
+            return str(content)
 
     def _create_compilation_config(
         self, config: dict[str, Any] | None = None

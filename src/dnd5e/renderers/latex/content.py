@@ -14,6 +14,7 @@ from ...core.models.items import Item
 from ...core.models.races import Race
 from ...core.models.spells import Spell
 from ..base import ContentRenderer, RenderContext
+from .entry_processor import RecursiveEntryProcessor
 from .template_engine import LaTeXTemplateEngine
 
 
@@ -3691,6 +3692,9 @@ class LaTeXBookRenderer(LaTeXContentRenderer):
         """
         super().__init__(config)
         self.use_dnd_template = config.get("use_dnd_template", True) if config else True
+        self.entry_processor = RecursiveEntryProcessor(
+            use_dnd_template=self.use_dnd_template
+        )
 
     @property
     def supported_content_types(self) -> set[ContentType]:
@@ -3752,7 +3756,7 @@ class LaTeXBookRenderer(LaTeXContentRenderer):
         return variables
 
     def _process_entries(self, entries: list[Any], context: RenderContext) -> list[str]:
-        """Process chapter entries into LaTeX content.
+        """Process chapter entries into LaTeX content using RecursiveEntryProcessor.
 
         Args:
             entries: List of entry objects/strings
@@ -3761,19 +3765,7 @@ class LaTeXBookRenderer(LaTeXContentRenderer):
         Returns:
             List of processed LaTeX strings
         """
-        processed = []
-
-        for entry in entries:
-            if isinstance(entry, str):
-                # Plain text entry
-                processed.append(self.process_text_with_tags(entry, context))
-            elif isinstance(entry, dict):
-                processed.append(self._process_entry_dict(entry, context))
-            else:
-                # Fallback for other types
-                processed.append(str(entry))
-
-        return processed
+        return self.entry_processor.process_entries(entries, context)
 
     def _process_entry_dict(self, entry: dict[str, Any], context: RenderContext) -> str:
         """Process a dictionary entry into LaTeX.
