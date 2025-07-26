@@ -163,7 +163,6 @@ class LaTeXTagRenderer:
             "–": "--",  # En dash
             """: "``",   # Left double quote
             """: "''",  # Right double quote
-            "'": "`",  # Left single quote
             "…": "\\ldots{}",  # Ellipsis
             "°": "\\textdegree{}",  # Degree symbol
             "©": "\\copyright{}",  # Copyright symbol
