@@ -69,3 +69,35 @@ jobs:
 
     - name: Check architectural boundaries
       run: uv run python scripts/check_architectural_boundaries.py src/dnd5e/ --fail-on-violations
+
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+
+    - name: Set up Python
+      run: uv python install 3.12
+
+    - name: Install dependencies
+      run: uv sync --extra dev
+
+    - name: Run dependency vulnerability scan
+      run: uv run safety scan
+
+    - name: Run static security analysis
+      run: uv run bandit -ll -r src/ -f json -o bandit-report.json
+      continue-on-error: true
+
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-scan-results
+        path: bandit-report.json
