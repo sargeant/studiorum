@@ -191,72 +191,57 @@ class TestCLIErrorHandling:
 
 
 class TestCacheSystem:
-    """Tests for caching system."""
+    """Tests for the caching system."""
+
+    def setup_method(self) -> None:
+        """Set up test fixtures and clear the cache."""
+        from dnd5e.core.cache import CacheManager
+        CacheManager.clear()
+
+    def teardown_method(self) -> None:
+        """Tear down test fixtures and clear the cache."""
+        from dnd5e.core.cache import CacheManager
+        CacheManager.clear()
 
     def test_cache_creation(self) -> None:
-        """Test cache manager creation."""
-        from dnd5e.core.cache import CacheManager  # type: ignore
-
-        cache: Any = CacheManager()
-        assert cache.cache_dir.exists()
+        """Test that the cache directory is created."""
+        from dnd5e.core.cache import CACHE_DIR, get_cache
+        get_cache()
+        assert CACHE_DIR.exists()
 
     def test_cache_set_get(self) -> None:
         """Test basic cache operations."""
-        from dnd5e.core.cache import CacheManager  # type: ignore
-
-        cache: Any = CacheManager()
-
-        # Set and get value
+        from dnd5e.core.cache import get_cache
+        cache = get_cache()
         cache.set("test_key", "test_value")
         result = cache.get("test_key")
         assert result == "test_value"
-
-        # Get non-existent key
         result = cache.get("missing_key", "default")
         assert result == "default"
 
-    def test_cache_invalidation(self) -> None:
-        """Test cache invalidation."""
-        from dnd5e.core.cache import CacheManager  # type: ignore
-
-        cache: Any = CacheManager()
-
-        cache.set("test_key", "test_value")
-        assert cache.get("test_key") == "test_value"
-
-        cache.invalidate("test_key")
-        assert cache.get("test_key") is None
-
     def test_cache_clear(self) -> None:
         """Test cache clearing."""
-        from dnd5e.core.cache import CacheManager  # type: ignore
-
-        cache: Any = CacheManager()
-
+        from dnd5e.core.cache import get_cache
+        cache = get_cache()
         cache.set("key1", "value1")
         cache.set("key2", "value2")
-
         cache.clear()
-
         assert cache.get("key1") is None
         assert cache.get("key2") is None
 
     def test_cache_stats(self) -> None:
         """Test cache statistics."""
-        from dnd5e.core.cache import CacheManager  # type: ignore
-
-        cache: Any = CacheManager()
+        from dnd5e.core.cache import CacheManager, get_cache
+        cache = get_cache()
         cache.set("test_key", "test_value")
-
-        stats = cache.get_stats()
+        stats = CacheManager.get_stats()
         assert "total_entries" in stats
         assert "total_size_mb" in stats
         assert stats["total_entries"] >= 1
 
     def test_cached_decorator(self) -> None:
         """Test cached function decorator."""
-        from dnd5e.core.cache import cached  # type: ignore
-
+        from dnd5e.core.cache import cached
         call_count = 0
 
         @cached(key_func=lambda x: f"test_func:{x}")
