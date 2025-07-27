@@ -1,10 +1,13 @@
 """Creature data models."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator
 
 from .content import BaseContent
+
+if TYPE_CHECKING:
+    from ..loaders.omnidexer import Omnidexer
 
 
 class ArmorClass(BaseModel):
@@ -647,3 +650,35 @@ class Creature(BaseContent):
             return f"{cr_value} (XP varies)"
         else:
             return "0 (10 XP)"
+
+    def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+        """Extract spell references from creature traits and actions."""
+        from ..references import SpellReferenceParser, SpellReferenceResolver
+
+        spell_references = []
+
+        # Parse spell references from all ability lists
+        ability_lists = [
+            self.trait or [],
+            self.action or [],
+            self.legendary or [],
+            self.reaction or [],
+            self.bonus or [],
+        ]
+
+        for ability_list in ability_lists:
+            for ability in ability_list:
+                if isinstance(ability, Ability):
+                    # Extract text from ability entries
+                    text = ability.get_description_text()
+                    # Parse spell references
+                    references = SpellReferenceParser.extract_spell_references(text)
+                    spell_references.extend(references)
+
+        # Resolve spell references to actual spell objects
+        if spell_references:
+            resolver = SpellReferenceResolver(omnidexer)
+            resolved_spells = resolver.resolve_spell_references(spell_references)
+            return resolved_spells
+
+        return []
