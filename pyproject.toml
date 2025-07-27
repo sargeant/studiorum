@@ -67,6 +67,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "psutil>=5.9.0",                 # For memory usage testing
     "types-pyyaml>=6.0.12.20250516",
+    "diskcache-stubs>=0.0.2",
 ]
 docs = [
     "sphinx>=8.0.0",

@@ -10,7 +10,7 @@ from diskcache import Cache
 
 # Default cache directory and settings
 CACHE_DIR = Path.cwd() / ".cache"
-CACHE_SETTINGS = {
+CACHE_SETTINGS: dict[str, Any] = {
     "size_limit": 100 * 1024 * 1024,  # 100MB
     "eviction_policy": "least-recently-used",
     "timeout": 1,  # Timeout for db connection
