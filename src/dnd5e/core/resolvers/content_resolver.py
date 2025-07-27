@@ -236,9 +236,10 @@ class ContentResolver:
 
         When multiple content items have the same abbreviation, this method
         applies heuristics to select the most appropriate one:
-        1. Prefer items without year suffixes in parentheses (e.g., "PHB" over "PHB (2014)")
-        2. Prefer shorter names when all else is equal
-        3. Return None if no clear preference can be determined
+        1. For PHB specifically, prefer the original "Player's Handbook (2014)" over the 2024 revised version
+        2. Otherwise, prefer items without year suffixes in parentheses
+        3. Prefer shorter names when all else is equal
+        4. Return None if no clear preference can be determined
 
         Args:
             matches: List of content items with identical abbreviations
@@ -250,6 +251,29 @@ class ContentResolver:
             return None
         if len(matches) == 1:
             return matches[0]
+
+        # Special case for PHB: prefer the original 2014 version over the 2024 revised version
+        # This ensures users get the classic PHB content when they request "phb"
+        if len(matches) == 2 and all(
+            hasattr(match.source, "abbreviation")
+            and match.source.abbreviation.upper() == "PHB"
+            for match in matches
+        ):
+            # Look for the 2014 version (with year suffix)
+            versioned_2014 = [
+                match
+                for match in matches
+                if "(2014)" in match.name or "Player's Handbook (2014)" == match.name
+            ]
+            if versioned_2014:
+                return versioned_2014[0]
+
+            # Fallback: prefer the one with year suffix (more specific)
+            versioned = [
+                match for match in matches if self._has_year_suffix(match.name)
+            ]
+            if versioned:
+                return versioned[0]
 
         # Priority 1: Prefer items without year suffixes in parentheses
         non_versioned = [
