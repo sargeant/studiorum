@@ -54,13 +54,50 @@ class IndexEntry:
 
 
 class Omnidexer:
-    """Central indexing system for all D&D content, inspired by 5etools."""
+    """
+    Central indexing system for all D&D content with deep content discovery.
+
+    The Omnidexer provides comprehensive content indexing and discovery capabilities,
+    including support for nested content through the DeepIndexable protocol. This
+    enables discovery of class features within classes, adventure sections within
+    adventures, spell references in creature abilities, and more.
+
+    Features:
+        - Multi-index architecture (hash, type, source, name-based lookups)
+        - Deep content discovery via DeepIndexable protocol
+        - Cycle prevention for safe recursive indexing
+        - Performance monitoring and optimization
+        - Type-safe content resolution
+
+    Example:
+        ```python
+        omnidexer = Omnidexer(enable_deep_indexing=True)
+        await omnidexer.load_all_data()
+
+        # Find primary content
+        fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")
+
+        # Find nested content (requires deep indexing)
+        action_surge = omnidexer.find(ContentType.CLASS_FEATURE, "Action Surge", "PHB")
+        sections = omnidexer.find_all(ContentType.ADVENTURE_SECTION)
+        ```
+    """
 
     def __init__(
         self,
         source_manager: SourceManager | None = None,
         enable_deep_indexing: bool = True,
     ):
+        """
+        Initialize the Omnidexer.
+
+        Args:
+            source_manager: Custom source manager for content loading. If None,
+                          uses ConfigurableSourceManager with default sources.
+            enable_deep_indexing: Whether to enable deep indexing of nested content.
+                                Defaults to True. Disable for performance-critical
+                                applications where nested content discovery is not needed.
+        """
         self.source_manager = source_manager or ConfigurableSourceManager()
         self.enable_deep_indexing = enable_deep_indexing
 

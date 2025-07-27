@@ -18,6 +18,7 @@ The JSON data uses the same format as 5e.tools – which means you can still loa
 
 - **High-Quality PDF Output**: Generates clean, readable PDFs using LaTeX.
 - **5e.tools Compatibility**: Works with the widely-used 5e.tools JSON format.
+- **Deep Content Indexing**: Comprehensive discovery of nested content including class features, adventure sections, spell references, and more.
 - **Content Management**: Easily manage multiple content sources.
 - **Modern CLI**: A powerful and easy-to-use command-line interface.
 
@@ -96,6 +97,18 @@ uv run 5e2pdf sources add my-content --type directory --path ~/my-dnd-json
 ```
 
 For more detailed usage and advanced commands, please see our [Usage Guide](docs/user-guide/README.md).
+
+### Deep Content Indexing
+
+The Omnidexer system provides comprehensive content discovery and indexing capabilities. Learn more about using deep indexing features:
+
+```bash
+# See all available content types including nested content
+python docs/examples/deep-indexing.py
+
+# For detailed implementation information
+cat docs/omnidexer-deep-indexing.md
+```
 
 ## Contributing
 
