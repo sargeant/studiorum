@@ -2,9 +2,46 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .content import BaseContent, Source
+
+
+def roman_to_int(roman: str) -> int:
+    """Convert Roman numeral to integer."""
+    roman_map = {
+        "I": 1,
+        "V": 5,
+        "X": 10,
+        "L": 50,
+        "C": 100,
+        "D": 500,
+        "M": 1000,
+        "IV": 4,
+        "IX": 9,
+        "XL": 40,
+        "XC": 90,
+        "CD": 400,
+        "CM": 900,
+    }
+
+    roman = roman.upper()
+    result = 0
+    i = 0
+
+    # Process two-character combinations first
+    while i < len(roman):
+        if i + 1 < len(roman) and roman[i : i + 2] in roman_map:
+            result += roman_map[roman[i : i + 2]]
+            i += 2
+        elif roman[i] in roman_map:
+            result += roman_map[roman[i]]
+            i += 1
+        else:
+            # Invalid Roman numeral, return 0
+            return 0
+
+    return result
 
 
 class AdventureSection(BaseContent):
@@ -62,6 +99,27 @@ class BookSection(BaseContent):
     id: str | None = Field(None, description="Section ID")
     parent_name: str = Field(..., description="Parent book/chapter name")
     entries: list[Any] = Field(default_factory=list, description="Section content")
+
+    @field_validator("page", mode="before")
+    @classmethod
+    def parse_page(cls, v: Any) -> int | None:
+        """Parse page numbers, including Roman numerals."""
+        if v is None:
+            return None
+        if isinstance(v, int):
+            return v
+        if isinstance(v, str):
+            # Try to convert Roman numeral to integer
+            try:
+                return roman_to_int(v)
+            except Exception:
+                # If Roman numeral conversion fails, try direct int conversion
+                try:
+                    return int(v)
+                except ValueError:
+                    # If all fails, return None
+                    return None
+        return None
 
     def get_hash_key(self) -> str:
         """Generate a unique hash key for indexing."""

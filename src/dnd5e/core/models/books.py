@@ -156,7 +156,31 @@ class Book(BaseContent):
             if isinstance(data_array, list):
                 # Create a copy of the data and transform it
                 transformed = dict(data)
-                transformed["contents"] = data_array
+
+                # Process each item in data_array to ensure required fields
+                processed_contents = []
+                for i, item in enumerate(data_array):
+                    if isinstance(item, dict):
+                        # Ensure each chapter/section has a name field
+                        if "name" not in item:
+                            item = dict(item)  # Make a copy
+                            # Generate a default name based on type or position
+                            if item.get("type") == "section":
+                                item["name"] = f"Section {i + 1}"
+                            else:
+                                item["name"] = f"Chapter {i + 1}"
+                        processed_contents.append(item)
+                    else:
+                        # Non-dict items need to be wrapped
+                        processed_contents.append(
+                            {
+                                "name": f"Chapter {i + 1}",
+                                "type": "chapter",
+                                "entries": [item] if item else [],
+                            }
+                        )
+
+                transformed["contents"] = processed_contents
                 # Keep the original data field for reference if needed
                 return transformed
         return data
