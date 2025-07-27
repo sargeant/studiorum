@@ -17,6 +17,8 @@ class ContentType(str, Enum):
     CREATURE = "creature"
     ITEM = "item"
     CLASS = "class"
+    CLASS_FEATURE = "classFeature"
+    SUBCLASS_FEATURE = "subclassFeature"
     BACKGROUND = "background"
     FEAT = "feat"
     RACE = "race"

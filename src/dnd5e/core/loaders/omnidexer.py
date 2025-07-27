@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ..interfaces import DeepIndexable
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
 from .base import DataLoader, SourceManager
@@ -55,8 +56,13 @@ class IndexEntry:
 class Omnidexer:
     """Central indexing system for all D&D content, inspired by 5etools."""
 
-    def __init__(self, source_manager: SourceManager | None = None):
+    def __init__(
+        self,
+        source_manager: SourceManager | None = None,
+        enable_deep_indexing: bool = True,
+    ):
         self.source_manager = source_manager or ConfigurableSourceManager()
+        self.enable_deep_indexing = enable_deep_indexing
 
         # Index structures
         self._index: dict[str, IndexEntry] = {}  # hash_id -> entry
@@ -69,6 +75,11 @@ class Omnidexer:
         self._by_name: dict[str, list[IndexEntry]] = defaultdict(
             list
         )  # name -> entries
+
+        # Deep indexing support
+        self._indexed_hashes: set[str] = (
+            set()
+        )  # Tracks already indexed content to prevent cycles
 
         # Loaders
         self._loaders: dict[ContentType, DataLoader] = {}
@@ -188,9 +199,36 @@ class Omnidexer:
             logger.error(f"Failed to load {content_type.value} from {path}: {e}")
             return {}
 
+    def _is_already_indexed(
+        self, content: BaseContent, content_type: ContentType
+    ) -> bool:
+        """Check if content is already indexed to prevent cycles."""
+        # Generate the same hash that would be used for indexing
+        if hasattr(content.source, "abbreviation"):
+            source_abbrev = content.source.abbreviation
+        elif isinstance(content.source, dict):
+            source_abbrev = content.source.get("abbreviation", str(content.source))
+        else:
+            source_abbrev = str(content.source)
+
+        identifier = f"{content_type.value}:{content.name}:{source_abbrev}"
+        hash_id = hashlib.sha256(identifier.encode()).hexdigest()[:8]
+
+        return hash_id in self._indexed_hashes
+
     def _add_to_index(self, content: BaseContent, content_type: ContentType) -> None:
-        """Add content item to all indexes."""
+        """Add content item to all indexes with optional deep indexing."""
+        # Check if already indexed to prevent cycles
+        if self._is_already_indexed(content, content_type):
+            logger.debug(
+                f"Skipping already indexed {content_type.value}: {content.name}"
+            )
+            return
+
         entry = IndexEntry.create(content, content_type)
+
+        # Track this content as indexed
+        self._indexed_hashes.add(entry.hash_id)
 
         # Primary hash-based index
         self._index[entry.hash_id] = entry
@@ -211,6 +249,26 @@ class Omnidexer:
         # Name-based index (for fuzzy name searches)
         name_key = content.name.lower()
         self._by_name[name_key].append(entry)
+
+        # Deep indexing: if enabled and content supports it, index nested content
+        if self.enable_deep_indexing and isinstance(content, DeepIndexable):
+            try:
+                nested_content = content.get_deep_index_entries(self)
+                for nested_item in nested_content:
+                    # Determine content type for nested item
+                    nested_type = ContentType.from_content(nested_item)
+                    # Recursively add nested content (cycle prevention handled above)
+                    self._add_to_index(nested_item, nested_type)
+
+                logger.debug(
+                    f"Deep indexed {len(nested_content)} nested items from {content_type.value}: {content.name}"
+                )
+
+            except Exception as e:
+                logger.warning(
+                    f"Failed to deep index nested content for {content_type.value} '{content.name}': {e}"
+                )
+                # Continue with normal indexing even if deep indexing fails
 
     def find(
         self, content_type: ContentType, name: str, source: str | None = None
