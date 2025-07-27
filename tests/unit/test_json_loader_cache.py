@@ -1,5 +1,6 @@
 """Tests for JsonDataLoader caching functionality."""
 
+import asyncio
 import json
 from datetime import timedelta
 from pathlib import Path
@@ -102,6 +103,8 @@ class TestJsonLoaderCache:
         assert result1[0].name == "Original Spell"
 
         # Modify file (this changes mtime)
+        # Add small delay to ensure filesystem timestamp precision in CI
+        await asyncio.sleep(0.01)
         test_data["spell"][0]["name"] = "Modified Spell"
         test_file.write_text(json.dumps(test_data))
 
