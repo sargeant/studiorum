@@ -1,0 +1,14 @@
+% Entry template for spell rendering using EntryRenderer
+\subsection{<# spell.name #>}
+\textit{<# level_text #> <# spell.school #>}
+
+\textbf{Casting Time:} <# casting_time #> \\
+\textbf{Range:} <# range_text #> \\
+\textbf{Components:} <# components_text #> \\
+\textbf{Duration:} <# duration_text #>
+
+<# description_text #>
+
+<@ if higher_level_text @>
+\textbf{At Higher Levels.} <# higher_level_text #>
+<@ endif @>

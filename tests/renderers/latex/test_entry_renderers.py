@@ -90,7 +90,7 @@ class TestSpellEntryRenderer:
 
     def test_get_template_name(self, renderer: SpellEntryRenderer) -> None:
         """Test template name selection."""
-        assert renderer.get_template_name() == "spell_entry.tex"
+        assert renderer.get_template_name() == "spell_entry"
 
     def test_get_template_context_basic(
         self,
@@ -164,7 +164,7 @@ class TestSpellEntryRenderer:
 
         # Check that correct template and context were used
         call_args = mock_template_engine.render_template.call_args
-        assert call_args[0][0] == "spell_entry.tex"  # template name
+        assert call_args[0][0] == "spell_entry"  # template name
 
         template_context = call_args[0][1]
         assert template_context["spell"] == spell
@@ -260,7 +260,7 @@ class TestCreatureEntryRenderer:
 
     def test_get_template_name(self, renderer: CreatureEntryRenderer) -> None:
         """Test creature template name."""
-        assert renderer.get_template_name() == "creature_entry.tex"
+        assert renderer.get_template_name() == "creature_entry"
 
     def test_get_template_context(
         self,
@@ -312,7 +312,7 @@ class TestItemEntryRenderer:
 
     def test_get_template_name(self, renderer: ItemEntryRenderer) -> None:
         """Test item template name."""
-        assert renderer.get_template_name() == "item_entry.tex"
+        assert renderer.get_template_name() == "item_entry"
 
     def test_get_template_context(
         self, renderer: ItemEntryRenderer, sample_item_data: dict[str, Any]

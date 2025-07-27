@@ -277,3 +277,131 @@ class Item(BaseContent):
             text_parts.append(entries)
 
         return " ".join(text_parts) if text_parts else ""
+
+    def get_item_metadata_line(self) -> str:
+        """Get formatted metadata line (type, rarity, attunement)."""
+        parts = []
+
+        # Add type
+        type_text = self.get_type_text()
+        if type_text:
+            parts.append(type_text)
+
+        # Add rarity with attunement
+        rarity_text = self.get_enhanced_rarity_text()
+        if rarity_text:
+            parts.append(rarity_text)
+
+        return ", ".join(parts) if parts else ""
+
+    def get_enhanced_rarity_text(self) -> str:
+        """Get enhanced rarity text with attunement."""
+        rarity_text = self.get_rarity_text()
+        attunement_text = self.get_attunement_text()
+
+        if rarity_text and attunement_text:
+            return f"{rarity_text} {attunement_text}"
+        elif rarity_text:
+            return rarity_text
+        elif attunement_text:
+            return attunement_text
+        else:
+            return ""
+
+    def get_attunement_text(self) -> str:
+        """Get formatted attunement requirements."""
+        if not self.requires_attunement:
+            return ""
+
+        if isinstance(self.requires_attunement, bool):
+            return "(requires attunement)"
+        elif isinstance(self.requires_attunement, str):
+            return f"(requires attunement {self.requires_attunement})"
+        else:
+            return "(requires attunement)"
+
+    def get_ac_text(self) -> str:
+        """Get formatted AC text for armor items."""
+        if not self.armor_data or not self.armor_data.ac:
+            if self.ac:  # fallback to direct ac field
+                return str(self.ac)
+            return ""
+
+        ac_text = str(self.armor_data.ac)
+
+        # Add AC calculation method if available
+        if self.armor_data.ac_from:
+            ac_from_text = " + ".join(self.armor_data.ac_from)
+            ac_text += f" ({ac_from_text})"
+
+        return ac_text
+
+    def get_damage_text(self) -> str:
+        """Get formatted damage text for weapon items."""
+        if not self.weapon_data or not self.weapon_data.damage:
+            if self.damage:  # fallback to direct damage field
+                damage_text = str(self.damage)
+                if self.damage_type:
+                    damage_text += f" {self.damage_type}"
+                return damage_text
+            return ""
+
+        damage_text = str(self.weapon_data.damage)
+        if self.weapon_data.damage_type:
+            damage_text += f" {self.weapon_data.damage_type}"
+
+        return damage_text
+
+    def get_range_text(self) -> str:
+        """Get formatted range text for weapon items."""
+        if not self.weapon_data or not self.weapon_data.range:
+            if self.range:  # fallback to direct range field
+                return str(self.range)
+            return ""
+
+        return str(self.weapon_data.range)
+
+    def get_properties_text(self) -> list[str]:
+        """Get formatted weapon properties list."""
+        if not self.weapon_data or not self.weapon_data.properties:
+            if self.properties:  # fallback to direct properties field
+                return self.properties
+            return []
+
+        return self.weapon_data.properties
+
+    def get_charges_text(self) -> str:
+        """Get formatted charges/uses text."""
+        if not self.charges:
+            return ""
+
+        if isinstance(self.charges, int | str):
+            charge_text = str(self.charges)
+            if isinstance(self.charges, int) and self.charges == 1:
+                charge_text += " charge"
+            else:
+                charge_text += " charges"
+
+            # Add recharge info if available
+            if self.recharge:
+                charge_text += f" (recharges {self.recharge})"
+
+            return charge_text
+        elif isinstance(self.charges, dict):
+            # Handle complex charge structures
+            if "charges" in self.charges:
+                charges_val = self.charges["charges"]
+                charge_text = (
+                    f"{charges_val} charge"
+                    if charges_val == 1
+                    else f"{charges_val} charges"
+                )
+
+                if "recharge" in self.charges:
+                    charge_text += f" (recharges {self.charges['recharge']})"
+
+                return charge_text
+            else:
+                return str(self.charges)
+        else:
+            return str(self.charges)

@@ -46,7 +46,7 @@ class SpellEntryRenderer(BaseEntryRenderer):
 
     def get_template_name(self) -> str:
         """Return spell entry template name."""
-        return "spell_entry.tex"
+        return "spell_entry"
 
     def get_template_context(
         self, content: Spell, context: RenderContext
@@ -81,16 +81,19 @@ class CreatureEntryRenderer(BaseEntryRenderer):
 
     def get_template_name(self) -> str:
         """Return creature entry template name."""
-        return "creature_entry.tex"
+        return "creature_entry"
 
     def get_template_context(
         self, content: Creature, context: RenderContext
     ) -> dict[str, Any]:
         """Generate template context for creature using model methods."""
-        # Use existing creature formatting methods
+        # Use enhanced creature formatting methods
         return {
             "creature": content,
             "size_type_alignment": content.get_size_type_alignment(),
+            "ac_text": content.get_ac_text(),
+            "hp_text": content.get_hp_text(),
+            "speed_text": content.get_speed_text(),
             "ability_scores": {
                 "str": content.get_ability_text(content.strength),
                 "dex": content.get_ability_text(content.dexterity),
@@ -99,6 +102,15 @@ class CreatureEntryRenderer(BaseEntryRenderer):
                 "wis": content.get_ability_text(content.wisdom),
                 "cha": content.get_ability_text(content.charisma),
             },
+            "saving_throws": content.get_formatted_saving_throws(),
+            "skills": content.get_formatted_skills(),
+            "senses": content.get_formatted_senses(),
+            "languages": content.get_formatted_languages(),
+            "damage_resistances": content.get_formatted_resistances(),
+            "damage_immunities": content.get_formatted_immunities(),
+            "damage_vulnerabilities": content.get_formatted_vulnerabilities(),
+            "condition_immunities": content.get_formatted_condition_immunities(),
+            "cr_text": content.get_enhanced_cr_text(),
             "formatted_abilities": self._format_creature_abilities(content, context),
         }
 
@@ -160,7 +172,7 @@ class ItemEntryRenderer(BaseEntryRenderer):
 
     def get_template_name(self) -> str:
         """Return item entry template name."""
-        return "item_entry.tex"
+        return "item_entry"
 
     def get_template_context(
         self, content: Item, context: RenderContext
@@ -175,8 +187,16 @@ class ItemEntryRenderer(BaseEntryRenderer):
             "item": content,
             "type_text": content.get_type_text(),
             "rarity_text": content.get_rarity_text(),
+            "enhanced_rarity_text": content.get_enhanced_rarity_text(),
+            "metadata_line": content.get_item_metadata_line(),
             "weight_text": content.get_weight_text(),
             "value_text": content.get_value_text(),
+            "attunement_text": content.get_attunement_text(),
+            "ac_text": content.get_ac_text(),
+            "damage_text": content.get_damage_text(),
+            "range_text": content.get_range_text(),
+            "properties": content.get_properties_text(),
+            "charges_text": content.get_charges_text(),
             "description_text": description_text,
         }
 
@@ -186,7 +206,7 @@ class ClassEntryRenderer(BaseEntryRenderer):
 
     def get_template_name(self) -> str:
         """Return class entry template name."""
-        return "class_entry.tex"
+        return "class_entry"
 
     def get_template_context(
         self, content: Any, context: RenderContext
@@ -200,7 +220,7 @@ class RaceEntryRenderer(BaseEntryRenderer):
 
     def get_template_name(self) -> str:
         """Return race entry template name."""
-        return "race_entry.tex"
+        return "race_entry"
 
     def get_template_context(
         self, content: Any, context: RenderContext
@@ -214,7 +234,7 @@ class BackgroundEntryRenderer(BaseEntryRenderer):
 
     def get_template_name(self) -> str:
         """Return background entry template name."""
-        return "background_entry.tex"
+        return "background_entry"
 
     def get_template_context(
         self, content: Any, context: RenderContext
@@ -228,7 +248,7 @@ class FeatEntryRenderer(BaseEntryRenderer):
 
     def get_template_name(self) -> str:
         """Return feat entry template name."""
-        return "feat_entry.tex"
+        return "feat_entry"
 
     def get_template_context(
         self, content: Any, context: RenderContext

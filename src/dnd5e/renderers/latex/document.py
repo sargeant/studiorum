@@ -17,6 +17,7 @@ from .compiler import LaTeXCompiler
 from .content import LaTeXContentRendererRegistry
 from .content_organizer import ContentOrganizer
 from .document_structure import DocumentStructureBuilder
+from .entry_renderers import EntryRendererRegistry
 from .template_engine import LaTeXTemplateEngine
 
 
@@ -32,6 +33,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         super().__init__(config)
         self.template_engine = LaTeXTemplateEngine(config)
         self.content_registry = LaTeXContentRendererRegistry()
+        self.entry_registry = EntryRendererRegistry()
         self.content_organizer = ContentOrganizer()
         self._structure_builder: DocumentStructureBuilder | None = None
 
@@ -389,7 +391,15 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         if not context.should_include_content_type(content_type.value):
             return ""
 
-        # Get appropriate renderer
+        # Try new EntryRenderer system first
+        try:
+            entry_renderer = self.entry_registry.get_renderer(content_type.value)
+            return entry_renderer.render(content, context)
+        except ValueError:
+            # EntryRenderer not found, fall back to old system
+            pass
+
+        # Get appropriate renderer from old system
         renderer = self.content_registry.get_renderer(content_type)
         if not renderer:
             # Fallback to basic rendering if no specific renderer is found
