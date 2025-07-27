@@ -72,6 +72,8 @@ jobs:
 
   security:
     runs-on: ubuntu-latest
+    env:
+      SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
 
     steps:
     - name: Checkout code
