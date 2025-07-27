@@ -2,14 +2,14 @@
 
 import asyncio
 import json
+import subprocess
 from pathlib import Path
 
 import aiofiles
 import typer
 from rich import print as rprint
-from rich.console import Console
-from rich.progress import Progress
 
+from dnd5e.cli.display_manager import display_manager
 from dnd5e.cli.main import get_omnidexer, get_tag_resolver
 from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
@@ -17,7 +17,7 @@ from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
 app: typer.Typer = typer.Typer(help="Convert D&D content to LaTeX/PDF")
-console = Console()
+console = display_manager.console
 
 
 async def resolve_content_or_file(
@@ -226,13 +226,13 @@ def convert_adventure(
                 output_path = output_file
 
             # Load omnidexer and tag resolver
-            with Progress() as progress:
-                load_task = progress.add_task(
+            with display_manager.progress("Loading content") as _:
+                load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
                 omnidexer = await get_omnidexer()
                 tag_resolver = await get_tag_resolver()
-                progress.update(load_task, completed=100)
+                display_manager.update_task(load_task, completed=100)
 
             # Create render context
             context = RenderContext(
@@ -247,12 +247,12 @@ def convert_adventure(
 
             # Render document
             renderer = LaTeXDocumentRenderer()
-            with Progress() as progress:
-                render_task = progress.add_task(
+            with display_manager.progress("Rendering adventure") as _:
+                render_task = display_manager.add_task(
                     "[green]Rendering adventure...", total=None
                 )
                 result = renderer.render_document(content_items, context)
-                progress.update(render_task, completed=100)
+                display_manager.update_task(render_task, completed=100)
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -322,13 +322,13 @@ def convert_book(
                 output_path = output_file
 
             # Load omnidexer and tag resolver
-            with Progress() as progress:
-                load_task = progress.add_task(
+            with display_manager.progress("Loading content") as _:
+                load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
                 omnidexer = await get_omnidexer()
                 tag_resolver = await get_tag_resolver()
-                progress.update(load_task, completed=100)
+                display_manager.update_task(load_task, completed=100)
 
             # Create document metadata for proper DND template rendering
             from dnd5e.core.models.document_metadata import (
@@ -364,10 +364,12 @@ def convert_book(
 
             # Render document
             renderer = LaTeXDocumentRenderer()
-            with Progress() as progress:
-                render_task = progress.add_task("[green]Rendering book...", total=None)
+            with display_manager.progress("Rendering book") as _:
+                render_task = display_manager.add_task(
+                    "[green]Rendering book...", total=None
+                )
                 result = renderer.render_document(content_items, context)
-                progress.update(render_task, completed=100)
+                display_manager.update_task(render_task, completed=100)
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -425,13 +427,13 @@ def convert_supplement(
                 output_path = output_file
 
             # Load omnidexer and tag resolver
-            with Progress() as progress:
-                load_task = progress.add_task(
+            with display_manager.progress("Loading content") as _:
+                load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
                 omnidexer = await get_omnidexer()
                 tag_resolver = await get_tag_resolver()
-                progress.update(load_task, completed=100)
+                display_manager.update_task(load_task, completed=100)
 
             # Load supplement content
             async with aiofiles.open(input_file) as f:
@@ -496,12 +498,12 @@ def convert_supplement(
 
             # Render document
             renderer = LaTeXDocumentRenderer()
-            with Progress() as progress:
-                render_task = progress.add_task(
+            with display_manager.progress("Rendering supplement") as _:
+                render_task = display_manager.add_task(
                     "[green]Rendering supplement...", total=None
                 )
                 result = renderer.render_document(content_items, context)
-                progress.update(render_task, completed=100)
+                display_manager.update_task(render_task, completed=100)
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -525,14 +527,15 @@ def convert_supplement(
 
 async def _compile_pdf(latex_path: Path) -> None:
     """Compile LaTeX to PDF using xelatex."""
-    import subprocess
 
     pdf_path = latex_path.with_suffix(".pdf")
     rprint(f"[cyan]Compiling PDF: {pdf_path}[/cyan]")
 
     try:
-        with Progress() as progress:
-            compile_task = progress.add_task("[cyan]Running xelatex...", total=None)
+        with display_manager.progress("Compiling PDF") as _:
+            compile_task = display_manager.add_task(
+                "[cyan]Running xelatex...", total=None
+            )
             subprocess.run(
                 [
                     "xelatex",
@@ -545,7 +548,7 @@ async def _compile_pdf(latex_path: Path) -> None:
                 capture_output=True,
                 text=True,
             )
-            progress.update(compile_task, completed=100)
+            display_manager.update_task(compile_task, completed=100)
 
         rprint(f"[green]✓[/green] PDF compiled successfully: {pdf_path}")
 

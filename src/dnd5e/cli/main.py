@@ -8,9 +8,8 @@ from pathlib import Path
 import aiofiles
 import typer
 from rich import print as rprint
-from rich.console import Console
-from rich.progress import Progress
 
+from dnd5e.cli.display_manager import display_manager
 from dnd5e.core.config.settings import get_settings
 from dnd5e.core.indexer.tag_resolver import TagResolver
 from dnd5e.core.loaders.omnidexer import Omnidexer
@@ -26,8 +25,8 @@ app: typer.Typer = typer.Typer(
     rich_markup_mode="rich",
 )
 
-# Add console for rich output
-console = Console()
+# Use shared console from display manager
+console = display_manager.console
 
 # Global state
 _omnidexer: Omnidexer | None = None
@@ -62,10 +61,10 @@ async def get_omnidexer() -> Omnidexer:
     global _omnidexer
     if _omnidexer is None:
         _omnidexer = Omnidexer()
-        with Progress() as progress:
-            task = progress.add_task("[cyan]Loading content data...", total=None)
+        with display_manager.progress("Loading omnidexer") as _:
+            task = display_manager.add_task("[cyan]Loading content data...", total=None)
             await _omnidexer.load_all_data()
-            progress.update(task, completed=100)
+            display_manager.update_task(task, completed=100)
     return _omnidexer
 
 
@@ -168,11 +167,13 @@ def quick_convert(
                 output_path = output_file
 
             # Load omnidexer and tag resolver
-            with Progress() as progress:
-                load_task = progress.add_task("[cyan]Initializing...", total=None)
+            with display_manager.progress("Initializing") as _:
+                load_task = display_manager.add_task(
+                    "[cyan]Initializing...", total=None
+                )
                 omnidexer = await get_omnidexer()
                 tag_resolver = await get_tag_resolver()
-                progress.update(load_task, completed=100)
+                display_manager.update_task(load_task, completed=100)
 
             # Load content from file
             async with aiofiles.open(input_file) as f:
@@ -220,12 +221,12 @@ def quick_convert(
 
             # Render document
             renderer = LaTeXDocumentRenderer()
-            with Progress() as progress:
-                render_task = progress.add_task(
+            with display_manager.progress("Rendering") as _:
+                render_task = display_manager.add_task(
                     "[green]Rendering document...", total=None
                 )
                 result = renderer.render_document(content_items, context)
-                progress.update(render_task, completed=100)
+                display_manager.update_task(render_task, completed=100)
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)

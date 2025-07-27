@@ -5,16 +5,15 @@ from typing import Any
 
 import typer
 from rich import print as rprint
-from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress
 
+from dnd5e.cli.display_manager import display_manager
 from dnd5e.cli.main import get_omnidexer
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers import ContentResolver
 
 app: typer.Typer = typer.Typer(help="Show detailed information about content")
-console = Console()
+console = display_manager.console
 
 
 @app.command("content")
@@ -47,12 +46,12 @@ def show_content_info(
     async def _show_info() -> None:
         try:
             # Load omnidexer
-            with Progress() as progress:
-                load_task = progress.add_task(
+            with display_manager.progress("Loading info data") as _:
+                load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
                 omnidexer = await get_omnidexer()
-                progress.update(load_task, completed=100)
+                display_manager.update_task(load_task, completed=100)
 
             # Create resolver for abbreviation lookup
             resolver = ContentResolver(omnidexer)

@@ -4,10 +4,10 @@ import asyncio
 from pathlib import Path
 
 import typer
-from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from dnd5e.cli.display_manager import display_manager
 from dnd5e.core.config.sources import (
     ContentSource,
     SourceType,
@@ -16,7 +16,7 @@ from dnd5e.core.config.sources import (
 )
 from dnd5e.core.sources import ContentSourceManager
 
-console = Console()
+console = display_manager.console
 app: typer.Typer = typer.Typer(help="Manage content sources")
 
 

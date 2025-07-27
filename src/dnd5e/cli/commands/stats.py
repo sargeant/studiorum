@@ -4,16 +4,15 @@ import asyncio
 
 import typer
 from rich import print as rprint
-from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress
 from rich.table import Table
 
+from dnd5e.cli.display_manager import display_manager
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
 
 app: typer.Typer = typer.Typer(help="Show content statistics and analysis")
-console = Console()
+console = display_manager.console
 
 
 @app.command("overview")
@@ -28,13 +27,13 @@ def show_overview() -> None:
     async def _show_overview() -> None:
         try:
             # Load omnidexer
-            with Progress() as progress:
-                load_task = progress.add_task(
+            with display_manager.progress("Loading stats data") as _:
+                load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
                 omnidexer = Omnidexer()
                 await omnidexer.load_all_data()
-                progress.update(load_task, completed=100)
+                display_manager.update_task(load_task, completed=100)
 
             # Get statistics
             stats = omnidexer.get_statistics()
@@ -109,13 +108,13 @@ def show_content_stats(
     async def _show_content_stats() -> None:
         try:
             # Load omnidexer
-            with Progress() as progress:
-                load_task = progress.add_task(
+            with display_manager.progress("Loading stats data") as _:
+                load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
                 omnidexer = Omnidexer()
                 await omnidexer.load_all_data()
-                progress.update(load_task, completed=100)
+                display_manager.update_task(load_task, completed=100)
 
             # Get content type
             try:
@@ -175,13 +174,13 @@ def show_source_stats() -> None:
     async def _show_source_stats() -> None:
         try:
             # Load omnidexer
-            with Progress() as progress:
-                load_task = progress.add_task(
+            with display_manager.progress("Loading stats data") as _:
+                load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
                 omnidexer = Omnidexer()
                 await omnidexer.load_all_data()
-                progress.update(load_task, completed=100)
+                display_manager.update_task(load_task, completed=100)
 
             # Get statistics
             stats = omnidexer.get_statistics()
