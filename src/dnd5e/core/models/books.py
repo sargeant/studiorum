@@ -1,10 +1,14 @@
 """Book data models."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .content import BaseContent
+
+if TYPE_CHECKING:
+    from ..interfaces import DeepIndexable
+    from ..loaders.omnidexer import Omnidexer
 
 
 class BookChapter(BaseModel):
@@ -188,3 +192,52 @@ class Book(BaseContent):
                 cover=None,
             ).get_authors_text()
         return ""
+
+    def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+        """Return nested content for deep indexing.
+
+        Extracts indexable content from book chapters including:
+        - Sections
+        - Variant rules
+        - Tables
+        - Insets/sidebars
+
+        Args:
+            omnidexer: The omnidexer instance doing the indexing
+
+        Returns:
+            List of nested content objects for indexing
+        """
+        from ..parsers.entry_parser import EntryParser
+
+        nested_content = []
+
+        # Process each chapter
+        for chapter in self.contents:
+            if not chapter.entries:
+                continue
+
+            # Create parser for this chapter
+            chapter_name = chapter.name
+            if chapter.get_chapter_number():
+                chapter_name = f"{chapter.get_chapter_number()}: {chapter.name}"
+
+            parser = EntryParser(
+                source=self.source, parent_name=f"{self.name} > {chapter_name}"
+            )
+
+            # Parse chapter entries
+            try:
+                for content_item in parser.parse_entries(chapter.entries, "book"):
+                    nested_content.append(content_item)
+            except Exception as e:
+                # Log error but continue processing other chapters
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f"Error parsing entries in {self.name} chapter '{chapter.name}': {e}"
+                )
+                continue
+
+        return nested_content

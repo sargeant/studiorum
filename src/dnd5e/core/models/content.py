@@ -27,6 +27,19 @@ class ContentType(str, Enum):
     CREATURE_FLUFF = "creatureFluff"
     ITEM_FLUFF = "itemFluff"
 
+    # Adventure nested content types
+    ADVENTURE_SECTION = "adventureSection"
+    ADVENTURE_TABLE = "adventureTable"
+    ADVENTURE_NPC = "adventureNpc"
+    ADVENTURE_LOCATION = "adventureLocation"
+    ADVENTURE_INSET = "adventureInset"
+
+    # Book nested content types
+    BOOK_SECTION = "bookSection"
+    VARIANT_RULE = "variantRule"
+    BOOK_TABLE = "bookTable"
+    BOOK_INSET = "bookInset"
+
     @classmethod
     def from_content(cls, content: BaseContent) -> ContentType:
         """Determine content type from content object.
