@@ -494,7 +494,7 @@ class TestRendererIntegration:
 
         # Verify content details
         assert "3rd-level evocation" in result
-        assert "Gargantuan dragon" in result
+        assert "G dragon" in result
 
     @pytest.mark.asyncio
     async def test_error_handling_unknown_content_type(

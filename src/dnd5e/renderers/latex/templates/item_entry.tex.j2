@@ -1,13 +1,13 @@
 % Entry template for item rendering using EntryRenderer
-\subsection{{{ item.name }}}
-{% if metadata_line %}\textit{{{ metadata_line }}}{% endif %}
+\subsection{<# item.name #>}
+<@ if metadata_line @>\textit{<# metadata_line #>}<@ endif @>
 
-{% if ac_text %}\textbf{Armor Class:} {{ ac_text }} \\{% endif %}
-{% if damage_text %}\textbf{Damage:} {{ damage_text }} \\{% endif %}
-{% if range_text %}\textbf{Range:} {{ range_text }} \\{% endif %}
-{% if properties %}\textbf{Properties:} {{ properties|join(", ") }} \\{% endif %}
-{% if weight_text %}\textbf{Weight:} {{ weight_text }} \\{% endif %}
-{% if value_text %}\textbf{Value:} {{ value_text }} \\{% endif %}
-{% if charges_text %}\textbf{Charges:} {{ charges_text }} \\{% endif %}
+<@ if ac_text @>\textbf{Armor Class:} <# ac_text #> \\<@ endif @>
+<@ if damage_text @>\textbf{Damage:} <# damage_text #> \\<@ endif @>
+<@ if range_text @>\textbf{Range:} <# range_text #> \\<@ endif @>
+<@ if properties @>\textbf{Properties:} <# properties|join(", ") #> \\<@ endif @>
+<@ if weight_text @>\textbf{Weight:} <# weight_text #> \\<@ endif @>
+<@ if value_text @>\textbf{Value:} <# value_text #> \\<@ endif @>
+<@ if charges_text @>\textbf{Charges:} <# charges_text #> \\<@ endif @>
 
-{{ description_text }}
+<# description_text #>
