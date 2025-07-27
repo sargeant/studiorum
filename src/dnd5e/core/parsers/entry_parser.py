@@ -85,6 +85,7 @@ class EntryParser:
         section_id = entry.get("id")
         entries = entry.get("entries", [])
 
+        section: AdventureSection | BookSection
         if content_type == "adventure":
             section = AdventureSection(
                 name=name,
@@ -133,6 +134,7 @@ class EntryParser:
             else:
                 processed_rows.append([str(row)])
 
+        table: AdventureTable | BookTable
         if content_type == "adventure":
             table = AdventureTable(
                 name=name,
@@ -170,6 +172,7 @@ class EntryParser:
         inset_type = entry.get("type", "inset")
         entries = entry.get("entries", [])
 
+        inset: AdventureInset | BookInset
         if content_type == "adventure":
             inset = AdventureInset(
                 name=name,
@@ -232,7 +235,7 @@ class EntryParser:
                 yield section
         else:
             # For adventures, treat as adventure sections
-            section = AdventureSection(
+            adventure_section = AdventureSection(
                 name=name,
                 source=self.source,
                 section_type="entries",
@@ -241,7 +244,7 @@ class EntryParser:
                 parent_name=self.parent_name,
                 entries=entries,
             )
-            yield section
+            yield adventure_section
 
         # Note: Nested parsing is handled by _parse_section separately to avoid duplication
 
