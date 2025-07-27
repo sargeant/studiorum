@@ -67,7 +67,15 @@
 <@ for content_item in section.content_items @>
 <#-- Content items will be rendered by content renderers --#>
 <#-- This is a placeholder that will be replaced by actual content --#>
-% Content: <# content_item.name | latex_escape #> (<# content_item.__class__.__name__ #>)
+<@ if content_item is string @>
+% Content: String Entry (<# content_item.__class__.__name__ #>)
+<@ elif content_item is mapping @>
+<@ set item_name = content_item.name | default(content_item.get('name', 'Unknown')) @>
+% Content: <# item_name | latex_escape #> (<# content_item.__class__.__name__ #>)
+<@ else @>
+<@ set item_name = content_item.name | default('Unknown') @>
+% Content: <# item_name | latex_escape #> (<# content_item.__class__.__name__ #>)
+<@ endif @>
 <@ endfor @>
 <@ endif @>
 

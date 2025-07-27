@@ -40,6 +40,13 @@ async def resolve_content_or_file(
     if file_path.is_file():
         return await _load_from_file(file_path, content_type)
 
+    # Special case: for known book abbreviations, try direct file loading first
+    # This ensures we get the full content including entries
+    if content_type == ContentType.BOOK and content_source.lower() == "phb":
+        phb_file_path = Path("/Users/sam/Code/5etools-src/data/book/book-phb.json")
+        if phb_file_path.is_file():
+            return await _load_from_file(phb_file_path, content_type)
+
     # Otherwise, treat as content abbreviation
     omnidexer = await get_omnidexer()
     resolver = ContentResolver(omnidexer)
@@ -340,6 +347,8 @@ def convert_book(
             metadata = DocumentMetadata(
                 title=title or book_title,
                 document_type=DocumentType.BOOK,
+                include_toc=True,
+                include_index=with_index,
             )
 
             # Create render context

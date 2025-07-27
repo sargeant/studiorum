@@ -224,9 +224,21 @@ class LaTeXDocumentRenderer(DocumentRenderer):
                     rendered_item = self.render_content_item(item, context)
                     if rendered_item:
                         # Create placeholder pattern that matches section template output
-                        item_name = getattr(item, "name", "")
-                        item_class = item.__class__.__name__
-                        placeholder_pattern = f"% Content: {item_name} ({item_class})"
+                        if isinstance(item, str):
+                            placeholder_pattern = "% Content: String Entry (str)"
+                        elif isinstance(item, dict):
+                            item_name = item.get("name", "Unknown")
+                            # Apply LaTeX escaping to match template output
+                            escaped_name = self._escape_latex(item_name)
+                            placeholder_pattern = f"% Content: {escaped_name} (dict)"
+                        else:
+                            # For actual model objects
+                            item_name = getattr(item, "name", "Unknown")
+                            escaped_name = self._escape_latex(item_name)
+                            item_class = item.__class__.__name__
+                            placeholder_pattern = (
+                                f"% Content: {escaped_name} ({item_class})"
+                            )
 
                         # Replace the specific placeholder with rendered content
                         if placeholder_pattern in document:
