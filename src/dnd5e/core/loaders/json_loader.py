@@ -1,11 +1,13 @@
 """JSON data loader with Pydantic validation."""
 
 import json
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
+from ..cache import get_cache
 from ..config.settings import get_settings
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
@@ -34,10 +36,40 @@ class JsonDataLoader(DataLoader[BaseContent]):
         self._error_tracker = ValidationErrorTracker()
         self._settings = get_settings()
 
+    def _get_cache_key(self, path: Path) -> str:
+        """Generate cache key for a file path."""
+        # Use file path, content type, and file modification time
+        try:
+            stat = path.stat()
+            return f"json_loader:{self._content_type.value}:{path}:{stat.st_mtime}"
+        except OSError:
+            # If we can't stat the file, just use the path
+            return f"json_loader:{self._content_type.value}:{path}:0"
+
     async def load(
         self, path: Path
     ) -> list[BaseContent]:  # Changed from T to BaseContent
         """Load JSON file and validate against Pydantic model."""
+        # Try to get from cache first
+        cache = get_cache()
+        cache_key = self._get_cache_key(path)
+
+        # Check cache
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            logger.debug(f"Cache hit for {path}")
+            return cached_result  # type: ignore[no-any-return]
+
+        # Load from file if not in cache
+        result = await self._load_from_file(path)
+
+        # Cache the result (24 hour TTL)
+        cache.set(cache_key, result, expire=timedelta(hours=24).total_seconds())
+
+        return result
+
+    async def _load_from_file(self, path: Path) -> list[BaseContent]:
+        """Load JSON file from disk."""
         try:
             logger.info(f"Loading {self._content_type.value} data from {path}")
 
