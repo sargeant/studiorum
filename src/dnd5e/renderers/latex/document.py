@@ -14,7 +14,6 @@ from ...core.models.document_metadata import (
 from ..base import DocumentRenderer, RenderContext, RenderingError
 from .compilation_config import CompilationConfig, CompilationResult, LaTeXEngine
 from .compiler import LaTeXCompiler
-from .content import LaTeXContentRendererRegistry
 from .content_organizer import ContentOrganizer
 from .document_structure import DocumentStructureBuilder
 from .entry_renderers import EntryRendererRegistry
@@ -32,7 +31,6 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         """
         super().__init__(config)
         self.template_engine = LaTeXTemplateEngine(config)
-        self.content_registry = LaTeXContentRendererRegistry()
         self.entry_registry = EntryRendererRegistry()
         self.content_organizer = ContentOrganizer()
         self._structure_builder: DocumentStructureBuilder | None = None
@@ -391,21 +389,13 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         if not context.should_include_content_type(content_type.value):
             return ""
 
-        # Try new EntryRenderer system first
+        # Use EntryRenderer system
         try:
             entry_renderer = self.entry_registry.get_renderer(content_type.value)
             return entry_renderer.render(content, context)
         except ValueError:
-            # EntryRenderer not found, fall back to old system
-            pass
-
-        # Get appropriate renderer from old system
-        renderer = self.content_registry.get_renderer(content_type)
-        if not renderer:
-            # Fallback to basic rendering if no specific renderer is found
+            # EntryRenderer not found, use basic fallback rendering
             return self._render_basic_content(content, context)
-
-        return renderer.render_content(content, context)
 
     def _render_basic_content(
         self, content: BaseContent, context: RenderContext

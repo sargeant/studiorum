@@ -349,7 +349,7 @@ class TestLaTeXDocumentRenderer:
         renderer: Any = LaTeXDocumentRenderer()
         assert renderer.output_format == "latex"
         assert renderer.template_engine is not None
-        assert renderer.content_registry is not None
+        assert renderer.entry_registry is not None
 
     @pytest.mark.asyncio
     async def test_render_single_spell(
