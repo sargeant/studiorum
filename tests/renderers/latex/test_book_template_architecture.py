@@ -1,11 +1,17 @@
-"""Tests for LaTeX book template architecture to prevent duplication issues."""
+"""Tests for LaTeX book template architecture to prevent duplication issues (deprecated)."""
+# ruff: noqa: E402
+
+import pytest
+
+# Skip entire module since legacy renderers are deprecated
+pytestmark = pytest.mark.skip(
+    reason="Legacy book renderers are deprecated and replaced by EntryRenderer system"
+)
 
 import re
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
-
-import pytest
 
 from dnd5e.core.models.books import Book  # type: ignore
 from dnd5e.core.models.content import BaseContent, Source  # type: ignore

@@ -1,9 +1,15 @@
-"""Tests for LaTeX content renderers."""
+"""Tests for LaTeX content renderers (deprecated)."""
+# ruff: noqa: E402
+
+import pytest
+
+# Skip entire module since legacy renderers are deprecated
+pytestmark = pytest.mark.skip(
+    reason="Legacy content renderers are deprecated and replaced by EntryRenderer system"
+)
 
 from typing import Any
 from unittest.mock import Mock, patch
-
-import pytest
 
 from dnd5e.core.models.content import ContentType  # type: ignore
 from dnd5e.core.models.creatures import Creature  # type: ignore

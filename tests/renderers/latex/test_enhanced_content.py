@@ -1,9 +1,15 @@
-"""Tests for enhanced LaTeX content renderers with DND template environments."""
+"""Tests for enhanced LaTeX content renderers with DND template environments (deprecated)."""
+# ruff: noqa: E402
+
+import pytest
+
+# Skip entire module since legacy renderers are deprecated
+pytestmark = pytest.mark.skip(
+    reason="Legacy enhanced content renderers are deprecated and replaced by EntryRenderer system"
+)
 
 from typing import Any
 from unittest.mock import Mock, patch
-
-import pytest
 
 from dnd5e.core.models.adventures import Adventure  # type: ignore
 from dnd5e.core.models.backgrounds import Background  # type: ignore

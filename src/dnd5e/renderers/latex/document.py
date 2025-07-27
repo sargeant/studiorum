@@ -71,12 +71,8 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             Complete LaTeX document
         """
         try:
-            # Check if structured document rendering is requested
-            if hasattr(context, "metadata") and context.metadata:
-                return self.render_structured_document(content_items, context)
-
-            # Fallback to legacy document rendering
-            return self.render_legacy_document(content_items, context)
+            # Always use structured document rendering
+            return self.render_structured_document(content_items, context)
 
         except Exception as e:
             raise RenderingError(f"Failed to render LaTeX document: {e}") from e
@@ -166,44 +162,6 @@ class LaTeXDocumentRenderer(DocumentRenderer):
 
         return rendered_document
 
-    def render_legacy_document(
-        self, content_items: Sequence[BaseContent], context: RenderContext
-    ) -> str:
-        """Render a document using the legacy approach.
-
-        Args:
-            content_items: List of content to include
-            context: Rendering context
-
-        Returns:
-            Complete LaTeX document
-        """
-        # Convert sequence to list for internal processing
-        content_list = list(content_items)
-
-        # Build document sections
-        sections = []
-
-        # Document header
-        sections.append(self.render_document_header(context))
-
-        # Table of contents (if enabled)
-        if context.include_toc and len(content_list) > 1:
-            sections.append(self.render_table_of_contents(content_list, context))
-
-        # Main content
-        for item in content_list:
-            sections.append(self.render_content_item(item, context))
-
-        # Index (if enabled)
-        if context.include_index:
-            sections.append(self.render_index(content_list, context))
-
-        # Document footer
-        sections.append(self.render_document_footer(context))
-
-        return "\n\n".join(filter(None, sections))
-
     def _render_content_in_sections(
         self, document: str, sections: list[ContentSection], context: RenderContext
     ) -> str:
@@ -268,11 +226,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             "fonts_dir": str(context.fonts_dir) if context.fonts_dir else None,
         }
 
-        # Use legacy template engine for compatibility
-        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
-
-        legacy_engine = LegacyTemplateEngine()
-        return legacy_engine.render_template("document_header", template_vars)
+        return self.template_engine.render_template("document_header", template_vars)
 
     def render_document_footer(self, context: RenderContext) -> str:
         """Render LaTeX document footer.
@@ -283,11 +237,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             LaTeX document footer
         """
-        # Use legacy template engine for compatibility
-        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
-
-        legacy_engine = LegacyTemplateEngine()
-        return legacy_engine.render_template("document_footer", {})
+        return self.template_engine.render_template("document_footer", {})
 
     def render_table_of_contents(
         self, content_items: list[BaseContent], context: RenderContext
@@ -306,11 +256,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
 
         template_vars = {"content_items": content_items, "title": "Table of Contents"}
 
-        # Use legacy template engine for compatibility
-        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
-
-        legacy_engine = LegacyTemplateEngine()
-        return legacy_engine.render_template("table_of_contents", template_vars)
+        return self.template_engine.render_template("table_of_contents", template_vars)
 
     def render_index(
         self, content_items: list[BaseContent], context: RenderContext
@@ -363,11 +309,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             "title": "Index",
         }
 
-        # Use legacy template engine for compatibility
-        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
-
-        legacy_engine = LegacyTemplateEngine()
-        return legacy_engine.render_template("index", template_vars)
+        return self.template_engine.render_template("index", template_vars)
 
     def render_content_item(self, content: BaseContent, context: RenderContext) -> str:
         """Render an individual content item.
