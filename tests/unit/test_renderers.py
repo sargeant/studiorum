@@ -90,9 +90,11 @@ class TestLaTeXTemplateEngine:
         engine: Any = LaTeXTemplateEngine()
 
         required_templates = [
-            "spell",
-            "creature",
-            "item",
+            "spell_entry",
+            "creature_entry",
+            "item_entry",
+            "base",
+            "book",
         ]
 
         for template_name in required_templates:
