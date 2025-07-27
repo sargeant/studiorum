@@ -44,7 +44,7 @@ class SpellDuration(BaseModel):
         elif self.duration:
             amount = self.duration.get("amount", 1)
             unit = self.duration.get("type", "unknown")
-            duration_str = f"{amount} {unit}" if amount != 1 else unit
+            duration_str = f"{amount} {unit}"
             if self.concentration:
                 return f"Concentration, up to {duration_str}"
             return duration_str
@@ -122,6 +122,12 @@ class Spell(BaseContent):
         None, alias="spellAttack", description="Spell attack types"
     )
     classes: dict[str, Any] | None = Field(None, description="Class lists")
+    condition_inflict: list[str] | None = Field(
+        None, alias="conditionInflict", description="Conditions inflicted"
+    )
+    area_tags: list[str] | None = Field(
+        None, alias="areaTags", description="Area of effect tags"
+    )
 
     @field_validator("school", mode="before")
     @classmethod
@@ -267,3 +273,136 @@ class Spell(BaseContent):
             text_parts.append(entries)
 
         return " ".join(text_parts) if text_parts else ""
+
+    # Enhanced formatting methods for the new architecture
+    def get_spell_attack_text(self) -> str:
+        """Get formatted spell attack or saving throw text."""
+        if self.saving_throw:
+            if len(self.saving_throw) == 1:
+                return f"{self.saving_throw[0].title()} saving throw"
+            else:
+                formatted_saves = [save.title() for save in self.saving_throw]
+                return f"{', '.join(formatted_saves)} saving throw"
+        elif self.spell_attack:
+            if "ranged" in self.spell_attack:
+                return "ranged spell attack"
+            elif "melee" in self.spell_attack:
+                return "melee spell attack"
+            else:
+                return "spell attack"
+        return ""
+
+    def get_damage_text(self) -> str:
+        """Get formatted damage types text."""
+        if not self.damage_inflict:
+            return ""
+        return ", ".join(self.damage_inflict)
+
+    def get_condition_text(self) -> str:
+        """Get formatted conditions inflicted text."""
+        if self.condition_inflict:
+            return ", ".join(self.condition_inflict)
+        return ""
+
+    def get_area_text(self) -> str:
+        """Get formatted area of effect text."""
+        if self.area_tags:
+            area_map = {
+                "S": "Sphere",
+                "C": "Cone",
+                "L": "Line",
+                "ST": "Single Target",
+                "MT": "Multiple Targets",
+                "Q": "Square",
+                "R": "Rectangle",
+                "H": "Hemisphere",
+                "Y": "Cylinder",
+            }
+            formatted_areas = [area_map.get(tag, tag) for tag in self.area_tags]
+            return ", ".join(formatted_areas)
+        return ""
+
+    def get_enhanced_level_text(self) -> str:
+        """Get enhanced level text with additional information."""
+        base_level = self.get_level_text()
+
+        # Add damage and attack info
+        additional_info = []
+        damage_text = self.get_damage_text()
+        if damage_text:
+            additional_info.append(f"{damage_text} damage")
+
+        attack_text = self.get_spell_attack_text()
+        if attack_text:
+            additional_info.append(attack_text)
+
+        if additional_info:
+            return f"{base_level} ({', '.join(additional_info)})"
+        return base_level
+
+    def get_enhanced_components_text(self) -> str:
+        """Get enhanced components text (same as current implementation)."""
+        return self.get_components_text()
+
+    def get_enhanced_duration_text(self) -> str:
+        """Get enhanced duration text (same as current implementation)."""
+        return self.get_duration_text()
+
+    def get_higher_level_scaling_text(self) -> str:
+        """Get higher level scaling description text."""
+        if not self.higher_level:
+            return ""
+        text = self._extract_text_from_entries(self.higher_level)
+        # Remove "At Higher Levels" header for cleaner template rendering
+        return text.replace("**At Higher Levels**", "").strip()
+
+    def get_spell_list_classes(self) -> str:
+        """Get formatted list of classes that can cast this spell."""
+        if not self.classes or "fromClassList" not in self.classes:
+            return ""
+
+        class_names = []
+        for class_ref in self.classes["fromClassList"]:
+            if isinstance(class_ref, dict) and "name" in class_ref:
+                class_names.append(class_ref["name"])
+            elif isinstance(class_ref, str):
+                class_names.append(class_ref)
+
+        return ", ".join(class_names)
+
+    def is_concentration(self) -> bool:
+        """Check if this spell requires concentration."""
+        return any(duration.concentration for duration in self.duration)
+
+    def has_verbal_components(self) -> bool:
+        """Check if spell has verbal components."""
+        return self.components.verbal
+
+    def has_somatic_components(self) -> bool:
+        """Check if spell has somatic components."""
+        return self.components.somatic
+
+    def has_material_components(self) -> bool:
+        """Check if spell has material components."""
+        return bool(self.components.material)
+
+    def get_latex_safe_name(self) -> str:
+        """Get LaTeX-safe version of spell name."""
+        # Basic LaTeX escaping for common characters
+        name = self.name
+        latex_escapes = {
+            "&": "\\&",
+            "%": "\\%",
+            "$": "\\$",
+            "#": "\\#",
+            "_": "\\_",
+            "{": "\\{",
+            "}": "\\}",
+            "^": "\\textasciicircum{}",
+            "~": "\\textasciitilde{}",
+        }
+
+        for char, escape in latex_escapes.items():
+            name = name.replace(char, escape)
+
+        return name
