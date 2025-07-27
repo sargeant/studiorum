@@ -4,9 +4,11 @@ import asyncio
 import hashlib
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
+from ..cache import cached
 from ..interfaces import DeepIndexable
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
@@ -311,6 +313,20 @@ class Omnidexer:
         self, content_type: ContentType, name: str, source: str | None = None
     ) -> BaseContent | None:
         """Find content by type, name, and optionally source."""
+        # Use cached version
+        return self._find_cached(content_type, name, source)  # type: ignore[no-any-return]
+
+    @cached(
+        key_func=lambda self,
+        content_type,
+        name,
+        source: f"omnidexer:find:{content_type.value}:{name}:{source or 'any'}",
+        ttl=timedelta(hours=1),  # Cache for 1 hour
+    )
+    def _find_cached(
+        self, content_type: ContentType, name: str, source: str | None = None
+    ) -> BaseContent | None:
+        """Cached implementation of find."""
         if content_type not in self._by_type:
             return None
 
@@ -364,6 +380,20 @@ class Omnidexer:
         self, query: str, content_type: ContentType | None = None, limit: int = 50
     ) -> list[BaseContent]:
         """Search for content by name (fuzzy matching)."""
+        # Use cached version
+        return self._search_cached(query, content_type, limit)  # type: ignore[no-any-return]
+
+    @cached(
+        key_func=lambda self,
+        query,
+        content_type,
+        limit: f"omnidexer:search:{query}:{content_type.value if content_type else 'all'}:{limit}",
+        ttl=timedelta(minutes=30),  # Cache for 30 minutes
+    )
+    def _search_cached(
+        self, query: str, content_type: ContentType | None = None, limit: int = 50
+    ) -> list[BaseContent]:
+        """Cached implementation of search."""
         query_lower = query.lower()
         results = []
 
