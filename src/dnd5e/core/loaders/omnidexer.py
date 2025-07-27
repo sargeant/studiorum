@@ -320,7 +320,7 @@ class Omnidexer:
         key_func=lambda self,
         content_type,
         name,
-        source: f"omnidexer:find:{content_type.value}:{name}:{source or 'any'}",
+        source: f"omnidexer:find:{content_type.value}:{name}:{source or 'any'}:deep={self.enable_deep_indexing}",
         ttl=timedelta(hours=1),  # Cache for 1 hour
     )
     def _find_cached(
@@ -387,7 +387,7 @@ class Omnidexer:
         key_func=lambda self,
         query,
         content_type,
-        limit: f"omnidexer:search:{query}:{content_type.value if content_type else 'all'}:{limit}",
+        limit: f"omnidexer:search:{query}:{content_type.value if content_type else 'all'}:{limit}:deep={self.enable_deep_indexing}",
         ttl=timedelta(minutes=30),  # Cache for 30 minutes
     )
     def _search_cached(
