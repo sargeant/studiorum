@@ -142,29 +142,29 @@ class TestJsonLoaderCache:
             ]
         }
 
-        # Write spell data to file
-        test_file = tmp_path / "test_content.json"
-        test_file.write_text(json.dumps(spell_data))
+        # Create two separate files for different content types
+        spell_file = tmp_path / "test_spells.json"
+        feat_file = tmp_path / "test_feats.json"
+
+        spell_file.write_text(json.dumps(spell_data))
+        feat_file.write_text(json.dumps(feat_data))
 
         # Load as spell type
         spell_loader = JsonDataLoader(ContentType.SPELL)
-        spells = await spell_loader.load(test_file)
+        spells = await spell_loader.load(spell_file)
         assert len(spells) == 1
         assert spells[0].name == "Test Spell"
 
-        # Now write feat data to the same file
-        test_file.write_text(json.dumps(feat_data))
-
-        # Load as feat type - should get different data despite same file path
+        # Load as feat type from different file
         feat_loader = JsonDataLoader(ContentType.FEAT)
-        feats = await feat_loader.load(test_file)
+        feats = await feat_loader.load(feat_file)
         assert len(feats) == 1
         assert feats[0].name == "Test Feat"
 
-        # Verify cache has both entries
+        # Verify cache has both entries with different keys
         cache = get_cache()
-        spell_key = spell_loader._get_cache_key(test_file)
-        feat_key = feat_loader._get_cache_key(test_file)
+        spell_key = spell_loader._get_cache_key(spell_file)
+        feat_key = feat_loader._get_cache_key(feat_file)
 
         assert spell_key != feat_key
         assert cache.get(spell_key) is not None

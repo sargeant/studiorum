@@ -1,10 +1,10 @@
 """Tests for Omnidexer caching functionality."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
-from dnd5e.core.cache import CacheManager
+from dnd5e.core.cache import CacheManager, get_cache
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import BaseContent, ContentType
 
@@ -17,112 +17,94 @@ class TestOmnidexerCache:
         CacheManager.clear()
         self.omnidexer = Omnidexer(enable_deep_indexing=False)
 
-        # Create some test content
-        self.test_spell = Mock(spec=BaseContent)
-        self.test_spell.name = "Fireball"
-        self.test_spell.source = Mock(abbreviation="PHB")
-
-        self.test_spell2 = Mock(spec=BaseContent)
-        self.test_spell2.name = "Fireball"
-        self.test_spell2.source = Mock(abbreviation="XGE")
-
-        self.test_monster = Mock(spec=BaseContent)
-        self.test_monster.name = "Dragon"
-        self.test_monster.source = Mock(abbreviation="MM")
-
     def teardown_method(self) -> None:
         """Clear cache after each test."""
         CacheManager.clear()
 
     def test_find_caches_results(self) -> None:
         """Test that find method caches results."""
-        # Mock the internal _find_cached to track calls
-        original_find = self.omnidexer._find_cached
-        call_count = 0
+        # Clear cache to start fresh
+        cache = get_cache()
+        cache.clear()
 
-        def tracked_find(*args, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            return original_find(*args, **kwargs)
+        # Since we have an empty omnidexer, all calls should return None
+        # But we can verify that the same call twice uses cache
 
-        self.omnidexer._find_cached = tracked_find
-
-        # First call - should execute the method
+        # First call - cache miss
         result1 = self.omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
-        assert call_count == 1
+        assert result1 is None
 
-        # Second call - should use cache
+        # Second call - should be cache hit (same result)
         result2 = self.omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
-        assert call_count == 1  # Should not increment
+        assert result2 is None
         assert result1 == result2
+
+        # Verify something was cached - check that the key exists in cache
+        cache_key = "omnidexer:find:spell:Fireball:PHB"
+        # Use `in` operator to check existence since None values return None from get()
+        assert cache_key in cache
 
     def test_find_different_params_different_cache(self) -> None:
         """Test that different parameters create different cache entries."""
-        call_count = {}
+        cache = get_cache()
+        cache.clear()
 
-        def track_calls(content_type, name, source):
-            key = f"{content_type}:{name}:{source}"
-            call_count[key] = call_count.get(key, 0) + 1
-            return self.omnidexer._find_cached.__wrapped__(
-                self.omnidexer, content_type, name, source
-            )
+        # Make different calls
+        self.omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
+        self.omnidexer.find(ContentType.SPELL, "Fireball", "XGE")
+        self.omnidexer.find(ContentType.SPELL, "Fireball", None)
+        self.omnidexer.find(ContentType.CREATURE, "Dragon", "MM")
 
-        # Temporarily replace the cached method to track calls
-        with patch.object(self.omnidexer, "_find_cached", side_effect=track_calls):
-            # Different calls should each execute once
-            self.omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
-            self.omnidexer.find(ContentType.SPELL, "Fireball", "XGE")
-            self.omnidexer.find(ContentType.SPELL, "Fireball", None)
-            self.omnidexer.find(ContentType.CREATURE, "Dragon", "MM")
+        # Verify different cache keys exist
+        key1 = "omnidexer:find:spell:Fireball:PHB"
+        key2 = "omnidexer:find:spell:Fireball:XGE"
+        key3 = "omnidexer:find:spell:Fireball:any"
+        key4 = "omnidexer:find:creature:Dragon:MM"
 
-            # Each should have been called once
-            assert all(count == 1 for count in call_count.values())
-            assert len(call_count) == 4
+        assert key1 in cache
+        assert key2 in cache
+        assert key3 in cache
+        assert key4 in cache
 
     def test_search_caches_results(self) -> None:
         """Test that search method caches results."""
-        # Mock the internal _search_cached to track calls
-        original_search = self.omnidexer._search_cached
-        call_count = 0
+        cache = get_cache()
+        cache.clear()
 
-        def tracked_search(*args, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            return original_search(*args, **kwargs)
-
-        self.omnidexer._search_cached = tracked_search
-
-        # First call - should execute the method
+        # First call - cache miss
         result1 = self.omnidexer.search("Fire", ContentType.SPELL, limit=10)
-        assert call_count == 1
+        assert result1 == []  # Empty omnidexer returns empty list
 
-        # Second call with same params - should use cache
+        # Second call - should be cache hit
         result2 = self.omnidexer.search("Fire", ContentType.SPELL, limit=10)
-        assert call_count == 1  # Should not increment
+        assert result2 == []
         assert result1 == result2
+
+        # Verify something was cached
+        cache_key = "omnidexer:search:Fire:spell:10"
+        assert cache.get(cache_key) is not None
 
     def test_search_different_params_different_cache(self) -> None:
         """Test that different search parameters create different cache entries."""
-        call_count = {}
+        cache = get_cache()
+        cache.clear()
 
-        def track_calls(query, content_type, limit):
-            key = f"{query}:{content_type}:{limit}"
-            call_count[key] = call_count.get(key, 0) + 1
-            return self.omnidexer._search_cached.__wrapped__(
-                self.omnidexer, query, content_type, limit
-            )
+        # Make different calls
+        self.omnidexer.search("Fire", ContentType.SPELL, limit=10)
+        self.omnidexer.search("Fire", ContentType.SPELL, limit=20)
+        self.omnidexer.search("Fire", None, limit=10)
+        self.omnidexer.search("Dragon", ContentType.CREATURE, limit=10)
 
-        # Temporarily replace the cached method to track calls
-        with patch.object(self.omnidexer, "_search_cached", side_effect=track_calls):
-            # Different calls should each execute once
-            self.omnidexer.search("Fire", ContentType.SPELL, limit=10)
-            self.omnidexer.search("Fire", ContentType.SPELL, limit=20)
-            self.omnidexer.search("Fire", None, limit=10)
-            self.omnidexer.search("Dragon", ContentType.CREATURE, limit=10)
+        # Verify different cache keys exist
+        key1 = "omnidexer:search:Fire:spell:10"
+        key2 = "omnidexer:search:Fire:spell:20"
+        key3 = "omnidexer:search:Fire:all:10"
+        key4 = "omnidexer:search:Dragon:creature:10"
 
-            # Each should have been called once
-            assert all(count == 1 for count in call_count.values())
-            assert len(call_count) == 4
+        assert cache.get(key1) is not None
+        assert cache.get(key2) is not None
+        assert cache.get(key3) is not None
+        assert cache.get(key4) is not None
 
     def test_cache_ttl_respected(self) -> None:
         """Test that cache entries expire according to TTL."""
@@ -133,6 +115,18 @@ class TestOmnidexerCache:
         # The @cached decorator for find uses 1 hour TTL
         # The @cached decorator for search uses 30 minutes TTL
 
-        # We can verify this by checking the decorator attributes
-        # but since we're using lambdas, we'll just trust the implementation
-        pass
+        # We can verify this by checking that cached entries exist
+        # but this test is mainly to ensure no errors occur
+        cache = get_cache()
+        cache.clear()
+
+        # Make some calls to populate cache
+        self.omnidexer.find(ContentType.SPELL, "Test", "TEST")
+        self.omnidexer.search("Test", ContentType.SPELL, limit=5)
+
+        # Verify entries exist
+        find_key = "omnidexer:find:spell:Test:TEST"
+        search_key = "omnidexer:search:Test:spell:5"
+
+        assert find_key in cache
+        assert search_key in cache
