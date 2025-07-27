@@ -1,9 +1,12 @@
 """Protocol interfaces for breaking circular dependencies and tight coupling."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Optional, Protocol, runtime_checkable
 
 from .models.content import BaseContent, ContentType
+
+if TYPE_CHECKING:
+    from .loaders.omnidexer import Omnidexer
 
 
 @runtime_checkable
@@ -117,6 +120,32 @@ class TagResolver(Protocol):
         Args:
             tag_pattern: Pattern to match tags
             resolver_func: Function to resolve tags
+        """
+        ...
+
+
+@runtime_checkable
+class DeepIndexable(Protocol):
+    """Protocol for content that can expose nested content for deep indexing."""
+
+    def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+        """Return a list of nested content items that should be indexed.
+
+        This method allows content objects to expose their nested sub-entities
+        (like class features, creature spells, adventure sections) for indexing
+        by the Omnidexer system.
+
+        Args:
+            omnidexer: The omnidexer instance doing the indexing
+                      (can be used to resolve references)
+
+        Returns:
+            List of BaseContent objects that should be individually indexed
+
+        Note:
+            - Implementation should avoid infinite recursion
+            - Should only return immediate children, not deeply nested content
+            - The omnidexer will handle recursive deep indexing automatically
         """
         ...
 

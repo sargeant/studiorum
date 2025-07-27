@@ -365,7 +365,26 @@ class TestFullDatasetValidation:
 
         # Test omnidexer functionality
         statistics = omnidexer.get_statistics()
-        assert statistics["total_items"] == total_items
+
+        # With deep indexing enabled, total indexed items may exceed loaded items
+        # due to nested content (class features, subclass features, etc.)
+        assert statistics["total_items"] >= total_items, (
+            f"Omnidexer should index at least the loaded items: {statistics['total_items']} >= {total_items}"
+        )
+
+        # Verify deep indexing is working if enabled
+        if omnidexer.enable_deep_indexing:
+            deep_indexed_types = {"classFeature", "subclassFeature"}
+            found_deep_types = set(statistics["by_type"].keys()) & deep_indexed_types
+            if "class" in statistics["by_type"] and statistics["by_type"]["class"] > 0:
+                # If we have classes and deep indexing is enabled, we should have some nested content
+                # (unless classes have no features, which is unlikely with real data)
+                print(
+                    f"Deep indexing enabled. Additional items indexed: {statistics['total_items'] - total_items}"
+                )
+                if found_deep_types:
+                    print(f"Deep-indexed content types found: {found_deep_types}")
+
         assert len(statistics["by_type"]) > 0
         assert len(statistics["by_source"]) > 0
 

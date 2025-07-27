@@ -27,7 +27,7 @@ class RegistryBasedContentTypeResolver:
         from .models.adventures import Adventure
         from .models.backgrounds import Background
         from .models.books import Book
-        from .models.classes import Class
+        from .models.classes import Class, ClassFeature, SubclassFeature
         from .models.creatures import Creature
         from .models.feats import Feat
         from .models.fluff import CreatureFluff, ItemFluff, SpellFluff
@@ -40,6 +40,8 @@ class RegistryBasedContentTypeResolver:
         self._registry.register(Background, ContentType.BACKGROUND)
         self._registry.register(Book, ContentType.BOOK)
         self._registry.register(Class, ContentType.CLASS)
+        self._registry.register(ClassFeature, ContentType.CLASS_FEATURE)
+        self._registry.register(SubclassFeature, ContentType.SUBCLASS_FEATURE)
         self._registry.register(Creature, ContentType.CREATURE)
         self._registry.register(Feat, ContentType.FEAT)
         self._registry.register(Item, ContentType.ITEM)
