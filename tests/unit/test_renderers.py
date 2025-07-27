@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -364,7 +365,13 @@ class TestLaTeXDocumentRenderer:
             title="Test Spell Document", tag_resolver=tag_resolver
         )
 
-        result = renderer.render_document([sample_spell], context)
+        # Mock DND template availability for testing
+        with patch.object(
+            renderer.template_engine,
+            "check_dnd_template_availability",
+            return_value=True,
+        ):
+            result = renderer.render_document([sample_spell], context)
 
         assert "\\documentclass" in result
         assert "\\title{Test Spell Document}" in result
@@ -386,7 +393,13 @@ class TestLaTeXDocumentRenderer:
         )
 
         content_items = [sample_spell, sample_creature]
-        result = renderer.render_document(content_items, context)
+        # Mock DND template availability for testing
+        with patch.object(
+            renderer.template_engine,
+            "check_dnd_template_availability",
+            return_value=True,
+        ):
+            result = renderer.render_document(content_items, context)
 
         assert "\\documentclass" in result
         assert "\\tableofcontents" in result
@@ -451,7 +464,13 @@ class TestLaTeXDocumentRenderer:
         context: Any = RenderContext(title="File Test")
         output_path = tmp_path / "test.tex"
 
-        renderer.render_document_to_file([sample_spell], output_path, context)
+        # Mock DND template availability for testing
+        with patch.object(
+            renderer.template_engine,
+            "check_dnd_template_availability",
+            return_value=True,
+        ):
+            renderer.render_document_to_file([sample_spell], output_path, context)
 
         assert output_path.exists()
         content = output_path.read_text()
@@ -493,7 +512,13 @@ class TestRendererIntegration:
         )
 
         # Render document
-        result = renderer.render_document([spell, creature], context)
+        # Mock DND template availability for testing
+        with patch.object(
+            renderer.template_engine,
+            "check_dnd_template_availability",
+            return_value=True,
+        ):
+            result = renderer.render_document([spell, creature], context)
 
         # Verify structure
         assert "\\documentclass" in result
@@ -520,14 +545,20 @@ class TestRendererIntegration:
 
         unknown_content: Any = BaseContent(
             name="Unknown Content",
-            source=Source(abbreviation="TEST", name="Test Source"),
+            source=Source(abbreviation="TEST", name="Test Source", page=None, url=None),
         )
 
         renderer: Any = LaTeXDocumentRenderer()
         context: Any = RenderContext(omnidexer=omnidexer)
 
         # Should use fallback rendering
-        result = renderer.render_content_item(unknown_content, context)
+        # Mock DND template availability for testing
+        with patch.object(
+            renderer.template_engine,
+            "check_dnd_template_availability",
+            return_value=True,
+        ):
+            result = renderer.render_content_item(unknown_content, context)
 
         assert "\\subsection{Unknown Content}" in result
         assert "not yet fully supported" in result
