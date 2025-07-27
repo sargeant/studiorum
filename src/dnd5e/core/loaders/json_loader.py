@@ -38,13 +38,14 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
     def _get_cache_key(self, path: Path) -> str:
         """Generate cache key for a file path."""
-        # Use file path, content type, and file modification time
+        # Use file path, content type, file modification time, and file size
+        # Including both mtime and size helps detect changes even when mtime precision is low
         try:
             stat = path.stat()
-            return f"json_loader:{self._content_type.value}:{path}:{stat.st_mtime}"
+            return f"json_loader:{self._content_type.value}:{path}:{stat.st_mtime}:{stat.st_size}"
         except OSError:
             # If we can't stat the file, just use the path
-            return f"json_loader:{self._content_type.value}:{path}:0"
+            return f"json_loader:{self._content_type.value}:{path}:0:0"
 
     async def load(
         self, path: Path

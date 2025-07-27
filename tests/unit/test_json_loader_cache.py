@@ -178,7 +178,7 @@ class TestJsonLoaderCache:
 
         # Should not raise exception
         cache_key = loader._get_cache_key(missing_file)
-        assert cache_key.endswith(":0")  # Uses fallback timestamp
+        assert cache_key.endswith(":0:0")  # Uses fallback timestamp and size
 
         # Load should return empty list
         result = await loader.load(missing_file)
