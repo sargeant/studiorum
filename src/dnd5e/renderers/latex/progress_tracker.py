@@ -5,6 +5,9 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any, Optional, Protocol
 
+# Type annotation for display_manager (can be None when import fails)
+display_manager: Any = None
+
 try:
     from rich.console import Console
     from rich.progress import TaskID
