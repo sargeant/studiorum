@@ -71,12 +71,12 @@ dev = [
     "diskcache-stubs>=0.0.2",
 ]
 docs = [
-    "sphinx>=8.0.0",
+    "sphinx>=7.0.0,<8.0.0", # Pin to Sphinx 7.x for stability
     "sphinx-autobuild>=2024.0.0",
-    "furo>=2024.1.29",              # Modern theme (replace sphinx-rtd-theme)
-    "myst-parser>=4.0.0",
+    "furo>=2024.1.29", # Modern theme (replace sphinx-rtd-theme)
+    "myst-parser>=3.0.0,<4.0.0", # Pin to MyST 3.x for compatibility
     "sphinxcontrib-mermaid>=0.9.2", # Mermaid support
-    "sphinx-copybutton>=0.5.2",     # Copy buttons for code
+    "sphinx-copybutton>=0.5.2", # Copy buttons for code
     "packaging",
 ]
 images = ["Pillow>=9.0.0"]

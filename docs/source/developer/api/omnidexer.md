@@ -2,13 +2,15 @@
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Class: Omnidexer](#class-omnidexer)
-3. [Class: IndexEntry](#class-indexentry)
-4. [Protocol: DeepIndexable](#protocol-deepindexable)
-5. [Functions and Utilities](#functions-and-utilities)
-6. [Configuration](#configuration)
-7. [Performance Monitoring](#performance-monitoring)
+This page covers the Omnidexer API documentation with the following sections:
+
+- Overview
+- Class: Omnidexer
+- Class: IndexEntry
+- Protocol: DeepIndexable
+- Functions and Utilities
+- Configuration
+- Performance Monitoring
 
 ## Overview
 
