@@ -213,7 +213,7 @@ class TestEntryParser:
             },
             {
                 "type": "entries",
-                "name": "Different Grid Systems",
+                "name": "Optional: Grid Systems",
                 "page": 253,
                 "entries": ["Dungeon masters can use hexagonal grids instead."],
             },
@@ -228,7 +228,7 @@ class TestEntryParser:
         names = [item.name for item in result]
         assert "Optional Rule: Flanking" in names
         assert "Variant: Initiative" in names
-        assert "Different Grid Systems" in names
+        assert "Optional: Grid Systems" in names
 
     def test_parse_entries_regular_section_detection(self):
         """Test parsing entries that should be regular sections, not variant rules."""
@@ -304,17 +304,16 @@ class TestEntryParser:
         source = Source(abbreviation="DMG")
         parser = EntryParser(source, "Test")
 
-        # Test cases that should be detected as variant rules
+        # Test cases that should be detected as variant rules (explicit markers only)
         variant_cases = [
-            ("Variant Rule: Something", ["content"]),
-            ("Optional Combat Rules", ["dungeon master can use this"]),
-            ("Alternative Initiative", ["this variant changes how"]),
-            ("Custom Madness Rules", ["instead of the normal rules"]),
-            ("Using Different Dice", ["you can use d12s instead"]),
+            ("Variant: Something", ["content"]),
+            ("Optional: Combat Rules", ["dungeon master can use this"]),
+            ("Alternative: Initiative", ["this variant changes how"]),
+            ("Variant Rule: Madness", ["instead of the normal rules"]),
         ]
 
         for name, entries in variant_cases:
-            assert parser._looks_like_variant_rule(name, entries), (
+            assert parser._is_variant_rule_content(name, entries, "book"), (
                 f"Should detect '{name}' as variant rule"
             )
 
@@ -324,10 +323,26 @@ class TestEntryParser:
             ("Character Creation", ["create your character"]),
             ("Equipment List", ["here are the items"]),
             ("Spellcasting", ["magic works like this"]),
+            (
+                "Using Different Dice",
+                ["you can use d12s instead"],
+            ),  # No explicit marker
+            (
+                "Optional Combat Rules",
+                ["dungeon master can use this"],
+            ),  # No colon after "Optional"
+            (
+                "Alternative Initiative",
+                ["this variant changes how"],
+            ),  # No colon after "Alternative"
+            (
+                "Custom Madness Rules",
+                ["instead of the normal rules"],
+            ),  # No explicit marker
         ]
 
         for name, entries in normal_cases:
-            assert not parser._looks_like_variant_rule(name, entries), (
+            assert not parser._is_variant_rule_content(name, entries, "book"), (
                 f"Should NOT detect '{name}' as variant rule"
             )
 

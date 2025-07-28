@@ -3,12 +3,16 @@
 import logging
 from typing import Any
 
+from ...core.entry_registry import ValidationMode, get_registry, validate_entry_type
+from ...core.exceptions import EntryProcessingError
 from ..base import RenderContext
 from .unicode_mappings import (
     get_latex_special_chars,
     get_unicode_to_latex_mappings,
     get_unmapped_unicode_chars,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class RecursiveEntryProcessor:
@@ -17,16 +21,27 @@ class RecursiveEntryProcessor:
     This class handles the recursive processing of nested entry structures
     commonly found in 5etools data, such as books, adventures, and other
     complex content types.
+
+    Enhanced with validation, error handling, and comprehensive logging.
     """
 
-    def __init__(self, use_dnd_template: bool = True):
+    def __init__(
+        self,
+        use_dnd_template: bool = True,
+        validation_mode: ValidationMode | None = None,
+    ):
         """Initialize the recursive entry processor.
 
         Args:
             use_dnd_template: Whether to use DND template environments
+            validation_mode: Override global validation mode for this processor
         """
         self.use_dnd_template = use_dnd_template
         self._depth = 0  # Track nesting depth for proper sectioning
+        self._validation_mode = validation_mode
+        self._registry = get_registry()
+        self._entries_processed = 0
+        self._errors_encountered = 0
 
     def process_entries(
         self, entries: list[str | dict[str, Any]], context: RenderContext
@@ -63,54 +78,104 @@ class RecursiveEntryProcessor:
 
         Returns:
             LaTeX string
+
+        Raises:
+            EntryProcessingError: If entry processing fails critically
         """
+        self._entries_processed += 1
         entry_type = entry.get("type", "")
 
-        if entry_type == "section":
-            return self._process_section(entry, context)
-        elif entry_type == "entries":
-            return self._process_entries_block(entry, context)
-        elif entry_type == "insetReadaloud":
-            return self._process_inset_readaloud(entry, context)
-        elif entry_type == "inset":
-            return self._process_inset(entry, context)
-        elif entry_type == "image":
-            return self._process_image(entry, context)
-        elif entry_type == "list":
-            return self._process_list(entry, context)
-        elif entry_type == "table":
-            return self._process_table(entry, context)
-        elif entry_type == "quote":
-            return self._process_quote(entry, context)
-        elif entry_type == "actions":
-            return self._process_actions(entry, context)
-        elif entry_type == "attack":
-            return self._process_attack(entry, context)
-        elif entry_type == "options":
-            return self._process_options(entry, context)
-        elif entry_type == "variant":
-            return self._process_variant(entry, context)
-        elif entry_type == "variantSub":
-            return self._process_variant_sub(entry, context)
-        elif entry_type == "abilityDc":
-            return self._process_ability_dc(entry, context)
-        elif entry_type == "abilityAttackMod":
-            return self._process_ability_attack_mod(entry, context)
-        elif entry_type == "abilityGeneric":
-            return self._process_ability_generic(entry, context)
-        elif entry_type == "spellcasting":
-            return self._process_spellcasting(entry, context)
-        elif entry_type == "bonus":
-            return self._process_bonus(entry, context)
-        elif entry_type == "bonusSpeed":
-            return self._process_bonus_speed(entry, context)
-        elif entry_type == "dice":
-            return self._process_dice(entry, context)
-        elif entry_type == "item":
-            return self._process_item(entry, context)
-        else:
-            # Generic entry with name and entries
-            return self._process_generic_entry(entry, context)
+        try:
+            # Log entry processing for debugging
+            logger.debug(
+                f"Processing LaTeX entry type '{entry_type}' at depth {self._depth}"
+            )
+
+            # Validate entry type if not empty
+            if entry_type:
+                # Use instance validation mode or fall back to global
+                original_mode = self._registry.validation_mode
+
+                if self._validation_mode:
+                    self._registry.validation_mode = self._validation_mode
+
+                try:
+                    validate_entry_type(
+                        entry_type=entry_type,
+                        entry=entry,
+                        source=getattr(context, "source_name", "unknown"),
+                        parent_name=f"depth_{self._depth}",
+                    )
+                finally:
+                    # Restore original mode
+                    self._registry.validation_mode = original_mode
+
+            # Dispatch to specific processing methods
+            if entry_type == "section":
+                return self._process_section(entry, context)
+            elif entry_type == "entries":
+                return self._process_entries_block(entry, context)
+            elif entry_type == "insetReadaloud":
+                return self._process_inset_readaloud(entry, context)
+            elif entry_type == "inset":
+                return self._process_inset(entry, context)
+            elif entry_type == "image":
+                return self._process_image(entry, context)
+            elif entry_type == "list":
+                return self._process_list(entry, context)
+            elif entry_type == "table":
+                return self._process_table(entry, context)
+            elif entry_type == "quote":
+                return self._process_quote(entry, context)
+            elif entry_type == "actions":
+                return self._process_actions(entry, context)
+            elif entry_type == "attack":
+                return self._process_attack(entry, context)
+            elif entry_type == "options":
+                return self._process_options(entry, context)
+            elif entry_type == "variant":
+                return self._process_variant(entry, context)
+            elif entry_type == "variantSub":
+                return self._process_variant_sub(entry, context)
+            elif entry_type == "abilityDc":
+                return self._process_ability_dc(entry, context)
+            elif entry_type == "abilityAttackMod":
+                return self._process_ability_attack_mod(entry, context)
+            elif entry_type == "abilityGeneric":
+                return self._process_ability_generic(entry, context)
+            elif entry_type == "spellcasting":
+                return self._process_spellcasting(entry, context)
+            elif entry_type == "bonus":
+                return self._process_bonus(entry, context)
+            elif entry_type == "bonusSpeed":
+                return self._process_bonus_speed(entry, context)
+            elif entry_type == "dice":
+                return self._process_dice(entry, context)
+            elif entry_type == "item":
+                return self._process_item(entry, context)
+            else:
+                # Generic entry with name and entries
+                if entry_type:
+                    logger.debug(
+                        f"Using generic processing for entry type '{entry_type}' at depth {self._depth}"
+                    )
+                return self._process_generic_entry(entry, context)
+
+        except Exception as e:
+            self._errors_encountered += 1
+
+            # Re-raise our own exceptions
+            if isinstance(e, EntryProcessingError):
+                raise
+
+            # Wrap other exceptions with context
+            raise EntryProcessingError(
+                message=f"Failed to process LaTeX entry: {str(e)}",
+                entry=entry,
+                source=getattr(context, "source_name", "unknown"),
+                parent_name=f"depth_{self._depth}",
+                entry_type=entry_type,
+            ) from e
 
     def _process_section(self, section: dict[str, Any], context: RenderContext) -> str:
         """Process a section entry with proper nesting depth.
@@ -898,3 +963,39 @@ class RecursiveEntryProcessor:
             result.extend(processed_entries)
 
         return " ".join(result)
+
+    def get_processing_statistics(self) -> dict[str, Any]:
+        """Get processing statistics for this processor instance.
+
+        Returns:
+            Dictionary with processing statistics
+        """
+        return {
+            "entries_processed": self._entries_processed,
+            "errors_encountered": self._errors_encountered,
+            "current_depth": self._depth,
+            "registry_statistics": self._registry.statistics,
+            "unknown_types": list(self._registry.unknown_types),
+        }
+
+    def log_processing_summary(self) -> None:
+        """Log a summary of processing statistics."""
+        stats = self.get_processing_statistics()
+
+        logger.info(
+            f"LaTeX entry processor summary: "
+            f"{stats['entries_processed']} entries processed, "
+            f"{stats['errors_encountered']} errors encountered, "
+            f"max depth: {stats['current_depth']}"
+        )
+
+        if stats["unknown_types"]:
+            logger.warning(
+                f"Unknown entry types in LaTeX processing: "
+                f"{', '.join(stats['unknown_types'])}"
+            )
+
+    def reset_statistics(self) -> None:
+        """Reset processing statistics."""
+        self._entries_processed = 0
+        self._errors_encountered = 0

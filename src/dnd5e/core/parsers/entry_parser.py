@@ -4,6 +4,8 @@ import logging
 from collections.abc import Iterator
 from typing import Any
 
+from ..entry_registry import ValidationMode, get_registry, validate_entry_type
+from ..exceptions import EntryProcessingError, MalformedEntryError
 from ..models.content import Source
 from ..models.nested_content import (
     # Legacy imports for backward compatibility
@@ -23,12 +25,31 @@ logger = logging.getLogger(__name__)
 
 
 class EntryParser:
-    """Parser for extracting indexable content from entries."""
+    """Parser for extracting indexable content from entries.
 
-    def __init__(self, source: Source, parent_name: str):
-        """Initialize parser with source and parent context."""
+    This parser provides enhanced validation and error handling for entry processing,
+    with comprehensive logging and statistics tracking.
+    """
+
+    def __init__(
+        self,
+        source: Source,
+        parent_name: str,
+        validation_mode: ValidationMode | None = None,
+    ):
+        """Initialize parser with source and parent context.
+
+        Args:
+            source: Source information for context
+            parent_name: Name of parent section/container
+            validation_mode: Override global validation mode for this parser instance
+        """
         self.source = source
         self.parent_name = parent_name
+        self._validation_mode = validation_mode
+        self._registry = get_registry()
+        self._entries_processed = 0
+        self._errors_encountered = 0
 
     def parse_entries(
         self, entries: list[Any], content_type: str = "adventure"
@@ -57,30 +78,87 @@ class EntryParser:
 
         Yields:
             Indexable content objects
+
+        Raises:
+            EntryProcessingError: If entry processing fails critically
         """
-        if isinstance(entry, str):
-            # Plain text entries don't create indexable content
-            return
+        self._entries_processed += 1
 
-        if not isinstance(entry, dict):
-            return
+        try:
+            # Validate basic entry structure
+            if isinstance(entry, str):
+                # Plain text entries don't create indexable content
+                logger.debug(f"Skipping plain text entry in {self.parent_name}")
+                return
 
-        entry_type = entry.get("type", "")
+            if not isinstance(entry, dict):
+                logger.warning(
+                    f"Non-dict entry encountered in {self.parent_name}: {type(entry).__name__}"
+                )
+                return
 
-        if entry_type == "section":
-            yield from self._parse_section(entry, content_type)
-        elif entry_type == "table":
-            yield from self._parse_table(entry, content_type)
-        elif entry_type in ("inset", "insetReadaloud"):
-            yield from self._parse_inset(entry, content_type)
-        elif entry_type == "entries":
-            # Nested entries - can be variant rules or subsections
-            yield from self._parse_nested_entries(entry, content_type)
-        else:
-            # For unknown entry types, still recursively parse nested entries
-            nested_entries = entry.get("entries", [])
-            if nested_entries:
-                yield from self.parse_entries(nested_entries, content_type)
+            entry_type = entry.get("type", "")
+
+            # Log entry processing for debugging
+            logger.debug(
+                f"Processing entry type '{entry_type}' in {self.parent_name} (source: {self.source.abbreviation})"
+            )
+
+            # Validate entry type if not empty
+            if entry_type:
+                # Use instance validation mode or fall back to global
+                original_mode = self._registry.validation_mode
+
+                if self._validation_mode:
+                    self._registry.validation_mode = self._validation_mode
+
+                try:
+                    validate_entry_type(
+                        entry_type=entry_type,
+                        entry=entry,
+                        source=self.source.abbreviation,
+                        parent_name=self.parent_name,
+                    )
+                finally:
+                    # Restore original mode
+                    self._registry.validation_mode = original_mode
+
+            # Dispatch to specific parsing methods
+            if entry_type == "section":
+                yield from self._parse_section(entry, content_type)
+            elif entry_type == "table":
+                yield from self._parse_table(entry, content_type)
+            elif entry_type in ("inset", "insetReadaloud"):
+                yield from self._parse_inset(entry, content_type)
+            elif entry_type == "entries":
+                # Nested entries - can be variant rules or subsections
+                yield from self._parse_nested_entries(entry, content_type)
+            else:
+                # For unknown/unhandled entry types, still recursively parse nested entries
+                if entry_type:
+                    logger.debug(
+                        f"Using fallback processing for entry type '{entry_type}' in {self.parent_name}"
+                    )
+
+                nested_entries = entry.get("entries", [])
+                if nested_entries:
+                    yield from self.parse_entries(nested_entries, content_type)
+
+        except Exception as e:
+            self._errors_encountered += 1
+
+            # Re-raise our own exceptions
+            if isinstance(e, EntryProcessingError):
+                raise
+
+            # Wrap other exceptions with context
+            raise EntryProcessingError(
+                message=f"Failed to parse entry: {str(e)}",
+                entry=entry if isinstance(entry, dict) else None,
+                source=self.source.abbreviation,
+                parent_name=self.parent_name,
+                entry_type=entry.get("type") if isinstance(entry, dict) else None,
+            ) from e
 
     def _parse_section(self, entry: dict[str, Any], content_type: str) -> Iterator[Any]:
         """Parse a section entry."""
@@ -180,8 +258,8 @@ class EntryParser:
 
         # For books, treat named entries as potential variant rules or sections
         if content_type == "book":
-            # Check if this looks like a variant rule (contains rule-like keywords)
-            if self._looks_like_variant_rule(name, entries):
+            # Check if this should be treated as a variant rule
+            if self._is_variant_rule_content(name, entries, content_type):
                 variant_rule = VariantRule(
                     name=name,
                     source=self.source,
@@ -220,44 +298,87 @@ class EntryParser:
 
         # Note: Nested parsing is handled by _parse_section separately to avoid duplication
 
-    def _looks_like_variant_rule(self, name: str, entries: list[Any]) -> bool:
-        """Determine if an entry looks like a variant rule."""
-        name_lower = name.lower()
+    def _is_variant_rule_content(
+        self, name: str, entries: list[Any], content_type: str
+    ) -> bool:
+        """Determine if content should be treated as a variant rule.
 
-        # Check for variant rule keywords in name
-        variant_keywords = [
+        This replaces the brittle heuristic _looks_like_variant_rule with more
+        explicit validation based on content type and structure.
+
+        Args:
+            name: Entry name
+            entries: Entry content
+            content_type: Type of content ("adventure" or "book")
+
+        Returns:
+            True if this should be treated as variant rule content
+        """
+        # Only books typically contain variant rules
+        if content_type != "book":
+            return False
+
+        # Check for explicit variant rule markers in name
+        name_lower = name.lower()
+        explicit_variants = [
+            "variant:",
+            "optional:",
+            "alternative:",
+            "variant rule:",
+            "optional rule:",
+        ]
+
+        if any(marker in name_lower for marker in explicit_variants):
+            logger.debug(f"Identified variant rule by explicit marker: {name}")
+            return True
+
+        # For ambiguous cases without explicit markers, default to regular section
+        # Log for debugging purposes
+        ambiguous_keywords = [
             "variant",
             "optional",
-            "rule",
             "alternative",
             "option",
             "using",
             "different",
             "custom",
-            "madness",
-            "flanking",
-            "grid",
-            "diagonal",
-            "facing",
-            "initiative",
         ]
-
-        if any(keyword in name_lower for keyword in variant_keywords):
-            return True
-
-        # Check content for rule-like language
-        if entries:
-            content_text = str(entries).lower()
-            rule_indicators = [
-                "you can use",
-                "dungeon master",
-                "dm can",
-                "optional rule",
-                "this variant",
-                "instead of",
-                "alternative to",
-            ]
-            if any(indicator in content_text for indicator in rule_indicators):
-                return True
+        if any(keyword in name_lower for keyword in ambiguous_keywords):
+            logger.debug(
+                f"Ambiguous content name (treating as section): {name} "
+                f"(source: {self.source.abbreviation}, parent: {self.parent_name})"
+            )
 
         return False
+
+    def get_processing_statistics(self) -> dict[str, Any]:
+        """Get processing statistics for this parser instance.
+
+        Returns:
+            Dictionary with processing statistics
+        """
+        return {
+            "entries_processed": self._entries_processed,
+            "errors_encountered": self._errors_encountered,
+            "source": self.source.abbreviation,
+            "parent_name": self.parent_name,
+            "registry_statistics": self._registry.statistics,
+            "unknown_types": list(self._registry.unknown_types),
+        }
+
+    def log_processing_summary(self) -> None:
+        """Log a summary of processing statistics."""
+        stats = self.get_processing_statistics()
+
+        logger.info(
+            f"Entry parser summary for {self.parent_name} "
+            f"(source: {self.source.abbreviation}): "
+            f"{stats['entries_processed']} entries processed, "
+            f"{stats['errors_encountered']} errors encountered"
+        )
+
+        if stats["unknown_types"]:
+            logger.warning(
+                f"Unknown entry types in {self.parent_name}: "
+                f"{', '.join(stats['unknown_types'])}"
+            )

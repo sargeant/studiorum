@@ -65,7 +65,7 @@ class TestBookDeepIndexing:
             entries=[
                 {
                     "type": "entries",
-                    "name": "Flanking",
+                    "name": "Optional: Flanking",
                     "page": 251,
                     "entries": [
                         "This optional rule provides advantage when flanking.",
@@ -86,7 +86,7 @@ class TestBookDeepIndexing:
 
         assert len(result) == 1
         assert isinstance(result[0], VariantRule)
-        assert result[0].name == "Flanking"
+        assert result[0].name == "Optional: Flanking"
         assert result[0].page == 251
 
     def test_book_distinguishes_variant_rules_from_sections(self):
