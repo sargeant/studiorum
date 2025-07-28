@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from .chapter import Chapter
 from .content import BaseContent
 
 if TYPE_CHECKING:
@@ -11,71 +12,8 @@ if TYPE_CHECKING:
     from ..loaders.omnidexer import Omnidexer
 
 
-class AdventureChapter(BaseModel):
-    """Represents a chapter within an adventure."""
-
-    name: str = Field(..., description="Chapter name")
-    ordinal: dict[str, Any] | None = Field(None, description="Chapter numbering")
-    headers: list[str | dict[str, Any]] | None = Field(
-        None, description="Section headers"
-    )
-    entries: list[Any] = Field(default_factory=list, description="Chapter content")
-
-    def get_chapter_number(self) -> str:
-        """Get formatted chapter number."""
-        if self.ordinal:
-            if isinstance(self.ordinal, dict):
-                ordinal_type = self.ordinal.get("type", "chapter")
-                identifier = self.ordinal.get("identifier", "")
-                if ordinal_type == "chapter" and identifier:
-                    return f"Chapter {identifier}"
-                elif ordinal_type == "appendix" and identifier:
-                    return f"Appendix {identifier}"
-                elif identifier:
-                    return str(identifier)
-            return str(self.ordinal)
-        return ""
-
-    @field_validator("headers", mode="before")
-    @classmethod
-    def parse_headers(cls, v: Any) -> Any:
-        """Parse headers from various formats."""
-        if not v:
-            return v
-
-        if isinstance(v, list):
-            result = []
-            for item in v:
-                if isinstance(item, str):
-                    result.append(item)
-                elif isinstance(item, dict):
-                    # Extract header text from dict format
-                    if "header" in item:
-                        result.append(item["header"])
-                    else:
-                        result.append(str(item))
-                else:
-                    result.append(str(item))
-            return result
-        return v
-
-    def get_formatted_headers(self) -> list[str]:
-        """Get formatted header texts."""
-        if not self.headers:
-            return []
-
-        result = []
-        for header in self.headers:
-            if isinstance(header, str):
-                result.append(header)
-            elif isinstance(header, dict):
-                if "header" in header:
-                    result.append(header["header"])
-                else:
-                    result.append(str(header))
-            else:
-                result.append(str(header))
-        return result
+# Legacy alias for backward compatibility
+AdventureChapter = Chapter
 
 
 class AdventureMetadata(BaseModel):
@@ -107,7 +45,7 @@ class Adventure(BaseContent):
     """Represents a D&D adventure."""
 
     id: str | None = Field(None, description="Adventure identifier")
-    contents: list[AdventureChapter] = Field(
+    contents: list[Chapter] = Field(
         default_factory=list, description="Adventure chapters"
     )
     metadata: AdventureMetadata | None = Field(None, description="Adventure metadata")

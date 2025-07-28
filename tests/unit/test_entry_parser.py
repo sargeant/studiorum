@@ -359,6 +359,6 @@ class TestEntryParser:
         assert len(result) == 3  # Only section, table, and inset should be parsed
 
         types = [type(item).__name__ for item in result]
-        assert "AdventureSection" in types
-        assert "AdventureTable" in types
-        assert "AdventureInset" in types
+        assert "Section" in types
+        assert "Table" in types
+        assert "Inset" in types

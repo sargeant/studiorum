@@ -6,12 +6,16 @@ from typing import Any
 
 from ..models.content import Source
 from ..models.nested_content import (
+    # Legacy imports for backward compatibility
     AdventureInset,
     AdventureSection,
     AdventureTable,
     BookInset,
     BookSection,
     BookTable,
+    Inset,
+    Section,
+    Table,
     VariantRule,
 )
 
@@ -85,27 +89,16 @@ class EntryParser:
         section_id = entry.get("id")
         entries = entry.get("entries", [])
 
-        section: AdventureSection | BookSection
-        if content_type == "adventure":
-            section = AdventureSection(
-                name=name,
-                source=self.source,
-                section_type="section",
-                page=page,
-                id=section_id,
-                parent_name=self.parent_name,
-                entries=entries,
-            )
-        else:
-            section = BookSection(
-                name=name,
-                source=self.source,
-                section_type="section",
-                page=page,
-                id=section_id,
-                parent_name=self.parent_name,
-                entries=entries,
-            )
+        section = Section(
+            name=name,
+            source=self.source,
+            section_type="section",
+            page=page,
+            id=section_id,
+            parent_name=self.parent_name,
+            entries=entries,
+            document_type=content_type,
+        )
 
         yield section
 
@@ -134,29 +127,17 @@ class EntryParser:
             else:
                 processed_rows.append([str(row)])
 
-        table: AdventureTable | BookTable
-        if content_type == "adventure":
-            table = AdventureTable(
-                name=name,
-                source=self.source,
-                caption=entry.get("caption"),
-                page=page,
-                id=table_id,
-                parent_name=self.parent_name,
-                col_labels=col_labels,
-                rows=processed_rows,
-            )
-        else:
-            table = BookTable(
-                name=name,
-                source=self.source,
-                caption=entry.get("caption"),
-                page=page,
-                id=table_id,
-                parent_name=self.parent_name,
-                col_labels=col_labels,
-                rows=processed_rows,
-            )
+        table = Table(
+            name=name,
+            source=self.source,
+            caption=entry.get("caption"),
+            page=page,
+            id=table_id,
+            parent_name=self.parent_name,
+            col_labels=col_labels,
+            rows=processed_rows,
+            document_type=content_type,
+        )
 
         yield table
 
@@ -172,27 +153,16 @@ class EntryParser:
         inset_type = entry.get("type", "inset")
         entries = entry.get("entries", [])
 
-        inset: AdventureInset | BookInset
-        if content_type == "adventure":
-            inset = AdventureInset(
-                name=name,
-                source=self.source,
-                inset_type=inset_type,
-                page=page,
-                id=inset_id,
-                parent_name=self.parent_name,
-                entries=entries,
-            )
-        else:
-            inset = BookInset(
-                name=name,
-                source=self.source,
-                inset_type=inset_type,
-                page=page,
-                id=inset_id,
-                parent_name=self.parent_name,
-                entries=entries,
-            )
+        inset = Inset(
+            name=name,
+            source=self.source,
+            inset_type=inset_type,
+            page=page,
+            id=inset_id,
+            parent_name=self.parent_name,
+            entries=entries,
+            document_type=content_type,
+        )
 
         yield inset
 
@@ -222,8 +192,8 @@ class EntryParser:
                 )
                 yield variant_rule
             else:
-                # Treat as a book section
-                section = BookSection(
+                # Treat as a section
+                section = Section(
                     name=name,
                     source=self.source,
                     section_type="entries",
@@ -231,11 +201,12 @@ class EntryParser:
                     id=entry_id,
                     parent_name=self.parent_name,
                     entries=entries,
+                    document_type=content_type,
                 )
                 yield section
         else:
-            # For adventures, treat as adventure sections
-            adventure_section = AdventureSection(
+            # For adventures, treat as sections
+            section = Section(
                 name=name,
                 source=self.source,
                 section_type="entries",
@@ -243,8 +214,9 @@ class EntryParser:
                 id=entry_id,
                 parent_name=self.parent_name,
                 entries=entries,
+                document_type=content_type,
             )
-            yield adventure_section
+            yield section
 
         # Note: Nested parsing is handled by _parse_section separately to avoid duplication
 
