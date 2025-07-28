@@ -787,6 +787,110 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return " ".join(text_parts) if text_parts else ""
 
+    def _is_adventure_metadata_file(self, data: dict[str, Any]) -> bool:
+        """Check if this is an adventure metadata file (adventures.json).
+
+        Adventure metadata files have:
+        - 'adventure' key with array of adventure metadata objects
+        - No 'data' key (which would indicate content files)
+
+        Args:
+            data: The parsed JSON data
+
+        Returns:
+            True if this is an adventure metadata file
+        """
+        return (
+            isinstance(data, dict)
+            and "adventure" in data
+            and "data" not in data
+            and isinstance(data["adventure"], list)
+        )
+
+    def _is_adventure_content_file(self, data: dict[str, Any]) -> bool:
+        """Check if this is an adventure content file (adventure-*.json).
+
+        Adventure content files have:
+        - ONLY 'data' key with array of section objects
+        - No 'adventure' key (which would indicate metadata files)
+        - No metadata fields like 'name', 'id', 'source' at root level
+
+        Args:
+            data: The parsed JSON data
+
+        Returns:
+            True if this is a pure adventure content file (should be skipped during metadata loading)
+        """
+        if (
+            not isinstance(data, dict)
+            or "data" not in data
+            or not isinstance(data["data"], list)
+        ):
+            return False
+
+        # If it has 'adventure' key, it's definitely not a content file
+        if "adventure" in data:
+            return False
+
+        # Check if it has metadata fields - if so, it's a mixed file and should be loaded
+        metadata_fields = {"name", "id", "source", "published", "author", "level"}
+        has_metadata = any(field in data for field in metadata_fields)
+
+        # Only consider it a pure content file if it has ONLY 'data' and no metadata fields
+        return not has_metadata
+
+    def _is_book_metadata_file(self, data: dict[str, Any]) -> bool:
+        """Check if this is a book metadata file (books.json).
+
+        Book metadata files have:
+        - 'book' key with array of book metadata objects
+        - No 'data' key (which would indicate content files)
+
+        Args:
+            data: The parsed JSON data
+
+        Returns:
+            True if this is a book metadata file
+        """
+        return (
+            isinstance(data, dict)
+            and "book" in data
+            and "data" not in data
+            and isinstance(data["book"], list)
+        )
+
+    def _is_book_content_file(self, data: dict[str, Any]) -> bool:
+        """Check if this is a book content file (book-*.json).
+
+        Book content files have:
+        - ONLY 'data' key with array of section objects
+        - No 'book' key (which would indicate metadata files)
+        - No metadata fields like 'name', 'id', 'source' at root level
+
+        Args:
+            data: The parsed JSON data
+
+        Returns:
+            True if this is a pure book content file (should be skipped during metadata loading)
+        """
+        if (
+            not isinstance(data, dict)
+            or "data" not in data
+            or not isinstance(data["data"], list)
+        ):
+            return False
+
+        # If it has 'book' key, it's definitely not a content file
+        if "book" in data:
+            return False
+
+        # Check if it has metadata fields - if so, it's a mixed file and should be loaded
+        metadata_fields = {"name", "id", "source", "published", "author", "level"}
+        has_metadata = any(field in data for field in metadata_fields)
+
+        # Only consider it a pure content file if it has ONLY 'data' and no metadata fields
+        return not has_metadata
+
     def _extract_text_from_entries(self, entries: Any) -> list[str]:
         """Recursively extract text from complex entry structures."""
         text_parts = []
