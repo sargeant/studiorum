@@ -384,6 +384,28 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     f"Added inferred type '{item_type}' for item {item.get('name', 'unknown')}"
                 )
 
+        elif self._content_type == ContentType.ADVENTURE:
+            # Add missing name field for 5etools adventure format
+            if "name" not in item and "data" in item:
+                # For 5etools format, derive adventure name from source or use generic name
+                source = item.get("source")
+                if source:
+                    abbrev = None
+                    # Handle both dict and object source formats
+                    if isinstance(source, dict):
+                        abbrev = source.get("abbreviation")
+                    elif hasattr(source, "abbreviation"):
+                        abbrev = source.abbreviation
+
+                    if abbrev:
+                        # Use abbreviation as name for adventures since actual names are in adventures.json
+                        item["name"] = f"Adventure {abbrev}"
+                    else:
+                        item["name"] = "Unknown Adventure"
+                else:
+                    item["name"] = "Unknown Adventure"
+                logger.debug(f"Added name '{item['name']}' for adventure")
+
         elif self._content_type == ContentType.BOOK:
             # Add missing name field for 5etools book format
             if "name" not in item and "data" in item:
