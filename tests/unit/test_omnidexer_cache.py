@@ -1,12 +1,8 @@
 """Tests for Omnidexer caching functionality."""
 
-from unittest.mock import Mock
-
-import pytest
-
 from dnd5e.core.cache import CacheManager, get_cache
 from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.content import BaseContent, ContentType
+from dnd5e.core.models.content import ContentType
 
 
 class TestOmnidexerCache:

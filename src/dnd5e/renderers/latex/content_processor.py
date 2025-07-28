@@ -6,7 +6,7 @@ by extracting, organizing, and transforming data structures for optimal output.
 
 import re
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any
 
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.creatures import Creature

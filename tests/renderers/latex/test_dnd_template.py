@@ -5,8 +5,6 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 
-import pytest
-
 from dnd5e.renderers.latex.dnd_template import (  # type: ignore
     DNDTemplateManager,
     check_dnd_template_status,

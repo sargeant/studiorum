@@ -5,16 +5,10 @@ from collections.abc import Iterator
 from typing import Any
 
 from ..entry_registry import ValidationMode, get_registry, validate_entry_type
-from ..exceptions import EntryProcessingError, MalformedEntryError
+from ..exceptions import EntryProcessingError
 from ..models.content import Source
 from ..models.nested_content import (
     # Legacy imports for backward compatibility
-    AdventureInset,
-    AdventureSection,
-    AdventureTable,
-    BookInset,
-    BookSection,
-    BookTable,
     Inset,
     Section,
     Table,

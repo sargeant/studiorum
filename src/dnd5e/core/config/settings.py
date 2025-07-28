@@ -1,10 +1,8 @@
 """Application settings and configuration."""
 
-import logging
 from pathlib import Path
 from typing import Any
 
-import colorlog
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 

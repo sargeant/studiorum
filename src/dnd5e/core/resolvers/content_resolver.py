@@ -3,7 +3,7 @@
 import difflib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from dnd5e.core.models.content import BaseContent, ContentType
 

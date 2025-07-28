@@ -1,6 +1,6 @@
 """Main layout engine that coordinates all layout managers."""
 
-from typing import Any, Optional
+from typing import Any
 
 from ....core.models.content import ContentType
 from .base import LayoutContext, LayoutHint, LayoutManager, LayoutStrategy

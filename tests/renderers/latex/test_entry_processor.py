@@ -2,8 +2,6 @@
 
 from unittest.mock import Mock
 
-import pytest
-
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
 

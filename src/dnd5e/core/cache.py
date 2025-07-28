@@ -5,7 +5,6 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
-import diskcache as dc
 from diskcache import Cache
 
 # Default cache directory and settings

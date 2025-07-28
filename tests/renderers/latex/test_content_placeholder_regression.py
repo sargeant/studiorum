@@ -4,8 +4,6 @@ This module contains tests to ensure that the duplicate content bug
 where string placeholders were globally replaced does not recur.
 """
 
-from unittest.mock import MagicMock, Mock
-
 import pytest
 
 from dnd5e.core.models.books import Book, Chapter

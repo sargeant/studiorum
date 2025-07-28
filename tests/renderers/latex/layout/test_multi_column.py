@@ -1,9 +1,6 @@
 """Tests for multi-column layout manager."""
 
 from typing import Any
-from unittest.mock import Mock
-
-import pytest
 
 from dnd5e.core.models.content import ContentType  # type: ignore
 from dnd5e.renderers.latex.layout.base import (  # type: ignore

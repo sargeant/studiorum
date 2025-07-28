@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 

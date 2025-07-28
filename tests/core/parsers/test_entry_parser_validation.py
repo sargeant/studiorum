@@ -1,7 +1,7 @@
 """Tests for enhanced entry parser validation and error handling."""
 
 import warnings
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 

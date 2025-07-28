@@ -2,9 +2,9 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
 
-from .content import BaseContent, Source
+from .content import BaseContent
 
 
 def roman_to_int(roman: str) -> int:

@@ -1,9 +1,7 @@
 """Tests for content organization utilities."""
 
 from typing import Any
-from unittest.mock import Mock, patch
-
-import pytest
+from unittest.mock import patch
 
 from dnd5e.core.models.content import BaseContent, Source  # type: ignore
 from dnd5e.core.models.document_metadata import (  # type: ignore

@@ -7,7 +7,7 @@ from typing import Any
 import jinja2
 from jinja2 import Environment, FileSystemLoader, Template
 
-from ...core.config.latex_config import LaTeXConfig, get_default_latex_config
+from ...core.config.latex_config import get_default_latex_config
 from ...core.latex_utils import escape_latex_text
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
 

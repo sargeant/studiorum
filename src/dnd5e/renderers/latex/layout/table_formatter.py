@@ -1,14 +1,12 @@
 """Automatic table formatting and optimization for D&D content."""
 
-from typing import Any, Optional
+from typing import Any
 
 from ....core.models.content import ContentType
 from .base import (
     ContentLayoutManager,
-    EnvironmentWrapper,
     LayoutContext,
     LayoutHint,
-    LayoutStrategy,
 )
 
 

@@ -3,7 +3,7 @@
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Optional, Protocol
+from typing import Any, Protocol
 
 # Type annotation for display_manager (can be None when import fails)
 display_manager: Any = None

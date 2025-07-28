@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Optional, TypedDict, Unpack
+from typing import TypedDict, Unpack
 
 
 class CompilationConfigKwargs(TypedDict, total=False):

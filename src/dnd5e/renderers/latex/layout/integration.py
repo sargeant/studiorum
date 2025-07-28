@@ -1,6 +1,6 @@
 """Integration layer for adding layout capabilities to existing content renderers."""
 
-from typing import Any, Optional
+from typing import Any
 
 from ....core.models.content import ContentType
 from ...base.context import RenderContext

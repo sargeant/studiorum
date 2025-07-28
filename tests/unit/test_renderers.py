@@ -9,10 +9,7 @@ import pytest
 from dnd5e.core.models.content import ContentType  # type: ignore
 from dnd5e.renderers.base import RenderContext, RenderingError  # type: ignore
 from dnd5e.renderers.latex import (  # type: ignore
-    LaTeXCreatureRenderer,
     LaTeXDocumentRenderer,
-    LaTeXItemRenderer,
-    LaTeXSpellRenderer,
     LaTeXTemplateEngine,
 )
 

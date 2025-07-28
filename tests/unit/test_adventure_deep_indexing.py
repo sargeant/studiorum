@@ -1,10 +1,8 @@
 """Tests for adventure deep indexing functionality."""
 
-import pytest
-
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.adventures import Adventure, AdventureChapter
-from dnd5e.core.models.content import ContentType, Source
+from dnd5e.core.models.content import Source
 from dnd5e.core.models.nested_content import (
     AdventureInset,
     AdventureSection,

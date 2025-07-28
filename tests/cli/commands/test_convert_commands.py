@@ -1,6 +1,5 @@
 """Comprehensive tests for convert CLI commands."""
 
-import asyncio
 import json
 import subprocess
 import tempfile
@@ -8,11 +7,9 @@ from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-import typer
 from typer.testing import CliRunner
 
 from dnd5e.cli.commands.convert import _compile_pdf, app
-from dnd5e.core.models.content import ContentType
 
 
 class TestConvertAdventureCommand:
