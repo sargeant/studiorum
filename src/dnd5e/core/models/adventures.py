@@ -119,6 +119,43 @@ class Adventure(BaseContent):
     group: str | None = Field(None, description="Adventure group")
     cover: dict[str, Any] | None = Field(None, description="Cover image")
 
+    @classmethod
+    def model_validate(
+        cls,
+        obj: Any,
+        *,
+        strict: bool | None = None,
+        from_attributes: bool | None = None,
+        context: Any = None,
+    ) -> "Adventure":
+        """Custom validation to handle 5etools data format."""
+        # If this is a dict with "data" field, transform it
+        if isinstance(obj, dict) and "data" in obj and not obj.get("contents"):
+            data_sections = obj["data"]
+            if isinstance(data_sections, list):
+                contents = []
+                for section in data_sections:
+                    if isinstance(section, dict) and section.get("type") == "section":
+                        chapter = {
+                            "name": section.get("name", "Unnamed Chapter"),
+                            "entries": section.get("entries", []),
+                        }
+                        if "id" in section:
+                            chapter["ordinal"] = {
+                                "type": "section",
+                                "identifier": section["id"],
+                            }
+                        contents.append(chapter)
+
+                # Replace data with contents
+                obj = dict(obj)  # Make a copy
+                obj["contents"] = contents
+                del obj["data"]  # Remove the data field
+
+        return super().model_validate(
+            obj, strict=strict, from_attributes=from_attributes, context=context
+        )
+
     def model_post_init(self, __context: Any) -> None:
         """Post-process parsed data."""
         # Create metadata from individual fields if not present

@@ -366,6 +366,11 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         # Check if this is a raw book entry that should be processed recursively
         if isinstance(content, dict | str) and self._is_book_entry(content, context):
             return self._render_book_entry(content, context)
+        # Check if this is a raw adventure entry that should be processed recursively
+        if isinstance(content, dict | str) and self._is_adventure_entry(
+            content, context
+        ):
+            return self._render_adventure_entry(content, context)
         # Handle both dict and object formats for content name
         if hasattr(content, "name"):
             content_name = content.name
@@ -432,6 +437,65 @@ This content type is not yet fully supported by the rendering system.
             return any(key in content for key in ["type", "entries", "name"])
 
         return False
+
+    def _is_adventure_entry(self, content: Any, context: RenderContext) -> bool:
+        """Check if content is a raw adventure entry.
+
+        Args:
+            content: Content to check
+            context: Rendering context
+
+        Returns:
+            True if content is a raw adventure entry
+        """
+        # Check if we're in an adventure document context
+        if not hasattr(context, "metadata") or not context.metadata:
+            return False
+
+        if context.metadata.document_type != DocumentType.ADVENTURE:
+            return False
+
+        # Check if content looks like an adventure entry
+        if isinstance(content, str):
+            return True  # Raw text entries from adventure chapters
+        elif isinstance(content, dict):
+            # Dict entries with typical adventure entry structure
+            return any(key in content for key in ["type", "entries", "name"])
+
+        return False
+
+    def _render_adventure_entry(self, content: Any, context: RenderContext) -> str:
+        """Render a raw adventure entry using RecursiveEntryProcessor.
+
+        Args:
+            content: Raw adventure entry (string or dict)
+            context: Rendering context
+
+        Returns:
+            Rendered LaTeX content
+        """
+        # Import here to avoid circular imports
+        from .entry_processor import RecursiveEntryProcessor
+
+        # Use DND template for adventure entries
+        processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+        if isinstance(content, str):
+            # Process string content with tags
+            if hasattr(context, "tag_resolver") and context.tag_resolver:
+                return context.tag_resolver.process_text(content)
+            else:
+                return self._escape_latex(content)
+        elif isinstance(content, dict):
+            # Process dict entry
+            try:
+                result_list = processor.process_entries([content], context)
+                return "\n".join(result_list)
+            except Exception as e:
+                # Fall back to safe rendering if processing fails
+                return f"% Error processing adventure entry: {e}\n"
+        else:
+            return ""
 
     def _render_book_entry(self, content: Any, context: RenderContext) -> str:
         """Render a raw book entry using RecursiveEntryProcessor.

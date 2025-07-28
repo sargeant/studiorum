@@ -323,45 +323,41 @@ class TestRecursiveEntryProcessor:
         result = self.processor._escape_latex("~")
         assert "textasciitilde" in result
 
-    @pytest.mark.skip(reason="Unicode character handling issues - see GitHub issue #85")
     def test_escape_latex_unicode_characters(self):
         """Test LaTeX Unicode character replacement."""
-        # Test simple replacements
-        assert self.processor._escape_latex("—") == "---"  # Em dash
-        assert self.processor._escape_latex("–") == "--"  # En dash
-        assert (
-            self.processor._escape_latex(""") == "``"   # Left double quote
-        assert self.processor._escape_latex(""")
-            == "''"
-        )  # Right double quote
-        assert self.processor._escape_latex("'") == "`"  # Left single quote
+        # Test simple replacements using explicit Unicode code points
+        assert self.processor._escape_latex(chr(0x2014)) == "---"  # Em dash
+        assert self.processor._escape_latex(chr(0x2013)) == "--"  # En dash
+        assert self.processor._escape_latex(chr(0x201C)) == "``"  # Left double quote
+        assert self.processor._escape_latex(chr(0x201D)) == "''"  # Right double quote
+        assert self.processor._escape_latex(chr(0x2018)) == "`"  # Left single quote
 
         # These contain braces that may be escaped
-        result = self.processor._escape_latex("…")
+        result = self.processor._escape_latex(chr(0x2026))  # Ellipsis
         assert "ldots" in result
 
-        result = self.processor._escape_latex("°")
+        result = self.processor._escape_latex(chr(0x00B0))  # Degree
         assert "textdegree" in result
 
-        result = self.processor._escape_latex("©")
+        result = self.processor._escape_latex(chr(0x00A9))  # Copyright
         assert "copyright" in result
 
-        result = self.processor._escape_latex("®")
+        result = self.processor._escape_latex(chr(0x00AE))  # Registered
         assert "textregistered" in result
 
-        result = self.processor._escape_latex("™")
+        result = self.processor._escape_latex(chr(0x2122))  # Trademark
         assert "texttrademark" in result
 
-    @pytest.mark.skip(reason="Unicode character handling issues - see GitHub issue #85")
     def test_escape_latex_complex_text(self):
         """Test LaTeX escaping with complex text."""
-        text = 'Price: $5.99 & tax 10% — "special" characters!'
+        # Use explicit em dash character to avoid encoding issues
+        text = f'Price: $5.99 & tax 10% {chr(0x2014)} "special" characters!'
         result = self.processor._escape_latex(text)
 
         assert "\\$" in result
         assert "\\&" in result
         assert "\\%" in result
-        assert "---" in result
+        assert "---" in result  # Em dash should be converted
         # The quotes are regular ASCII quotes, not converted to LaTeX quotes
         assert '"' in result
 
@@ -374,6 +370,41 @@ class TestRecursiveEntryProcessor:
         """Test LaTeX escaping with None text."""
         result = self.processor._escape_latex(None)
         assert result == ""
+
+    def test_escape_latex_additional_unicode_chars(self):
+        """Test additional Unicode characters from the new mappings."""
+        # Test quotation marks using explicit Unicode
+        assert self.processor._escape_latex(chr(0x2019)) == "'"  # Right single quote
+
+        # Test spaces
+        assert self.processor._escape_latex(chr(0x00A0)) == "~"  # Non-breaking space
+
+        # Test mathematical symbols
+        assert self.processor._escape_latex(chr(0x00B1)) == r"\textpm{}"  # Plus-minus
+
+        # Test currency symbols
+        result = self.processor._escape_latex(chr(0x20AC))  # Euro sign
+        assert "texteuro" in result
+
+        # Test section symbol
+        assert self.processor._escape_latex(chr(0x00A7)) == r"\S{}"  # Section sign
+
+    def test_escape_latex_mixed_content(self):
+        """Test escaping text with mixed special chars and Unicode."""
+        # Use explicit em dash to avoid encoding issues
+        text = f'LaTeX: $100 {chr(0x2014)} "smart quotes" & 50% off!'
+        result = self.processor._escape_latex(text)
+
+        # Check LaTeX special chars are escaped
+        assert "\\$" in result
+        assert "\\&" in result
+        assert "\\%" in result
+
+        # Check Unicode chars are converted
+        assert "---" in result  # Em dash
+
+        # Regular ASCII quotes should remain
+        assert '"' in result
 
 
 class TestRecursiveEntryProcessorWithoutDNDTemplate:
