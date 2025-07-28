@@ -82,6 +82,32 @@ class RecursiveEntryProcessor:
             return self._process_table(entry, context)
         elif entry_type == "quote":
             return self._process_quote(entry, context)
+        elif entry_type == "actions":
+            return self._process_actions(entry, context)
+        elif entry_type == "attack":
+            return self._process_attack(entry, context)
+        elif entry_type == "options":
+            return self._process_options(entry, context)
+        elif entry_type == "variant":
+            return self._process_variant(entry, context)
+        elif entry_type == "variantSub":
+            return self._process_variant_sub(entry, context)
+        elif entry_type == "abilityDc":
+            return self._process_ability_dc(entry, context)
+        elif entry_type == "abilityAttackMod":
+            return self._process_ability_attack_mod(entry, context)
+        elif entry_type == "abilityGeneric":
+            return self._process_ability_generic(entry, context)
+        elif entry_type == "spellcasting":
+            return self._process_spellcasting(entry, context)
+        elif entry_type == "bonus":
+            return self._process_bonus(entry, context)
+        elif entry_type == "bonusSpeed":
+            return self._process_bonus_speed(entry, context)
+        elif entry_type == "dice":
+            return self._process_dice(entry, context)
+        elif entry_type == "item":
+            return self._process_item(entry, context)
         else:
             # Generic entry with name and entries
             return self._process_generic_entry(entry, context)
@@ -495,3 +521,380 @@ class RecursiveEntryProcessor:
             )
 
         return result
+
+    def _process_actions(self, actions: dict[str, Any], context: RenderContext) -> str:
+        """Process an actions entry for creature statblocks.
+
+        Args:
+            actions: Actions dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = actions.get("name", "")
+        entries = actions.get("entries", [])
+
+        result = []
+        if name:
+            result.append(f"\\textbf{{{self._escape_latex(name)}.}}")
+
+        if entries:
+            processed_entries = self.process_entries(entries, context)
+            result.extend(processed_entries)
+
+        return " ".join(result)
+
+    def _process_attack(self, attack: dict[str, Any], context: RenderContext) -> str:
+        """Process an attack entry for creature statblocks.
+
+        Args:
+            attack: Attack dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = attack.get("name", "")
+        entries = attack.get("entries", [])
+
+        result = []
+        if name:
+            result.append(f"\\textit{{{self._escape_latex(name)}.}}")
+
+        if entries:
+            processed_entries = self.process_entries(entries, context)
+            result.extend(processed_entries)
+
+        return " ".join(result)
+
+    def _process_options(self, options: dict[str, Any], context: RenderContext) -> str:
+        """Process an options entry for choice-based content.
+
+        Args:
+            options: Options dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        entries = options.get("entries", [])
+
+        if not entries:
+            return ""
+
+        result = ["\\begin{itemize}"]
+
+        for entry in entries:
+            if isinstance(entry, str):
+                result.append(f"\\item {self._process_text_with_tags(entry, context)}")
+            elif isinstance(entry, dict):
+                processed_entry = self.process_entry_dict(entry, context)
+                result.append(f"\\item {processed_entry}")
+            else:
+                result.append(f"\\item {str(entry)}")
+
+        result.append("\\end{itemize}")
+        return "\n".join(result)
+
+    def _process_variant(self, variant: dict[str, Any], context: RenderContext) -> str:
+        """Process a variant entry for alternative rules.
+
+        Args:
+            variant: Variant dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = variant.get("name", "")
+        entries = variant.get("entries", [])
+
+        result = []
+
+        # Create variant header
+        if name:
+            result.append(f"\\textbf{{Variant: {self._escape_latex(name)}}}")
+        else:
+            result.append("\\textbf{Variant:}")
+
+        if entries:
+            processed_entries = self.process_entries(entries, context)
+            result.extend(processed_entries)
+
+        return "\n\n".join(result)
+
+    def _process_variant_sub(
+        self, variant_sub: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Process a variantSub entry for sub-variants.
+
+        Args:
+            variant_sub: VariantSub dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = variant_sub.get("name", "")
+        entries = variant_sub.get("entries", [])
+
+        result = []
+
+        if name:
+            result.append(f"\\textit{{{self._escape_latex(name)}:}}")
+
+        if entries:
+            processed_entries = self.process_entries(entries, context)
+            result.extend(processed_entries)
+
+        return " ".join(result)
+
+    def _process_ability_dc(
+        self, ability_dc: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Process an abilityDc entry for save DC descriptions.
+
+        Args:
+            ability_dc: AbilityDc dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = ability_dc.get("name", "Save DC")
+        attributes = ability_dc.get("attributes", [])
+
+        # Map ability scores to full names
+        ability_names = {
+            "str": "Strength",
+            "dex": "Dexterity",
+            "con": "Constitution",
+            "int": "Intelligence",
+            "wis": "Wisdom",
+            "cha": "Charisma",
+        }
+
+        result = [f"\\textbf{{{self._escape_latex(name)}:}}"]
+
+        if attributes:
+            # Use first attribute for DC calculation
+            attr = attributes[0]
+            ability_name = ability_names.get(attr, attr.capitalize())
+            result.append(f"8 + proficiency bonus + {ability_name} modifier")
+        else:
+            result.append("8 + proficiency bonus + ability modifier")
+
+        return " ".join(result)
+
+    def _process_ability_attack_mod(
+        self, ability_mod: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Process an abilityAttackMod entry for attack modifiers.
+
+        Args:
+            ability_mod: AbilityAttackMod dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = ability_mod.get("name", "Attack Bonus")
+        attributes = ability_mod.get("attributes", [])
+
+        # Map ability scores to full names
+        ability_names = {
+            "str": "Strength",
+            "dex": "Dexterity",
+            "con": "Constitution",
+            "int": "Intelligence",
+            "wis": "Wisdom",
+            "cha": "Charisma",
+        }
+
+        result = [f"\\textbf{{{self._escape_latex(name)}:}}"]
+
+        if attributes:
+            # Use first attribute for attack bonus calculation
+            attr = attributes[0]
+            ability_name = ability_names.get(attr, attr.capitalize())
+            result.append(f"proficiency bonus + {ability_name} modifier")
+        else:
+            result.append("proficiency bonus + ability modifier")
+
+        return " ".join(result)
+
+    def _process_ability_generic(
+        self, ability: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Process an abilityGeneric entry for generic ability descriptions.
+
+        Args:
+            ability: AbilityGeneric dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = ability.get("name", "")
+        text = ability.get("text", "")
+
+        result = []
+        if name:
+            result.append(f"\\textbf{{{self._escape_latex(name)}:}}")
+
+        if text:
+            result.append(self._process_text_with_tags(text, context))
+
+        return " ".join(result)
+
+    def _process_spellcasting(
+        self, spellcasting: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Process a spellcasting entry for creature spell abilities.
+
+        Args:
+            spellcasting: Spellcasting dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = spellcasting.get("name", "Spellcasting")
+        header_entries = spellcasting.get("headerEntries", [])
+        spells = spellcasting.get("spells", {})
+
+        result = []
+
+        # Add header
+        result.append(f"\\textbf{{{self._escape_latex(name)}.}}")
+
+        # Process header entries
+        if header_entries:
+            processed_headers = self.process_entries(header_entries, context)
+            result.extend(processed_headers)
+
+        # Process spell levels
+        for level, spell_data in sorted(
+            spells.items(), key=lambda x: int(x[0]) if x[0].isdigit() else 999
+        ):
+            spell_list = spell_data.get("spells", [])
+            slots = spell_data.get("slots")
+
+            if not spell_list:
+                continue
+
+            # Format spell level header
+            if level == "0":
+                level_header = "\\textbf{Cantrips (at will):}"
+            else:
+                level_suffix = {"1": "st", "2": "nd", "3": "rd"}.get(level, "th")
+                if slots:
+                    level_header = (
+                        f"\\textbf{{{level}{level_suffix} level ({slots} slots):}}"
+                    )
+                else:
+                    level_header = f"\\textbf{{{level}{level_suffix} level:}}"
+
+            result.append(level_header)
+
+            # Process spells for this level
+            processed_spells = self.process_entries(spell_list, context)
+            result.append(", ".join(processed_spells))
+
+        return "\n\n".join(result)
+
+    def _process_bonus(self, bonus: dict[str, Any], context: RenderContext) -> str:
+        """Process a bonus entry for numerical bonuses.
+
+        Args:
+            bonus: Bonus dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        value = bonus.get("value", 0)
+
+        if value >= 0:
+            return f"+{value}"
+        else:
+            return str(value)
+
+    def _process_bonus_speed(
+        self, bonus_speed: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Process a bonusSpeed entry for speed bonuses.
+
+        Args:
+            bonus_speed: BonusSpeed dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        value = bonus_speed.get("value", 0)
+
+        if value >= 0:
+            return f"+{value} ft."
+        else:
+            return f"{value} ft."
+
+    def _process_dice(self, dice: dict[str, Any], context: RenderContext) -> str:
+        """Process a dice entry for dice roll notation.
+
+        Args:
+            dice: Dice dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        to_roll = dice.get("toRoll", [])
+
+        if not to_roll:
+            return ""
+
+        dice_strings = []
+        for roll in to_roll:
+            number = roll.get("number", 1)
+            faces = roll.get("faces", 6)
+            modifier = roll.get("modifier", 0)
+
+            dice_str = f"{number}d{faces}"
+            if modifier > 0:
+                dice_str += f"+{modifier}"
+            elif modifier < 0:
+                dice_str += str(modifier)
+
+            dice_strings.append(dice_str)
+
+        return ", ".join(dice_strings)
+
+    def _process_item(self, item: dict[str, Any], context: RenderContext) -> str:
+        """Process an item entry for list items.
+
+        Args:
+            item: Item dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        name = item.get("name", "")
+        entry = item.get("entry", "")
+        entries = item.get("entries", [])
+
+        result = []
+
+        if name:
+            result.append(f"\\textbf{{{self._escape_latex(name)}.}}")
+
+        # Handle either single entry or multiple entries
+        if entry:
+            result.append(self._process_text_with_tags(entry, context))
+        elif entries:
+            processed_entries = self.process_entries(entries, context)
+            result.extend(processed_entries)
+
+        return " ".join(result)
