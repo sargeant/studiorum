@@ -323,9 +323,6 @@ class DocumentStructureBuilder:
                             "This story began 50 years ago" in quote_text
                             or "Jeremy Crawford" in str(entry.get("by", ""))
                         ):
-                            print(
-                                f"Filtering out Jeremy Crawford quote from chapter {chapter_num}: {title}"
-                            )
                             continue
                     filtered_entries.append(copy.deepcopy(entry))
                 section.content_items = filtered_entries

@@ -487,13 +487,8 @@ This content type is not yet fully supported by the rendering system.
             else:
                 return self._escape_latex(content)
         elif isinstance(content, dict):
-            # Process dict entry
-            try:
-                result_list = processor.process_entries([content], context)
-                return "\n".join(result_list)
-            except Exception as e:
-                # Fall back to safe rendering if processing fails
-                return f"% Error processing adventure entry: {e}\n"
+            # Process dict entry - use same approach as book rendering
+            return processor.process_entry_dict(content, context)
         else:
             return ""
 
