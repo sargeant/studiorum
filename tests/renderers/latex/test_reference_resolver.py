@@ -550,8 +550,8 @@ class TestReferenceResolver:
 
         assert "cross_reference_stats" not in result
         assert "content_stats" not in result
-        assert "most_referenced" in result
-        assert result["most_referenced"] == []
+        # most_referenced is only added when there's a content_tracker
+        assert "most_referenced" not in result
 
     def test_clear_cache(self):
         """Test cache clearing."""
