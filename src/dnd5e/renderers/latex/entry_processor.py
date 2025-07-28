@@ -1,8 +1,14 @@
 """Recursive entry processor for LaTeX rendering of 5etools entry structures."""
 
+import logging
 from typing import Any
 
 from ..base import RenderContext
+from .unicode_mappings import (
+    get_latex_special_chars,
+    get_unicode_to_latex_mappings,
+    get_unmapped_unicode_chars,
+)
 
 
 class RecursiveEntryProcessor:
@@ -450,52 +456,42 @@ class RecursiveEntryProcessor:
         return context.tag_resolver.process_text(text)
 
     def _escape_latex(self, text: str) -> str:
-        """Escape LaTeX special characters.
+        """Escape LaTeX special characters and Unicode characters.
+
+        This method handles both LaTeX special characters and Unicode characters
+        that need conversion to LaTeX equivalents. It uses comprehensive mappings
+        based on PyLaTeX best practices.
 
         Args:
             text: Text to escape
 
         Returns:
-            LaTeX-safe text
+            LaTeX-safe text with proper character escaping
         """
         if not text:
             return ""
 
-        # LaTeX special characters
-        replacements = {
-            "\\": r"\textbackslash{}",
-            "{": r"\{",
-            "}": r"\}",
-            "$": r"\$",
-            "&": r"\&",
-            "%": r"\%",
-            "#": r"\#",
-            "^": r"\textasciicircum{}",
-            "_": r"\_",
-            "~": r"\textasciitilde{}",
-        }
-
-        # Unicode characters that need special handling in LaTeX
-        unicode_replacements = {
-            "—": "---",  # Em dash
-            "–": "--",  # En dash
-            """: "``",   # Left double quote
-            """: "''",  # Right double quote
-            "'": "`",  # Left single quote
-            "…": r"\ldots{}",  # Ellipsis
-            "°": r"\textdegree{}",  # Degree symbol
-            "©": r"\copyright{}",  # Copyright symbol
-            "®": r"\textregistered{}",  # Registered trademark
-            "™": r"\texttrademark{}",  # Trademark symbol
-        }
+        # Get character mappings from the unicode_mappings module
+        latex_special_chars = get_latex_special_chars()
+        unicode_to_latex = get_unicode_to_latex_mappings()
 
         result = text
+
         # Apply LaTeX special character escaping first
-        for char, replacement in replacements.items():
+        # Order matters: backslash must be escaped first to avoid double-escaping
+        for char, replacement in latex_special_chars.items():
             result = result.replace(char, replacement)
 
         # Then apply Unicode character replacements
-        for char, replacement in unicode_replacements.items():
+        for char, replacement in unicode_to_latex.items():
             result = result.replace(char, replacement)
+
+        # Log any unmapped Unicode characters for debugging
+        unmapped_chars = get_unmapped_unicode_chars(result)
+        if unmapped_chars:
+            logging.debug(
+                "Found unmapped Unicode characters in text: %s",
+                ", ".join(f"'{char}' (U+{ord(char):04X})" for char in unmapped_chars),
+            )
 
         return result
