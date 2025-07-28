@@ -199,9 +199,10 @@ class LaTeXDocumentRenderer(DocumentRenderer):
                             )
 
                         # Replace the specific placeholder with rendered content
+                        # Use replace with count=1 to only replace the first occurrence
                         if placeholder_pattern in document:
                             document = document.replace(
-                                placeholder_pattern, rendered_item
+                                placeholder_pattern, rendered_item, 1
                             )
 
                 # Also try the generic content placeholder for compatibility
