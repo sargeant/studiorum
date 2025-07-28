@@ -27,6 +27,19 @@
 # Build directory
 build/
 
+# Documentation build artifacts
+docs/_build/
+docs/_static/
+docs/.doctrees/
+
+# Sphinx temporary files
+*.inv
+docs/source/_autosummary/
+
+# PDF generation temporary files
+*.pdf.log
+*.tex.log
+
 # Python cache
 __pycache__/
 *.pyc
