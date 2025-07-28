@@ -46,8 +46,8 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
-# The master toctree document.
-master_doc = "index"
+# The root toctree document (Sphinx 8.x best practice)
+root_doc = "index"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

@@ -2,14 +2,6 @@
 
 Practical examples and code samples for using 5e2pdf effectively.
 
-## Table of Contents
-
-```{toctree}
-:maxdepth: 2
-
-deep-indexing
-```
-
 ## Overview
 
 The Examples section provides practical, runnable code samples that demonstrate how to use 5e2pdf's features effectively. Examples are organized by complexity and use case, making it easy to find the right starting point for your needs.
@@ -27,6 +19,7 @@ Comprehensive examples of using the omnidexer's deep indexing system:
 - Troubleshooting and debugging techniques
 
 **Run the example:**
+
 ```bash
 cd docs/source/examples
 python deep-indexing.py

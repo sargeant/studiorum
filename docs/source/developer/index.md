@@ -2,17 +2,6 @@
 
 Technical documentation for contributors and developers extending 5e2pdf.
 
-## Table of Contents
-
-```{toctree}
-:maxdepth: 2
-
-api/index
-implementation/index
-contributing
-architecture
-```
-
 ## Overview
 
 The Developer Documentation provides in-depth technical information about 5e2pdf's architecture, APIs, and extension points. This section is intended for:
@@ -27,6 +16,7 @@ The Developer Documentation provides in-depth technical information about 5e2pdf
 ### API Documentation
 
 Complete reference for all public APIs, including:
+
 - **[Omnidexer API](api/omnidexer.md)**: Content indexing and discovery system
 - Core models and content types
 - Renderer interfaces
@@ -35,6 +25,7 @@ Complete reference for all public APIs, including:
 ### Implementation Guides
 
 Detailed guides for understanding and extending key systems:
+
 - **[Deep Indexing](implementation/deep-indexing.md)**: How the omnidexer discovers nested content
 - Content parsing and validation
 - LaTeX rendering pipeline
@@ -43,6 +34,7 @@ Detailed guides for understanding and extending key systems:
 ### Contributing
 
 Information for contributors:
+
 - **[Contributing Guide](contributing.md)**: How to contribute to the project
 - Code style and standards
 - Testing requirements
@@ -51,6 +43,7 @@ Information for contributors:
 ### Architecture
 
 High-level system design and design decisions:
+
 - **[System Architecture](architecture.md)**: Overall system structure
 - Component relationships
 - Data flow diagrams

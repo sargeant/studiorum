@@ -2,17 +2,6 @@
 
 Comprehensive guide to using 5e2pdf for creating custom D&D 5e PDF documents.
 
-## Table of Contents
-
-```{toctree}
-:maxdepth: 2
-
-installation
-basic-usage
-advanced-features
-troubleshooting
-```
-
 ## Overview
 
 The User Guide covers everything you need to know to effectively use 5e2pdf, from basic installation through advanced customization techniques. Whether you're a DM preparing for sessions or a player creating reference materials, this guide will help you get the most out of 5e2pdf.
