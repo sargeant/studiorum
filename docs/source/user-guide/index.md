@@ -18,3 +18,14 @@ The User Guide covers everything you need to know to effectively use 5e2pdf, fro
 If you're new to 5e2pdf, start with the [Quick Start Guide](../quickstart.md) to get up and running quickly, then return here for more detailed information.
 
 For specific examples and use cases, check out the [Examples](../examples/index.md) section.
+
+## Table of Contents
+
+```{toctree}
+:maxdepth: 2
+
+installation
+basic-usage
+advanced-features
+troubleshooting
+```

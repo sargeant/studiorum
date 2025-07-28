@@ -96,4 +96,28 @@ src/dnd5e/
 - **Linting**: Code formatting with ruff
 - **Documentation**: Inline docstrings and comprehensive guides
 
+## Table of Contents
+
+```{toctree}
+:maxdepth: 2
+:caption: API Documentation
+
+api/index
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Implementation Guides
+
+implementation/index
+```
+
+```{toctree}
+:maxdepth: 1
+:caption: Project Information
+
+contributing
+architecture
+```
+
 For detailed information on any of these topics, explore the sections below.
