@@ -234,6 +234,30 @@ def convert_adventure(
                 tag_resolver = await get_tag_resolver()
                 display_manager.update_task(load_task, completed=100)
 
+            # Create document metadata for adventure
+            from ...core.models.document_metadata import DocumentMetadata, DocumentType
+
+            metadata = DocumentMetadata(
+                title=title or f"Adventure: {content_items[0].name}",
+                subtitle=None,
+                short_title=None,
+                editor=None,
+                date=None,
+                version=None,
+                edition=None,
+                publisher=None,
+                document_type=DocumentType.ADVENTURE,
+                include_toc=True,
+                include_index=False,
+                include_bibliography=False,
+                include_glossary=False,
+                cover=None,
+                logo_path=None,
+                subject=None,
+                description=None,
+                use_parts=False,
+            )
+
             # Create render context
             context = RenderContext(
                 title=title or f"Adventure: {content_items[0].name}",
@@ -243,6 +267,7 @@ def convert_adventure(
                 include_creatures=with_creatures,
                 omnidexer=omnidexer,
                 tag_resolver=tag_resolver,
+                metadata=metadata,
             )
 
             # Render document

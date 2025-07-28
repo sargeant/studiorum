@@ -212,6 +212,12 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 adventure_data = data["adventureData"]
                 if isinstance(adventure_data, list) and adventure_data:
                     return adventure_data
+            elif "data" in data:
+                # Handle 5etools adventure data format with data array
+                # Return the entire file as a single adventure, not individual sections
+                adventure_data = data["data"]
+                if isinstance(adventure_data, list) and adventure_data:
+                    return [data]  # Wrap entire file structure as single adventure
             return []
         elif self._content_type == ContentType.BOOK:
             if "book" in data:
