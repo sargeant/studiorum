@@ -1,6 +1,5 @@
 """Tests for LaTeX compilation progress tracking."""
 
-import time
 from typing import Any
 from unittest.mock import Mock, patch
 

@@ -1,7 +1,6 @@
 """Protocol interfaces for breaking circular dependencies and tight coupling."""
 
-from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Optional, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 from .models.content import BaseContent, ContentType
 

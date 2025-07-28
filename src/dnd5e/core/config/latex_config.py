@@ -1,7 +1,6 @@
 """LaTeX-specific configuration for 5e2pdf."""
 
 from pathlib import Path
-from typing import Any
 
 from pydantic import BaseModel, Field, validator
 

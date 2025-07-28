@@ -289,7 +289,6 @@ class TestDeepIndexing:
         """Test that deep indexing works with the full omnidexer system."""
         # Create a simple class data file
         import json
-        from pathlib import Path
 
         # Create the class subdirectory
         class_dir = temp_data_dir / "class"
@@ -396,7 +395,6 @@ class TestDeepIndexing:
     async def test_deep_indexing_disabled(self, temp_data_dir: Any) -> None:
         """Test that when deep indexing is disabled, nested content is not indexed."""
         import json
-        from pathlib import Path
 
         # Create the class subdirectory
         class_dir = temp_data_dir / "class"

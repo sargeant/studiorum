@@ -1,6 +1,5 @@
 """Lark-based parser for D&D 5e.tools tags."""
 
-import logging
 from pathlib import Path
 from typing import Any
 

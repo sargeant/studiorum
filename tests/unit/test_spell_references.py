@@ -1,7 +1,5 @@
 """Tests for spell reference parsing."""
 
-import pytest
-
 from dnd5e.core.references import SpellReference, SpellReferenceParser
 
 

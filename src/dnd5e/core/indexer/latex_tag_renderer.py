@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from dnd5e.core.logging import get_logger
 
-from .content_tracker import ContentTracker
 from .cross_reference_manager import CrossReferenceManager
 from .hyperlink_manager import HyperlinkManager
 from .latex_content_tracker import LaTeXContentTracker
-from .tag_ast import ASTNode, DocumentNode, TagNode, TextNode
-from .tag_handlers import TagHandler, get_default_handlers
+from .tag_ast import ASTNode, DocumentNode, TagNode
 from .tag_renderer import RendererContext, TagRenderer
 
 logger = get_logger(__name__)

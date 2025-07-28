@@ -4,7 +4,6 @@ import asyncio
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional
 
 from ..config.sources import ContentSource, SourceType
 from ..logging import get_logger

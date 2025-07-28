@@ -3,7 +3,6 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from dnd5e.core.models.content import BaseContent
 from dnd5e.core.models.creatures import Creature
 from dnd5e.core.models.items import Item
 from dnd5e.core.models.spells import Spell

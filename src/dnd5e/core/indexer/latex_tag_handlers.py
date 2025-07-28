@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any
 
 from dnd5e.core.logging import get_logger
 
 from .content_tracker import ContentTracker
 from .cross_reference_manager import CrossReferenceManager
-from .hyperlink_manager import HyperlinkManager
 from .tag_ast import TagNode
 from .tag_handlers import (
     AdventureTagHandler,

@@ -4,13 +4,11 @@ This module provides functionality to detect, validate, and configure
 the DND-5e-LaTeX-Template for use with 5e2pdf.
 """
 
-import os
 import subprocess
 import sys
 from pathlib import Path
 
 from rich.console import Console
-from rich.table import Table
 
 console = Console()
 

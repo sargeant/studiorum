@@ -8,7 +8,6 @@ from .chapter import Chapter
 from .content import BaseContent
 
 if TYPE_CHECKING:
-    from ..interfaces import DeepIndexable
     from ..loaders.omnidexer import Omnidexer
 
 

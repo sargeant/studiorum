@@ -2,8 +2,6 @@
 
 from unittest.mock import Mock
 
-import pytest
-
 from dnd5e.renderers.latex.reference_resolver import ReferenceContext, ReferenceResolver
 
 

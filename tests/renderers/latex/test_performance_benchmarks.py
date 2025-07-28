@@ -9,7 +9,6 @@ import pytest
 
 from dnd5e.core.models.books import Book, BookChapter  # type: ignore
 from dnd5e.core.models.content import Source  # type: ignore
-from dnd5e.core.models.creatures import Creature  # type: ignore
 from dnd5e.core.models.spells import Spell  # type: ignore
 from dnd5e.renderers.base.context import RenderContext  # type: ignore
 from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore

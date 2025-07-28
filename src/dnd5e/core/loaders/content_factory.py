@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from ..interfaces import ContentLoader, get_content_type_registry
+from ..interfaces import get_content_type_registry
 from ..models.content import BaseContent, ContentType
 
 

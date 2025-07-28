@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, model_validator
 
-from .content import BaseContent, ContentType
+from .content import BaseContent
 
 if TYPE_CHECKING:
-    from ..interfaces import DeepIndexable
+    pass
 
 
 class ClassFeature(BaseContent):
@@ -106,7 +106,6 @@ class Class(BaseContent):
 
     def get_deep_index_entries(self, omnidexer: Any) -> list[BaseContent]:
         """Return class features and subclass features for deep indexing."""
-        from ..interfaces import DeepIndexable
 
         nested_content: list[BaseContent] = []
 

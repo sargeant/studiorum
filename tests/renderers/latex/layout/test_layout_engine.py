@@ -3,8 +3,6 @@
 from typing import Any
 from unittest.mock import Mock, patch
 
-import pytest
-
 from dnd5e.core.models.content import ContentType  # type: ignore
 from dnd5e.renderers.latex.layout.base import LayoutHint, LayoutStrategy  # type: ignore
 from dnd5e.renderers.latex.layout.layout_engine import LayoutEngine  # type: ignore

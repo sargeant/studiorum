@@ -1,6 +1,5 @@
 """Tests for GitHub source manager."""
 
-import asyncio
 import shutil
 import subprocess
 import tempfile

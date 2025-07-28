@@ -2,9 +2,8 @@
 
 import asyncio
 import json
-from datetime import timedelta
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 

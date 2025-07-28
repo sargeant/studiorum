@@ -1,6 +1,5 @@
 """Modern AST-based tag resolution system."""
 
-import logging
 from collections.abc import Callable
 from typing import Any
 

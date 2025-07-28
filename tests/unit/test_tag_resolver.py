@@ -119,20 +119,6 @@ class TestTagParser:
         assert isinstance(creature_node.display_text_nodes[0], TextNode)
         assert creature_node.display_text_nodes[0].text == "great wyrm"
 
-    def test_parser_handles_nested_tags(self) -> None:
-        """Test parsing nested tags within display text."""
-        # This should parse to a creature tag with display_text containing both text and a bold tag
-        # parser: Any = TagParser()
-        # ast = parser.parse(text)
-        #
-        # creature_node = ast.children[0]
-        # assert isinstance(creature_node, CreatureTagNode)
-        # assert len(creature_node.display_text_nodes) == 3  # "{@bold great}", " ", "wyrm"
-        # assert isinstance(creature_node.display_text_nodes[0], BoldTagNode)
-        # assert isinstance(creature_node.display_text_nodes[1], TextNode)
-        # assert isinstance(creature_node.display_text_nodes[2], TextNode)
-        pass  # Placeholder for now
-
     def test_parser_handles_mixed_content(self) -> None:
         """Test parsing text with multiple tags and plain text."""
         text = "Cast {@spell Fireball|PHB} at the {@creature Ancient Red Dragon|MM}!"
@@ -159,143 +145,13 @@ class TestTagParser:
         assert isinstance(ast.children[4], TextNode)
         assert ast.children[4].text == "!"
 
-    def test_parser_handles_escaped_characters(self) -> None:
-        """Test parsing tags with escaped pipes and braces."""
-        # parser: Any = TagParser()
-        # ast = parser.parse(text)
-        #
-        # creature_node = ast.children[0]
-        # assert creature_node.name == "Name|with|pipes"  # Escaped pipes should be unescaped
-        # assert creature_node.display_text_nodes[0].text == "display}with}braces"  # Escaped braces
-        pass  # Placeholder for now
-
-    def test_parser_error_handling_malformed_tags(self) -> None:
-        """Test parser error handling for malformed tags."""
-
-        # parser: Any = TagParser()
-        # for case in malformed_cases:
-        #     try:
-        #         ast = parser.parse(case)
-        #         # Parser should either recover gracefully or provide meaningful error
-        #         assert ast is not None
-        #     except TagParseError as e:
-        #         # Should provide helpful error information
-        #         assert "malformed" in str(e).lower() or "invalid" in str(e).lower()
-        #         assert e.position is not None  # Should indicate where the error occurred
-        pass  # Placeholder for now
-
 
 class TestTagHandlers:
     """Tests for individual tag handlers."""
 
-    def test_creature_handler(self) -> None:
-        """Test creature tag handler rendering and content tracking."""
-        # handler: Any = CreatureTagHandler()
-        # assert handler.handles("creature")
-        # assert not handler.handles("spell")
-        #
-        # node: Any = MockCreatureTagNode("Ancient Red Dragon", "MM")
-        # context: Any = MockRendererContext()
-        # result = handler.render(node, context)
-        #
-        # assert result == "\\textbf{Ancient Red Dragon}"
-        pass  # Placeholder for now
-
-    def test_creature_handler_with_display_text(self) -> None:
-        """Test creature handler with custom display text."""
-        # handler: Any = CreatureTagHandler()
-        # display_nodes = [MockTextNode("great wyrm")]
-        # node: Any = MockCreatureTagNode("Ancient Red Dragon", "MM", display_nodes)
-        # context: Any = MockRendererContext()
-        # result = handler.render(node, context)
-        #
-        # assert result == "\\textbf{great wyrm}"
-        pass  # Placeholder for now
-
-    def test_creature_handler_content_tracking(self) -> None:
-        """Test creature handler content tracking."""
-        # handler: Any = CreatureTagHandler()
-        # tracker: Any = ContentTracker()
-        # node: Any = MockCreatureTagNode("Ancient Red Dragon", "MM")
-        #
-        # handler.track_content(node, tracker)
-        # tracked = tracker.get_tracked_content()
-        #
-        # assert len(tracked) == 1
-        # assert ("creature", "Ancient Red Dragon", "MM") in tracked
-        pass  # Placeholder for now
-
-    def test_spell_handler(self) -> None:
-        """Test spell tag handler rendering."""
-        # handler: Any = SpellTagHandler()
-        # assert handler.handles("spell")
-        #
-        # node: Any = MockSpellTagNode("Fireball", "PHB")
-        # context: Any = MockRendererContext()
-        # result = handler.render(node, context)
-        #
-        # assert result == "\\textit{Fireball}"
-        pass  # Placeholder for now
-
-    def test_dice_handler(self) -> None:
-        """Test dice tag handler rendering."""
-        # handler: Any = DiceTagHandler()
-        # assert handler.handles("dice")
-        #
-        # node: Any = MockDiceTagNode("1d20+5")
-        # context: Any = MockRendererContext()
-        # result = handler.render(node, context)
-        #
-        # assert result == "\\texttt{1d20+5}"
-        pass  # Placeholder for now
-
 
 class TestTagRenderer:
     """Tests for the tag renderer/dispatcher."""
-
-    def test_renderer_registration(self) -> None:
-        """Test tag handler registration."""
-        # renderer: Any = TagRenderer()
-        # handler: Any = CreatureTagHandler()
-        # renderer.register_handler(handler)
-        #
-        # assert "creature" in renderer._handlers
-        # assert renderer._handlers["creature"] == handler
-        pass  # Placeholder for now
-
-    def test_renderer_text_node(self) -> None:
-        """Test rendering text nodes."""
-        # renderer: Any = TagRenderer()
-        # context: Any = MockRendererContext()
-        # node: Any = MockTextNode("plain text")
-        # result = renderer.render_node(node, context)
-        #
-        # assert result == "plain text"
-        pass  # Placeholder for now
-
-    def test_renderer_tag_node(self) -> None:
-        """Test rendering tag nodes."""
-        # renderer: Any = TagRenderer()
-        # renderer.register_handler(CreatureTagHandler())
-        # context: Any = MockRendererContext()
-        #
-        # node: Any = MockCreatureTagNode("Ancient Red Dragon", "MM")
-        # result = renderer.render_node(node, context)
-        #
-        # assert result == "\\textbf{Ancient Red Dragon}"
-        pass  # Placeholder for now
-
-    def test_renderer_unknown_tag_fallback(self) -> None:
-        """Test fallback for unknown tag types."""
-        # renderer: Any = TagRenderer()
-        # context: Any = MockRendererContext()
-        #
-        # node: Any = MockTagNode("unknown_type")
-        # result = renderer.render_node(node, context)
-        #
-        # # Should fallback to original tag format or error message
-        # assert "{@unknown_type" in result or "unknown" in result.lower()
-        pass  # Placeholder for now
 
 
 class TestContentTracker:
@@ -678,60 +534,3 @@ class TestTagResolverFacade:
 
 class TestIntegrationScenarios:
     """Integration tests for complete tag processing scenarios."""
-
-    def test_complex_document_processing(self) -> None:
-        """Test processing a complex document with multiple tag types."""
-
-        # facade: Any = TagResolverFacade()
-        # result = facade.process_text(document)
-        #
-        # # Check that all tags are processed correctly
-        # assert "\\textbf{great wyrm}" in result
-        # assert "\\textit{Fireball}" in result
-        # assert "\\texttt{8d6}" in result
-        # assert "DC 19" in result
-        # assert "+14" in result
-        # assert "The Village (p. 45)" in result
-        #
-        # # Check content tracking
-        # tracked = facade.get_tracked_content_for_appendix()
-        # expected_tracked = {
-        #     ("creature", "Ancient Red Dragon", "MM"),
-        #     ("spell", "Fireball", "PHB"),
-        #     ("adventure", "Chapter 3", "CoS"),
-        # }
-        # assert set(tracked) == expected_tracked
-        pass  # Placeholder for now
-
-    def test_performance_with_large_document(self) -> None:
-        """Test performance with a large document containing many tags."""
-        # Create a large document with 1000 tags
-        tags = [f"{{@spell Spell{i}|PHB}}" for i in range(1000)]
-        " ".join(tags)
-
-        # facade: Any = TagResolverFacade()
-        #
-        # import time
-        # start_time = time.time()
-        # result = facade.process_text(document)
-        # end_time = time.time()
-        #
-        # # Should complete in reasonable time (adjust threshold as needed)
-        # assert end_time - start_time < 5.0  # 5 seconds threshold
-        #
-        # # Should track all unique spells
-        # tracked = facade.get_tracked_content_for_appendix()
-        # assert len(tracked) == 1000
-        pass  # Placeholder for now
-
-    def test_error_recovery(self) -> None:
-        """Test that the system recovers gracefully from parsing errors."""
-
-        # facade: Any = TagResolverFacade()
-        # result = facade.process_text(document)
-        #
-        # # Should process valid tags and handle malformed ones gracefully
-        # assert "\\textit{Fireball}" in result
-        # assert "\\textbf{Dragon}" in result
-        # assert isinstance(result, str)  # Should not crash
-        pass  # Placeholder for now

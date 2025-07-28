@@ -1,6 +1,5 @@
 """Tests for ContentResolver."""
 
-from typing import Any
 from unittest.mock import Mock
 
 import pytest

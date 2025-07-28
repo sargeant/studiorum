@@ -1,12 +1,9 @@
 """Tests for setup CLI commands."""
 
-import asyncio
 import tempfile
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
-import pytest
-import typer
 from typer.testing import CliRunner
 
 from dnd5e.cli.commands.setup import app

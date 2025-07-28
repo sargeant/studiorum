@@ -2,13 +2,12 @@
 
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 from .chapter import Chapter
 from .content import BaseContent
 
 if TYPE_CHECKING:
-    from ..interfaces import DeepIndexable
     from ..loaders.omnidexer import Omnidexer
 
 

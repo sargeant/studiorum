@@ -1,9 +1,6 @@
 """Tests for LaTeX error parsing."""
 
-from pathlib import Path
 from typing import Any
-
-import pytest
 
 from dnd5e.renderers.latex.error_parser import (  # type: ignore
     ErrorCategory,

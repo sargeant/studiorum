@@ -1,6 +1,5 @@
 """Tests for base renderer functionality."""
 
-from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 
