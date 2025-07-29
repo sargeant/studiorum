@@ -1,79 +1,18 @@
 """Book data models."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from .chapter import Chapter
 from .content import BaseContent
 
+if TYPE_CHECKING:
+    from ..loaders.omnidexer import Omnidexer
 
-class BookChapter(BaseModel):
-    """Represents a chapter within a book."""
 
-    name: str = Field(..., description="Chapter name")
-    ordinal: dict[str, Any] | None = Field(None, description="Chapter numbering")
-    headers: list[str | dict[str, Any]] | None = Field(
-        None, description="Section headers"
-    )
-    entries: list[Any] = Field(default_factory=list, description="Chapter content")
-
-    def get_chapter_number(self) -> str:
-        """Get formatted chapter number."""
-        if self.ordinal:
-            if isinstance(self.ordinal, dict):
-                ordinal_type = self.ordinal.get("type", "chapter")
-                identifier = self.ordinal.get("identifier", "")
-                if ordinal_type == "chapter" and identifier:
-                    return f"Chapter {identifier}"
-                elif ordinal_type == "part" and identifier:
-                    return f"Part {identifier}"
-                elif ordinal_type == "appendix" and identifier:
-                    return f"Appendix {identifier}"
-                elif identifier:
-                    return str(identifier)
-            return str(self.ordinal)
-        return ""
-
-    @field_validator("headers", mode="before")
-    @classmethod
-    def parse_headers(cls, v: Any) -> Any:
-        """Parse headers from various formats."""
-        if not v:
-            return v
-
-        if isinstance(v, list):
-            result = []
-            for item in v:
-                if isinstance(item, str):
-                    result.append(item)
-                elif isinstance(item, dict):
-                    # Extract header text from dict format
-                    if "header" in item:
-                        result.append(item["header"])
-                    else:
-                        result.append(str(item))
-                else:
-                    result.append(str(item))
-            return result
-        return v
-
-    def get_formatted_headers(self) -> list[str]:
-        """Get formatted header texts."""
-        if not self.headers:
-            return []
-
-        result = []
-        for header in self.headers:
-            if isinstance(header, str):
-                result.append(header)
-            elif isinstance(header, dict):
-                if "header" in header:
-                    result.append(header["header"])
-                else:
-                    result.append(str(header))
-            else:
-                result.append(str(header))
-        return result
+# Legacy alias for backward compatibility
+BookChapter = Chapter
 
 
 class BookMetadata(BaseModel):
@@ -120,9 +59,7 @@ class Book(BaseContent):
     """Represents a D&D rulebook or supplement."""
 
     id: str | None = Field(None, description="Book identifier")
-    contents: list[BookChapter] = Field(
-        default_factory=list, description="Book chapters"
-    )
+    contents: list[Chapter] = Field(default_factory=list, description="Book chapters")
     metadata: BookMetadata | None = Field(None, description="Book metadata")
 
     # Book-specific fields
@@ -152,7 +89,31 @@ class Book(BaseContent):
             if isinstance(data_array, list):
                 # Create a copy of the data and transform it
                 transformed = dict(data)
-                transformed["contents"] = data_array
+
+                # Process each item in data_array to ensure required fields
+                processed_contents = []
+                for i, item in enumerate(data_array):
+                    if isinstance(item, dict):
+                        # Ensure each chapter/section has a name field
+                        if "name" not in item:
+                            item = dict(item)  # Make a copy
+                            # Generate a default name based on type or position
+                            if item.get("type") == "section":
+                                item["name"] = f"Section {i + 1}"
+                            else:
+                                item["name"] = f"Chapter {i + 1}"
+                        processed_contents.append(item)
+                    else:
+                        # Non-dict items need to be wrapped
+                        processed_contents.append(
+                            {
+                                "name": f"Chapter {i + 1}",
+                                "type": "chapter",
+                                "entries": [item] if item else [],
+                            }
+                        )
+
+                transformed["contents"] = processed_contents
                 # Keep the original data field for reference if needed
                 return transformed
         return data
@@ -188,3 +149,52 @@ class Book(BaseContent):
                 cover=None,
             ).get_authors_text()
         return ""
+
+    def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+        """Return nested content for deep indexing.
+
+        Extracts indexable content from book chapters including:
+        - Sections
+        - Variant rules
+        - Tables
+        - Insets/sidebars
+
+        Args:
+            omnidexer: The omnidexer instance doing the indexing
+
+        Returns:
+            List of nested content objects for indexing
+        """
+        from ..parsers.entry_parser import EntryParser
+
+        nested_content = []
+
+        # Process each chapter
+        for chapter in self.contents:
+            if not chapter.entries:
+                continue
+
+            # Create parser for this chapter
+            chapter_name = chapter.name
+            if chapter.get_chapter_number():
+                chapter_name = f"{chapter.get_chapter_number()}: {chapter.name}"
+
+            parser = EntryParser(
+                source=self.source, parent_name=f"{self.name} > {chapter_name}"
+            )
+
+            # Parse chapter entries
+            try:
+                for content_item in parser.parse_entries(chapter.entries, "book"):
+                    nested_content.append(content_item)
+            except Exception as e:
+                # Log error but continue processing other chapters
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f"Error parsing entries in {self.name} chapter '{chapter.name}': {e}"
+                )
+                continue
+
+        return nested_content

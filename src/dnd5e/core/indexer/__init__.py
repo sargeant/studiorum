@@ -1,9 +1,7 @@
 """Cross-reference and tag resolution system."""
 
-from .refactored_tag_resolver import RefactoredTagResolver, create_tag_resolver
 from .reference_index import ReferenceIndex
-from .semantic_resolver import SemanticTagResolver
-from .tag_resolver import TagMatch, TagResolver
+from .tag_resolver import TagResolver
 from .tag_types import (
     ContentReference,
     FormattingNode,
@@ -14,14 +12,9 @@ from .tag_types import (
 )
 
 __all__ = [
-    # Original classes
+    # Core classes
     "TagResolver",
-    "TagMatch",
     "ReferenceIndex",
-    # New refactored classes
-    "RefactoredTagResolver",
-    "SemanticTagResolver",
-    "create_tag_resolver",
     # Intermediate representation types
     "ContentReference",
     "FormattingNode",

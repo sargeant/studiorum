@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -17,6 +16,8 @@ class ContentType(str, Enum):
     CREATURE = "creature"
     ITEM = "item"
     CLASS = "class"
+    CLASS_FEATURE = "classFeature"
+    SUBCLASS_FEATURE = "subclassFeature"
     BACKGROUND = "background"
     FEAT = "feat"
     RACE = "race"
@@ -24,6 +25,19 @@ class ContentType(str, Enum):
     SPELL_FLUFF = "spellFluff"
     CREATURE_FLUFF = "creatureFluff"
     ITEM_FLUFF = "itemFluff"
+
+    # Adventure nested content types
+    ADVENTURE_SECTION = "adventureSection"
+    ADVENTURE_TABLE = "adventureTable"
+    ADVENTURE_NPC = "adventureNpc"
+    ADVENTURE_LOCATION = "adventureLocation"
+    ADVENTURE_INSET = "adventureInset"
+
+    # Book nested content types
+    BOOK_SECTION = "bookSection"
+    VARIANT_RULE = "variantRule"
+    BOOK_TABLE = "bookTable"
+    BOOK_INSET = "bookInset"
 
     @classmethod
     def from_content(cls, content: BaseContent) -> ContentType:

@@ -1,20 +1,47 @@
 """Pydantic models for character classes."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, model_validator
 
 from .content import BaseContent
 
+if TYPE_CHECKING:
+    pass
 
-class ClassFeature(BaseModel):
+
+class ClassFeature(BaseContent):
     """A feature for a character class."""
 
-    class_feature: str = Field(..., alias="classFeature")
-    gain_subclass_feature: bool = Field(..., alias="gainSubclassFeature")
+    # Core identification fields
+    class_name: str = Field(..., alias="className")
+    class_source: str = Field(..., alias="classSource")
     level: int
-    name: str
-    source: str
+
+    # Optional detailed fields (from the separate classFeature definitions)
+    page: int | None = None
+    entries: list[Any] = Field(default_factory=list)
+    header: int | None = None
+    srd: bool | None = None
+    basic_rules: bool | None = Field(default=None, alias="basicRules")
+
+
+class SubclassFeature(BaseContent):
+    """A feature for a character subclass."""
+
+    # Core identification fields
+    class_name: str = Field(..., alias="className")
+    class_source: str = Field(..., alias="classSource")
+    subclass_short_name: str = Field(..., alias="subclassShortName")
+    subclass_source: str = Field(..., alias="subclassSource")
+    level: int
+
+    # Optional detailed fields
+    page: int | None = None
+    entries: list[Any] = Field(default_factory=list)
+    header: int | None = None
+    srd: bool | None = None
+    basic_rules: bool | None = Field(default=None, alias="basicRules")
 
 
 class Subclass(BaseModel):
@@ -23,7 +50,9 @@ class Subclass(BaseModel):
     name: str
     short_name: str = Field(..., alias="shortName")
     source: str
-    subclass_features: str = Field(..., alias="subclassFeatures")
+    class_name: str = Field(..., alias="className")
+    class_source: str = Field(..., alias="classSource")
+    subclass_features: list[str] = Field(..., alias="subclassFeatures")
 
 
 class Class(BaseContent):
@@ -74,3 +103,101 @@ class Class(BaseContent):
                 )
 
         return self
+
+    def get_deep_index_entries(self, omnidexer: Any) -> list[BaseContent]:
+        """Return class features and subclass features for deep indexing."""
+
+        nested_content: list[BaseContent] = []
+
+        # Parse class features from the classFeatures array
+        if self.class_features:
+            for feature_ref in self.class_features:
+                if isinstance(feature_ref, str):
+                    # Parse string format: "FeatureName|ClassName||Level" or "FeatureName|ClassName||Level|Source"
+                    feature = self._parse_class_feature_reference(feature_ref)
+                    if feature:
+                        nested_content.append(feature)
+                elif isinstance(feature_ref, dict) and feature_ref.get(
+                    "gainSubclassFeature"
+                ):
+                    # This is a subclass feature marker, parse it as a class feature
+                    class_feature_ref = feature_ref.get("classFeature", "")
+                    if class_feature_ref:
+                        feature = self._parse_class_feature_reference(class_feature_ref)
+                        if feature:
+                            nested_content.append(feature)
+
+        # Parse subclass features from each subclass
+        for subclass in self.subclasses:
+            for feature_ref in subclass.subclass_features:
+                # Parse subclass feature format: "FeatureName|ClassName||SubclassName||Level"
+                subclass_feature = self._parse_subclass_feature_reference(
+                    feature_ref, subclass
+                )
+                if subclass_feature:
+                    nested_content.append(subclass_feature)
+
+        return nested_content
+
+    def _parse_class_feature_reference(self, feature_ref: str) -> ClassFeature | None:
+        """Parse a class feature reference string into a ClassFeature object."""
+        try:
+            # Format: "FeatureName|ClassName||Level" or "FeatureName|ClassName||Level|Source"
+            parts = feature_ref.split("|")
+            if len(parts) < 4:
+                return None
+
+            feature_name = parts[0]
+            class_name = parts[1]
+            # parts[2] is empty (double pipe separator)
+            level_str = parts[3]
+            source_abbrev = parts[4] if len(parts) > 4 else self.source.abbreviation
+
+            try:
+                level = int(level_str)
+            except ValueError:
+                return None
+
+            return ClassFeature(
+                name=feature_name,
+                source={"abbreviation": source_abbrev, "name": source_abbrev},
+                className=class_name,
+                classSource=self.source.abbreviation,
+                level=level,
+            )
+        except (IndexError, ValueError):
+            return None
+
+    def _parse_subclass_feature_reference(
+        self, feature_ref: str, subclass: Subclass
+    ) -> SubclassFeature | None:
+        """Parse a subclass feature reference string into a SubclassFeature object."""
+        try:
+            # Format: "FeatureName|ClassName||SubclassName||Level"
+            parts = feature_ref.split("|")
+            if len(parts) < 5:
+                return None
+
+            feature_name = parts[0]
+            class_name = parts[1]
+            # parts[2] is empty (double pipe separator)
+            # parts[3] is subclass_name (not used directly, taken from subclass parameter)
+            # parts[4] is empty (double pipe separator)
+            level_str = parts[5] if len(parts) > 5 else ""
+
+            try:
+                level = int(level_str)
+            except ValueError:
+                return None
+
+            return SubclassFeature(
+                name=feature_name,
+                source={"abbreviation": subclass.source, "name": subclass.source},
+                className=class_name,
+                classSource=self.source.abbreviation,
+                subclassShortName=subclass.short_name,
+                subclassSource=subclass.source,
+                level=level,
+            )
+        except (IndexError, ValueError):
+            return None

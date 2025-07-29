@@ -6,16 +6,14 @@ from typing import Any
 
 import typer
 from rich import print as rprint
-from rich.console import Console
-from rich.progress import Progress
 from rich.table import Table
 
+from dnd5e.cli.display_manager import display_manager
 from dnd5e.cli.main import get_omnidexer
-from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
 
 app: typer.Typer = typer.Typer(help="List available D&D content")
-console = Console()
+console = display_manager.console
 
 
 @app.command("files")

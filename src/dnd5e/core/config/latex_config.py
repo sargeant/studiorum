@@ -1,9 +1,8 @@
 """LaTeX-specific configuration for 5e2pdf."""
 
 from pathlib import Path
-from typing import Any
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class LaTeXDocumentConfig(BaseModel):
@@ -63,7 +62,8 @@ class LaTeXDocumentConfig(BaseModel):
         default_factory=list, description="Additional custom class options"
     )
 
-    @validator("document_class")
+    @field_validator("document_class")
+    @classmethod
     def validate_document_class(cls, v: str) -> str:
         """Validate document class selection."""
         valid_classes = ["dndbook", "dndarticle"]
@@ -71,7 +71,8 @@ class LaTeXDocumentConfig(BaseModel):
             raise ValueError(f"Document class must be one of: {valid_classes}")
         return v
 
-    @validator("font_scheme")
+    @field_validator("font_scheme")
+    @classmethod
     def validate_font_scheme(cls, v: str) -> str:
         """Validate font scheme selection."""
         valid_schemes = ["dmsguild", "commercial", "system"]
@@ -79,7 +80,8 @@ class LaTeXDocumentConfig(BaseModel):
             raise ValueError(f"Font scheme must be one of: {valid_schemes}")
         return v
 
-    @validator("paper_size")
+    @field_validator("paper_size")
+    @classmethod
     def validate_paper_size(cls, v: str) -> str:
         """Validate paper size selection."""
         valid_sizes = ["letterpaper", "a4paper", "a5paper"]
@@ -87,7 +89,8 @@ class LaTeXDocumentConfig(BaseModel):
             raise ValueError(f"Paper size must be one of: {valid_sizes}")
         return v
 
-    @validator("font_size")
+    @field_validator("font_size")
+    @classmethod
     def validate_font_size(cls, v: str) -> str:
         """Validate font size selection."""
         valid_sizes = ["10pt", "11pt", "12pt"]
@@ -189,7 +192,8 @@ class LaTeXEngineConfig(BaseModel):
 
     verbose: bool = Field(default=False, description="Enable verbose output")
 
-    @validator("engine")
+    @field_validator("engine")
+    @classmethod
     def validate_engine(cls, v: str) -> str:
         """Validate LaTeX engine selection."""
         valid_engines = ["pdflatex", "lualatex", "xelatex"]
@@ -197,7 +201,8 @@ class LaTeXEngineConfig(BaseModel):
             raise ValueError(f"LaTeX engine must be one of: {valid_engines}")
         return v
 
-    @validator("interaction_mode")
+    @field_validator("interaction_mode")
+    @classmethod
     def validate_interaction_mode(cls, v: str) -> str:
         """Validate interaction mode."""
         valid_modes = ["nonstopmode", "batchmode", "scrollmode", "errorstopmode"]

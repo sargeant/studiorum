@@ -1,6 +1,5 @@
 """Tests for LaTeX compilation progress tracking."""
 
-import time
 from typing import Any
 from unittest.mock import Mock, patch
 
@@ -167,29 +166,36 @@ class TestRichProgressReporter:
 
     def test_rich_reporter_initialization(self) -> None:
         """Test rich reporter initialization."""
-        with patch("dnd5e.renderers.latex.progress_tracker.Console"):
+        with (
+            patch("dnd5e.renderers.latex.progress_tracker.Console"),
+            patch(
+                "dnd5e.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
+                False,
+            ),
+        ):
             reporter: Any = RichProgressReporter()
             assert reporter.console is not None
-            assert reporter.progress is None
             assert reporter.main_task is None
             assert reporter.pass_task is None
+            assert reporter.use_display_manager is False
 
     def test_rich_reporter_with_custom_console(self) -> None:
         """Test rich reporter with custom console."""
         mock_console: Any = Mock()
-        reporter: Any = RichProgressReporter(mock_console)
-        assert reporter.console == mock_console
+        with patch(
+            "dnd5e.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE", False
+        ):
+            reporter: Any = RichProgressReporter(mock_console)
+            assert reporter.console == mock_console
+            assert reporter.use_display_manager is False
 
     def test_rich_reporter_workflow(self) -> None:
-        """Test complete workflow with rich reporter."""
+        """Test complete workflow with rich reporter (fallback mode)."""
         mock_console: Any = Mock()
 
         with patch(
-            "dnd5e.renderers.latex.progress_tracker.Progress"
-        ) as mock_progress_class:
-            mock_progress: Any = Mock()
-            mock_progress_class.return_value = mock_progress
-
+            "dnd5e.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE", False
+        ):
             reporter: Any = RichProgressReporter(mock_console)
 
             # Test workflow
@@ -197,32 +203,72 @@ class TestRichProgressReporter:
             assert reporter.total_passes == 3
             assert reporter.start_time > 0
 
-            mock_progress.start.assert_called_once()
-            mock_progress.add_task.assert_called()
+            # In fallback mode, it should print to console instead of creating Progress
+            mock_console.print.assert_called()
 
             reporter.start_pass(1, "Initial compilation")
             assert reporter.current_pass == 1
 
             reporter.update_pass_progress(0.5, "Processing")
-            mock_progress.update.assert_called()
+            # Should print progress update in fallback mode
+            assert mock_console.print.call_count >= 2
 
             reporter.finish_pass(True, 25.0)
 
             reporter.finish_compilation(True, 75.0)
-            mock_progress.stop.assert_called_once()
+            # Should print final completion message
+            assert mock_console.print.call_count >= 3
 
     def test_rich_reporter_error_display(self) -> None:
         """Test error display in rich reporter."""
         mock_console: Any = Mock()
-        reporter: Any = RichProgressReporter(mock_console)
+        with patch(
+            "dnd5e.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE", False
+        ):
+            reporter: Any = RichProgressReporter(mock_console)
 
-        reporter.show_error("Test error message")
-        mock_console.print.assert_called_once()
+            reporter.show_error("Test error message")
+            mock_console.print.assert_called_once()
 
-        # Check that error formatting is applied
-        call_args = mock_console.print.call_args[0][0]
-        assert "Error:" in call_args
-        assert "Test error message" in call_args
+            # Check that error formatting is applied
+            call_args = mock_console.print.call_args[0][0]
+            assert "Error:" in call_args
+            assert "Test error message" in call_args
+
+    def test_rich_reporter_with_display_manager(self) -> None:
+        """Test rich reporter when display manager is available."""
+        mock_display_manager = Mock()
+        mock_console = Mock()
+        mock_display_manager.console = mock_console
+
+        with (
+            patch(
+                "dnd5e.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE", True
+            ),
+            patch(
+                "dnd5e.renderers.latex.progress_tracker.display_manager",
+                mock_display_manager,
+            ),
+        ):
+            reporter: Any = RichProgressReporter()
+
+            # Should use display manager's console
+            assert reporter.console == mock_console
+            assert reporter.use_display_manager is True
+
+            # Test workflow with display manager
+            reporter.start_compilation("xelatex", 2)
+            mock_display_manager.add_task.assert_called_once()
+
+            reporter.start_pass(1, "First pass")
+            assert mock_display_manager.add_task.call_count == 2
+
+            reporter.update_pass_progress(0.75, "Processing")
+            mock_display_manager.update_task.assert_called()
+
+            reporter.finish_pass(True, 30.0)
+            # Should update both pass and main tasks
+            assert mock_display_manager.update_task.call_count >= 2
 
     def test_rich_reporter_unavailable(self) -> None:
         """Test rich reporter when rich is not available."""

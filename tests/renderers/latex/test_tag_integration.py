@@ -4,10 +4,6 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.indexer.cross_reference_manager import (
-    CrossReferenceManager,  # type: ignore
-)
-from dnd5e.core.indexer.hyperlink_manager import HyperlinkManager  # type: ignore
 from dnd5e.renderers.latex.tag_integration import (  # type: ignore
     DEFAULT_CONFIGS,
     LaTeXTagIntegration,

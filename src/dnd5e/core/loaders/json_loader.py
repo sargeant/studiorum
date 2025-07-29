@@ -1,16 +1,17 @@
 """JSON data loader with Pydantic validation."""
 
 import json
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
+from ..cache import get_cache
 from ..config.settings import get_settings
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
 from ..validation.error_tracker import ValidationErrorTracker
-from ..validation.strictness import ValidationStrictness
 from .base import DataLoader
 from .content_factory import ContentFactory, get_content_factory
 
@@ -34,10 +35,41 @@ class JsonDataLoader(DataLoader[BaseContent]):
         self._error_tracker = ValidationErrorTracker()
         self._settings = get_settings()
 
+    def _get_cache_key(self, path: Path) -> str:
+        """Generate cache key for a file path."""
+        # Use file path, content type, file modification time, and file size
+        # Including both mtime and size helps detect changes even when mtime precision is low
+        try:
+            stat = path.stat()
+            return f"json_loader:{self._content_type.value}:{path}:{stat.st_mtime}:{stat.st_size}"
+        except OSError:
+            # If we can't stat the file, just use the path
+            return f"json_loader:{self._content_type.value}:{path}:0:0"
+
     async def load(
         self, path: Path
     ) -> list[BaseContent]:  # Changed from T to BaseContent
         """Load JSON file and validate against Pydantic model."""
+        # Try to get from cache first
+        cache = get_cache()
+        cache_key = self._get_cache_key(path)
+
+        # Check cache
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            logger.debug(f"Cache hit for {path}")
+            return cached_result  # type: ignore[no-any-return]
+
+        # Load from file if not in cache
+        result = await self._load_from_file(path)
+
+        # Cache the result (24 hour TTL)
+        cache.set(cache_key, result, expire=timedelta(hours=24).total_seconds())
+
+        return result
+
+    async def _load_from_file(self, path: Path) -> list[BaseContent]:
+        """Load JSON file from disk."""
         try:
             logger.info(f"Loading {self._content_type.value} data from {path}")
 
@@ -179,6 +211,12 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 adventure_data = data["adventureData"]
                 if isinstance(adventure_data, list) and adventure_data:
                     return adventure_data
+            elif "data" in data:
+                # Handle 5etools adventure data format with data array
+                # Return the entire file as a single adventure, not individual sections
+                adventure_data = data["data"]
+                if isinstance(adventure_data, list) and adventure_data:
+                    return [data]  # Wrap entire file structure as single adventure
             return []
         elif self._content_type == ContentType.BOOK:
             if "book" in data:
@@ -344,6 +382,28 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 logger.debug(
                     f"Added inferred type '{item_type}' for item {item.get('name', 'unknown')}"
                 )
+
+        elif self._content_type == ContentType.ADVENTURE:
+            # Add missing name field for 5etools adventure format
+            if "name" not in item and "data" in item:
+                # For 5etools format, derive adventure name from source or use generic name
+                source = item.get("source")
+                if source:
+                    abbrev = None
+                    # Handle both dict and object source formats
+                    if isinstance(source, dict):
+                        abbrev = source.get("abbreviation")
+                    elif hasattr(source, "abbreviation"):
+                        abbrev = source.abbreviation
+
+                    if abbrev:
+                        # Use abbreviation as name for adventures since actual names are in adventures.json
+                        item["name"] = f"Adventure {abbrev}"
+                    else:
+                        item["name"] = "Unknown Adventure"
+                else:
+                    item["name"] = "Unknown Adventure"
+                logger.debug(f"Added name '{item['name']}' for adventure")
 
         elif self._content_type == ContentType.BOOK:
             # Add missing name field for 5etools book format
@@ -725,6 +785,110 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 text_parts.append(fluff_item[field])
 
         return " ".join(text_parts) if text_parts else ""
+
+    def _is_adventure_metadata_file(self, data: dict[str, Any]) -> bool:
+        """Check if this is an adventure metadata file (adventures.json).
+
+        Adventure metadata files have:
+        - 'adventure' key with array of adventure metadata objects
+        - No 'data' key (which would indicate content files)
+
+        Args:
+            data: The parsed JSON data
+
+        Returns:
+            True if this is an adventure metadata file
+        """
+        return (
+            isinstance(data, dict)
+            and "adventure" in data
+            and "data" not in data
+            and isinstance(data["adventure"], list)
+        )
+
+    def _is_adventure_content_file(self, data: dict[str, Any]) -> bool:
+        """Check if this is an adventure content file (adventure-*.json).
+
+        Adventure content files have:
+        - ONLY 'data' key with array of section objects
+        - No 'adventure' key (which would indicate metadata files)
+        - No metadata fields like 'name', 'id', 'source' at root level
+
+        Args:
+            data: The parsed JSON data
+
+        Returns:
+            True if this is a pure adventure content file (should be skipped during metadata loading)
+        """
+        if (
+            not isinstance(data, dict)
+            or "data" not in data
+            or not isinstance(data["data"], list)
+        ):
+            return False
+
+        # If it has 'adventure' key, it's definitely not a content file
+        if "adventure" in data:
+            return False
+
+        # Check if it has metadata fields - if so, it's a mixed file and should be loaded
+        metadata_fields = {"name", "id", "source", "published", "author", "level"}
+        has_metadata = any(field in data for field in metadata_fields)
+
+        # Only consider it a pure content file if it has ONLY 'data' and no metadata fields
+        return not has_metadata
+
+    def _is_book_metadata_file(self, data: dict[str, Any]) -> bool:
+        """Check if this is a book metadata file (books.json).
+
+        Book metadata files have:
+        - 'book' key with array of book metadata objects
+        - No 'data' key (which would indicate content files)
+
+        Args:
+            data: The parsed JSON data
+
+        Returns:
+            True if this is a book metadata file
+        """
+        return (
+            isinstance(data, dict)
+            and "book" in data
+            and "data" not in data
+            and isinstance(data["book"], list)
+        )
+
+    def _is_book_content_file(self, data: dict[str, Any]) -> bool:
+        """Check if this is a book content file (book-*.json).
+
+        Book content files have:
+        - ONLY 'data' key with array of section objects
+        - No 'book' key (which would indicate metadata files)
+        - No metadata fields like 'name', 'id', 'source' at root level
+
+        Args:
+            data: The parsed JSON data
+
+        Returns:
+            True if this is a pure book content file (should be skipped during metadata loading)
+        """
+        if (
+            not isinstance(data, dict)
+            or "data" not in data
+            or not isinstance(data["data"], list)
+        ):
+            return False
+
+        # If it has 'book' key, it's definitely not a content file
+        if "book" in data:
+            return False
+
+        # Check if it has metadata fields - if so, it's a mixed file and should be loaded
+        metadata_fields = {"name", "id", "source", "published", "author", "level"}
+        has_metadata = any(field in data for field in metadata_fields)
+
+        # Only consider it a pure content file if it has ONLY 'data' and no metadata fields
+        return not has_metadata
 
     def _extract_text_from_entries(self, entries: Any) -> list[str]:
         """Recursively extract text from complex entry structures."""

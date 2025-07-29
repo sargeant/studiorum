@@ -2,10 +2,9 @@
 
 from pathlib import Path
 from typing import Any
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
-from jinja2 import TemplateNotFound, TemplateSyntaxError
 
 from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine  # type: ignore
 

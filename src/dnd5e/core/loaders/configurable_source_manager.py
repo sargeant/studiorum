@@ -442,4 +442,14 @@ class ConfigurableSourceManager(SourceManager):
             if pattern in filename:
                 return True
 
+        # Skip adventure content files (adventure-*.json) to prevent duplicates
+        # Only load from metadata files (adventures.json)
+        if filename.startswith("adventure-") and filename.endswith(".json"):
+            return True
+
+        # Skip book content files (book-*.json) to prevent duplicates
+        # Only load from metadata files (books.json)
+        if filename.startswith("book-") and filename.endswith(".json"):
+            return True
+
         return False

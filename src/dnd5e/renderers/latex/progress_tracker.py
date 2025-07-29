@@ -3,23 +3,30 @@
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Optional, Protocol
+from typing import Any, Protocol
+
+# Type annotation for display_manager (can be None when import fails)
+display_manager: Any = None
 
 try:
     from rich.console import Console
-    from rich.progress import (
-        BarColumn,
-        Progress,
-        SpinnerColumn,
-        TaskID,
-        TextColumn,
-        TimeElapsedColumn,
-        TimeRemainingColumn,
-    )
+    from rich.progress import TaskID
 
     RICH_AVAILABLE = True
+
+    # Import display manager
+    try:
+        from dnd5e.cli.display_manager import display_manager
+
+        DISPLAY_MANAGER_AVAILABLE = True
+    except ImportError:
+        DISPLAY_MANAGER_AVAILABLE = False
+        display_manager = None
+
 except ImportError:
     RICH_AVAILABLE = False
+    DISPLAY_MANAGER_AVAILABLE = False
+    display_manager = None
 
 
 class ProgressReporter(Protocol):
@@ -62,8 +69,14 @@ class RichProgressReporter:
         if not RICH_AVAILABLE:
             raise ImportError("Rich library not available for progress tracking")
 
-        self.console = console or Console()
-        self.progress: Progress | None = None
+        # Use display manager if available, otherwise fallback to console
+        if DISPLAY_MANAGER_AVAILABLE and display_manager is not None:
+            self.console = display_manager.console
+            self.use_display_manager = True
+        else:
+            self.console = console or Console()
+            self.use_display_manager = False
+
         self.main_task: TaskID | None = None
         self.pass_task: TaskID | None = None
         self.current_pass = 0
@@ -75,22 +88,16 @@ class RichProgressReporter:
         self.total_passes = total_passes
         self.start_time = time.time()
 
-        self.progress = Progress(
-            SpinnerColumn(),
-            TextColumn("[bold blue]{task.description}"),
-            BarColumn(),
-            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-            TimeElapsedColumn(),
-            TimeRemainingColumn(),
-            console=self.console,
-        )
-
-        self.progress.start()
-
-        # Main compilation task
-        self.main_task = self.progress.add_task(
-            f"[bold green]Compiling with {engine}", total=total_passes
-        )
+        if self.use_display_manager and display_manager is not None:
+            # Use the display manager's progress system
+            self.main_task = display_manager.add_task(
+                f"[bold green]Compiling with {engine}", total=total_passes
+            )
+        else:
+            # Fallback: Simple console output (no progress conflicts)
+            self.console.print(
+                f"[bold cyan]Starting LaTeX compilation with {engine}[/]"
+            )
 
         self.console.print(f"[bold cyan]Starting LaTeX compilation with {engine}[/]")
 
@@ -98,45 +105,63 @@ class RichProgressReporter:
         """Start a compilation pass."""
         self.current_pass = pass_number
 
-        if self.progress and self.pass_task:
-            self.progress.remove_task(self.pass_task)
+        if self.use_display_manager and display_manager is not None:
+            # Remove previous pass task if it exists
+            if self.pass_task:
+                # Display manager doesn't have remove_task, so we just create a new one
+                pass
 
-        if self.progress:
-            self.pass_task = self.progress.add_task(
+            self.pass_task = display_manager.add_task(
                 f"[yellow]Pass {pass_number}: {description}", total=100
             )
+        else:
+            # Fallback: Just log the pass
+            self.console.print(f"[yellow]Starting Pass {pass_number}: {description}[/]")
 
     def update_pass_progress(self, progress: float, status: str) -> None:
         """Update progress within current pass."""
-        if self.progress and self.pass_task:
-            self.progress.update(
+        if self.use_display_manager and display_manager is not None and self.pass_task:
+            display_manager.update_task(
                 self.pass_task,
                 completed=progress * 100,
                 description=f"[yellow]Pass {self.current_pass}: {status}",
             )
+        elif not self.use_display_manager:
+            # Fallback: Log progress
+            self.console.print(
+                f"[yellow]Pass {self.current_pass}: {status} ({progress:.1%})[/]"
+            )
 
     def finish_pass(self, success: bool, duration: float) -> None:
         """Finish current pass."""
-        if self.progress:
+        if self.use_display_manager and display_manager is not None:
             if self.pass_task:
                 status_text = "[green]✓[/]" if success else "[red]✗[/]"
-                self.progress.update(
+                display_manager.update_task(
                     self.pass_task,
                     completed=100,
                     description=f"[yellow]Pass {self.current_pass}: Complete {status_text} ({duration:.1f}s)",
                 )
 
             if self.main_task:
-                self.progress.update(self.main_task, advance=1)
+                display_manager.update_task(self.main_task, advance=1)
+        else:
+            # Fallback: Log completion
+            status_text = "✓" if success else "✗"
+            self.console.print(
+                f"[yellow]Pass {self.current_pass}: Complete {status_text} ({duration:.1f}s)[/]"
+            )
 
     def finish_compilation(self, success: bool, total_duration: float) -> None:
         """Finish compilation."""
-        if self.progress:
-            self.progress.stop()
+        if self.use_display_manager and display_manager is not None:
+            # Mark main task as complete
+            if self.main_task:
+                display_manager.update_task(self.main_task, completed=100)
 
+        # Always log the final result
         status_icon = "✅" if success else "❌"
         status_text = "[bold green]successful[/]" if success else "[bold red]failed[/]"
-
         self.console.print(
             f"\n{status_icon} Compilation {status_text} in {total_duration:.1f} seconds"
         )

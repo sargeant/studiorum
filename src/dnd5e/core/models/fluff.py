@@ -1,6 +1,5 @@
 """Fluff content models for liberal parsing of descriptive content."""
 
-import logging
 from typing import Any
 
 from pydantic import BaseModel, Field, ValidationError, field_validator

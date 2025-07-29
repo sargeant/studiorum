@@ -9,7 +9,7 @@ import chains that could cause runtime errors or make the code harder to maintai
 import argparse
 import ast
 import sys
-from collections import defaultdict, deque
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 

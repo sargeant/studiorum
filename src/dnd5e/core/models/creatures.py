@@ -1,10 +1,13 @@
 """Creature data models."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator
 
 from .content import BaseContent
+
+if TYPE_CHECKING:
+    from ..loaders.omnidexer import Omnidexer
 
 
 class ArmorClass(BaseModel):
@@ -104,6 +107,8 @@ class CreatureType(BaseModel):
         strict: bool | None = None,
         from_attributes: bool | None = None,
         context: Any | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
     ) -> "CreatureType":
         """Handle string input and special dict formats by wrapping in type field."""
         if isinstance(obj, str):
@@ -417,3 +422,265 @@ class Creature(BaseContent):
             else:
                 return "Unknown"
         return str(self.cr)
+
+    def get_formatted_saving_throws(self) -> str | None:
+        """Get formatted saving throw bonuses."""
+        if not hasattr(self, "save") or not self.save:
+            return None
+
+        save_parts = []
+        ability_names = {
+            "str": "Str",
+            "dex": "Dex",
+            "con": "Con",
+            "int": "Int",
+            "wis": "Wis",
+            "cha": "Cha",
+        }
+
+        for ability, bonus in self.save.items():
+            ability_name = ability_names.get(ability.lower(), ability.title())
+            # Handle both string ("+5") and integer (5) format
+            if isinstance(bonus, str):
+                save_parts.append(f"{ability_name} {bonus}")
+            else:
+                sign = "+" if bonus >= 0 else ""
+                save_parts.append(f"{ability_name} {sign}{bonus}")
+
+        return ", ".join(save_parts) if save_parts else None
+
+    def get_formatted_skills(self) -> str | None:
+        """Get formatted skills list."""
+        if not hasattr(self, "skill") or not self.skill:
+            return None
+
+        skill_parts = []
+        for skill_name, bonus in self.skill.items():
+            # Convert camelCase to proper case (e.g., "animalHandling" -> "Animal Handling")
+            formatted_skill = "".join(
+                [
+                    " " + c.lower() if c.isupper() and i > 0 else c
+                    for i, c in enumerate(skill_name)
+                ]
+            )
+            formatted_skill = formatted_skill.strip().title()
+
+            # Handle both string ("+5") and integer (5) format
+            if isinstance(bonus, str):
+                skill_parts.append(f"{formatted_skill} {bonus}")
+            elif isinstance(bonus, int | float):
+                sign = "+" if bonus >= 0 else ""
+                skill_parts.append(f"{formatted_skill} {sign}{bonus}")
+            else:
+                skill_parts.append(f"{formatted_skill} {bonus}")
+
+        return ", ".join(skill_parts) if skill_parts else None
+
+    def get_formatted_senses(self) -> str | None:
+        """Get formatted senses list."""
+        if not hasattr(self, "senses") or not self.senses:
+            return None
+
+        return (
+            ", ".join(self.senses)
+            if isinstance(self.senses, list)
+            else str(self.senses)
+        )
+
+    def get_formatted_languages(self) -> str | None:
+        """Get formatted languages list."""
+        if not hasattr(self, "languages") or not self.languages:
+            return None
+
+        return (
+            ", ".join(self.languages)
+            if isinstance(self.languages, list)
+            else str(self.languages)
+        )
+
+    def get_formatted_resistances(self) -> str | None:
+        """Get formatted damage resistances."""
+        if not hasattr(self, "resist") or not self.resist:
+            return None
+
+        resistance_parts = []
+        for resistance in self.resist:
+            if isinstance(resistance, str):
+                resistance_parts.append(resistance)
+            elif isinstance(resistance, dict):
+                # Handle complex resistance structures
+                if "resist" in resistance:
+                    resist_types = resistance["resist"]
+                    if isinstance(resist_types, list):
+                        resistance_parts.extend(resist_types)
+                    else:
+                        resistance_parts.append(str(resist_types))
+                elif "special" in resistance:
+                    resistance_parts.append(resistance["special"])
+                else:
+                    resistance_parts.append(str(resistance))
+            else:
+                resistance_parts.append(str(resistance))
+
+        return ", ".join(resistance_parts) if resistance_parts else None
+
+    def get_formatted_immunities(self) -> str | None:
+        """Get formatted damage immunities."""
+        if not hasattr(self, "immune") or not self.immune:
+            return None
+
+        immunity_parts = []
+        for immunity in self.immune:
+            if isinstance(immunity, str):
+                immunity_parts.append(immunity)
+            elif isinstance(immunity, dict):
+                # Handle complex immunity structures
+                if "immune" in immunity:
+                    immune_types = immunity["immune"]
+                    if isinstance(immune_types, list):
+                        immunity_parts.extend(immune_types)
+                    else:
+                        immunity_parts.append(str(immune_types))
+                elif "special" in immunity:
+                    immunity_parts.append(immunity["special"])
+                else:
+                    immunity_parts.append(str(immunity))
+            else:
+                immunity_parts.append(str(immunity))
+
+        return ", ".join(immunity_parts) if immunity_parts else None
+
+    def get_formatted_vulnerabilities(self) -> str | None:
+        """Get formatted damage vulnerabilities."""
+        if not hasattr(self, "vulnerable") or not self.vulnerable:
+            return None
+
+        vulnerability_parts = []
+        for vulnerability in self.vulnerable:
+            if isinstance(vulnerability, str):
+                vulnerability_parts.append(vulnerability)
+            elif isinstance(vulnerability, dict):
+                # Handle complex vulnerability structures
+                if "vulnerable" in vulnerability:
+                    vuln_types = vulnerability["vulnerable"]
+                    if isinstance(vuln_types, list):
+                        vulnerability_parts.extend(vuln_types)
+                    else:
+                        vulnerability_parts.append(str(vuln_types))
+                elif "special" in vulnerability:
+                    vulnerability_parts.append(vulnerability["special"])
+                else:
+                    vulnerability_parts.append(str(vulnerability))
+            else:
+                vulnerability_parts.append(str(vulnerability))
+
+        return ", ".join(vulnerability_parts) if vulnerability_parts else None
+
+    def get_formatted_condition_immunities(self) -> str | None:
+        """Get formatted condition immunities."""
+        if not hasattr(self, "conditionImmune") or not self.conditionImmune:
+            return None
+
+        if isinstance(self.conditionImmune, list):
+            # Handle mixed string/dict list
+            condition_parts = []
+            for condition in self.conditionImmune:
+                if isinstance(condition, str):
+                    condition_parts.append(condition)
+                else:
+                    condition_parts.append(str(condition))
+            return ", ".join(condition_parts)
+        else:
+            return str(self.conditionImmune)
+
+    def get_enhanced_cr_text(self) -> str:
+        """Get enhanced challenge rating text with XP calculation."""
+        if not self.cr:
+            return "0 (10 XP)"
+
+        # XP table for challenge ratings
+        xp_table = {
+            "0": 10,
+            "1/8": 25,
+            "1/4": 50,
+            "1/2": 100,
+            "1": 200,
+            "2": 450,
+            "3": 700,
+            "4": 1100,
+            "5": 1800,
+            "6": 2300,
+            "7": 2900,
+            "8": 3900,
+            "9": 5000,
+            "10": 5900,
+            "11": 7200,
+            "12": 8400,
+            "13": 10000,
+            "14": 11500,
+            "15": 13000,
+            "16": 15000,
+            "17": 18000,
+            "18": 20000,
+            "19": 22000,
+            "20": 25000,
+            "21": 33000,
+            "22": 41000,
+            "23": 50000,
+            "24": 62000,
+            "25": 75000,
+            "26": 90000,
+            "27": 105000,
+            "28": 120000,
+            "29": 135000,
+            "30": 155000,
+        }
+
+        cr_value = None
+        if isinstance(self.cr, dict):
+            if "special" in self.cr:
+                return str(self.cr["special"])
+            elif "cr" in self.cr:
+                cr_value = str(self.cr["cr"])
+        else:
+            cr_value = str(self.cr)
+
+        if cr_value and cr_value in xp_table:
+            xp = xp_table[cr_value]
+            return f"{cr_value} ({xp:,} XP)"
+        elif cr_value:
+            return f"{cr_value} (XP varies)"
+        else:
+            return "0 (10 XP)"
+
+    def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+        """Extract spell references from creature traits and actions."""
+        from ..references import SpellReferenceParser, SpellReferenceResolver
+
+        spell_references = []
+
+        # Parse spell references from all ability lists
+        ability_lists = [
+            self.trait or [],
+            self.action or [],
+            self.legendary or [],
+            self.reaction or [],
+            self.bonus or [],
+        ]
+
+        for ability_list in ability_lists:
+            for ability in ability_list:
+                if isinstance(ability, Ability):
+                    # Extract text from ability entries
+                    text = ability.get_description_text()
+                    # Parse spell references
+                    references = SpellReferenceParser.extract_spell_references(text)
+                    spell_references.extend(references)
+
+        # Resolve spell references to actual spell objects
+        if spell_references:
+            resolver = SpellReferenceResolver(omnidexer)
+            resolved_spells = resolver.resolve_spell_references(spell_references)
+            return resolved_spells
+
+        return []

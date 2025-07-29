@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from dnd5e.core.logging import get_logger
@@ -12,7 +11,7 @@ from ...core.indexer.hyperlink_manager import HyperlinkManager
 from ...core.indexer.latex_content_tracker import LaTeXContentTracker
 from ...core.indexer.latex_tag_handlers import get_latex_enhanced_handlers
 from ...core.indexer.latex_tag_renderer import LaTeXTagRenderer
-from ...core.indexer.new_tag_resolver import TagResolverFacade
+from ...core.indexer.tag_resolver import TagResolver
 
 logger = get_logger(__name__)
 
@@ -50,8 +49,8 @@ class LaTeXTagIntegration:
             hyperlink_manager=self.hyperlink_manager,
         )
 
-        # Create facade for backward compatibility
-        self.tag_resolver = LaTeXTagResolverFacade(
+        # Create tag resolver for LaTeX processing
+        self.tag_resolver = LaTeXTagResolver(
             latex_renderer=self.latex_renderer,
             omnidexer=self.omnidexer,
         )
@@ -210,8 +209,8 @@ class LaTeXTagIntegration:
                 pass
 
 
-class LaTeXTagResolverFacade(TagResolverFacade):
-    """Enhanced facade that provides LaTeX-specific tag resolution."""
+class LaTeXTagResolver(TagResolver):
+    """Enhanced tag resolver that provides LaTeX-specific tag resolution."""
 
     def __init__(
         self, latex_renderer: LaTeXTagRenderer, omnidexer: Omnidexer | None = None

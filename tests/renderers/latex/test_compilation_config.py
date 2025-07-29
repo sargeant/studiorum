@@ -3,8 +3,6 @@
 from pathlib import Path
 from typing import Any
 
-import pytest
-
 from dnd5e.renderers.latex.compilation_config import (  # type: ignore
     CompilationConfig,
     CompilationMode,

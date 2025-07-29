@@ -1,0 +1,94 @@
+name: Cleanup Stale Branches
+
+on:
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    # Allow manual triggering
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  cleanup-stale-branches:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'sargeant'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all branches and history
+
+      - name: Cleanup merged feature branches
+        run: |
+          echo "🔍 Checking for stale branches..."
+
+          # Get all remote feature and fix branches that are merged into develop
+          merged_branches=$(git branch -r --merged origin/develop | grep -E "origin/(feat|fix)/" | sed 's/origin\///' || true)
+
+          if [ -z "$merged_branches" ]; then
+            echo "✅ No stale feature/fix branches found"
+            exit 0
+          fi
+
+          echo "📋 Found merged branches to clean up:"
+          echo "$merged_branches"
+
+          # Delete merged branches (only if they're older than 7 days)
+          for branch in $merged_branches; do
+            # Get the last commit date of the branch
+            last_commit_date=$(git log -1 --format="%ct" "origin/$branch" 2>/dev/null || echo "0")
+            current_date=$(date +%s)
+            days_old=$(( (current_date - last_commit_date) / 86400 ))
+
+            if [ $days_old -gt 7 ]; then
+              echo "🗑️  Deleting stale branch: $branch (${days_old} days old)"
+              git push origin --delete "$branch" || echo "⚠️  Failed to delete $branch (may already be deleted)"
+            else
+              echo "⏳ Keeping recent branch: $branch (${days_old} days old)"
+            fi
+          done
+
+      - name: Cleanup dependabot branches
+        run: |
+          echo "🔍 Checking for old dependabot branches..."
+
+          # Get all dependabot branches that are merged or older than 30 days
+          dependabot_branches=$(git branch -r | grep "origin/dependabot/" | sed 's/origin\///' || true)
+
+          if [ -z "$dependabot_branches" ]; then
+            echo "✅ No dependabot branches found"
+            exit 0
+          fi
+
+          echo "📋 Found dependabot branches:"
+          echo "$dependabot_branches"
+
+          for branch in $dependabot_branches; do
+            # Check if branch is merged into develop
+            if git merge-base --is-ancestor "origin/$branch" "origin/develop" 2>/dev/null; then
+              echo "🗑️  Deleting merged dependabot branch: $branch"
+              git push origin --delete "$branch" || echo "⚠️  Failed to delete $branch"
+            else
+              # Check if branch is older than 30 days
+              last_commit_date=$(git log -1 --format="%ct" "origin/$branch" 2>/dev/null || echo "0")
+              current_date=$(date +%s)
+              days_old=$(( (current_date - last_commit_date) / 86400 ))
+
+              if [ $days_old -gt 30 ]; then
+                echo "🗑️  Deleting old dependabot branch: $branch (${days_old} days old)"
+                git push origin --delete "$branch" || echo "⚠️  Failed to delete $branch"
+              else
+                echo "⏳ Keeping recent dependabot branch: $branch (${days_old} days old)"
+              fi
+            fi
+          done
+
+      - name: Report cleanup results
+        run: |
+          echo "✅ Branch cleanup completed!"
+          echo "📊 Current remote branches:"
+          git branch -r | head -20

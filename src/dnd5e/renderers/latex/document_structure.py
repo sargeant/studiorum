@@ -293,15 +293,39 @@ class DocumentStructureBuilder:
             title=title,
             level=SectionLevel.CHAPTER,
             numbered=True,
-            label=f"ch:{self._generate_label(title)}",
+            label=f"ch:{self._generate_label(title)}-{chapter_num}",
             page_break_before=False,
             page_break_after=False,
             two_column=None,
         )
 
-        # Add chapter content
+        # Add chapter content - ensure entries are properly copied/filtered to avoid duplication
         if hasattr(chapter_data, "entries"):
-            section.content_items = chapter_data.entries
+            # Create a deep copy of entries to avoid reference sharing between chapters
+            # Filter out introduction-only content from subsequent chapters
+            import copy
+
+            entries = chapter_data.entries if chapter_data.entries else []
+
+            # Special handling for introduction chapter - keep all content
+            if chapter_num == 1 or "introduction" in title.lower():
+                section.content_items = copy.deepcopy(entries)
+            else:
+                # For non-introduction chapters, filter out quotes that are introduction-specific
+                filtered_entries = []
+                for entry in entries:
+                    # Skip quote entries that contain introduction text (Jeremy Crawford quote)
+                    if isinstance(entry, dict) and entry.get("type") == "quote":
+                        # Check if this quote contains the Jeremy Crawford text
+                        quote_entries = entry.get("entries", [])
+                        quote_text = " ".join(str(e) for e in quote_entries)
+                        if (
+                            "This story began 50 years ago" in quote_text
+                            or "Jeremy Crawford" in str(entry.get("by", ""))
+                        ):
+                            continue
+                    filtered_entries.append(copy.deepcopy(entry))
+                section.content_items = filtered_entries
 
         # Add chapter headers as subsections
         if hasattr(chapter_data, "headers") and chapter_data.headers:
@@ -546,7 +570,8 @@ class DocumentStructureBuilder:
 
         # Add content placeholder (will be filled by content renderers)
         if section.content_items:
-            commands.append(f"% Content for {section.title}")
+            placeholder = f"% Content for {section.title}"
+            commands.append(placeholder)
 
         # Add subsections
         for subsection in section.subsections:

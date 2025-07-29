@@ -13,7 +13,6 @@ from dnd5e.core.indexer.latex_tag_renderer import (  # type: ignore
     LaTeXRendererContext,
     LaTeXTagRenderer,
 )
-from dnd5e.core.indexer.tag_ast import TagNode  # type: ignore
 
 
 class MockTagNode:

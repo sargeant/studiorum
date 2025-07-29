@@ -1,6 +1,6 @@
 """Sidebar and inset environment management for D&D content."""
 
-from typing import Any, Optional
+from typing import Any
 
 from ....core.models.content import ContentType
 from .base import (
@@ -9,7 +9,6 @@ from .base import (
     FloatPosition,
     LayoutContext,
     LayoutHint,
-    LayoutStrategy,
     SidebarType,
 )
 

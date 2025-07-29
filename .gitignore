@@ -1,3 +1,6 @@
+# Obsidian files
+.obsidian/
+
 # LaTeX compilation artifacts
 *.aux
 *.fdb_latexmk
@@ -26,6 +29,19 @@
 
 # Build directory
 build/
+
+# Documentation build artifacts
+docs/_build/
+docs/_static/
+docs/.doctrees/
+
+# Sphinx temporary files
+*.inv
+docs/source/_autosummary/
+
+# PDF generation temporary files
+*.pdf.log
+*.tex.log
 
 # Python cache
 __pycache__/
@@ -87,3 +103,6 @@ output/
 
 # Developer stuff
 private/
+private
+5etools-src/
+docs/_build/

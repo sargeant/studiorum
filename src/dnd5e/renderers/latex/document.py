@@ -14,9 +14,9 @@ from ...core.models.document_metadata import (
 from ..base import DocumentRenderer, RenderContext, RenderingError
 from .compilation_config import CompilationConfig, CompilationResult, LaTeXEngine
 from .compiler import LaTeXCompiler
-from .content import LaTeXContentRendererRegistry
 from .content_organizer import ContentOrganizer
 from .document_structure import DocumentStructureBuilder
+from .entry_renderers import EntryRendererRegistry
 from .template_engine import LaTeXTemplateEngine
 
 
@@ -31,7 +31,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         """
         super().__init__(config)
         self.template_engine = LaTeXTemplateEngine(config)
-        self.content_registry = LaTeXContentRendererRegistry()
+        self.entry_registry = EntryRendererRegistry()
         self.content_organizer = ContentOrganizer()
         self._structure_builder: DocumentStructureBuilder | None = None
 
@@ -71,12 +71,8 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             Complete LaTeX document
         """
         try:
-            # Check if structured document rendering is requested
-            if hasattr(context, "metadata") and context.metadata:
-                return self.render_structured_document(content_items, context)
-
-            # Fallback to legacy document rendering
-            return self.render_legacy_document(content_items, context)
+            # Always use structured document rendering
+            return self.render_structured_document(content_items, context)
 
         except Exception as e:
             raise RenderingError(f"Failed to render LaTeX document: {e}") from e
@@ -166,44 +162,6 @@ class LaTeXDocumentRenderer(DocumentRenderer):
 
         return rendered_document
 
-    def render_legacy_document(
-        self, content_items: Sequence[BaseContent], context: RenderContext
-    ) -> str:
-        """Render a document using the legacy approach.
-
-        Args:
-            content_items: List of content to include
-            context: Rendering context
-
-        Returns:
-            Complete LaTeX document
-        """
-        # Convert sequence to list for internal processing
-        content_list = list(content_items)
-
-        # Build document sections
-        sections = []
-
-        # Document header
-        sections.append(self.render_document_header(context))
-
-        # Table of contents (if enabled)
-        if context.include_toc and len(content_list) > 1:
-            sections.append(self.render_table_of_contents(content_list, context))
-
-        # Main content
-        for item in content_list:
-            sections.append(self.render_content_item(item, context))
-
-        # Index (if enabled)
-        if context.include_index:
-            sections.append(self.render_index(content_list, context))
-
-        # Document footer
-        sections.append(self.render_document_footer(context))
-
-        return "\n\n".join(filter(None, sections))
-
     def _render_content_in_sections(
         self, document: str, sections: list[ContentSection], context: RenderContext
     ) -> str:
@@ -217,23 +175,44 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Document with content rendered in sections
         """
-        # This is a placeholder implementation
-        # In practice, we would need to replace section placeholders
-        # with actual rendered content
-
         for section in sections:
             if isinstance(section, ContentSection) and section.content_items:
-                # Render each content item in the section
-                rendered_items = []
+                # Render each content item and replace individual placeholders
                 for item in section.content_items:
                     rendered_item = self.render_content_item(item, context)
                     if rendered_item:
-                        rendered_items.append(rendered_item)
+                        # Create placeholder pattern that matches section template output
+                        if isinstance(item, str):
+                            placeholder_pattern = "% Content: String Entry (str)"
+                        elif isinstance(item, dict):
+                            item_name = item.get("name", "Unknown")
+                            # Apply LaTeX escaping to match template output
+                            escaped_name = self._escape_latex(item_name)
+                            placeholder_pattern = f"% Content: {escaped_name} (dict)"
+                        else:
+                            # For actual model objects
+                            item_name = getattr(item, "name", "Unknown")
+                            escaped_name = self._escape_latex(item_name)
+                            item_class = item.__class__.__name__
+                            placeholder_pattern = (
+                                f"% Content: {escaped_name} ({item_class})"
+                            )
 
-                # For now, we'll append a comment indicating where content should go
-                # Future enhancement would replace specific placeholders in the template
+                        # Replace the specific placeholder with rendered content
+                        # Use replace with count=1 to only replace the first occurrence
+                        if placeholder_pattern in document:
+                            document = document.replace(
+                                placeholder_pattern, rendered_item, 1
+                            )
+
+                # Also try the generic content placeholder for compatibility
                 content_placeholder = f"% Content for {section.title}"
                 if content_placeholder in document:
+                    rendered_items = []
+                    for item in section.content_items:
+                        rendered_item = self.render_content_item(item, context)
+                        if rendered_item:
+                            rendered_items.append(rendered_item)
                     document = document.replace(
                         content_placeholder, "\n".join(rendered_items)
                     )
@@ -260,11 +239,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             "fonts_dir": str(context.fonts_dir) if context.fonts_dir else None,
         }
 
-        # Use legacy template engine for compatibility
-        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
-
-        legacy_engine = LegacyTemplateEngine()
-        return legacy_engine.render_template("document_header", template_vars)
+        return self.template_engine.render_template("document_header", template_vars)
 
     def render_document_footer(self, context: RenderContext) -> str:
         """Render LaTeX document footer.
@@ -275,11 +250,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             LaTeX document footer
         """
-        # Use legacy template engine for compatibility
-        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
-
-        legacy_engine = LegacyTemplateEngine()
-        return legacy_engine.render_template("document_footer", {})
+        return self.template_engine.render_template("document_footer", {})
 
     def render_table_of_contents(
         self, content_items: list[BaseContent], context: RenderContext
@@ -298,11 +269,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
 
         template_vars = {"content_items": content_items, "title": "Table of Contents"}
 
-        # Use legacy template engine for compatibility
-        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
-
-        legacy_engine = LegacyTemplateEngine()
-        return legacy_engine.render_template("table_of_contents", template_vars)
+        return self.template_engine.render_template("table_of_contents", template_vars)
 
     def render_index(
         self, content_items: list[BaseContent], context: RenderContext
@@ -355,11 +322,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             "title": "Index",
         }
 
-        # Use legacy template engine for compatibility
-        from .templates import LaTeXTemplateEngine as LegacyTemplateEngine
-
-        legacy_engine = LegacyTemplateEngine()
-        return legacy_engine.render_template("index", template_vars)
+        return self.template_engine.render_template("index", template_vars)
 
     def render_content_item(self, content: BaseContent, context: RenderContext) -> str:
         """Render an individual content item.
@@ -381,13 +344,13 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         if not context.should_include_content_type(content_type.value):
             return ""
 
-        # Get appropriate renderer
-        renderer = self.content_registry.get_renderer(content_type)
-        if not renderer:
-            # Fallback to basic rendering if no specific renderer is found
+        # Use EntryRenderer system
+        try:
+            entry_renderer = self.entry_registry.get_renderer(content_type.value)
+            return entry_renderer.render(content, context)
+        except ValueError:
+            # EntryRenderer not found, use basic fallback rendering
             return self._render_basic_content(content, context)
-
-        return renderer.render_content(content, context)
 
     def _render_basic_content(
         self, content: BaseContent, context: RenderContext
@@ -401,6 +364,14 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Basic rendered content
         """
+        # Check if this is a raw book entry that should be processed recursively
+        if isinstance(content, dict | str) and self._is_book_entry(content, context):
+            return self._render_book_entry(content, context)
+        # Check if this is a raw adventure entry that should be processed recursively
+        if isinstance(content, dict | str) and self._is_adventure_entry(
+            content, context
+        ):
+            return self._render_adventure_entry(content, context)
         # Handle both dict and object formats for content name
         if hasattr(content, "name"):
             content_name = content.name
@@ -441,6 +412,114 @@ This content type is not yet fully supported by the rendering system.
             LaTeX-safe text
         """
         return escape_latex_text(text)
+
+    def _is_book_entry(self, content: Any, context: RenderContext) -> bool:
+        """Check if content is a raw book entry that should be processed recursively.
+
+        Args:
+            content: Content to check
+            context: Rendering context
+
+        Returns:
+            True if this appears to be a book entry
+        """
+        # Check if we're in a book document context
+        if not hasattr(context, "metadata") or not context.metadata:
+            return False
+
+        if context.metadata.document_type != DocumentType.BOOK:
+            return False
+
+        # Check if content looks like a book entry
+        if isinstance(content, str):
+            return True  # Raw text entries from book chapters
+        elif isinstance(content, dict):
+            # Dict entries with typical book entry structure
+            return any(key in content for key in ["type", "entries", "name"])
+
+        return False
+
+    def _is_adventure_entry(self, content: Any, context: RenderContext) -> bool:
+        """Check if content is a raw adventure entry.
+
+        Args:
+            content: Content to check
+            context: Rendering context
+
+        Returns:
+            True if content is a raw adventure entry
+        """
+        # Check if we're in an adventure document context
+        if not hasattr(context, "metadata") or not context.metadata:
+            return False
+
+        if context.metadata.document_type != DocumentType.ADVENTURE:
+            return False
+
+        # Check if content looks like an adventure entry
+        if isinstance(content, str):
+            return True  # Raw text entries from adventure chapters
+        elif isinstance(content, dict):
+            # Dict entries with typical adventure entry structure
+            return any(key in content for key in ["type", "entries", "name"])
+
+        return False
+
+    def _render_adventure_entry(self, content: Any, context: RenderContext) -> str:
+        """Render a raw adventure entry using RecursiveEntryProcessor.
+
+        Args:
+            content: Raw adventure entry (string or dict)
+            context: Rendering context
+
+        Returns:
+            Rendered LaTeX content
+        """
+        # Import here to avoid circular imports
+        from .entry_processor import RecursiveEntryProcessor
+
+        # Use DND template for adventure entries
+        processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+        if isinstance(content, str):
+            # Process string content with tags
+            if hasattr(context, "tag_resolver") and context.tag_resolver:
+                return context.tag_resolver.process_text(content)
+            else:
+                return self._escape_latex(content)
+        elif isinstance(content, dict):
+            # Process dict entry - use same approach as book rendering
+            return processor.process_entry_dict(content, context)
+        else:
+            return ""
+
+    def _render_book_entry(self, content: Any, context: RenderContext) -> str:
+        """Render a raw book entry using RecursiveEntryProcessor.
+
+        Args:
+            content: Raw book entry (string or dict)
+            context: Rendering context
+
+        Returns:
+            Rendered LaTeX content
+        """
+        # Import here to avoid circular imports
+        from .entry_processor import RecursiveEntryProcessor
+
+        # Use DND template for book entries
+        processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+        if isinstance(content, str):
+            # Process string content with tags
+            if hasattr(context, "tag_resolver") and context.tag_resolver:
+                return context.tag_resolver.process_text(content)
+            else:
+                return self._escape_latex(content)
+        elif isinstance(content, dict):
+            # Process dict entry
+            return processor.process_entry_dict(content, context)
+        else:
+            return str(content)
 
     def _create_compilation_config(
         self, config: dict[str, Any] | None = None

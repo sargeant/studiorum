@@ -1,7 +1,5 @@
 """LaTeX-specific tag rendering - handles formatting structured tag results."""
 
-from typing import Union
-
 from ...core.indexer.tag_types import (
     ContentReference,
     FormattingNode,

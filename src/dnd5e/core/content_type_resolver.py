@@ -27,11 +27,20 @@ class RegistryBasedContentTypeResolver:
         from .models.adventures import Adventure
         from .models.backgrounds import Background
         from .models.books import Book
-        from .models.classes import Class
+        from .models.classes import Class, ClassFeature, SubclassFeature
         from .models.creatures import Creature
         from .models.feats import Feat
         from .models.fluff import CreatureFluff, ItemFluff, SpellFluff
         from .models.items import Item
+        from .models.nested_content import (
+            AdventureInset,
+            AdventureSection,
+            AdventureTable,
+            BookInset,
+            BookSection,
+            BookTable,
+            VariantRule,
+        )
         from .models.races import Race
         from .models.spells import Spell
 
@@ -40,6 +49,8 @@ class RegistryBasedContentTypeResolver:
         self._registry.register(Background, ContentType.BACKGROUND)
         self._registry.register(Book, ContentType.BOOK)
         self._registry.register(Class, ContentType.CLASS)
+        self._registry.register(ClassFeature, ContentType.CLASS_FEATURE)
+        self._registry.register(SubclassFeature, ContentType.SUBCLASS_FEATURE)
         self._registry.register(Creature, ContentType.CREATURE)
         self._registry.register(Feat, ContentType.FEAT)
         self._registry.register(Item, ContentType.ITEM)
@@ -48,6 +59,15 @@ class RegistryBasedContentTypeResolver:
         self._registry.register(CreatureFluff, ContentType.CREATURE_FLUFF)
         self._registry.register(ItemFluff, ContentType.ITEM_FLUFF)
         self._registry.register(SpellFluff, ContentType.SPELL_FLUFF)
+
+        # Register nested content types
+        self._registry.register(AdventureSection, ContentType.ADVENTURE_SECTION)
+        self._registry.register(AdventureTable, ContentType.ADVENTURE_TABLE)
+        self._registry.register(AdventureInset, ContentType.ADVENTURE_INSET)
+        self._registry.register(BookSection, ContentType.BOOK_SECTION)
+        self._registry.register(VariantRule, ContentType.VARIANT_RULE)
+        self._registry.register(BookTable, ContentType.BOOK_TABLE)
+        self._registry.register(BookInset, ContentType.BOOK_INSET)
 
     def resolve_type(self, content: BaseContent) -> ContentType:
         """Resolve content type from content instance.

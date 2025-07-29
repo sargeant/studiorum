@@ -1,0 +1,49 @@
+# Example GitHub Actions workflow to test your self-hosted runner
+# Place this in .github/workflows/ in your target repository
+
+name: Test Self-Hosted Runner
+
+on:
+  workflow_dispatch:  # Manual trigger
+  push:
+    branches: [ main ]
+
+jobs:
+  test-runner:
+    runs-on: [self-hosted, k0s, kubernetes]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Test runner environment
+      run: |
+        echo "🎯 Testing self-hosted runner on k0s cluster"
+        echo "Runner name: $RUNNER_NAME"
+        echo "Hostname: $(hostname)"
+        echo "OS: $(uname -a)"
+        echo "Available disk space:"
+        df -h
+        echo "Memory usage:"
+        free -h
+        echo "CPU info:"
+        nproc
+
+    - name: Test Docker access
+      run: |
+        docker --version
+        docker ps
+
+    - name: Test kubectl access (if available)
+      run: |
+        if command -v kubectl &> /dev/null; then
+          kubectl version --client
+          kubectl get nodes
+        else
+          echo "kubectl not available in runner"
+        fi
+
+    - name: Success message
+      run: |
+        echo "✅ Self-hosted runner is working correctly!"
+        echo "🚀 Ready for your CI/CD workloads"
