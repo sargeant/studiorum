@@ -59,3 +59,27 @@ pytest: uv
 docs: uv-docs
 	cd docs && uv run sphinx-build -b html source _build/html
 	open docs/_build/html/index.html
+
+## Start documentation auto-rebuild server
+docs-serve: uv-docs
+	cd docs && uv run sphinx-autobuild source _build/html --host 0.0.0.0 --port 8000 --open-browser
+
+## Clean documentation build artifacts
+docs-clean:
+	rm -rf docs/_build docs/build
+
+## Build docs with clean rebuild
+docs-rebuild: docs-clean docs
+
+## Check documentation for issues (broken links, syntax)
+docs-check: uv-docs
+	cd docs && uv run sphinx-build -b linkcheck source _build/linkcheck
+	cd docs && uv run sphinx-build -W -b html source _build/html
+
+## Validate documentation quality and structure
+docs-validate: uv-docs
+	uv run python scripts/validate_docs.py --docs-dir docs
+
+## Full documentation validation (strict mode)
+docs-validate-strict: uv-docs
+	uv run python scripts/validate_docs.py --docs-dir docs --strict
