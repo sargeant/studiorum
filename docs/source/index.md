@@ -17,6 +17,7 @@ Convert D&D 5e JSON data from [5e.tools](https://5e.tools) to beautifully format
 - **Deep Content Indexing**: Advanced omnidexer system discovers nested content like class features and adventure sections
 - **Flexible Output**: Generate PDFs for specific content types, sources, or custom collections
 - **Modern Python**: Built with Python 3.12, async/await, and full type safety
+- **Automated Documentation**: Sphinx-powered documentation with GitHub Pages deployment
 
 ## Quick Start
 
