@@ -2,16 +2,18 @@
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Architecture](#architecture)
-3. [Core Components](#core-components)
-4. [Implementation Guide](#implementation-guide)
-5. [Content Types](#content-types)
-6. [Performance Considerations](#performance-considerations)
-7. [Error Handling](#error-handling)
-8. [Testing Strategies](#testing-strategies)
-9. [Migration Guide](#migration-guide)
-10. [Examples](#examples)
+This guide covers the deep indexing implementation with the following sections:
+
+- Overview
+- Architecture
+- Core Components
+- Implementation Guide
+- Content Types
+- Performance Considerations
+- Error Handling
+- Testing Strategies
+- Migration Guide
+- Examples
 
 ## Overview
 

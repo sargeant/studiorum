@@ -1,0 +1,105 @@
+/* Custom CSS for 5e2pdf documentation */
+
+/* Improve code block styling */
+.highlight {
+    border-radius: 6px;
+    margin: 1em 0;
+}
+
+/* Better table styling */
+table.docutils {
+    border-collapse: collapse;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+table.docutils th {
+    background-color: var(--color-background-secondary);
+    font-weight: 600;
+}
+
+table.docutils td,
+table.docutils th {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Improve admonition styling */
+.admonition {
+    border-radius: 6px;
+    border-left: 4px solid var(--color-brand-primary);
+    margin: 1em 0;
+}
+
+.admonition-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Custom styling for mermaid diagrams */
+.mermaid {
+    text-align: center;
+    margin: 1em 0;
+}
+
+/* Improve navigation */
+.toctree-wrapper {
+    margin: 1em 0;
+}
+
+.toctree-wrapper ul {
+    padding-left: 0;
+}
+
+.toctree-wrapper li {
+    list-style-type: none;
+    margin: 0.25em 0;
+}
+
+.toctree-wrapper a {
+    text-decoration: none;
+    color: var(--color-brand-primary);
+    font-weight: 500;
+}
+
+.toctree-wrapper a:hover {
+    text-decoration: underline;
+}
+
+/* Better spacing for content */
+.content section {
+    margin-bottom: 2rem;
+}
+
+/* Improve inline code styling */
+code {
+    background-color: var(--color-background-secondary);
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+/* Custom styling for version info */
+.version-info {
+    background-color: var(--color-background-secondary);
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin: 1rem 0;
+    border-left: 4px solid var(--color-brand-primary);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .highlight {
+        margin: 0.5em 0;
+    }
+
+    table.docutils {
+        font-size: 0.9em;
+    }
+
+    .admonition {
+        margin: 0.5em 0;
+    }
+}

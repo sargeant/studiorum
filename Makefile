@@ -1,7 +1,7 @@
 # Makefile for 5e2pdf project
 # All commands run via uv (https://github.com/astral-sh/uv)
 
-.PHONY: uv test mypy safety bandit pre-push
+.PHONY: uv uv-docs test mypy safety bandit pre-push docs
 
 # Default target: run all pre-push checks
 all: check security test
@@ -13,6 +13,10 @@ test: pytest
 # Sync environment (dev dependencies)
 uv:
 	uv sync --group dev
+
+# Sync environment (docs dependencies)
+uv-docs:
+	uv sync --extra docs
 
 # Checks and tools
 
@@ -49,3 +53,9 @@ bandit: uv
 # Run unit tests
 pytest: uv
 	uv run pytest
+
+# Documentation
+## Build HTML docs and open in browser
+docs: uv-docs
+	cd docs && uv run sphinx-build -b html source _build/html
+	open docs/_build/html/index.html
