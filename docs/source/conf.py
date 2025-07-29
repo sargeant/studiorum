@@ -80,6 +80,8 @@ autosectionlabel_maxdepth = 3
 autosummary_generate = True
 autosummary_imported_members = True
 
+myst_substitutions = {"version": version}
+
 
 # -- Options for HTML output -------------------------------------------------
 

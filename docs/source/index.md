@@ -1,5 +1,9 @@
 # 5e2pdf Documentation
 
+```{warning}
+This tool is under development and not yet in a fully working state.
+```
+
 Convert D&D 5e JSON data from [5e.tools](https://5e.tools) to beautifully formatted LaTeX/PDF documents.
 
 ## Overview
@@ -20,14 +24,14 @@ Convert D&D 5e JSON data from [5e.tools](https://5e.tools) to beautifully format
 # Install 5e2pdf
 pip install 5e2pdf
 
-# Generate a spell compendium
-5e2pdf spell --source PHB --output phb-spells.pdf
+# Setup your sources
+5e2pdf setup wizard
 
-# Create creature stat blocks
-5e2pdf creature --cr "1-5" --type humanoid --output low-level-npcs.pdf
+# Make a book
+5e2pdf convert book phb --pdf --a4 --bg=none
 
-# Generate adventure content
-5e2pdf adventure --name "Lost Mine of Phandelver" --output lmop.pdf
+# Make an adventure
+5e2pdf convert adventure lmop --pdf --letter --bg=print
 ```
 
 ## Documentation Structure
@@ -41,7 +45,7 @@ user-guide/index
 ```
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 3
 :caption: For Developers
 
 developer/index
@@ -53,7 +57,7 @@ api/index
 ## Project Information
 
 - **GitHub**: [sargeant/5e2pdf](https://github.com/sargeant/5e2pdf)
-- **Version**: 0.3.1
+- **Version**: {{version}}
 - **Python**: 3.12+
 - **License**: MIT
 
