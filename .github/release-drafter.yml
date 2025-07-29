@@ -1,12 +1,15 @@
-name-template: 'v$RESOLVED_VERSION'
-tag-template: 'v$RESOLVED_VERSION'
+# Release Drafter provides content only - versions are set manually via bump_version.py
+# These templates are not used since releases are created manually
+name-template: 'Manual Release'
+tag-template: 'manual'
 
+# Content template for manual release creation
 template: |
   ## What's Changed
 
   $CHANGES
 
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...$NEW_TAG
 
 # Configure categories for release notes (enhanced for conventional commits)
 categories:
@@ -87,24 +90,9 @@ autolabeler:
     title:
       - '/^.*!(\(.*\))?: .*/'
       - '/.*BREAKING CHANGE.*/'
-  - label: 'major'
-    title:
-      - '/^.*!(\(.*\))?: .*/'
-      - '/.*BREAKING CHANGE.*/'
 
-# Enhanced versioning strategy based on conventional commits
-version-resolver:
-  major:
-    labels: ['breaking', 'major']
-  minor:
-    labels: ['feature', 'enhancement', 'minor']
-  patch:
-    labels: ['fix', 'patch', 'chore', 'docs', 'style', 'test', 'refactor']
-  default: patch
-
-# Automatic version bumping based on commit patterns
-# This works with the autolabeler to determine the correct version increment
-version-template: '$MAJOR.$MINOR.$PATCH'
+# Version resolution disabled - using manual versioning via bump_version.py
+# The categories and autolabeler below are used purely for organizing release notes
 
 # Better sorting of changes
 sort-by: title
