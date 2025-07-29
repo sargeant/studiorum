@@ -16,6 +16,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath("../../src"))
 
+import dnd5e
 
 # -- Project information -----------------------------------------------------
 
@@ -24,9 +25,7 @@ copyright_ = "2025, Sam Sargeant"  # renamed to avoid shadowing builtin
 author = "Sam Sargeant"
 
 # The full version, including alpha/beta/rc tags
-release = "0.3.1"
-version = "0.3.1"
-
+release = version = dnd5e.__version__
 
 # -- General configuration ---------------------------------------------------
 
@@ -80,6 +79,8 @@ autosectionlabel_maxdepth = 3
 # Auto-summary configuration
 autosummary_generate = True
 autosummary_imported_members = True
+
+myst_substitutions = {"version": version}
 
 
 # -- Options for HTML output -------------------------------------------------

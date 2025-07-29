@@ -1,12 +1,12 @@
-name-template: 'v$NEXT_PATCH_VERSION'
-tag-template: 'v$NEXT_PATCH_VERSION'
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
 
 template: |
   ## What's Changed
 
   $CHANGES
 
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$NEXT_PATCH_VERSION
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
 
 # Configure categories for release notes (enhanced for conventional commits)
 categories:
@@ -62,6 +62,9 @@ autolabeler:
   - label: 'feature'
     title:
       - '/^feat(\(.*\))?: .*/'
+  - label: 'enhancement'
+    title:
+      - '/^feat(\(.*\))?: .*/'
   - label: 'fix'
     title:
       - '/^fix(\(.*\))?: .*/'
@@ -80,6 +83,14 @@ autolabeler:
   - label: 'style'
     title:
       - '/^style(\(.*\))?: .*/'
+  - label: 'breaking'
+    title:
+      - '/^.*!(\(.*\))?: .*/'
+      - '/.*BREAKING CHANGE.*/'
+  - label: 'major'
+    title:
+      - '/^.*!(\(.*\))?: .*/'
+      - '/.*BREAKING CHANGE.*/'
 
 # Enhanced versioning strategy based on conventional commits
 version-resolver:
@@ -90,6 +101,10 @@ version-resolver:
   patch:
     labels: ['fix', 'patch', 'chore', 'docs', 'style', 'test', 'refactor']
   default: patch
+
+# Automatic version bumping based on commit patterns
+# This works with the autolabeler to determine the correct version increment
+version-template: '$MAJOR.$MINOR.$PATCH'
 
 # Better sorting of changes
 sort-by: title
