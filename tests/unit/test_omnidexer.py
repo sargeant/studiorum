@@ -1,5 +1,6 @@
 """Tests for Omnidexer system."""
 
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -470,3 +471,109 @@ class TestDeepIndexing:
         assert nested_content[0].name == "Valid Feature"
         assert isinstance(nested_content[0], ClassFeature)
         assert nested_content[0].level == 1
+
+
+class TestOmnidexerMetadataOnlyLoading:
+    """Test that omnidexer loads only metadata files for adventures/books."""
+
+    @pytest.mark.asyncio
+    async def test_omnidexer_loads_only_metadata_files(self):
+        """Test that omnidexer only loads metadata files, not content files."""
+        from unittest.mock import Mock, patch
+
+        from dnd5e.core.loaders.configurable_source_manager import (
+            ConfigurableSourceManager,
+        )
+        from dnd5e.core.loaders.omnidexer import Omnidexer
+
+        # Create test files
+        files = [
+            Path("/data/adventures.json"),  # metadata - should be loaded
+            Path("/data/books.json"),  # metadata - should be loaded
+            Path("/data/adventure-cos.json"),  # content - should be skipped
+            Path("/data/book-phb.json"),  # content - should be skipped
+            Path("/data/spells.json"),  # other content - should be loaded normally
+        ]
+
+        # Mock the source manager
+        with patch.object(ConfigurableSourceManager, "__init__", return_value=None):
+            with patch.object(ConfigurableSourceManager, "ensure_sources_ready"):
+                source_manager = ConfigurableSourceManager()
+                source_manager.content_manager = Mock()
+                source_manager.content_manager._index_built = True
+                source_manager.content_manager.get_all_content_files = Mock(
+                    return_value={"5etools": files}
+                )
+                source_manager._data_paths_cache = None
+
+                # Get the data paths that omnidexer would use
+                data_paths = source_manager.get_data_paths()
+
+                # Verify that only metadata files are included for adventures/books
+                all_files_to_load = []
+                for content_type, paths in data_paths.items():
+                    all_files_to_load.extend(paths)
+
+                # Should include metadata files
+                assert any(
+                    "adventures.json" in str(path) for path in all_files_to_load
+                ), "adventures.json metadata file should be included"
+                assert any("books.json" in str(path) for path in all_files_to_load), (
+                    "books.json metadata file should be included"
+                )
+
+                # Should NOT include content files
+                assert not any(
+                    "adventure-cos.json" in str(path) for path in all_files_to_load
+                ), "adventure-cos.json content file should be skipped"
+                assert not any(
+                    "book-phb.json" in str(path) for path in all_files_to_load
+                ), "book-phb.json content file should be skipped"
+
+    @pytest.mark.asyncio
+    async def test_omnidexer_interface_separation(self):
+        """Test that omnidexer can distinguish between metadata and content files."""
+        from unittest.mock import Mock, patch
+
+        from dnd5e.core.loaders.configurable_source_manager import (
+            ConfigurableSourceManager,
+        )
+
+        files = [
+            Path("/data/adventures.json"),  # metadata
+            Path("/data/books.json"),  # metadata
+            Path("/data/adventure-cos.json"),  # content
+            Path("/data/adventure-hotdq.json"),  # content
+            Path("/data/book-phb.json"),  # content
+            Path("/data/book-mm.json"),  # content
+        ]
+
+        with patch.object(ConfigurableSourceManager, "__init__", return_value=None):
+            source_manager = ConfigurableSourceManager()
+            source_manager.content_manager = Mock()
+            source_manager.content_manager._index_built = True
+            source_manager.content_manager.get_all_content_files = Mock(
+                return_value={"5etools": files}
+            )
+            source_manager._data_paths_cache = None
+
+            # Test the separate methods
+            metadata_files = source_manager.get_metadata_files()
+            content_files = source_manager.get_content_files()
+            data_paths = source_manager.get_data_paths()
+
+            # Count files in each category
+            total_metadata = sum(len(paths) for paths in metadata_files.values())
+            total_content = sum(len(paths) for paths in content_files.values())
+            total_data_paths = sum(len(paths) for paths in data_paths.values())
+
+            # Should have 2 metadata files and 4 content files
+            assert total_metadata == 2, (
+                f"Expected 2 metadata files, got {total_metadata}"
+            )
+            assert total_content == 4, f"Expected 4 content files, got {total_content}"
+
+            # get_data_paths should match metadata files for adventures/books
+            assert total_data_paths == total_metadata, (
+                f"get_data_paths should return same as metadata files, got {total_data_paths} vs {total_metadata}"
+            )

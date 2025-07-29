@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
+from dnd5e.core.loaders.source_manager import FileSystemSourceManager
 from dnd5e.core.models.content import ContentType
 
 
@@ -183,3 +184,238 @@ class TestConfigurableSourceManager:
         # Should be assigned to ITEM based on directory
         assert ContentType.ITEM in data_paths
         assert ambiguous_file in data_paths[ContentType.ITEM]
+
+    def test_is_metadata_file_detection(self, manager):
+        """Test that metadata files are correctly identified."""
+        # Test metadata files
+        adventures_file = Path("/data/adventures.json")
+        books_file = Path("/data/books.json")
+
+        assert manager._is_metadata_file(adventures_file) is True
+        assert manager._is_metadata_file(books_file) is True
+
+        # Test non-metadata files
+        adventure_content = Path("/data/adventure/adventure-cos.json")
+        book_content = Path("/data/book/book-phb.json")
+        spell_file = Path("/data/spells.json")
+
+        assert manager._is_metadata_file(adventure_content) is False
+        assert manager._is_metadata_file(book_content) is False
+        assert manager._is_metadata_file(spell_file) is False
+
+    def test_is_content_file_detection(self, manager):
+        """Test that content files are correctly identified."""
+        # Test content files
+        adventure_content = Path("/data/adventure/adventure-cos.json")
+        book_content = Path("/data/book/book-phb.json")
+        adventure_uppercase = Path("/data/adventure/Adventure-HotDQ.json")
+
+        assert manager._is_content_file(adventure_content) is True
+        assert manager._is_content_file(book_content) is True
+        assert manager._is_content_file(adventure_uppercase) is True
+
+        # Test non-content files
+        adventures_meta = Path("/data/adventures.json")
+        books_meta = Path("/data/books.json")
+        spell_file = Path("/data/spells.json")
+        non_json = Path("/data/adventure-cos.txt")
+
+        assert manager._is_content_file(adventures_meta) is False
+        assert manager._is_content_file(books_meta) is False
+        assert manager._is_content_file(spell_file) is False
+        assert manager._is_content_file(non_json) is False
+
+    def test_get_metadata_files(self, manager):
+        """Test that get_metadata_files returns only metadata files."""
+        files = [
+            Path("/data/adventures.json"),  # metadata
+            Path("/data/books.json"),  # metadata
+            Path("/data/adventure/adventure-cos.json"),  # content
+            Path("/data/book/book-phb.json"),  # content
+            Path("/data/spells.json"),  # other content
+        ]
+
+        manager.content_manager.get_all_content_files = Mock(
+            return_value={"5etools": files}
+        )
+
+        metadata_files = manager.get_metadata_files()
+
+        # Should have adventures and books metadata
+        assert ContentType.ADVENTURE in metadata_files
+        assert ContentType.BOOK in metadata_files
+        assert files[0] in metadata_files[ContentType.ADVENTURE]  # adventures.json
+        assert files[1] in metadata_files[ContentType.BOOK]  # books.json
+
+        # Should not contain content files
+        assert files[2] not in metadata_files.get(ContentType.ADVENTURE, [])
+        assert files[3] not in metadata_files.get(ContentType.BOOK, [])
+
+    def test_get_content_files(self, manager):
+        """Test that get_content_files returns only content files."""
+        files = [
+            Path("/data/adventures.json"),  # metadata
+            Path("/data/books.json"),  # metadata
+            Path("/data/adventure/adventure-cos.json"),  # content
+            Path("/data/book/book-phb.json"),  # content
+            Path("/data/adventure/adventure-hotdq.json"),  # content
+            Path("/data/spells.json"),  # other content
+        ]
+
+        manager.content_manager.get_all_content_files = Mock(
+            return_value={"5etools": files}
+        )
+
+        content_files = manager.get_content_files()
+
+        # Should have adventure and book content files
+        assert ContentType.ADVENTURE in content_files
+        assert ContentType.BOOK in content_files
+        assert files[2] in content_files[ContentType.ADVENTURE]  # adventure-cos.json
+        assert files[3] in content_files[ContentType.BOOK]  # book-phb.json
+        assert files[4] in content_files[ContentType.ADVENTURE]  # adventure-hotdq.json
+
+        # Should not contain metadata files
+        assert files[0] not in content_files.get(ContentType.ADVENTURE, [])
+        assert files[1] not in content_files.get(ContentType.BOOK, [])
+
+    def test_content_files_skipped_during_discovery(self, manager):
+        """Test that content files are skipped during get_data_paths discovery."""
+        files = [
+            Path("/data/adventures.json"),  # metadata - should be included
+            Path("/data/books.json"),  # metadata - should be included
+            Path("/data/adventure/adventure-cos.json"),  # content - should be skipped
+            Path("/data/book/book-phb.json"),  # content - should be skipped
+            Path("/data/spells.json"),  # other content - should be included
+        ]
+
+        manager.content_manager.get_all_content_files = Mock(
+            return_value={"5etools": files}
+        )
+
+        data_paths = manager.get_data_paths()
+
+        # Should contain metadata files for adventures and books
+        if ContentType.ADVENTURE in data_paths:
+            assert files[0] in data_paths[ContentType.ADVENTURE]  # adventures.json
+            assert (
+                files[2] not in data_paths[ContentType.ADVENTURE]
+            )  # adventure-cos.json skipped
+
+        if ContentType.BOOK in data_paths:
+            assert files[1] in data_paths[ContentType.BOOK]  # books.json
+            assert files[3] not in data_paths[ContentType.BOOK]  # book-phb.json skipped
+
+        # Other content should still work normally
+        # Note: spells.json might not match any patterns depending on directory structure
+
+    def test_interface_consistency(self, manager):
+        """Test that new interface methods are consistent with get_data_paths."""
+        files = [
+            Path("/data/adventures.json"),  # metadata
+            Path("/data/books.json"),  # metadata
+            Path("/data/adventure/adventure-cos.json"),  # content
+            Path("/data/book/book-phb.json"),  # content
+            Path("/data/spells.json"),  # other content
+        ]
+
+        manager.content_manager.get_all_content_files = Mock(
+            return_value={"5etools": files}
+        )
+
+        # Get results from all methods
+        data_paths = manager.get_data_paths()
+        metadata_files = manager.get_metadata_files()
+        content_files = manager.get_content_files()
+
+        # For adventures and books, get_data_paths should match get_metadata_files
+        if (
+            ContentType.ADVENTURE in data_paths
+            and ContentType.ADVENTURE in metadata_files
+        ):
+            assert (
+                data_paths[ContentType.ADVENTURE]
+                == metadata_files[ContentType.ADVENTURE]
+            )
+
+        if ContentType.BOOK in data_paths and ContentType.BOOK in metadata_files:
+            assert data_paths[ContentType.BOOK] == metadata_files[ContentType.BOOK]
+
+        # Content files should not be in data_paths
+        for content_type, paths in content_files.items():
+            if content_type in data_paths:
+                for content_file in paths:
+                    assert content_file not in data_paths[content_type]
+
+    def test_separate_discovery_completeness(self, manager):
+        """Test that metadata + content files discovery is complete and non-overlapping."""
+        files = [
+            Path("/data/adventures.json"),  # metadata
+            Path("/data/books.json"),  # metadata
+            Path("/data/adventure/adventure-cos.json"),  # content
+            Path("/data/adventure/adventure-hotdq.json"),  # content
+            Path("/data/book/book-phb.json"),  # content
+            Path("/data/book/book-mm.json"),  # content
+        ]
+
+        manager.content_manager.get_all_content_files = Mock(
+            return_value={"5etools": files}
+        )
+
+        metadata_files = manager.get_metadata_files()
+        content_files = manager.get_content_files()
+
+        # Count total metadata files
+        total_metadata = sum(len(paths) for paths in metadata_files.values())
+
+        # Count total content files
+        total_content = sum(len(paths) for paths in content_files.values())
+
+        # Should have 2 metadata files and 4 content files
+        assert total_metadata == 2
+        assert total_content == 4
+
+        # No file should appear in both metadata and content
+        all_metadata_files = []
+        for paths in metadata_files.values():
+            all_metadata_files.extend(paths)
+
+        all_content_files = []
+        for paths in content_files.values():
+            all_content_files.extend(paths)
+
+        # Check no overlap
+        for metadata_file in all_metadata_files:
+            assert metadata_file not in all_content_files
+
+        for content_file in all_content_files:
+            assert content_file not in all_metadata_files
+
+
+class TestFileSystemSourceManager:
+    """Test FileSystemSourceManager interface compliance."""
+
+    def test_new_interface_methods_exist(self):
+        """Test that FileSystemSourceManager implements new interface methods."""
+        with patch("dnd5e.core.loaders.source_manager.get_path_config"):
+            manager = FileSystemSourceManager()
+
+            # Should have the new methods
+            assert hasattr(manager, "get_metadata_files")
+            assert hasattr(manager, "get_content_files")
+            assert callable(manager.get_metadata_files)
+            assert callable(manager.get_content_files)
+
+    def test_filesystem_manager_dual_file_methods(self):
+        """Test that FileSystemSourceManager dual-file methods return empty results."""
+        with patch("dnd5e.core.loaders.source_manager.get_path_config"):
+            manager = FileSystemSourceManager()
+
+            # Should return empty dicts since filesystem manager doesn't use dual-file pattern
+            metadata_files = manager.get_metadata_files()
+            content_files = manager.get_content_files()
+
+            assert isinstance(metadata_files, dict)
+            assert isinstance(content_files, dict)
+            assert len(metadata_files) == 0
+            assert len(content_files) == 0
