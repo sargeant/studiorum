@@ -47,6 +47,9 @@ class LaTeXTemplateEngine:
         # Initialize LaTeX configuration
         self.latex_config = get_default_latex_config()
 
+        # Initialize the environment and cache
+        self.update_latex_config(None)
+
     def update_latex_config(self, latex_config: LaTeXConfig | None) -> None:
         """Update the LaTeX configuration.
 
