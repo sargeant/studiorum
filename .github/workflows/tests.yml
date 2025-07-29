@@ -72,8 +72,6 @@ jobs:
 
   security:
     runs-on: ubuntu-latest
-    env:
-      SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
 
     steps:
     - name: Checkout code
@@ -91,7 +89,7 @@ jobs:
       run: uv sync --group dev
 
     - name: Run dependency vulnerability scan
-      run: uv run safety scan
+      run: uv run pip-audit --desc=off
 
     - name: Run static security analysis
       run: uv run bandit -ll -r src/ -f json -o bandit-report.json
