@@ -36,6 +36,7 @@ Detailed guides for understanding and extending key systems:
 Information for contributors:
 
 - **[Contributing Guide](contributing.md)**: How to contribute to the project
+- **[Dependency Management](dependency-management.md)**: Dependency management strategy and best practices
 - Code style and standards
 - Testing requirements
 - Pull request process
@@ -117,6 +118,7 @@ implementation/index
 :caption: Project Information
 
 contributing
+dependency-management
 architecture
 ```
 
