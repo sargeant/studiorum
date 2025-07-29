@@ -31,11 +31,6 @@ jobs:
       - name: Install Mermaid CLI
         run: npm install -g @mermaid-js/mermaid-cli
 
-      - name: Install LaTeX
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended texlive-xetex
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -53,26 +48,10 @@ jobs:
           cd docs
           uv run sphinx-build -b html source _build/html
 
-      - name: Build PDF documentation
-        run: |
-          cd docs
-          uv run sphinx-build -b latex source _build/latex
-          cd _build/latex
-          make all-pdf
-        continue-on-error: true  # PDF build might fail, but don't stop HTML deployment
-
       - name: Upload HTML artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/_build/html
-
-      - name: Upload PDF artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: documentation-pdf
-          path: docs/_build/latex/*.pdf
-          retention-days: 90
-        if: success() || failure()  # Upload PDF even if build partially failed
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
