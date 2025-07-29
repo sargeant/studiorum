@@ -64,6 +64,8 @@ class Adventure(BaseContent):
         strict: bool | None = None,
         from_attributes: bool | None = None,
         context: Any = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
     ) -> "Adventure":
         """Custom validation to handle 5etools data format."""
         # If this is a dict with "data" field, transform it

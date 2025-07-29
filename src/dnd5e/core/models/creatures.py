@@ -107,6 +107,8 @@ class CreatureType(BaseModel):
         strict: bool | None = None,
         from_attributes: bool | None = None,
         context: Any | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
     ) -> "CreatureType":
         """Handle string input and special dict formats by wrapping in type field."""
         if isinstance(obj, str):

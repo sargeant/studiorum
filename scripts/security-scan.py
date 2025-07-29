@@ -3,7 +3,7 @@
 Security scanning script for 5e2pdf project.
 
 This script runs comprehensive security checks including:
-- Dependency vulnerability scanning with safety
+- Dependency vulnerability scanning with pip-audit
 - Static code analysis with bandit
 - Basic secret detection patterns
 
@@ -35,36 +35,52 @@ def run_command(
         sys.exit(1)
 
 
-def check_safety() -> dict[str, Any]:
-    """Run safety check for dependency vulnerabilities."""
+def check_pip_audit() -> dict[str, Any]:
+    """Run pip-audit for dependency vulnerabilities."""
     print("\n🔒 Checking for dependency vulnerabilities...")
 
-    result = run_command(["uv", "run", "safety", "check", "--json"])
+    result = run_command(["uv", "run", "pip-audit", "--format=json", "--desc=off"])
 
-    if result.returncode == 0:
-        print("✅ No known vulnerabilities found in dependencies")
-        return {"status": "clean", "vulnerabilities": []}
-    else:
-        try:
-            vulns = json.loads(result.stdout) if result.stdout else []
-            print(f"⚠️  Found {len(vulns)} vulnerabilities")
-            for vuln in vulns:
-                print(
-                    f"   - {vuln.get('package', 'unknown')}: {vuln.get('vulnerability', 'No description')}"
-                )
-            return {"status": "vulnerable", "vulnerabilities": vulns}
-        except json.JSONDecodeError:
-            print("❌ Failed to parse safety output")
-            print(result.stdout)
-            print(result.stderr)
-            return {"status": "error", "vulnerabilities": []}
+    try:
+        if result.stdout:
+            audit_data = json.loads(result.stdout)
+            # Extract vulnerabilities from pip-audit format
+            all_vulns = []
+            for dep in audit_data.get("dependencies", []):
+                for vuln in dep.get("vulns", []):
+                    all_vulns.append(
+                        {
+                            "package": dep.get("name", "unknown"),
+                            "version": dep.get("version", "unknown"),
+                            "vulnerability": vuln.get("description", "No description"),
+                            "id": vuln.get("id", ""),
+                            "fix_versions": vuln.get("fix_versions", []),
+                        }
+                    )
+
+            if not all_vulns:
+                print("✅ No known vulnerabilities found in dependencies")
+                return {"status": "clean", "vulnerabilities": []}
+            else:
+                print(f"⚠️  Found {len(all_vulns)} vulnerabilities")
+                for vuln in all_vulns:
+                    print(f"   - {vuln['package']}: {vuln['vulnerability']}")
+                return {"status": "vulnerable", "vulnerabilities": all_vulns}
+        else:
+            print("✅ No known vulnerabilities found in dependencies")
+            return {"status": "clean", "vulnerabilities": []}
+    except json.JSONDecodeError:
+        print("❌ Failed to parse pip-audit output")
+        print(result.stdout)
+        print(result.stderr)
+        return {"status": "error", "vulnerabilities": []}
 
 
 def check_bandit() -> dict[str, Any]:
     """Run bandit for static security analysis."""
     print("\n🔍 Running static security analysis...")
 
-    result = run_command(["uv", "run", "bandit", "-r", "src/", "-f", "json"])
+    result = run_command(["uv", "run", "bandit", "-r", "src/", "-f", "json", "-q"])
 
     try:
         if result.stdout:
@@ -84,10 +100,13 @@ def check_bandit() -> dict[str, Any]:
         else:
             print("✅ No security issues found in code")
             return {"status": "clean", "issues": []}
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
         print("❌ Failed to parse bandit output")
-        print(result.stdout)
-        print(result.stderr)
+        print(f"JSON decode error: {e}")
+        print("Raw stdout:")
+        print(
+            result.stdout[:500] + "..." if len(result.stdout) > 500 else result.stdout
+        )
         return {"status": "error", "issues": []}
 
 
@@ -149,12 +168,12 @@ def generate_report(results: dict[str, Any], output_file: str = "security-report
         ).stdout.strip(),
         "summary": {
             "total_issues": (
-                len(results.get("safety", {}).get("vulnerabilities", []))
+                len(results.get("pip_audit", {}).get("vulnerabilities", []))
                 + len(results.get("bandit", {}).get("issues", []))
                 + len(results.get("secrets", {}).get("issues", []))
             ),
             "dependency_vulnerabilities": len(
-                results.get("safety", {}).get("vulnerabilities", [])
+                results.get("pip_audit", {}).get("vulnerabilities", [])
             ),
             "code_security_issues": len(results.get("bandit", {}).get("issues", [])),
             "potential_secrets": len(results.get("secrets", {}).get("issues", [])),
@@ -183,7 +202,7 @@ def main():
     exit_code = 0
 
     # Run all security checks
-    results["safety"] = check_safety()
+    results["pip_audit"] = check_pip_audit()
     results["bandit"] = check_bandit()
     results["secrets"] = check_secrets()
 
@@ -201,7 +220,7 @@ def main():
     # Attempt fixes if requested
     if args.fix and exit_code != 0:
         print("\n🔧 Attempting to fix issues...")
-        if results["safety"]["status"] == "vulnerable":
+        if results["pip_audit"]["status"] == "vulnerable":
             print("💡 For dependency vulnerabilities, try: uv update")
         if results["bandit"]["status"] == "issues":
             print("💡 Review bandit issues manually - they require code changes")

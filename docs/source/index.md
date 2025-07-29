@@ -47,6 +47,7 @@ user-guide/index
 developer/index
 developer/contributing
 examples/index
+api/index
 ```
 
 ## Project Information

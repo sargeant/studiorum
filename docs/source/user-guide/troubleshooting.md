@@ -47,7 +47,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ## Getting Help
 
 1. Check this troubleshooting guide
-2. Search existing [GitHub issues](https://github.com/yourusername/5e2pdf/issues)
+2. Search existing [GitHub issues](https://github.com/sargeant/5e2pdf/issues)
 3. Create a new issue with:
    - System information
    - Error messages

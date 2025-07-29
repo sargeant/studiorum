@@ -41,6 +41,10 @@ extensions = [
     "sphinx_copybutton",  # Copy button for code blocks
     "sphinx.ext.intersphinx",  # Links to other documentation
     "sphinx.ext.todo",  # Todo support
+    "sphinx.ext.autosummary",  # Auto-generate summary tables
+    "sphinx.ext.autosectionlabel",  # Auto-generate section labels
+    "sphinx.ext.duration",  # Build duration tracking
+    "sphinx.ext.graphviz",  # Graphviz diagrams
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -60,10 +64,22 @@ myst_enable_extensions = [
     "deflist",  # Definition lists
     "html_image",  # HTML img tags
     "tasklist",  # Task lists
+    "linkify",  # Auto-link URLs
+    "substitution",  # Text substitutions
+    "attrs_inline",  # Inline attributes
+    "attrs_block",  # Block attributes
 ]
 
 # Configure Mermaid to use fence syntax (GitHub compatible)
 myst_fence_as_directive = ["mermaid"]
+
+# Auto-section labeling for cross-references
+autosectionlabel_prefix_document = True
+autosectionlabel_maxdepth = 3
+
+# Auto-summary configuration
+autosummary_generate = True
+autosummary_imported_members = True
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -81,6 +97,12 @@ html_theme_options = {
     "show_prev_next": True,
     "show_scrolltop": True,
     "globaltoc_includehidden": True,  # Updated from deprecated nav_include_hidden
+    "main_nav_links": {
+        "User Guide": "/user-guide/index",
+        "API Reference": "/api/index",
+        "Examples": "/examples/index",
+        "Developer Docs": "/developer/index",
+    },
     "extra_header_link_icons": {
         "repository on GitHub": {
             "link": "https://github.com/sargeant/5e2pdf/",

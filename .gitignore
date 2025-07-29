@@ -1,3 +1,6 @@
+# Obsidian files
+.obsidian/
+
 # LaTeX compilation artifacts
 *.aux
 *.fdb_latexmk

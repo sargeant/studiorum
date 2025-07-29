@@ -100,14 +100,14 @@ This project uses a three-layer approach to dependency management for reliabilit
 ### Regular Maintenance
 
 - Monthly review of outdated packages using `uv show --outdated`
-- Quarterly security audit with `safety check`
+- Quarterly security audit with `pip-audit`
 - Annual major version review
 
 ## Tools
 
 - `uv show --outdated` - Check for available updates
 - `uv tree` - Examine dependency tree
-- `uv run safety check` - Security vulnerability scanning (included in dev dependencies)
+- `uv run pip-audit` - Security vulnerability scanning (included in dev dependencies)
 - `uv run bandit -r src/` - Security linting (included in dev dependencies)
 - `uv lock --upgrade` - Update all packages within constraints
 - `uv sync --extra dev` - Install development dependencies

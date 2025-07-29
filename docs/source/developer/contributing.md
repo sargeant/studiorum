@@ -10,7 +10,7 @@ This page is under construction. Please check back later for detailed contributi
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/5e2pdf.git
+git clone https://github.com/sargeant/5e2pdf.git
 cd 5e2pdf
 
 # Install development dependencies
