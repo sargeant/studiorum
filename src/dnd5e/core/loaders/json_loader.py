@@ -201,18 +201,21 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 return item_data
             return []
         elif self._content_type == ContentType.ADVENTURE:
-            # Check if this is a metadata file (adventures.json) and skip it
-            if self._is_adventure_metadata_file(data):
-                logger.debug("Skipping adventure metadata file")
+            # Check if this is a content file (adventure-*.json) and skip it
+            # Content files should be loaded on-demand by ContentResolver, not by omnidexer
+            if self._is_adventure_content_file(data):
+                logger.debug(
+                    "Skipping adventure content file - will be loaded on-demand"
+                )
                 return []
 
-            # Check if this is a content file (adventure-*.json)
-            if self._is_adventure_content_file(data):
-                # Handle 5etools adventure data format with data array
-                # Return the entire file as a single adventure, not individual sections
-                adventure_data = data["data"]
-                if isinstance(adventure_data, list) and adventure_data:
-                    return [data]  # Wrap entire file structure as single adventure
+            # Check if this is a metadata file (adventures.json) and process it
+            if self._is_adventure_metadata_file(data):
+                logger.debug("Processing adventure metadata file")
+                adventure_data = data["adventure"]
+                if isinstance(adventure_data, list):
+                    return adventure_data
+                return []
 
             # Legacy handling for other adventure formats
             if "adventure" in data:
@@ -225,9 +228,30 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 adventure_data = data["adventureData"]
                 if isinstance(adventure_data, list) and adventure_data:
                     return adventure_data
+            elif self._is_adventure_content_file(data):
+                # Handle 5etools adventure data format with data array
+                # Return the entire file as a single adventure, not individual sections
+                adventure_data = data["data"]
+                if isinstance(adventure_data, list) and adventure_data:
+                    return [data]  # Wrap entire file structure as single adventure
 
             return []
         elif self._content_type == ContentType.BOOK:
+            # Check if this is a content file (book-*.json) and skip it
+            # Content files should be loaded on-demand by ContentResolver, not by omnidexer
+            if self._is_book_content_file(data):
+                logger.debug("Skipping book content file - will be loaded on-demand")
+                return []
+
+            # Check if this is a metadata file (books.json) and process it
+            if self._is_book_metadata_file(data):
+                logger.debug("Processing book metadata file")
+                book_data = data["book"]
+                if isinstance(book_data, list):
+                    return book_data
+                return []
+
+            # Legacy handling for other book formats
             if "book" in data:
                 book_data = data["book"]
                 if isinstance(book_data, list):
@@ -238,7 +262,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 book_data = data["bookData"]
                 if isinstance(book_data, list) and book_data:
                     return book_data
-            elif "data" in data:
+            elif self._is_book_content_file(data):
                 # Handle 5etools book data format with data array
                 # Return the entire file as a single book, not individual sections
                 book_data = data["data"]

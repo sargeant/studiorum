@@ -59,23 +59,37 @@ print(f"Total spells: {stats['spell']}")
 
 ## Source Management
 
-Content source discovery and management functionality.
+Content source discovery and management functionality, including support for the dual-file architecture used by adventures and books.
+
+### Dual-File Architecture
+
+The loader system implements a dual-file architecture for adventures and books that separates metadata from content:
+
+- **Metadata files** (`adventures.json`, `books.json`): Lightweight index files loaded at startup
+- **Content files** (`adventure-*.json`, `book-*.json`): Heavy content data loaded on-demand
 
 **Example Source Management:**
 ```python
-from dnd5e.core.loaders import Omnidexer
+from dnd5e.core.loaders import ConfigurableSourceManager, Omnidexer
 
-omnidexer = Omnidexer()
+# Source manager with dual-file support
+source_manager = ConfigurableSourceManager()
 
-# Get available sources
-sources = omnidexer.get_available_sources()
-print(f"Available sources: {sources}")
+# Get metadata files (loaded by omnidexer)
+metadata_files = source_manager.get_metadata_files()
+print(f"Adventure metadata files: {metadata_files[ContentType.ADVENTURE]}")
 
-# Update sources
-await omnidexer.update_sources()
+# Get content files (for on-demand loading)
+content_files = source_manager.get_content_files()
+print(f"Adventure content files: {content_files[ContentType.ADVENTURE]}")
 
-# Validate source integrity
-is_valid = await omnidexer.validate_sources()
+# Omnidexer automatically uses only metadata files
+omnidexer = Omnidexer(source_manager)
+await omnidexer.load_all_data()
+
+# Results in ~61 adventures (metadata only) instead of 94 duplicates
+stats = omnidexer.get_statistics()
+print(f"Adventures loaded: {stats['by_type'].get('adventure', 0)}")
 ```
 
 ## Performance and Caching
