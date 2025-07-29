@@ -201,6 +201,20 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 return item_data
             return []
         elif self._content_type == ContentType.ADVENTURE:
+            # Check if this is a metadata file (adventures.json) and skip it
+            if self._is_adventure_metadata_file(data):
+                logger.debug("Skipping adventure metadata file")
+                return []
+
+            # Check if this is a content file (adventure-*.json)
+            if self._is_adventure_content_file(data):
+                # Handle 5etools adventure data format with data array
+                # Return the entire file as a single adventure, not individual sections
+                adventure_data = data["data"]
+                if isinstance(adventure_data, list) and adventure_data:
+                    return [data]  # Wrap entire file structure as single adventure
+
+            # Legacy handling for other adventure formats
             if "adventure" in data:
                 adventure_data = data["adventure"]
                 if isinstance(adventure_data, list):
@@ -211,12 +225,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 adventure_data = data["adventureData"]
                 if isinstance(adventure_data, list) and adventure_data:
                     return adventure_data
-            elif "data" in data:
-                # Handle 5etools adventure data format with data array
-                # Return the entire file as a single adventure, not individual sections
-                adventure_data = data["data"]
-                if isinstance(adventure_data, list) and adventure_data:
-                    return [data]  # Wrap entire file structure as single adventure
+
             return []
         elif self._content_type == ContentType.BOOK:
             if "book" in data:

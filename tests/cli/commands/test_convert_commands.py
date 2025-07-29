@@ -761,3 +761,280 @@ class TestSpecialCases:
 
         # Should succeed via resolver fallback
         assert result.exit_code == 0
+
+
+class TestLaTeXDocumentOptions:
+    """Test LaTeX document class options in CLI commands."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.runner = CliRunner()
+        self.mock_adventure_data = {
+            "adventure": [
+                {
+                    "name": "Test Adventure",
+                    "source": {"abbreviation": "TEST", "name": "Test Source"},
+                    "id": "test",
+                    "metadata": {},
+                    "published": None,
+                    "author": None,
+                    "cover": None,
+                    "contents": [],
+                }
+            ]
+        }
+
+    @patch("dnd5e.cli.commands.convert.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.display_manager")
+    @patch("aiofiles.open")
+    @patch("pathlib.Path.mkdir")
+    def test_adventure_with_latex_options(
+        self,
+        mock_mkdir,
+        mock_aiofiles_open,
+        mock_display,
+        mock_renderer_class,
+        mock_tag_resolver,
+        mock_omnidexer,
+    ):
+        """Test adventure command with LaTeX document options."""
+        # Mock file operations
+        mock_file = AsyncMock()
+        mock_file.read.return_value = json.dumps(self.mock_adventure_data)
+        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+
+        # Mock dependencies
+        mock_omnidexer.return_value = Mock()
+        mock_tag_resolver.return_value = Mock()
+
+        # Mock renderer
+        mock_renderer = Mock()
+        mock_renderer.render_document.return_value = (
+            "\\documentclass{article}\\begin{document}Test\\end{document}"
+        )
+        mock_renderer_class.return_value = mock_renderer
+
+        # Mock display manager
+        mock_display.progress.return_value.__enter__ = Mock()
+        mock_display.progress.return_value.__exit__ = Mock()
+        mock_display.add_task.return_value = "task_id"
+        mock_display.update_task = Mock()
+
+        # Create temporary file
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(self.mock_adventure_data, f)
+            file_path = f.name
+
+        try:
+            # Test command with LaTeX options
+            result = self.runner.invoke(
+                app,
+                [
+                    "adventure",
+                    file_path,
+                    "--document-class",
+                    "dndarticle",
+                    "--paper-size",
+                    "a4paper",
+                    "--font-size",
+                    "12pt",
+                    "--background",
+                    "print",
+                    "--one-column",
+                    "--not-justified",
+                ],
+            )
+
+            # Verify success
+            assert result.exit_code == 0
+            assert "Adventure converted" in result.stdout
+
+            # Verify renderer was called with context containing latex_config
+            mock_renderer.render_document.assert_called_once()
+            call_args = mock_renderer.render_document.call_args
+            context = call_args[0][1]  # Second argument is the context
+
+            # Verify latex_config was passed and has correct values
+            assert context.latex_config is not None
+            assert context.latex_config.document.document_class == "dndarticle"
+            assert context.latex_config.document.paper_size == "a4paper"
+            assert context.latex_config.document.font_size == "12pt"
+            assert context.latex_config.document.background == "print"
+            assert context.latex_config.document.two_column is False
+            assert context.latex_config.document.justified_text is False
+
+        finally:
+            Path(file_path).unlink()
+
+    @patch("dnd5e.cli.commands.convert.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.display_manager")
+    @patch("aiofiles.open")
+    @patch("pathlib.Path.mkdir")
+    def test_book_with_default_latex_options(
+        self,
+        mock_mkdir,
+        mock_aiofiles_open,
+        mock_display,
+        mock_renderer_class,
+        mock_tag_resolver,
+        mock_omnidexer,
+    ):
+        """Test book command with default LaTeX options."""
+        # Mock book data
+        mock_book_data = {
+            "data": [
+                {
+                    "type": "section",
+                    "name": "Chapter 1",
+                    "entries": ["This is chapter 1 content."],
+                }
+            ]
+        }
+
+        # Mock file operations
+        mock_file = AsyncMock()
+        mock_file.read.return_value = json.dumps(mock_book_data)
+        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+
+        # Mock dependencies
+        mock_omnidexer.return_value = Mock()
+        mock_tag_resolver.return_value = Mock()
+
+        # Mock renderer
+        mock_renderer = Mock()
+        mock_renderer.render_document.return_value = (
+            "\\documentclass{article}\\begin{document}Test\\end{document}"
+        )
+        mock_renderer_class.return_value = mock_renderer
+
+        # Mock display manager
+        mock_display.progress.return_value.__enter__ = Mock()
+        mock_display.progress.return_value.__exit__ = Mock()
+        mock_display.add_task.return_value = "task_id"
+        mock_display.update_task = Mock()
+
+        # Create temporary file
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(mock_book_data, f)
+            file_path = f.name
+
+        try:
+            # Test command with default options
+            result = self.runner.invoke(app, ["book", file_path])
+
+            # Verify success
+            assert result.exit_code == 0
+            assert "Book converted" in result.stdout
+
+            # Verify default LaTeX config values
+            mock_renderer.render_document.assert_called_once()
+            call_args = mock_renderer.render_document.call_args
+            context = call_args[0][1]  # Second argument is the context
+
+            assert context.latex_config is not None
+            assert context.latex_config.document.document_class == "dndbook"
+            assert (
+                context.latex_config.document.paper_size == "letterpaper"
+            )  # default from settings
+            assert context.latex_config.document.font_size == "11pt"
+            assert (
+                context.latex_config.document.background is None
+            )  # default no background
+            assert context.latex_config.document.two_column is True
+            assert context.latex_config.document.justified_text is True
+
+        finally:
+            Path(file_path).unlink()
+
+    @patch("dnd5e.cli.commands.convert.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.display_manager")
+    @patch("aiofiles.open")
+    @patch("pathlib.Path.mkdir")
+    @patch("dnd5e.cli.commands.convert.get_settings")
+    def test_supplement_with_paper_size_from_settings(
+        self,
+        mock_get_settings,
+        mock_mkdir,
+        mock_aiofiles_open,
+        mock_display,
+        mock_renderer_class,
+        mock_tag_resolver,
+        mock_omnidexer,
+    ):
+        """Test supplement command uses paper size from settings when not specified."""
+        # Mock supplement data
+        mock_supplement_data = {
+            "spell": [
+                {
+                    "name": "Test Spell",
+                    "source": {"abbreviation": "TEST", "name": "Test Source"},
+                    "level": 1,
+                    "school": "A",
+                    "time": [{"number": 1, "unit": "action"}],
+                    "range": {
+                        "type": "point",
+                        "distance": {"type": "feet", "amount": 30},
+                    },
+                    "components": {"v": True},
+                    "duration": [{"type": "instant"}],
+                    "entries": ["Test spell description"],
+                }
+            ]
+        }
+
+        # Mock settings with custom paper size
+        mock_settings = Mock()
+        mock_settings.default_paper_size = "a5paper"
+        mock_get_settings.return_value = mock_settings
+
+        # Mock file operations
+        mock_file = AsyncMock()
+        mock_file.read.return_value = json.dumps(mock_supplement_data)
+        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+
+        # Mock dependencies
+        mock_omnidexer.return_value = Mock()
+        mock_tag_resolver.return_value = Mock()
+
+        # Mock renderer
+        mock_renderer = Mock()
+        mock_renderer.render_document.return_value = (
+            "\\documentclass{article}\\begin{document}Test\\end{document}"
+        )
+        mock_renderer_class.return_value = mock_renderer
+
+        # Mock display manager
+        mock_display.progress.return_value.__enter__ = Mock()
+        mock_display.progress.return_value.__exit__ = Mock()
+        mock_display.add_task.return_value = "task_id"
+        mock_display.update_task = Mock()
+
+        # Create temporary file
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(mock_supplement_data, f)
+            file_path = f.name
+
+        try:
+            # Test command without --paper-size flag
+            result = self.runner.invoke(app, ["supplement", file_path])
+
+            # Verify success
+            assert result.exit_code == 0
+            assert "Supplement converted" in result.stdout
+
+            # Verify settings paper size was used
+            mock_renderer.render_document.assert_called_once()
+            call_args = mock_renderer.render_document.call_args
+            context = call_args[0][1]  # Second argument is the context
+
+            assert context.latex_config is not None
+            assert context.latex_config.document.paper_size == "a5paper"
+
+        finally:
+            Path(file_path).unlink()

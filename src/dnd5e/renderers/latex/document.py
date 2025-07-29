@@ -125,6 +125,10 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             content_list, context
         )
 
+        # Update template engine with LaTeX config from context if available
+        if hasattr(context, "latex_config") and context.latex_config:
+            self.template_engine.update_latex_config(context.latex_config)
+
         # Create template context
         template_context = self.template_engine.create_dnd_template_context(
             content_type=metadata.document_type.value

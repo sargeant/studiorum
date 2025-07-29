@@ -68,6 +68,10 @@ class Adventure(BaseContent):
         by_name: bool | None = None,
     ) -> "Adventure":
         """Custom validation to handle 5etools data format."""
+        # print(f"DEBUG Adventure.model_validate: obj type={type(obj)}, has 'data'={'data' in obj if isinstance(obj, dict) else False}")
+        # if isinstance(obj, dict):
+        #     print(f"DEBUG Adventure.model_validate: obj keys={list(obj.keys())[:10]}")  # Show first 10 keys
+
         # If this is a dict with "data" field, transform it
         if isinstance(obj, dict) and "data" in obj and not obj.get("contents"):
             data_sections = obj["data"]
@@ -75,9 +79,11 @@ class Adventure(BaseContent):
                 contents = []
                 for section in data_sections:
                     if isinstance(section, dict) and section.get("type") == "section":
+                        entries = section.get("entries", [])
+
                         chapter = {
                             "name": section.get("name", "Unnamed Chapter"),
-                            "entries": section.get("entries", []),
+                            "entries": entries,
                         }
                         if "id" in section:
                             chapter["ordinal"] = {
@@ -90,6 +96,12 @@ class Adventure(BaseContent):
                 obj = dict(obj)  # Make a copy
                 obj["contents"] = contents
                 del obj["data"]  # Remove the data field
+
+                # Add required fields if missing
+                if "name" not in obj:
+                    obj["name"] = "Unknown Adventure"
+                if "source" not in obj:
+                    obj["source"] = {"abbreviation": "UNK", "name": "Unknown Source"}
 
         return super().model_validate(
             obj, strict=strict, from_attributes=from_attributes, context=context
