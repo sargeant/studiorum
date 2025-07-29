@@ -100,10 +100,11 @@ src/dnd5e/
 ## Table of Contents
 
 ```{toctree}
-:maxdepth: 2
-:caption: API Documentation
+:maxdepth: 1
+:caption: Project Information
 
-api/index
+architecture
+dependency-management
 ```
 
 ```{toctree}
@@ -114,12 +115,10 @@ implementation/index
 ```
 
 ```{toctree}
-:maxdepth: 1
-:caption: Project Information
+:maxdepth: 2
+:caption: API Documentation
 
-contributing
-dependency-management
-architecture
+api/index
 ```
 
 For detailed information on any of these topics, explore the sections below.

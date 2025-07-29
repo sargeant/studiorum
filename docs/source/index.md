@@ -34,7 +34,7 @@ pip install 5e2pdf
 
 ```{toctree}
 :maxdepth: 2
-:caption: User Guide
+:caption: For Users
 
 quickstart
 user-guide/index
@@ -42,15 +42,10 @@ user-guide/index
 
 ```{toctree}
 :maxdepth: 2
-:caption: Developer Documentation
+:caption: For Developers
 
 developer/index
-```
-
-```{toctree}
-:maxdepth: 2
-:caption: Examples
-
+developer/contributing
 examples/index
 ```
 
