@@ -35,19 +35,17 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "requests>=2.31.0",
-    # "beautifulsoup4>=4.12.0",
-    "colorlog>=6.0.0",
-    # "GetOptions>=1.0.3",
-    "pydantic>=2.0.0",
-    "pydantic-settings>=2.0.0",
-    "typer>=0.9.0",
-    "rich>=13.0.0",
-    "pyyaml>=6.0.0",
-    "jinja2>=3.0.0",
-    "aiofiles>=23.0.0",
-    "lark>=1.2.2",
-    "diskcache>=5.6.3",
+    "requests>=2.31.0,<3.0.0",
+    "colorlog>=6.0.0,<7.0.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "pydantic-settings>=2.0.0,<3.0.0",
+    "typer>=0.9.0,<1.0.0",
+    "rich>=14.0.0,<15.0.0",
+    "pyyaml>=6.0.0,<7.0.0",
+    "jinja2>=3.0.0,<4.0.0",
+    "aiofiles>=23.0.0,<25.0.0",
+    "lark>=1.2.2,<2.0.0",
+    "diskcache>=5.6.3,<6.0.0",
 ]
 
 [project.urls]
@@ -55,21 +53,10 @@ Homepage = "https://github.com/sargeant/5e2pdf"
 Repository = "https://github.com/sargeant/5e2pdf"
 "Bug Tracker" = "https://github.com/sargeant/5e2pdf/issues"
 
+[project.scripts]
+5e2pdf = "dnd5e.cli.main:app"
+
 [project.optional-dependencies]
-dev = [
-    "ruff>=0.12.2",
-    "lark>=1.2.2",
-    "mypy",
-    "rg>=0.0.75",
-    "semver>=3.0.4",
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
-    "pytest-xdist>=3.0.0",
-    "psutil>=5.9.0",                 # For memory usage testing
-    "types-pyyaml>=6.0.12.20250516",
-    "diskcache-stubs>=0.0.2",
-]
 docs = [
     "sphinx>=8.0.0",
     "sphinx-autobuild>=2024.0.0",
@@ -77,14 +64,34 @@ docs = [
     "myst-parser>=4.0.0",
     "packaging",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.2,<1.0.0",
+    "mypy>=1.0.0,<2.0.0",
+    "rg>=0.0.75,<1.0.0",
+    "semver>=3.0.4,<4.0.0",
+    "pytest>=8.0.0,<9.0.0",
+    "pytest-asyncio>=1.1.0,<2.0.0",
+    "pytest-cov>=6.0.0,<7.0.0",
+    "pytest-xdist>=3.0.0,<4.0.0",
+    "psutil>=5.9.0,<8.0.0",
+    "types-pyyaml>=6.0.12.20250516",
+    "types-aiofiles>=24.1.0.20250708",
+    "types-psutil>=7.0.0.20250601",
+    "diskcache-stubs>=5.6.3",
+    "certifi>=2025.7.14",
+    "coverage>=7.10.1,<8.0.0",
+    "starlette>=0.47.2,<1.0.0",
+    "safety>=3.6.0,<4.0.0",
+    "bandit>=1.8.6,<2.0.0",
+]
+
 images = ["Pillow>=9.0.0"]
 xml = ["lxml>=4.9.0"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dnd5e"]
-
-[project.scripts]
-5e2pdf = "dnd5e.cli.main:app"
 
 [tool.ruff]
 line-length = 88
@@ -143,10 +150,6 @@ ignore = [
     "E501",    # line too long
 ]
 
-[tool.black]
-line-length = 88
-target-version = ["py312"]
-
 [tool.ruff.lint.isort]
 known-first-party = ["dnd5e"]
 section-order = [
@@ -186,15 +189,3 @@ markers = [
 ]
 asyncio_mode = "auto"
 filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]
-
-[dependency-groups]
-dev = [
-    "bandit>=1.8.6",
-    "pytest>=8.4.1",
-    "pytest-asyncio>=1.0.0",
-    "pytest-cov>=6.2.1",
-    "pytest-xdist>=3.8.0",
-    "safety>=3.6.0",
-    "types-aiofiles>=24.1.0.20250708",
-    "types-psutil>=7.0.0.20250601",
-]

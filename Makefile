@@ -12,7 +12,7 @@ test: pytest
 
 # Sync environment (dev dependencies)
 uv:
-	uv sync --extra dev
+	uv sync --group dev
 
 # Checks and tools
 
