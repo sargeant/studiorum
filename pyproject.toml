@@ -64,6 +64,7 @@ docs = [
     "myst-parser==4.0.1", # Pin to MyST 4.0.1 exactly
     "sphinxcontrib-mermaid>=0.9.2", # Mermaid support
     "sphinx-copybutton>=0.5.2", # Copy buttons for code
+    "linkify-it-py>=2.0.0", # For MyST linkify extension
     "packaging",
 ]
 
