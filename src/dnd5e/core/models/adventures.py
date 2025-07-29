@@ -68,10 +68,6 @@ class Adventure(BaseContent):
         by_name: bool | None = None,
     ) -> "Adventure":
         """Custom validation to handle 5etools data format."""
-        # print(f"DEBUG Adventure.model_validate: obj type={type(obj)}, has 'data'={'data' in obj if isinstance(obj, dict) else False}")
-        # if isinstance(obj, dict):
-        #     print(f"DEBUG Adventure.model_validate: obj keys={list(obj.keys())[:10]}")  # Show first 10 keys
-
         # If this is a dict with "data" field, transform it
         if isinstance(obj, dict) and "data" in obj and not obj.get("contents"):
             data_sections = obj["data"]
