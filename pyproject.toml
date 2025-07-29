@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "5e2pdf"
-version = "0.4.0"
+version = "0.4.1"
 description = "Convert D&D 5e JSON data to beautifully formatted LaTeX/PDF documents"
 readme = "README.md"
 requires-python = ">=3.12"
