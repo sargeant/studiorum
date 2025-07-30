@@ -8,6 +8,7 @@ In-depth guides for understanding and extending 5e2pdf's core systems.
 :maxdepth: 2
 
 deep-indexing
+loader-architecture
 ```
 
 ## Overview
@@ -20,6 +21,17 @@ The Implementation Guides provide detailed technical explanations of 5e2pdf's ke
 - **Maintainers** making architectural decisions
 
 ## Available Guides
+
+### [Loader Architecture](loader-architecture.md)
+
+Comprehensive guide to the sophisticated dual-file loader system:
+
+- 5etools-compatible dual-file architecture implementation
+- ContentMerger with LRU caching and TTL
+- Runtime merging of metadata and content files
+- Performance optimization and memory management
+- Extension points and custom loader development
+- Testing strategies and troubleshooting
 
 ### [Deep Indexing](deep-indexing.md)
 
@@ -37,9 +49,7 @@ Additional implementation guides will be added covering:
 
 - **Content Parsing Pipeline**: How JSON data is transformed into content objects
 - **LaTeX Rendering System**: Template-based document generation
-- **Async Architecture**: How concurrent loading improves performance
 - **Error Handling Strategies**: Graceful degradation and recovery
-- **Memory Management**: Optimizing for large datasets
 - **Plugin System**: Creating custom renderers and parsers
 
 ## Design Principles
@@ -78,9 +88,10 @@ Additional implementation guides will be added covering:
 ### Understanding the System
 
 1. Start with the [Architecture Overview](../architecture.md)
-2. Read relevant implementation guides
-3. Explore the codebase with examples
-4. Run tests to understand expected behavior
+2. Read the [Loader Architecture Guide](loader-architecture.md) for foundational concepts
+3. Study the [Deep Indexing Guide](deep-indexing.md) for content processing
+4. Review the [API Documentation](../api/index.md) for reference details
+5. Check the [Contributing Guide](../contributing.md) for development workflow
 
 ### Making Changes
 
@@ -138,9 +149,18 @@ When implementing new features:
 
 ## Getting Started
 
-1. Read the [Deep Indexing Guide](deep-indexing.md) for a comprehensive example
-2. Explore the source code with these concepts in mind
-3. Run the test suite to understand expected behavior
-4. Start with small contributions to understand the workflow
+1. **New to the project?** Start with the [Architecture Overview](../architecture.md)
+2. **Want to contribute?** Read the [Contributing Guide](../contributing.md) first
+3. **Implementing loaders?** Follow the [Loader Architecture Guide](loader-architecture.md)
+4. **Adding content types?** Study the [Deep Indexing Guide](deep-indexing.md)
+5. **Need API details?** Check the [API Documentation](../api/index.md)
+
+## Related Documentation
+
+- **[Architecture](../architecture.md)**: System design and core components
+- **[Contributing](../contributing.md)**: Development workflow and standards
+- **[API Reference](../api/index.md)**: Detailed API documentation
+- **[Deep Indexing](deep-indexing.md)**: Content indexing implementation
+- **[Loader Architecture](loader-architecture.md)**: Dual-file loading system
 
 For questions about implementation details, open a discussion on GitHub or ask in the project's community spaces.

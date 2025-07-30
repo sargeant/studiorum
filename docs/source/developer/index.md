@@ -26,6 +26,7 @@ Complete reference for all public APIs, including:
 
 Detailed guides for understanding and extending key systems:
 
+- **[Loader Architecture](implementation/loader-architecture.md)**: Sophisticated dual-file loading system with caching
 - **[Deep Indexing](implementation/deep-indexing.md)**: How the omnidexer discovers nested content
 - Content parsing and validation
 - LaTeX rendering pipeline
@@ -104,6 +105,7 @@ src/dnd5e/
 :caption: Project Information
 
 architecture
+contributing
 dependency-management
 ```
 

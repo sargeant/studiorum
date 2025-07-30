@@ -1,94 +1,268 @@
 # Architecture
 
-```{note}
-This page is under construction. Please check back later for detailed architectural documentation.
-```
+This document provides a comprehensive overview of the 5e2pdf system architecture,
+focusing on the sophisticated dual-file loader system and core components that
+enable efficient D&D 5e content processing and PDF generation.
 
 ## System Overview
 
+The 5e2pdf architecture implements a sophisticated dual-file loading system that
+separates metadata from content, enabling efficient on-demand loading and
+runtime merging of D&D 5e content.
+
 ```mermaid
 graph TD
-    A[5e.tools JSON Data] --> B[Data Parser]
-    B --> C[Content Processor]
-    C --> D[Template Engine]
-    D --> E[LaTeX Generator]
-    E --> F[PDF Output]
+    A["5e.tools Metadata Files<br/>(adventures.json, books.json)"] --> B[Omnidexer]
+    A1["5e.tools Content Files<br/>(adventure-*.json, book-*.json)"] --> C[ContentMerger]
 
-    G[CLI Interface] --> H[Omnidexer]
-    H --> C
+    G[CLI Interface] --> B
+    B --> D[ContentResolver]
+    D --> C
+    C --> E[Enhanced Models]
 
-    I[Configuration] --> H
-    J[Templates] --> D
+    E --> F[Template Engine]
+    F --> H[LaTeX Generator]
+    H --> I[PDF Output]
+
+    J[LRU Cache<br/>TTL + File Tracking] --> C
+    K[Configuration] --> B
+    L[Jinja2 Templates] --> F
 ```
+
+### Key Architectural Innovation: Dual-File System
+
+The system addresses the complexity of D&D 5e content by implementing a **5etools-compatible dual-file architecture**:
+
+- **Metadata files** (`adventures.json`, `books.json`) provide structure, catalog information, and navigation
+- **Content files** (`adventure-*.json`, `book-*.json`) contain the actual content data
+- **Runtime merging** combines metadata structure with content data on-demand
+- **Graceful fallback** to metadata-only when content files are unavailable
+
+This architecture solved the original problem of loading 94 duplicate adventures by properly separating concerns and implementing intelligent content resolution.
 
 ## Core Components
 
-### Data Layer
+### Loader Architecture Layer
 
-**Purpose**: Handle 5e.tools JSON data ingestion and parsing
+**Purpose**: Intelligent content loading with dual-file support and caching
 
-- **Parser**: JSON to internal data structures
-- **Validator**: Data integrity and format validation
-- **Cache**: Performance optimization for repeated access
+#### Omnidexer (`src/dnd5e/core/loaders/omnidexer.py`)
+
+- **Comprehensive indexing** with SHA256 content hashing
+- **Deep indexing** support via `DeepIndexable` protocol
+- **Async/sync loading** with performance monitoring
+- **Cache statistics** for optimization insights
+
+#### ContentMerger (`src/dnd5e/core/loaders/content_merger.py`)
+
+- **Dual-file architecture** implementation
+- **Runtime merging** of metadata and content
+- **LRU caching** with TTL and file modification tracking
+- **Three input format support**: unified, metadata-only, content-only
+- **Graceful fallback** when content files are missing
+
+#### ContentResolver (`src/dnd5e/core/resolvers/content_resolver.py`)
+
+- **Fuzzy matching** for user abbreviations and partial names
+- **Multi-tier resolution**: exact → fuzzy → suggestions
+- **Integration** with ContentMerger for content enrichment
+- **Disambiguation** support for multiple matches
+
+### Model Layer
+
+**Purpose**: Enhanced data models with content status awareness
+
+#### Adventure Model (`src/dnd5e/core/models/adventures.py`)
+
+- **Format detection**: Automatic identification of input format
+- **Content status methods**: `has_content()`, `is_metadata_only()`
+- **Deep indexing integration**: `get_deep_index_entries()`
+- **Comprehensive metadata** handling through `AdventureMetadata`
 
 ### Processing Layer
 
-**Purpose**: Transform parsed data into structured content
+**Purpose**: Transform enhanced models into structured LaTeX content
 
-- **Content Processor**: Data transformation and filtering
-- **Omnidexer**: Deep indexing and cross-referencing
-- **Template Engine**: LaTeX template processing
+- **Template Engine**: Jinja2-based LaTeX template processing
+- **Entry Parser**: Structured content parsing and validation
+- **Cross-referencing**: Intelligent linking between content sections
 
 ### Output Layer
 
 **Purpose**: Generate final PDF documents
 
-- **LaTeX Generator**: Convert processed content to LaTeX
-- **PDF Builder**: Compile LaTeX to PDF using external tools
-- **Asset Manager**: Handle images, fonts, and other resources
+- **LaTeX Generator**: Convert processed content to LaTeX with configurable compiler
+- **PDF Builder**: Compile LaTeX to PDF using external tools (XeLaTeX, PDFLaTeX)
+- **Asset Management**: Handle images, fonts, and other resources
 
 ## Design Principles
 
-### Modularity
+### Protocol-Based Design
 
-- Each component has a single responsibility
-- Clear interfaces between layers
-- Pluggable architecture for extensibility
+- **Loose coupling** through Python protocols and interfaces
+- **Testability** with easy mocking and dependency injection
+- **Extensibility** via protocol implementations
 
-### Performance
+### Performance Optimization
 
-- Lazy loading of large datasets
-- Efficient caching strategies
-- Parallel processing where beneficial
+- **Lazy loading** of large content files (12,917 lines for CoS)
+- **LRU caching** with TTL and file modification tracking
+- **On-demand merging** reduces memory footprint
+- **Async/await support** for I/O-bound operations
+- **SHA256 hashing** for content change detection
 
-### Maintainability
+### Type Safety and Maintainability
 
-- Comprehensive type hints
-- Extensive test coverage
-- Clear documentation and examples
+- **Python 3.12 generics** throughout the codebase
+- **Comprehensive type hints** with mypy enforcement
+- **Protocol-based interfaces** for clear contracts
+- **Extensive test coverage** (1,445+ tests passing)
+- **Clear separation of concerns** between layers
+
+### Robustness
+
+- **Graceful degradation** when content files are unavailable
+- **Multi-format support** with automatic detection
+- **Comprehensive error handling** with meaningful messages
+- **File system monitoring** for cache invalidation
 
 ## Data Flow
 
-1. **Input**: 5e.tools JSON files
-2. **Parse**: Convert to Python data structures
-3. **Process**: Apply business logic and transformations
-4. **Template**: Apply LaTeX templates
-5. **Generate**: Create LaTeX source
-6. **Compile**: Build final PDF
+### Dual-File Loading Process
+
+```mermaid
+sequenceDiagram
+    participant CLI
+    participant Omnidexer
+    participant ContentResolver
+    participant ContentMerger
+    participant Adventure
+    participant Cache
+
+    CLI->>Omnidexer: load_adventures()
+    Omnidexer->>Cache: check_cache(metadata_file)
+    Cache-->>Omnidexer: cache_miss
+    Omnidexer->>Omnidexer: parse_metadata(adventures.json)
+    Omnidexer->>ContentMerger: create_merger()
+
+    CLI->>ContentResolver: resolve("CoS")
+    ContentResolver->>ContentMerger: get_merged_content("cos")
+    ContentMerger->>Cache: check_content_cache("cos")
+    Cache-->>ContentMerger: cache_miss
+    ContentMerger->>ContentMerger: load_content_file(adventure-cos.json)
+    ContentMerger->>ContentMerger: merge_metadata_with_content()
+    ContentMerger->>Cache: store_merged_content()
+    ContentMerger-->>Adventure: enhanced_adventure_data
+
+    Adventure->>Adventure: validate_and_enhance()
+    Adventure-->>CLI: ready_for_processing
+```
+
+### End-to-End Processing Flow
+
+1. **Metadata Loading**: Omnidexer loads and indexes metadata files
+2. **Content Resolution**: ContentResolver maps user input to content objects
+3. **On-Demand Merging**: ContentMerger combines metadata with content files
+4. **Model Enhancement**: Adventure models detect format and status
+5. **Deep Indexing**: Content is indexed for cross-referencing
+6. **Template Processing**: Jinja2 templates generate LaTeX
+7. **PDF Compilation**: External tools compile LaTeX to PDF
+
+### Caching Strategy
+
+- **L1 Cache**: In-memory LRU cache with TTL (default 3600s)
+- **L2 Cache**: File modification time tracking
+- **Cache Keys**: Normalized content IDs with case-insensitive matching
+- **Eviction**: LRU eviction with TTL expiration
+- **Statistics**: Hit/miss/eviction tracking for optimization
+
+## Technical Innovations
+
+### 5etools-Compatible Dual-File Architecture
+
+**Problem Solved**: Original system loaded 94 adventures (duplicates) with empty content in correct entries.
+
+**Solution**: Separation of concerns with runtime merging:
+
+- **Metadata files** provide structure and catalog information
+- **Content files** loaded on-demand when needed
+- **Runtime merging** combines both sources intelligently
+- **Result**: 94 → 61 adventures with proper content (e.g., CoS: 12,917 lines)
+
+### Advanced Caching System
+
+**LRU Cache with TTL**:
+
+- OrderedDict-based implementation for O(1) operations
+- Configurable time-to-live (default 3600 seconds)
+- File modification time tracking for cache invalidation
+- Comprehensive statistics for performance monitoring
+
+### Enhanced Content Resolution
+
+**Multi-Tier Resolution**:
+
+1. **Exact Match**: Direct ID or name matching
+2. **Fuzzy Match**: difflib-based similarity (configurable threshold)
+3. **Suggestions**: Alternative matches when resolution fails
 
 ## Configuration System
 
 ### Hierarchy
 
-1. Command line arguments (highest priority)
-2. Configuration files
-3. Environment variables
-4. Default values (lowest priority)
+1. **Command line arguments** (highest priority)
+2. **Configuration files** (TOML format)
+3. **Environment variables**
+4. **Default values** (lowest priority)
+
+### LaTeX Compiler Configuration
+
+- **Configurable compiler**: XeLaTeX, PDFLaTeX, LuaLaTeX
+- **Engine-specific options**: Optimization flags and parameters
+- **Template system**: Jinja2 templates for LaTeX generation
 
 ### File Formats
 
-- TOML configuration files
-- YAML template definitions
-- JSON data schemas
+- **TOML**: Configuration files (`pyproject.toml`)
+- **JSON**: 5etools data format (metadata and content)
+- **Jinja2**: LaTeX template definitions
+- **YAML**: Optional template configurations
 
-For implementation details, see the [API Documentation](api/index.md) and [Implementation Guides](implementation/index.md).
+## Performance Characteristics
+
+### Benchmarks
+
+- **Adventure Loading**: ~61 adventures with proper content detection
+- **CoS Processing**: 12,917 lines of LaTeX content generated
+- **PHB Processing**: 5,760 lines with 252 sections
+- **Cache Hit Rate**: Optimized for repeated access patterns
+- **Memory Usage**: LRU eviction keeps memory bounded
+
+### Scalability
+
+- **On-demand loading**: Only loads content when requested
+- **Async support**: Non-blocking I/O operations
+- **Cache efficiency**: Reduces file system access
+- **Protocol-based design**: Easy to extend and modify
+
+## Extension Points
+
+### Loader Architecture
+
+- **Custom loaders**: Implement `ContentLoader` protocol
+- **Merger strategies**: Extend `ContentMerger` for new formats
+- **Cache backends**: Pluggable cache implementations
+
+### Model Enhancements
+
+- **New content types**: Extend base model classes
+- **Custom validation**: Add validation protocols
+- **Deep indexing**: Implement `DeepIndexable` for new types
+
+### Rendering Pipeline
+
+- **Template engines**: Alternative to Jinja2
+- **Output formats**: Beyond LaTeX/PDF
+- **Post-processing**: Custom PDF manipulation
+
+For detailed implementation guides, see [Implementation Documentation](implementation/index.md) and [API Reference](api/index.md).
