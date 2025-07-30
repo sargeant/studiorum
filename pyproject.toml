@@ -66,6 +66,7 @@ docs = [
     "linkify-it-py>=2.0.0", # For MyST linkify extension
     "packaging",
     "shibuya>=2025.7.24",
+    "sphinx-design>=0.6.1",
 ]
 
 [dependency-groups]

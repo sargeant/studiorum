@@ -4,6 +4,15 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from ..types import (
+    AlignmentDict,
+    ChallengeRatingDict,
+    CreatureTypeDict,
+    DamageDict,
+    EntryData,
+    SkillValue,
+    SpeedDict,
+)
 from .content import BaseContent
 
 if TYPE_CHECKING:
@@ -56,11 +65,11 @@ class HitPoints(BaseModel):
 class Speed(BaseModel):
     """Represents creature movement speeds."""
 
-    walk: int | dict[str, Any] | None = Field(None, description="Walking speed")
-    fly: int | dict[str, Any] | None = Field(None, description="Flying speed")
-    swim: int | dict[str, Any] | None = Field(None, description="Swimming speed")
-    climb: int | dict[str, Any] | None = Field(None, description="Climbing speed")
-    burrow: int | dict[str, Any] | None = Field(None, description="Burrowing speed")
+    walk: int | SpeedDict | None = Field(None, description="Walking speed")
+    fly: int | SpeedDict | None = Field(None, description="Flying speed")
+    swim: int | SpeedDict | None = Field(None, description="Swimming speed")
+    climb: int | SpeedDict | None = Field(None, description="Climbing speed")
+    burrow: int | SpeedDict | None = Field(None, description="Burrowing speed")
 
     def __str__(self) -> str:
         speeds = []
@@ -95,9 +104,11 @@ class Speed(BaseModel):
 class CreatureType(BaseModel):
     """Represents creature type information."""
 
-    type: str | dict[str, Any] = Field(..., description="Base creature type")
+    type: str | CreatureTypeDict = Field(..., description="Base creature type")
     subtype: str | None = Field(None, description="Creature subtype")
-    tags: list[str | dict[str, Any]] | None = Field(None, description="Additional tags")
+    tags: list[str | CreatureTypeDict] | None = Field(
+        None, description="Additional tags"
+    )
 
     @classmethod
     def model_validate(
@@ -182,7 +193,7 @@ class Ability(BaseModel):
     """Represents a creature ability (trait, action, etc.)."""
 
     name: str = Field(..., description="Ability name")
-    entries: list[str | dict[str, Any]] = Field(..., description="Ability description")
+    entries: list[str | EntryData] = Field(..., description="Ability description")
 
     def __str__(self) -> str:
         return self.name
@@ -234,13 +245,15 @@ class Creature(BaseContent):
     """Represents a D&D creature/monster."""
 
     size: list[str] = Field(..., description="Creature size")
-    type: str | CreatureType | dict[str, Any] = Field(..., description="Creature type")
-    alignment: list[str | dict[str, Any]] = Field(..., description="Creature alignment")
+    type: str | CreatureType | CreatureTypeDict = Field(
+        ..., description="Creature type"
+    )
+    alignment: list[str | AlignmentDict] = Field(..., description="Creature alignment")
 
     # Combat stats
-    ac: list[int | ArmorClass | dict[str, Any]] = Field(..., description="Armor class")
-    hp: HitPoints | dict[str, Any] = Field(..., description="Hit points")
-    speed: Speed | dict[str, Any] = Field(..., description="Movement speeds")
+    ac: list[int | ArmorClass] = Field(..., description="Armor class")
+    hp: HitPoints = Field(..., description="Hit points")
+    speed: Speed = Field(..., description="Movement speeds")
 
     # Ability scores
     strength: int = Field(..., ge=1, le=30, alias="str")
@@ -252,41 +265,33 @@ class Creature(BaseContent):
 
     # Optional attributes
     save: dict[str, str] | None = Field(None, description="Saving throw bonuses")
-    skill: dict[str, str | list[Any] | Any] | None = Field(
-        None, description="Skill bonuses"
-    )
+    skill: dict[str, str | SkillValue] | None = Field(None, description="Skill bonuses")
     senses: list[str] | None = Field(None, description="Special senses")
     passive: int | str | None = Field(None, description="Passive perception")
     languages: list[str] | None = Field(None, description="Known languages")
-    cr: str | int | dict[str, Any] | None = Field(None, description="Challenge rating")
+    cr: str | int | ChallengeRatingDict | None = Field(
+        None, description="Challenge rating"
+    )
 
     # Abilities
-    trait: list[Ability | dict[str, Any]] | None = Field(None, description="Traits")
-    action: list[Ability | dict[str, Any]] | None = Field(None, description="Actions")
+    trait: list[Ability] | None = Field(None, description="Traits")
+    action: list[Ability] | None = Field(None, description="Actions")
     legendary_actions: int | None = Field(
         None, alias="legendaryActions", description="Number of legendary actions"
     )
-    legendary: list[Ability | dict[str, Any]] | None = Field(
-        None, description="Legendary actions"
-    )
-    reaction: list[Ability | dict[str, Any]] | None = Field(
-        None, description="Reactions"
-    )
-    bonus: list[Ability | dict[str, Any]] | None = Field(
-        None, description="Bonus actions"
-    )
+    legendary: list[Ability] | None = Field(None, description="Legendary actions")
+    reaction: list[Ability] | None = Field(None, description="Reactions")
+    bonus: list[Ability] | None = Field(None, description="Bonus actions")
 
     # Resistances and immunities
-    resist: list[str | dict[str, Any]] | None = Field(
+    resist: list[str | DamageDict] | None = Field(
         None, description="Damage resistances"
     )
-    immune: list[str | dict[str, Any]] | None = Field(
-        None, description="Damage immunities"
-    )
-    vulnerable: list[str | dict[str, Any]] | None = Field(
+    immune: list[str | DamageDict] | None = Field(None, description="Damage immunities")
+    vulnerable: list[str | DamageDict] | None = Field(
         None, description="Damage vulnerabilities"
     )
-    conditionImmune: list[str | dict[str, Any]] | None = Field(
+    conditionImmune: list[str | DamageDict] | None = Field(
         None, description="Condition immunities"
     )
 

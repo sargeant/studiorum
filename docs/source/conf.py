@@ -44,6 +44,7 @@ extensions = [
     "sphinx.ext.autosectionlabel",  # Auto-generate section labels
     "sphinx.ext.duration",  # Build duration tracking
     "sphinx.ext.graphviz",  # Graphviz diagrams
+    "sphinx_design",  # Landing page layout and design components
 ]
 
 # Add any paths that contain templates here, relative to this directory.

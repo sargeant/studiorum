@@ -1099,7 +1099,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
             path: Path to the source file
         """
         # Create context for error tracking
-        context = {
+        from dnd5e.core.validation.error_tracker import ErrorContext
+
+        context: ErrorContext = {
             "file": str(path),
             "item_name": item.get("name", "unknown"),
             "content_type": self._content_type.value,

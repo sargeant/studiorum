@@ -5,6 +5,7 @@ from typing import Any
 
 from ...core.entry_registry import ValidationMode, get_registry, validate_entry_type
 from ...core.exceptions import EntryProcessingError
+from ...core.types import EntryData, ProcessingContext
 from ..base import RenderContext
 from .unicode_mappings import (
     get_latex_special_chars,

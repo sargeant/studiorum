@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from dnd5e.core.logging import get_logger
+from dnd5e.core.types import LaTeXConfig, MetadataDict
 
 from ...core.indexer.cross_reference_manager import CrossReferenceManager
 from ...core.indexer.hyperlink_manager import HyperlinkManager
@@ -244,7 +245,7 @@ class LaTeXTagResolver(TagResolver):
 
 def create_latex_tag_integration(
     omnidexer: Omnidexer | None = None,
-    config: dict[str, Any] | None = None,
+    config: LaTeXConfig | None = None,
 ) -> LaTeXTagIntegration:
     """Factory function to create configured LaTeX tag integration."""
     config = config or {}
@@ -274,7 +275,7 @@ def create_latex_tag_integration(
 def integrate_with_latex_renderer(
     latex_content_renderer: Any,
     omnidexer: Omnidexer | None = None,
-    config: dict[str, Any] | None = None,
+    config: LaTeXConfig | None = None,
 ) -> None:
     """Integrate LaTeX tag system with existing content renderer."""
     # Create integration

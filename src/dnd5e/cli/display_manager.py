@@ -86,17 +86,43 @@ class DisplayManager:
         self._active_tasks[description] = task_id
         return task_id
 
-    def update_task(self, task_id: TaskID, **kwargs: Any) -> None:
+    def update_task(
+        self,
+        task_id: TaskID,
+        *,
+        total: float | None = None,
+        completed: float | None = None,
+        advance: float | None = None,
+        description: str | None = None,
+        visible: bool | None = None,
+        refresh: bool = False,
+        **fields: Any,
+    ) -> None:
         """Update task progress.
 
         Args:
             task_id: Task ID to update
-            **kwargs: Progress update arguments (advance, completed, etc.)
+            total: Updates task.total if not None
+            completed: Updates task.completed if not None
+            advance: Add a value to task.completed if not None
+            description: Change task description if not None
+            visible: Set visible flag if not None
+            refresh: Force a refresh of progress information
+            **fields: Additional data fields required for rendering
         """
         if self._active_progress is None:
             return  # Silently ignore if no active progress
 
-        self._active_progress.update(task_id, **kwargs)
+        self._active_progress.update(
+            task_id,
+            total=total,
+            completed=completed,
+            advance=advance,
+            description=description,
+            visible=visible,
+            refresh=refresh,
+            **fields,
+        )
 
     def get_task(self, description: str) -> TaskID | None:
         """Get task ID by description.

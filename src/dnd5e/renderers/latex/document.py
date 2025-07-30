@@ -11,6 +11,7 @@ from ...core.models.document_metadata import (
     DocumentMetadata,
     DocumentType,
 )
+from ...core.types import LaTeXConfig, RenderContext as RenderContextType
 from ..base import DocumentRenderer, RenderContext, RenderingError
 from .compilation_config import CompilationConfig, CompilationResult, LaTeXEngine
 from .compiler import LaTeXCompiler
@@ -23,7 +24,7 @@ from .template_engine import LaTeXTemplateEngine
 class LaTeXDocumentRenderer(DocumentRenderer):
     """LaTeX document renderer that creates complete D&D-style documents."""
 
-    def __init__(self, config: dict[str, Any] | None = None):
+    def __init__(self, config: LaTeXConfig | None = None):
         """Initialize LaTeX document renderer.
 
         Args:
@@ -44,7 +45,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return "latex"
 
     def render(
-        self, content: BaseContent, context: dict[str, Any] | None = None
+        self, content: BaseContent, context: RenderContextType | None = None
     ) -> str:
         """Render a single content item as a minimal document.
 

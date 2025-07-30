@@ -1,10 +1,17 @@
-# 5e2pdf Documentation
+---
+layout: landing
+description: Convert D&D 5e JSON data from 5e.tools to beautifully formatted LaTeX/PDF documents
+---
+
+# 5e2pdf
+
+```{rst-class} lead
+Convert D&D 5e JSON data from [5e.tools](https://5e.tools) to beautifully formatted LaTeX/PDF documents.
+```
 
 ```{warning}
 This tool is under active development and not yet in a fully working state.
 ```
-
-Convert D&D 5e JSON data from [5e.tools](https://5e.tools) to beautifully formatted LaTeX/PDF documents.
 
 ## Overview
 
@@ -12,33 +19,121 @@ Convert D&D 5e JSON data from [5e.tools](https://5e.tools) to beautifully format
 
 ## Key Features
 
-- **Comprehensive Content Support**: Works with all 5e.tools JSON data including spells, creatures, items, adventures, and more
-- **Professional Typography**: LaTeX-based rendering for publication-quality output
-- **Deep Content Indexing**: Advanced omnidexer system discovers nested content like class features and adventure sections
-- **Flexible Output**: Generate PDFs for specific content types, sources, or custom collections
-- **Modern Python**: Built with Python 3.12, async/await, and full type safety
-- **Automated Documentation**: Sphinx-powered documentation with GitHub Pages deployment
+```{grid} 1 2 3 3
+:gutter: 3
+
+```{grid-item-card} 📚 Comprehensive Content Support
+:text-align: center
+
+Works with all 5e.tools JSON data including spells, creatures, items, adventures, and more
+```
+
+```{grid-item-card} ✨ Professional Typography
+:text-align: center
+
+LaTeX-based rendering for publication-quality output with beautiful formatting
+```
+
+```{grid-item-card} 🔍 Deep Content Indexing
+:text-align: center
+
+Advanced omnidexer system discovers nested content like class features and adventure sections
+```
+
+```{grid-item-card} 🎯 Flexible Output
+:text-align: center
+
+Generate PDFs for specific content types, sources, or custom collections
+```
+
+```{grid-item-card} 🐍 Modern Python
+:text-align: center
+
+Built with Python 3.12, async/await, and full type safety
+```
+
+```{grid-item-card} 📖 Automated Documentation
+:text-align: center
+
+Sphinx-powered documentation with GitHub Pages deployment
+```
 
 ## Quick Start
 
+Get up and running with 5e2pdf in minutes:
+
+````{grid} 1 1 2 2
+:gutter: 2
+
+```{grid-item-card} 1️⃣ Install
+:text-align: center
+:class-header: highlight-card
+
 ```bash
-# Install 5e2pdf
 pip install 5e2pdf
-
-# Setup your sources
-5e2pdf setup wizard
-
-# Make a book
-5e2pdf convert book phb --pdf --a4 --bg=none
-
-# Make an adventure
-5e2pdf convert adventure lmop --pdf --letter --bg=print
+```
 ```
 
-## Documentation Structure
+```{grid-item-card} 2️⃣ Setup Sources
+:text-align: center
+:class-header: highlight-card
+
+```bash
+5e2pdf setup wizard
+```
+```
+
+```{grid-item-card} 3️⃣ Generate a Book
+:text-align: center
+:class-header: highlight-card
+
+```bash
+5e2pdf convert book phb --pdf --a4
+```
+```
+
+```{grid-item-card} 4️⃣ Create Adventures
+:text-align: center
+:class-header: highlight-card
+
+```bash
+5e2pdf convert adventure lmop --pdf
+```
+```
+````
+
+## Getting Started
+
+````{grid} 1 1 3 3
+:gutter: 3
+
+```{grid-item-card} 📖 User Guide
+:link: user-guide/index
+:link-type: doc
+:text-align: center
+
+Complete guide for users getting started with 5e2pdf
+```
+
+```{grid-item-card} 🔧 API Reference
+:link: api/index
+:link-type: doc
+:text-align: center
+
+Comprehensive API documentation and references
+```
+
+```{grid-item-card} 💡 Examples
+:link: examples/index
+:link-type: doc
+:text-align: center
+
+Practical examples and tutorials to get you started
+```
+````
 
 ```{toctree}
-:maxdepth: 2
+:hidden:
 :caption: For Users
 
 quickstart
@@ -46,7 +141,7 @@ user-guide/index
 ```
 
 ```{toctree}
-:maxdepth: 3
+:hidden:
 :caption: For Developers
 
 developer/index
@@ -55,19 +150,63 @@ examples/index
 api/index
 ```
 
+---
+
+````{grid} 1 1 2 2
+:gutter: 3
+:class-container: action-section
+
+```{grid-item-card}
+:text-align: center
+:class-header: action-button
+
+[📚 Get Started](quickstart)
++++
+Start using 5e2pdf today
+```
+
+```{grid-item-card}
+:text-align: center
+:class-header: action-button
+
+[🐛 Report Issues](https://github.com/sargeant/5e2pdf/issues)
++++
+Help improve 5e2pdf
+```
+````
+
 ## Project Information
 
-- **GitHub**: [sargeant/5e2pdf](https://github.com/sargeant/5e2pdf)
-- **Version**: {{version}}
-- **Python**: 3.12+
-- **License**: MIT
+````{grid} 1 2 4 4
+:gutter: 2
 
-## Community
+```{grid-item-card} GitHub
+:text-align: center
 
-- Report bugs or request features on [GitHub Issues](https://github.com/sargeant/5e2pdf/issues)
-- Contribute to the project through [Pull Requests](https://github.com/sargeant/5e2pdf/pulls)
-- Join discussions in the project's community spaces
+[sargeant/5e2pdf](https://github.com/sargeant/5e2pdf)
+```
+
+```{grid-item-card} Version
+:text-align: center
+
+{{version}}
+```
+
+```{grid-item-card} Python
+:text-align: center
+
+3.12+
+```
+
+```{grid-item-card} License
+:text-align: center
+
+MIT
+```
+````
 
 ---
 
+```{rst-class} text-center lead
 *Built with ❤️ for the D&D community*
+```

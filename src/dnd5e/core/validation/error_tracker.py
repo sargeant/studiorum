@@ -4,9 +4,36 @@ from __future__ import annotations
 
 import hashlib
 from collections import defaultdict
-from typing import Any
+from typing import Any, TypedDict
 
 from pydantic import ValidationError
+
+
+class ErrorContext(TypedDict, total=False):
+    """Context information for validation errors."""
+
+    file: str
+    item_name: str
+    content_type: str
+
+
+class ErrorDetails(TypedDict):
+    """Stored details for a validation error."""
+
+    error_type: str
+    message: str
+    field_path: str
+    first_context: ErrorContext
+
+
+class ErrorSummary(TypedDict):
+    """Summary information for an error."""
+
+    count: int
+    files: list[str]
+    error_type: str
+    message: str
+    field_path: str
 
 
 class ValidationErrorTracker:
@@ -24,9 +51,9 @@ class ValidationErrorTracker:
         self._logged_errors: set[str] = set()
         self._error_counts: dict[str, int] = defaultdict(int)
         self._error_files: dict[str, set[str]] = defaultdict(set)
-        self._error_details: dict[str, dict[str, Any]] = {}
+        self._error_details: dict[str, ErrorDetails] = {}
 
-    def should_log_error(self, error: ValidationError, context: dict[str, Any]) -> bool:
+    def should_log_error(self, error: ValidationError, context: ErrorContext) -> bool:
         """Check if this error should be logged (not already seen).
 
         Args:
@@ -39,7 +66,7 @@ class ValidationErrorTracker:
         error_signature = self._create_error_signature(error, context)
         return error_signature not in self._logged_errors
 
-    def record_error(self, error: ValidationError, context: dict[str, Any]) -> None:
+    def record_error(self, error: ValidationError, context: ErrorContext) -> None:
         """Record a validation error for tracking and statistics.
 
         Args:
@@ -58,34 +85,34 @@ class ValidationErrorTracker:
 
         # Store error details for summary
         if error_signature not in self._error_details:
-            self._error_details[error_signature] = {
-                "error_type": self._categorize_error(error),
-                "message": self._extract_core_message(error),
-                "field_path": self._extract_field_path(error),
-                "first_context": context.copy(),
-            }
+            self._error_details[error_signature] = ErrorDetails(
+                error_type=self._categorize_error(error),
+                message=self._extract_core_message(error),
+                field_path=self._extract_field_path(error),
+                first_context=context.copy(),
+            )
 
-    def get_summary(self) -> dict[str, dict[str, Any]]:
+    def get_summary(self) -> dict[str, ErrorSummary]:
         """Get a summary of all recorded validation errors.
 
         Returns:
             Dictionary mapping error signatures to error details with counts
         """
-        summary = {}
+        summary: dict[str, ErrorSummary] = {}
 
         for error_sig in self._error_counts:
-            summary[error_sig] = {
-                "count": self._error_counts[error_sig],
-                "files": list(self._error_files[error_sig]),
-                "error_type": self._error_details[error_sig]["error_type"],
-                "message": self._error_details[error_sig]["message"],
-                "field_path": self._error_details[error_sig]["field_path"],
-            }
+            summary[error_sig] = ErrorSummary(
+                count=self._error_counts[error_sig],
+                files=list(self._error_files[error_sig]),
+                error_type=self._error_details[error_sig]["error_type"],
+                message=self._error_details[error_sig]["message"],
+                field_path=self._error_details[error_sig]["field_path"],
+            )
 
         return summary
 
     def format_error_message(
-        self, error: ValidationError, context: dict[str, Any]
+        self, error: ValidationError, context: ErrorContext
     ) -> str:
         """Format a validation error with contextual information and suggestions.
 
@@ -117,7 +144,7 @@ class ValidationErrorTracker:
         return formatted_message
 
     def _create_error_signature(
-        self, error: ValidationError, context: dict[str, Any]
+        self, error: ValidationError, context: ErrorContext
     ) -> str:
         """Create a unique signature for a validation error.
 
@@ -216,7 +243,7 @@ class ValidationErrorTracker:
         return str(error)
 
     def _get_error_suggestion(
-        self, error: ValidationError, context: dict[str, Any]
+        self, error: ValidationError, context: ErrorContext
     ) -> str | None:
         """Get a helpful suggestion for fixing a validation error.
 
