@@ -2,7 +2,6 @@
 
 import asyncio
 import json
-import subprocess
 from pathlib import Path
 
 import aiofiles
@@ -17,9 +16,35 @@ from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
+from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
+from dnd5e.renderers.latex.compiler import LaTeXCompiler
 
 app: typer.Typer = typer.Typer(help="Convert D&D content to LaTeX/PDF")
 console = display_manager.console
+
+
+def _create_latex_compiler() -> LaTeXCompiler:
+    """Create a LaTeX compiler with configuration from settings.
+
+    Returns:
+        LaTeXCompiler configured with settings
+    """
+    settings = get_settings()
+
+    # Create compilation configuration
+    config = CompilationConfig()
+
+    # Map settings engine name to LaTeXEngine enum
+    engine_name = settings.latex_engine.lower()
+    for engine in LaTeXEngine:
+        if engine.value == engine_name:
+            config.primary_engine = engine
+            break
+    else:
+        # Default to LUALATEX if setting is invalid
+        config.primary_engine = LaTeXEngine.LUALATEX
+
+    return LaTeXCompiler(config)
 
 
 async def resolve_content_or_file(
@@ -648,39 +673,40 @@ def convert_supplement(
 
 
 async def _compile_pdf(latex_path: Path) -> None:
-    """Compile LaTeX to PDF using xelatex."""
-
-    pdf_path = latex_path.with_suffix(".pdf")
-    rprint(f"[cyan]Compiling PDF: {pdf_path}[/cyan]")
+    """Compile LaTeX to PDF using configured LaTeX compiler."""
+    rprint(f"[cyan]Compiling PDF: {latex_path.with_suffix('.pdf')}[/cyan]")
 
     try:
+        compiler = _create_latex_compiler()
+
+        # Read the LaTeX file content
+        async with aiofiles.open(latex_path, "r", encoding="utf-8") as f:
+            latex_content = await f.read()
+
         with display_manager.progress("Compiling PDF") as _:
             compile_task = display_manager.add_task(
-                "[cyan]Running xelatex...", total=None
+                "[cyan]Running LaTeX compilation...", total=None
             )
-            subprocess.run(
-                [
-                    "xelatex",
-                    "-output-directory",
-                    str(latex_path.parent),
-                    "-interaction=nonstopmode",
-                    str(latex_path),
-                ],
-                check=True,
-                capture_output=True,
-                text=True,
+
+            # Use the configured compiler instead of hardcoded xelatex
+            result = compiler.compile_document(
+                latex_content,
+                output_name=latex_path.stem,
+                working_dir=latex_path.parent,
             )
+
             display_manager.update_task(compile_task, completed=100)
 
-        rprint(f"[green]✓[/green] PDF compiled successfully: {pdf_path}")
+        if result.success:
+            rprint(f"[green]✓[/green] PDF compiled successfully: {result.output_file}")
+        else:
+            rprint(
+                f"[red]LaTeX compilation failed:[/red] {result.error_message or 'Unknown error'}"
+            )
 
-    except subprocess.CalledProcessError as e:
-        rprint("[red]LaTeX compilation failed:[/red]")
-        rprint(f"[dim]{e.stderr}[/dim]")
-
-    except FileNotFoundError:
-        rprint(
-            "[yellow]Warning:[/yellow] xelatex not found. Install LaTeX to compile PDFs."
-        )
-        rprint("On macOS: brew install --cask mactex")
-        rprint("On Ubuntu: sudo apt-get install texlive-xetex")
+    except Exception as e:
+        rprint(f"[red]LaTeX compilation failed:[/red] {e}")
+        if "not found" in str(e).lower():
+            rprint("[yellow]Install LaTeX to compile PDFs:[/yellow]")
+            rprint("On macOS: brew install --cask mactex")
+            rprint("On Ubuntu: sudo apt-get install texlive-full")

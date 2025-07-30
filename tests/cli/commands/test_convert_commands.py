@@ -522,12 +522,27 @@ class TestPDFCompilation:
     """Test PDF compilation functionality."""
 
     @pytest.mark.asyncio
-    @patch("subprocess.run")
+    @patch("aiofiles.open")
+    @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    async def test_compile_pdf_success(self, mock_display, mock_subprocess):
+    async def test_compile_pdf_success(
+        self, mock_display, mock_create_compiler, mock_aiofiles_open
+    ):
         """Test successful PDF compilation."""
-        # Mock successful subprocess
-        mock_subprocess.return_value = Mock(returncode=0)
+        # Mock file reading
+        mock_file = AsyncMock()
+        mock_file.read.return_value = (
+            "\\documentclass{article}\\begin{document}Test\\end{document}"
+        )
+        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+
+        # Mock LaTeX compiler
+        mock_compiler = Mock()
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.output_file = Path("/tmp/test.pdf")
+        mock_compiler.compile_document.return_value = mock_result
+        mock_create_compiler.return_value = mock_compiler
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -539,21 +554,29 @@ class TestPDFCompilation:
         latex_path = Path("/tmp/test.tex")
         await _compile_pdf(latex_path)
 
-        # Verify subprocess called with correct arguments
-        mock_subprocess.assert_called_once()
-        call_args = mock_subprocess.call_args[0][0]
-        assert "xelatex" in call_args
-        assert str(latex_path) in call_args
+        # Verify LaTeX compiler was used correctly
+        mock_create_compiler.assert_called_once()
+        mock_compiler.compile_document.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("subprocess.run")
+    @patch("aiofiles.open")
+    @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    async def test_compile_pdf_failure(self, mock_display, mock_subprocess):
+    async def test_compile_pdf_failure(
+        self, mock_display, mock_create_compiler, mock_aiofiles_open
+    ):
         """Test PDF compilation failure handling."""
-        # Mock failed subprocess
-        mock_subprocess.side_effect = subprocess.CalledProcessError(
-            1, "xelatex", stderr="LaTeX error"
+        # Mock file reading
+        mock_file = AsyncMock()
+        mock_file.read.return_value = (
+            "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
+        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+
+        # Mock failed LaTeX compiler
+        mock_compiler = Mock()
+        mock_compiler.compile_document.side_effect = Exception("LaTeX error")
+        mock_create_compiler.return_value = mock_compiler
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -565,16 +588,31 @@ class TestPDFCompilation:
         latex_path = Path("/tmp/test.tex")
         await _compile_pdf(latex_path)
 
-        # Verify subprocess was called
-        mock_subprocess.assert_called_once()
+        # Verify LaTeX compiler was called
+        mock_create_compiler.assert_called_once()
+        mock_compiler.compile_document.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("subprocess.run")
+    @patch("aiofiles.open")
+    @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    async def test_compile_pdf_xelatex_not_found(self, mock_display, mock_subprocess):
-        """Test handling when xelatex is not installed."""
-        # Mock FileNotFoundError (xelatex not found)
-        mock_subprocess.side_effect = FileNotFoundError("xelatex not found")
+    async def test_compile_pdf_latex_not_found(
+        self, mock_display, mock_create_compiler, mock_aiofiles_open
+    ):
+        """Test handling when LaTeX engine is not installed."""
+        # Mock file reading
+        mock_file = AsyncMock()
+        mock_file.read.return_value = (
+            "\\documentclass{article}\\begin{document}Test\\end{document}"
+        )
+        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+
+        # Mock FileNotFoundError (LaTeX engine not found)
+        mock_compiler = Mock()
+        mock_compiler.compile_document.side_effect = FileNotFoundError(
+            "lualatex not found"
+        )
+        mock_create_compiler.return_value = mock_compiler
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -586,8 +624,9 @@ class TestPDFCompilation:
         latex_path = Path("/tmp/test.tex")
         await _compile_pdf(latex_path)
 
-        # Verify subprocess was called
-        mock_subprocess.assert_called_once()
+        # Verify LaTeX compiler was called
+        mock_create_compiler.assert_called_once()
+        mock_compiler.compile_document.assert_called_once()
 
 
 class TestErrorHandlingPaths:

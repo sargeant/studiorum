@@ -17,6 +17,8 @@ from dnd5e.core.logging.logger import setup_logging
 from dnd5e.core.models.content import BaseContent
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
+from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
+from dnd5e.renderers.latex.compiler import LaTeXCompiler
 
 # Create the main Typer app
 app: typer.Typer = typer.Typer(
@@ -31,6 +33,30 @@ console = display_manager.console
 # Global state
 _omnidexer: Omnidexer | None = None
 _tag_resolver: TagResolver | None = None
+
+
+def _create_latex_compiler() -> LaTeXCompiler:
+    """Create a LaTeX compiler with configuration from settings.
+
+    Returns:
+        LaTeXCompiler configured with settings
+    """
+    settings = get_settings()
+
+    # Create compilation configuration
+    config = CompilationConfig()
+
+    # Map settings engine name to LaTeXEngine enum
+    engine_name = settings.latex_engine.lower()
+    for engine in LaTeXEngine:
+        if engine.value == engine_name:
+            config.primary_engine = engine
+            break
+    else:
+        # Default to LUALATEX if setting is invalid
+        config.primary_engine = LaTeXEngine.LUALATEX
+
+    return LaTeXCompiler(config)
 
 
 @app.command("version")
@@ -241,26 +267,36 @@ def quick_convert(
             if compile_pdf and output_path.suffix == ".tex":
                 pdf_path = output_path.with_suffix(".pdf")
                 rprint(f"[cyan]Compiling PDF: {pdf_path}[/cyan]")
-                import subprocess
 
                 try:
-                    subprocess.run(
-                        [
-                            "xelatex",
-                            "-output-directory",
-                            str(output_path.parent),
-                            str(output_path),
-                        ],
-                        check=True,
-                        capture_output=True,
+                    compiler = _create_latex_compiler()
+
+                    # Read the LaTeX file content
+                    async with aiofiles.open(output_path, "r", encoding="utf-8") as f:
+                        latex_content = await f.read()
+
+                    # Compile using the configured compiler
+                    compilation_result = compiler.compile_document(
+                        latex_content,
+                        output_name=output_path.stem,
+                        working_dir=output_path.parent,
                     )
-                    rprint(f"[green]✓[/green] PDF compiled: {pdf_path}")
-                except subprocess.CalledProcessError as e:
+
+                    if compilation_result.success:
+                        rprint(
+                            f"[green]✓[/green] PDF compiled: {compilation_result.output_file}"
+                        )
+                    else:
+                        rprint(
+                            f"[red]LaTeX compilation failed:[/red] {compilation_result.error_message or 'Unknown error'}"
+                        )
+
+                except Exception as e:
                     rprint(f"[red]Error compiling PDF:[/red] {e}")
-                except FileNotFoundError:
-                    rprint(
-                        "[yellow]Warning:[/yellow] xelatex not found. Install LaTeX to compile PDFs."
-                    )
+                    if "not found" in str(e).lower():
+                        rprint("[yellow]Install LaTeX to compile PDFs:[/yellow]")
+                        rprint("On macOS: brew install --cask mactex")
+                        rprint("On Ubuntu: sudo apt-get install texlive-full")
 
         except Exception as e:
             rprint(f"[red]Error:[/red] {e}")

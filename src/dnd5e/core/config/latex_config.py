@@ -175,8 +175,8 @@ class LaTeXEngineConfig(BaseModel):
 
     # Engine selection
     engine: str = Field(
-        default="pdflatex",
-        description="LaTeX engine to use (pdflatex, lualatex, xelatex)",
+        default="lualatex",
+        description="LaTeX engine to use (lualatex, xelatex, pdflatex)",
     )
 
     # Compilation options

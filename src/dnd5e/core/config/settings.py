@@ -55,8 +55,8 @@ class Settings(BaseSettings):
 
     # LaTeX options
     latex_engine: str = Field(
-        default="xelatex",
-        description="LaTeX engine to use for compilation",
+        default="lualatex",
+        description="LaTeX engine to use for compilation (lualatex, xelatex, pdflatex)",
         alias="LATEX_ENGINE",
     )
     default_paper_size: str = Field(
