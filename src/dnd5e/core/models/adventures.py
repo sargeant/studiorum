@@ -60,7 +60,7 @@ class Adventure(BaseContent):
 
     This model handles adventures from the 5etools dual-file architecture:
     - Metadata files (adventures.json) provide structure, names, and publishing info
-    - Content files (adventure-*.json) provide actual entry data for chapters
+    - Content files (adventure-\\*.json) provide actual entry data for chapters
     - ContentMerger combines these at resolution time into unified structures
 
     The Adventure model supports three input formats:

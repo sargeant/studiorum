@@ -9,6 +9,8 @@ In-depth guides for understanding and extending 5e2pdf's core systems.
 
 deep-indexing
 loader-architecture
+content-parsing
+latex-rendering
 ```
 
 ## Overview
@@ -43,12 +45,36 @@ Comprehensive guide to the omnidexer's deep indexing system:
 - Adding support for new content types
 - Testing strategies for deep indexing
 
+### [Content Parsing Pipeline](content-parsing.md)
+
+Comprehensive guide to the sophisticated content parsing system:
+
+- Multi-stage transformation from 5etools JSON to typed Python objects
+- BaseContent and ContentType system with flexible source handling
+- Specialized content models (Spell, Creature, Item, Adventure, Book)
+- EntryParser for extracting nested content from adventures and books
+- Validation system with strict/liberal modes and comprehensive error handling
+- Extension patterns for custom content types and data sources
+- Performance optimization strategies and memory management
+- Testing approaches for models, parsers, and integration workflows
+
+### [LaTeX Rendering System](latex-rendering.md)
+
+Comprehensive guide to the sophisticated LaTeX rendering pipeline:
+
+- Multi-layered architecture with template-based document generation
+- LaTeXDocumentRenderer with content organization and structure building
+- Jinja2 template engine with LaTeX-specific customizations and filters
+- RecursiveEntryProcessor handling 40+ 5etools entry types
+- ContentProcessor system for enhanced semantic information extraction
+- Multi-engine LaTeX compilation with comprehensive error handling
+- Unicode character mapping and DND-5e-LaTeX-Template integration
+- Performance optimization and debugging strategies
+
 ### Coming Soon
 
 Additional implementation guides will be added covering:
 
-- **Content Parsing Pipeline**: How JSON data is transformed into content objects
-- **LaTeX Rendering System**: Template-based document generation
 - **Error Handling Strategies**: Graceful degradation and recovery
 - **Plugin System**: Creating custom renderers and parsers
 

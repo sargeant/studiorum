@@ -8,6 +8,10 @@ Complete reference for all public APIs in 5e2pdf.
 :maxdepth: 2
 
 omnidexer
+latex-rendering
+content-models
+core-utilities
+configuration
 ```
 
 ## Overview
@@ -15,8 +19,9 @@ omnidexer
 The API Documentation provides comprehensive reference material for all public interfaces in 5e2pdf. This includes:
 
 - **Core APIs**: Primary interfaces for content loading, indexing, and rendering
+- **LaTeX Rendering**: Document generation and LaTeX compilation system
 - **Content Models**: Data structures representing D&D content
-- **Extension Points**: Interfaces for adding new content types and renderers
+- **Core Utilities**: Cache system, text processing, and helper functions
 - **Configuration APIs**: Settings and customization interfaces
 
 ## Key APIs
@@ -35,29 +40,70 @@ The omnidexer is 5e2pdf's content indexing and discovery system. It provides:
 - `IndexEntry`: Indexed content metadata
 - `DeepIndexable`: Protocol for content with nested items
 
-### Content Models
+### [LaTeX Rendering](latex-rendering.md)
 
-Base classes and types for representing D&D content:
+The LaTeX rendering system provides complete document generation capabilities:
 
-- `BaseContent`: Base class for all content types
+- Document rendering with template engine support
+- Multi-engine LaTeX compilation (PDFLaTeX, XeLaTeX, LuaLaTeX)
+- Recursive entry processing for complex content structures
+- Unicode character mapping and LaTeX escaping
+- Template management and configuration
+
+**Key Classes:**
+- `LaTeXDocumentRenderer`: Main document rendering interface
+- `LaTeXTemplateEngine`: Jinja2-based template system
+- `RecursiveEntryProcessor`: Processes nested 5etools content
+- `LaTeXCompiler`: Multi-engine compilation management
+
+### [Content Models](content-models.md)
+
+Base classes and data structures for representing D&D content:
+
+- `BaseContent`: Base class for all content types with Pydantic validation
 - `ContentType`: Enumeration of supported content types
-- Specific content models (Spell, Creature, Adventure, etc.)
+- Specialized models for spells, creatures, items, adventures, books
+- Nested content support for complex structures
+- Source metadata and validation
 
-### Parsers and Loaders
+**Key Classes:**
+- `BaseContent`: Foundation for all content models
+- `Spell`, `Creature`, `Item`: Core content type models
+- `Adventure`, `Book`: Complex content with nested structures
+- `Source`: Source book metadata and validation
 
-APIs for loading and parsing 5e.tools JSON data:
+### [Core Utilities](core-utilities.md)
 
-- Content loaders for different source types
-- Entry parsers for complex JSON structures
-- Validation and error handling
+Foundational utilities and helper functions used throughout the system:
 
-### Renderers
+- Unified caching system with disk-based persistence
+- LaTeX text escaping with comprehensive Unicode support
+- Spell reference parsing from 5etools tags
+- Content type resolution and model selection
+- Structured logging with colored output
+- Protocol-based interfaces for extensibility
 
-Interfaces for generating output formats:
+**Key Functions:**
+- `escape_latex_text()`: LaTeX character escaping
+- `cached()`: Function result caching decorator
+- `SpellReferenceParser`: Extract spell references from text
+- `ContentTypeResolver`: Automatic content type detection
 
-- `BaseRenderer`: Abstract base for all renderers
-- LaTeX-specific rendering components
-- Template system for customization
+### [Configuration](configuration.md)
+
+Comprehensive configuration system with environment variable support:
+
+- Application settings with Pydantic validation
+- LaTeX-specific document and engine configuration
+- Content source management for GitHub and directory sources
+- Environment variable integration and .env file support
+- Hierarchical configuration loading with override priorities
+
+**Key Classes:**
+- `Settings`: Main application configuration
+- `LaTeXDocumentConfig`: Document generation settings
+- `ContentSource`: Content data source configuration
+- `LaTeXEngineConfig`: Compilation engine settings
 
 ## Usage Patterns
 

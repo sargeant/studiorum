@@ -159,7 +159,15 @@ html_show_sphinx = False
 
 # Mermaid configuration
 mermaid_output_format = "raw"  # Best for web deployment
-mermaid_init_js = "mermaid.initialize({startOnLoad:true, theme:'default'});"
+mermaid_init_js = """
+mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    themeVariables: {
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }
+});
+"""
 
 # Mermaid version
 mermaid_version = "10.6.1"

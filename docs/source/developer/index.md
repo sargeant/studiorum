@@ -38,6 +38,7 @@ Information for contributors:
 
 - **[Contributing Guide](contributing.md)**: How to contribute to the project
 - **[Dependency Management](dependency-management.md)**: Dependency management strategy and best practices
+- **[Troubleshooting](troubleshooting.md)**: Comprehensive error handling and debugging guide
 - Code style and standards
 - Testing requirements
 - Pull request process
@@ -107,6 +108,7 @@ src/dnd5e/
 architecture
 contributing
 dependency-management
+troubleshooting
 ```
 
 ```{toctree}

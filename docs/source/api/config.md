@@ -310,7 +310,7 @@ def on_config_change(old_settings, new_settings):
 watch_config(callback=on_config_change)
 ```
 
-### Configuration Validation
+### Configuration File Validation
 
 ```python
 from dnd5e.core.config import validate_config

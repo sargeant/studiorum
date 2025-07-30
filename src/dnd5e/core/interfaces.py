@@ -140,16 +140,14 @@ class DeepIndexable(Protocol):
         - Validate content structure before processing
 
     Examples:
-        ```python
-        class Adventure(BaseContent, DeepIndexable):
-            def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
-                nested_content = []
-                for chapter in self.contents:
-                    parser = EntryParser(source=self.source, parent_name=f"{self.name} > {chapter.name}")
-                    for content_item in parser.parse_entries(chapter.entries, "adventure"):
-                        nested_content.append(content_item)
-                return nested_content
-        ```
+        >>> class Adventure(BaseContent, DeepIndexable):
+        ...     def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+        ...         nested_content = []
+        ...         for chapter in self.contents:
+        ...             parser = EntryParser(source=self.source, parent_name=f"{self.name} > {chapter.name}")
+        ...             for content_item in parser.parse_entries(chapter.entries, "adventure"):
+        ...                 nested_content.append(content_item)
+        ...         return nested_content
 
     See Also:
         - docs/omnidexer-deep-indexing.md for comprehensive implementation guide
@@ -179,23 +177,20 @@ class DeepIndexable(Protocol):
             - Use omnidexer parameter for reference resolution when needed
 
         Example:
-            ```python
-            def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
-                nested_content = []
-                try:
-                    for item in self.nested_items:
-                        try:
-                            parsed_item = self._parse_item(item, omnidexer)
-                            if parsed_item:
-                                nested_content.append(parsed_item)
-                        except Exception as e:
-                            logger.warning(f"Failed to parse item {item}: {e}")
-                            continue
-                except Exception as e:
-                    logger.error(f"Failed to extract nested content: {e}")
-
-                return nested_content
-            ```
+            >>> def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+            ...     nested_content = []
+            ...     try:
+            ...         for item in self.nested_items:
+            ...             try:
+            ...                 parsed_item = self._parse_item(item, omnidexer)
+            ...                 if parsed_item:
+            ...                     nested_content.append(parsed_item)
+            ...             except Exception as e:
+            ...                 logger.warning(f"Failed to parse item {item}: {e}")
+            ...                 continue
+            ...     except Exception as e:
+            ...         logger.error(f"Failed to extract nested content: {e}")
+            ...     return nested_content
         """
         ...
 

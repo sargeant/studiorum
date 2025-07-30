@@ -6,11 +6,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from dnd5e.core.indexer.tag_resolver import TagResolver
 from dnd5e.core.loaders.omnidexer import Omnidexer
 
 if TYPE_CHECKING:
     from dnd5e.core.config.latex_config import LaTeXConfig
+    from dnd5e.core.indexer.tag_resolver import TagResolver
     from dnd5e.core.models.document_metadata import DocumentMetadata
 
 
@@ -24,7 +24,9 @@ class RenderContext:
 
     # Core services
     omnidexer: Omnidexer | None = None
-    tag_resolver: TagResolver | None = None
+    tag_resolver: TagResolver | None = (
+        None  #: :class:`dnd5e.core.indexer.tag_resolver.TagResolver` for cross-references
+    )
 
     # Document metadata (structured)
     metadata: DocumentMetadata | None = None

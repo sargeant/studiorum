@@ -156,10 +156,12 @@ table.docutils tbody tr:hover {
     margin: 2rem 0;
     background: white;
     border-radius: 8px;
-    padding: 1rem;
+    padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
 }
+
 
 /* Navigation improvements */
 .toctree-wrapper {
@@ -241,7 +243,9 @@ table.docutils tbody tr:hover {
     margin-bottom: 3rem;
 }
 
-.content h1, .content h2, .content h3 {
+.content h1,
+.content h2,
+.content h3 {
     margin-top: 2rem;
     margin-bottom: 1rem;
 }
@@ -387,8 +391,28 @@ code {
     }
 
     .mermaid {
-        background: #2d3748;
-        color: white;
+        background: #1a202c;
+        border-color: #4a5568;
+    }
+
+    .mermaid svg .node rect,
+    .mermaid svg .node polygon,
+    .mermaid svg .node circle,
+    .mermaid svg .node ellipse {
+        fill: #1e40af !important;
+        stroke: #3b82f6 !important;
+        stroke-width: 2px !important;
+    }
+
+    .mermaid svg .node text,
+    .mermaid svg .nodeLabel {
+        fill: #f1f5f9 !important;
+        color: #f1f5f9 !important;
+    }
+
+    .mermaid svg .edgePath path {
+        stroke: #94a3b8 !important;
+        stroke-width: 2px !important;
     }
 
     .quick-ref-card {

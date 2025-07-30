@@ -72,17 +72,13 @@ class Omnidexer:
         - Type-safe content resolution
 
     Example:
-        ```python
-        omnidexer = Omnidexer(enable_deep_indexing=True)
-        await omnidexer.load_all_data()
-
-        # Find primary content
-        fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")
-
-        # Find nested content (requires deep indexing)
-        action_surge = omnidexer.find(ContentType.CLASS_FEATURE, "Action Surge", "PHB")
-        sections = omnidexer.find_all(ContentType.ADVENTURE_SECTION)
-        ```
+        >>> omnidexer = Omnidexer(enable_deep_indexing=True)
+        >>> await omnidexer.load_all_data()  # doctest: +SKIP
+        >>> # Find primary content
+        >>> fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")  # doctest: +SKIP
+        >>> # Find nested content (requires deep indexing)
+        >>> action_surge = omnidexer.find(ContentType.CLASS_FEATURE, "Action Surge", "PHB")  # doctest: +SKIP
+        >>> sections = omnidexer.find_all(ContentType.ADVENTURE_SECTION)  # doctest: +SKIP
     """
 
     def __init__(
