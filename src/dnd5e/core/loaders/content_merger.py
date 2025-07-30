@@ -22,7 +22,7 @@ class ContentMerger:
     - Merging combines metadata structure with content data at resolution time
     """
 
-    def __init__(self, source_manager, max_cache_size: int = 100) -> None:
+    def __init__(self, source_manager: Any, max_cache_size: int = 100) -> None:
         """Initialize ContentMerger with source manager.
 
         Args:
@@ -79,7 +79,7 @@ class ContentMerger:
 
         # Load content from disk
         self._cache_stats["misses"] += 1
-        content_data = self._load_content_from_disk(content_type, content_id)
+        content_data = self._load_content_from_disk(content_type, content_id)  # type: ignore[assignment]
 
         if content_data is not None:
             # Find the actual file path for cache metadata
@@ -290,7 +290,7 @@ class ContentMerger:
                 content_data = json.load(f)
 
             logger.debug(f"Loaded content file: {matching_file}")
-            return content_data
+            return content_data  # type: ignore[no-any-return]
 
         except (OSError, FileNotFoundError, json.JSONDecodeError) as e:
             logger.error(f"Error loading content file {matching_file}: {e}")

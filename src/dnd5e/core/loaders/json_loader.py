@@ -894,7 +894,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             return []
 
         # Create a synthetic adventure object with the content
-        adventure = {
+        adventure: dict[str, Any] = {
             "name": "Adventure",  # Default name for content-only files
             "id": "temp",
             "source": "TEMP",
@@ -929,7 +929,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             return []
 
         # Create a synthetic book object with the content
-        book = {
+        book: dict[str, Any] = {
             "name": "Book",  # Default name for content-only files
             "id": "temp",
             "source": "TEMP",
