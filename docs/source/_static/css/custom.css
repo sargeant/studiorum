@@ -272,6 +272,54 @@ table.docutils tbody tr:hover {
     }
 }
 
+/* Landing page specific styling */
+.action-section .sd-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 2px solid var(--5e2pdf-accent);
+}
+
+.action-section .sd-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(30, 64, 175, 0.2);
+}
+
+.action-button {
+    background: linear-gradient(135deg, var(--5e2pdf-accent) 0%, #3b82f6 100%);
+    color: white !important;
+    font-weight: 600;
+}
+
+.highlight-card {
+    background: linear-gradient(135deg, rgba(30, 64, 175, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border-left: 4px solid var(--5e2pdf-accent);
+}
+
+/* Feature card enhancements */
+.sd-grid .sd-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.sd-grid .sd-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Lead text styling for landing */
+.lead {
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    opacity: 0.8;
+}
+
+/* Text center utility */
+.text-center {
+    text-align: center;
+}
+
 /* Dark mode enhancements - Shibuya will handle most dark mode */
 @media (prefers-color-scheme: dark) {
     .command-example {
@@ -281,5 +329,13 @@ table.docutils tbody tr:hover {
 
     .hero-section {
         background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    }
+
+    .action-section .sd-card {
+        border-color: #3b82f6;
+    }
+
+    .action-section .sd-card:hover {
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
     }
 }
