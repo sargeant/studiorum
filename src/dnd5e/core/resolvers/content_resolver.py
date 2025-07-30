@@ -1,11 +1,15 @@
 """Content resolver for mapping user abbreviations to content objects."""
 
 import difflib
+import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+from dnd5e.core.loaders.content_merger import ContentMerger
 from dnd5e.core.models.content import BaseContent, ContentType
+
+logger = logging.getLogger(__name__)
 
 
 class ResolutionStatus(Enum):
@@ -60,6 +64,7 @@ class ContentResolver:
             omnidexer: The Omnidexer instance to use for content lookup
         """
         self.omnidexer = omnidexer
+        self.content_merger = ContentMerger(omnidexer.source_manager)
 
     def resolve_adventure(self, abbreviation: str) -> ContentResolutionResult:
         """Resolve abbreviation to an adventure.
@@ -176,18 +181,25 @@ class ContentResolver:
         ]
 
         if len(exact_matches) == 1:
+            # For adventures and books, merge metadata with content
+            resolved_content = self._enrich_content_if_needed(
+                exact_matches[0], content_type
+            )
             return ContentResolutionResult(
                 status=ResolutionStatus.EXACT_MATCH,
-                content=exact_matches[0],
+                content=resolved_content,
                 query=abbreviation,
             )
         elif len(exact_matches) > 1:
             # Try to resolve ambiguity by preferring non-versioned content
             preferred_match = self._select_preferred_match(exact_matches)
             if preferred_match:
+                resolved_content = self._enrich_content_if_needed(
+                    preferred_match, content_type
+                )
                 return ContentResolutionResult(
                     status=ResolutionStatus.EXACT_MATCH,
-                    content=preferred_match,
+                    content=resolved_content,
                     query=abbreviation,
                 )
             return ContentResolutionResult(
@@ -211,9 +223,12 @@ class ContentResolver:
             ]
 
             if len(fuzzy_matches) == 1:
+                resolved_content = self._enrich_content_if_needed(
+                    fuzzy_matches[0], content_type
+                )
                 return ContentResolutionResult(
                     status=ResolutionStatus.FUZZY_MATCH,
-                    content=fuzzy_matches[0],
+                    content=resolved_content,
                     query=abbreviation,
                 )
             elif len(fuzzy_matches) > 1:
@@ -307,3 +322,76 @@ class ContentResolver:
 
         # Look for pattern like "(2014)" or "(2024)" at the end of the name
         return bool(re.search(r"\(\d{4}\)\s*$", name))
+
+    def _enrich_content_if_needed(
+        self, content: BaseContent, content_type: ContentType
+    ) -> BaseContent:
+        """Enrich content with on-demand loading for dual-file types.
+
+        For adventures and books, this method loads the content file and merges it
+        with metadata to provide complete content. For other content types, returns
+        the content unchanged.
+
+        Args:
+            content: The content object (likely metadata-only for adventures/books)
+            content_type: The type of content being resolved
+
+        Returns:
+            Enriched content object with merged metadata+content data
+        """
+        # Only enrich adventures and books (dual-file types)
+        if content_type not in [ContentType.ADVENTURE, ContentType.BOOK]:
+            return content
+
+        # Extract content ID from the content object
+        content_id = getattr(content, "id", None)
+        if not content_id:
+            logger.warning(
+                f"No ID found for {content_type.value}, cannot load content file"
+            )
+            return content
+
+        logger.debug(
+            f"Enriching {content_type.value} '{content.name}' (ID: {content_id}) with content data"
+        )
+
+        try:
+            # Load the content file
+            content_data = self.content_merger.load_content_file(
+                content_type, content_id
+            )
+
+            # Convert content object to dict for merging
+            if hasattr(content, "model_dump"):
+                # Pydantic model
+                metadata_dict = content.model_dump()
+            elif hasattr(content, "__dict__"):
+                # Regular object
+                metadata_dict = content.__dict__.copy()
+            else:
+                # Fallback - convert to dict
+                metadata_dict = dict(content)
+
+            # Merge metadata and content data
+            merged_data = self.content_merger.merge_metadata_content(
+                metadata_dict, content_data
+            )
+
+            # Create new content object from merged data
+            content_class = type(content)
+            if hasattr(content_class, "model_validate"):
+                # Pydantic model
+                enriched_content = content_class.model_validate(merged_data)
+            else:
+                # Regular class - try to create instance
+                enriched_content = content_class(**merged_data)
+
+            logger.debug(
+                f"Successfully enriched {content_type.value} with {len(merged_data.get('contents', []))} sections"
+            )
+            return enriched_content
+
+        except Exception as e:
+            logger.error(f"Failed to enrich {content_type.value} '{content.name}': {e}")
+            # Return original content if enrichment fails
+            return content

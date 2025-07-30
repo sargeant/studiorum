@@ -16,7 +16,7 @@ class LaTeXDocumentConfig(BaseModel):
 
     # Class options
     class_options: list[str] = Field(
-        default_factory=lambda: ["bg", "justified", "twocolumn"],
+        default_factory=lambda: ["justified", "twocolumn"],
         description="List of class options to pass to document class",
     )
 
@@ -36,8 +36,9 @@ class LaTeXDocumentConfig(BaseModel):
     )
 
     # Visual options
-    enable_background: bool = Field(
-        default=True, description="Enable background images and decorations"
+    background: str | None = Field(
+        default=None,
+        description="Background style (print, none, etc.) - if None, no bg option is used",
     )
 
     high_contrast: bool = Field(
@@ -98,6 +99,17 @@ class LaTeXDocumentConfig(BaseModel):
             raise ValueError(f"Font size must be one of: {valid_sizes}")
         return v
 
+    @field_validator("background")
+    @classmethod
+    def validate_background(cls, v: str | None) -> str | None:
+        """Validate background option."""
+        if v is None:
+            return v
+        valid_backgrounds = ["print", "none", "full"]
+        if v not in valid_backgrounds:
+            raise ValueError(f"Background must be one of: {valid_backgrounds}")
+        return v
+
     def get_class_options_list(self) -> list[str]:
         """Get complete list of class options for document class.
 
@@ -112,12 +124,18 @@ class LaTeXDocumentConfig(BaseModel):
         # Add paper size and font size
         options.extend([self.paper_size, self.font_size])
 
-        # Add conditional options based on boolean flags
-        if self.enable_background:
-            if "bg" not in options:
-                options.append("bg")
+        # Add conditional options based on settings
+        if self.background:
+            # Add bg=value option, removing any existing plain "bg"
+            options = [
+                opt for opt in options if opt != "bg" and not opt.startswith("bg=")
+            ]
+            options.append(f"bg={self.background}")
         else:
-            options = [opt for opt in options if opt != "bg"]
+            # Remove any bg-related options if background is None
+            options = [
+                opt for opt in options if opt != "bg" and not opt.startswith("bg=")
+            ]
 
         if self.high_contrast:
             options.append("highcontrast")
@@ -131,6 +149,8 @@ class LaTeXDocumentConfig(BaseModel):
         if self.fancy_headers:
             options.append("fancy")
 
+        # Handle column layout
+        options = [opt for opt in options if opt not in ["twocolumn", "onecolumn"]]
         if self.two_column:
             options.append("twocolumn")
         else:

@@ -150,6 +150,53 @@ class Book(BaseContent):
             ).get_authors_text()
         return ""
 
+    def has_content(self) -> bool:
+        """Check if book has loaded content vs metadata stub.
+
+        Returns:
+            True if book has actual content entries, False if metadata-only
+        """
+        return any(len(chapter.entries) > 0 for chapter in self.contents)
+
+    def is_metadata_only(self) -> bool:
+        """Check if book is a metadata-only stub without content.
+
+        Returns:
+            True if book appears to be metadata-only, False if has content
+        """
+        return not self.has_content()
+
+    def get_content_file_path(self) -> str | None:
+        """Get expected content file path for this book.
+
+        Returns:
+            Expected content file name or None if ID missing
+        """
+        if not self.id:
+            return None
+        return f"book-{self.id.lower()}.json"
+
+    def get_content_summary(self) -> dict[str, Any]:
+        """Get summary of content loading status for debugging.
+
+        Returns:
+            Dictionary with content status information
+        """
+        total_chapters = len(self.contents)
+        chapters_with_content = sum(1 for chapter in self.contents if chapter.entries)
+        total_entries = sum(len(chapter.entries) for chapter in self.contents)
+
+        return {
+            "book_id": self.id,
+            "book_name": self.name,
+            "total_chapters": total_chapters,
+            "chapters_with_content": chapters_with_content,
+            "total_entries": total_entries,
+            "has_content": self.has_content(),
+            "is_metadata_only": self.is_metadata_only(),
+            "expected_content_file": self.get_content_file_path(),
+        }
+
     def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
         """Return nested content for deep indexing.
 

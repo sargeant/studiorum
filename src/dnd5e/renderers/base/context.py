@@ -10,6 +10,7 @@ from dnd5e.core.indexer.tag_resolver import TagResolver
 from dnd5e.core.loaders.omnidexer import Omnidexer
 
 if TYPE_CHECKING:
+    from dnd5e.core.config.latex_config import LaTeXConfig
     from dnd5e.core.models.document_metadata import DocumentMetadata
 
 
@@ -27,6 +28,9 @@ class RenderContext:
 
     # Document metadata (structured)
     metadata: DocumentMetadata | None = None
+
+    # LaTeX configuration
+    latex_config: LaTeXConfig | None = None
 
     # Document metadata (legacy)
     title: str | None = None

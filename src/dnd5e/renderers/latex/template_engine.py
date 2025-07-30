@@ -7,7 +7,7 @@ from typing import Any
 import jinja2
 from jinja2 import Environment, FileSystemLoader, Template
 
-from ...core.config.latex_config import get_default_latex_config
+from ...core.config.latex_config import LaTeXConfig, get_default_latex_config
 from ...core.latex_utils import escape_latex_text
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
 
@@ -46,6 +46,18 @@ class LaTeXTemplateEngine:
 
         # Initialize LaTeX configuration
         self.latex_config = get_default_latex_config()
+
+        # Initialize the environment and cache
+        self.update_latex_config(None)
+
+    def update_latex_config(self, latex_config: LaTeXConfig | None) -> None:
+        """Update the LaTeX configuration.
+
+        Args:
+            latex_config: New LaTeX configuration to use
+        """
+        if latex_config is not None:
+            self.latex_config = latex_config
 
         # Initialize DND template manager
         self.dnd_manager = DNDTemplateManager()
@@ -382,7 +394,8 @@ class LaTeXTemplateEngine:
                 "font_scheme": doc_config.font_scheme,
                 "paper_size": doc_config.paper_size,
                 "font_size": doc_config.font_size,
-                "enable_background": doc_config.enable_background,
+                "background": doc_config.background,
+                "enable_background": doc_config.background is not None,
                 "high_contrast": doc_config.high_contrast,
                 "justified_text": doc_config.justified_text,
                 "fancy_headers": doc_config.fancy_headers,

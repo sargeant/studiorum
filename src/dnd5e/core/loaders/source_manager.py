@@ -19,8 +19,38 @@ class FileSystemSourceManager(SourceManager):
         self._source_info = self._build_source_info()
 
     def get_data_paths(self) -> dict[ContentType, list[Path]]:
-        """Return paths to data files organized by content type."""
+        """Return paths to data files organized by content type.
+
+        For adventures and books, this returns only metadata files to prevent
+        duplicate loading. Content files are loaded on-demand by ContentResolver.
+        """
         return self.path_config.get_data_paths()
+
+    def get_metadata_files(self) -> dict[ContentType, list[Path]]:
+        """Return paths to metadata files organized by content type.
+
+        FileSystemSourceManager doesn't separate metadata and content files,
+        so this returns empty dictionaries for adventures and books.
+
+        Returns:
+            Empty dictionary for metadata files
+        """
+        # FileSystemSourceManager doesn't implement the dual-file pattern
+        # used by 5etools, so metadata files concept doesn't apply
+        return {}
+
+    def get_content_files(self) -> dict[ContentType, list[Path]]:
+        """Return paths to content files organized by content type.
+
+        FileSystemSourceManager doesn't separate metadata and content files,
+        so this returns empty dictionaries for adventures and books.
+
+        Returns:
+            Empty dictionary for content files
+        """
+        # FileSystemSourceManager doesn't implement the dual-file pattern
+        # used by 5etools, so content files concept doesn't apply
+        return {}
 
     def resolve_source(self, source_abbrev: str) -> dict[str, Any] | None:
         """Resolve source abbreviation to full source information."""

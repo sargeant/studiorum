@@ -174,6 +174,10 @@ class Omnidexer:
 
         # Get data paths from source manager
         data_paths = self.source_manager.get_data_paths()
+        # Debug output can be enabled for troubleshooting
+        # print(f"DEBUG Omnidexer: Got data paths for content types: {list(data_paths.keys())}")
+        # for content_type, paths in data_paths.items():
+        #     print(f"DEBUG Omnidexer: {content_type} has {len(paths)} files")
 
         # Create loading tasks
         load_tasks = []

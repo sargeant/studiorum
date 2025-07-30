@@ -201,6 +201,30 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 return item_data
             return []
         elif self._content_type == ContentType.ADVENTURE:
+            # Handle both metadata files (adventures.json) and content files (adventure-*.json)
+
+            # Check if this is a metadata file (adventures.json) and process it
+            if self._is_adventure_metadata_file(data):
+                logger.debug("Processing adventure metadata file")
+                adventure_data = data["adventure"]
+                if isinstance(adventure_data, list):
+                    return adventure_data
+                return []
+
+            # Check if this is a content file (adventure-*.json) and process it
+            if self._is_adventure_content_file(data):
+                logger.debug("Processing adventure content file")
+                # Transform content file format to expected Adventure format
+                return self._process_adventure_content_file(data)
+
+            # Handle mixed format (metadata + data in same file)
+            if "data" in data and isinstance(data["data"], list):
+                # This is a mixed format file with both metadata and content
+                # Return the entire file structure as a single adventure
+                logger.debug("Processing mixed format adventure (metadata + data)")
+                return [data]
+
+            # Legacy handling for other adventure formats
             if "adventure" in data:
                 adventure_data = data["adventure"]
                 if isinstance(adventure_data, list):
@@ -211,14 +235,26 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 adventure_data = data["adventureData"]
                 if isinstance(adventure_data, list) and adventure_data:
                     return adventure_data
-            elif "data" in data:
-                # Handle 5etools adventure data format with data array
-                # Return the entire file as a single adventure, not individual sections
-                adventure_data = data["data"]
-                if isinstance(adventure_data, list) and adventure_data:
-                    return [data]  # Wrap entire file structure as single adventure
+
             return []
         elif self._content_type == ContentType.BOOK:
+            # Handle both metadata files (books.json) and content files (book-*.json)
+
+            # Check if this is a metadata file (books.json) and process it
+            if self._is_book_metadata_file(data):
+                logger.debug("Processing book metadata file")
+                book_data = data["book"]
+                if isinstance(book_data, list):
+                    return book_data
+                return []
+
+            # Check if this is a content file (book-*.json) and process it
+            if self._is_book_content_file(data):
+                logger.debug("Processing book content file")
+                # Return the entire file structure as a single book (preserve original format)
+                return [data]
+
+            # Legacy handling for other book formats (priority order: book > bookData > data)
             if "book" in data:
                 book_data = data["book"]
                 if isinstance(book_data, list):
@@ -229,12 +265,14 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 book_data = data["bookData"]
                 if isinstance(book_data, list) and book_data:
                     return book_data
-            elif "data" in data:
-                # Handle 5etools book data format with data array
-                # Return the entire file as a single book, not individual sections
-                book_data = data["data"]
-                if isinstance(book_data, list) and book_data:
-                    return [data]  # Wrap entire file structure as single book
+
+            # Handle mixed format (metadata + data in same file) - lowest priority
+            if "data" in data and isinstance(data["data"], list) and data["data"]:
+                # This is a mixed format file with both metadata and content
+                # Return the entire file structure as a single book
+                logger.debug("Processing mixed format book (metadata + data)")
+                return [data]
+
             return []
         elif self._content_type == ContentType.FEAT and "feat" in data:
             feat_data = data["feat"]
@@ -838,6 +876,77 @@ class JsonDataLoader(DataLoader[BaseContent]):
         # Only consider it a pure content file if it has ONLY 'data' and no metadata fields
         return not has_metadata
 
+    def _process_adventure_content_file(
+        self, data: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        """Process adventure content file into format expected by Adventure model.
+
+        Content files have structure:
+        {
+            "data": [
+                {"type": "section", "name": "...", "entries": [...]}
+            ]
+        }
+
+        We need to create a single adventure object with the content data.
+        """
+        if "data" not in data or not isinstance(data["data"], list):
+            return []
+
+        # Create a synthetic adventure object with the content
+        adventure = {
+            "name": "Adventure",  # Default name for content-only files
+            "id": "temp",
+            "source": "TEMP",
+            "contents": [],
+            # Transform the data sections into contents
+        }
+
+        # Process the data array into contents
+        for item in data["data"]:
+            if isinstance(item, dict) and item.get("type") == "section":
+                chapter = {
+                    "name": item.get("name", "Unnamed Chapter"),
+                    "entries": item.get("entries", []),
+                }
+                adventure["contents"].append(chapter)
+
+        return [adventure]
+
+    def _process_book_content_file(self, data: dict[str, Any]) -> list[dict[str, Any]]:
+        """Process book content file into format expected by Book model.
+
+        Content files have structure:
+        {
+            "data": [
+                {"type": "section", "name": "...", "entries": [...]}
+            ]
+        }
+
+        We need to create a single book object with the content data.
+        """
+        if "data" not in data or not isinstance(data["data"], list):
+            return []
+
+        # Create a synthetic book object with the content
+        book = {
+            "name": "Book",  # Default name for content-only files
+            "id": "temp",
+            "source": "TEMP",
+            "contents": [],
+        }
+
+        # Process the data array into contents
+        for item in data["data"]:
+            if isinstance(item, dict) and item.get("type") == "section":
+                chapter = {
+                    "name": item.get("name", "Unnamed Chapter"),
+                    "entries": item.get("entries", []),
+                }
+                book["contents"].append(chapter)
+
+        return [book]
+
     def _is_book_metadata_file(self, data: dict[str, Any]) -> bool:
         """Check if this is a book metadata file (books.json).
 
@@ -876,6 +985,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
             not isinstance(data, dict)
             or "data" not in data
             or not isinstance(data["data"], list)
+            or not data[
+                "data"
+            ]  # Empty data arrays should not be treated as content files
         ):
             return False
 
@@ -883,12 +995,16 @@ class JsonDataLoader(DataLoader[BaseContent]):
         if "book" in data:
             return False
 
-        # Check if it has metadata fields - if so, it's a mixed file and should be loaded
+        # Check if it has metadata fields or other format keys - if so, it's a mixed file and should be loaded
         metadata_fields = {"name", "id", "source", "published", "author", "level"}
+        legacy_format_keys = {
+            "bookData"
+        }  # Other legacy format keys that indicate mixed format
         has_metadata = any(field in data for field in metadata_fields)
+        has_legacy_format = any(key in data for key in legacy_format_keys)
 
-        # Only consider it a pure content file if it has ONLY 'data' and no metadata fields
-        return not has_metadata
+        # Only consider it a pure content file if it has ONLY 'data' and no metadata/legacy format fields
+        return not (has_metadata or has_legacy_format)
 
     def _extract_text_from_entries(self, entries: Any) -> list[str]:
         """Recursively extract text from complex entry structures."""

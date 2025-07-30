@@ -11,6 +11,8 @@ from rich import print as rprint
 
 from dnd5e.cli.display_manager import display_manager
 from dnd5e.cli.main import get_omnidexer, get_tag_resolver
+from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
+from dnd5e.core.config.settings import get_settings
 from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.renderers.base import RenderContext
@@ -39,13 +41,6 @@ async def resolve_content_or_file(
     file_path = Path(content_source)
     if file_path.is_file():
         return await _load_from_file(file_path, content_type)
-
-    # Special case: for known book abbreviations, try direct file loading first
-    # This ensures we get the full content including entries
-    if content_type == ContentType.BOOK and content_source.lower() == "phb":
-        phb_file_path = Path("/Users/sam/Code/5etools-src/data/book/book-phb.json")
-        if phb_file_path.is_file():
-            return await _load_from_file(phb_file_path, content_type)
 
     # Otherwise, treat as content abbreviation
     omnidexer = await get_omnidexer()
@@ -192,6 +187,25 @@ def convert_adventure(
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
     ),
+    # LaTeX document class options
+    document_class: str = typer.Option(
+        "dndbook", "--document-class", help="LaTeX document class (dndbook, dndarticle)"
+    ),
+    paper_size: str | None = typer.Option(
+        None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
+    ),
+    font_size: str = typer.Option(
+        "11pt", "--font-size", help="Base font size (10pt, 11pt, 12pt)"
+    ),
+    background: str | None = typer.Option(
+        None, "--background", "--bg", help="Background style (print, none, full)"
+    ),
+    two_column: bool = typer.Option(
+        True, "--two-column/--one-column", help="Use two-column layout"
+    ),
+    justified: bool = typer.Option(
+        True, "--justified/--not-justified", help="Justify text columns"
+    ),
 ) -> None:
     """
     📖 Convert adventure to LaTeX
@@ -234,6 +248,20 @@ def convert_adventure(
                 tag_resolver = await get_tag_resolver()
                 display_manager.update_task(load_task, completed=100)
 
+            # Create LaTeX configuration
+            settings = get_settings()
+            actual_paper_size = paper_size or settings.default_paper_size
+
+            latex_doc_config = LaTeXDocumentConfig(
+                document_class=document_class,
+                paper_size=actual_paper_size,
+                font_size=font_size,
+                background=background,
+                two_column=two_column,
+                justified_text=justified,
+            )
+            latex_config = LaTeXConfig(document=latex_doc_config)
+
             # Create document metadata for adventure
             from ...core.models.document_metadata import DocumentMetadata, DocumentType
 
@@ -268,6 +296,7 @@ def convert_adventure(
                 omnidexer=omnidexer,
                 tag_resolver=tag_resolver,
                 metadata=metadata,
+                latex_config=latex_config,
             )
 
             # Render document
@@ -313,6 +342,25 @@ def convert_book(
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
     ),
+    # LaTeX document class options
+    document_class: str = typer.Option(
+        "dndbook", "--document-class", help="LaTeX document class (dndbook, dndarticle)"
+    ),
+    paper_size: str | None = typer.Option(
+        None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
+    ),
+    font_size: str = typer.Option(
+        "11pt", "--font-size", help="Base font size (10pt, 11pt, 12pt)"
+    ),
+    background: str | None = typer.Option(
+        None, "--background", "--bg", help="Background style (print, none, full)"
+    ),
+    two_column: bool = typer.Option(
+        True, "--two-column/--one-column", help="Use two-column layout"
+    ),
+    justified: bool = typer.Option(
+        True, "--justified/--not-justified", help="Justify text columns"
+    ),
 ) -> None:
     """
     📚 Convert book to LaTeX
@@ -355,6 +403,20 @@ def convert_book(
                 tag_resolver = await get_tag_resolver()
                 display_manager.update_task(load_task, completed=100)
 
+            # Create LaTeX configuration
+            settings = get_settings()
+            actual_paper_size = paper_size or settings.default_paper_size
+
+            latex_doc_config = LaTeXDocumentConfig(
+                document_class=document_class,
+                paper_size=actual_paper_size,
+                font_size=font_size,
+                background=background,
+                two_column=two_column,
+                justified_text=justified,
+            )
+            latex_config = LaTeXConfig(document=latex_doc_config)
+
             # Create document metadata for proper DND template rendering
             from dnd5e.core.models.document_metadata import (
                 DocumentMetadata,
@@ -385,6 +447,7 @@ def convert_book(
                 omnidexer=omnidexer,
                 tag_resolver=tag_resolver,
                 metadata=metadata,
+                latex_config=latex_config,
             )
 
             # Render document
@@ -427,6 +490,25 @@ def convert_supplement(
     with_images: bool = typer.Option(False, "--images", help="Include images"),
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
+    ),
+    # LaTeX document class options
+    document_class: str = typer.Option(
+        "dndbook", "--document-class", help="LaTeX document class (dndbook, dndarticle)"
+    ),
+    paper_size: str | None = typer.Option(
+        None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
+    ),
+    font_size: str = typer.Option(
+        "11pt", "--font-size", help="Base font size (10pt, 11pt, 12pt)"
+    ),
+    background: str | None = typer.Option(
+        None, "--background", "--bg", help="Background style (print, none, full)"
+    ),
+    two_column: bool = typer.Option(
+        True, "--two-column/--one-column", help="Use two-column layout"
+    ),
+    justified: bool = typer.Option(
+        True, "--justified/--not-justified", help="Justify text columns"
     ),
 ) -> None:
     """
@@ -511,6 +593,20 @@ def convert_supplement(
                 rprint("[red]Error:[/red] No valid content found")
                 raise typer.Exit(1)
 
+            # Create LaTeX configuration
+            settings = get_settings()
+            actual_paper_size = paper_size or settings.default_paper_size
+
+            latex_doc_config = LaTeXDocumentConfig(
+                document_class=document_class,
+                paper_size=actual_paper_size,
+                font_size=font_size,
+                background=background,
+                two_column=two_column,
+                justified_text=justified,
+            )
+            latex_config = LaTeXConfig(document=latex_doc_config)
+
             # Create render context
             context = RenderContext(
                 title=title
@@ -519,6 +615,7 @@ def convert_supplement(
                 include_toc=len(content_items) > 10,
                 omnidexer=omnidexer,
                 tag_resolver=tag_resolver,
+                latex_config=latex_config,
             )
 
             # Render document

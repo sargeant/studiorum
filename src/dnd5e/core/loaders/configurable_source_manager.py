@@ -13,7 +13,40 @@ logger = get_logger(__name__)
 
 
 class ConfigurableSourceManager(SourceManager):
-    """Source manager that uses configurable content sources."""
+    """Source manager that uses configurable content sources.
+
+    This class implements 5etools dual-file architecture for adventures and books:
+
+    **Metadata Files:**
+    - `adventures.json`: Contains lightweight adventure metadata (names, IDs, TOC structure)
+    - `books.json`: Contains lightweight book metadata (names, IDs, TOC structure)
+    - Loaded by omnidexer during startup for catalog/index population
+    - Provide structure and metadata but no actual content entries
+
+    **Content Files:**
+    - `adventure-{id}.json`: Contains full adventure content data
+    - `book-{id}.json`: Contains full book content data
+    - Loaded on-demand when specific content is requested
+    - Provide actual entry data but minimal metadata
+    - ID is lowercase version of metadata ID (e.g., "CoS" → "adventure-cos.json")
+
+    **Loading Strategy:**
+    1. Omnidexer loads only metadata files to build content catalog
+    2. ContentResolver loads content files on-demand when adventures/books are accessed
+    3. ContentMerger combines metadata structure with content data at runtime
+
+    **File Pattern Examples:**
+    ```
+    /data/adventures.json          # Metadata for all adventures
+    /data/adventure/adventure-cos.json    # Content for Curse of Strahd
+    /data/books.json               # Metadata for all books
+    /data/book/book-phb.json      # Content for Player's Handbook
+    ```
+
+    This prevents the duplicate loading issue where both metadata and content
+    files were being loaded as separate adventures, resulting in empty metadata
+    entries and unreachable content entries.
+    """
 
     def __init__(self) -> None:
         """Initialize with content configuration."""
@@ -28,7 +61,12 @@ class ConfigurableSourceManager(SourceManager):
         await self.content_manager.build_content_index()
 
     def get_data_paths(self) -> dict[ContentType, list[Path]]:
-        """Return paths to data files organized by content type."""
+        """Return paths to data files organized by content type.
+
+        For adventures and books, this returns only metadata files to prevent
+        duplicate loading. Content files are loaded on-demand by ContentResolver.
+        Other content types use the original pattern-based discovery.
+        """
         if self._data_paths_cache is not None:
             return self._data_paths_cache
 
@@ -39,13 +77,14 @@ class ConfigurableSourceManager(SourceManager):
             )
             return {}
 
-        # Map content types to file patterns
+        # Start with metadata files for adventures and books
+        data_paths = self.get_metadata_files()
+
+        # Map content types to file patterns for other content types
         content_patterns = {
             ContentType.SPELL: ["spell", "spells"],
             ContentType.CREATURE: ["bestiary", "monster", "creatures"],
             ContentType.ITEM: ["item", "items"],
-            ContentType.ADVENTURE: ["adventure", "adventures"],
-            ContentType.BOOK: ["book", "books"],
             ContentType.CLASS: ["class", "classes"],
             ContentType.BACKGROUND: ["background", "backgrounds"],
             ContentType.FEAT: ["feat", "feats"],
@@ -61,7 +100,6 @@ class ConfigurableSourceManager(SourceManager):
             ContentType.ITEM_FLUFF: ["fluff-item", "item-fluff"],
         }
 
-        data_paths = {}
         all_files = self.content_manager.get_all_content_files()
 
         # Track files already assigned to avoid conflicts
@@ -141,7 +179,7 @@ class ConfigurableSourceManager(SourceManager):
 
         self._data_paths_cache = data_paths
 
-        logger.info("Discovered content files:")
+        logger.info("Discovered data files (metadata for adventures/books):")
         for content_type, paths in data_paths.items():
             logger.info(f"  {content_type.value}: {len(paths)} files")
 
@@ -387,6 +425,129 @@ class ConfigurableSourceManager(SourceManager):
 
         return stats
 
+    def get_metadata_files(self) -> dict[ContentType, list[Path]]:
+        """Return paths to metadata files organized by content type.
+
+        Metadata files contain lightweight index information (names, IDs, TOC)
+        and are loaded by the omnidexer. Content files are excluded.
+
+        Returns:
+            Dictionary mapping content types to metadata file paths
+        """
+        if not self.content_manager._index_built:
+            logger.warning(
+                "Content index not built. Run async ensure_sources_ready() first."
+            )
+            return {}
+
+        metadata_paths: dict[ContentType, list[Path]] = {}
+        all_files = self.content_manager.get_all_content_files()
+
+        # Find metadata files
+        for source_name, files in all_files.items():
+            for file_path in files:
+                if self._is_metadata_file(file_path):
+                    filename = file_path.name.lower()
+
+                    # Map metadata files to content types
+                    if filename == "adventures.json":
+                        if ContentType.ADVENTURE not in metadata_paths:
+                            metadata_paths[ContentType.ADVENTURE] = []
+                        metadata_paths[ContentType.ADVENTURE].append(file_path)
+                    elif filename == "books.json":
+                        if ContentType.BOOK not in metadata_paths:
+                            metadata_paths[ContentType.BOOK] = []
+                        metadata_paths[ContentType.BOOK].append(file_path)
+
+        logger.info("Discovered metadata files:")
+        for content_type, paths in metadata_paths.items():
+            logger.info(f"  {content_type.value}: {len(paths)} files")
+
+        return metadata_paths
+
+    def get_content_files(self) -> dict[ContentType, list[Path]]:
+        """Return paths to content files organized by content type.
+
+        Content files contain the actual entry data for adventures and books.
+        These are loaded on-demand and merged with metadata.
+
+        Returns:
+            Dictionary mapping content types to content file paths
+        """
+        if not self.content_manager._index_built:
+            logger.warning(
+                "Content index not built. Run async ensure_sources_ready() first."
+            )
+            return {}
+
+        content_paths: dict[ContentType, list[Path]] = {}
+        all_files = self.content_manager.get_all_content_files()
+
+        # Find content files
+        for source_name, files in all_files.items():
+            for file_path in files:
+                if self._is_content_file(file_path):
+                    filename = file_path.name.lower()
+
+                    # Map content files to content types
+                    if filename.startswith("adventure-"):
+                        if ContentType.ADVENTURE not in content_paths:
+                            content_paths[ContentType.ADVENTURE] = []
+                        content_paths[ContentType.ADVENTURE].append(file_path)
+                    elif filename.startswith("book-"):
+                        if ContentType.BOOK not in content_paths:
+                            content_paths[ContentType.BOOK] = []
+                        content_paths[ContentType.BOOK].append(file_path)
+
+        logger.info("Discovered content files:")
+        for content_type, paths in content_paths.items():
+            logger.info(f"  {content_type.value}: {len(paths)} files")
+
+        return content_paths
+
+    def _is_metadata_file(self, file_path: Path) -> bool:
+        """Check if file is a metadata file (adventures.json, books.json).
+
+        Metadata files contain lightweight index information with names, IDs,
+        and table of contents structure, but no actual content data.
+
+        Args:
+            file_path: Path to the file to check
+
+        Returns:
+            True if the file is a metadata file
+        """
+        filename = file_path.name.lower()
+
+        # Metadata files have exact names
+        metadata_files = {"adventures.json", "books.json"}
+
+        return filename in metadata_files
+
+    def _is_content_file(self, file_path: Path) -> bool:
+        """Check if file is a content file (adventure-*.json, book-*.json).
+
+        Content files contain the actual entry data for adventures and books,
+        but have minimal metadata information.
+
+        Args:
+            file_path: Path to the file to check
+
+        Returns:
+            True if the file is a content file
+        """
+        filename = file_path.name.lower()
+
+        # Content files follow specific patterns
+        content_patterns = [
+            "adventure-",  # adventure-cos.json, adventure-hotdq.json, etc.
+            "book-",  # book-phb.json, book-mm.json, etc.
+        ]
+
+        return filename.endswith(".json") and any(
+            filename.startswith(pattern) for pattern in content_patterns
+        )
+
     def _should_skip_file_at_discovery(self, file_path: Path) -> bool:
         """Check if file should be skipped during discovery phase."""
         filename = file_path.name.lower()
@@ -442,14 +603,9 @@ class ConfigurableSourceManager(SourceManager):
             if pattern in filename:
                 return True
 
-        # Skip adventure content files (adventure-*.json) to prevent duplicates
-        # Only load from metadata files (adventures.json)
-        if filename.startswith("adventure-") and filename.endswith(".json"):
-            return True
-
-        # Skip book content files (book-*.json) to prevent duplicates
-        # Only load from metadata files (books.json)
-        if filename.startswith("book-") and filename.endswith(".json"):
+        # Skip content files during discovery - they will be loaded on-demand
+        # Only metadata files should be loaded by the omnidexer
+        if self._is_content_file(file_path):
             return True
 
         return False

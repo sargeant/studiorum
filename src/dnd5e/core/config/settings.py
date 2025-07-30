@@ -59,6 +59,11 @@ class Settings(BaseSettings):
         description="LaTeX engine to use for compilation",
         alias="LATEX_ENGINE",
     )
+    default_paper_size: str = Field(
+        default="letterpaper",
+        description="Default paper size for LaTeX documents (letterpaper, a4paper, a5paper)",
+        alias="DEFAULT_PAPER_SIZE",
+    )
     font_dir: Path | None = Field(
         default=None, description="Directory containing custom fonts", alias="FONT_DIR"
     )
