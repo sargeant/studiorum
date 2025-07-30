@@ -59,13 +59,13 @@ Repository = "https://github.com/sargeant/5e2pdf"
 [project.optional-dependencies]
 docs = [
     "sphinx==8.2.3", # Pin to latest Sphinx version
-    "sphinx-autobuild>=2024.0.0",
-    "sphinxawesome-theme>=2.0.0", # Modern Awesome theme
+    "sphinx-autobuild>=2024.0.0", # Modern Awesome theme
     "myst-parser==4.0.1", # Pin to MyST 4.0.1 exactly
     "sphinxcontrib-mermaid>=0.9.2", # Mermaid support
     "sphinx-copybutton>=0.5.2", # Copy buttons for code
     "linkify-it-py>=2.0.0", # For MyST linkify extension
     "packaging",
+    "shibuya>=2025.7.24",
 ]
 
 [dependency-groups]
@@ -89,6 +89,9 @@ dev = [
     "pip-audit>=2.6.0,<3.0.0",  # Alternative to safety - compatible with Pydantic 2.11+
     # "safety>=3.6.0,<4.0.0",  # Disabled: requires pydantic<2.10.0
     "bandit>=1.8.6,<2.0.0",
+]
+docs = [
+    "shibuya>=2025.7.24",
 ]
 
 images = ["Pillow>=9.0.0"]
