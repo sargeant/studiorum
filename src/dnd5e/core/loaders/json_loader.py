@@ -787,15 +787,6 @@ class JsonDataLoader(DataLoader[BaseContent]):
         )
         return []
 
-    def _make_fluff_compatible(
-        self, fluff_item: dict[str, Any], path: Path
-    ) -> dict[str, Any] | None:
-        """Convert fluff item to be compatible with main content model - deprecated."""
-        logger.debug(
-            f"Fluff compatibility conversion called for {self._content_type.value} in {path}"
-        )
-        return None
-
     def _infer_item_type(self, item: dict[str, Any]) -> str:
         """Infer item type from common fields."""
         if "weaponCategory" in item:
