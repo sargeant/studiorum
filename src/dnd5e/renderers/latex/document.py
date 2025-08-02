@@ -488,7 +488,9 @@ This content type is not yet fully supported by the rendering system.
         if isinstance(content, str):
             # Process string content with tags
             if hasattr(context, "tag_resolver") and context.tag_resolver:
-                return context.tag_resolver.process_text(content)
+                # Type cast needed due to forward reference in RenderContext
+                result = context.tag_resolver.process_text(content)
+                return str(result)
             else:
                 return self._escape_latex(content)
         elif isinstance(content, dict):
@@ -516,7 +518,9 @@ This content type is not yet fully supported by the rendering system.
         if isinstance(content, str):
             # Process string content with tags
             if hasattr(context, "tag_resolver") and context.tag_resolver:
-                return context.tag_resolver.process_text(content)
+                # Type cast needed due to forward reference in RenderContext
+                result = context.tag_resolver.process_text(content)
+                return str(result)
             else:
                 return self._escape_latex(content)
         elif isinstance(content, dict):

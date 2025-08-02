@@ -2,8 +2,9 @@
 
 import time
 from contextlib import contextmanager
-from dataclasses import dataclass
 from typing import Any, Protocol
+
+from pydantic import BaseModel, Field
 
 # Type annotation for display_manager (can be None when import fails)
 display_manager: Any = None
@@ -239,18 +240,29 @@ class NoProgressReporter:
         pass
 
 
-@dataclass
-class CompilationProgress:
+class CompilationProgress(BaseModel):
     """Tracks compilation progress state."""
 
-    engine: str
-    total_passes: int
-    current_pass: int = 0
-    pass_description: str = ""
-    pass_progress: float = 0.0
-    pass_status: str = ""
-    overall_progress: float = 0.0
-    start_time: float = 0.0
+    engine: str = Field(min_length=1, description="LaTeX engine being used")
+    total_passes: int = Field(ge=0, description="Total number of compilation passes")
+    current_pass: int = Field(default=0, ge=0, description="Current pass number")
+    pass_description: str = Field(default="", description="Description of current pass")
+    pass_progress: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Progress within current pass (0.0-1.0)",
+    )
+    pass_status: str = Field(default="", description="Current status message")
+    overall_progress: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Overall compilation progress (0.0-1.0)",
+    )
+    start_time: float = Field(
+        default=0.0, ge=0.0, description="Compilation start time (Unix timestamp)"
+    )
 
     def update_overall_progress(self) -> None:
         """Update overall progress based on current pass."""
@@ -272,7 +284,7 @@ class ProgressTracker:
         """
         self.style = style
         self._reporter = self._create_reporter(style, console)
-        self._progress = CompilationProgress("", 0)
+        self._progress = CompilationProgress(engine="unknown", total_passes=0)
 
     def _create_reporter(self, style: str, console: Console | None) -> ProgressReporter:
         """Create appropriate progress reporter.
@@ -299,7 +311,7 @@ class ProgressTracker:
             engine: LaTeX engine being used
             total_passes: Total number of passes expected
         """
-        self._progress = CompilationProgress(engine, total_passes)
+        self._progress = CompilationProgress(engine=engine, total_passes=total_passes)
         self._progress.start_time = time.time()
 
         try:

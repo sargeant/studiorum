@@ -1,8 +1,9 @@
 """Reference indexing system for cross-references and citations."""
 
 from collections import defaultdict
-from dataclasses import dataclass
 from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
@@ -10,15 +11,35 @@ from ..models.content import BaseContent, ContentType
 logger = get_logger(__name__)
 
 
-@dataclass
-class Reference:
+class Reference(BaseModel):
     """Represents a reference to content from another piece of content."""
 
-    source_content: BaseContent
-    target_type: ContentType
-    target_name: str
-    target_source: str | None
-    context: str  # The text context where the reference appears
+    source_content: BaseContent = Field(description="Content that makes the reference")
+    target_type: ContentType = Field(description="Type of content being referenced")
+    target_name: str = Field(min_length=1, description="Name of target content")
+    target_source: str | None = Field(None, description="Source of target content")
+    context: str = Field(
+        default="", description="Text context where the reference appears"
+    )
+
+    @field_validator("target_name")
+    @classmethod
+    def normalize_target_name(cls, v: str) -> str:
+        """Normalize target name by trimming whitespace."""
+        return v.strip()
+
+    @field_validator("context")
+    @classmethod
+    def validate_context(cls, v: str) -> str:
+        """Validate and limit context length."""
+        cleaned = v.strip()
+        if len(cleaned) > 200:  # Reasonable limit for context
+            cleaned = cleaned[:197] + "..."
+        return cleaned
+
+    class Config:
+        # Allow BaseContent objects (they should be Pydantic models too)
+        arbitrary_types_allowed = True
 
 
 class ReferenceIndex:
