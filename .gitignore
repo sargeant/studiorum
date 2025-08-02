@@ -104,5 +104,5 @@ output/
 # Developer stuff
 private/
 private
-5etools-src/
+5etools-src
 docs/_build/
