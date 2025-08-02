@@ -247,3 +247,122 @@ class SourceRef(TypedDict, total=False):
     name: str
     url: str
     page: int
+
+
+# Content Merger Types
+class CacheMetadata(TypedDict):
+    """Metadata for content cache entries."""
+
+    mtime: float
+    file_path: Any  # Path object
+    access_time: float
+
+
+class CacheStats(TypedDict):
+    """Cache statistics for monitoring."""
+
+    cached_items: int
+    cache_keys: list[str]
+    memory_usage_estimate: int
+    max_cache_size: int
+    hits: int
+    misses: int
+    evictions: int
+    invalidations: int
+    hit_rate: float
+    total_requests: int
+    cache_enabled: bool
+    cache_ttl: float
+
+
+class ContentFileData(TypedDict, total=False):
+    """Structure for 5e.tools content files."""
+
+    data: list[dict[str, Any]]  # Content sections
+    _meta: dict[str, Any]
+
+
+class MetadataEntry(TypedDict, total=False):
+    """Adventure/book metadata entry from metadata files."""
+
+    id: str
+    name: str
+    source: str
+    contents: list[dict[str, Any]]
+    published: str
+    storyline: str
+    level: dict[str, int]
+    group: str
+
+
+class ContentSection(TypedDict, total=False):
+    """Content section from content files."""
+
+    type: str
+    name: str
+    id: str
+    entries: list[Any]
+
+
+class MergedContent(TypedDict, total=False):
+    """Merged metadata and content structure."""
+
+    id: str
+    name: str
+    source: str
+    contents: list[dict[str, Any]]
+    published: str
+    storyline: str
+    level: dict[str, int]
+    group: str
+
+
+# Entry Parser Types
+class EntryDict(TypedDict, total=False):
+    """Base structure for 5e.tools entry dictionaries."""
+
+    type: str
+    name: str
+    entries: list[Any]  # Recursive structure
+    id: str
+    page: int
+
+
+class SectionEntry(EntryDict, total=False):
+    """Section entry structure."""
+
+    # Inherits type, name, entries, id, page from EntryDict
+    pass
+
+
+class TableEntry(EntryDict, total=False):
+    """Table entry structure."""
+
+    caption: str
+    colLabels: list[str]
+    rows: list[list[str]]
+
+
+class InsetEntry(EntryDict, total=False):
+    """Inset/sidebar entry structure."""
+
+    # type is typically "inset" or "insetReadaloud"
+    pass
+
+
+class NestedEntriesEntry(EntryDict, total=False):
+    """Nested entries structure (variant rules, subsections)."""
+
+    # type is typically "entries"
+    pass
+
+
+class ParsingStatistics(TypedDict):
+    """Statistics for entry parsing operations."""
+
+    entries_processed: int
+    errors_encountered: int
+    source: str
+    parent_name: str
+    registry_statistics: dict[str, int]
+    unknown_types: list[str]
