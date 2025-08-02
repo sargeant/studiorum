@@ -62,7 +62,7 @@ class TestEntryTypeRegistry:
         assert registry.validation_mode == ValidationMode.STRICT
         assert len(registry.known_types) > 0
         assert len(registry.unknown_types) == 0
-        assert len(registry.statistics) == 0
+        assert registry.statistics.total_entries == 0
 
     def test_known_types_comprehensive(self):
         """Test that registry contains expected known types from 5etools."""
@@ -105,8 +105,8 @@ class TestEntryTypeRegistry:
         self.registry.validate_entry_type("table", {"type": "table"})
 
         # Check statistics are updated
-        assert self.registry.statistics["section"] == 1
-        assert self.registry.statistics["table"] == 1
+        assert self.registry.statistics.entry_counts["section"] == 1
+        assert self.registry.statistics.entry_counts["table"] == 1
 
     def test_validate_entry_type_unknown_strict(self):
         """Test validation of unknown entry types in strict mode."""
@@ -124,7 +124,7 @@ class TestEntryTypeRegistry:
             self.registry.validate_entry_type("unknownType")
 
         assert "unknownType" in self.registry.unknown_types
-        assert self.registry.statistics["unknownType"] == 1
+        assert self.registry.statistics.entry_counts["unknownType"] == 1
 
     def test_validate_entry_type_unknown_silent(self):
         """Test validation of unknown entry types in silent mode."""
@@ -229,12 +229,12 @@ class TestEntryTypeRegistry:
         self.registry.validate_entry_type("section")
         self.registry.validate_entry_type("unknownType")
 
-        assert len(self.registry.statistics) > 0
+        assert self.registry.statistics.total_entries > 0
         assert len(self.registry.unknown_types) > 0
 
         # Reset and verify
         self.registry.reset_statistics()
-        assert len(self.registry.statistics) == 0
+        assert self.registry.statistics.total_entries == 0
         assert len(self.registry.unknown_types) == 0
 
     @patch("dnd5e.core.entry_registry.logger")
