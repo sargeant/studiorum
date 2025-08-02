@@ -23,19 +23,20 @@ class RenderContext(BaseModel):
     """
 
     # Core services
-    omnidexer: Any = Field(
-        None, description="Content indexer for lookups"
-    )  # TODO: Restore Omnidexer | None after test compatibility
-    # TODO: Replace Any with proper types once TagResolver is migrated to Pydantic
-    tag_resolver: Any = Field(None, description="Tag resolver for cross-references")
+    omnidexer: Omnidexer | None = Field(None, description="Content indexer for lookups")
+    tag_resolver: TagResolver | None = Field(
+        None, description="Tag resolver for cross-references"
+    )
 
     # Document metadata (structured)
-    # TODO: Replace Any with proper types once DocumentMetadata is migrated to Pydantic
-    metadata: Any = Field(None, description="Structured document metadata")
+    metadata: DocumentMetadata | None = Field(
+        None, description="Structured document metadata"
+    )
 
     # LaTeX configuration
-    # TODO: Replace Any with proper types once LaTeXConfig is migrated to Pydantic
-    latex_config: Any = Field(None, description="LaTeX compilation configuration")
+    latex_config: LaTeXConfig | None = Field(
+        None, description="LaTeX compilation configuration"
+    )
 
     # Document metadata (legacy)
     title: str | None = Field(None, description="Document title")
@@ -171,3 +172,20 @@ class RenderContext(BaseModel):
             New RenderContext with updates applied
         """
         return self.model_copy(update=updates)
+
+
+# Rebuild the model to resolve forward references after all imports are available
+def _rebuild_model() -> None:
+    """Rebuild RenderContext model to resolve forward references."""
+    try:
+        from dnd5e.core.config.latex_config import LaTeXConfig  # noqa: F401
+        from dnd5e.core.indexer.tag_resolver import TagResolver  # noqa: F401
+        from dnd5e.core.models.document_metadata import DocumentMetadata  # noqa: F401
+
+        RenderContext.model_rebuild()
+    except ImportError:
+        # Forward references will be resolved when modules are imported
+        pass
+
+
+_rebuild_model()
