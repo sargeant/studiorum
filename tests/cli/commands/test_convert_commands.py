@@ -10,6 +10,10 @@ import pytest
 from typer.testing import CliRunner
 
 from dnd5e.cli.commands.convert import _compile_pdf, app
+from dnd5e.core.indexer.tag_resolver import TagResolver
+from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.models.books import Book
+from dnd5e.core.models.content import Source
 
 
 class TestConvertAdventureCommand:
@@ -55,8 +59,8 @@ class TestConvertAdventureCommand:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer
         mock_renderer = Mock()
@@ -114,8 +118,8 @@ class TestConvertAdventureCommand:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock resolver
         mock_resolver = Mock()
@@ -175,7 +179,7 @@ class TestConvertAdventureCommand:
     ):
         """Test error handling when content resolution fails."""
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
 
         # Mock failed resolution
         mock_resolver = Mock()
@@ -221,8 +225,8 @@ class TestConvertAdventureCommand:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer
         mock_renderer = Mock()
@@ -295,8 +299,8 @@ class TestConvertBookCommand:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer
         mock_renderer = Mock()
@@ -349,8 +353,8 @@ class TestConvertBookCommand:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer
         mock_renderer = Mock()
@@ -441,8 +445,8 @@ class TestConvertSupplementCommand:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer
         mock_renderer = Mock()
@@ -499,8 +503,8 @@ class TestConvertSupplementCommand:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -656,8 +660,8 @@ class TestErrorHandlingPaths:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Create temporary file with invalid JSON
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -704,8 +708,8 @@ class TestErrorHandlingPaths:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer to raise exception
         mock_renderer = Mock()
@@ -770,13 +774,16 @@ class TestSpecialCases:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock resolver with successful book resolution
         mock_resolver = Mock()
-        mock_book = Mock()
-        mock_book.name = "Player's Handbook"
+        # Create a proper Book instance instead of Mock
+        test_source = Source(
+            abbreviation="PHB", name="Player's Handbook", url="https://example.com"
+        )
+        mock_book = Book(name="Player's Handbook", source=test_source, data=[])
 
         from dnd5e.core.resolvers.content_resolver import (
             ContentResolutionResult,
@@ -852,8 +859,8 @@ class TestLaTeXDocumentOptions:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer
         mock_renderer = Mock()
@@ -947,8 +954,8 @@ class TestLaTeXDocumentOptions:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer
         mock_renderer = Mock()
@@ -1045,8 +1052,8 @@ class TestLaTeXDocumentOptions:
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer
         mock_renderer = Mock()

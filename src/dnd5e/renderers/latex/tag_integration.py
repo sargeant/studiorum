@@ -223,9 +223,10 @@ class LaTeXTagResolver(TagResolver):
         self, latex_renderer: LaTeXTagRenderer, omnidexer: Omnidexer | None = None
     ):
         # Get parser from latex_renderer if it has one, otherwise create default
-        parser = TagParser()  # Default parser
         if hasattr(latex_renderer, "parser") and latex_renderer.parser is not None:
             parser = latex_renderer.parser
+        else:
+            parser = TagParser()  # Default parser
 
         # Call parent constructor but override renderer creation
         # We need to bypass the normal TagResolver.__init__ renderer creation
