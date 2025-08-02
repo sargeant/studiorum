@@ -220,34 +220,6 @@ class ProcessingStatistics(BaseModel):
         self.validation_errors = 0
         self.validation_warnings = 0
 
-    def __len__(self) -> int:
-        """Return the number of entry types processed (for backward compatibility)."""
-        return len(self.entry_counts)
-
-    def __getitem__(self, key: str) -> int:
-        """Allow dict-style access to entry counts (for backward compatibility)."""
-        return self.entry_counts.get(key, 0)
-
-    def __contains__(self, key: str) -> bool:
-        """Allow 'in' operator on entry types (for backward compatibility)."""
-        return key in self.entry_counts
-
-    def items(self) -> Any:
-        """Return items view of entry counts (for backward compatibility)."""
-        return self.entry_counts.items()
-
-    def keys(self) -> Any:
-        """Return keys view of entry counts (for backward compatibility)."""
-        return self.entry_counts.keys()
-
-    def values(self) -> Any:
-        """Return values view of entry counts (for backward compatibility)."""
-        return self.entry_counts.values()
-
-    def get(self, key: str, default: int = 0) -> int:
-        """Get entry count with default (for backward compatibility)."""
-        return self.entry_counts.get(key, default)
-
 
 class EntryTypeDefinition(BaseModel):
     """Definition of an entry type with its category and metadata.
@@ -348,11 +320,6 @@ class EntryTypeRegistry:
         """Get processing statistics."""
         return self._statistics
 
-    @property
-    def statistics_dict(self) -> dict[str, int]:
-        """Get processing statistics as a dict (legacy compatibility)."""
-        return self._statistics.entry_counts.copy()
-
     def get_category(self, entry_type: str) -> EntryTypeCategory | None:
         """Get the category for an entry type.
 
@@ -378,60 +345,22 @@ class EntryTypeRegistry:
         """
         return entry_type in self._all_known_types
 
-    @overload
-    def validate_entry_type(
-        self,
-        entry_type: str,
-        entry: dict[str, Any] | None = None,
-        source: str | None = None,
-        parent_name: str | None = None,
-    ) -> None:
-        """Validate an entry type (legacy interface)."""
-        ...
-
-    @overload
-    def validate_entry_type(
-        self,
-        entry_type_or_context: ValidationContext,
-        entry: None = None,
-        source: None = None,
-        parent_name: None = None,
-    ) -> None:
-        """Validate an entry type using structured context."""
-        ...
-
-    def validate_entry_type(  # type: ignore[misc]
-        self,
-        entry_type_or_context: str | ValidationContext,
-        entry: dict[str, Any] | None = None,
-        source: str | None = None,
-        parent_name: str | None = None,
-    ) -> None:
+    def validate_entry_type(self, context: ValidationContext) -> None:
         """Validate an entry type according to the current validation mode.
 
         Args:
-            entry_type_or_context: Either an entry type string or ValidationContext
-            entry: The entry dict (for error context) - legacy interface only
-            source: Source file or book name - legacy interface only
-            parent_name: Name of parent section/container - legacy interface only
+            context: ValidationContext containing entry data and validation parameters
 
         Raises:
             UnknownEntryTypeError: If validation_mode is STRICT and type is unknown
         """
-        # Handle both old and new interfaces
-        if isinstance(entry_type_or_context, ValidationContext):
-            context = entry_type_or_context
-            entry_type = context.entry_type or "unknown"
-            entry_data = (
-                context.entry_data if isinstance(context.entry_data, dict) else None
-            )
-            source = context.source
-            parent_name = context.parent_name
-            validation_mode = context.validation_mode or self.validation_mode
-        else:
-            entry_type = entry_type_or_context
-            entry_data = entry
-            validation_mode = self.validation_mode
+        entry_type = context.entry_type or "unknown"
+        entry_data = (
+            context.entry_data if isinstance(context.entry_data, dict) else None
+        )
+        source = context.source
+        parent_name = context.parent_name
+        validation_mode = context.validation_mode or self.validation_mode
 
         # Update statistics
         self._statistics.increment_entry_count(entry_type)
@@ -458,58 +387,16 @@ class EntryTypeRegistry:
                 self._statistics.validation_warnings += 1
             # SILENT mode does nothing
 
-    @overload
-    def validate_entry_structure(
-        self,
-        entry: Any,
-        source: str | None = None,
-        parent_name: str | None = None,
-    ) -> dict[str, Any]:
-        """Validate basic entry structure (legacy interface)."""
-        ...
-
-    @overload
-    def validate_entry_structure(
-        self,
-        entry_or_context: ValidationContext,
-        source: None = None,
-        parent_name: None = None,
-    ) -> ValidationResult:
-        """Validate entry structure using structured context."""
-        ...
-
-    def validate_entry_structure(  # type: ignore[misc]
-        self,
-        entry_or_context: Any | ValidationContext,
-        source: str | None = None,
-        parent_name: str | None = None,
-    ) -> dict[str, Any] | ValidationResult:
-        """Validate basic entry structure.
+    def validate_entry_structure(self, context: ValidationContext) -> ValidationResult:
+        """Validate basic entry structure using ValidationContext.
 
         Args:
-            entry_or_context: The entry to validate or ValidationContext
-            source: Source file or book name (legacy interface only)
-            parent_name: Name of parent section/container (legacy interface only)
+            context: ValidationContext containing entry data and validation parameters
 
         Returns:
-            The entry as a validated dict or ValidationResult
-
-        Raises:
-            MalformedEntryError: If entry structure is invalid
+            ValidationResult with structured validation information
         """
-        # Handle both old and new interfaces
-        if isinstance(entry_or_context, ValidationContext):
-            context = entry_or_context
-            entry = context.entry_data
-            source = context.source
-            parent_name = context.parent_name
-            return_structured = True
-        else:
-            entry = entry_or_context
-            context = ValidationContext(
-                entry_data=entry, source=source, parent_name=parent_name
-            )
-            return_structured = False
+        entry = context.entry_data
 
         warnings_list: list[str] = []
         errors_list: list[str] = []
@@ -519,45 +406,6 @@ class EntryTypeRegistry:
                 # String entries are valid (plain text)
                 validated_entry = ValidatedEntry.from_string(entry)
 
-                if return_structured:
-                    return ValidationResult(
-                        success=True,
-                        entry=validated_entry,
-                        warnings=warnings_list,
-                        errors=errors_list,
-                        context=context,
-                    )
-                else:
-                    # Legacy return format
-                    return {"type": "text", "content": entry}
-
-            if not isinstance(entry, dict):
-                error_msg = f"Entry must be dict or string, got {type(entry).__name__}"
-
-                if return_structured:
-                    errors_list.append(error_msg)
-                    # Create a fallback ValidatedEntry for error cases
-                    validated_entry = ValidatedEntry(type="error", content=str(entry))
-                    return ValidationResult(
-                        success=False,
-                        entry=validated_entry,
-                        warnings=warnings_list,
-                        errors=errors_list,
-                        context=context,
-                    )
-                else:
-                    # Legacy behavior - raise exception
-                    raise MalformedEntryError(
-                        message=error_msg,
-                        entry=entry,
-                        source=source,
-                        parent_name=parent_name,
-                    )
-
-            # Valid dict entry
-            validated_entry = ValidatedEntry.from_dict(entry)
-
-            if return_structured:
                 return ValidationResult(
                     success=True,
                     entry=validated_entry,
@@ -565,13 +413,11 @@ class EntryTypeRegistry:
                     errors=errors_list,
                     context=context,
                 )
-            else:
-                # Legacy return format
-                return entry
 
-        except Exception as e:
-            if return_structured:
-                errors_list.append(str(e))
+            if not isinstance(entry, dict):
+                error_msg = f"Entry must be dict or string, got {type(entry).__name__}"
+                errors_list.append(error_msg)
+                # Create a fallback ValidatedEntry for error cases
                 validated_entry = ValidatedEntry(type="error", content=str(entry))
                 return ValidationResult(
                     success=False,
@@ -580,119 +426,74 @@ class EntryTypeRegistry:
                     errors=errors_list,
                     context=context,
                 )
-            else:
-                # Re-raise for legacy interface
-                raise
 
-    @overload
-    def validate_required_fields(
-        self,
-        entry: dict[str, Any],
-        required_fields: set[str],
-        source: str | None = None,
-        parent_name: str | None = None,
-        context: None = None,
-    ) -> None:
-        """Validate required fields (legacy interface)."""
-        ...
+            # Valid dict entry
+            validated_entry = ValidatedEntry.from_dict(entry)
 
-    @overload
+            return ValidationResult(
+                success=True,
+                entry=validated_entry,
+                warnings=warnings_list,
+                errors=errors_list,
+                context=context,
+            )
+
+        except Exception as e:
+            errors_list.append(str(e))
+            validated_entry = ValidatedEntry(type="error", content=str(entry))
+            return ValidationResult(
+                success=False,
+                entry=validated_entry,
+                warnings=warnings_list,
+                errors=errors_list,
+                context=context,
+            )
+
     def validate_required_fields(
         self,
         entry: ValidatedEntry,
         required_fields: set[str],
-        source: None = None,
-        parent_name: None = None,
         context: ValidationContext | None = None,
     ) -> ValidationResult:
-        """Validate required fields using structured models."""
-        ...
-
-    def validate_required_fields(
-        self,
-        entry: dict[str, Any] | ValidatedEntry,
-        required_fields: set[str],
-        source: str | None = None,
-        parent_name: str | None = None,
-        context: ValidationContext | None = None,
-    ) -> None | ValidationResult:
         """Validate that required fields are present in an entry.
 
         Args:
-            entry: The entry dict or ValidatedEntry to validate
+            entry: The ValidatedEntry to validate
             required_fields: Set of required field names
-            source: Source file or book name (legacy interface)
-            parent_name: Name of parent section/container (legacy interface)
-            context: ValidationContext for structured interface
+            context: ValidationContext for validation parameters
 
         Returns:
-            None for legacy interface, ValidationResult for structured interface
-
-        Raises:
-            EntryValidationError: If required fields are missing (legacy interface only)
+            ValidationResult with validation information
         """
-        # Determine interface type and extract data
-        if isinstance(entry, ValidatedEntry):
-            # Structured interface
-            return_structured = True
-            # Convert ValidatedEntry back to dict for field checking
-            entry_dict = entry.model_dump(exclude_unset=True)
-            entry_type = entry.type
-            if context:
-                source = context.source
-                parent_name = context.parent_name
+        # Use original entry data from context if available, otherwise use ValidatedEntry
+        if context and isinstance(context.entry_data, dict):
+            available_fields = set(context.entry_data.keys())
         else:
-            # Legacy interface
-            return_structured = False
-            entry_dict = entry
-            entry_type = entry.get("type", "unknown")
+            # Fallback to checking non-None fields in ValidatedEntry
+            entry_dict = entry.model_dump()
+            available_fields = {k for k, v in entry_dict.items() if v is not None}
 
-        missing_fields = required_fields - set(entry_dict.keys())
+        missing_fields = required_fields - available_fields
 
         if missing_fields:
             error_msg = f"Missing required fields: {', '.join(sorted(missing_fields))}"
 
-            if return_structured:
-                # Return ValidationResult with error
-                validated_entry = (
-                    entry
-                    if isinstance(entry, ValidatedEntry)
-                    else ValidatedEntry.from_dict(entry_dict)
-                )
-                return ValidationResult(
-                    success=False,
-                    entry=validated_entry,
-                    warnings=[],
-                    errors=[error_msg],
-                    context=context,
-                )
-            else:
-                # Legacy behavior - raise exception
-                self._statistics.validation_errors += 1
-                raise EntryValidationError(
-                    message=error_msg,
-                    entry=entry_dict,
-                    source=source,
-                    parent_name=parent_name,
-                    entry_type=entry_type,
-                )
-
-        # No missing fields
-        if return_structured:
-            validated_entry = (
-                entry
-                if isinstance(entry, ValidatedEntry)
-                else ValidatedEntry.from_dict(entry_dict)
-            )
             return ValidationResult(
-                success=True,
-                entry=validated_entry,
+                success=False,
+                entry=entry,
                 warnings=[],
-                errors=[],
+                errors=[error_msg],
                 context=context,
             )
-        # Legacy interface returns None on success
-        return None
+
+        # No missing fields
+        return ValidationResult(
+            success=True,
+            entry=entry,
+            warnings=[],
+            errors=[],
+            context=context,
+        )
 
     def get_common_fields(self, entry_type: str) -> set[str]:
         """Get common fields expected for an entry type.
@@ -793,8 +594,14 @@ def validate_entry_type(
     source: str | None = None,
     parent_name: str | None = None,
 ) -> None:
-    """Validate an entry type using the global registry."""
-    _global_registry.validate_entry_type(entry_type, entry, source, parent_name)
+    """Validate an entry type using the global registry (legacy interface)."""
+    context = ValidationContext(
+        entry_data=entry or {},
+        source=source,
+        parent_name=parent_name,
+        entry_type=entry_type,
+    )
+    _global_registry.validate_entry_type(context)
 
 
 def validate_entry_structure(
@@ -802,5 +609,24 @@ def validate_entry_structure(
     source: str | None = None,
     parent_name: str | None = None,
 ) -> dict[str, Any]:
-    """Validate entry structure using the global registry."""
-    return _global_registry.validate_entry_structure(entry, source, parent_name)
+    """Validate entry structure using the global registry (legacy interface)."""
+    context = ValidationContext(
+        entry_data=entry,
+        source=source,
+        parent_name=parent_name,
+    )
+    _global_registry.validate_entry_structure(context)
+
+    # Convert to legacy dict format for backward compatibility
+    if isinstance(entry, str):
+        return {"type": "text", "content": entry}
+    elif isinstance(entry, dict):
+        return entry
+    else:
+        # For other types, raise the same exception as before
+        raise MalformedEntryError(
+            message=f"Entry must be dict or string, got {type(entry).__name__}",
+            entry=entry,
+            source=source,
+            parent_name=parent_name,
+        )

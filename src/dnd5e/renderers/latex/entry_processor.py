@@ -94,22 +94,19 @@ class RecursiveEntryProcessor:
 
             # Validate entry type if not empty
             if entry_type:
-                # Use instance validation mode or fall back to global
-                original_mode = self._registry.validation_mode
+                # Create ValidationContext for modern interface
+                from ...core.entry_registry import ValidationContext
 
-                if self._validation_mode:
-                    self._registry.validation_mode = self._validation_mode
+                validation_context = ValidationContext(
+                    entry_data=entry,
+                    source=getattr(context, "source_name", "unknown"),
+                    parent_name=f"depth_{self._depth}",
+                    entry_type=entry_type,
+                    validation_mode=self._validation_mode,
+                )
 
-                try:
-                    validate_entry_type(
-                        entry_type=entry_type,
-                        entry=entry,
-                        source=getattr(context, "source_name", "unknown"),
-                        parent_name=f"depth_{self._depth}",
-                    )
-                finally:
-                    # Restore original mode
-                    self._registry.validation_mode = original_mode
+                # Use modern ValidationContext interface
+                self._registry.validate_entry_type(validation_context)
 
             # Dispatch to specific processing methods
             if entry_type == "section":

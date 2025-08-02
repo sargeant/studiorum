@@ -264,20 +264,6 @@ class TestTagResolver:
             assert result is True
             mock_has_handler.assert_called_once_with("creature")
 
-    def test_tag_resolver_tag_handlers_property(self, mock_omnidexer: Mock) -> None:
-        """Test backward compatibility _tag_handlers property."""
-        resolver = TagResolver(omnidexer=mock_omnidexer)
-
-        # Add a custom handler
-        def test_handler(tag: str) -> str:
-            return f"processed_{tag}"
-
-        resolver.custom_handlers["test"] = test_handler
-
-        # _tag_handlers should return custom_handlers for backward compatibility
-        assert resolver._tag_handlers == resolver.custom_handlers
-        assert resolver._tag_handlers["test"] == test_handler
-
     def test_tag_resolver_arbitrary_types_allowed(self) -> None:
         """Test that TagResolver allows arbitrary types."""
         # Should accept any type for omnidexer
