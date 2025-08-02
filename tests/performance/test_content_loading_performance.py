@@ -8,6 +8,8 @@ dual-file architecture content loading system.
 import asyncio
 import time
 
+import pytest
+
 from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.resolvers.content_resolver import ContentResolver
@@ -16,6 +18,7 @@ from dnd5e.core.resolvers.content_resolver import ContentResolver
 class TestContentLoadingPerformance:
     """Test performance of content loading system."""
 
+    @pytest.mark.slow
     async def test_omnidexer_loading_performance(self):
         """Test that omnidexer loading completes in reasonable time."""
         start_time = time.time()
@@ -39,6 +42,7 @@ class TestContentLoadingPerformance:
         assert len(adventures) > 0, "Should have loaded adventures"
         assert len(books) > 0, "Should have loaded books"
 
+    @pytest.mark.slow
     async def test_content_resolution_performance(self):
         """Test that content resolution is reasonably fast."""
         source_manager = ConfigurableSourceManager()

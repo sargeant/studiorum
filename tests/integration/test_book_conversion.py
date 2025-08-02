@@ -112,6 +112,7 @@ class TestBookConversion:
                         f"Book {book_id} produced minimal content"
                     )
 
+    @pytest.mark.slow
     def test_book_conversion_performance(self):
         """Test that book conversion completes in reasonable time."""
         import time
@@ -404,6 +405,7 @@ class TestBookConversion:
                 f"Unexpected error message - stdout: {result.stdout}, stderr: {result.stderr}"
             )
 
+    @pytest.mark.slow
     def test_book_memory_usage_reasonable(self):
         """Test that book conversion doesn't use excessive memory."""
         import psutil

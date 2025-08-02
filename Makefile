@@ -50,9 +50,16 @@ bandit-medium: uv
 bandit: uv
 	uv run bandit -r src/
 
-# Run unit tests
-pytest: uv
-	uv run pytest
+# Run fast tests (excluding slow tests)
+test: uv
+	uv run pytest -m "not slow" -n auto
+
+# Run all tests including slow ones
+test-all: uv
+	uv run pytest -n auto
+
+# Run unit tests (legacy target)
+pytest: test
 
 # Documentation
 ## Build HTML docs and open in browser

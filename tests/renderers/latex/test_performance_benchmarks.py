@@ -62,6 +62,7 @@ class TestRenderingPerformance:
             cover=None,
         )
 
+    @pytest.mark.slow
     def test_single_spell_rendering_performance(self, sample_spell: Any) -> None:
         """Benchmark single spell rendering performance."""
         context = RenderContext(title="Spell Performance Test")
@@ -95,6 +96,7 @@ class TestRenderingPerformance:
 
         print(f"\\nSpell rendering: {avg_time_per_render * 1000:.1f}ms average")
 
+    @pytest.mark.slow
     def test_single_creature_rendering_performance(self, sample_creature: Any) -> None:
         """Benchmark single creature rendering performance."""
         context = RenderContext(title="Creature Performance Test")
@@ -128,6 +130,7 @@ class TestRenderingPerformance:
 
         print(f"\\nCreature rendering: {avg_time_per_render * 1000:.1f}ms average")
 
+    @pytest.mark.slow
     def test_book_rendering_performance(self, sample_book: Any) -> None:
         """Benchmark book rendering performance."""
         context = RenderContext(title="Book Performance Test", include_toc=True)
@@ -161,6 +164,7 @@ class TestRenderingPerformance:
 
         print(f"\\nBook rendering: {avg_time_per_render * 1000:.1f}ms average")
 
+    @pytest.mark.slow
     def test_mixed_content_rendering_performance(
         self, sample_spell: Any, sample_creature: Any, sample_source: Any
     ) -> None:
@@ -216,6 +220,7 @@ class TestRenderingPerformance:
 
         print(f"\\nMixed content rendering: {avg_time_per_render * 1000:.1f}ms average")
 
+    @pytest.mark.slow
     def test_memory_usage_stability(self, sample_spell: Any) -> None:
         """Test that memory usage remains stable during repeated rendering."""
         import gc
@@ -259,6 +264,7 @@ class TestRenderingPerformance:
             f"\\nMemory usage: {initial_memory:.1f}MB -> {final_memory:.1f}MB (growth: {memory_growth:.1f}MB)"
         )
 
+    @pytest.mark.slow
     def test_template_engine_caching_performance(self, sample_spell: Any) -> None:
         """Test that template engine caching improves performance."""
         context = RenderContext(title="Caching Test")
@@ -297,6 +303,7 @@ class TestRenderingPerformance:
             f"Second batch slower than expected (ratio: {speedup_ratio:.2f})"
         )
 
+    @pytest.mark.slow
     def test_large_document_rendering_performance(self, sample_source: Any) -> None:
         """Test performance with large documents."""
         # Create a large book with many chapters and content
@@ -357,6 +364,7 @@ class TestRenderingPerformance:
 
         print(f"\\nLarge document (50 chapters): {render_time:.2f}s")
 
+    @pytest.mark.slow
     def test_compilation_performance_integration(self, sample_spell: Any) -> None:
         """Test end-to-end performance including compilation."""
         from dnd5e.renderers.latex.compilation_config import (  # type: ignore

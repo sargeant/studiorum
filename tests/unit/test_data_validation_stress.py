@@ -451,6 +451,7 @@ class TestDataValidationStress:
         print("✅ Edge case data structures validated successfully")
 
     @pytest.mark.asyncio
+    @pytest.mark.slow
     async def test_memory_usage_during_full_load(self) -> None:
         """Test memory usage doesn't grow excessively during full data load."""
         try:
@@ -489,6 +490,7 @@ class TestDataValidationStress:
         )
 
     @pytest.mark.asyncio
+    @pytest.mark.slow
     async def test_concurrent_data_loading(self) -> None:
         """Test that concurrent data loading works without issues."""
         source_manager: Any = FileSystemSourceManager()

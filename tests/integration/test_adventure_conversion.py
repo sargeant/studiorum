@@ -110,6 +110,7 @@ class TestAdventureConversion:
                         f"Adventure {adventure_id} produced minimal content"
                     )
 
+    @pytest.mark.slow
     def test_conversion_performance_is_reasonable(self):
         """Test that adventure conversion completes in reasonable time."""
         import time
@@ -357,6 +358,7 @@ class TestAdventureConversion:
                 f"Unexpected error message - stdout: {result.stdout}, stderr: {result.stderr}"
             )
 
+    @pytest.mark.slow
     def test_memory_usage_reasonable(self):
         """Test that conversion doesn't use excessive memory."""
         import psutil
