@@ -366,7 +366,7 @@ class EntryParser:
             errors_encountered=self._errors_encountered,
             source=self.source.abbreviation,
             parent_name=self.parent_name,
-            registry_statistics=self._registry.statistics,
+            registry_statistics=self._registry.statistics_dict,
             unknown_types=list(self._registry.unknown_types),
         )
 

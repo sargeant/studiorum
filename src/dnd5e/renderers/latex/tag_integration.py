@@ -137,7 +137,9 @@ class LaTeXTagIntegration:
 
     def export_appendix_data(self) -> dict[str, Any]:
         """Export data for appendix generation."""
-        return self.content_tracker.export_for_latex_appendix()
+        appendix_structure = self.content_tracker.export_for_latex_appendix()
+        # Convert AppendixStructure to dict for backward compatibility
+        return appendix_structure.model_dump()
 
     def export_cross_reference_data(self) -> dict[str, Any]:
         """Export cross-reference data for document processing."""
@@ -148,8 +150,9 @@ class LaTeXTagIntegration:
 
     def get_tag_statistics(self) -> dict[str, Any]:
         """Get comprehensive tag processing statistics."""
+        latex_stats = self.content_tracker.get_latex_statistics()
         stats = {
-            "content_tracker": self.content_tracker.get_latex_statistics(),
+            "content_tracker": latex_stats.model_dump(),
         }
 
         if self.cross_ref_manager:
