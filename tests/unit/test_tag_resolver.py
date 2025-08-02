@@ -234,29 +234,45 @@ class TestContentTracker:
         assert len(tracker.get_content_types()) == 0
 
     def test_tracked_content_normalization(self) -> None:
-        """Test TrackedContent normalization in __post_init__."""
+        """Test TrackedContent normalization with field validators."""
         # Test content_type normalization (lowercase)
-        content: Any = TrackedContent("SPELL", "Fireball", "PHB")
+        content: Any = TrackedContent(
+            content_type="SPELL", name="Fireball", source="PHB"
+        )
         assert content.content_type == "spell"
 
         # Test name stripping
-        content2: Any = TrackedContent("spell", "  Fireball  ", "PHB")
+        content2: Any = TrackedContent(
+            content_type="spell", name="  Fireball  ", source="PHB"
+        )
         assert content2.name == "Fireball"
 
         # Test source stripping
-        content3: Any = TrackedContent("spell", "Fireball", "  PHB  ")
+        content3: Any = TrackedContent(
+            content_type="spell", name="Fireball", source="  PHB  "
+        )
         assert content3.source == "PHB"
 
         # Test page stripping
-        content4: Any = TrackedContent("spell", "Fireball", "PHB", "  123  ")
+        content4: Any = TrackedContent(
+            content_type="spell", name="Fireball", source="PHB", page="  123  "
+        )
         assert content4.page == "123"
 
     def test_tracked_content_equality_and_hashing(self) -> None:
         """Test TrackedContent equality and hashing behavior."""
-        content1: Any = TrackedContent("spell", "Fireball", "PHB")
-        content2: Any = TrackedContent("spell", "Fireball", "PHB")
-        content3: Any = TrackedContent("spell", "Fireball", "MM")
-        content4: Any = TrackedContent("creature", "Fireball", "PHB")
+        content1: Any = TrackedContent(
+            content_type="spell", name="Fireball", source="PHB"
+        )
+        content2: Any = TrackedContent(
+            content_type="spell", name="Fireball", source="PHB"
+        )
+        content3: Any = TrackedContent(
+            content_type="spell", name="Fireball", source="MM"
+        )
+        content4: Any = TrackedContent(
+            content_type="creature", name="Fireball", source="PHB"
+        )
 
         # Test equality
         assert content1 == content2
@@ -274,12 +290,16 @@ class TestContentTracker:
 
     def test_tracked_content_to_tuple(self) -> None:
         """Test TrackedContent to_tuple method."""
-        content: Any = TrackedContent("spell", "Fireball", "PHB", "123")
+        content: Any = TrackedContent(
+            content_type="spell", name="Fireball", source="PHB", page="123"
+        )
         tuple_result = content.to_tuple()
         assert tuple_result == ("spell", "Fireball", "PHB")
 
         # Test with None source
-        content_no_source: Any = TrackedContent("spell", "Fireball", None)
+        content_no_source: Any = TrackedContent(
+            content_type="spell", name="Fireball", source=None
+        )
         tuple_result = content_no_source.to_tuple()
         assert tuple_result == ("spell", "Fireball", None)
 
@@ -483,21 +503,30 @@ class TestContentTracker:
         """Test edge cases and boundary conditions."""
         tracker: Any = ContentTracker()
 
-        # Empty strings
-        tracker.add_content("", "", "")
+        # Test with minimal valid strings (now that we have min_length=1)
+        tracker.add_content("a", "b", "")  # Empty source is allowed but becomes None
         content_list = tracker.get_tracked_content()
         assert len(content_list) == 1
-        assert content_list[0].content_type == ""
-        assert content_list[0].name == ""
-        assert content_list[0].source == ""
+        assert content_list[0].content_type == "a"
+        assert content_list[0].name == "b"
+        assert content_list[0].source is None  # Empty string becomes None
 
-        # None values
+        # None values for optional fields
         tracker.clear()
         tracker.add_content("spell", "Test", None, None)
         content_list = tracker.get_tracked_content()
         assert len(content_list) == 1
         assert content_list[0].source is None
         assert content_list[0].page is None
+
+        # Test validation errors for empty required fields
+        import pytest
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            tracker.add_content("", "Test", None)  # Empty content_type should fail
+        with pytest.raises(ValidationError):
+            tracker.add_content("spell", "", None)  # Empty name should fail
 
 
 class TestTagResolverFacade:

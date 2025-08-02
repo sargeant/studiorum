@@ -10,7 +10,9 @@ from dnd5e.core.indexer.tag_types import (
     FormatType,
     SpecialTag,
 )
-from dnd5e.core.models.content import ContentType
+from dnd5e.core.models.content import ContentType, Source
+from dnd5e.core.models.creatures import Creature
+from dnd5e.core.models.spells import Spell
 from dnd5e.renderers.latex.tag_renderer import (
     ConfigurableLaTeXTagRenderer,
     ContentTypeStyleConfig,
@@ -25,26 +27,60 @@ class TestLaTeXTagRenderer:
         """Test rendering resolved content references."""
         renderer = LaTeXTagRenderer()
 
-        # Mock resolved content
-        mock_content = Mock()
-        mock_content.name = "Ancient Red Dragon"
-        mock_content.source.abbreviation = "MM"
+        # Create proper content instances instead of Mock objects
+        test_source = Source(
+            abbreviation="MM", name="Monster Manual", url="https://example.com"
+        )
+
+        creature_content = Creature(
+            name="Ancient Red Dragon",
+            source=test_source,
+            size=["Gargantuan"],
+            type="dragon",
+            alignment=["chaotic", "evil"],
+            hp={"average": 546},
+            ac=[{"ac": 22}],
+            speed={"walk": 40, "climb": 40, "fly": 80},
+            str=30,
+            dex=10,
+            con=29,
+            int=18,
+            wis=15,
+            cha=23,
+        )
 
         # Test creature (should be bold)
         creature_ref = ContentReference(
             content_type=ContentType.CREATURE,
             name="Ancient Red Dragon",
-            resolved_content=mock_content,
+            resolved_content=creature_content,
         )
 
         result = renderer.render(creature_ref)
         assert result == "\\textbf{Ancient Red Dragon}"
 
+        # Create spell content
+        spell_content = Spell(
+            name="Fireball",
+            source=test_source,
+            level=3,
+            school="evocation",
+            time=[{"number": 1, "unit": "action"}],
+            range={"type": "point", "distance": {"type": "feet", "amount": 150}},
+            duration=[{"type": "instant"}],
+            components={
+                "v": True,
+                "s": True,
+                "m": "A tiny ball of bat guano and sulfur",
+            },
+            entries=["A bright streak flashes from your pointing finger..."],
+        )
+
         # Test spell (should be italic)
         spell_ref = ContentReference(
             content_type=ContentType.SPELL,
             name="Fireball",
-            resolved_content=mock_content,
+            resolved_content=spell_content,
         )
 
         result = renderer.render(spell_ref)

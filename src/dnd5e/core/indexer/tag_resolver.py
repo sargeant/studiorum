@@ -3,6 +3,8 @@
 from collections.abc import Callable
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field
+
 from dnd5e.core.logging import get_logger
 
 from .tag_handlers import TagHandler
@@ -12,16 +14,26 @@ from .tag_renderer import TagRenderer
 logger = get_logger(__name__)
 
 
-class TagResolver:
+class TagResolver(BaseModel):
     """Modern AST-based tag resolver providing comprehensive tag processing."""
 
-    def __init__(self, omnidexer: Any = None) -> None:
-        self.omnidexer = omnidexer
-        self.parser = TagParser()
-        self.renderer = TagRenderer(omnidexer)
+    omnidexer: Any = Field(None, description="Content indexer for tag resolution")
+    parser: TagParser = Field(
+        default_factory=TagParser, description="Tag parser instance"
+    )
+    renderer: TagRenderer = Field(description="Tag renderer instance")
+    custom_handlers: dict[str, Callable] = Field(
+        default_factory=dict, description="Custom handlers for backward compatibility"
+    )
 
-        # For backward compatibility with custom handlers
-        self._custom_handlers: dict[str, Callable] = {}
+    def __init__(self, omnidexer: Any = None, **data: Any) -> None:
+        # Create renderer with omnidexer
+        renderer = TagRenderer(omnidexer)
+
+        # Call parent constructor with computed fields
+        super().__init__(omnidexer=omnidexer, renderer=renderer, **data)
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def process_text(self, text: str) -> str:
         """Process text with tags and return rendered output.
@@ -53,7 +65,7 @@ class TagResolver:
         Note: Legacy function-based handlers are deprecated.
         Please implement TagHandler interface instead.
         """
-        self._custom_handlers[tag_type] = handler_func
+        self.custom_handlers[tag_type] = handler_func
         raise NotImplementedError(
             "Function-based handler registration is deprecated. "
             "Please implement TagHandler interface instead."
@@ -106,4 +118,4 @@ class TagResolver:
     def _tag_handlers(self) -> dict[str, Any]:
         """Backward compatibility property."""
         # Return a dict-like view of handlers for backward compatibility
-        return self._custom_handlers
+        return self.custom_handlers

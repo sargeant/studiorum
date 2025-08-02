@@ -276,7 +276,9 @@ Set of all hash IDs that have been indexed (for cycle prevention).
 
 ## Class: IndexEntry
 
-Represents an indexed content item with metadata.
+**Pydantic BaseModel** representing an indexed content item with comprehensive validation.
+
+*Migrated from dataclass to Pydantic BaseModel in Tier 3 migration for enhanced validation and type safety.*
 
 ### Constructor
 
@@ -285,67 +287,143 @@ Represents an indexed content item with metadata.
 def create(
     cls,
     content: BaseContent,
-    content_type: ContentType,
-    parent_name: str | None = None
+    content_type: ContentType
 ) -> IndexEntry
 ```
 
-Creates an IndexEntry for a content item.
+Creates an IndexEntry for a content item with automatic hash and key generation.
 
 **Parameters:**
 - `content` (BaseContent): The content to index
 - `content_type` (ContentType): Type of the content
-- `parent_name` (str | None): Parent name for hierarchical content
 
 **Returns:**
-- `IndexEntry`: New index entry
+- `IndexEntry`: New index entry with validated fields
 
-### Properties
-
-#### `hash_id`
-
+**Example:**
 ```python
-@property
-def hash_id(self) -> str
+# Create index entry for a spell
+spell = Spell(name="Fireball", source="PHB", ...)
+entry = IndexEntry.create(spell, ContentType.SPELL)
+print(f"Hash: {entry.hash_id}")  # 8-character hash
+print(f"Key: {entry.lookup_key}")  # "fireball|phb"
 ```
 
-Unique hash identifier for the content.
+### Fields and Validation
 
-#### `lookup_key`
+#### `content: Any`
 
+The indexed content object. Currently uses `Any` type with TODO to migrate to `BaseContent` once fully Pydantic.
+
+**Validation:**
+- Accepts any content object through `arbitrary_types_allowed` configuration
+
+#### `content_type: ContentType`
+
+Enum specifying the type of indexed content.
+
+**Validation:**
+- Must be a valid ContentType enum value
+
+#### `hash_id: str`
+
+Unique 8-character hash identifier for the content.
+
+**Validation:**
+- Exactly 8 characters (enforced by `min_length=8, max_length=8`)
+- Must contain only alphanumeric characters
+- Automatically converted to lowercase
+- Generated using SHA256 hash of content identifier
+
+**Generation Logic:**
 ```python
-@property
-def lookup_key(self) -> str
+# Hash generation from content
+identifier = f"{content_type.value}:{content.name}:{source_abbrev}"
+hash_id = hashlib.sha256(identifier.encode()).hexdigest()[:8]
 ```
 
-Lookup key in format "type:name:source".
+#### `lookup_key: str`
 
-#### `content`
+Normalized lookup key for case-insensitive searches.
 
+**Validation:**
+- Minimum length of 1 character
+- Must contain '|' separator between name and source
+- Automatically normalized to lowercase with stripped whitespace
+- Format: `"{name}|{source}"`
+
+**Example Values:**
 ```python
-@property
-def content(self) -> BaseContent
+"fireball|phb"          # Spell from Player's Handbook
+"action surge|phb"      # Class feature from PHB
+"goblin|mm"            # Creature from Monster Manual
 ```
 
-The indexed content object.
+### Validation Features
 
-#### `content_type`
-
-```python
-@property
-def content_type(self) -> ContentType
-```
-
-Type of the indexed content.
-
-#### `hierarchical_name`
+#### Hash ID Validation
 
 ```python
-@property
-def hierarchical_name(self) -> str
+@field_validator("hash_id")
+@classmethod
+def validate_hash_id(cls, v: str) -> str:
+    """Validate hash ID format."""
+    if not v.isalnum():
+        raise ValueError("Hash ID must contain only alphanumeric characters")
+    return v.lower()
 ```
 
-Full hierarchical name including parent context.
+**Benefits:**
+- Ensures consistent lowercase format
+- Prevents special characters that could cause lookup issues
+- Guarantees alphanumeric-only identifiers
+
+#### Lookup Key Validation
+
+```python
+@field_validator("lookup_key")
+@classmethod
+def validate_lookup_key(cls, v: str) -> str:
+    """Validate and normalize lookup key."""
+    normalized = v.strip().lower()
+    if "|" not in normalized:
+        raise ValueError(
+            "Lookup key must contain '|' separator between name and source"
+        )
+    return normalized
+```
+
+**Benefits:**
+- Enforces consistent format for search operations
+- Automatic normalization prevents case-sensitivity issues
+- Validates required separator for proper parsing
+
+### Configuration
+
+```python
+class Config:
+    arbitrary_types_allowed = True
+```
+
+Allows the model to accept complex objects like `BaseContent` instances that may not yet be fully Pydantic-compatible.
+
+### Migration Benefits
+
+The Pydantic migration provides several advantages over the original dataclass:
+
+1. **Field Validation**: Automatic validation of hash format and lookup key structure
+2. **Type Safety**: Enhanced type checking with Pydantic's validation system
+3. **Data Normalization**: Automatic lowercase conversion and whitespace handling
+4. **Error Messages**: Clear validation error messages for debugging
+5. **Future Compatibility**: Ready for `BaseContent` Pydantic migration
+6. **Serialization**: Built-in JSON serialization capabilities
+
+### Compatibility Notes
+
+- Maintains the same public interface as the original dataclass
+- `create()` classmethod provides the same functionality
+- All existing code using IndexEntry continues to work unchanged
+- Added validation prevents invalid entries from being created
 
 ## Protocol: DeepIndexable
 

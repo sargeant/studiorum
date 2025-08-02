@@ -9,7 +9,9 @@ import logging
 import warnings
 from collections import defaultdict
 from enum import Enum
-from typing import Any
+from typing import Any, Union, overload
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .exceptions import (
     EntryProcessingWarning,
@@ -39,6 +41,230 @@ class EntryTypeCategory(Enum):
     EMBEDDED = "embedded"  # Embedded entities
     MEDIA = "media"  # Media content
     MISC = "misc"  # Miscellaneous types
+
+
+class ValidationContext(BaseModel):
+    """Context information for entry validation operations.
+
+    This model provides structured context for validation operations,
+    replacing the scattered dict[str, Any] parameters with a cohesive
+    data structure that supports the flexible validation requirements.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",  # Allow additional context fields
+        arbitrary_types_allowed=True,  # Support complex entry types
+    )
+
+    entry_data: Any = Field(
+        ..., description="The entry data to validate (dict, string, or other)"
+    )
+    source: str | None = Field(
+        None, description="Source file or book name for error context"
+    )
+    parent_name: str | None = Field(
+        None, description="Name of parent section/container for error context"
+    )
+    entry_type: str | None = Field(None, description="Detected or expected entry type")
+    validation_mode: "ValidationMode | None" = Field(
+        None, description="Override validation mode for this context"
+    )
+
+    @field_validator("entry_data", mode="before")
+    @classmethod
+    def validate_entry_data(cls, v: Any) -> Any:
+        """Accept any entry data type for maximum flexibility."""
+        return v
+
+
+class ValidatedEntry(BaseModel):
+    """Represents a validated and normalized entry structure.
+
+    This model replaces dict[str, Any] returns from validation functions
+    with a structured representation that maintains type safety while
+    supporting the diverse entry formats found in 5etools data.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",  # Allow additional fields from 5etools
+        arbitrary_types_allowed=True,  # Support nested content
+    )
+
+    type: str = Field(..., description="Entry type (e.g., 'section', 'table', 'text')")
+    content: Any | None = Field(None, description="Entry content (varies by type)")
+    name: str | None = Field(None, description="Entry name/title if applicable")
+    entries: list[Any] | None = Field(
+        None, description="Nested entries for recursive types"
+    )
+
+    @field_validator("type", mode="before")
+    @classmethod
+    def normalize_type(cls, v: Any) -> str:
+        """Ensure type is always a string."""
+        return str(v) if v is not None else "unknown"
+
+    @classmethod
+    def from_string(cls, content: str) -> "ValidatedEntry":
+        """Create a ValidatedEntry from a plain string."""
+        return cls(type="text", content=content)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ValidatedEntry":
+        """Create a ValidatedEntry from a dictionary.
+
+        Uses smart field mapping to extract common entry fields
+        while preserving all original data via extra="allow".
+        """
+        # Extract known fields with fallbacks
+        entry_type = data.get("type", "unknown")
+        content = data.get("content")
+        name = data.get("name")
+        entries = data.get("entries")
+
+        # Create validated entry with all original data preserved
+        return cls(
+            type=entry_type,
+            content=content,
+            name=name,
+            entries=entries,
+            **{
+                k: v
+                for k, v in data.items()
+                if k not in {"type", "content", "name", "entries"}
+            },
+        )
+
+
+class ValidationResult(BaseModel):
+    """Result of an entry validation operation.
+
+    This model provides comprehensive validation results, replacing
+    simple return values with structured information about the
+    validation process and its outcomes.
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    success: bool = Field(..., description="Whether validation succeeded")
+    entry: ValidatedEntry = Field(..., description="The validated and normalized entry")
+    warnings: list[str] = Field(
+        default_factory=list, description="Validation warnings encountered"
+    )
+    errors: list[str] = Field(
+        default_factory=list, description="Validation errors encountered"
+    )
+    context: ValidationContext | None = Field(
+        None, description="Original validation context"
+    )
+
+    @property
+    def has_warnings(self) -> bool:
+        """Check if validation produced warnings."""
+        return len(self.warnings) > 0
+
+    @property
+    def has_errors(self) -> bool:
+        """Check if validation produced errors."""
+        return len(self.errors) > 0
+
+
+class ProcessingStatistics(BaseModel):
+    """Structured processing statistics for entry validation.
+
+    This model replaces dict[str, int] statistics with a more
+    comprehensive and type-safe representation that includes
+    metadata and computed metrics.
+    """
+
+    entry_counts: dict[str, int] = Field(
+        default_factory=dict, description="Count of entries by type"
+    )
+    unknown_types: set[str] = Field(
+        default_factory=set, description="Set of encountered unknown types"
+    )
+    validation_errors: int = Field(
+        default=0, description="Total validation errors encountered"
+    )
+    validation_warnings: int = Field(
+        default=0, description="Total validation warnings encountered"
+    )
+
+    @property
+    def total_entries(self) -> int:
+        """Total number of entries processed."""
+        return sum(self.entry_counts.values())
+
+    @property
+    def known_type_count(self) -> int:
+        """Number of known entry types processed."""
+        # This will be computed by the registry based on its known types
+        return len(self.entry_counts) - len(self.unknown_types)
+
+    @property
+    def unknown_type_count(self) -> int:
+        """Number of unknown entry types encountered."""
+        return len(self.unknown_types)
+
+    def increment_entry_count(self, entry_type: str) -> None:
+        """Increment the count for a specific entry type."""
+        self.entry_counts[entry_type] = self.entry_counts.get(entry_type, 0) + 1
+
+    def add_unknown_type(self, entry_type: str) -> None:
+        """Add an unknown entry type to the tracking set."""
+        self.unknown_types.add(entry_type)
+
+    def reset(self) -> None:
+        """Reset all statistics to initial state."""
+        self.entry_counts.clear()
+        self.unknown_types.clear()
+        self.validation_errors = 0
+        self.validation_warnings = 0
+
+    def __len__(self) -> int:
+        """Return the number of entry types processed (for backward compatibility)."""
+        return len(self.entry_counts)
+
+    def __getitem__(self, key: str) -> int:
+        """Allow dict-style access to entry counts (for backward compatibility)."""
+        return self.entry_counts.get(key, 0)
+
+    def __contains__(self, key: str) -> bool:
+        """Allow 'in' operator on entry types (for backward compatibility)."""
+        return key in self.entry_counts
+
+    def items(self) -> Any:
+        """Return items view of entry counts (for backward compatibility)."""
+        return self.entry_counts.items()
+
+    def keys(self) -> Any:
+        """Return keys view of entry counts (for backward compatibility)."""
+        return self.entry_counts.keys()
+
+    def values(self) -> Any:
+        """Return values view of entry counts (for backward compatibility)."""
+        return self.entry_counts.values()
+
+    def get(self, key: str, default: int = 0) -> int:
+        """Get entry count with default (for backward compatibility)."""
+        return self.entry_counts.get(key, default)
+
+
+class EntryTypeDefinition(BaseModel):
+    """Definition of an entry type with its category and metadata.
+
+    This model structures the entry type registry data for better
+    organization and extensibility.
+    """
+
+    name: str = Field(..., description="Entry type name")
+    category: EntryTypeCategory = Field(..., description="Entry type category")
+    common_fields: set[str] = Field(
+        default_factory=set, description="Commonly expected fields for this type"
+    )
+    required_fields: set[str] = Field(
+        default_factory=set, description="Required fields for this type"
+    )
+    description: str | None = Field(None, description="Description of the entry type")
 
 
 class EntryTypeRegistry:
@@ -100,8 +326,7 @@ class EntryTypeRegistry:
             validation_mode: How to handle unknown entry types
         """
         self.validation_mode = validation_mode
-        self._statistics: defaultdict[str, int] = defaultdict(int)
-        self._unknown_types: set[str] = set()
+        self._statistics: ProcessingStatistics = ProcessingStatistics()
 
         # Build flat set of all known types for fast lookup
         self._all_known_types: set[str] = set()
@@ -116,12 +341,17 @@ class EntryTypeRegistry:
     @property
     def unknown_types(self) -> set[str]:
         """Get set of unknown entry types encountered."""
-        return self._unknown_types.copy()
+        return self._statistics.unknown_types.copy()
 
     @property
-    def statistics(self) -> dict[str, int]:
+    def statistics(self) -> ProcessingStatistics:
         """Get processing statistics."""
-        return dict(self._statistics)
+        return self._statistics
+
+    @property
+    def statistics_dict(self) -> dict[str, int]:
+        """Get processing statistics as a dict (legacy compatibility)."""
+        return self._statistics.entry_counts.copy()
 
     def get_category(self, entry_type: str) -> EntryTypeCategory | None:
         """Get the category for an entry type.
@@ -148,6 +378,7 @@ class EntryTypeRegistry:
         """
         return entry_type in self._all_known_types
 
+    @overload
     def validate_entry_type(
         self,
         entry_type: str,
@@ -155,30 +386,67 @@ class EntryTypeRegistry:
         source: str | None = None,
         parent_name: str | None = None,
     ) -> None:
+        """Validate an entry type (legacy interface)."""
+        ...
+
+    @overload
+    def validate_entry_type(
+        self,
+        entry_type_or_context: ValidationContext,
+        entry: None = None,
+        source: None = None,
+        parent_name: None = None,
+    ) -> None:
+        """Validate an entry type using structured context."""
+        ...
+
+    def validate_entry_type(  # type: ignore[misc]
+        self,
+        entry_type_or_context: str | ValidationContext,
+        entry: dict[str, Any] | None = None,
+        source: str | None = None,
+        parent_name: str | None = None,
+    ) -> None:
         """Validate an entry type according to the current validation mode.
 
         Args:
-            entry_type: The entry type to validate
-            entry: The entry dict (for error context)
-            source: Source file or book name
-            parent_name: Name of parent section/container
+            entry_type_or_context: Either an entry type string or ValidationContext
+            entry: The entry dict (for error context) - legacy interface only
+            source: Source file or book name - legacy interface only
+            parent_name: Name of parent section/container - legacy interface only
 
         Raises:
             UnknownEntryTypeError: If validation_mode is STRICT and type is unknown
         """
-        self._statistics[entry_type] += 1
+        # Handle both old and new interfaces
+        if isinstance(entry_type_or_context, ValidationContext):
+            context = entry_type_or_context
+            entry_type = context.entry_type or "unknown"
+            entry_data = (
+                context.entry_data if isinstance(context.entry_data, dict) else None
+            )
+            source = context.source
+            parent_name = context.parent_name
+            validation_mode = context.validation_mode or self.validation_mode
+        else:
+            entry_type = entry_type_or_context
+            entry_data = entry
+            validation_mode = self.validation_mode
+
+        # Update statistics
+        self._statistics.increment_entry_count(entry_type)
 
         if not self.is_known_type(entry_type):
-            self._unknown_types.add(entry_type)
+            self._statistics.add_unknown_type(entry_type)
 
-            if self.validation_mode == ValidationMode.STRICT:
+            if validation_mode == ValidationMode.STRICT:
                 raise UnknownEntryTypeError(
                     entry_type=entry_type,
-                    entry=entry,
+                    entry=entry_data,
                     source=source,
                     parent_name=parent_name,
                 )
-            elif self.validation_mode == ValidationMode.PERMISSIVE:
+            elif validation_mode == ValidationMode.PERMISSIVE:
                 warning_msg = f"Unknown entry type encountered: '{entry_type}'"
                 if source:
                     warning_msg += f" (source: {source})"
@@ -187,70 +455,244 @@ class EntryTypeRegistry:
 
                 warnings.warn(warning_msg, EntryProcessingWarning, stacklevel=3)
                 logger.warning(warning_msg)
+                self._statistics.validation_warnings += 1
             # SILENT mode does nothing
 
+    @overload
     def validate_entry_structure(
         self,
         entry: Any,
         source: str | None = None,
         parent_name: str | None = None,
     ) -> dict[str, Any]:
+        """Validate basic entry structure (legacy interface)."""
+        ...
+
+    @overload
+    def validate_entry_structure(
+        self,
+        entry_or_context: ValidationContext,
+        source: None = None,
+        parent_name: None = None,
+    ) -> ValidationResult:
+        """Validate entry structure using structured context."""
+        ...
+
+    def validate_entry_structure(  # type: ignore[misc]
+        self,
+        entry_or_context: Any | ValidationContext,
+        source: str | None = None,
+        parent_name: str | None = None,
+    ) -> dict[str, Any] | ValidationResult:
         """Validate basic entry structure.
 
         Args:
-            entry: The entry to validate
-            source: Source file or book name
-            parent_name: Name of parent section/container
+            entry_or_context: The entry to validate or ValidationContext
+            source: Source file or book name (legacy interface only)
+            parent_name: Name of parent section/container (legacy interface only)
 
         Returns:
-            The entry as a validated dict
+            The entry as a validated dict or ValidationResult
 
         Raises:
             MalformedEntryError: If entry structure is invalid
         """
-        if isinstance(entry, str):
-            # String entries are valid (plain text)
-            return {"type": "text", "content": entry}
-
-        if not isinstance(entry, dict):
-            raise MalformedEntryError(
-                message=f"Entry must be dict or string, got {type(entry).__name__}",
-                entry=entry,
-                source=source,
-                parent_name=parent_name,
+        # Handle both old and new interfaces
+        if isinstance(entry_or_context, ValidationContext):
+            context = entry_or_context
+            entry = context.entry_data
+            source = context.source
+            parent_name = context.parent_name
+            return_structured = True
+        else:
+            entry = entry_or_context
+            context = ValidationContext(
+                entry_data=entry, source=source, parent_name=parent_name
             )
+            return_structured = False
 
-        return entry
+        warnings_list: list[str] = []
+        errors_list: list[str] = []
 
+        try:
+            if isinstance(entry, str):
+                # String entries are valid (plain text)
+                validated_entry = ValidatedEntry.from_string(entry)
+
+                if return_structured:
+                    return ValidationResult(
+                        success=True,
+                        entry=validated_entry,
+                        warnings=warnings_list,
+                        errors=errors_list,
+                        context=context,
+                    )
+                else:
+                    # Legacy return format
+                    return {"type": "text", "content": entry}
+
+            if not isinstance(entry, dict):
+                error_msg = f"Entry must be dict or string, got {type(entry).__name__}"
+
+                if return_structured:
+                    errors_list.append(error_msg)
+                    # Create a fallback ValidatedEntry for error cases
+                    validated_entry = ValidatedEntry(type="error", content=str(entry))
+                    return ValidationResult(
+                        success=False,
+                        entry=validated_entry,
+                        warnings=warnings_list,
+                        errors=errors_list,
+                        context=context,
+                    )
+                else:
+                    # Legacy behavior - raise exception
+                    raise MalformedEntryError(
+                        message=error_msg,
+                        entry=entry,
+                        source=source,
+                        parent_name=parent_name,
+                    )
+
+            # Valid dict entry
+            validated_entry = ValidatedEntry.from_dict(entry)
+
+            if return_structured:
+                return ValidationResult(
+                    success=True,
+                    entry=validated_entry,
+                    warnings=warnings_list,
+                    errors=errors_list,
+                    context=context,
+                )
+            else:
+                # Legacy return format
+                return entry
+
+        except Exception as e:
+            if return_structured:
+                errors_list.append(str(e))
+                validated_entry = ValidatedEntry(type="error", content=str(entry))
+                return ValidationResult(
+                    success=False,
+                    entry=validated_entry,
+                    warnings=warnings_list,
+                    errors=errors_list,
+                    context=context,
+                )
+            else:
+                # Re-raise for legacy interface
+                raise
+
+    @overload
     def validate_required_fields(
         self,
         entry: dict[str, Any],
         required_fields: set[str],
         source: str | None = None,
         parent_name: str | None = None,
+        context: None = None,
     ) -> None:
+        """Validate required fields (legacy interface)."""
+        ...
+
+    @overload
+    def validate_required_fields(
+        self,
+        entry: ValidatedEntry,
+        required_fields: set[str],
+        source: None = None,
+        parent_name: None = None,
+        context: ValidationContext | None = None,
+    ) -> ValidationResult:
+        """Validate required fields using structured models."""
+        ...
+
+    def validate_required_fields(
+        self,
+        entry: dict[str, Any] | ValidatedEntry,
+        required_fields: set[str],
+        source: str | None = None,
+        parent_name: str | None = None,
+        context: ValidationContext | None = None,
+    ) -> None | ValidationResult:
         """Validate that required fields are present in an entry.
 
         Args:
-            entry: The entry dict to validate
+            entry: The entry dict or ValidatedEntry to validate
             required_fields: Set of required field names
-            source: Source file or book name
-            parent_name: Name of parent section/container
+            source: Source file or book name (legacy interface)
+            parent_name: Name of parent section/container (legacy interface)
+            context: ValidationContext for structured interface
+
+        Returns:
+            None for legacy interface, ValidationResult for structured interface
 
         Raises:
-            EntryValidationError: If required fields are missing
+            EntryValidationError: If required fields are missing (legacy interface only)
         """
-        entry_type = entry.get("type", "unknown")
-        missing_fields = required_fields - set(entry.keys())
+        # Determine interface type and extract data
+        if isinstance(entry, ValidatedEntry):
+            # Structured interface
+            return_structured = True
+            # Convert ValidatedEntry back to dict for field checking
+            entry_dict = entry.model_dump(exclude_unset=True)
+            entry_type = entry.type
+            if context:
+                source = context.source
+                parent_name = context.parent_name
+        else:
+            # Legacy interface
+            return_structured = False
+            entry_dict = entry
+            entry_type = entry.get("type", "unknown")
+
+        missing_fields = required_fields - set(entry_dict.keys())
 
         if missing_fields:
-            raise EntryValidationError(
-                message=f"Missing required fields: {', '.join(sorted(missing_fields))}",
-                entry=entry,
-                source=source,
-                parent_name=parent_name,
-                entry_type=entry_type,
+            error_msg = f"Missing required fields: {', '.join(sorted(missing_fields))}"
+
+            if return_structured:
+                # Return ValidationResult with error
+                validated_entry = (
+                    entry
+                    if isinstance(entry, ValidatedEntry)
+                    else ValidatedEntry.from_dict(entry_dict)
+                )
+                return ValidationResult(
+                    success=False,
+                    entry=validated_entry,
+                    warnings=[],
+                    errors=[error_msg],
+                    context=context,
+                )
+            else:
+                # Legacy behavior - raise exception
+                self._statistics.validation_errors += 1
+                raise EntryValidationError(
+                    message=error_msg,
+                    entry=entry_dict,
+                    source=source,
+                    parent_name=parent_name,
+                    entry_type=entry_type,
+                )
+
+        # No missing fields
+        if return_structured:
+            validated_entry = (
+                entry
+                if isinstance(entry, ValidatedEntry)
+                else ValidatedEntry.from_dict(entry_dict)
             )
+            return ValidationResult(
+                success=True,
+                entry=validated_entry,
+                warnings=[],
+                errors=[],
+                context=context,
+            )
+        # Legacy interface returns None on success
+        return None
 
     def get_common_fields(self, entry_type: str) -> set[str]:
         """Get common fields expected for an entry type.
@@ -282,24 +724,30 @@ class EntryTypeRegistry:
 
     def reset_statistics(self) -> None:
         """Reset processing statistics."""
-        self._statistics.clear()
-        self._unknown_types.clear()
+        self._statistics.reset()
 
     def log_statistics(self) -> None:
         """Log current processing statistics."""
-        if not self._statistics:
+        stats = self._statistics
+
+        if stats.total_entries == 0:
             logger.info("No entry processing statistics available")
             return
 
-        total_entries = sum(self._statistics.values())
         logger.info(
-            f"Entry processing statistics: {total_entries} total entries processed"
+            f"Entry processing statistics: {stats.total_entries} total entries processed"
         )
+
+        # Log validation metrics
+        if stats.validation_errors > 0:
+            logger.warning(f"Validation errors encountered: {stats.validation_errors}")
+        if stats.validation_warnings > 0:
+            logger.info(f"Validation warnings encountered: {stats.validation_warnings}")
 
         # Log known types
         known_stats = {
             entry_type: count
-            for entry_type, count in self._statistics.items()
+            for entry_type, count in stats.entry_counts.items()
             if entry_type in self._all_known_types
         }
         if known_stats:
@@ -312,8 +760,8 @@ class EntryTypeRegistry:
         # Log unknown types
         unknown_stats = {
             entry_type: count
-            for entry_type, count in self._statistics.items()
-            if entry_type not in self._all_known_types
+            for entry_type, count in stats.entry_counts.items()
+            if entry_type in stats.unknown_types
         }
         if unknown_stats:
             logger.warning(

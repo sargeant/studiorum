@@ -4,13 +4,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from pydantic import BaseModel
+
 from dnd5e.core.logging import get_logger
+from dnd5e.core.types import LaTeXConfig, MetadataDict
 
 from ...core.indexer.cross_reference_manager import CrossReferenceManager
 from ...core.indexer.hyperlink_manager import HyperlinkManager
 from ...core.indexer.latex_content_tracker import LaTeXContentTracker
 from ...core.indexer.latex_tag_handlers import get_latex_enhanced_handlers
 from ...core.indexer.latex_tag_renderer import LaTeXTagRenderer
+from ...core.indexer.tag_parser import TagParser
 from ...core.indexer.tag_resolver import TagResolver
 
 logger = get_logger(__name__)
@@ -136,7 +140,9 @@ class LaTeXTagIntegration:
 
     def export_appendix_data(self) -> dict[str, Any]:
         """Export data for appendix generation."""
-        return self.content_tracker.export_for_latex_appendix()
+        appendix_structure = self.content_tracker.export_for_latex_appendix()
+        # Convert AppendixStructure to dict for backward compatibility
+        return appendix_structure.model_dump()
 
     def export_cross_reference_data(self) -> dict[str, Any]:
         """Export cross-reference data for document processing."""
@@ -147,8 +153,9 @@ class LaTeXTagIntegration:
 
     def get_tag_statistics(self) -> dict[str, Any]:
         """Get comprehensive tag processing statistics."""
+        latex_stats = self.content_tracker.get_latex_statistics()
         stats = {
-            "content_tracker": self.content_tracker.get_latex_statistics(),
+            "content_tracker": latex_stats.model_dump(),
         }
 
         if self.cross_ref_manager:
@@ -215,15 +222,22 @@ class LaTeXTagResolver(TagResolver):
     def __init__(
         self, latex_renderer: LaTeXTagRenderer, omnidexer: Omnidexer | None = None
     ):
-        # Don't call super().__init__ to avoid creating a separate renderer
-        self.omnidexer = omnidexer
-        self.renderer = latex_renderer
-        self.parser: Any = (
-            latex_renderer.parser if hasattr(latex_renderer, "parser") else None
+        # Get parser from latex_renderer if it has one, otherwise create default
+        if hasattr(latex_renderer, "parser") and latex_renderer.parser is not None:
+            parser = latex_renderer.parser
+        else:
+            parser = TagParser()  # Default parser
+
+        # Call parent constructor but override renderer creation
+        # We need to bypass the normal TagResolver.__init__ renderer creation
+        BaseModel.__init__(
+            self,
+            omnidexer=omnidexer,
+            renderer=latex_renderer,  # Use the provided LaTeX renderer
+            parser=parser,
         )
 
-        # For backward compatibility
-        self._custom_handlers: dict[str, Any] = {}
+        # Additional initialization for LaTeX-specific functionality
 
     def get_latex_content_tracker(self) -> LaTeXContentTracker:
         """Get the LaTeX-enhanced content tracker."""
@@ -244,7 +258,7 @@ class LaTeXTagResolver(TagResolver):
 
 def create_latex_tag_integration(
     omnidexer: Omnidexer | None = None,
-    config: dict[str, Any] | None = None,
+    config: LaTeXConfig | None = None,
 ) -> LaTeXTagIntegration:
     """Factory function to create configured LaTeX tag integration."""
     config = config or {}
@@ -266,7 +280,13 @@ def create_latex_tag_integration(
 
     # Set up appendix organization
     if "appendix_organization" in config:
-        integration.set_appendix_organization(config["appendix_organization"])
+        org_config = config["appendix_organization"]
+        if isinstance(org_config, str):
+            # Handle string configuration (possibly JSON or simple format)
+            # For now, skip or provide default
+            pass
+        elif isinstance(org_config, dict):
+            integration.set_appendix_organization(org_config)
 
     return integration
 
@@ -274,7 +294,7 @@ def create_latex_tag_integration(
 def integrate_with_latex_renderer(
     latex_content_renderer: Any,
     omnidexer: Omnidexer | None = None,
-    config: dict[str, Any] | None = None,
+    config: LaTeXConfig | None = None,
 ) -> None:
     """Integrate LaTeX tag system with existing content renderer."""
     # Create integration

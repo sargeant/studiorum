@@ -9,6 +9,8 @@ import pytest
 from typer.testing import CliRunner
 
 from dnd5e.cli.commands.convert import app
+from dnd5e.core.indexer.tag_resolver import TagResolver
+from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.renderers.latex.compilation_config import LaTeXEngine
 from dnd5e.renderers.latex.compiler import LaTeXCompiler
 
@@ -57,9 +59,9 @@ class TestLaTeXEngineIntegration:
         mock_file.read.return_value = json.dumps(self.mock_adventure_data)
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
-        # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        # Mock dependencies - return proper instances instead of Mock objects
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer
         mock_renderer = Mock()
@@ -137,9 +139,9 @@ class TestLaTeXEngineIntegration:
         mock_file.read.return_value = json.dumps(mock_book_data)
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
-        # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        # Mock dependencies - return proper instances instead of Mock objects
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer
         mock_renderer = Mock()
@@ -226,9 +228,9 @@ class TestLaTeXEngineIntegration:
         mock_file.read.return_value = json.dumps(mock_supplement_data)
         mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
 
-        # Mock dependencies
-        mock_omnidexer.return_value = Mock()
-        mock_tag_resolver.return_value = Mock()
+        # Mock dependencies - return proper instances instead of Mock objects
+        mock_omnidexer.return_value = Omnidexer()
+        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
 
         # Mock renderer
         mock_renderer = Mock()

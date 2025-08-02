@@ -1,16 +1,38 @@
 """AST nodes for the tag resolution system."""
 
-from dataclasses import dataclass
 from typing import Any
 
+from pydantic import BaseModel, Field, field_validator
 
-@dataclass
-class TextSpan:
-    """Represents a span of text in the original input."""
 
-    start: int
-    end: int
-    text: str
+class TextSpan(BaseModel):
+    """Represents a span of text in the original input with validation."""
+
+    start: int = Field(ge=0, description="Starting position in the text")
+    end: int = Field(ge=0, description="Ending position in the text")
+    text: str = Field(min_length=0, description="The text content of this span")
+
+    @field_validator("end")
+    @classmethod
+    def validate_end_after_start(cls, v: int, info: Any) -> int:
+        """Validate that end position is >= start position."""
+        if "start" in info.data and v < info.data["start"]:
+            raise ValueError("End position must be >= start position")
+        return v
+
+    @property
+    def length(self) -> int:
+        """Get the length of the text span."""
+        return self.end - self.start
+
+    @property
+    def is_empty(self) -> bool:
+        """Check if this is an empty span."""
+        return self.start == self.end
+
+    class Config:
+        # Make instances immutable for consistency with original frozen behavior
+        frozen = True
 
 
 class ASTNode:

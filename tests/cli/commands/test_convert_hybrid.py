@@ -12,7 +12,8 @@ from dnd5e.cli.commands.convert import (
     _load_from_file,
     resolve_content_or_file,
 )
-from dnd5e.core.models.content import ContentType
+from dnd5e.core.models.adventures import Adventure
+from dnd5e.core.models.content import ContentType, Source
 from dnd5e.core.resolvers.content_resolver import (
     ContentResolutionResult,
     ResolutionStatus,
@@ -67,9 +68,11 @@ class TestHybridParameterDetection:
         mock_omnidexer = Mock()
         mock_get_omnidexer.return_value = mock_omnidexer
 
-        # Mock adventure content
-        mock_adventure = Mock()
-        mock_adventure.name = "Curse of Strahd"
+        # Create a proper Adventure instance instead of Mock
+        mock_adventure = Adventure(
+            name="Curse of Strahd",
+            source=Source(abbreviation="CoS", name="Curse of Strahd"),
+        )
 
         # Mock successful resolution
         with patch("dnd5e.cli.commands.convert.ContentResolver") as mock_resolver_class:
@@ -158,8 +161,9 @@ class TestHybridParameterDetection:
     @pytest.mark.asyncio
     async def test_handle_resolution_result_success(self):
         """Test handling successful resolution result."""
-        mock_content = Mock()
-        mock_content.name = "Test Content"
+        mock_content = Adventure(
+            name="Test Content", source=Source(abbreviation="TEST", name="Test Source")
+        )
 
         result = ContentResolutionResult(
             status=ResolutionStatus.EXACT_MATCH, content=mock_content, query="test"
@@ -177,13 +181,13 @@ class TestHybridParameterDetection:
     @pytest.mark.asyncio
     async def test_handle_resolution_result_multiple_matches(self):
         """Test handling multiple matches result."""
-        mock_content1 = Mock()
-        mock_content1.name = "Test 1"
-        mock_content1.source.abbreviation = "TEST1"
+        mock_content1 = Adventure(
+            name="Test 1", source=Source(abbreviation="TEST1", name="Test Source 1")
+        )
 
-        mock_content2 = Mock()
-        mock_content2.name = "Test 2"
-        mock_content2.source.abbreviation = "TEST2"
+        mock_content2 = Adventure(
+            name="Test 2", source=Source(abbreviation="TEST2", name="Test Source 2")
+        )
 
         result = ContentResolutionResult(
             status=ResolutionStatus.MULTIPLE_MATCHES,

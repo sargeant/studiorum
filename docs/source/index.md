@@ -143,10 +143,10 @@ user-guide/index
 ```{toctree}
 :hidden:
 :caption: For Developers
+:max_depth: 2
 
 developer/index
 developer/contributing
-examples/index
 api/index
 ```
 
@@ -206,7 +206,6 @@ MIT
 ````
 
 ---
-
 ```{rst-class} text-center lead
 *Built with ❤️ for the D&D community*
 ```

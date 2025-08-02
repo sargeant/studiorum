@@ -1,9 +1,10 @@
 """LaTeX error parsing and analysis utilities."""
 
 import re
-from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class ErrorSeverity(Enum):
@@ -28,17 +29,41 @@ class ErrorCategory(Enum):
     UNKNOWN = "unknown"
 
 
-@dataclass
-class LaTeXError:
+class LaTeXError(BaseModel):
     """Represents a single LaTeX error or warning."""
 
-    severity: ErrorSeverity
-    category: ErrorCategory
-    message: str
-    file_path: str | None = None
-    line_number: int | None = None
-    context: str | None = None
-    suggestion: str | None = None
+    severity: ErrorSeverity = Field(description="Error severity level")
+    category: ErrorCategory = Field(description="Error category for user guidance")
+    message: str = Field(min_length=1, description="Error message")
+    file_path: str | None = Field(None, description="Path to file where error occurred")
+    line_number: int | None = Field(None, ge=1, description="Line number in file")
+    context: str | None = Field(None, description="Code context around error")
+    suggestion: str | None = Field(None, description="Suggested fix for the error")
+
+    @field_validator("file_path")
+    @classmethod
+    def validate_file_path(cls, v: str | None) -> str | None:
+        """Validate file path format."""
+        if v is None:
+            return v
+
+        # Normalize path separators and remove extra whitespace
+        cleaned_path = str(Path(v.strip()))
+        return cleaned_path if cleaned_path else None
+
+    @field_validator("context")
+    @classmethod
+    def validate_context(cls, v: str | None) -> str | None:
+        """Validate and clean context string."""
+        if v is None:
+            return v
+
+        # Limit context length and clean whitespace
+        cleaned = v.strip()
+        if len(cleaned) > 500:  # Reasonable limit for context
+            cleaned = cleaned[:497] + "..."
+
+        return cleaned if cleaned else None
 
     def __str__(self) -> str:
         """Human-readable error description."""

@@ -1,25 +1,43 @@
 """Content tracking for appendix generation."""
 
-from dataclasses import dataclass
+from __future__ import annotations
+
+from pydantic import BaseModel, Field, field_validator
+
+from ..models.content import ContentType
 
 
-@dataclass
-class TrackedContent:
+class TrackedContent(BaseModel):
     """Represents a piece of tracked content."""
 
-    content_type: str
-    name: str
-    source: str | None = None
-    page: str | None = None
+    content_type: str = Field(min_length=1, description="Type of content being tracked")
+    name: str = Field(min_length=1, description="Name of the content")
+    source: str | None = Field(None, description="Source abbreviation")
+    page: str | None = Field(None, description="Page reference")
 
-    def __post_init__(self) -> None:
-        """Normalize the content after initialization."""
-        self.content_type = self.content_type.lower()
-        self.name = self.name.strip()
-        if self.source:
-            self.source = self.source.strip()
-        if self.page:
-            self.page = self.page.strip()
+    @field_validator("content_type")
+    @classmethod
+    def normalize_content_type(cls, v: str) -> str:
+        """Normalize content type to lowercase."""
+        return v.lower().strip()
+
+    @field_validator("name")
+    @classmethod
+    def normalize_name(cls, v: str) -> str:
+        """Normalize name by stripping whitespace."""
+        return v.strip()
+
+    @field_validator("source")
+    @classmethod
+    def normalize_source(cls, v: str | None) -> str | None:
+        """Normalize source by stripping whitespace."""
+        return v.strip() if v else None
+
+    @field_validator("page")
+    @classmethod
+    def normalize_page(cls, v: str | None) -> str | None:
+        """Normalize page by stripping whitespace."""
+        return v.strip() if v else None
 
     def to_tuple(self) -> tuple[str, str, str | None]:
         """Convert to tuple for set operations."""
@@ -51,7 +69,9 @@ class ContentTracker:
         page: str | None = None,
     ) -> None:
         """Add content to tracking."""
-        content = TrackedContent(content_type, name, source, page)
+        content = TrackedContent(
+            content_type=content_type, name=name, source=source, page=page
+        )
 
         # Add to set (handles deduplication automatically)
         self._tracked_content.add(content)
@@ -111,14 +131,14 @@ class ContentTracker:
         self, content_type: str, name: str, source: str | None = None
     ) -> bool:
         """Check if specific content has been tracked."""
-        content = TrackedContent(content_type, name, source)
+        content = TrackedContent(content_type=content_type, name=name, source=source)
         return content in self._tracked_content
 
     def remove_content(
         self, content_type: str, name: str, source: str | None = None
     ) -> bool:
         """Remove specific content from tracking. Returns True if removed."""
-        content = TrackedContent(content_type, name, source)
+        content = TrackedContent(content_type=content_type, name=name, source=source)
         if content in self._tracked_content:
             self._tracked_content.remove(content)
             key = content.to_tuple()
@@ -127,7 +147,7 @@ class ContentTracker:
             return True
         return False
 
-    def merge_tracker(self, other: "ContentTracker") -> None:
+    def merge_tracker(self, other: ContentTracker) -> None:
         """Merge another tracker's content into this one."""
         for content in other._tracked_content:
             # Add content (will handle deduplication)

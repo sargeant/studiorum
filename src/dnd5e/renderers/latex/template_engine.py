@@ -9,6 +9,7 @@ from jinja2 import Environment, FileSystemLoader, Template
 
 from ...core.config.latex_config import LaTeXConfig, get_default_latex_config
 from ...core.latex_utils import escape_latex_text
+from ...core.types import LaTeXConfig as LaTeXConfigDict, TemplateData
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
 
 
@@ -32,7 +33,7 @@ class LaTeXTemplateEngine:
         - Never allow user control of template structure
     """
 
-    def __init__(self, config: dict[str, Any] | None = None):
+    def __init__(self, config: LaTeXConfigDict | None = None):
         """Initialize template engine.
 
         Args:
@@ -40,7 +41,7 @@ class LaTeXTemplateEngine:
         """
         self.config = config or {}
         self.templates_dir = Path(
-            self.config.get("templates_dir", "src/dnd5e/renderers/latex/templates")
+            str(self.config.get("templates_dir", "src/dnd5e/renderers/latex/templates"))
         )
         self.debug = self.config.get("debug", False)
 

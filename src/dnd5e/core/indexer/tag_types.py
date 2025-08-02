@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from enum import Enum
 from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 from ..models.content import BaseContent, ContentType
 
@@ -18,8 +19,7 @@ class FormatType(str, Enum):
     EMPHASIS = "emphasis"
 
 
-@dataclass(frozen=True)
-class ContentReference:
+class ContentReference(BaseModel):
     """Represents a resolved reference to game content.
 
     This is the result of semantic resolution - finding what a tag references
@@ -35,12 +35,38 @@ class ContentReference:
         )
     """
 
-    content_type: ContentType
-    name: str
-    source: str | None = None
-    display_text: str | None = None
-    page: str | None = None
-    resolved_content: BaseContent | None = None
+    content_type: ContentType = Field(description="Type of content being referenced")
+    name: str = Field(min_length=1, description="Name of the content")
+    source: str | None = Field(None, description="Source abbreviation for the content")
+    display_text: str | None = Field(None, description="Custom display text override")
+    page: str | None = Field(None, description="Page reference if available")
+    resolved_content: BaseContent | None = Field(
+        None, description="The actual resolved content object"
+    )
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        """Validate and normalize content name."""
+        return v.strip()
+
+    @field_validator("source")
+    @classmethod
+    def validate_source(cls, v: str | None) -> str | None:
+        """Validate source abbreviation format."""
+        if v is None:
+            return v
+        cleaned = v.strip()
+        return cleaned if cleaned else None
+
+    @field_validator("display_text")
+    @classmethod
+    def validate_display_text(cls, v: str | None) -> str | None:
+        """Validate display text override."""
+        if v is None:
+            return v
+        cleaned = v.strip()
+        return cleaned if cleaned else None
 
     @property
     def is_resolved(self) -> bool:
@@ -59,9 +85,14 @@ class ContentReference:
             )
         return self.effective_name
 
+    class Config:
+        # Allow content objects (they should be Pydantic models too)
+        arbitrary_types_allowed = True
+        # Make instances immutable like the original frozen dataclass
+        frozen = True
 
-@dataclass(frozen=True)
-class FormattingNode:
+
+class FormattingNode(BaseModel):
     """Represents text with formatting instructions.
 
     This is used for pure formatting tags like {@b text} or {@i text}
@@ -74,15 +105,24 @@ class FormattingNode:
         )
     """
 
-    format_type: FormatType
-    content: str
+    format_type: FormatType = Field(description="Type of formatting to apply")
+    content: str = Field(min_length=1, description="Text content to format")
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, v: str) -> str:
+        """Validate and normalize content text."""
+        return v.strip()
 
     def __str__(self) -> str:
         return f"{self.format_type.value}({self.content})"
 
+    class Config:
+        # Make instances immutable like the original frozen dataclass
+        frozen = True
 
-@dataclass(frozen=True)
-class SpecialTag:
+
+class SpecialTag(BaseModel):
     """Represents special tags that need custom handling.
 
     This covers tags like {@dice 1d6}, {@hit +5}, {@dc 15}, etc.
@@ -100,10 +140,36 @@ class SpecialTag:
         )
     """
 
-    tag_type: str
-    value: str
-    display_text: str | None = None
-    metadata: dict[str, Any] | None = None
+    tag_type: str = Field(min_length=1, description="Type of special tag")
+    value: str = Field(min_length=1, description="Value/content of the tag")
+    display_text: str | None = Field(None, description="Custom display text override")
+    metadata: dict[str, Any] | None = Field(
+        None, description="Additional metadata for the tag"
+    )
+
+    @field_validator("tag_type")
+    @classmethod
+    def validate_tag_type(cls, v: str) -> str:
+        """Validate and normalize tag type."""
+        normalized = v.strip().lower()
+        if not normalized:
+            raise ValueError("Tag type cannot be empty")
+        return normalized
+
+    @field_validator("value")
+    @classmethod
+    def validate_value(cls, v: str) -> str:
+        """Validate tag value."""
+        return v.strip()
+
+    @field_validator("display_text")
+    @classmethod
+    def validate_display_text(cls, v: str | None) -> str | None:
+        """Validate display text override."""
+        if v is None:
+            return v
+        cleaned = v.strip()
+        return cleaned if cleaned else None
 
     @property
     def effective_value(self) -> str:
@@ -113,20 +179,25 @@ class SpecialTag:
     def __str__(self) -> str:
         return f"{self.tag_type}({self.effective_value})"
 
+    class Config:
+        # Make instances immutable like the original frozen dataclass
+        frozen = True
+
 
 # Union type for all possible tag resolution results
 TagResolutionResult = ContentReference | FormattingNode | SpecialTag | str
 
 
-@dataclass(frozen=True)
-class TagContext:
+class TagContext(BaseModel):
     """Context information available during tag resolution.
 
     This provides access to the omnidexer and other contextual information
     that tag handlers might need.
     """
 
-    omnidexer: Any  # Avoid circular import - will be Omnidexer at runtime
+    omnidexer: Any = Field(
+        description="Content indexer for tag resolution"
+    )  # TODO: Replace with Omnidexer once it's migrated to Pydantic
 
     def find_content(
         self, content_type: ContentType, name: str, source: str | None = None
@@ -134,3 +205,9 @@ class TagContext:
         """Find content using the omnidexer."""
         # Type: ignore the Any return from omnidexer since we know it returns BaseContent | None
         return self.omnidexer.find(content_type, name, source)  # type: ignore[no-any-return]
+
+    class Config:
+        # Allow complex types to avoid circular imports
+        arbitrary_types_allowed = True
+        # Make instances immutable like the original frozen dataclass
+        frozen = True

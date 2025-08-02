@@ -32,12 +32,12 @@ The omnidexer is 5e2pdf's content indexing and discovery system. It provides:
 
 - Multi-index architecture for fast content lookup
 - Deep indexing of nested content (class features, adventure sections, etc.)
-- Type-safe content resolution
+- Type-safe content resolution with Pydantic validation
 - Performance monitoring and statistics
 
 **Key Classes:**
 - `Omnidexer`: Main indexing class
-- `IndexEntry`: Indexed content metadata
+- `IndexEntry`: Pydantic BaseModel for indexed content with hash and lookup key validation
 - `DeepIndexable`: Protocol for content with nested items
 
 ### [LaTeX Rendering](latex-rendering.md)
@@ -58,19 +58,25 @@ The LaTeX rendering system provides complete document generation capabilities:
 
 ### [Content Models](content-models.md)
 
-Base classes and data structures for representing D&D content:
+Base classes and data structures for representing D&D content with comprehensive Pydantic validation:
 
 - `BaseContent`: Base class for all content types with Pydantic validation
 - `ContentType`: Enumeration of supported content types
 - Specialized models for spells, creatures, items, adventures, books
+- Infrastructure models for indexing, resolution, and layout
 - Nested content support for complex structures
 - Source metadata and validation
 
-**Key Classes:**
+**Core Content Models:**
 - `BaseContent`: Foundation for all content models
-- `Spell`, `Creature`, `Item`: Core content type models
+- `Spell`, `Creature`, `Item`: Core content type models with field validation
 - `Adventure`, `Book`: Complex content with nested structures
-- `Source`: Source book metadata and validation
+
+**Infrastructure Models (Tier 3 Migration):**
+- `IndexEntry`: Content indexing with hash and lookup key validation
+- `ContentResolutionResult`: Search result validation and normalization
+- `LayoutHint`, `LayoutContext`: Layout system with column count constraints
+- `ContentReference`, `SpecialTag`: Tag processing with content type validation
 
 ### [Core Utilities](core-utilities.md)
 

@@ -14,6 +14,7 @@ This page covers the content model APIs:
 - [Book Models](#book-models)
 - [Character Content Models](#character-content-models)
 - [Nested Content Models](#nested-content-models)
+- [Infrastructure Models](#infrastructure-models)
 - [Validation and Error Handling](#validation-and-error-handling)
 
 ## Overview
@@ -822,6 +823,271 @@ class VariantRule(BaseContent):
     entries: list[Any] = Field(..., description="Rule description")
     ruleType: str | None = Field(None, description="Type of rule")
 ```
+
+## Infrastructure Models
+
+**Location**: Various infrastructure modules
+
+Models supporting the content processing and indexing infrastructure, migrated to Pydantic for enhanced validation and type safety.
+
+### ContentResolutionResult
+
+**Location**: `src/dnd5e/core/resolvers/content_resolver.py`
+
+```python
+class ContentResolutionResult(BaseModel):
+    """Result of content resolution attempt with comprehensive validation."""
+
+    status: ResolutionStatus = Field(description="Status of the resolution attempt")
+    content: Any = Field(None, description="Resolved content if found")
+    matches: list[Any] = Field(default_factory=list, description="Multiple matches found")
+    suggestions: list[str] = Field(default_factory=list, description="Suggested alternatives")
+    query: str = Field(default="", description="Original query string")
+
+    @field_validator("suggestions")
+    @classmethod
+    def validate_suggestions(cls, v: list[str]) -> list[str]:
+        """Remove empty strings and duplicates while preserving order."""
+        seen = set()
+        cleaned = []
+        for suggestion in v:
+            cleaned_suggestion = suggestion.strip()
+            if cleaned_suggestion and cleaned_suggestion not in seen:
+                seen.add(cleaned_suggestion)
+                cleaned.append(cleaned_suggestion)
+        return cleaned
+```
+
+#### Properties
+
+##### is_success
+```python
+@property
+def is_success(self) -> bool
+```
+Returns True if resolution was successful (exact match).
+
+##### needs_user_selection
+```python
+@property
+def needs_user_selection(self) -> bool
+```
+Returns True if user needs to select from multiple matches.
+
+##### has_suggestions
+```python
+@property
+def has_suggestions(self) -> bool
+```
+Returns True if suggestions are available for failed matches.
+
+### Tag Processing Models
+
+**Location**: `src/dnd5e/core/indexer/tag_types.py`
+
+Models for tag resolution and processing with immutable structures.
+
+#### ContentReference
+
+```python
+class ContentReference(BaseModel):
+    """Represents a resolved reference to game content."""
+
+    content_type: ContentType = Field(description="Type of content being referenced")
+    name: str = Field(min_length=1, description="Name of the content")
+    source: str | None = Field(None, description="Source abbreviation")
+    display_text: str | None = Field(None, description="Custom display text override")
+    resolved_content: Any = Field(None, description="The actual resolved content object")
+
+    @field_validator("name", "source", "display_text")
+    @classmethod
+    def validate_strings(cls, v: str | None) -> str | None:
+        """Validate and normalize string fields."""
+        if v is None:
+            return v
+        cleaned = v.strip()
+        return cleaned if cleaned else None
+
+    class Config:
+        arbitrary_types_allowed = True
+        frozen = True  # Immutable
+```
+
+#### SpecialTag
+
+```python
+class SpecialTag(BaseModel):
+    """Represents special tags that need custom handling."""
+
+    tag_type: str = Field(min_length=1, description="Type of special tag")
+    value: str = Field(min_length=1, description="Value/content of the tag")
+    display_text: str | None = Field(None, description="Custom display text override")
+
+    @field_validator("tag_type")
+    @classmethod
+    def validate_tag_type(cls, v: str) -> str:
+        """Normalize tag type to lowercase."""
+        normalized = v.strip().lower()
+        if not normalized:
+            raise ValueError("Tag type cannot be empty")
+        return normalized
+
+    class Config:
+        frozen = True
+```
+
+#### TextSpan
+
+**Location**: `src/dnd5e/core/indexer/tag_ast.py`
+
+```python
+class TextSpan(BaseModel):
+    """Represents a span of text in the original input with validation."""
+
+    start: int = Field(ge=0, description="Starting position in the text")
+    end: int = Field(ge=0, description="Ending position in the text")
+    text: str = Field(min_length=0, description="The text content of this span")
+
+    @field_validator("end")
+    @classmethod
+    def validate_end_after_start(cls, v: int, info: Any) -> int:
+        """Validate that end position is >= start position."""
+        if "start" in info.data and v < info.data["start"]:
+            raise ValueError("End position must be >= start position")
+        return v
+
+    @property
+    def length(self) -> int:
+        """Get the length of the text span."""
+        return self.end - self.start
+
+    @property
+    def is_empty(self) -> bool:
+        """Check if this is an empty span."""
+        return self.start == self.end
+
+    class Config:
+        frozen = True
+```
+
+### Layout System Models
+
+**Location**: `src/dnd5e/renderers/latex/layout/base.py`
+
+Models for LaTeX layout management with comprehensive validation.
+
+#### LayoutHint
+
+```python
+class LayoutHint(BaseModel):
+    """Layout hints that content renderers can provide to guide layout decisions."""
+
+    # Column preferences
+    column_count: int | None = Field(None, ge=1, le=4, description="Override for number of columns")
+    force_column_break: bool = Field(False, description="Force a column break before content")
+    avoid_column_break: bool = Field(False, description="Avoid column breaks within content")
+    span_columns: bool = Field(False, description="Whether content should span multiple columns")
+
+    # Typography preferences
+    emphasis_level: int = Field(0, ge=0, le=2, description="Emphasis level (0=normal, 1=emphasized, 2=strong)")
+    use_drop_cap: bool = Field(False, description="Use drop cap for first letter")
+
+    # Table preferences
+    table_width: str | None = Field(None, description="Preferred table width specification")
+    allow_table_split: bool = Field(True, description="Allow table to split across pages")
+
+    @field_validator("table_width", "table_columns", "space_before", "space_after")
+    @classmethod
+    def validate_latex_lengths(cls, v: str | None) -> str | None:
+        """Validate LaTeX length specifications."""
+        if v is None:
+            return v
+        cleaned = v.strip()
+        return cleaned if cleaned else None
+```
+
+#### LayoutContext
+
+```python
+class LayoutContext(BaseModel):
+    """Context information for layout decisions with validation."""
+
+    strategy: LayoutStrategy = Field(description="Layout strategy to use")
+    content_type: ContentType = Field(description="Type of content being laid out")
+    column_count: int = Field(2, ge=1, le=4, description="Number of columns in layout")
+    column_position: int | None = Field(None, ge=0, description="Current column position (0-based)")
+    available_space: float | None = Field(None, ge=0, description="Available space in points")
+
+    @field_validator("page_position")
+    @classmethod
+    def validate_page_position(cls, v: str | None) -> str | None:
+        """Validate page position values (top/middle/bottom)."""
+        if v is None:
+            return v
+        valid_positions = {"top", "middle", "bottom"}
+        cleaned = v.strip().lower()
+        if cleaned and cleaned not in valid_positions:
+            raise ValueError(f"Page position must be one of {valid_positions}")
+        return cleaned if cleaned else None
+
+    @field_validator("column_position")
+    @classmethod
+    def validate_column_position(cls, v: int | None, info: Any) -> int | None:
+        """Validate column position is within column count."""
+        if v is None:
+            return v
+        if "column_count" in info.data and v >= info.data["column_count"]:
+            raise ValueError("Column position must be less than column count")
+        return v
+```
+
+### Reference Resolution Models
+
+**Location**: `src/dnd5e/renderers/latex/reference_resolver.py`
+
+#### ReferenceContext
+
+```python
+class ReferenceContext(BaseModel):
+    """Context for reference resolution with validation."""
+
+    document_type: str = Field("general", description="Type of document (adventure, reference, supplement)")
+    current_section: str = Field("", description="Current document section")
+    current_page: int = Field(0, ge=0, description="Current page number (if known)")
+    appendix_mode: bool = Field(False, description="Whether we're in appendix generation")
+    cross_ref_enabled: bool = Field(True, description="Whether cross-references are enabled")
+    hyperlinks_enabled: bool = Field(True, description="Whether hyperlinks are enabled")
+
+    @field_validator("document_type")
+    @classmethod
+    def validate_document_type(cls, v: str) -> str:
+        """Validate document type values."""
+        valid_types = {"general", "adventure", "reference", "supplement"}
+        cleaned = v.strip().lower()
+        if cleaned not in valid_types:
+            raise ValueError(f"Document type must be one of {valid_types}")
+        return cleaned
+
+    @property
+    def is_cross_ref_active(self) -> bool:
+        """Check if cross-references should be actively generated."""
+        return self.cross_ref_enabled and not self.appendix_mode
+
+    @property
+    def is_hyperlink_active(self) -> bool:
+        """Check if hyperlinks should be actively generated."""
+        return self.hyperlinks_enabled and self.cross_ref_enabled
+```
+
+### Infrastructure Benefits
+
+The migration of infrastructure models to Pydantic provides:
+
+1. **Enhanced Validation**: Field constraints, format validation, and cross-field consistency checking
+2. **Type Safety**: MyPy compliance with comprehensive field descriptions
+3. **Data Integrity**: Automatic normalization, range validation, and structure validation
+4. **Immutability**: Frozen structures where data shouldn't change after creation
+5. **Developer Experience**: Better error messages, validation feedback, and consistent patterns
 
 ## Validation and Error Handling
 

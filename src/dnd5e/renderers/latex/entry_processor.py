@@ -5,6 +5,7 @@ from typing import Any
 
 from ...core.entry_registry import ValidationMode, get_registry, validate_entry_type
 from ...core.exceptions import EntryProcessingError
+from ...core.types import EntryData, ProcessingContext
 from ..base import RenderContext
 from .unicode_mappings import (
     get_latex_special_chars,
@@ -544,7 +545,9 @@ class RecursiveEntryProcessor:
         if not text or not context.tag_resolver:
             return self._escape_latex(text)
 
-        return context.tag_resolver.process_text(text)
+        # Type cast needed due to forward reference in RenderContext
+        result = context.tag_resolver.process_text(text)
+        return str(result)
 
     def _escape_latex(self, text: str) -> str:
         """Escape LaTeX special characters and Unicode characters.

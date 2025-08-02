@@ -4,7 +4,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import ContentType
+from dnd5e.core.models.adventures import Adventure
+from dnd5e.core.models.books import Book
+from dnd5e.core.models.content import ContentType, Source
 from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
 
@@ -159,8 +161,11 @@ class TestContentResolverOnDemand:
             return_value=[mock_adventure_metadata]
         )
 
-        # Mock enrichment
-        enriched_adventure = Mock(name="Enriched Adventure")
+        # Mock enrichment with proper Adventure instance
+        enriched_adventure = Adventure(
+            name="Enriched Test Adventure",
+            source=Source(abbreviation="ETA", name="Enriched Test Adventure"),
+        )
         content_resolver._enrich_content_if_needed = Mock(
             return_value=enriched_adventure
         )
@@ -188,8 +193,11 @@ class TestContentResolverOnDemand:
         # Mock omnidexer to return book
         content_resolver.omnidexer.get_all_by_type = Mock(return_value=[book])
 
-        # Mock enrichment
-        enriched_book = Mock(name="Enriched Book")
+        # Mock enrichment with proper Book instance
+        enriched_book = Book(
+            name="Enriched Test Book",
+            source=Source(abbreviation="ETB", name="Enriched Test Book"),
+        )
         content_resolver._enrich_content_if_needed = Mock(return_value=enriched_book)
 
         result = content_resolver.resolve_book("tb")
@@ -206,12 +214,14 @@ class TestContentResolverOnDemand:
     def test_resolve_multiple_matches_not_enriched(self, content_resolver):
         """Test that multiple matches are not enriched (returned as-is for user selection)."""
         # Mock multiple adventures with same abbreviation
-        adventure1 = Mock()
-        adventure1.source = Mock()
-        adventure1.source.abbreviation = "test"
-        adventure2 = Mock()
-        adventure2.source = Mock()
-        adventure2.source.abbreviation = "test"
+        adventure1 = Adventure(
+            name="Test Adventure 1",
+            source=Source(abbreviation="test", name="Test Adventure 1"),
+        )
+        adventure2 = Adventure(
+            name="Test Adventure 2",
+            source=Source(abbreviation="test", name="Test Adventure 2"),
+        )
 
         content_resolver.omnidexer.get_all_by_type = Mock(
             return_value=[adventure1, adventure2]
@@ -235,15 +245,14 @@ class TestContentResolverOnDemand:
     def test_preferred_match_with_enrichment(self, content_resolver):
         """Test that preferred matches from multiple matches are enriched."""
         # Create two adventures with same abbreviation
-        adventure1 = Mock()
-        adventure1.name = "Test Adventure (2014)"
-        adventure1.source = Mock()
-        adventure1.source.abbreviation = "test"
-
-        adventure2 = Mock()
-        adventure2.name = "Test Adventure"  # Preferred (no year suffix)
-        adventure2.source = Mock()
-        adventure2.source.abbreviation = "test"
+        adventure1 = Adventure(
+            name="Test Adventure (2014)",
+            source=Source(abbreviation="test", name="Test Adventure 2014"),
+        )
+        adventure2 = Adventure(
+            name="Test Adventure",  # Preferred (no year suffix)
+            source=Source(abbreviation="test", name="Test Adventure"),
+        )
 
         content_resolver.omnidexer.get_all_by_type = Mock(
             return_value=[adventure1, adventure2]
@@ -252,8 +261,11 @@ class TestContentResolverOnDemand:
         # Mock preferred match selection (should prefer adventure2)
         content_resolver._select_preferred_match = Mock(return_value=adventure2)
 
-        # Mock enrichment
-        enriched_adventure = Mock(name="Enriched Adventure")
+        # Mock enrichment with proper Adventure instance
+        enriched_adventure = Adventure(
+            name="Enriched Test Adventure",
+            source=Source(abbreviation="ETA", name="Enriched Test Adventure"),
+        )
         content_resolver._enrich_content_if_needed = Mock(
             return_value=enriched_adventure
         )

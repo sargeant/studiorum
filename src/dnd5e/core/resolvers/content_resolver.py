@@ -2,9 +2,10 @@
 
 import difflib
 import logging
-from dataclasses import dataclass
 from enum import Enum
 from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from dnd5e.core.loaders.content_merger import ContentMerger
 from dnd5e.core.models.content import BaseContent, ContentType
@@ -21,22 +22,38 @@ class ResolutionStatus(Enum):
     FUZZY_MATCH = "fuzzy_match"
 
 
-@dataclass
-class ContentResolutionResult:
-    """Result of content resolution attempt."""
+class ContentResolutionResult(BaseModel):
+    """Result of content resolution attempt with comprehensive validation."""
 
-    status: ResolutionStatus
-    content: BaseContent | None = None
-    matches: list[BaseContent] | None = None
-    suggestions: list[str] | None = None
-    query: str = ""
+    status: ResolutionStatus = Field(description="Status of the resolution attempt")
+    content: BaseContent | None = Field(None, description="Resolved content if found")
+    matches: list[BaseContent] = Field(
+        default_factory=list, description="Multiple matches found"
+    )
+    suggestions: list[str] = Field(
+        default_factory=list, description="Suggested alternatives"
+    )
+    query: str = Field(default="", description="Original query string")
 
-    def __post_init__(self) -> None:
-        """Initialize default values."""
-        if self.matches is None:
-            self.matches = []
-        if self.suggestions is None:
-            self.suggestions = []
+    @field_validator("query")
+    @classmethod
+    def validate_query(cls, v: str) -> str:
+        """Validate query string (preserve original input for tracking)."""
+        return v
+
+    @field_validator("suggestions")
+    @classmethod
+    def validate_suggestions(cls, v: list[str]) -> list[str]:
+        """Validate and clean suggestions list."""
+        # Remove empty strings and duplicates while preserving order
+        seen = set()
+        cleaned = []
+        for suggestion in v:
+            cleaned_suggestion = suggestion.strip()
+            if cleaned_suggestion and cleaned_suggestion not in seen:
+                seen.add(cleaned_suggestion)
+                cleaned.append(cleaned_suggestion)
+        return cleaned
 
     @property
     def is_success(self) -> bool:
@@ -52,6 +69,11 @@ class ContentResolutionResult:
     def has_suggestions(self) -> bool:
         """Check if suggestions are available."""
         return bool(self.suggestions and len(self.suggestions) > 0)
+
+    model_config = ConfigDict(
+        # Allow content objects (they should be Pydantic models too)
+        arbitrary_types_allowed=True
+    )
 
 
 class ContentResolver:

@@ -2,24 +2,58 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 from dnd5e.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-@dataclass
-class ReferenceContext:
-    """Context for reference resolution."""
+class ReferenceContext(BaseModel):
+    """Context for reference resolution with validation."""
 
-    document_type: str = "general"  # "adventure", "reference", "supplement"
-    current_section: str = ""  # Current document section
-    current_page: int = 0  # Current page number (if known)
-    appendix_mode: bool = False  # Whether we're in appendix generation
-    cross_ref_enabled: bool = True  # Whether cross-references are enabled
-    hyperlinks_enabled: bool = True  # Whether hyperlinks are enabled
+    document_type: str = Field(
+        "general", description="Type of document (adventure, reference, supplement)"
+    )
+    current_section: str = Field("", description="Current document section")
+    current_page: int = Field(0, ge=0, description="Current page number (if known)")
+    appendix_mode: bool = Field(
+        False, description="Whether we're in appendix generation"
+    )
+    cross_ref_enabled: bool = Field(
+        True, description="Whether cross-references are enabled"
+    )
+    hyperlinks_enabled: bool = Field(True, description="Whether hyperlinks are enabled")
+
+    @field_validator("document_type")
+    @classmethod
+    def validate_document_type(cls, v: str) -> str:
+        """Validate document type values."""
+        valid_types = {"general", "adventure", "reference", "supplement"}
+        cleaned = v.strip().lower()
+        if cleaned not in valid_types:
+            raise ValueError(
+                f"Document type must be one of {valid_types}, got '{cleaned}'"
+            )
+        return cleaned
+
+    @field_validator("current_section")
+    @classmethod
+    def validate_current_section(cls, v: str) -> str:
+        """Validate and normalize section name."""
+        return v.strip()
+
+    @property
+    def is_cross_ref_active(self) -> bool:
+        """Check if cross-references should be actively generated."""
+        return self.cross_ref_enabled and not self.appendix_mode
+
+    @property
+    def is_hyperlink_active(self) -> bool:
+        """Check if hyperlinks should be actively generated."""
+        return self.hyperlinks_enabled and self.cross_ref_enabled
 
 
 class ReferenceResolver:

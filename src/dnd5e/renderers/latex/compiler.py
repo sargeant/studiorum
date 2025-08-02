@@ -33,7 +33,7 @@ class LaTeXCompiler:
         )
 
         # Validation
-        config_errors = self.config.validate()
+        config_errors = self.config.validate_config()
         if config_errors:
             raise ValueError(f"Invalid configuration: {'; '.join(config_errors)}")
 

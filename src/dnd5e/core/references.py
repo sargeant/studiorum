@@ -1,8 +1,9 @@
 """Spell reference parsing utilities."""
 
 import re
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
+from pydantic import BaseModel, Field, field_validator
 
 from .logging import get_logger
 
@@ -13,14 +14,21 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-@dataclass
-class SpellReference:
+class SpellReference(BaseModel):
     """Represents a parsed spell reference."""
 
-    name: str
-    source: str | None = None
-    display_text: str | None = None
-    original_tag: str = ""
+    name: str = Field(min_length=1, description="Name of the spell")
+    source: str | None = Field(None, description="Source abbreviation")
+    display_text: str | None = Field(None, description="Custom display text")
+    original_tag: str = Field(default="", description="Original tag text")
+
+    @field_validator("original_tag")
+    @classmethod
+    def validate_tag_format(cls, v: str) -> str:
+        """Validate that the original tag follows expected format."""
+        if v and not v.startswith("{@spell"):
+            raise ValueError(f"Invalid spell tag format: {v}")
+        return v
 
     def __str__(self) -> str:
         """String representation of the spell reference."""

@@ -251,12 +251,17 @@ class TestCrossReferenceManager:
         # Valid reference
         self.manager.register_content("creature", "Dragon")
 
-        # Create invalid reference by manipulating internal state
-        invalid_ref: Any = CrossReference(
+        # Create invalid reference by bypassing Pydantic validation
+        # This uses internal Pydantic construction to create an invalid object
+        invalid_ref: Any = CrossReference.model_construct(
             id="invalid:ref",
             content_type="creature",
             name="Invalid",
             latex_label="invalid--label!!",  # Invalid LaTeX label
+            source=None,
+            page=None,
+            section=None,
+            referenced_count=0,
         )
         self.manager.references["invalid:ref"] = invalid_ref
 

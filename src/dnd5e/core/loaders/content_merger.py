@@ -5,10 +5,18 @@ import logging
 import time
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from ..config.settings import get_settings
 from ..models.content import ContentType
+from ..types import (
+    CacheMetadata,
+    CacheStats,
+    ContentFileData,
+    ContentSection,
+    MergedContent,
+    MetadataEntry,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,15 +42,15 @@ class ContentMerger:
         self.max_cache_size = max_cache_size
 
         # LRU cache using OrderedDict
-        self._content_cache: OrderedDict[str, dict[str, Any]] = OrderedDict()
+        self._content_cache: OrderedDict[str, ContentFileData] = OrderedDict()
         # Cache metadata: {cache_key: {"mtime": float, "file_path": Path, "access_time": float}}
-        self._cache_metadata: dict[str, dict[str, Any]] = {}
+        self._cache_metadata: dict[str, CacheMetadata] = {}
         # Cache statistics
         self._cache_stats = {"hits": 0, "misses": 0, "evictions": 0, "invalidations": 0}
 
     def load_content_file(
         self, content_type: ContentType, content_id: str
-    ) -> dict[str, Any] | None:
+    ) -> ContentFileData | None:
         """Load content file by ID pattern with enhanced caching.
 
         Args:
@@ -132,7 +140,9 @@ class ContentMerger:
             )
 
     def merge_metadata_content(
-        self, metadata_entry: dict[str, Any], content_data: dict[str, Any] | None = None
+        self,
+        metadata_entry: dict[str, Any],
+        content_data: ContentFileData | None = None,
     ) -> dict[str, Any]:
         """Merge metadata structure with content data.
 
@@ -255,7 +265,7 @@ class ContentMerger:
 
     def _load_content_from_disk(
         self, content_type: ContentType, content_id: str
-    ) -> dict[str, Any] | None:
+    ) -> ContentFileData | None:
         """Load content file from disk without caching.
 
         Args:
@@ -290,7 +300,7 @@ class ContentMerger:
                 content_data = json.load(f)
 
             logger.debug(f"Loaded content file: {matching_file}")
-            return content_data  # type: ignore[no-any-return]
+            return cast(ContentFileData, content_data)
 
         except (OSError, FileNotFoundError, json.JSONDecodeError) as e:
             logger.error(f"Error loading content file {matching_file}: {e}")
@@ -333,7 +343,7 @@ class ContentMerger:
         return True
 
     def _store_in_cache(
-        self, cache_key: str, content_data: dict[str, Any], file_path: Path
+        self, cache_key: str, content_data: ContentFileData, file_path: Path
     ) -> None:
         """Store content in cache with metadata.
 
@@ -376,7 +386,7 @@ class ContentMerger:
         self._cache_metadata.clear()
         logger.debug("Content cache cleared")
 
-    def get_cache_stats(self) -> dict[str, Any]:
+    def get_cache_stats(self) -> CacheStats:
         """Get cache statistics for monitoring.
 
         Returns:

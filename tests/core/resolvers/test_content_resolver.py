@@ -29,8 +29,18 @@ class TestContentResolutionResult:
 
     def test_init_with_values(self) -> None:
         """Test initialization with provided values."""
-        content = Mock()
-        matches = [Mock(), Mock()]
+        content = Adventure(
+            name="Test Adventure",
+            source=Source(abbreviation="TEST", name="Test Source"),
+        )
+        matches = [
+            Adventure(
+                name="Match 1", source=Source(abbreviation="M1", name="Match 1 Source")
+            ),
+            Adventure(
+                name="Match 2", source=Source(abbreviation="M2", name="Match 2 Source")
+            ),
+        ]
         suggestions = ["cos", "lmop"]
 
         result = ContentResolutionResult(

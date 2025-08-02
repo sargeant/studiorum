@@ -1,7 +1,6 @@
 """Info command for 5e2pdf CLI."""
 
 import asyncio
-from typing import Any
 
 import typer
 from rich import print as rprint
@@ -9,7 +8,10 @@ from rich.panel import Panel
 
 from dnd5e.cli.display_manager import display_manager
 from dnd5e.cli.main import get_omnidexer
-from dnd5e.core.models.content import ContentType
+from dnd5e.core.models.content import BaseContent, ContentType
+from dnd5e.core.models.creatures import Creature
+from dnd5e.core.models.items import Item
+from dnd5e.core.models.spells import Spell
 from dnd5e.core.resolvers import ContentResolver
 
 app: typer.Typer = typer.Typer(help="Show detailed information about content")
@@ -190,11 +192,8 @@ def show_file_info(
         raise typer.Exit(1)
 
 
-def _display_content_details(item: Any) -> None:
+def _display_content_details(item: BaseContent) -> None:
     """Display detailed information about a content item."""
-    from dnd5e.core.models.creatures import Creature
-    from dnd5e.core.models.items import Item
-    from dnd5e.core.models.spells import Spell
 
     content_type = ContentType.from_content(item)
 
@@ -220,7 +219,7 @@ def _display_content_details(item: Any) -> None:
         _display_item_details(item)
 
 
-def _display_spell_details(spell: Any) -> None:
+def _display_spell_details(spell: Spell) -> None:
     """Display detailed spell information."""
     details = f"""
 [cyan]Level:[/cyan] {spell.get_level_text()}
@@ -235,18 +234,18 @@ def _display_spell_details(spell: Any) -> None:
 
     # Description
     if spell.entries:
-        description = "\n".join(spell.entries)
+        description = "\n".join(str(entry) for entry in spell.entries)
         console.print(Panel(description, title="📖 Description", border_style="yellow"))
 
     # Higher levels
     if spell.higher_level:
-        higher_text = " ".join(spell.higher_level)
+        higher_text = " ".join(str(entry) for entry in spell.higher_level)
         console.print(
             Panel(higher_text, title="📈 At Higher Levels", border_style="magenta")
         )
 
 
-def _display_creature_details(creature: Any) -> None:
+def _display_creature_details(creature: Creature) -> None:
     """Display detailed creature information."""
     size = creature.size[0] if creature.size else "Medium"
     cr = getattr(creature, "cr", "Unknown")
@@ -279,7 +278,7 @@ def _display_creature_details(creature: Any) -> None:
     )
 
 
-def _display_item_details(item: Any) -> None:
+def _display_item_details(item: Item) -> None:
     """Display detailed item information."""
     item_type = getattr(item, "type", "Item")
     rarity = getattr(item, "rarity", None)

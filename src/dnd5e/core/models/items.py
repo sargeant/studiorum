@@ -3,9 +3,10 @@
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .content import BaseContent
+from .spells import EntryContent, SpellEntry
 
 
 class ItemType(str, Enum):
@@ -40,6 +41,23 @@ class ItemRarity(str, Enum):
     ARTIFACT = "artifact"
     VARIES = "varies"
     UNKNOWN = "unknown"
+
+
+class ValueDetails(BaseModel):
+    """Structured item value information."""
+
+    amount: int | float = Field(..., description="Value amount")
+    unit: str | None = Field(None, description="Currency unit (gp, sp, cp)")
+    note: str | None = Field(None, description="Additional value notes")
+
+
+class ChargeDetails(BaseModel):
+    """Structured item charges and recharge information."""
+
+    charges: int = Field(..., description="Number of charges")
+    recharge: str | None = Field(None, description="Recharge conditions")
+    max_charges: int | None = Field(None, description="Maximum charges")
+    recharge_amount: str | int | None = Field(None, description="Amount recharged")
 
 
 class ItemProperty(BaseModel):
@@ -79,10 +97,10 @@ class Item(BaseContent):
     type: str | ItemType = Field(..., description="Item type")
     rarity: str | ItemRarity | None = Field(None, description="Item rarity")
     weight: int | float | None = Field(None, description="Item weight in pounds")
-    value: int | float | dict[str, Any] | None = Field(None, description="Item value")
-    entries: list[str | dict[str, Any]] | None = Field(
-        None, description="Item description"
+    value: int | float | ValueDetails | dict[str, Any] | None = Field(
+        None, description="Item value"
     )
+    entries: list[SpellEntry] | None = Field(None, description="Item description")
 
     # Optional item-specific data
     weapon_data: WeaponData | None = Field(
@@ -94,7 +112,9 @@ class Item(BaseContent):
     requires_attunement: bool | str | None = Field(
         None, alias="reqAttune", description="Attunement requirement"
     )
-    charges: int | str | dict[str, Any] | None = Field(None, description="Item charges")
+    charges: int | str | ChargeDetails | dict[str, Any] | None = Field(
+        None, description="Item charges"
+    )
     recharge: str | None = Field(None, description="Recharge conditions")
 
     # Weapon properties (for backwards compatibility)
@@ -114,6 +134,26 @@ class Item(BaseContent):
     strength: int | None = Field(None, description="Strength requirement")
     stealth: bool | None = Field(None, description="Stealth disadvantage")
     armor_type: str | None = Field(None, alias="armorType", description="Armor type")
+
+    @field_validator("value", mode="before")
+    @classmethod
+    def parse_value(cls, v: Any) -> Any:
+        """Parse value field, converting structured dicts to ValueDetails."""
+        if isinstance(v, dict) and "amount" in v:
+            # Convert structured value dict to ValueDetails
+            return ValueDetails.model_validate(v)
+        # Keep as-is for simple numbers and legacy complex dicts
+        return v
+
+    @field_validator("charges", mode="before")
+    @classmethod
+    def parse_charges(cls, v: Any) -> Any:
+        """Parse charges field, converting structured dicts to ChargeDetails."""
+        if isinstance(v, dict) and "charges" in v:
+            # Convert structured charge dict to ChargeDetails
+            return ChargeDetails.model_validate(v)
+        # Keep as-is for simple numbers/strings and legacy dicts
+        return v
 
     def model_post_init(self, __context: Any) -> None:
         """Post-process parsed data."""
@@ -228,8 +268,15 @@ class Item(BaseContent):
                     return f"{sp} sp, {remainder} cp"
             else:
                 return f"{copper_value} cp"
+        elif isinstance(self.value, ValueDetails):
+            # Handle structured value format
+            if self.value.unit:
+                return f"{self.value.amount} {self.value.unit}"
+            else:
+                # Convert to standard currency format
+                return self._format_currency_value(self.value.amount)
         elif isinstance(self.value, dict):
-            # Handle complex value format
+            # Handle legacy complex value format
             return str(self.value)
 
         return str(self.value)
@@ -249,8 +296,34 @@ class Item(BaseContent):
                 result = self._extract_text_from_entries(entry)
                 if result:
                     text_parts.append(result)
+        elif isinstance(entries, EntryContent):
+            # Handle Pydantic EntryContent objects
+            if entries.name:
+                text_parts.append(f"**{entries.name}**")
+            if entries.entries:
+                result = self._extract_text_from_entries(entries.entries)
+                if result:
+                    text_parts.append(result)
+            # Handle items if present in the extra fields
+            if hasattr(entries, "items") and entries.items:
+                items = entries.items
+                if isinstance(items, list):
+                    for item in items:
+                        if isinstance(item, str):
+                            text_parts.append(f"• {item}")
+                        elif isinstance(item, dict):
+                            item_text_parts = []
+                            if "name" in item:
+                                item_text_parts.append(f"**{item['name']}**")
+                            if "text" in item:
+                                item_text_parts.append(item["text"])
+                            if item_text_parts:
+                                text_parts.append(f"• {' '.join(item_text_parts)}")
+            # Handle text if present in the extra fields
+            if hasattr(entries, "text") and entries.text:
+                text_parts.append(entries.text)
         elif isinstance(entries, dict):
-            # Handle different entry types
+            # Handle legacy dict entry types for backward compatibility
             if "entries" in entries:
                 result = self._extract_text_from_entries(entries["entries"])
                 if result:
@@ -387,8 +460,20 @@ class Item(BaseContent):
                 charge_text += f" (recharges {self.recharge})"
 
             return charge_text
+        elif isinstance(self.charges, ChargeDetails):
+            # Handle structured charge format
+            charge_text = (
+                f"{self.charges.charges} charge"
+                if self.charges.charges == 1
+                else f"{self.charges.charges} charges"
+            )
+
+            if self.charges.recharge:
+                charge_text += f" (recharges {self.charges.recharge})"
+
+            return charge_text
         elif isinstance(self.charges, dict):
-            # Handle complex charge structures
+            # Handle legacy complex charge structures
             if "charges" in self.charges:
                 charges_val = self.charges["charges"]
                 charge_text = (
@@ -405,3 +490,25 @@ class Item(BaseContent):
                 return str(self.charges)
         else:
             return str(self.charges)
+
+    def _format_currency_value(self, amount: int | float) -> str:
+        """Format numeric value as currency."""
+        # Convert to copper pieces for calculation
+        copper_value = int(amount * 100) if isinstance(amount, float) else amount
+
+        if copper_value >= 100:
+            gp = copper_value // 100
+            remainder = copper_value % 100
+            if remainder == 0:
+                return f"{gp:,} gp" if gp > 1 else "1 gp"
+            else:
+                return f"{gp} gp, {remainder} cp"
+        elif copper_value >= 10:
+            sp = copper_value // 10
+            remainder = copper_value % 10
+            if remainder == 0:
+                return f"{sp} sp"
+            else:
+                return f"{sp} sp, {remainder} cp"
+        else:
+            return f"{copper_value} cp"
