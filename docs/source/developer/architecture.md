@@ -115,6 +115,7 @@ This architecture solved the original problem of loading 94 duplicate adventures
 
 - **Python 3.12 generics** throughout the codebase
 - **Comprehensive type hints** with mypy enforcement
+- **Pydantic validation models** for data integrity and type safety
 - **Protocol-based interfaces** for clear contracts
 - **Extensive test coverage** (1,445+ tests passing)
 - **Clear separation of concerns** between layers
@@ -188,6 +189,61 @@ sequenceDiagram
 - **Content files** loaded on-demand when needed
 - **Runtime merging** combines both sources intelligently
 - **Result**: 94 → 61 adventures with proper content (e.g., CoS: 12,917 lines)
+
+### Pydantic Validation Architecture
+
+**Problem Solved**: Data integrity issues, type safety concerns, and validation gaps in dataclass-based models.
+
+**Solution**: Systematic migration to Pydantic BaseModel with comprehensive validation:
+
+#### Tier-Based Migration Strategy
+
+1. **Tier 1**: Core content models (Spell, Creature, Item, etc.)
+2. **Tier 2**: Configuration and source management models
+3. **Tier 3**: Infrastructure and indexing models
+
+#### Validation Patterns Implemented
+
+**Field Constraints**:
+```python
+hash_id: str = Field(min_length=8, max_length=8, description="8-character unique hash")
+lookup_key: str = Field(min_length=1, description="Normalized search key")
+column_count: int | None = Field(None, ge=1, le=4, description="Layout columns")
+```
+
+**Custom Validators**:
+```python
+@field_validator("lookup_key")
+@classmethod
+def validate_lookup_key(cls, v: str) -> str:
+    normalized = v.strip().lower()
+    if "|" not in normalized:
+        raise ValueError("Lookup key must contain '|' separator")
+    return normalized
+```
+
+**Cross-Field Validation**:
+```python
+@model_validator(mode="after")
+def validate_consistency(self) -> "ContentResolutionResult":
+    if self.status == ResolutionStatus.SUCCESS and not self.content:
+        raise ValueError("Success status requires content to be provided")
+    return self
+```
+
+**Data Normalization**:
+- Automatic whitespace trimming and case normalization
+- Duplicate removal in suggestion lists
+- Query preprocessing for search operations
+
+#### Benefits Achieved
+
+1. **Data Integrity**: Automatic validation prevents invalid data entry
+2. **Type Safety**: Enhanced mypy compliance with proper field typing
+3. **Error Prevention**: Clear validation messages for debugging
+4. **Performance**: Optimized field access and validation caching
+5. **Maintainability**: Self-documenting models with field descriptions
+6. **Future-Proof**: Ready for serialization and API development
 
 ### Advanced Caching System
 
