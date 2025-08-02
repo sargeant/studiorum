@@ -4,7 +4,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from dnd5e.core.models.content import BaseContent
-from dnd5e.core.types import RenderContext, RendererConfig
+from dnd5e.core.types import RendererConfig
+
+from .context import RenderContext
 
 
 class RenderingError(Exception):

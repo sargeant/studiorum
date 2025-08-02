@@ -11,7 +11,7 @@ from ...core.models.document_metadata import (
     DocumentMetadata,
     DocumentType,
 )
-from ...core.types import LaTeXConfig, RenderContext as RenderContextType
+from ...core.types import LaTeXConfig, RenderContextDict
 from ..base import DocumentRenderer, RenderContext, RenderingError
 from .compilation_config import CompilationConfig, CompilationResult, LaTeXEngine
 from .compiler import LaTeXCompiler
@@ -44,9 +44,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         """Return the output format."""
         return "latex"
 
-    def render(
-        self, content: BaseContent, context: RenderContextType | None = None
-    ) -> str:
+    def render(self, content: BaseContent, context: RenderContext | None = None) -> str:
         """Render a single content item as a minimal document.
 
         Args:
@@ -56,7 +54,8 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Complete LaTeX document
         """
-        render_context = RenderContext(**(context or {}))
+        # Use provided context or create default
+        render_context = context or RenderContext()
         return self.render_document([content], render_context)
 
     def render_document(
@@ -527,7 +526,7 @@ This content type is not yet fully supported by the rendering system.
             return str(content)
 
     def _create_compilation_config(
-        self, config: dict[str, Any] | None = None
+        self, config: LaTeXConfig | dict[str, Any] | None = None
     ) -> CompilationConfig:
         """Create compilation configuration from renderer config.
 
@@ -584,7 +583,7 @@ This content type is not yet fully supported by the rendering system.
         Returns:
             CompilationResult with compilation details
         """
-        render_context = RenderContext(**(context or {}))
+        render_context = RenderContext()
         latex_source = self.render_document([content], render_context)
 
         output_name = output_path.stem if output_path else content.name

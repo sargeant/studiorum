@@ -140,8 +140,10 @@ class ContentMerger:
             )
 
     def merge_metadata_content(
-        self, metadata_entry: MetadataEntry, content_data: ContentFileData | None = None
-    ) -> MergedContent:
+        self,
+        metadata_entry: dict[str, Any],
+        content_data: ContentFileData | None = None,
+    ) -> dict[str, Any]:
         """Merge metadata structure with content data.
 
         Args:
@@ -165,7 +167,7 @@ class ContentMerger:
             return self._create_metadata_only_result(metadata_entry)
 
         # Start with metadata as base structure
-        merged_result = cast(MergedContent, dict(metadata_entry))
+        merged_result = dict(metadata_entry)
 
         # Create merged contents array that combines metadata structure with content data
         metadata_contents = metadata_entry.get("contents", [])
@@ -236,8 +238,8 @@ class ContentMerger:
         return merged_result
 
     def _create_metadata_only_result(
-        self, metadata_entry: MetadataEntry
-    ) -> MergedContent:
+        self, metadata_entry: dict[str, Any]
+    ) -> dict[str, Any]:
         """Create result with metadata structure but empty content entries.
 
         Args:
@@ -246,7 +248,7 @@ class ContentMerger:
         Returns:
             Metadata structure with empty content entries
         """
-        result = cast(MergedContent, dict(metadata_entry))
+        result = dict(metadata_entry)
 
         # Ensure contents array exists with empty entries
         metadata_contents = metadata_entry.get("contents", [])

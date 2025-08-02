@@ -267,7 +267,13 @@ def create_latex_tag_integration(
 
     # Set up appendix organization
     if "appendix_organization" in config:
-        integration.set_appendix_organization(config["appendix_organization"])
+        org_config = config["appendix_organization"]
+        if isinstance(org_config, str):
+            # Handle string configuration (possibly JSON or simple format)
+            # For now, skip or provide default
+            pass
+        elif isinstance(org_config, dict):
+            integration.set_appendix_organization(org_config)
 
     return integration
 

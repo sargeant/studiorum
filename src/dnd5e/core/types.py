@@ -40,6 +40,13 @@ class LaTeXConfig(TypedDict, total=False):
     enable_hyperlinks: bool
     enable_cross_refs: bool
     auto_page_refs: bool
+    # Compilation-specific options
+    latex_engine: str
+    compilation_timeout: int
+    max_passes: int
+    show_progress: bool
+    keep_temp_files: bool
+    output_dir: str
 
 
 class LayoutConfig(TypedDict, total=False):
@@ -62,7 +69,7 @@ class ProcessingContext(TypedDict, total=False):
     debug: bool
 
 
-class RenderContext(TypedDict, total=False):
+class RenderContextDict(TypedDict, total=False):
     """Context for rendering operations."""
 
     content_type: str

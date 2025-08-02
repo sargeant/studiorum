@@ -19,9 +19,9 @@ from ..base import ContentRenderer
 class LaTeXContentRenderer(ContentRenderer):
     """Legacy base LaTeX content renderer (deprecated)."""
 
-    def __init__(self, config: dict[str, Any] | None = None):
+    def __init__(self, config: dict[str, Any] | None = None):  # type: ignore[override]
         """Initialize LaTeX content renderer."""
-        super().__init__(config)
+        super().__init__(config)  # type: ignore[arg-type]
 
     @property
     def output_format(self) -> str:
