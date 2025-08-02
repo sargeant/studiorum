@@ -313,7 +313,7 @@ print(f"Key: {entry.lookup_key}")  # "fireball|phb"
 
 #### `content: Any`
 
-The indexed content object. Currently uses `Any` type with TODO to migrate to `BaseContent` once fully Pydantic.
+The indexed content object. Uses `Any` type to support mixed Pydantic/non-Pydantic content during migration.
 
 **Validation:**
 - Accepts any content object through `arbitrary_types_allowed` configuration

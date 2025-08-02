@@ -1,12 +1,13 @@
 """Tests for adventure deep indexing functionality."""
 
 from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.adventures import Adventure, AdventureChapter
+from dnd5e.core.models.adventures import Adventure
+from dnd5e.core.models.chapter import Chapter
 from dnd5e.core.models.content import Source
 from dnd5e.core.models.nested_content import (
-    AdventureInset,
-    AdventureSection,
-    AdventureTable,
+    Inset,
+    Section,
+    Table,
 )
 
 
@@ -36,7 +37,7 @@ class TestAdventureDeepIndexing:
 
     def test_adventure_with_chapter_but_no_entries(self):
         """Test adventure with chapter but no entries."""
-        chapter = AdventureChapter(name="Empty Chapter", entries=[])
+        chapter = Chapter(name="Empty Chapter", entries=[])
 
         adventure = Adventure(
             name="Test Adventure",
@@ -51,7 +52,7 @@ class TestAdventureDeepIndexing:
 
     def test_adventure_parses_section_entries(self):
         """Test that adventure parses section entries correctly."""
-        chapter = AdventureChapter(
+        chapter = Chapter(
             name="Chapter 1",
             entries=[
                 {
@@ -77,7 +78,7 @@ class TestAdventureDeepIndexing:
         result = adventure.get_deep_index_entries(omnidexer)
 
         assert len(result) == 1
-        assert isinstance(result[0], AdventureSection)
+        assert isinstance(result[0], Section)
         assert result[0].name == "The Goblin Cave"
         assert result[0].page == 10
         assert result[0].id == "goblin-cave"
@@ -86,7 +87,7 @@ class TestAdventureDeepIndexing:
 
     def test_adventure_parses_table_entries(self):
         """Test that adventure parses table entries correctly."""
-        chapter = AdventureChapter(
+        chapter = Chapter(
             name="Chapter 1",
             entries=[
                 {
@@ -114,7 +115,7 @@ class TestAdventureDeepIndexing:
         result = adventure.get_deep_index_entries(omnidexer)
 
         assert len(result) == 1
-        assert isinstance(result[0], AdventureTable)
+        assert isinstance(result[0], Table)
         assert result[0].name == "Random Encounters"
         assert result[0].caption == "Random Encounters"
         assert result[0].page == 15
@@ -124,7 +125,7 @@ class TestAdventureDeepIndexing:
 
     def test_adventure_parses_inset_entries(self):
         """Test that adventure parses inset entries correctly."""
-        chapter = AdventureChapter(
+        chapter = Chapter(
             name="Chapter 1",
             entries=[
                 {
@@ -149,14 +150,14 @@ class TestAdventureDeepIndexing:
         result = adventure.get_deep_index_entries(omnidexer)
 
         assert len(result) == 1
-        assert isinstance(result[0], AdventureInset)
+        assert isinstance(result[0], Inset)
         assert result[0].name == "Read Aloud Text"
         assert result[0].inset_type == "insetReadaloud"
         assert result[0].page == 20
 
     def test_adventure_parses_nested_sections(self):
         """Test that adventure parses nested sections correctly."""
-        chapter = AdventureChapter(
+        chapter = Chapter(
             name="Chapter 1",
             entries=[
                 {
@@ -198,7 +199,7 @@ class TestAdventureDeepIndexing:
 
     def test_adventure_handles_multiple_chapters(self):
         """Test that adventure handles multiple chapters correctly."""
-        chapter1 = AdventureChapter(
+        chapter1 = Chapter(
             name="Chapter 1",
             ordinal={"type": "chapter", "identifier": "1"},
             entries=[
@@ -210,7 +211,7 @@ class TestAdventureDeepIndexing:
             ],
         )
 
-        chapter2 = AdventureChapter(
+        chapter2 = Chapter(
             name="Chapter 2",
             ordinal={"type": "chapter", "identifier": "2"},
             entries=[
@@ -241,7 +242,7 @@ class TestAdventureDeepIndexing:
 
     def test_adventure_handles_parsing_errors_gracefully(self):
         """Test that adventure handles parsing errors gracefully."""
-        chapter = AdventureChapter(
+        chapter = Chapter(
             name="Problematic Chapter",
             entries=[
                 {
@@ -271,7 +272,7 @@ class TestAdventureDeepIndexing:
 
     def test_adventure_generates_unique_hash_keys(self):
         """Test that nested content generates unique hash keys."""
-        chapter = AdventureChapter(
+        chapter = Chapter(
             name="Chapter 1",
             entries=[
                 {"type": "section", "name": "Section A", "entries": ["Content A"]},

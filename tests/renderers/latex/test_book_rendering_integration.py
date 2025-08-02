@@ -6,7 +6,8 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.core.models.books import Book, BookChapter  # type: ignore
+from dnd5e.core.models.books import Book  # type: ignore
+from dnd5e.core.models.chapter import Chapter  # type: ignore
 from dnd5e.core.models.content import Source  # type: ignore
 from dnd5e.renderers.base.context import RenderContext  # type: ignore
 from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
@@ -29,7 +30,7 @@ class TestBookRenderingIntegration:
     def simple_book(self, sample_source: Any) -> Any:
         """Simple book with basic chapters."""
         chapters = [
-            BookChapter(
+            Chapter(
                 name="Introduction",
                 ordinal={"type": "chapter", "identifier": 1},
                 headers=["What Is D&D?", "How to Play"],
@@ -38,7 +39,7 @@ class TestBookRenderingIntegration:
                     "This game is about storytelling in worlds of sword and sorcery.",
                 ],
             ),
-            BookChapter(
+            Chapter(
                 name="Character Creation",
                 ordinal={"type": "chapter", "identifier": 2},
                 headers=["Choose a Race", "Choose a Class"],
@@ -64,12 +65,12 @@ class TestBookRenderingIntegration:
     def complex_book(self, sample_source: Any) -> Any:
         """Complex book with multiple chapter types and nested content."""
         chapters = [
-            BookChapter(
+            Chapter(
                 name="Introduction",
                 ordinal={"type": "chapter", "identifier": 1},
                 entries=["Welcome to the game."],
             ),
-            BookChapter(
+            Chapter(
                 name="Races",
                 ordinal={"type": "chapter", "identifier": 2},
                 entries=[
@@ -95,7 +96,7 @@ class TestBookRenderingIntegration:
                     },
                 ],
             ),
-            BookChapter(
+            Chapter(
                 name="Spells",
                 ordinal={"type": "appendix", "identifier": "A"},
                 entries=[
@@ -215,7 +216,7 @@ class TestBookRenderingIntegration:
             name="Dungeon Master's Guide",
             source=sample_source,
             contents=[
-                BookChapter(
+                Chapter(
                     name="Running the Game",
                     ordinal={"type": "chapter", "identifier": 1},
                     entries=["This chapter explains how to run D&D."],
@@ -247,7 +248,7 @@ class TestBookRenderingIntegration:
             name="Problematic Book",
             source=sample_source,
             contents=[
-                BookChapter(
+                Chapter(
                     name="Bad Chapter",
                     ordinal=None,
                     headers=None,
@@ -446,7 +447,7 @@ class TestBookRenderingEntryProcessing:
         """Book with rich entry content for testing entry processing."""
         source = Source(abbreviation="TEST", name="Test Book", page=None, url=None)
         chapters = [
-            BookChapter(
+            Chapter(
                 name="Rich Content Chapter",
                 ordinal=None,
                 headers=None,
@@ -564,7 +565,7 @@ class TestBookRenderingEntryProcessing:
         """Test handling of unknown entry types."""
         source = Source(abbreviation="TEST", name="Test Book", page=None, url=None)
         chapters = [
-            BookChapter(
+            Chapter(
                 name="Unknown Entry Chapter",
                 ordinal=None,
                 headers=None,

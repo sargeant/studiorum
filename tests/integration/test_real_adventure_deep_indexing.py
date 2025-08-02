@@ -5,9 +5,9 @@ import pytest
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.models.nested_content import (
-    AdventureInset,
-    AdventureSection,
-    AdventureTable,
+    Inset,
+    Section,
+    Table,
 )
 
 
@@ -44,7 +44,7 @@ class TestRealAdventureDeepIndexing:
 
         # Verify content types
         content_types = {type(entry).__name__ for entry in deep_entries}
-        expected_types = {"AdventureSection", "AdventureTable", "AdventureInset"}
+        expected_types = {"Section", "Table", "Inset"}
 
         # Should have at least one type of nested content
         assert len(content_types & expected_types) > 0, (
@@ -72,7 +72,7 @@ class TestRealAdventureDeepIndexing:
         sections = omnidexer.find_all(ContentType.ADVENTURE_SECTION)
         if sections:
             section = sections[0]
-            assert isinstance(section, AdventureSection)
+            assert isinstance(section, Section)
             assert section.name is not None
             assert section.parent_name is not None
 
@@ -80,7 +80,7 @@ class TestRealAdventureDeepIndexing:
         tables = omnidexer.find_all(ContentType.ADVENTURE_TABLE)
         if tables:
             table = tables[0]
-            assert isinstance(table, AdventureTable)
+            assert isinstance(table, Table)
             assert table.name is not None
             assert table.parent_name is not None
 
@@ -88,7 +88,7 @@ class TestRealAdventureDeepIndexing:
         insets = omnidexer.find_all(ContentType.ADVENTURE_INSET)
         if insets:
             inset = insets[0]
-            assert isinstance(inset, AdventureInset)
+            assert isinstance(inset, Inset)
             assert inset.name is not None
             assert inset.parent_name is not None
 

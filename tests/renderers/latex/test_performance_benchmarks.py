@@ -7,7 +7,8 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.core.models.books import Book, BookChapter  # type: ignore
+from dnd5e.core.models.books import Book  # type: ignore
+from dnd5e.core.models.chapter import Chapter  # type: ignore
 from dnd5e.core.models.content import Source  # type: ignore
 from dnd5e.core.models.spells import Spell  # type: ignore
 from dnd5e.renderers.base.context import RenderContext  # type: ignore
@@ -35,7 +36,7 @@ class TestRenderingPerformance:
         chapters = []
         for i in range(10):  # Create 10 chapters
             chapters.append(
-                BookChapter(
+                Chapter(
                     name=f"Chapter {i + 1}",
                     ordinal={"type": "chapter", "identifier": i + 1},
                     headers=[f"Section {i + 1}.1", f"Section {i + 1}.2"],
@@ -315,7 +316,7 @@ class TestRenderingPerformance:
                     )
 
             chapters.append(
-                BookChapter(
+                Chapter(
                     name=f"Chapter {i + 1}",
                     ordinal={"type": "chapter", "identifier": i + 1},
                     headers=[f"Header {i + 1}.1", f"Header {i + 1}.2"],

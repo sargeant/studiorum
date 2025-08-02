@@ -22,17 +22,6 @@ class TestJsonDataLoaderBook:
         """Sample path for testing."""
         return Path("/fake/path/book-phb.json")
 
-    def test_extract_content_book_legacy_format(self, sample_path: Path) -> None:
-        """Test _extract_content with legacy 'book' key format."""
-        data = {"book": [{"name": "Chapter 1", "entries": ["Some content"]}]}
-
-        loader = JsonDataLoader(ContentType.BOOK)
-        result = loader._extract_content(data, sample_path)
-
-        assert len(result) == 1
-        assert result[0]["name"] == "Chapter 1"
-        assert result[0]["entries"] == ["Some content"]
-
     def test_extract_content_book_data_format(self, sample_path: Path) -> None:
         """Test _extract_content with 'bookData' key format."""
         data = {"bookData": [{"name": "Chapter 1", "entries": ["Some content"]}]}

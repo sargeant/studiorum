@@ -420,9 +420,9 @@ def profile_loading_performance():
 
 ## Migration Guide
 
-### From Legacy Loaders
+### Implementation Migration
 
-If migrating from a legacy loading system:
+When implementing new loaders or updating existing ones:
 
 1. **Identify current loading patterns**
 2. **Map to dual-file architecture**
@@ -435,7 +435,7 @@ If migrating from a legacy loading system:
 The loader architecture maintains compatibility with:
 
 - **5etools data format**: Full compatibility with official 5etools JSON
-- **Legacy content**: Graceful handling of older content formats
+- **Multiple formats**: Graceful handling of different content formats
 - **Future extensions**: Protocol-based design enables easy extension
 
 ## Troubleshooting

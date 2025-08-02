@@ -5,17 +5,18 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.models.books import Book, BookChapter, BookMetadata  # type: ignore
+from dnd5e.core.models.books import Book, BookMetadata  # type: ignore
+from dnd5e.core.models.chapter import Chapter  # type: ignore
 from dnd5e.core.models.content import Source  # type: ignore
 
 
-class TestBookChapter:
-    """Tests for BookChapter model."""
+class TestChapter:
+    """Tests for Chapter model."""
 
     def test_book_chapter_creation_minimal(self) -> None:
-        """Test basic BookChapter creation with minimal data."""
+        """Test basic Chapter creation with minimal data."""
         data = {"name": "Introduction"}
-        chapter = BookChapter.model_validate(data)
+        chapter = Chapter.model_validate(data)
 
         assert chapter.name == "Introduction"
         assert chapter.ordinal is None
@@ -23,14 +24,14 @@ class TestBookChapter:
         assert chapter.entries == []
 
     def test_book_chapter_creation_full(self) -> None:
-        """Test BookChapter creation with all fields."""
+        """Test Chapter creation with all fields."""
         data = {
             "name": "Getting Started",
             "ordinal": {"type": "chapter", "identifier": 1},
             "headers": ["Overview", "Prerequisites"],
             "entries": ["Some content", {"type": "table", "data": []}],
         }
-        chapter = BookChapter.model_validate(data)
+        chapter = Chapter.model_validate(data)
 
         assert chapter.name == "Getting Started"
         assert chapter.ordinal == {"type": "chapter", "identifier": 1}
@@ -39,7 +40,7 @@ class TestBookChapter:
 
     def test_book_chapter_get_chapter_number_chapter(self) -> None:
         """Test get_chapter_number for chapter type."""
-        chapter: Any = BookChapter(
+        chapter: Any = Chapter(
             name="Test Chapter", ordinal={"type": "chapter", "identifier": 5}
         )
 
@@ -48,7 +49,7 @@ class TestBookChapter:
 
     def test_book_chapter_get_chapter_number_part(self) -> None:
         """Test get_chapter_number for part type."""
-        chapter: Any = BookChapter(
+        chapter: Any = Chapter(
             name="Test Part", ordinal={"type": "part", "identifier": 2}
         )
 
@@ -57,7 +58,7 @@ class TestBookChapter:
 
     def test_book_chapter_get_chapter_number_appendix(self) -> None:
         """Test get_chapter_number for appendix type."""
-        chapter: Any = BookChapter(
+        chapter: Any = Chapter(
             name="Test Appendix", ordinal={"type": "appendix", "identifier": 3}
         )
 
@@ -66,7 +67,7 @@ class TestBookChapter:
 
     def test_book_chapter_get_chapter_number_unknown_type(self) -> None:
         """Test get_chapter_number for unknown type."""
-        chapter: Any = BookChapter(
+        chapter: Any = Chapter(
             name="Test Section", ordinal={"type": "section", "identifier": 7}
         )
 
@@ -75,7 +76,7 @@ class TestBookChapter:
 
     def test_book_chapter_get_chapter_number_no_ordinal(self) -> None:
         """Test get_chapter_number with no ordinal data."""
-        chapter: Any = BookChapter(name="Test Chapter")
+        chapter: Any = Chapter(name="Test Chapter")
 
         result = chapter.get_chapter_number()
         assert result == ""
@@ -83,12 +84,12 @@ class TestBookChapter:
     def test_book_chapter_get_chapter_number_missing_fields(self) -> None:
         """Test get_chapter_number with incomplete ordinal data."""
         # Missing identifier - falls back to str(ordinal)
-        chapter: Any = BookChapter(name="Test Chapter", ordinal={"type": "chapter"})
+        chapter: Any = Chapter(name="Test Chapter", ordinal={"type": "chapter"})
         result = chapter.get_chapter_number()
         assert result == "{'type': 'chapter'}"
 
         # Missing type - uses default "chapter" but has identifier
-        chapter2: Any = BookChapter(name="Test Chapter", ordinal={"identifier": 1})
+        chapter2: Any = Chapter(name="Test Chapter", ordinal={"identifier": 1})
         result = chapter2.get_chapter_number()
         assert result == "Chapter 1"
 
@@ -106,7 +107,7 @@ class TestBookChapter:
         ]
 
         for ordinal_type, identifier, expected in test_cases:
-            chapter: Any = BookChapter(
+            chapter: Any = Chapter(
                 name=f"Test {ordinal_type}",
                 ordinal={"type": ordinal_type, "identifier": identifier},
             )
@@ -115,7 +116,7 @@ class TestBookChapter:
 
     def test_book_chapter_get_formatted_headers_strings(self) -> None:
         """Test get_formatted_headers with string headers."""
-        chapter: Any = BookChapter(
+        chapter: Any = Chapter(
             name="Test Chapter", headers=["Introduction", "Overview", "Getting Started"]
         )
 
@@ -124,7 +125,7 @@ class TestBookChapter:
 
     def test_book_chapter_get_formatted_headers_dicts(self) -> None:
         """Test get_formatted_headers with dict headers."""
-        chapter: Any = BookChapter(
+        chapter: Any = Chapter(
             name="Test Chapter",
             headers=[
                 {"type": "section", "header": "Overview"},
@@ -138,7 +139,7 @@ class TestBookChapter:
 
     def test_book_chapter_get_formatted_headers_mixed(self) -> None:
         """Test get_formatted_headers with mixed string/dict headers."""
-        chapter: Any = BookChapter(
+        chapter: Any = Chapter(
             name="Test Chapter",
             headers=[
                 "Introduction",
@@ -153,21 +154,21 @@ class TestBookChapter:
 
     def test_book_chapter_get_formatted_headers_no_headers(self) -> None:
         """Test get_formatted_headers with no headers."""
-        chapter: Any = BookChapter(name="Test Chapter")
+        chapter: Any = Chapter(name="Test Chapter")
 
         result = chapter.get_formatted_headers()
         assert result == []
 
     def test_book_chapter_get_formatted_headers_empty_headers(self) -> None:
         """Test get_formatted_headers with empty headers list."""
-        chapter: Any = BookChapter(name="Test Chapter", headers=[])
+        chapter: Any = Chapter(name="Test Chapter", headers=[])
 
         result = chapter.get_formatted_headers()
         assert result == []
 
     def test_book_chapter_get_formatted_headers_dict_without_header(self) -> None:
         """Test get_formatted_headers with dict headers missing header field."""
-        chapter: Any = BookChapter(
+        chapter: Any = Chapter(
             name="Test Chapter",
             headers=[
                 {"type": "section", "entries": []},
@@ -195,7 +196,7 @@ class TestBookChapter:
                 {"no_header": "value"},
             ],
         }
-        chapter = BookChapter.model_validate(data)
+        chapter = Chapter.model_validate(data)
 
         # Validator should extract "header" fields and convert others to string
         assert chapter.headers == ["Header 1", "Header 2", "{'no_header': 'value'}"]
@@ -203,14 +204,14 @@ class TestBookChapter:
     def test_book_chapter_parse_headers_validator_list(self) -> None:
         """Test parse_headers validator with list input."""
         data = {"name": "Test Chapter", "headers": ["Header 1", "Header 2"]}
-        chapter = BookChapter.model_validate(data)
+        chapter = Chapter.model_validate(data)
 
         assert chapter.headers == ["Header 1", "Header 2"]
 
     def test_book_chapter_validation_name_required(self) -> None:
         """Test that name field is required."""
         with pytest.raises(ValidationError) as exc_info:
-            BookChapter.model_validate({})
+            Chapter.model_validate({})
 
         assert "name" in str(exc_info.value)
         assert "Field required" in str(exc_info.value)
@@ -367,7 +368,7 @@ class TestBook:
 
         assert book.name == "Player's Handbook"
         assert len(book.contents) == 1
-        assert isinstance(book.contents[0], BookChapter)
+        assert isinstance(book.contents[0], Chapter)
         assert book.contents[0].name == "Introduction"
 
     def test_book_creation_with_metadata(
@@ -463,9 +464,9 @@ class TestBook:
     def test_book_get_chapter_count_multiple(self, sample_source: Any) -> None:
         """Test get_chapter_count with multiple chapters."""
         chapters = [
-            BookChapter(name="Chapter 1"),
-            BookChapter(name="Chapter 2"),
-            BookChapter(name="Chapter 3"),
+            Chapter(name="Chapter 1"),
+            Chapter(name="Chapter 2"),
+            Chapter(name="Chapter 3"),
         ]
         book: Any = Book(
             name="Multi-Chapter Book", source=sample_source, contents=chapters
@@ -620,7 +621,7 @@ class TestBookIntegration:
 
         # Chapters
         assert len(book.contents) == 3
-        assert all(isinstance(chapter, BookChapter) for chapter in book.contents)
+        assert all(isinstance(chapter, Chapter) for chapter in book.contents)
 
         # First chapter
         intro = book.contents[0]
