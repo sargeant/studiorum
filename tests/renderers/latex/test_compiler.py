@@ -41,7 +41,8 @@ class TestLaTeXCompiler:
 
     def test_compiler_initialization_validation_error(self) -> None:
         """Test compiler initialization with invalid config."""
-        invalid_config: Any = CompilationConfig(max_passes=0)
+        # Use model_construct to bypass Pydantic validation
+        invalid_config: Any = CompilationConfig.model_construct(max_passes=0)
 
         with pytest.raises(ValueError, match="Invalid configuration"):
             LaTeXCompiler(invalid_config)
