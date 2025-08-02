@@ -40,9 +40,9 @@ class ContentReference(BaseModel):
     source: str | None = Field(None, description="Source abbreviation for the content")
     display_text: str | None = Field(None, description="Custom display text override")
     page: str | None = Field(None, description="Page reference if available")
-    resolved_content: Any = Field(
+    resolved_content: BaseContent | None = Field(
         None, description="The actual resolved content object"
-    )  # TODO: Replace with BaseContent | None once migrated
+    )
 
     @field_validator("name")
     @classmethod

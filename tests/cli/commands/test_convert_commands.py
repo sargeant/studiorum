@@ -119,8 +119,15 @@ class TestConvertAdventureCommand:
 
         # Mock resolver
         mock_resolver = Mock()
-        mock_adventure = Mock()
-        mock_adventure.name = "Curse of Strahd"
+
+        # Create a proper Adventure instance instead of Mock
+        from dnd5e.core.models.adventures import Adventure
+        from dnd5e.core.models.content import Source
+
+        mock_adventure = Adventure(
+            name="Curse of Strahd",
+            source=Source(abbreviation="CoS", name="Curse of Strahd"),
+        )
 
         from dnd5e.core.resolvers.content_resolver import (
             ContentResolutionResult,

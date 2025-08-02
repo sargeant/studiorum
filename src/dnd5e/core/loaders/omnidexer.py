@@ -24,9 +24,7 @@ logger = get_logger(__name__)
 class IndexEntry(BaseModel):
     """Represents an indexed content entry with validation."""
 
-    content: Any = Field(
-        description="The content being indexed"
-    )  # TODO: Replace with BaseContent once it's migrated to Pydantic
+    content: BaseContent = Field(description="The content being indexed")
     content_type: ContentType = Field(description="Type of the content")
     hash_id: str = Field(
         min_length=8, max_length=8, description="8-character unique hash identifier"

@@ -26,12 +26,10 @@ class ContentResolutionResult(BaseModel):
     """Result of content resolution attempt with comprehensive validation."""
 
     status: ResolutionStatus = Field(description="Status of the resolution attempt")
-    content: Any = Field(
-        None, description="Resolved content if found"
-    )  # TODO: Replace with BaseContent | None once migrated
-    matches: list[Any] = Field(
+    content: BaseContent | None = Field(None, description="Resolved content if found")
+    matches: list[BaseContent] = Field(
         default_factory=list, description="Multiple matches found"
-    )  # TODO: Replace with list[BaseContent] once migrated
+    )
     suggestions: list[str] = Field(
         default_factory=list, description="Suggested alternatives"
     )
