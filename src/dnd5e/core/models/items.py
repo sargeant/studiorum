@@ -323,7 +323,7 @@ class Item(BaseContent):
             if hasattr(entries, "text") and entries.text:
                 text_parts.append(entries.text)
         elif isinstance(entries, dict):
-            # Handle legacy dict entry types for backward compatibility
+            # Handle structured dict entries (current 5etools format)
             if "entries" in entries:
                 result = self._extract_text_from_entries(entries["entries"])
                 if result:
