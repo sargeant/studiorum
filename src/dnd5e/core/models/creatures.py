@@ -9,14 +9,60 @@ from ..types import (
     ChallengeRatingDict,
     CreatureTypeDict,
     DamageDict,
-    EntryData,
-    SkillValue,
     SpeedDict,
 )
 from .content import BaseContent
 
 if TYPE_CHECKING:
     from ..loaders.omnidexer import Omnidexer
+
+
+class SkillBonus(BaseModel):
+    """Structured skill bonus information."""
+
+    value: str = Field(..., description="Skill bonus value (e.g., '+5')")
+    proficiency: str | None = Field(None, description="Proficiency type")
+    expertise: bool | None = Field(None, description="Expertise applied")
+
+
+class SkillChoiceOptions(BaseModel):
+    """Skill choice selection options."""
+
+    from_: list[str] | None = Field(
+        None, alias="from", description="Skills to choose from"
+    )
+    count: int | None = Field(None, description="Number of skills to choose")
+
+
+class SkillChoice(BaseModel):
+    """Skill choice/selection information."""
+
+    choose: SkillChoiceOptions | None = Field(
+        None, description="Skill choice structure"
+    )
+    proficiency: str | None = Field(None, description="Default proficiency level")
+
+
+class CreatureEntryContent(BaseModel):
+    """Complex creature entry structure with flexible fields."""
+
+    type: str | None = Field(
+        None, description="Entry type (entries, inset, table, etc.)"
+    )
+    name: str | None = Field(None, description="Entry name/title")
+    text: str | None = Field(None, description="Direct text content")
+    entries: list[str | dict[str, Any]] | None = Field(
+        None, description="Nested entry content"
+    )
+    source: str | None = Field(None, description="Source reference")
+    items: list[str | dict[str, Any]] | None = Field(None, description="List items")
+
+    # Allow additional fields for different entry types
+    model_config = {"extra": "allow"}
+
+
+# Union type for flexible creature entry parsing
+CreatureEntry = str | CreatureEntryContent
 
 
 class ArmorClass(BaseModel):
@@ -193,7 +239,7 @@ class Ability(BaseModel):
     """Represents a creature ability (trait, action, etc.)."""
 
     name: str = Field(..., description="Ability name")
-    entries: list[str | EntryData] = Field(..., description="Ability description")
+    entries: list[CreatureEntry] = Field(..., description="Ability description")
 
     def __str__(self) -> str:
         return self.name
@@ -211,8 +257,30 @@ class Ability(BaseModel):
                 result = self._extract_text_from_entries(entry)
                 if result:
                     text_parts.append(result)
+        elif isinstance(entries, CreatureEntryContent):
+            # Handle Pydantic CreatureEntryContent objects
+            if entries.text:
+                text_parts.append(entries.text)
+            if entries.name:
+                text_parts.append(f"**{entries.name}**")
+            if entries.entries:
+                result = self._extract_text_from_entries(entries.entries)
+                if result:
+                    text_parts.append(result)
+            if entries.items:
+                for item in entries.items:
+                    if isinstance(item, str):
+                        text_parts.append(f"• {item}")
+                    elif isinstance(item, dict):
+                        item_text_parts = []
+                        if "name" in item:
+                            item_text_parts.append(f"**{item['name']}**")
+                        if "text" in item:
+                            item_text_parts.append(item["text"])
+                        if item_text_parts:
+                            text_parts.append(f"• {' '.join(item_text_parts)}")
         elif isinstance(entries, dict):
-            # Handle different entry types
+            # Handle legacy dict entry types for backward compatibility
             if "entries" in entries:
                 result = self._extract_text_from_entries(entries["entries"])
                 if result:
@@ -265,7 +333,9 @@ class Creature(BaseContent):
 
     # Optional attributes
     save: dict[str, str] | None = Field(None, description="Saving throw bonuses")
-    skill: dict[str, str | SkillValue] | None = Field(None, description="Skill bonuses")
+    skill: dict[str, str | SkillBonus | list[Any]] | None = Field(
+        None, description="Skill bonuses"
+    )
     senses: list[str] | None = Field(None, description="Special senses")
     passive: int | str | None = Field(None, description="Passive perception")
     languages: list[str] | None = Field(None, description="Known languages")
@@ -356,6 +426,34 @@ class Creature(BaseContent):
                     result.append(item)
             return result
         return v
+
+    @field_validator("skill", mode="before")
+    @classmethod
+    def parse_skill(cls, v: Any) -> dict[str, str | SkillBonus | list[Any]] | None:
+        """Parse skill field, converting structured dicts to SkillBonus models."""
+        if v is None:
+            return None
+        if isinstance(v, dict):
+            result: dict[str, str | SkillBonus | list[Any]] = {}
+            for skill_name, skill_value in v.items():
+                if isinstance(skill_value, dict):
+                    # Convert structured skill dict to SkillBonus
+                    result[skill_name] = SkillBonus.model_validate(skill_value)
+                elif isinstance(skill_value, list):
+                    # Keep complex list structures as-is (e.g., choice structures)
+                    result[skill_name] = skill_value
+                elif isinstance(skill_value, str):
+                    # Keep simple string values as-is
+                    result[skill_name] = skill_value
+                else:
+                    # Fallback for unexpected types - convert to string
+                    result[skill_name] = str(skill_value)
+            return result
+        # If not dict or None, we should validate this is the expected type
+        if isinstance(v, dict):  # This is redundant but helps type checker
+            return v
+        # For any other type, let Pydantic handle the validation error
+        raise ValueError(f"Expected dict or None for skill field, got {type(v)}")
 
     def get_ability_modifier(self, ability_score: int) -> int:
         """Calculate ability modifier from score."""

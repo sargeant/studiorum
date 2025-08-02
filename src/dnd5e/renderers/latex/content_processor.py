@@ -192,7 +192,7 @@ class SpellProcessor(ContentProcessor):
         if not hasattr(spell, "classes") or not spell.classes:
             return []
 
-        class_names = []
+        class_names: list[str] = []
         classes_data = spell.classes
 
         if isinstance(classes_data, dict):

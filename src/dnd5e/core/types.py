@@ -85,8 +85,10 @@ class EntryData(TypedDict, total=False):
 
     type: str
     name: str
+    text: str
     entries: list[str | dict[str, Any]]
     source: str
+    items: list[str | dict[str, Any]]
 
 
 class SourceData(TypedDict, total=False):
