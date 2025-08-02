@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from pydantic import BaseModel
+
 from dnd5e.core.logging import get_logger
 from dnd5e.core.types import LaTeXConfig, MetadataDict
 
@@ -12,6 +14,7 @@ from ...core.indexer.hyperlink_manager import HyperlinkManager
 from ...core.indexer.latex_content_tracker import LaTeXContentTracker
 from ...core.indexer.latex_tag_handlers import get_latex_enhanced_handlers
 from ...core.indexer.latex_tag_renderer import LaTeXTagRenderer
+from ...core.indexer.tag_parser import TagParser
 from ...core.indexer.tag_resolver import TagResolver
 
 logger = get_logger(__name__)
@@ -219,15 +222,21 @@ class LaTeXTagResolver(TagResolver):
     def __init__(
         self, latex_renderer: LaTeXTagRenderer, omnidexer: Omnidexer | None = None
     ):
-        # Don't call super().__init__ to avoid creating a separate renderer
-        self.omnidexer = omnidexer
-        self.renderer = latex_renderer
-        self.parser: Any = (
-            latex_renderer.parser if hasattr(latex_renderer, "parser") else None
+        # Get parser from latex_renderer if it has one, otherwise create default
+        parser = TagParser()  # Default parser
+        if hasattr(latex_renderer, "parser") and latex_renderer.parser is not None:
+            parser = latex_renderer.parser
+
+        # Call parent constructor but override renderer creation
+        # We need to bypass the normal TagResolver.__init__ renderer creation
+        BaseModel.__init__(
+            self,
+            omnidexer=omnidexer,
+            renderer=latex_renderer,  # Use the provided LaTeX renderer
+            parser=parser,
         )
 
-        # For backward compatibility
-        self._custom_handlers: dict[str, Any] = {}
+        # Additional initialization for LaTeX-specific functionality
 
     def get_latex_content_tracker(self) -> LaTeXContentTracker:
         """Get the LaTeX-enhanced content tracker."""
