@@ -4,7 +4,7 @@ import logging
 from collections.abc import Iterator
 from typing import Any, Union
 
-from ..entry_registry import ValidationMode, get_registry, validate_entry_type
+from ..entry_registry import ValidationMode, get_registry
 from ..exceptions import EntryProcessingError
 from ..models.content import Source
 from ..models.nested_content import (

@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-from ...core.entry_registry import ValidationMode, get_registry, validate_entry_type
+from ...core.entry_registry import ValidationMode, get_registry
 from ...core.exceptions import EntryProcessingError
 from ...core.types import EntryData, ProcessingContext
 from ..base import RenderContext

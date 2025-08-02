@@ -1014,7 +1014,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             for entry in entries:
                 text_parts.extend(self._extract_text_from_entries(entry))
         elif isinstance(entries, dict):
-            # Handle different entry types
+            # Handle structured dict entries (current 5etools format)
             if "entries" in entries:
                 text_parts.extend(self._extract_text_from_entries(entries["entries"]))
             elif "text" in entries:

@@ -11,8 +11,6 @@ from dnd5e.core.entry_registry import (
     ValidationMode,
     get_registry,
     set_validation_mode,
-    validate_entry_structure,
-    validate_entry_type,
 )
 from dnd5e.core.exceptions import (
     EntryProcessingWarning,
@@ -352,28 +350,3 @@ class TestGlobalRegistry:
         finally:
             # Restore original mode
             set_validation_mode(original_mode)
-
-    def test_validate_entry_type_global(self):
-        """Test global validate_entry_type function."""
-        original_mode = get_registry().validation_mode
-
-        try:
-            set_validation_mode(ValidationMode.PERMISSIVE)
-
-            # Should use global registry
-            with pytest.warns(EntryProcessingWarning):
-                validate_entry_type("unknownGlobalType")
-
-            assert "unknownGlobalType" in get_registry().unknown_types
-        finally:
-            set_validation_mode(original_mode)
-            get_registry().reset_statistics()
-
-    def test_validate_entry_structure_global(self):
-        """Test global validate_entry_structure function."""
-        result = validate_entry_structure("test string")
-        assert result == {"type": "text", "content": "test string"}
-
-        entry = {"type": "test"}
-        result = validate_entry_structure(entry)
-        assert result == entry
