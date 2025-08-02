@@ -337,8 +337,8 @@ class TestContentResolutionResult:
         )
         assert result.query == long_query
 
-        # Very long suggestions
-        long_suggestions = ["suggestion_" + "a" * 100 for _ in range(50)]
+        # Very long suggestions - make them unique to avoid deduplication
+        long_suggestions = [f"suggestion_{i}_" + "a" * 100 for i in range(50)]
         result = ContentResolutionResult(
             status=ResolutionStatus.NO_MATCH, suggestions=long_suggestions
         )
@@ -467,8 +467,8 @@ class TestContentResolutionResult:
         # Convert to dict (simulating serialization)
         result_dict = original.model_dump()
 
-        # Verify dict structure
-        assert result_dict["status"] == "exact_match"
+        # Verify dict structure - status should be the enum object
+        assert result_dict["status"] == ResolutionStatus.EXACT_MATCH
         assert result_dict["query"] == "cos"
         assert result_dict["suggestions"] == ["cos", "lmop"]
         # Note: content and matches contain complex objects, so we don't deeply validate here

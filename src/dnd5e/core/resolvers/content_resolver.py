@@ -5,7 +5,7 @@ import logging
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from dnd5e.core.loaders.content_merger import ContentMerger
 from dnd5e.core.models.content import BaseContent, ContentType
@@ -55,14 +55,6 @@ class ContentResolutionResult(BaseModel):
                 cleaned.append(cleaned_suggestion)
         return cleaned
 
-    @field_validator("status")
-    @classmethod
-    def validate_status_consistency(cls, v: ResolutionStatus) -> ResolutionStatus:
-        """Validate status value."""
-        if not isinstance(v, ResolutionStatus):
-            raise ValueError(f"Status must be a ResolutionStatus enum, got {type(v)}")
-        return v
-
     @property
     def is_success(self) -> bool:
         """Check if resolution was successful."""
@@ -78,9 +70,10 @@ class ContentResolutionResult(BaseModel):
         """Check if suggestions are available."""
         return bool(self.suggestions and len(self.suggestions) > 0)
 
-    class Config:
+    model_config = ConfigDict(
         # Allow content objects (they should be Pydantic models too)
-        arbitrary_types_allowed = True
+        arbitrary_types_allowed=True
+    )
 
 
 class ContentResolver:

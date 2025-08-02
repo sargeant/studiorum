@@ -125,4 +125,9 @@ implementation/index
 api/index
 ```
 
-For detailed information on any of these topics, explore the sections below.
+```{toctree}
+:maxdepth: 2
+:caption: Examples
+
+examples/index
+```

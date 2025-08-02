@@ -5,6 +5,24 @@ description: Convert D&D 5e JSON data from 5e.tools to beautifully formatted LaT
 
 # 5e2pdf
 
+```{toctree}
+:hidden:
+:caption: For Users
+
+quickstart
+user-guide/index
+```
+
+```{toctree}
+:hidden:
+:caption: For Developers
+:max_depth: 2
+
+developer/index
+developer/contributing
+api/index
+```
+
 ```{rst-class} lead
 Convert D&D 5e JSON data from [5e.tools](https://5e.tools) to beautifully formatted LaTeX/PDF documents.
 ```
@@ -131,24 +149,6 @@ Comprehensive API documentation and references
 Practical examples and tutorials to get you started
 ```
 ````
-
-```{toctree}
-:hidden:
-:caption: For Users
-
-quickstart
-user-guide/index
-```
-
-```{toctree}
-:hidden:
-:caption: For Developers
-
-developer/index
-developer/contributing
-examples/index
-api/index
-```
 
 ---
 

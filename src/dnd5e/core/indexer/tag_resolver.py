@@ -3,7 +3,7 @@
 from collections.abc import Callable
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from dnd5e.core.logging import get_logger
 
@@ -33,8 +33,7 @@ class TagResolver(BaseModel):
         # Call parent constructor with computed fields
         super().__init__(omnidexer=omnidexer, renderer=renderer, **data)
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def process_text(self, text: str) -> str:
         """Process text with tags and return rendered output.
