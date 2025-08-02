@@ -6,7 +6,15 @@ from typing import Any
 
 import pytest
 
+from dnd5e.core.config.sources import (  # type: ignore
+    ContentConfiguration,
+    ContentSource,
+    SourceType,
+)
 from dnd5e.core.indexer.tag_resolver import TagResolver  # type: ignore
+from dnd5e.core.loaders.configurable_source_manager import (
+    ConfigurableSourceManager,  # type: ignore
+)
 from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
 from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
 from dnd5e.core.models.creatures import Creature  # type: ignore
@@ -211,3 +219,38 @@ async def tag_resolver(loaded_omnidexer: Omnidexer) -> TagResolver:
 async def session_tag_resolver(session_loaded_omnidexer: Omnidexer) -> TagResolver:
     """Create a session-scoped tag resolver with loaded data for performance optimization."""
     return TagResolver(session_loaded_omnidexer)
+
+
+@pytest.fixture
+async def test_data_omnidexer() -> Omnidexer:
+    """Omnidexer using test-data and srd-data sources."""
+    # Use the ConfigurableSourceManager which automatically includes test-data
+    source_manager = ConfigurableSourceManager()
+    await source_manager.ensure_sources_ready()
+
+    omnidexer = Omnidexer(source_manager)
+    await omnidexer.load_all_data()
+    return omnidexer
+
+
+@pytest.fixture
+def content_availability(test_data_omnidexer: Omnidexer) -> dict[str, bool]:
+    """Check what content types are available for testing."""
+    return {
+        "adventures": len(test_data_omnidexer.get_all_by_type("adventure")) > 0,
+        "books": len(test_data_omnidexer.get_all_by_type("book")) > 0,
+        "vehicles": len(test_data_omnidexer.get_all_by_type("vehicle")) > 0,
+        "spells": len(test_data_omnidexer.get_all_by_type("spell")) > 0,
+        "creatures": len(test_data_omnidexer.get_all_by_type("monster")) > 0,
+        "items": len(test_data_omnidexer.get_all_by_type("item")) > 0,
+        "classes": len(test_data_omnidexer.get_all_by_type("class")) > 0,
+        "backgrounds": len(test_data_omnidexer.get_all_by_type("background")) > 0,
+        "races": len(test_data_omnidexer.get_all_by_type("race")) > 0,
+        "feats": len(test_data_omnidexer.get_all_by_type("feat")) > 0,
+    }
+
+
+@pytest.fixture
+async def test_data_tag_resolver(test_data_omnidexer: Omnidexer) -> TagResolver:
+    """Create a tag resolver using test-data sources."""
+    return TagResolver(test_data_omnidexer)

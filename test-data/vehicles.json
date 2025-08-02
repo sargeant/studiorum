@@ -1,0 +1,26 @@
+{
+  "vehicle": [
+    {
+      "name": "Test Sailing Ship",
+      "source": "TEST",
+      "vehicleType": "SHIP",
+      "size": ["G"],
+      "dimensions": ["70 ft.", "20 ft."],
+      "weight": 150000,
+      "cost": 10000,
+      "ac": [15],
+      "hp": 300,
+      "speed": 25,
+      "carryingCapacity": 150000,
+      "crew": 3,
+      "passenger": 20,
+      "vehAc": [{"ac": 19, "from": ["wood"]}],
+      "vehHp": [{"hp": 300, "dt": 15}],
+      "vehSpeed": [{"mode": "sail", "speed": 25}],
+      "entries": [
+        "A standard sailing vessel used for testing vehicle mechanics.",
+        "The ship has a single mast and can carry a small crew."
+      ]
+    }
+  ]
+}

@@ -49,7 +49,7 @@ class TestContentLoadingPerformance:
 
         # Test adventure resolution performance
         start_time = time.time()
-        adventure = resolver.resolve_adventure("cos")
+        adventure = resolver.resolve_adventure("TEST")
         end_time = time.time()
 
         adventure_time = end_time - start_time
@@ -61,7 +61,7 @@ class TestContentLoadingPerformance:
 
         # Test book resolution performance
         start_time = time.time()
-        book = resolver.resolve_book("phb")
+        book = resolver.resolve_book("TEST")
         end_time = time.time()
 
         book_time = end_time - start_time
@@ -79,12 +79,12 @@ class TestContentLoadingPerformance:
 
         # First resolution (cache miss)
         start_time = time.time()
-        result1 = resolver.resolve_adventure("cos")
+        result1 = resolver.resolve_adventure("TEST")
         first_time = time.time() - start_time
 
         # Second resolution (cache hit)
         start_time = time.time()
-        result2 = resolver.resolve_adventure("cos")
+        result2 = resolver.resolve_adventure("TEST")
         second_time = time.time() - start_time
 
         assert result1 is not None and result2 is not None, (

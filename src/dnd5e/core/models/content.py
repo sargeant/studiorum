@@ -21,6 +21,7 @@ class ContentType(str, Enum):
     BACKGROUND = "background"
     FEAT = "feat"
     RACE = "race"
+    VEHICLE = "vehicle"
     SUPPLEMENT = "supplement"
     SPELL_FLUFF = "spellFluff"
     CREATURE_FLUFF = "creatureFluff"

@@ -1,0 +1,21 @@
+{
+  "encounter": [
+    {
+      "name": "Test Encounter",
+      "source": "TEST",
+      "type": "combat",
+      "cr": "1/2",
+      "creatures": [
+        {
+          "name": "Test Goblin",
+          "count": 2
+        }
+      ],
+      "environment": "dungeon",
+      "entries": [
+        "A simple encounter designed for testing combat mechanics.",
+        "Two goblins guard a narrow corridor in an ancient dungeon."
+      ]
+    }
+  ]
+}

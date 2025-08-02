@@ -1,0 +1,14 @@
+{
+  "reward": [
+    {
+      "name": "Test Achievement",
+      "source": "TEST",
+      "type": "supernatural gift",
+      "rarity": "rare",
+      "entries": [
+        "Granted for successfully completing all test cases.",
+        "You gain inspiration and feel a sense of accomplishment."
+      ]
+    }
+  ]
+}

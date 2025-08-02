@@ -1,0 +1,110 @@
+{
+  "data": [
+    {
+      "type": "section",
+      "name": "Chapter 1: Test Rules",
+      "id": "000",
+      "entries": [
+        "This chapter introduces test mechanics for validation and LaTeX generation testing.",
+        "These rules are designed to exercise various rendering features without using copyrighted content.",
+        {
+          "type": "entries",
+          "name": "New Mechanics",
+          "entries": [
+            "This section covers the basic test mechanics that form the foundation of the testing system.",
+            {
+              "type": "entries",
+              "name": "Core Test Rules",
+              "entries": [
+                "Roll 1d20 for most test actions.",
+                "Higher rolls are generally better for test outcomes.",
+                "Critical failures occur on a roll of 1, critical successes on 20."
+              ]
+            },
+            {
+              "type": "table",
+              "caption": "Test Result Outcomes",
+              "colLabels": ["d20 Roll", "Result Category", "Effect Description"],
+              "rows": [
+                ["1", "Critical Failure", "Something breaks spectacularly"],
+                ["2-5", "Failure", "The test does not succeed"],
+                ["6-15", "Normal Result", "Things work as expected"],
+                ["16-19", "Success", "The test succeeds admirably"],
+                ["20", "Critical Success", "Extra benefits occur beyond expectations"]
+              ]
+            },
+            {
+              "type": "inset",
+              "name": "Test Design Philosophy",
+              "entries": [
+                "When designing tests, consider both positive and negative cases.",
+                "Edge cases often reveal the most interesting bugs.",
+                "Always validate your assumptions with actual data."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "entries",
+          "name": "Advanced Testing Concepts",
+          "entries": [
+            "This section covers more complex testing scenarios that might be encountered in real-world applications.",
+            {
+              "type": "entries",
+              "name": "Integration Testing",
+              "entries": [
+                "Integration tests verify that multiple components work together correctly.",
+                "They are essential for catching issues that unit tests might miss.",
+                "However, they can be more complex to set up and maintain."
+              ]
+            },
+            {
+              "type": "list",
+              "items": [
+                "Test data should be realistic but not copyrighted",
+                "Edge cases are particularly important to test",
+                "Performance testing helps ensure scalability",
+                "Documentation testing ensures examples work"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "name": "Chapter 2: Implementation Guidelines",
+      "id": "001",
+      "entries": [
+        "Following established patterns makes code more maintainable and easier to understand.",
+        {
+          "type": "entries",
+          "name": "Best Practices",
+          "entries": [
+            "This section outlines best practices for writing maintainable and effective test code.",
+            {
+              "type": "entries",
+              "name": "Code Quality",
+              "entries": [
+                "Write clear, self-documenting code whenever possible.",
+                "Use meaningful variable and function names.",
+                "Keep functions focused on a single responsibility.",
+                "Add comments for complex logic, but prefer clear code over comments."
+              ]
+            },
+            {
+              "type": "table",
+              "caption": "Testing Pyramid Levels",
+              "colLabels": ["Test Type", "Quantity", "Speed", "Purpose"],
+              "rows": [
+                ["Unit Tests", "Many", "Fast", "Test individual components"],
+                ["Integration Tests", "Some", "Medium", "Test component interactions"],
+                ["End-to-End Tests", "Few", "Slow", "Test complete user flows"]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

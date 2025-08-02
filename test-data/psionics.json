@@ -1,0 +1,14 @@
+{
+  "psionic": [
+    {
+      "name": "Test Telepathy",
+      "source": "TEST",
+      "type": "talent",
+      "order": "telepathy",
+      "entries": [
+        "You can communicate telepathically with willing creatures you can see.",
+        "This is a basic telepathic ability for testing purposes."
+      ]
+    }
+  ]
+}

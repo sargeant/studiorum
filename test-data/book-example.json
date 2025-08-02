@@ -1,0 +1,44 @@
+{
+  "book": [
+    {
+      "name": "Test Sourcebook",
+      "id": "test-book",
+      "source": "TEST",
+      "group": "homebrew",
+      "published": "2024-01-01",
+      "contents": [
+        {
+          "name": "Chapter 1: Test Rules",
+          "ordinal": {"type": "chapter", "identifier": 1},
+          "entries": [
+            {
+              "type": "section",
+              "name": "New Mechanics",
+              "entries": [
+                "This chapter introduces test mechanics for validation.",
+                {
+                  "type": "entries",
+                  "name": "Core Rules",
+                  "entries": [
+                    "Roll 1d20 for most actions.",
+                    "Higher rolls are generally better."
+                  ]
+                },
+                {
+                  "type": "table",
+                  "caption": "Test Results",
+                  "colLabels": ["Roll", "Result", "Effect"],
+                  "rows": [
+                    ["1-5", "Critical Failure", "Something breaks"],
+                    ["6-15", "Normal Result", "Things work as expected"],
+                    ["16-20", "Critical Success", "Extra benefits occur"]
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

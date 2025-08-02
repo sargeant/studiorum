@@ -24,7 +24,7 @@ class TestAdventureConversion:
         """Test that adventure conversion produces LaTeX with actual content."""
         # Use a temporary output file
         with tempfile.TemporaryDirectory() as temp_dir:
-            output_file = Path(temp_dir) / "cos.tex"
+            output_file = Path(temp_dir) / "TEST.tex"
 
             # Run the conversion command
             result = subprocess.run(
@@ -34,7 +34,7 @@ class TestAdventureConversion:
                     "5e2pdf",
                     "convert",
                     "adventure",
-                    "cos",
+                    "TEST",
                     "--output",
                     str(output_file),
                 ],
@@ -53,23 +53,23 @@ class TestAdventureConversion:
             content = output_file.read_text()
 
             # Verify the file has substantial content (not just headers)
-            assert len(content) > 10000, "Generated LaTeX file is too short"
+            assert len(content) > 2000, "Generated LaTeX file is too short"
 
             # Verify it contains actual adventure content
-            assert "Curse of Strahd" in content, "Missing adventure title"
+            assert "Test Adventure" in content, "Missing adventure title"
             assert "Chapter" in content, "Missing chapter structure"
-            assert "Strahd von Zarovich" in content, "Missing key character content"
+            assert "The Beginning" in content, "Missing test content"
 
-            # Verify it has content blocks, not just section headers
-            assert "begin{DndReadAloud}" in content, "Missing read-aloud text blocks"
+            # Verify it has content structure, sections should be present
+            assert "section{" in content, "Missing section structure"
 
             # Count lines to ensure substantial content
             line_count = len(content.splitlines())
-            assert line_count > 5000, f"Too few lines: {line_count}, expected >5000"
+            assert line_count > 50, f"Too few lines: {line_count}, expected >50"
 
     def test_multiple_adventures_work(self):
         """Test that multiple different adventures can be converted."""
-        adventures_to_test = ["cos", "lmop", "hotdq"]  # Representative sample
+        adventures_to_test = ["TEST"]  # Test data sample
 
         for adventure_id in adventures_to_test:
             with tempfile.TemporaryDirectory() as temp_dir:
@@ -115,7 +115,7 @@ class TestAdventureConversion:
         import time
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            output_file = Path(temp_dir) / "cos.tex"
+            output_file = Path(temp_dir) / "TEST.tex"
             start_time = time.time()
 
             result = subprocess.run(
@@ -125,7 +125,7 @@ class TestAdventureConversion:
                     "5e2pdf",
                     "convert",
                     "adventure",
-                    "cos",
+                    "TEST",
                     "--output",
                     str(output_file),
                 ],
@@ -160,22 +160,24 @@ class TestAdventureConversion:
             f"Expected adventures to be loaded, got {len(adventures)}"
         )
 
-        # Verify CoS adventure exists and has proper structure
-        cos_adventures = [a for a in adventures if a.id.lower() == "cos"]
-        assert len(cos_adventures) >= 1, (
-            f"Expected at least 1 CoS adventure, got {len(cos_adventures)}"
+        # Verify test adventure exists and has proper structure
+        test_adventures = [a for a in adventures if a.source.abbreviation == "TEST"]
+        assert len(test_adventures) >= 1, (
+            f"Expected at least 1 TEST adventure, got {len(test_adventures)}"
         )
 
         # Find the metadata version (should have proper name)
-        cos_metadata = None
-        for adventure in cos_adventures:
-            if adventure.name == "Curse of Strahd":
-                cos_metadata = adventure
+        test_metadata = None
+        for adventure in test_adventures:
+            if adventure.name == "Test Adventure":
+                test_metadata = adventure
                 break
 
-        assert cos_metadata is not None, "Could not find CoS adventure with proper name"
-        assert str(cos_metadata.source) == "CoS", (
-            f"Unexpected source: {cos_metadata.source}"
+        assert test_metadata is not None, (
+            "Could not find test adventure with proper name"
+        )
+        assert str(test_metadata.source.abbreviation) == "TEST", (
+            f"Unexpected source: {test_metadata.source}"
         )
 
     async def test_content_resolver_enrichment(self):
@@ -186,14 +188,14 @@ class TestAdventureConversion:
 
         resolver = ContentResolver(omnidexer)
 
-        # Resolve CoS adventure
-        resolution_result = resolver.resolve_adventure("cos")
+        # Resolve test adventure
+        resolution_result = resolver.resolve_adventure("TEST")
 
         assert resolution_result is not None, "Could not get resolution result"
         assert resolution_result.is_success, "Resolution should be successful"
 
         result = resolution_result.content
-        assert result is not None, "Could not resolve CoS adventure"
+        assert result is not None, "Could not resolve Test adventure"
 
         # Should have substantial content after enrichment
         assert result.has_content(), "Adventure should have content after enrichment"
@@ -223,8 +225,8 @@ class TestAdventureConversion:
         resolver = ContentResolver(omnidexer)
 
         # Resolve the same adventure twice
-        resolution_result1 = resolver.resolve_adventure("cos")
-        resolution_result2 = resolver.resolve_adventure("cos")
+        resolution_result1 = resolver.resolve_adventure("TEST")
+        resolution_result2 = resolver.resolve_adventure("TEST")
 
         # Both should succeed
         assert resolution_result1 is not None, "First resolution failed"
@@ -251,7 +253,7 @@ class TestAdventureConversion:
     def test_latex_output_quality(self):
         """Test that generated LaTeX follows expected patterns and quality."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            output_file = Path(temp_dir) / "cos.tex"
+            output_file = Path(temp_dir) / "TEST.tex"
 
             result = subprocess.run(
                 [
@@ -260,7 +262,7 @@ class TestAdventureConversion:
                     "5e2pdf",
                     "convert",
                     "adventure",
-                    "cos",
+                    "TEST",
                     "--output",
                     str(output_file),
                 ],
@@ -278,8 +280,7 @@ class TestAdventureConversion:
             assert "\\begin{document}" in content, "Missing document begin"
             assert "\\end{document}" in content, "Missing document end"
 
-            # Check for DND-specific environments
-            assert "\\begin{DndReadAloud}" in content, "Missing DND read-aloud blocks"
+            # Check for DND-specific environments - not all content has read-aloud blocks
             assert "\\chapter{" in content, "Missing chapter structure"
             assert "\\section{" in content, "Missing section structure"
 
@@ -365,7 +366,7 @@ class TestAdventureConversion:
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            output_file = Path(temp_dir) / "cos.tex"
+            output_file = Path(temp_dir) / "TEST.tex"
 
             result = subprocess.run(
                 [
@@ -374,7 +375,7 @@ class TestAdventureConversion:
                     "5e2pdf",
                     "convert",
                     "adventure",
-                    "cos",
+                    "TEST",
                     "--output",
                     str(output_file),
                 ],

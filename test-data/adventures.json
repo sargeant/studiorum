@@ -1,0 +1,27 @@
+{
+  "adventure": [
+    {
+      "name": "Test Adventure",
+      "id": "test-adventure",
+      "source": "TEST",
+      "group": "homebrew",
+      "published": "2024-01-01",
+      "storyline": "Test Campaign",
+      "level": {"start": 1, "end": 5},
+      "contents": [
+        {
+          "name": "Chapter 1: The Beginning",
+          "ordinal": {"type": "chapter", "identifier": 1},
+          "headers": ["The Village", "The Quest", "The Journey"],
+          "entries": []
+        },
+        {
+          "name": "Chapter 2: The Repository",
+          "ordinal": {"type": "chapter", "identifier": 2},
+          "headers": ["Approaching the Repository", "Interior Chambers", "The Core"],
+          "entries": []
+        }
+      ]
+    }
+  ]
+}

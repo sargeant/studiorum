@@ -1,0 +1,73 @@
+{
+  "data": [
+    {
+      "type": "section",
+      "name": "Chapter 1: The Beginning",
+      "id": "000",
+      "entries": [
+        "The party finds themselves in a small village plagued by mysterious events.",
+        "Local villagers speak of strange lights emanating from an ancient repository.",
+        {
+          "type": "entries",
+          "name": "The Village",
+          "entries": [
+            "A quiet farming community with a dark secret.",
+            "The village of Testbrook sits nestled in a peaceful valley, surrounded by rolling hills and ancient oak trees.",
+            "This small settlement serves as the starting point for many testing adventures, providing a safe haven for adventurers."
+          ]
+        },
+        {
+          "type": "table",
+          "caption": "Notable Village NPCs",
+          "colLabels": ["Name", "Role", "Personality"],
+          "rows": [
+            ["Tessa Testkeeper", "Tavern Owner", "Friendly and welcoming to all travelers"],
+            ["Bob Builder", "Village Carpenter", "Methodical and precise in his work"],
+            ["Sage Validator", "Village Elder", "Wise and thorough in decision-making"],
+            ["Quinn Query", "Merchant", "Always asking questions about new goods"]
+          ]
+        },
+        {
+          "type": "insetReadaloud",
+          "entries": [
+            "As you approach the village, you notice the carefully maintained buildings and well-tended gardens. The sound of hammering from the carpenter's workshop mingles with laughter from the tavern. This is clearly a place where attention to detail is valued."
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "name": "Chapter 2: The Repository",
+      "id": "001",
+      "entries": [
+        "The ancient repository holds forgotten knowledge and dangerous artifacts.",
+        "Strange magical energies permeate the structure.",
+        {
+          "type": "entries",
+          "name": "Approaching the Repository",
+          "entries": [
+            "The Repository of Bugs appears as a crystalline structure that seems to shift and flicker between different architectural styles.",
+            "Strange energy patterns dance across its surface, and the air around it hums with barely contained power."
+          ]
+        },
+        {
+          "type": "entries",
+          "name": "Interior Chambers",
+          "entries": [
+            "The main entrance displays scrolling text in various programming languages.",
+            "Shimmering energy fields test visitors' knowledge and intent.",
+            "Glowing crystals show the current stability level of the repository."
+          ]
+        },
+        {
+          "type": "entries",
+          "name": "The Core",
+          "entries": [
+            "At the heart of the repository lies the Core, a swirling vortex of pure logic and data.",
+            "This is where the party must restore stability to prevent a catastrophic system failure."
+          ]
+        }
+      ]
+    }
+  ]
+}

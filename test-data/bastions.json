@@ -1,0 +1,16 @@
+{
+  "bastion": [
+    {
+      "name": "Test Stronghold",
+      "source": "TEST",
+      "type": "fortification",
+      "size": "large",
+      "cost": 25000,
+      "facilities": ["barracks", "workshop", "library"],
+      "entries": [
+        "A well-fortified stronghold designed for testing bastion mechanics.",
+        "The stronghold features basic defensive structures and essential facilities."
+      ]
+    }
+  ]
+}

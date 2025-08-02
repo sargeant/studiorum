@@ -1,0 +1,15 @@
+{
+  "magicvariant": [
+    {
+      "name": "Test Variant",
+      "source": "TEST",
+      "baseItem": "longsword",
+      "type": "weapon variant",
+      "rarity": "uncommon",
+      "entries": [
+        "A longsword with minor testing enchantments.",
+        "The blade glows faintly when used in test scenarios."
+      ]
+    }
+  ]
+}

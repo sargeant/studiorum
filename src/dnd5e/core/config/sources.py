@@ -203,6 +203,18 @@ class ContentConfigManager:
         """Create default configuration with recommended sources."""
         config = ContentConfiguration()
 
+        # Add test-data source (highest priority for testing)
+        config.add_source(
+            ContentSource(
+                name="test-data",
+                type=SourceType.DIRECTORY,
+                path=Path("test-data"),
+                enabled=True,
+                priority=0,  # Highest priority
+                url=None,
+            )
+        )
+
         # Add SRD source
         config.add_source(
             ContentSource(

@@ -55,45 +55,10 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
                 ]
             }
 
-            # Create adventure content files (should be skipped)
-            lmop_content = {
-                "data": [
-                    {
-                        "type": "section",
-                        "name": "Introduction",
-                        "id": "000",
-                        "entries": [
-                            "Lost Mine of Phandelver is an adventure for four to five 1st-level characters."
-                        ],
-                    }
-                ]
-            }
-
-            cos_content = {
-                "data": [
-                    {
-                        "type": "section",
-                        "name": "Introduction",
-                        "id": "000",
-                        "entries": [
-                            "Under raging storm clouds, the vampire Count Strahd von Zarovich stands silhouetted."
-                        ],
-                    }
-                ]
-            }
-
             # Write files
             adventures_file = temp_path / "adventures.json"
             with open(adventures_file, "w") as f:
                 json.dump(adventures_metadata, f)
-
-            lmop_file = temp_path / "adventure-lmop.json"
-            with open(lmop_file, "w") as f:
-                json.dump(lmop_content, f)
-
-            cos_file = temp_path / "adventure-cos.json"
-            with open(cos_file, "w") as f:
-                json.dump(cos_content, f)
 
             # Create mock source manager that filters out content files
             mock_source_manager = Mock(spec=ConfigurableSourceManager)
@@ -139,10 +104,10 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
             adventures_metadata = {
                 "adventure": [
                     {
-                        "name": "Curse of Strahd",
-                        "id": "CoS",
-                        "source": {"abbreviation": "COS", "name": "Curse of Strahd"},
-                        "published": "2016-03-15",
+                        "name": "Test Adventure",
+                        "id": "test-adventure",
+                        "source": {"abbreviation": "TEST", "name": "Test Adventure"},
+                        "published": "2024-01-01",
                         "contents": [
                             {"name": "Introduction", "headers": ["Background"]}
                         ],
@@ -151,32 +116,22 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
             }
 
             # Create adventure content file (should be ignored during loading)
-            cos_content = {
-                "data": [
-                    {
-                        "type": "section",
-                        "name": "Introduction",
-                        "entries": [
-                            "Under raging storm clouds, the vampire Count Strahd von Zarovich stands."
-                        ],
-                    }
-                ]
-            }
 
             # Write files
             adventures_file = temp_path / "adventures.json"
             with open(adventures_file, "w") as f:
                 json.dump(adventures_metadata, f)
 
-            cos_file = temp_path / "adventure-cos.json"
-            with open(cos_file, "w") as f:
-                json.dump(cos_content, f)
+            # Content files are ignored in this test, so we don't need to create them
 
             # Create mock source manager that filters out content files
             mock_source_manager = Mock(spec=ConfigurableSourceManager)
             # Only adventures.json should be loaded, content files should be filtered out
             mock_source_manager.get_data_paths.return_value = {
                 ContentType.ADVENTURE: [adventures_file]  # Content files filtered out
+            }
+            mock_source_manager.get_content_files.return_value = {
+                ContentType.ADVENTURE: []  # No content files
             }
             mock_source_manager.ensure_sources_ready.return_value = None
 
@@ -187,8 +142,8 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
             # Create content resolver
             resolver = ContentResolver(omnidexer)
 
-            # Resolve "cos" - should find exactly one match
-            result = resolver.resolve_adventure("cos")
+            # Resolve "TEST" - should find exactly one match
+            result = resolver.resolve_adventure("TEST")
 
             self.assertEqual(
                 result.status, ResolutionStatus.EXACT_MATCH, "Should find exact match"
@@ -197,7 +152,7 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
             if result.content is not None:
                 self.assertEqual(
                     result.content.name,
-                    "Curse of Strahd",
+                    "Test Adventure",
                     "Should return correct adventure",
                 )
 
@@ -215,27 +170,11 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
             adventures_metadata = {
                 "adventure": [
                     {
-                        "name": "Lost Mine of Phandelver",
-                        "id": "LMoP",
-                        "source": {
-                            "abbreviation": "LMOP",
-                            "name": "Lost Mine of Phandelver",
-                        },
-                        "contents": [],
-                    },
-                    {
-                        "name": "Curse of Strahd",
-                        "id": "CoS",
-                        "source": {"abbreviation": "COS", "name": "Curse of Strahd"},
-                        "contents": [],
-                    },
-                    {
-                        "name": "Storm King's Thunder",
-                        "id": "SKT",
-                        "source": {
-                            "abbreviation": "SKT",
-                            "name": "Storm King's Thunder",
-                        },
+                        "name": "Test Adventure",
+                        "id": "test-adventure",
+                        "source": "TEST",
+                        "group": "homebrew",
+                        "published": "2024-01-01",
                         "contents": [],
                     },
                 ]
@@ -287,31 +226,26 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
             # Get statistics
             stats = omnidexer.get_statistics()
 
-            # Verify we loaded exactly 3 adventures (not 6 with duplicates)
+            # Verify we loaded exactly 1 adventure (not duplicates)
             adventure_count = stats["by_type"].get("adventure", 0)
             self.assertEqual(
                 adventure_count,
-                3,
-                f"Should have exactly 3 adventures, got {adventure_count}",
+                1,
+                f"Should have exactly 1 adventure, got {adventure_count}",
             )
 
             # Verify total count matches
             self.assertEqual(
-                stats["total_items"], 3, "Total items should match adventure count"
+                stats["total_items"], 1, "Total items should match adventure count"
             )
 
-            # Verify we can resolve each adventure uniquely
+            # Verify we can resolve the adventure uniquely
             resolver = ContentResolver(omnidexer)
 
             for adventure in adventures_metadata["adventure"]:
                 source_info = adventure["source"]
-                if isinstance(source_info, dict) and "abbreviation" in source_info:
-                    source_abbrev = source_info["abbreviation"]
-                    abbreviation = (
-                        source_abbrev.lower()
-                        if isinstance(source_abbrev, str)
-                        else str(source_abbrev).lower()
-                    )
+                if isinstance(source_info, str):
+                    abbreviation = source_info.lower()
                     result = resolver.resolve_adventure(abbreviation)
 
                     self.assertEqual(

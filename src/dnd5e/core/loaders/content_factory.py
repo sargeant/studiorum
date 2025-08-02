@@ -35,6 +35,7 @@ class ContentFactory:
         from ..models.items import Item
         from ..models.races import Race
         from ..models.spells import Spell
+        from ..models.vehicles import Vehicle
 
         # Build class map
         self._class_map = {
@@ -47,6 +48,7 @@ class ContentFactory:
             ContentType.ITEM: Item,
             ContentType.RACE: Race,
             ContentType.SPELL: Spell,
+            ContentType.VEHICLE: Vehicle,
             ContentType.CREATURE_FLUFF: CreatureFluff,
             ContentType.ITEM_FLUFF: ItemFluff,
             ContentType.SPELL_FLUFF: SpellFluff,

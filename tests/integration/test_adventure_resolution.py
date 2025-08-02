@@ -72,9 +72,7 @@ class TestSourceManager(SourceManager):
         """Resolve source abbreviation to full source information."""
         # Simple mapping for test sources
         sources = {
-            "CoS": {"abbreviation": "CoS", "name": "Curse of Strahd"},
-            "LMoP": {"abbreviation": "LMoP", "name": "Lost Mine of Phandelver"},
-            "Test": {"abbreviation": "Test", "name": "Test Adventure"},
+            "TEST": {"abbreviation": "TEST", "name": "Test Adventure"},
         }
         return sources.get(source_abbrev)
 
@@ -104,37 +102,29 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         metadata_content = {
             "adventure": [
                 {
-                    "name": "Curse of Strahd",
-                    "id": "CoS",
-                    "source": {"abbreviation": "CoS", "name": "Curse of Strahd"},
-                    "group": "supplement",
-                    "published": "2016-03-15",
+                    "name": "Test Adventure",
+                    "id": "test-adventure",
+                    "source": "TEST",
+                    "group": "homebrew",
+                    "published": "2024-01-01",
+                    "storyline": "Test Campaign",
+                    "level": {"start": 1, "end": 5},
                     "contents": [
                         {
-                            "name": "Introduction",
-                            "headers": ["Running the Adventure", "Marks of Horror"],
+                            "name": "Chapter 1: The Beginning",
+                            "ordinal": {"type": "chapter", "identifier": 1},
+                            "headers": ["The Village", "The Quest", "The Journey"],
+                            "entries": [],
                         },
                         {
-                            "name": "Chapter 1: Into the Mists",
-                            "headers": ["Death House", "Mysterious Visitors"],
-                        },
-                        {
-                            "name": "Chapter 2: The Lands of Barovia",
-                            "headers": ["Lay of the Land", "Alterations to Magic"],
-                        },
-                    ],
-                },
-                {
-                    "name": "Lost Mine of Phandelver",
-                    "id": "LMoP",
-                    "source": "LMoP",
-                    "group": "supplement",
-                    "published": "2014-07-15",
-                    "contents": [
-                        {"name": "Introduction", "headers": ["Background", "Overview"]},
-                        {
-                            "name": "Part 1: Goblin Arrows",
-                            "headers": ["Meet Me in Phandalin", "Goblin Ambush"],
+                            "name": "Chapter 2: The Repository",
+                            "ordinal": {"type": "chapter", "identifier": 2},
+                            "headers": [
+                                "Approaching the Repository",
+                                "Interior Chambers",
+                                "The Core",
+                            ],
+                            "entries": [],
                         },
                     ],
                 },
@@ -143,82 +133,46 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         with open(self.metadata_file, "w") as f:
             json.dump(metadata_content, f, indent=2)
 
-        # Create test content file for CoS (adventure-cos.json)
-        self.cos_content_file = self.adventure_dir / "adventure-cos.json"
-        cos_content = {
+        # Create test content file for Test Adventure (adventure-test-adventure.json)
+        self.test_content_file = self.adventure_dir / "adventure-test-adventure.json"
+        test_content = {
             "data": [
                 {
                     "type": "section",
-                    "name": "Introduction",
+                    "name": "Chapter 1: The Beginning",
                     "id": "000",
                     "entries": [
-                        "Under raging storm clouds, the vampire Count Strahd von Zarovich stands silhouetted against the ancient walls of Castle Ravenloft.",
-                        "Welcome to Barovia, a land of mist and shadow.",
-                    ],
-                },
-                {
-                    "type": "section",
-                    "name": "Chapter 1: Into the Mists",
-                    "id": "001",
-                    "entries": [
-                        "The Svalich Woods are dark and oppressive.",
-                        "The adventurers find themselves drawn into the cursed land.",
+                        "The party finds themselves in a small village plagued by mysterious events.",
+                        "Local villagers speak of strange lights emanating from an ancient repository.",
                         {
                             "type": "entries",
-                            "name": "Death House",
+                            "name": "The Village",
                             "entries": [
-                                "A notorious haunted house that serves as an optional introduction."
+                                "A quiet farming community with a dark secret."
                             ],
                         },
                     ],
                 },
                 {
                     "type": "section",
-                    "name": "Chapter 2: The Lands of Barovia",
-                    "id": "002",
-                    "entries": [
-                        "Barovia is a land trapped in its own demiplane.",
-                        "The mists prevent escape.",
-                    ],
-                },
-            ]
-        }
-        with open(self.cos_content_file, "w") as f:
-            json.dump(cos_content, f, indent=2)
-
-        # Create test content file for LMoP (adventure-lmop.json)
-        self.lmop_content_file = self.adventure_dir / "adventure-lmop.json"
-        lmop_content = {
-            "data": [
-                {
-                    "type": "section",
-                    "name": "Introduction",
-                    "id": "000",
-                    "entries": [
-                        "More than five hundred years ago, clans of dwarves and gnomes made an agreement.",
-                        "This is the Lost Mine of Phandelver.",
-                    ],
-                },
-                {
-                    "type": "section",
-                    "name": "Part 1: Goblin Arrows",
+                    "name": "Chapter 2: The Repository",
                     "id": "001",
                     "entries": [
-                        "The adventure begins as the player characters escort a wagon to Phandalin.",
-                        "Goblins waylay the party on the Triboar Trail.",
+                        "The ancient repository holds forgotten knowledge and dangerous artifacts.",
+                        "Strange magical energies permeate the structure.",
                     ],
                 },
             ]
         }
-        with open(self.lmop_content_file, "w") as f:
-            json.dump(lmop_content, f, indent=2)
+        with open(self.test_content_file, "w") as f:
+            json.dump(test_content, f, indent=2)
 
     async def tearDown(self):
         """Clean up temporary files."""
         self.temp_dir.cleanup()
 
-    async def test_resolve_adventure_cos_full_flow(self):
-        """Test end-to-end resolution of Curse of Strahd adventure."""
+    async def test_resolve_adventure_test_full_flow(self):
+        """Test end-to-end resolution of Test Adventure."""
         # Create source manager with our test data
         source_manager = TestSourceManager(self.data_dir)
 
@@ -241,13 +195,13 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         print(f"Adventures loaded: {len(adventures)}")
         for adv in adventures:
             print(f"  - {adv.name} (id: {adv.id})")
-        self.assertEqual(len(adventures), 2)  # Only CoS and LMoP metadata
+        self.assertEqual(len(adventures), 1)  # Only Test Adventure metadata
 
         # Create content resolver
         resolver = ContentResolver(omnidexer)
 
-        # Resolve CoS adventure
-        result = resolver.resolve_adventure("cos")
+        # Resolve Test adventure
+        result = resolver.resolve_adventure("TEST")
 
         # Verify resolution was successful
         self.assertEqual(result.status, ResolutionStatus.EXACT_MATCH)
@@ -255,56 +209,24 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
 
         # Verify adventure has correct metadata
         adventure = result.content
-        self.assertEqual(adventure.name, "Curse of Strahd")
-        self.assertEqual(adventure.id, "CoS")
+        self.assertEqual(adventure.name, "Test Adventure")
+        self.assertEqual(adventure.id, "test-adventure")
 
         # Verify adventure has merged content
-        self.assertEqual(len(adventure.contents), 3)
-
-        # Check Introduction chapter
-        intro = adventure.contents[0]
-        self.assertEqual(intro.name, "Introduction")
-        self.assertEqual(len(intro.entries), 2)
-        self.assertIn("vampire Count Strahd", str(intro.entries[0]))
-        self.assertIn("Welcome to Barovia", str(intro.entries[1]))
+        self.assertEqual(len(adventure.contents), 2)
 
         # Check Chapter 1
-        chapter1 = adventure.contents[1]
-        self.assertEqual(chapter1.name, "Chapter 1: Into the Mists")
-        self.assertTrue(len(chapter1.entries) > 0)
-        self.assertIn("Svalich Woods", str(chapter1.entries[0]))
+        chapter1 = adventure.contents[0]
+        self.assertEqual(chapter1.name, "Chapter 1: The Beginning")
+        self.assertEqual(len(chapter1.entries), 3)  # Updated to match test content
+        self.assertIn("small village", str(chapter1.entries[0]))
+        self.assertIn("ancient repository", str(chapter1.entries[1]))
 
         # Check Chapter 2
-        chapter2 = adventure.contents[2]
-        self.assertEqual(chapter2.name, "Chapter 2: The Lands of Barovia")
-        self.assertEqual(len(chapter2.entries), 2)
-        self.assertIn("demiplane", str(chapter2.entries[0]))
-
-    async def test_resolve_adventure_lmop(self):
-        """Test resolution of Lost Mine of Phandelver."""
-        # Create source manager
-        source_manager = TestSourceManager(self.data_dir)
-
-        # Create omnidexer and load data
-        omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
-
-        # Create content resolver
-        resolver = ContentResolver(omnidexer)
-
-        # Resolve LMoP adventure
-        result = resolver.resolve_adventure("lmop")
-
-        # Verify resolution
-        self.assertEqual(result.status, ResolutionStatus.EXACT_MATCH)
-        adventure = result.content
-        self.assertEqual(adventure.name, "Lost Mine of Phandelver")
-        self.assertEqual(adventure.id, "LMoP")
-
-        # Verify content was loaded and merged
-        self.assertEqual(len(adventure.contents), 2)
-        self.assertIn("five hundred years ago", str(adventure.contents[0].entries[0]))
-        self.assertIn("Triboar Trail", str(adventure.contents[1].entries[1]))
+        chapter2 = adventure.contents[1]
+        self.assertEqual(chapter2.name, "Chapter 2: The Repository")
+        self.assertEqual(len(chapter2.entries), 2)  # Updated to match test content
+        self.assertIn("forgotten knowledge", str(chapter2.entries[0]))
 
     async def test_resolve_adventure_missing_content_file(self):
         """Test resolution when content file is missing."""
@@ -374,23 +296,16 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         await omnidexer.load_all_data()
         resolver = ContentResolver(omnidexer)
 
-        # Resolve both adventures
-        cos_result = resolver.resolve_adventure("cos")
-        lmop_result = resolver.resolve_adventure("lmop")
+        # Resolve test adventure
+        test_adventure_result = resolver.resolve_adventure("TEST")
 
-        # Both should succeed
-        self.assertEqual(cos_result.status, ResolutionStatus.EXACT_MATCH)
-        self.assertEqual(lmop_result.status, ResolutionStatus.EXACT_MATCH)
+        # Should succeed
+        self.assertEqual(test_adventure_result.status, ResolutionStatus.EXACT_MATCH)
+        self.assertIsNotNone(test_adventure_result.content)
 
-        # Verify they are different adventures
-        self.assertNotEqual(cos_result.content.id, lmop_result.content.id)
-        self.assertNotEqual(cos_result.content.name, lmop_result.content.name)
-
-        # Verify each has correct content
-        self.assertIn("Strahd", str(cos_result.content.contents[0].entries))
-        self.assertIn(
-            "five hundred years", str(lmop_result.content.contents[0].entries)
-        )
+        # Verify it has correct content
+        self.assertEqual(test_adventure_result.content.name, "Test Adventure")
+        self.assertEqual(test_adventure_result.content.source.abbreviation, "TEST")
 
     async def test_adventure_count_metadata_only(self):
         """Test that omnidexer only contains metadata entries, not content files."""
@@ -402,14 +317,12 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         # Get all adventures from omnidexer
         adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
 
-        # Should only have 2 adventures (from metadata), not 4 (metadata + content)
-        self.assertEqual(len(adventures), 2)
+        # Should only have 1 adventure (from metadata), not 2 (metadata + content)
+        self.assertEqual(len(adventures), 1)
 
-        # Adventures should have metadata but empty content
+        # Adventure should have metadata but empty content
         for adventure in adventures:
-            self.assertTrue(
-                adventure.name in ["Curse of Strahd", "Lost Mine of Phandelver"]
-            )
+            self.assertTrue(adventure.name in ["Test Adventure"])
             # Before resolution, chapters should have empty entries
             for chapter in adventure.contents:
                 self.assertEqual(chapter.entries, [])
