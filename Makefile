@@ -2,6 +2,7 @@
 # All commands run via uv (https://github.com/astral-sh/uv)
 
 # Configuration for fail-fast behavior and error checking
+SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 
 # Configuration variables
