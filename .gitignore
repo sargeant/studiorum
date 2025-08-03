@@ -84,6 +84,7 @@ validation_report.json
 validation_report.txt.coverage
 coverage.xml
 .coverage
+.coverage.*
 
 # AI tools
 .claude/
