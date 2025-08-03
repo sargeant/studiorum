@@ -583,6 +583,15 @@ def get_registry() -> EntryTypeRegistry:
     return _global_registry
 
 
+def reset_entry_registry() -> None:
+    """Reset the global entry type registry (for testing).
+
+    This recreates the global registry instance to ensure clean state.
+    """
+    global _global_registry
+    _global_registry = EntryTypeRegistry()
+
+
 def set_validation_mode(mode: ValidationMode) -> None:
     """Set the global validation mode."""
     _global_registry.validation_mode = mode

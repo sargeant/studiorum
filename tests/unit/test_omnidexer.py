@@ -194,13 +194,17 @@ class TestDeepIndexing:
     def setup_method(self) -> None:
         """Clear cache before each test."""
         from dnd5e.core.cache import CacheManager
+        from dnd5e.core.content_type_resolver import reset_content_type_resolver
+        from dnd5e.core.entry_registry import reset_entry_registry
         from dnd5e.core.interfaces import reset_content_type_registry
         from dnd5e.core.loaders.content_factory import reset_content_factory
 
-        # Force complete isolation
+        # Force complete isolation - reset ALL global singletons
         CacheManager.reset()
         reset_content_factory()
         reset_content_type_registry()
+        reset_content_type_resolver()
+        reset_entry_registry()
 
         import gc
 
@@ -209,12 +213,17 @@ class TestDeepIndexing:
     def teardown_method(self) -> None:
         """Clear cache after each test."""
         from dnd5e.core.cache import CacheManager
+        from dnd5e.core.content_type_resolver import reset_content_type_resolver
+        from dnd5e.core.entry_registry import reset_entry_registry
         from dnd5e.core.interfaces import reset_content_type_registry
         from dnd5e.core.loaders.content_factory import reset_content_factory
 
+        # Force complete isolation - reset ALL global singletons
         CacheManager.reset()
         reset_content_factory()
         reset_content_type_registry()
+        reset_content_type_resolver()
+        reset_entry_registry()
 
         # Ensure any pending async operations complete
         import asyncio

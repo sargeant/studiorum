@@ -104,3 +104,12 @@ def get_content_type_resolver() -> ContentTypeResolver:
         Global content type resolver instance
     """
     return _content_type_resolver
+
+
+def reset_content_type_resolver() -> None:
+    """Reset the global content type resolver (for testing).
+
+    This recreates the global resolver instance to ensure clean state.
+    """
+    global _content_type_resolver
+    _content_type_resolver = RegistryBasedContentTypeResolver()
