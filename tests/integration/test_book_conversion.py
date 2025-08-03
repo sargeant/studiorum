@@ -379,9 +379,15 @@ class TestBookConversion:
             )
 
             # Should work without hardcoded paths
-            assert result.returncode == 0, (
-                f"Test book conversion failed without hardcoded paths: {result.stderr}"
-            )
+            if result.returncode != 0:
+                if "DND template availability check failed" in result.stderr:
+                    pytest.skip(
+                        "DND LaTeX template not available - cannot test book conversion"
+                    )
+                else:
+                    raise AssertionError(
+                        f"Test book conversion failed without hardcoded paths: {result.stderr}"
+                    )
 
             # Should produce substantial content
             content = output_file.read_text()
