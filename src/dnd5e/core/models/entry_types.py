@@ -215,26 +215,33 @@ def create_entry(data: str | dict[str, Any]) -> Entry:
     if not entry_type:
         raise ValueError("Entry dict must have 'type' field")
 
-    # Map entry types to their classes
-    entry_classes = {
-        "text": TextEntry,
-        "action": ActionEntry,
-        "table": TableEntry,
-        "list": ListEntry,
-        "inset": InsetEntry,
-        "entries": EntriesEntry,
-        "options": OptionsEntry,
-        "variant": VariantEntry,
-        "quote": QuoteEntry,
-        "image": ImageEntry,
-        "item": ItemEntry,
-        "spell": SpellEntry,
-        "creature": CreatureEntry,
-    }
-
-    entry_class = entry_classes.get(entry_type)
-    if entry_class:
-        return entry_class.model_validate(data)
+    # Map entry types to their classes - handle each case explicitly for proper typing
+    if entry_type == "text":
+        return TextEntry.model_validate(data)
+    elif entry_type == "action":
+        return ActionEntry.model_validate(data)
+    elif entry_type == "table":
+        return TableEntry.model_validate(data)
+    elif entry_type == "list":
+        return ListEntry.model_validate(data)
+    elif entry_type == "inset":
+        return InsetEntry.model_validate(data)
+    elif entry_type == "entries":
+        return EntriesEntry.model_validate(data)
+    elif entry_type == "options":
+        return OptionsEntry.model_validate(data)
+    elif entry_type == "variant":
+        return VariantEntry.model_validate(data)
+    elif entry_type == "quote":
+        return QuoteEntry.model_validate(data)
+    elif entry_type == "image":
+        return ImageEntry.model_validate(data)
+    elif entry_type == "item":
+        return ItemEntry.model_validate(data)
+    elif entry_type == "spell":
+        return SpellEntry.model_validate(data)
+    elif entry_type == "creature":
+        return CreatureEntry.model_validate(data)
     else:
         # Use GenericEntry for unknown types
         return GenericEntry.model_validate(data)

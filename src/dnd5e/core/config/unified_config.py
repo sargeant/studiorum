@@ -84,6 +84,11 @@ class ValidationConfig(BaseModel):
     )
 
 
+def _default_fallback_engines() -> list[Literal["lualatex", "xelatex", "pdflatex"]]:
+    """Default factory for fallback engines."""
+    return ["xelatex", "pdflatex"]
+
+
 class LaTeXEngineConfig(BaseModel):
     """Configuration for LaTeX compilation engines."""
 
@@ -91,7 +96,7 @@ class LaTeXEngineConfig(BaseModel):
         default="lualatex", description="Primary LaTeX engine to use"
     )
     fallback_engines: list[Literal["lualatex", "xelatex", "pdflatex"]] = Field(
-        default_factory=lambda: ["xelatex", "pdflatex"],
+        default_factory=_default_fallback_engines,
         description="Fallback engines if primary fails",
     )
     timeout: int = Field(
