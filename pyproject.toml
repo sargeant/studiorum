@@ -197,5 +197,4 @@ markers = [
     "integration: marks tests as integration tests",
     "stress: marks tests as stress tests for validation",
 ]
-asyncio_mode = "auto"
 filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]

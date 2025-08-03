@@ -185,10 +185,11 @@ def make_temp_data_dir(tmp_path: Path):
 
 
 @pytest.fixture
-async def loaded_omnidexer(
+def loaded_omnidexer(
     temp_data_dir: Any, sample_spell_data: Any, sample_creature_data: Any
 ) -> Omnidexer:
     """Create an omnidexer with loaded test data."""
+    import asyncio
     import json
 
     # Create test data files and ensure they're written to disk
@@ -198,21 +199,13 @@ async def loaded_omnidexer(
     creature_file = temp_data_dir / "bestiary" / "test-creatures.json"
     creature_file.write_text(json.dumps({"monster": [sample_creature_data]}))
 
-    # Ensure files are flushed to disk before proceeding
-    import os
-
-    os.sync()  # Force filesystem sync
-
-    # Yield control to ensure any pending I/O operations complete
-    await asyncio.sleep(0)
-
     # Create source manager pointing to temp directory
     source_manager = FileSystemSourceManager(temp_data_dir.parent)
     source_manager.path_config.data_path = temp_data_dir
 
     # Create and load omnidexer
     omnidexer = Omnidexer(source_manager)
-    await omnidexer.load_all_data()
+    asyncio.run(omnidexer.load_all_data())
 
     return omnidexer
 
@@ -221,13 +214,13 @@ async def loaded_omnidexer(
 def make_omnidexer():
     """Factory for creating omnidexers with custom data and configurations."""
 
-    async def _make_omnidexer(
+    def _make_omnidexer(
         temp_data_dir: Path = None,
         spell_data: list[dict[str, Any]] = None,
         creature_data: list[dict[str, Any]] = None,
     ) -> Omnidexer:
+        import asyncio
         import json
-        import os
 
         if temp_data_dir is None:
             raise ValueError("temp_data_dir is required for factory fixture")
@@ -241,17 +234,13 @@ def make_omnidexer():
             creature_file = temp_data_dir / "bestiary" / "test-creatures.json"
             creature_file.write_text(json.dumps({"monster": creature_data}))
 
-        # Ensure files are flushed to disk before proceeding
-        os.sync()
-        await asyncio.sleep(0)  # Yield control
-
         # Create source manager pointing to temp directory
         source_manager = FileSystemSourceManager(temp_data_dir.parent)
         source_manager.path_config.data_path = temp_data_dir
 
         # Create and load omnidexer
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        asyncio.run(omnidexer.load_all_data())
 
         return omnidexer
 
@@ -259,7 +248,7 @@ def make_omnidexer():
 
 
 @pytest.fixture
-async def tag_resolver(loaded_omnidexer: Omnidexer) -> TagResolver:
+def tag_resolver(loaded_omnidexer: Omnidexer) -> TagResolver:
     """Create a tag resolver with loaded data."""
     return TagResolver(loaded_omnidexer)
 
@@ -275,14 +264,16 @@ def make_tag_resolver():
 
 
 @pytest.fixture
-async def test_data_omnidexer() -> Omnidexer:
+def test_data_omnidexer() -> Omnidexer:
     """Omnidexer using test-data and srd-data sources."""
+    import asyncio
+
     # Use the ConfigurableSourceManager which automatically includes test-data
     source_manager = ConfigurableSourceManager()
-    await source_manager.ensure_sources_ready()
+    asyncio.run(source_manager.ensure_sources_ready())
 
     omnidexer = Omnidexer(source_manager)
-    await omnidexer.load_all_data()
+    asyncio.run(omnidexer.load_all_data())
     return omnidexer
 
 
@@ -304,6 +295,6 @@ def content_availability(test_data_omnidexer: Omnidexer) -> dict[str, bool]:
 
 
 @pytest.fixture
-async def test_data_tag_resolver(test_data_omnidexer: Omnidexer) -> TagResolver:
+def test_data_tag_resolver(test_data_omnidexer: Omnidexer) -> TagResolver:
     """Create a tag resolver using test-data sources."""
     return TagResolver(test_data_omnidexer)

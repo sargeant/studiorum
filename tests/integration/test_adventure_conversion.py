@@ -17,6 +17,20 @@ from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.resolvers.content_resolver import ContentResolver
 
 
+def load_all_data_sync(omnidexer):
+    """Synchronous wrapper for omnidexer.load_all_data() for testing."""
+    import asyncio
+
+    return asyncio.run(omnidexer.load_all_data())
+
+
+def resolve_adventure_sync(resolver, adventure_id):
+    """Synchronous wrapper for resolver.resolve_adventure() for testing."""
+    import asyncio
+
+    return asyncio.run(resolver.resolve_adventure(adventure_id))
+
+
 class TestAdventureConversion:
     """Test end-to-end adventure conversion functionality."""
 
@@ -170,13 +184,13 @@ class TestAdventureConversion:
                 f"Conversion took too long: {conversion_time:.2f}s"
             )
 
-    async def test_omnidexer_adventure_loading(self):
+    def test_omnidexer_adventure_loading(self):
         """Verify omnidexer loads adventures correctly."""
         source_manager = ConfigurableSourceManager()
         omnidexer = Omnidexer(source_manager)
 
         # Load all data
-        await omnidexer.load_all_data()
+        load_all_data_sync(omnidexer)
 
         # Get adventure count
         adventures = omnidexer.get_all_by_type("adventure")
@@ -206,16 +220,16 @@ class TestAdventureConversion:
             f"Unexpected source: {test_metadata.source}"
         )
 
-    async def test_content_resolver_enrichment(self):
+    def test_content_resolver_enrichment(self):
         """Test that ContentResolver properly enriches adventures with content."""
         source_manager = ConfigurableSourceManager()
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        load_all_data_sync(omnidexer)
 
         resolver = ContentResolver(omnidexer)
 
         # Resolve test adventure
-        resolution_result = await resolver.resolve_adventure("TEST")
+        resolution_result = resolve_adventure_sync(resolver, "TEST")
 
         assert resolution_result is not None, "Could not get resolution result"
         assert resolution_result.is_success, "Resolution should be successful"
@@ -242,17 +256,17 @@ class TestAdventureConversion:
             "Adventure should have sections with actual content"
         )
 
-    async def test_content_loading_caching(self):
+    def test_content_loading_caching(self):
         """Test that content loading uses caching effectively."""
         source_manager = ConfigurableSourceManager()
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        load_all_data_sync(omnidexer)
 
         resolver = ContentResolver(omnidexer)
 
         # Resolve the same adventure twice
-        resolution_result1 = await resolver.resolve_adventure("TEST")
-        resolution_result2 = await resolver.resolve_adventure("TEST")
+        resolution_result1 = resolve_adventure_sync(resolver, "TEST")
+        resolution_result2 = resolve_adventure_sync(resolver, "TEST")
 
         # Both should succeed
         assert resolution_result1 is not None, "First resolution failed"

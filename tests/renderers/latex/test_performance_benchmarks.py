@@ -15,6 +15,13 @@ from dnd5e.renderers.base.context import RenderContext  # type: ignore
 from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
 
 
+def compile_document_to_pdf_sync(renderer, documents, context):
+    """Synchronous wrapper for renderer.compile_document_to_pdf() for testing."""
+    import asyncio
+
+    return asyncio.run(renderer.compile_document_to_pdf(documents, context=context))
+
+
 class TestRenderingPerformance:
     """Performance benchmarks for the EntryRenderer system."""
 
@@ -380,7 +387,7 @@ class TestRenderingPerformance:
         print(f"\\nLarge document (50 chapters): {render_time:.2f}s")
 
     @pytest.mark.slow
-    async def test_compilation_performance_integration(self, sample_spell: Any) -> None:
+    def test_compilation_performance_integration(self, sample_spell: Any) -> None:
         """Test end-to-end performance including compilation."""
         from dnd5e.renderers.latex.compilation_config import (  # type: ignore
             CompilationResult,
@@ -411,8 +418,8 @@ class TestRenderingPerformance:
                 context = RenderContext(title="Compilation Performance Test")
                 start_time = time.perf_counter()
                 for _ in range(10):
-                    result = await self.renderer.compile_document_to_pdf(
-                        [sample_spell], context=context
+                    result = compile_document_to_pdf_sync(
+                        self.renderer, [sample_spell], context
                     )
                     assert result.success is True
                 end_time = time.perf_counter()

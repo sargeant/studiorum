@@ -17,6 +17,20 @@ from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.resolvers.content_resolver import ContentResolver
 
 
+def load_all_data_sync(omnidexer):
+    """Synchronous wrapper for omnidexer.load_all_data() for testing."""
+    import asyncio
+
+    return asyncio.run(omnidexer.load_all_data())
+
+
+def resolve_book_sync(resolver, book_id):
+    """Synchronous wrapper for resolver.resolve_book() for testing."""
+    import asyncio
+
+    return asyncio.run(resolver.resolve_book(book_id))
+
+
 class TestBookConversion:
     """Test book conversion functionality for regression."""
 
@@ -174,13 +188,13 @@ class TestBookConversion:
                 f"Test book conversion took too long: {conversion_time:.2f}s"
             )
 
-    async def test_book_omnidexer_loading(self):
+    def test_book_omnidexer_loading(self):
         """Verify omnidexer loads books correctly."""
         source_manager = ConfigurableSourceManager()
         omnidexer = Omnidexer(source_manager)
 
         # Load all data
-        await omnidexer.load_all_data()
+        load_all_data_sync(omnidexer)
 
         # Get book count
         books = omnidexer.get_all_by_type("book")
@@ -206,16 +220,16 @@ class TestBookConversion:
             f"Unexpected test source: {test_metadata.source}"
         )
 
-    async def test_book_content_resolver_enrichment(self):
+    def test_book_content_resolver_enrichment(self):
         """Test that ContentResolver properly enriches books with content."""
         source_manager = ConfigurableSourceManager()
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        load_all_data_sync(omnidexer)
 
         resolver = ContentResolver(omnidexer)
 
         # Resolve test book
-        resolution_result = await resolver.resolve_book("TEST")
+        resolution_result = resolve_book_sync(resolver, "TEST")
 
         assert resolution_result is not None, "Could not get resolution result"
         assert resolution_result.is_success, "Resolution should be successful"
@@ -242,17 +256,17 @@ class TestBookConversion:
             "Test book should have sections with content (found empty sections)"
         )
 
-    async def test_book_content_loading_caching(self):
+    def test_book_content_loading_caching(self):
         """Test that book content loading uses caching effectively."""
         source_manager = ConfigurableSourceManager()
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        load_all_data_sync(omnidexer)
 
         resolver = ContentResolver(omnidexer)
 
         # Resolve the same book twice
-        resolution_result1 = await resolver.resolve_book("TEST")
-        resolution_result2 = await resolver.resolve_book("TEST")
+        resolution_result1 = resolve_book_sync(resolver, "TEST")
+        resolution_result2 = resolve_book_sync(resolver, "TEST")
 
         # Both should succeed
         assert resolution_result1 is not None, "First test book resolution failed"

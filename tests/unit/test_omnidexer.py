@@ -16,6 +16,17 @@ from dnd5e.core.models.classes import (  # type: ignore
 from dnd5e.core.models.content import ContentType  # type: ignore
 
 
+def load_all_data_sync(omnidexer: Omnidexer) -> dict[str, int]:
+    """Synchronous wrapper for omnidexer.load_all_data() for testing.
+
+    This eliminates async/sync boundary race conditions in tests while
+    preserving the async interface for production CLI usage.
+    """
+    import asyncio
+
+    return asyncio.run(omnidexer.load_all_data())
+
+
 class TestIndexEntry:
     """Tests for IndexEntry class."""
 
@@ -54,20 +65,18 @@ class TestOmnidexer:
         stats = omnidexer.get_statistics()
         assert stats is not None  # Loader registration enables statistics
 
-    @pytest.mark.asyncio
-    async def test_empty_data_loading(self, temp_data_dir: Any) -> None:
+    def test_empty_data_loading(self, temp_data_dir: Any) -> None:
         """Test loading with no data files."""
         source_manager: Any = FileSystemSourceManager(temp_data_dir.parent)
         source_manager.path_config.data_path = temp_data_dir
 
         omnidexer: Any = Omnidexer(source_manager)
-        stats = await omnidexer.load_all_data()
+        stats = load_all_data_sync(omnidexer)
 
         # Should handle empty directories gracefully
         assert isinstance(stats, dict)
 
-    @pytest.mark.asyncio
-    async def test_data_loading_and_indexing(self, loaded_omnidexer: Any) -> None:
+    def test_data_loading_and_indexing(self, loaded_omnidexer: Any) -> None:
         """Test data loading and indexing."""
         omnidexer = loaded_omnidexer
         stats = omnidexer.get_statistics()
@@ -76,8 +85,7 @@ class TestOmnidexer:
         assert ContentType.SPELL.value in stats["by_type"]
         assert ContentType.CREATURE.value in stats["by_type"]
 
-    @pytest.mark.asyncio
-    async def test_find_by_type_and_name(self, loaded_omnidexer: Any) -> None:
+    def test_find_by_type_and_name(self, loaded_omnidexer: Any) -> None:
         """Test finding content by type and name."""
         omnidexer = loaded_omnidexer
 
@@ -95,24 +103,21 @@ class TestOmnidexer:
         not_found = omnidexer.find(ContentType.SPELL, "Nonexistent Spell", "PHB")
         assert not_found is None
 
-    @pytest.mark.asyncio
-    async def test_find_without_source(self, loaded_omnidexer: Any) -> None:
+    def test_find_without_source(self, loaded_omnidexer: Any) -> None:
         """Test finding content without specifying source."""
         omnidexer = loaded_omnidexer
         spell = omnidexer.find(ContentType.SPELL, "Fireball")
         assert spell is not None
         assert spell.name == "Fireball"
 
-    @pytest.mark.asyncio
-    async def test_find_all_by_name(self, loaded_omnidexer: Any) -> None:
+    def test_find_all_by_name(self, loaded_omnidexer: Any) -> None:
         """Test finding all content with same name."""
         omnidexer = loaded_omnidexer
         spells = omnidexer.find_all(ContentType.SPELL, "Fireball")
         assert len(spells) >= 1
         assert all(spell.name == "Fireball" for spell in spells)
 
-    @pytest.mark.asyncio
-    async def test_get_all_by_type(self, loaded_omnidexer: Any) -> None:
+    def test_get_all_by_type(self, loaded_omnidexer: Any) -> None:
         """Test getting all content of a specific type."""
         omnidexer = loaded_omnidexer
         all_spells = omnidexer.get_all_by_type(ContentType.SPELL)
@@ -127,8 +132,7 @@ class TestOmnidexer:
             hasattr(creature, "strength") for creature in all_creatures
         )  # Creature-specific check
 
-    @pytest.mark.asyncio
-    async def test_get_all_by_source(self, loaded_omnidexer: Any) -> None:
+    def test_get_all_by_source(self, loaded_omnidexer: Any) -> None:
         """Test getting all content from a specific source."""
         omnidexer = loaded_omnidexer
         phb_content = omnidexer.get_all_by_source("PHB")
@@ -139,8 +143,7 @@ class TestOmnidexer:
         assert len(mm_content) >= 1
         assert all(content.source.abbreviation == "MM" for content in mm_content)
 
-    @pytest.mark.asyncio
-    async def test_search_functionality(self, loaded_omnidexer: Any) -> None:
+    def test_search_functionality(self, loaded_omnidexer: Any) -> None:
         """Test search functionality."""
         omnidexer = loaded_omnidexer
 
@@ -154,16 +157,14 @@ class TestOmnidexer:
         assert len(spell_results) >= 1
         assert all(hasattr(result, "level") for result in spell_results)
 
-    @pytest.mark.asyncio
-    async def test_search_by_name_prefix(self, loaded_omnidexer: Any) -> None:
+    def test_search_by_name_prefix(self, loaded_omnidexer: Any) -> None:
         """Test prefix-based search."""
         omnidexer = loaded_omnidexer
         results = omnidexer.search_by_name_prefix("Fire")
         assert len(results) >= 1
         assert any(result.name.startswith("Fire") for result in results)
 
-    @pytest.mark.asyncio
-    async def test_is_loaded_check(self, loaded_omnidexer: Any) -> None:
+    def test_is_loaded_check(self, loaded_omnidexer: Any) -> None:
         """Test checking if content types are loaded."""
         omnidexer = loaded_omnidexer
         assert omnidexer.is_loaded(ContentType.SPELL)
@@ -172,8 +173,7 @@ class TestOmnidexer:
         # Test unloaded type
         assert not omnidexer.is_loaded(ContentType.SPELL_FLUFF)
 
-    @pytest.mark.asyncio
-    async def test_statistics(self, loaded_omnidexer: Any) -> None:
+    def test_statistics(self, loaded_omnidexer: Any) -> None:
         """Test statistics generation."""
         omnidexer = loaded_omnidexer
         stats = omnidexer.get_statistics()
@@ -245,31 +245,22 @@ class TestDeepIndexing:
         reset_path_config()
         reset_settings()
 
-        # Ensure any pending async operations complete
-        import asyncio
-        import time
-
-        time.sleep(0.01)  # Small delay for cleanup
-
         # Force garbage collection to clean up any file handles
         import gc
 
         gc.collect()
 
-    @pytest.mark.asyncio
-    async def test_deep_indexing_enabled_by_default(self) -> None:
+    def test_deep_indexing_enabled_by_default(self) -> None:
         """Test that deep indexing is enabled by default."""
         omnidexer = Omnidexer()
         assert omnidexer.enable_deep_indexing is True
 
-    @pytest.mark.asyncio
-    async def test_deep_indexing_can_be_disabled(self) -> None:
+    def test_deep_indexing_can_be_disabled(self) -> None:
         """Test that deep indexing can be disabled."""
         omnidexer = Omnidexer(enable_deep_indexing=False)
         assert omnidexer.enable_deep_indexing is False
 
-    @pytest.mark.asyncio
-    async def test_class_feature_parsing(self) -> None:
+    def test_class_feature_parsing(self) -> None:
         """Test parsing of class feature references."""
         # Create a sample Class with classFeatures
         class_data = {
@@ -306,8 +297,7 @@ class TestDeepIndexing:
         assert "Action Surge" in feature_names
         assert "Martial Archetype" in feature_names
 
-    @pytest.mark.asyncio
-    async def test_subclass_feature_parsing(self) -> None:
+    def test_subclass_feature_parsing(self) -> None:
         """Test parsing of subclass feature references."""
         # Create a sample Class with subclass features
         class_data = {
@@ -356,11 +346,9 @@ class TestDeepIndexing:
         assert champion_feature.subclass_short_name == "Champion"
         assert champion_feature.level == 3
 
-    @pytest.mark.asyncio
-    async def test_deep_indexing_integration(self, temp_data_dir: Any) -> None:
+    def test_deep_indexing_integration(self, temp_data_dir: Any) -> None:
         """Test that deep indexing works with the full omnidexer system."""
         # Create a simple class data file
-        import asyncio
         import json
 
         # Create the class subdirectory
@@ -395,33 +383,13 @@ class TestDeepIndexing:
         with open(class_file, "w") as f:
             json.dump(class_data, f)
 
-        # Ensure file system operations complete before proceeding
-        import os
-
-        os.sync()  # Force filesystem flush
-        await asyncio.sleep(0)  # Yield control to ensure I/O completion
-
         # Set up omnidexer with temp directory
         source_manager = FileSystemSourceManager(temp_data_dir.parent)
         source_manager.path_config.data_path = temp_data_dir
         omnidexer = Omnidexer(source_manager)
 
-        # Ensure global resets complete before content loading
-        await asyncio.sleep(0.1)  # Allow global state resets to settle
-
         # Load data and check indexing
-        await omnidexer.load_all_data()
-
-        # Add explicit synchronization barriers to ensure all async operations complete
-        await asyncio.sleep(0.1)  # Allow background tasks to complete
-
-        # Force garbage collection to ensure cleanup
-        import gc
-
-        gc.collect()
-
-        # Additional small delay for file system operations
-        await asyncio.sleep(0.05)
+        load_all_data_sync(omnidexer)
 
         # Verify data was loaded
         stats = omnidexer.get_statistics()
@@ -438,9 +406,6 @@ class TestDeepIndexing:
         assert fighter.name == "Fighter"
 
         # Should have indexed the class features due to deep indexing
-        # Add another sync barrier before checking deep indexing results
-        await asyncio.sleep(0.1)  # Ensure deep indexing is complete
-
         # Find all Fighting Style features and get the Fighter one specifically
         all_fighting_styles = [
             item
@@ -481,8 +446,7 @@ class TestDeepIndexing:
         assert isinstance(champion, SubclassFeature)
         assert champion.level == 3
 
-    @pytest.mark.asyncio
-    async def test_deep_indexing_stability(self) -> None:
+    def test_deep_indexing_stability(self) -> None:
         """Test that deep indexing produces stable results."""
         # This test has been refactored to avoid testing implementation details
         # Original test was checking cycle prevention via private methods
@@ -491,11 +455,11 @@ class TestDeepIndexing:
         omnidexer = Omnidexer()
 
         # Load data multiple times to ensure stability
-        await omnidexer.load_all_data()
+        load_all_data_sync(omnidexer)
         initial_stats = omnidexer.get_statistics()
 
         # Loading again should not change the index (idempotent behavior)
-        await omnidexer.load_all_data()
+        load_all_data_sync(omnidexer)
         final_stats = omnidexer.get_statistics()
 
         # Statistics should be the same (stable indexing)
@@ -514,8 +478,7 @@ class TestDeepIndexing:
         )
         assert found_feature is not None
 
-    @pytest.mark.asyncio
-    async def test_deep_indexing_disabled(self, temp_data_dir: Any) -> None:
+    def test_deep_indexing_disabled(self, temp_data_dir: Any) -> None:
         """Test that when deep indexing is disabled, nested content is not indexed."""
         import json
 
@@ -547,7 +510,7 @@ class TestDeepIndexing:
         omnidexer = Omnidexer(source_manager, enable_deep_indexing=False)
 
         # Load data
-        await omnidexer.load_all_data()
+        load_all_data_sync(omnidexer)
 
         # Should have indexed the class
         fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")
@@ -562,8 +525,7 @@ class TestDeepIndexing:
         second_wind = omnidexer.find(ContentType.CLASS_FEATURE, "Second Wind", "PHB")
         assert second_wind is None
 
-    @pytest.mark.asyncio
-    async def test_malformed_feature_references_handling(self) -> None:
+    def test_malformed_feature_references_handling(self) -> None:
         """Test that malformed feature references are handled gracefully."""
         # Create a class with malformed feature references
         class_data = {
@@ -598,8 +560,7 @@ class TestDeepIndexing:
 class TestOmnidexerMetadataOnlyLoading:
     """Test that omnidexer loads only metadata files for adventures/books."""
 
-    @pytest.mark.asyncio
-    async def test_omnidexer_loads_only_metadata_files(self):
+    def test_omnidexer_loads_only_metadata_files(self):
         """Test that omnidexer only loads metadata files, not content files."""
         from unittest.mock import Mock, patch
 
@@ -652,8 +613,7 @@ class TestOmnidexerMetadataOnlyLoading:
                     "book-phb.json" in str(path) for path in all_files_to_load
                 ), "book-phb.json content file should be skipped"
 
-    @pytest.mark.asyncio
-    async def test_omnidexer_interface_separation(self):
+    def test_omnidexer_interface_separation(self):
         """Test that omnidexer can distinguish between metadata and content files."""
         from unittest.mock import Mock, patch
 

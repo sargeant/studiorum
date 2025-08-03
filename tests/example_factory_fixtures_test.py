@@ -8,8 +8,7 @@ from dnd5e.core.models.spells import Spell
 class TestImprovedFixturePatterns:
     """Demonstrate modern pytest fixture patterns that avoid mutable state sharing."""
 
-    @pytest.mark.asyncio
-    async def test_factory_fixtures_provide_isolation(
+    def test_factory_fixtures_provide_isolation(
         self, make_sample_spell_data, make_temp_data_dir, make_omnidexer
     ):
         """Test that factory fixtures provide proper test isolation."""
@@ -21,7 +20,7 @@ class TestImprovedFixturePatterns:
         temp_dir = make_temp_data_dir(spell_data=[spell_data, spell_data2])
 
         # Create omnidexer with isolated data
-        omnidexer = await make_omnidexer(
+        omnidexer = make_omnidexer(
             temp_data_dir=temp_dir, spell_data=[spell_data, spell_data2]
         )
 
@@ -33,8 +32,7 @@ class TestImprovedFixturePatterns:
         assert "Fireball" in spell_names
         assert len(spells) == 2
 
-    @pytest.mark.asyncio
-    async def test_factory_fixtures_allow_customization(
+    def test_factory_fixtures_allow_customization(
         self, make_sample_spell_data, make_temp_data_dir, make_omnidexer
     ):
         """Test that factory fixtures allow easy customization per test."""
@@ -42,9 +40,7 @@ class TestImprovedFixturePatterns:
         custom_spell = make_sample_spell_data(name="Magic Missile", level=1)
 
         temp_dir = make_temp_data_dir(spell_data=[custom_spell])
-        omnidexer = await make_omnidexer(
-            temp_data_dir=temp_dir, spell_data=[custom_spell]
-        )
+        omnidexer = make_omnidexer(temp_data_dir=temp_dir, spell_data=[custom_spell])
 
         spells = omnidexer.get_all_by_type("spell")
         assert len(spells) == 1

@@ -13,6 +13,13 @@ from dnd5e.renderers.base.context import RenderContext  # type: ignore
 from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
 
 
+def compile_document_to_pdf_sync(renderer, books, context):
+    """Synchronous wrapper for renderer.compile_document_to_pdf() for testing."""
+    import asyncio
+
+    return asyncio.run(renderer.compile_document_to_pdf(books, context=context))
+
+
 class TestBookRenderingIntegration:
     """Integration tests for book rendering through the EntryRenderer system."""
 
@@ -313,7 +320,7 @@ class TestBookRenderingIntegration:
         assert "\\end{document}" in result
         assert "Empty Book" in result
 
-    async def test_book_compilation_integration(self, simple_book: Any) -> None:
+    def test_book_compilation_integration(self, simple_book: Any) -> None:
         """Test full integration from book to PDF compilation."""
         from dnd5e.renderers.latex.compilation_config import (  # type: ignore
             CompilationResult,
@@ -342,8 +349,8 @@ class TestBookRenderingIntegration:
                 return_value=mock_result,
                 new_callable=AsyncMock,
             ) as mock_compile:
-                result = await self.renderer.compile_document_to_pdf(
-                    [simple_book], context=context
+                result = compile_document_to_pdf_sync(
+                    self.renderer, [simple_book], context
                 )
 
                 assert result.success is True
