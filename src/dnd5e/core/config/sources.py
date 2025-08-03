@@ -260,3 +260,9 @@ def get_config_manager() -> ContentConfigManager:
 def get_content_config() -> ContentConfiguration:
     """Get current content configuration."""
     return get_config_manager().get_config()
+
+
+def reset_config_manager() -> None:
+    """Reset global config manager for testing."""
+    global _config_manager
+    _config_manager = None
