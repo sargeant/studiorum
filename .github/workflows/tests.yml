@@ -42,9 +42,17 @@ jobs:
         # Clone DND-5e-LaTeX-Template to system-wide location
         sudo mkdir -p /usr/share/texlive/texmf-local/tex/latex/dnd
         git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git /tmp/dnd-template
-        sudo cp /tmp/dnd-template/*.cls /tmp/dnd-template/*.sty /tmp/dnd-template/*.def /tmp/dnd-template/*.clo /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
+        # Copy template files and check what was copied
+        echo "Template files found:"
+        ls -la /tmp/dnd-template/*.{cls,sty,def,clo} 2>/dev/null || echo "No template files found!"
+        sudo cp -v /tmp/dnd-template/*.{cls,sty,def,clo} /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || echo "Copy failed - checking files:"
+        ls -la /tmp/dnd-template/
+        # Ensure files are copied even if some extensions don't exist
+        sudo cp -v /tmp/dnd-template/* /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
         # Update texmf database
         sudo mktexlsr
+        echo "Checking installed files:"
+        ls -la /usr/share/texlive/texmf-local/tex/latex/dnd/
         # Verify installation
         kpsewhich dndbook.cls && echo "✓ DND template installed successfully" || echo "⚠ Warning: dndbook.cls not found in LaTeX search path"
 
@@ -111,9 +119,17 @@ jobs:
         # Clone DND-5e-LaTeX-Template to system-wide location
         sudo mkdir -p /usr/share/texlive/texmf-local/tex/latex/dnd
         git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git /tmp/dnd-template
-        sudo cp /tmp/dnd-template/*.cls /tmp/dnd-template/*.sty /tmp/dnd-template/*.def /tmp/dnd-template/*.clo /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
+        # Copy template files and check what was copied
+        echo "Template files found:"
+        ls -la /tmp/dnd-template/*.{cls,sty,def,clo} 2>/dev/null || echo "No template files found!"
+        sudo cp -v /tmp/dnd-template/*.{cls,sty,def,clo} /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || echo "Copy failed - checking files:"
+        ls -la /tmp/dnd-template/
+        # Ensure files are copied even if some extensions don't exist
+        sudo cp -v /tmp/dnd-template/* /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
         # Update texmf database
         sudo mktexlsr
+        echo "Checking installed files:"
+        ls -la /usr/share/texlive/texmf-local/tex/latex/dnd/
         # Verify installation
         kpsewhich dndbook.cls && echo "✓ DND template installed successfully" || echo "⚠ Warning: dndbook.cls not found in LaTeX search path"
 
@@ -161,9 +177,17 @@ jobs:
         # Clone DND-5e-LaTeX-Template to system-wide location
         sudo mkdir -p /usr/share/texlive/texmf-local/tex/latex/dnd
         git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git /tmp/dnd-template
-        sudo cp /tmp/dnd-template/*.cls /tmp/dnd-template/*.sty /tmp/dnd-template/*.def /tmp/dnd-template/*.clo /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
+        # Copy template files and check what was copied
+        echo "Template files found:"
+        ls -la /tmp/dnd-template/*.{cls,sty,def,clo} 2>/dev/null || echo "No template files found!"
+        sudo cp -v /tmp/dnd-template/*.{cls,sty,def,clo} /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || echo "Copy failed - checking files:"
+        ls -la /tmp/dnd-template/
+        # Ensure files are copied even if some extensions don't exist
+        sudo cp -v /tmp/dnd-template/* /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
         # Update texmf database
         sudo mktexlsr
+        echo "Checking installed files:"
+        ls -la /usr/share/texlive/texmf-local/tex/latex/dnd/
         # Verify installation
         kpsewhich dndbook.cls && echo "✓ DND template installed successfully" || echo "⚠ Warning: dndbook.cls not found in LaTeX search path"
 
@@ -216,9 +240,17 @@ jobs:
         # Clone DND-5e-LaTeX-Template to system-wide location
         sudo mkdir -p /usr/share/texlive/texmf-local/tex/latex/dnd
         git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git /tmp/dnd-template
-        sudo cp /tmp/dnd-template/*.cls /tmp/dnd-template/*.sty /tmp/dnd-template/*.def /tmp/dnd-template/*.clo /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
+        # Copy template files and check what was copied
+        echo "Template files found:"
+        ls -la /tmp/dnd-template/*.{cls,sty,def,clo} 2>/dev/null || echo "No template files found!"
+        sudo cp -v /tmp/dnd-template/*.{cls,sty,def,clo} /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || echo "Copy failed - checking files:"
+        ls -la /tmp/dnd-template/
+        # Ensure files are copied even if some extensions don't exist
+        sudo cp -v /tmp/dnd-template/* /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
         # Update texmf database
         sudo mktexlsr
+        echo "Checking installed files:"
+        ls -la /usr/share/texlive/texmf-local/tex/latex/dnd/
         # Verify installation
         kpsewhich dndbook.cls && echo "✓ DND template installed successfully" || echo "⚠ Warning: dndbook.cls not found in LaTeX search path"
 
