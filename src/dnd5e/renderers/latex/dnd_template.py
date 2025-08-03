@@ -20,14 +20,9 @@ class DNDTemplateManager:
         """Initialize DND template manager."""
         self.template_files = [
             "dndbook.cls",
-            "dndarticle.cls",
             "dndcore.def",
             "dndoptions.clo",
-            "dndfonts.sty",
-            "dndheader.sty",
-            "dndmonster.sty",
-            "dndsections.sty",
-            "dndsidebar.sty",
+            "dnd.sty",
         ]
         self.required_packages = [
             "expl3",
