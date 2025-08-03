@@ -342,6 +342,7 @@ class TestDeepIndexing:
     async def test_deep_indexing_integration(self, temp_data_dir: Any) -> None:
         """Test that deep indexing works with the full omnidexer system."""
         # Create a simple class data file
+        import asyncio
         import json
 
         # Create the class subdirectory
@@ -376,17 +377,24 @@ class TestDeepIndexing:
         with open(class_file, "w") as f:
             json.dump(class_data, f)
 
+        # Ensure file system operations complete before proceeding
+        import os
+
+        os.sync()  # Force filesystem flush
+        await asyncio.sleep(0)  # Yield control to ensure I/O completion
+
         # Set up omnidexer with temp directory
         source_manager = FileSystemSourceManager(temp_data_dir.parent)
         source_manager.path_config.data_path = temp_data_dir
         omnidexer = Omnidexer(source_manager)
 
+        # Ensure global resets complete before content loading
+        await asyncio.sleep(0.1)  # Allow global state resets to settle
+
         # Load data and check indexing
         await omnidexer.load_all_data()
 
         # Add explicit synchronization barriers to ensure all async operations complete
-        import asyncio
-
         await asyncio.sleep(0.1)  # Allow background tasks to complete
 
         # Force garbage collection to ensure cleanup
