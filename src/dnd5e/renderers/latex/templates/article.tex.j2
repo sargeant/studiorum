@@ -46,7 +46,7 @@
 <@ block document_body @>
 <@ if abstract @>
 \begin{abstract}
-<# abstract #>
+<# abstract | safe #>
 \end{abstract}
 <@ endif @>
 <@ endblock @>

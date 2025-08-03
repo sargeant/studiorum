@@ -8,7 +8,11 @@ import jinja2
 from jinja2 import Environment, FileSystemLoader, Template
 
 from ...core.config.latex_config import LaTeXConfig, get_default_latex_config
-from ...core.latex_utils import escape_latex_text
+from ...core.latex_utils import (
+    contains_dangerous_latex,
+    escape_latex_text,
+    validate_safe_latex,
+)
 from ...core.types import LaTeXConfig as LaTeXConfigDict, TemplateData
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
 
@@ -130,6 +134,25 @@ class LaTeXTemplateEngine:
                 value = str(value)
             return f"\\verb|{value}|"
 
+        def latex_safe_check(value: str) -> str:
+            """Check if content is safe and return warning if not."""
+            if not isinstance(value, str):
+                value = str(value)
+
+            if contains_dangerous_latex(value):
+                # Log security issue but don't fail rendering
+                # In production, this might trigger security alerts
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    "Potentially dangerous LaTeX content detected: %s",
+                    value[:100] + "..." if len(value) > 100 else value,
+                )
+                return f"% SECURITY WARNING: Dangerous content detected\n{escape_latex_text(value)}"
+
+            return value
+
         def dnd_ability_modifier(value: int | str) -> str:
             """Format ability score as modifier (+1, -2, etc.)."""
             try:
@@ -176,6 +199,7 @@ class LaTeXTemplateEngine:
         self.env.filters["latex_italic"] = latex_italic
         self.env.filters["latex_underline"] = latex_underline
         self.env.filters["latex_verbatim"] = latex_verbatim
+        self.env.filters["latex_safe_check"] = latex_safe_check
         self.env.filters["dnd_ability_modifier"] = dnd_ability_modifier
         self.env.filters["dnd_challenge_rating"] = dnd_challenge_rating
         self.env.filters["dnd_spell_level"] = dnd_spell_level
