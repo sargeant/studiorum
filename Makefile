@@ -61,6 +61,31 @@ test-all: uv
 # Run unit tests (legacy target)
 pytest: test
 
+# Test Performance and Quality Monitoring
+## Run tests with performance monitoring
+test-perf: uv
+	uv run python scripts/test_performance_monitor.py --test-type=fast
+
+## Run all tests with performance monitoring
+test-perf-all: uv
+	uv run python scripts/test_performance_monitor.py --test-type=all
+
+## Create performance baseline
+test-baseline: uv
+	uv run python scripts/test_performance_monitor.py --baseline
+
+## Generate performance report
+test-perf-report: uv
+	uv run python scripts/test_performance_monitor.py --report
+
+## Analyze test quality metrics
+test-quality: uv
+	uv run python scripts/test_quality_metrics.py --report
+
+## Check test quality gates
+test-quality-check: uv
+	uv run python scripts/test_quality_metrics.py --check --fail-on-issues
+
 # Documentation
 ## Build HTML docs and open in browser
 docs: uv-docs

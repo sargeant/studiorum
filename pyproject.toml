@@ -79,6 +79,7 @@ dev = [
     "pytest-asyncio>=1.1.0,<2.0.0",
     "pytest-cov>=6.0.0,<7.0.0",
     "pytest-xdist>=3.0.0,<4.0.0",
+    "pytest-json-report>=1.5.0,<2.0.0",  # JSON test reports for performance monitoring
     "hypothesis>=6.98.0,<7.0.0",  # Property-based testing
     "psutil>=5.9.0,<8.0.0",
     "types-pyyaml>=6.0.12.20250516",
