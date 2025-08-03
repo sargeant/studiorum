@@ -44,9 +44,15 @@ class TestBookConversion:
             )
 
             # Check that the command succeeded
-            assert result.returncode == 0, (
-                f"Test book conversion failed: {result.stderr}"
-            )
+            if result.returncode != 0:
+                if "DND template availability check failed" in result.stderr:
+                    pytest.skip(
+                        "DND LaTeX template not available - cannot test book conversion"
+                    )
+                else:
+                    raise AssertionError(
+                        f"Test book conversion failed: {result.stderr}"
+                    )
 
             # Check that the output file was created
             assert output_file.exists(), (
