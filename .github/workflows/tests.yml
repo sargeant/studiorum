@@ -25,6 +25,29 @@ jobs:
     - name: Set up Python ${{ matrix.python-version }}
       run: uv python install ${{ matrix.python-version }}
 
+    - name: Cache LaTeX installation
+      uses: actions/cache@v4
+      with:
+        path: |
+          /usr/share/texlive
+          /usr/share/texmf
+          /var/lib/texmf
+        key: latex-${{ runner.os }}-${{ hashFiles('.github/workflows/tests.yml') }}
+
+    - name: Install LaTeX and DND-5e-LaTeX-Template
+      run: |
+        # Install minimal LaTeX (much faster than texlive-full)
+        sudo apt-get update
+        sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+        # Clone DND-5e-LaTeX-Template to user's texmf directory
+        TEXMFHOME=$(kpsewhich --var-value=TEXMFHOME)
+        mkdir -p "$TEXMFHOME/tex/latex"
+        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git "$TEXMFHOME/tex/latex/dnd"
+        # Update texmf database
+        sudo mktexlsr
+        # Verify installation
+        kpsewhich dndbook.cls || echo "Warning: dndbook.cls not found in LaTeX search path"
+
     - name: Run fast CI checks
       run: make ci-fast
 
@@ -71,6 +94,29 @@ jobs:
     - name: Set up Python
       run: uv python install 3.12
 
+    - name: Cache LaTeX installation
+      uses: actions/cache@v4
+      with:
+        path: |
+          /usr/share/texlive
+          /usr/share/texmf
+          /var/lib/texmf
+        key: latex-${{ runner.os }}-${{ hashFiles('.github/workflows/tests.yml') }}
+
+    - name: Install LaTeX and DND-5e-LaTeX-Template
+      run: |
+        # Install minimal LaTeX (much faster than texlive-full)
+        sudo apt-get update
+        sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+        # Clone DND-5e-LaTeX-Template to user's texmf directory
+        TEXMFHOME=$(kpsewhich --var-value=TEXMFHOME)
+        mkdir -p "$TEXMFHOME/tex/latex"
+        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git "$TEXMFHOME/tex/latex/dnd"
+        # Update texmf database
+        sudo mktexlsr
+        # Verify installation
+        kpsewhich dndbook.cls || echo "Warning: dndbook.cls not found in LaTeX search path"
+
     - name: Run CI test suite with coverage
       run: make ci-test
 
@@ -97,6 +143,29 @@ jobs:
 
     - name: Set up Python
       run: uv python install 3.12
+
+    - name: Cache LaTeX installation
+      uses: actions/cache@v4
+      with:
+        path: |
+          /usr/share/texlive
+          /usr/share/texmf
+          /var/lib/texmf
+        key: latex-${{ runner.os }}-${{ hashFiles('.github/workflows/tests.yml') }}
+
+    - name: Install LaTeX and DND-5e-LaTeX-Template
+      run: |
+        # Install minimal LaTeX (much faster than texlive-full)
+        sudo apt-get update
+        sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+        # Clone DND-5e-LaTeX-Template to user's texmf directory
+        TEXMFHOME=$(kpsewhich --var-value=TEXMFHOME)
+        mkdir -p "$TEXMFHOME/tex/latex"
+        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git "$TEXMFHOME/tex/latex/dnd"
+        # Update texmf database
+        sudo mktexlsr
+        # Verify installation
+        kpsewhich dndbook.cls || echo "Warning: dndbook.cls not found in LaTeX search path"
 
     - name: Install dependencies
       run: make ci-install
@@ -129,6 +198,29 @@ jobs:
 
     - name: Set up Python
       run: uv python install 3.12
+
+    - name: Cache LaTeX installation
+      uses: actions/cache@v4
+      with:
+        path: |
+          /usr/share/texlive
+          /usr/share/texmf
+          /var/lib/texmf
+        key: latex-${{ runner.os }}-${{ hashFiles('.github/workflows/tests.yml') }}
+
+    - name: Install LaTeX and DND-5e-LaTeX-Template
+      run: |
+        # Install minimal LaTeX (much faster than texlive-full)
+        sudo apt-get update
+        sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+        # Clone DND-5e-LaTeX-Template to user's texmf directory
+        TEXMFHOME=$(kpsewhich --var-value=TEXMFHOME)
+        mkdir -p "$TEXMFHOME/tex/latex"
+        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git "$TEXMFHOME/tex/latex/dnd"
+        # Update texmf database
+        sudo mktexlsr
+        # Verify installation
+        kpsewhich dndbook.cls || echo "Warning: dndbook.cls not found in LaTeX search path"
 
     - name: Install dependencies
       run: make ci-install
