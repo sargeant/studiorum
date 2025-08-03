@@ -150,9 +150,15 @@ class TestBookConversion:
             end_time = time.time()
             conversion_time = end_time - start_time
 
-            assert result.returncode == 0, (
-                f"Test book conversion failed: {result.stderr}"
-            )
+            if result.returncode != 0:
+                if "DND template availability check failed" in result.stderr:
+                    pytest.skip(
+                        "DND LaTeX template not available - cannot test book conversion"
+                    )
+                else:
+                    raise AssertionError(
+                        f"Test book conversion failed: {result.stderr}"
+                    )
 
             # Test book conversion should complete within 1 minute
             assert conversion_time < 60, (
@@ -282,9 +288,15 @@ class TestBookConversion:
                 cwd=Path.cwd(),
             )
 
-            assert result.returncode == 0, (
-                f"Test book conversion failed: {result.stderr}"
-            )
+            if result.returncode != 0:
+                if "DND template availability check failed" in result.stderr:
+                    pytest.skip(
+                        "DND LaTeX template not available - cannot test book conversion"
+                    )
+                else:
+                    raise AssertionError(
+                        f"Test book conversion failed: {result.stderr}"
+                    )
 
             content = output_file.read_text()
 
@@ -443,9 +455,15 @@ class TestBookConversion:
                 cwd=Path.cwd(),
             )
 
-            assert result.returncode == 0, (
-                f"Test book conversion failed: {result.stderr}"
-            )
+            if result.returncode != 0:
+                if "DND template availability check failed" in result.stderr:
+                    pytest.skip(
+                        "DND LaTeX template not available - cannot test book conversion"
+                    )
+                else:
+                    raise AssertionError(
+                        f"Test book conversion failed: {result.stderr}"
+                    )
 
         # Check memory usage after conversion
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
