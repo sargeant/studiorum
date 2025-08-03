@@ -12,7 +12,6 @@ from dnd5e.core.models.spells import (
     ClassReference,
     DistanceDetails,
     DurationDetails,
-    EntryContent,
     Spell,
     SpellClassList,
     SpellComponent,

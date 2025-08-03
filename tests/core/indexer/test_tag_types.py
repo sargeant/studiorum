@@ -440,14 +440,18 @@ class TestTagContext:
 
     def test_tag_context_creation(self) -> None:
         """Test creating TagContext."""
-        mock_omnidexer = Mock()
+        from dnd5e.core.loaders.omnidexer import Omnidexer
+
+        mock_omnidexer = Mock(spec=Omnidexer)
         context = TagContext(omnidexer=mock_omnidexer)
 
         assert context.omnidexer == mock_omnidexer
 
     def test_tag_context_find_content_method(self) -> None:
         """Test find_content method."""
-        mock_omnidexer = Mock()
+        from dnd5e.core.loaders.omnidexer import Omnidexer
+
+        mock_omnidexer = Mock(spec=Omnidexer)
         mock_content = Mock(spec=BaseContent)
         mock_omnidexer.find.return_value = mock_content
 
@@ -461,7 +465,9 @@ class TestTagContext:
 
     def test_tag_context_find_content_without_source(self) -> None:
         """Test find_content method without source."""
-        mock_omnidexer = Mock()
+        from dnd5e.core.loaders.omnidexer import Omnidexer
+
+        mock_omnidexer = Mock(spec=Omnidexer)
         mock_content = Mock(spec=BaseContent)
         mock_omnidexer.find.return_value = mock_content
 
@@ -475,7 +481,9 @@ class TestTagContext:
 
     def test_tag_context_find_content_returns_none(self) -> None:
         """Test find_content method when content not found."""
-        mock_omnidexer = Mock()
+        from dnd5e.core.loaders.omnidexer import Omnidexer
+
+        mock_omnidexer = Mock(spec=Omnidexer)
         mock_omnidexer.find.return_value = None
 
         context = TagContext(omnidexer=mock_omnidexer)
@@ -485,7 +493,9 @@ class TestTagContext:
 
     def test_tag_context_frozen_config(self) -> None:
         """Test that TagContext is frozen (immutable)."""
-        mock_omnidexer = Mock()
+        from dnd5e.core.loaders.omnidexer import Omnidexer
+
+        mock_omnidexer = Mock(spec=Omnidexer)
         context = TagContext(omnidexer=mock_omnidexer)
 
         with pytest.raises(ValidationError):
@@ -493,10 +503,12 @@ class TestTagContext:
 
     def test_tag_context_arbitrary_types_allowed(self) -> None:
         """Test that arbitrary types are allowed for omnidexer."""
-        # Should accept any object type for omnidexer
-        complex_omnidexer = {"complex": "object", "with": ["various", "types"]}
-        context = TagContext(omnidexer=complex_omnidexer)
-        assert context.omnidexer == complex_omnidexer
+        from dnd5e.core.loaders.omnidexer import Omnidexer
+
+        # For this test, we need to create a proper mock that passes validation
+        mock_omnidexer = Mock(spec=Omnidexer)
+        context = TagContext(omnidexer=mock_omnidexer)
+        assert context.omnidexer == mock_omnidexer
 
 
 class TestTagResolutionResult:

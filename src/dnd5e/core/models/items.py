@@ -6,7 +6,7 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 from .content import BaseContent
-from .spells import EntryContent, SpellEntry
+from .entry_types import Entry
 
 
 class ItemType(str, Enum):
@@ -100,7 +100,7 @@ class Item(BaseContent):
     value: int | float | ValueDetails | dict[str, Any] | None = Field(
         None, description="Item value"
     )
-    entries: list[SpellEntry] | None = Field(None, description="Item description")
+    entries: list[Entry] | None = Field(None, description="Item description")
 
     # Optional item-specific data
     weapon_data: WeaponData | None = Field(
@@ -296,15 +296,15 @@ class Item(BaseContent):
                 result = self._extract_text_from_entries(entry)
                 if result:
                     text_parts.append(result)
-        elif isinstance(entries, EntryContent):
-            # Handle Pydantic EntryContent objects
-            if entries.name:
+        elif hasattr(entries, "type"):
+            # Handle structured entry objects (new Entry types)
+            if hasattr(entries, "name") and entries.name:
                 text_parts.append(f"**{entries.name}**")
-            if entries.entries:
+            if hasattr(entries, "entries") and entries.entries:
                 result = self._extract_text_from_entries(entries.entries)
                 if result:
                     text_parts.append(result)
-            # Handle items if present in the extra fields
+            # Handle items if present (for ListEntry)
             if hasattr(entries, "items") and entries.items:
                 items = entries.items
                 if isinstance(items, list):

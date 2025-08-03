@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel, Field, model_validator
 
 from .content import BaseContent
-from .spells import SpellEntry
+from .entry_types import Entry
 
 if TYPE_CHECKING:
     pass
@@ -123,7 +123,7 @@ class ClassFeature(BaseContent):
 
     # Optional detailed fields (from the separate classFeature definitions)
     page: int | None = None
-    entries: list[SpellEntry] = Field(default_factory=list)
+    entries: list[Entry] = Field(default_factory=list)
     header: int | None = None
     srd: bool | None = None
     basic_rules: bool | None = Field(default=None, alias="basicRules")
@@ -141,7 +141,7 @@ class SubclassFeature(BaseContent):
 
     # Optional detailed fields
     page: int | None = None
-    entries: list[SpellEntry] = Field(default_factory=list)
+    entries: list[Entry] = Field(default_factory=list)
     header: int | None = None
     srd: bool | None = None
     basic_rules: bool | None = Field(default=None, alias="basicRules")

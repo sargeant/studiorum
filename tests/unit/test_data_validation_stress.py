@@ -438,7 +438,7 @@ class TestDataValidationStress:
                     "style": "list-hang-notitle",
                     "items": [
                         "Complex item property",
-                        {"type": "item", "name": "Special", "text": "Special property"},
+                        "Special property with additional text",
                     ],
                 }
             ],

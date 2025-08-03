@@ -5,6 +5,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .content import BaseContent
+from .entry_types import Entry, validate_entries
 
 
 class DurationDetails(BaseModel):
@@ -38,21 +39,8 @@ class SpellClassList(BaseModel):
     )
 
 
-class EntryContent(BaseModel):
-    """Complex entry structure with type and nested content."""
-
-    type: str = Field(..., description="Entry type (entries, inset, table, etc.)")
-    name: str | None = Field(None, description="Entry name/title")
-    entries: list[str | dict[str, Any]] = Field(
-        default_factory=list, description="Nested entry content"
-    )
-
-    # Allow additional fields for different entry types
-    model_config = ConfigDict(extra="allow")
-
-
-# Union type for spell entries: either plain text or complex entry structure
-SpellEntry = str | EntryContent
+# Use the new typed Entry system
+# EntryContent is replaced by the discriminated union in entry_types.py
 
 
 class SpellComponent(BaseModel):
@@ -156,8 +144,8 @@ class Spell(BaseContent):
     range: SpellRange = Field(..., description="Spell range")
     components: SpellComponent = Field(..., description="Spell components")
     duration: list[SpellDuration] = Field(..., description="Spell duration")
-    entries: list[SpellEntry] = Field(..., description="Spell description")
-    higher_level: list[SpellEntry] | None = Field(
+    entries: list[Entry] = Field(..., description="Spell description")
+    higher_level: list[Entry] | None = Field(
         None, alias="entriesHigherLevel", description="At higher levels"
     )
     damage_inflict: list[str] | None = Field(
@@ -244,43 +232,21 @@ class Spell(BaseContent):
 
     @field_validator("entries", mode="before")
     @classmethod
-    def parse_entries(cls, v: Any) -> list[SpellEntry] | Any:
-        """Parse entries from various formats."""
+    def parse_entries(cls, v: Any) -> list[Entry] | Any:
+        """Parse entries from various formats using new typed entry system."""
         if not isinstance(v, list):
             return v
-
-        parsed_entries: list[SpellEntry] = []
-        for entry in v:
-            if isinstance(entry, str):
-                parsed_entries.append(entry)
-            elif isinstance(entry, dict):
-                parsed_entries.append(EntryContent.model_validate(entry))
-            else:
-                # Keep unexpected types as-is for now - cast as string
-                parsed_entries.append(str(entry))
-
-        return parsed_entries
+        return validate_entries(v)
 
     @field_validator("higher_level", mode="before")
     @classmethod
-    def parse_higher_level(cls, v: Any) -> list[SpellEntry] | None | Any:
-        """Parse higher level entries from various formats."""
+    def parse_higher_level(cls, v: Any) -> list[Entry] | None | Any:
+        """Parse higher level entries from various formats using new typed entry system."""
         if v is None:
             return None
         if not isinstance(v, list):
             return v
-
-        parsed_entries: list[SpellEntry] = []
-        for entry in v:
-            if isinstance(entry, str):
-                parsed_entries.append(entry)
-            elif isinstance(entry, dict):
-                parsed_entries.append(EntryContent.model_validate(entry))
-            else:
-                # Keep unexpected types as-is for now - cast as string
-                parsed_entries.append(str(entry))
-
-        return parsed_entries
+        return validate_entries(v)
 
     def get_level_text(self) -> str:
         """Get formatted spell level text."""
@@ -341,11 +307,11 @@ class Spell(BaseContent):
                 result = self._extract_text_from_entries(entry)
                 if result:
                     text_parts.append(result)
-        elif isinstance(entries, EntryContent):
-            # Handle Pydantic EntryContent model
-            if entries.name:
+        elif hasattr(entries, "type") and hasattr(entries, "entries"):
+            # Handle structured entry models
+            if hasattr(entries, "name") and entries.name:
                 text_parts.append(f"**{entries.name}**")
-            if entries.entries:
+            if hasattr(entries, "entries") and entries.entries:
                 result = self._extract_text_from_entries(entries.entries)
                 if result:
                     text_parts.append(result)

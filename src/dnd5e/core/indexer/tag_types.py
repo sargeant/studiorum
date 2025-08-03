@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator
 
 from ..models.content import BaseContent, ContentType
+
+if TYPE_CHECKING:
+    from ..loaders.omnidexer import Omnidexer
 
 
 class FormatType(str, Enum):
@@ -195,9 +198,7 @@ class TagContext(BaseModel):
     that tag handlers might need.
     """
 
-    omnidexer: Any = Field(
-        description="Content indexer for tag resolution"
-    )  # TODO: Replace with Omnidexer once it's migrated to Pydantic
+    omnidexer: Omnidexer = Field(description="Content indexer for tag resolution")
 
     def find_content(
         self, content_type: ContentType, name: str, source: str | None = None
