@@ -411,7 +411,12 @@ class TestDeepIndexing:
 
         # Should have indexed the class
         fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")
-        assert fighter is not None
+        assert fighter is not None, (
+            f"Fighter class not found. "
+            f"Loaded types: {[ct for ct in ContentType if omnidexer.is_loaded(ct)]}, "
+            f"Total items: {omnidexer.get_statistics()['total_items']}, "
+            f"All classes: {[c.name for c in omnidexer.get_all_by_type(ContentType.CLASS)]}"
+        )
         assert fighter.name == "Fighter"
 
         # Should have indexed the class features due to deep indexing
@@ -440,12 +445,20 @@ class TestDeepIndexing:
         assert fighter_fighting_style.level == 1
 
         second_wind = omnidexer.find(ContentType.CLASS_FEATURE, "Second Wind", "PHB")
-        assert second_wind is not None
+        assert second_wind is not None, (
+            f"Second Wind feature not found. "
+            f"All class features: {[f.name for f in omnidexer.get_all_by_type(ContentType.CLASS_FEATURE)]}, "
+            f"Deep indexing stats: {omnidexer.get_statistics()}"
+        )
         assert second_wind.name == "Second Wind"
 
         # Should have indexed the subclass features
         champion = omnidexer.find(ContentType.SUBCLASS_FEATURE, "Champion", "PHB")
-        assert champion is not None
+        assert champion is not None, (
+            f"Champion subclass feature not found. "
+            f"All subclass features: {[f.name for f in omnidexer.get_all_by_type(ContentType.SUBCLASS_FEATURE)]}, "
+            f"Content factory status: {type(omnidexer._loaders) if hasattr(omnidexer, '_loaders') else 'No loaders'}"
+        )
         assert champion.name == "Champion"
         assert isinstance(champion, SubclassFeature)
         assert champion.level == 3
