@@ -98,7 +98,7 @@ class TestDNDTemplateManager:
         available, missing = manager.check_template_availability()
 
         assert available is False
-        assert "dndarticle.cls" in missing
+        assert "dnd.sty" in missing
         assert "dndbook.cls" not in missing
 
     @patch("subprocess.run")
