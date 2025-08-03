@@ -191,6 +191,33 @@ class TestOmnidexer:
 class TestDeepIndexing:
     """Tests for DeepIndexable protocol and deep indexing functionality."""
 
+    def setup_method(self) -> None:
+        """Clear cache before each test."""
+        from dnd5e.core.cache import CacheManager
+        from dnd5e.core.loaders.content_factory import reset_content_factory
+
+        CacheManager.reset()
+        reset_content_factory()  # Reset global content factory state
+
+    def teardown_method(self) -> None:
+        """Clear cache after each test."""
+        from dnd5e.core.cache import CacheManager
+        from dnd5e.core.loaders.content_factory import reset_content_factory
+
+        CacheManager.reset()
+        reset_content_factory()  # Reset global content factory state
+
+        # Ensure any pending async operations complete
+        import asyncio
+        import time
+
+        time.sleep(0.01)  # Small delay for cleanup
+
+        # Force garbage collection to clean up any file handles
+        import gc
+
+        gc.collect()
+
     @pytest.mark.asyncio
     async def test_deep_indexing_enabled_by_default(self) -> None:
         """Test that deep indexing is enabled by default."""
@@ -336,6 +363,10 @@ class TestDeepIndexing:
 
         # Load data and check indexing
         await omnidexer.load_all_data()
+
+        # Verify data was loaded
+        stats = omnidexer.get_statistics()
+        assert stats["total_items"] > 0, f"No data loaded. Stats: {stats}"
 
         # Should have indexed the class
         fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")

@@ -41,6 +41,13 @@ class CacheManager:
         cache.clear()
 
     @classmethod
+    def reset(cls) -> None:
+        """Reset the cache instance completely (for testing)."""
+        if cls._instance is not None:
+            cls._instance.close()
+            cls._instance = None
+
+    @classmethod
     def get_stats(cls) -> dict[str, Any]:
         """Get cache statistics."""
         cache = cls.get_instance()

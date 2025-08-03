@@ -17,11 +17,11 @@ class TestJsonLoaderCache:
 
     def setup_method(self) -> None:
         """Clear cache before each test."""
-        CacheManager.clear()
+        CacheManager.reset()
 
     def teardown_method(self) -> None:
         """Clear cache after each test."""
-        CacheManager.clear()
+        CacheManager.reset()
 
     @pytest.mark.asyncio
     async def test_cache_hit_on_second_load(self, tmp_path: Path) -> None:

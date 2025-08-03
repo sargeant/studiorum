@@ -111,3 +111,12 @@ def get_content_factory() -> ContentFactory:
         Global content factory instance
     """
     return _content_factory
+
+
+def reset_content_factory() -> None:
+    """Reset the global content factory (for testing).
+
+    This recreates the global factory instance to ensure clean state.
+    """
+    global _content_factory
+    _content_factory = ContentFactory()
