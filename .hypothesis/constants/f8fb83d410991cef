@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/indexer/tag_types.py
+# hypothesis_version: 6.136.7
+
+['Name of the content', 'Type of special tag', 'bold', 'content', 'display_text', 'emphasis', 'italic', 'monospace', 'name', 'source', 'tag_type', 'value']

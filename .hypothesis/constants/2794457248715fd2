@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/layout/table_formatter.py
+# hypothesis_version: 6.136.7
+
+[0.3, 0.7, ' & ', ' \\\\', '&', '*', '-', '0.8\\textwidth', '0.9\\textwidth', ':', 'X', '\\\\', '\\begin{DndTable}', '\\begin{array}', '\\begin{longtable}', '\\begin{tabular}', '\\end{DndTable}', '\\textwidth', '^\\+\\d+$', '^\\d+$', '^\\d+\\.\\d+$', '^\\d+\\s*ft\\.?$', '^\\d+\\s*lbs?\\.?$', '^\\d+d\\d+$', 'ability_list', 'c', 'c ', 'c l X', 'class_features', 'class_table', 'columns', 'equipment', 'item_list', 'l', 'l X', 'l X c', 'l X r', 'l l r r', 'r', 'rows', 'spell_list', 'width=', '|']

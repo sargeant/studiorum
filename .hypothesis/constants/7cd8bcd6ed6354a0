@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/models/races.py
+# hypothesis_version: 6.136.7
+
+['additionalSpells', 'armorProficiencies', 'conditionImmunities', 'creatureTypes', 'int', 'skillProficiencies', 'str', 'toolProficiencies', 'weaponProficiencies']

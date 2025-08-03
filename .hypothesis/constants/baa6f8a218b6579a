@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/indexer/tag_ast.py
+# hypothesis_version: 6.136.7
+
+['ASTNode', 'ASTVisitor', 'adventure', 'background', 'bold', 'book', 'chance', 'class', 'condition', 'creature', 'damage', 'dc', 'dice', 'end', 'feat', 'filter', 'hit', 'italic', 'item', 'loader', 'race', 'recharge', 'spell', 'start']

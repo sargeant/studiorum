@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/validation/error_tracker.py
+# hypothesis_version: 6.136.7
+
+['"VALUE"', '"[^"]*"', "'VALUE'", "'[^']*'", '.', 'NUMBER', '\\b\\d+\\b', 'ac', 'alignment', 'boolean', 'components', 'content_type', 'creature', 'error_type', 'field required', 'field_path', 'file', 'integer', 'item_name', 'level', 'loc', 'message', 'missing', 'msg', 'other_errors', 'parsing', 'parsing_errors', 'school', 'spell', 'unable to parse', 'unknown', 'unknown file', 'unknown item', 'unknown type', 'unknown_field', 'unrecognized']

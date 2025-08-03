@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/tag_integration.py
+# hypothesis_version: 6.136.7
+
+['Creatures', 'Magic Items', 'Reference', 'Spells', 'adventure', 'auto_page_refs', 'black', 'blue', 'bold', 'booktabs', 'border', 'color', 'condition', 'content_tracker', 'context', 'creature', 'cross_ref_format', 'cross_ref_manager', 'cross_references', 'enable_cross_refs', 'enable_hyperlinks', 'feat', 'font_style', 'footnote', 'graphicx', 'hyperlink_manager', 'hyperlink_styles', 'italic', 'item', 'longtable', 'normal', 'orange', 'page', 'parser', 'purple', 'red', 'reference', 'section', 'spell', 'supplement', 'tag_resolver', 'underline']

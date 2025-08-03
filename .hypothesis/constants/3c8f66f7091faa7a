@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/cache.py
+# hypothesis_version: 6.136.7
+
+[100, 1024, '.cache', 'cache_dir', 'eviction_policy', 'least-recently-used', 'max_size_mb', 'size_limit', 'timeout', 'total_entries', 'total_size_mb']

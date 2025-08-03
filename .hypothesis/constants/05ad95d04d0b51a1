@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/cli/commands/sources.py
+# hypothesis_version: 6.136.7
+
+['--enabled/--disabled', '--path', '--priority', '--remove-data', '--type', '--url', '-p', '-t', '-u', 'Auto Update', 'Content Scan Results', 'Content Sources', 'Enabled', 'Files', 'Location/URL', 'Name', 'No', 'Not set', 'Operation cancelled.', 'Path', 'Priority', 'Property', 'Source', 'Status', 'Type', 'URL', 'Value', 'Yes', 'add', 'blue', 'branch', 'center', 'commit_hash', 'cyan', 'defaults', 'file_count', 'green', 'info', 'last_commit_date', 'left', 'list', 'local_path', 'magenta', 'name', 'path', 'remove', 'right', 'scan', 'sources', 'type', 'update', 'url', 'white', '✅ Enabled', '❌ Disabled']

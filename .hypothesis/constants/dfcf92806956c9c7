@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/layout/sidebar_manager.py
+# hypothesis_version: 6.136.7
+
+[100, 200, 300, '#', '**', ',', '0.3\\textwidth', '0.4\\textwidth', '0.5\\textwidth', 'Area', 'Design Note', 'Information', 'Location', 'Note', 'Read Aloud', 'Sidebar', '\\DndArea{', '\\DndSubArea{', '\\begin{DndComment}', '\\begin{DndReadAloud}', '\\begin{DndSidebar}', '\\paragraph', '\\section', '\\subsection', '\\subsubsection', '\\textwidth', 'bottom', 'float*=b', 'full', 'medium', 'narrow', 'sidebar_width', 'top', 'wide', '{', '}']

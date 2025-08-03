@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/cli/commands/convert.py
+# hypothesis_version: 6.136.7
+
+[100, '-', '--background', '--bg', '--document-class', '--font-size', '--images', '--index/--no-index', '--items/--no-items', '--output', '--paper-size', '--pdf', '--title', '--type', '-o', '.tex', '11pt', 'Compiling PDF', 'Document title', 'Include images', 'Include index', 'Include item lists', 'Justify text columns', 'Loading content', 'Output LaTeX file', "Player's Handbook", 'Rendering adventure', 'Rendering book', 'Rendering supplement', 'Supplement JSON file', 'Untitled Chapter', 'abbreviation', 'adventure', 'all', 'book', 'book-', 'creature', 'creatures', 'data', 'dndbook', 'entries', 'file:', 'item', 'items', 'monster', 'monsters', 'name', 'not found', 'output/adventures', 'output/books', 'output/supplements', 'r', 'section', 'source', 'spell', 'spells', 'supplement', 'type', 'utf-8', 'w']

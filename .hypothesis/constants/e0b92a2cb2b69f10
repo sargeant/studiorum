@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/config/latex_config.py
+# hypothesis_version: 6.136.7
+
+[300, '-halt-on-error', '-output-directory', '-shell-escape', '10pt', '11pt', '12pt', 'Engine configuration', 'Include index', 'Justify text columns', 'a4paper', 'a5paper', 'adventure', 'article', 'background', 'batchmode', 'bg', 'bg=', 'book', 'class_options', 'commercial', 'dmsguild', 'dndarticle', 'dndbook', 'document_class', 'engine', 'errorstopmode', 'fancy', 'font_scheme', 'font_size', 'full', 'highcontrast', 'homebrew', 'interaction_mode', 'justified', 'letterpaper', 'lualatex', 'none', 'nonstopmode', 'onecolumn', 'paper_size', 'pdf', 'pdflatex', 'print', 'reference', 'scrollmode', 'sourcebook', 'supplement', 'system', 'template', 'twocolumn', 'xelatex']
