@@ -2,12 +2,9 @@
 
 from dnd5e.core.models.content import Source
 from dnd5e.core.models.nested_content import (
-    AdventureInset,
-    AdventureSection,
-    AdventureTable,
-    BookInset,
-    BookSection,
-    BookTable,
+    Inset,
+    Section,
+    Table,
     VariantRule,
 )
 from dnd5e.core.parsers.entry_parser import EntryParser
@@ -68,7 +65,7 @@ class TestEntryParser:
         result = list(parser.parse_entries(entries, "adventure"))
 
         assert len(result) == 1
-        assert isinstance(result[0], AdventureSection)
+        assert isinstance(result[0], Section)
         assert result[0].name == "The Dark Forest"
         assert result[0].page == 15
         assert result[0].id == "dark-forest"
@@ -95,7 +92,7 @@ class TestEntryParser:
         result = list(parser.parse_entries(entries, "book"))
 
         assert len(result) == 1
-        assert isinstance(result[0], BookSection)
+        assert isinstance(result[0], Section)
         assert result[0].name == "Ability Scores"
         assert result[0].page == 12
 
@@ -122,7 +119,7 @@ class TestEntryParser:
         result = list(parser.parse_entries(entries, "adventure"))
 
         assert len(result) == 1
-        assert isinstance(result[0], AdventureTable)
+        assert isinstance(result[0], Table)
         assert result[0].name == "Random Encounters"
         assert result[0].caption == "Random Encounters"
         assert result[0].col_labels == ["d10", "Encounter"]
@@ -146,7 +143,7 @@ class TestEntryParser:
         result = list(parser.parse_entries(entries, "book"))
 
         assert len(result) == 1
-        assert isinstance(result[0], BookTable)
+        assert isinstance(result[0], Table)
         assert result[0].name == "Table (page 25)"
         assert result[0].caption is None
 
@@ -170,7 +167,7 @@ class TestEntryParser:
         result = list(parser.parse_entries(entries, "adventure"))
 
         assert len(result) == 1
-        assert isinstance(result[0], AdventureInset)
+        assert isinstance(result[0], Inset)
         assert result[0].name == "Dramatic Entrance"
         assert result[0].inset_type == "insetReadaloud"
         assert result[0].page == 30
@@ -187,7 +184,7 @@ class TestEntryParser:
         result = list(parser.parse_entries(entries, "book"))
 
         assert len(result) == 1
-        assert isinstance(result[0], BookInset)
+        assert isinstance(result[0], Inset)
         assert result[0].name == "Inset (page 35)"
         assert result[0].inset_type == "inset"
 
@@ -255,7 +252,7 @@ class TestEntryParser:
 
         assert len(result) == 2
         for item in result:
-            assert isinstance(item, BookSection)
+            assert isinstance(item, Section)
             assert not isinstance(item, VariantRule)
 
     def test_parse_nested_sections_with_updated_parent(self):

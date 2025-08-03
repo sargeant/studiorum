@@ -11,10 +11,6 @@ if TYPE_CHECKING:
     from ..loaders.omnidexer import Omnidexer
 
 
-# Legacy alias for backward compatibility
-AdventureChapter = Chapter
-
-
 class AdventureMetadata(BaseModel):
     """Adventure metadata and publishing information."""
 

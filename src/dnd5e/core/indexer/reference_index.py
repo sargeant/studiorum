@@ -49,8 +49,8 @@ class ReferenceIndex:
         # Forward references: content -> what it references
         self._forward_refs: dict[str, list[Reference]] = defaultdict(list)
 
-        # Backward references: content -> what references it
-        self._backward_refs: dict[str, list[Reference]] = defaultdict(list)
+        # Reverse references: content -> what references it
+        self._reverse_refs: dict[str, list[Reference]] = defaultdict(list)
 
         # Referenced content by type (for generating lists)
         self._referenced_by_type: dict[ContentType, set[str]] = defaultdict(set)
@@ -79,8 +79,8 @@ class ReferenceIndex:
         # Add to forward references
         self._forward_refs[source_key].append(reference)
 
-        # Add to backward references
-        self._backward_refs[target_key].append(reference)
+        # Add to reverse references
+        self._reverse_refs[target_key].append(reference)
 
         # Track referenced content by type
         self._referenced_by_type[target_type].add(
@@ -101,7 +101,7 @@ class ReferenceIndex:
     ) -> list[Reference]:
         """Get all references to the specified content."""
         target_key = f"{content_type.value}:{name}:{source or 'any'}"
-        return self._backward_refs.get(target_key, [])
+        return self._reverse_refs.get(target_key, [])
 
     def get_referenced_content(self, content_type: ContentType) -> list[str]:
         """Get list of all content names that are referenced for a given type."""
@@ -113,7 +113,7 @@ class ReferenceIndex:
         stats: dict[str, Any] = {
             "total_references": sum(len(refs) for refs in self._forward_refs.values()),
             "content_with_references": len(self._forward_refs),
-            "referenced_content": len(self._backward_refs),
+            "referenced_content": len(self._reverse_refs),
             "by_type": {},
         }
 

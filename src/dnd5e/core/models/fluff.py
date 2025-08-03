@@ -81,6 +81,7 @@ class FluffEntry(BaseModel):
                 if isinstance(entry, str):
                     text_parts.append(entry)
                 elif isinstance(entry, dict):
+                    # Handle structured dict entries (current 5etools format)
                     if "entries" in entry:
                         nested = FluffEntry._extract_text_from_entries(entry["entries"])
                         if nested:

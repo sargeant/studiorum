@@ -122,12 +122,3 @@ class VariantRule(BaseContent):
     def get_hash_key(self) -> str:
         """Generate a unique hash key for indexing."""
         return f"variantrule:{self.name}:{self.source.abbreviation}:{self.parent_name}"
-
-
-# Legacy aliases for backward compatibility
-AdventureSection = Section
-AdventureTable = Table
-AdventureInset = Inset
-BookSection = Section
-BookTable = Table
-BookInset = Inset

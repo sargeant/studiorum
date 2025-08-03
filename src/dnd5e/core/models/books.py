@@ -11,10 +11,6 @@ if TYPE_CHECKING:
     from ..loaders.omnidexer import Omnidexer
 
 
-# Legacy alias for backward compatibility
-BookChapter = Chapter
-
-
 class BookMetadata(BaseModel):
     """Book metadata and publishing information."""
 

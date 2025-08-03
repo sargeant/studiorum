@@ -44,20 +44,6 @@
 \author{<# metadata.get_author_list() | latex_escape #>}
 <@ endif @>
 \date{<# metadata.get_formatted_date() | latex_escape #>}
-<@ else @>
-<#-- Fallback to legacy metadata format --#>
-<@ if title @>
-\title{<# title | latex_escape #>}
-<@ endif @>
-<@ if subtitle @>
-\subtitle{<# subtitle | latex_escape #>}
-<@ endif @>
-<@ if author @>
-\author{<# author | latex_escape #>}
-<@ endif @>
-<@ if date @>
-\date{<# date | latex_escape #>}
-<@ endif @>
 <@ endif @>
 <@ endblock @>
 
@@ -134,11 +120,6 @@
 <@ for section in sections @>
 <@ include 'section.tex.j2' @>
 <@ endfor @>
-<@ else @>
-<#-- Fallback to legacy content block --#>
-<@ block document_body @>
-<#-- Main content goes here --#>
-<@ endblock @>
 <@ endif @>
 <@ endblock @>
 

@@ -64,7 +64,7 @@ class ReferenceResolver:
         self.tag_integration = tag_integration
         self.reference_cache: dict[str, str] = {}
         self.forward_references: dict[str, list[str]] = {}
-        self.backward_references: dict[str, list[str]] = {}
+        self.reverse_references: dict[str, list[str]] = {}
         self.unresolved_references: set[str] = set()
 
     def resolve_content_reference(
@@ -173,10 +173,10 @@ class ReferenceResolver:
             self.forward_references[current_location].append(ref_id)
 
         # Track backward reference (from target to current location)
-        if ref_id not in self.backward_references:
-            self.backward_references[ref_id] = []
-        if current_location not in self.backward_references[ref_id]:
-            self.backward_references[ref_id].append(current_location)
+        if ref_id not in self.reverse_references:
+            self.reverse_references[ref_id] = []
+        if current_location not in self.reverse_references[ref_id]:
+            self.reverse_references[ref_id].append(current_location)
 
     def create_definition_label(
         self, content_type: str, name: str, context: ReferenceContext
@@ -276,9 +276,9 @@ class ReferenceResolver:
 
     def generate_forward_reference_list(self, ref_id: str) -> list[str]:
         """Generate list of locations that reference this content."""
-        return self.backward_references.get(ref_id, [])
+        return self.reverse_references.get(ref_id, [])
 
-    def generate_backward_reference_list(self, location: str) -> list[str]:
+    def generate_reverse_reference_list(self, location: str) -> list[str]:
         """Generate list of content referenced from this location."""
         return self.forward_references.get(location, [])
 
@@ -320,7 +320,7 @@ class ReferenceResolver:
         report: dict[str, Any] = {
             "total_references": len(self.reference_cache),
             "forward_references": len(self.forward_references),
-            "backward_references": len(self.backward_references),
+            "reverse_references": len(self.reverse_references),
             "unresolved": len(self.unresolved_references),
         }
 
@@ -348,7 +348,7 @@ class ReferenceResolver:
         """Clear reference resolution cache."""
         self.reference_cache.clear()
         self.forward_references.clear()
-        self.backward_references.clear()
+        self.reverse_references.clear()
         self.unresolved_references.clear()
 
     def export_reference_data_for_compilation(self) -> dict[str, Any]:

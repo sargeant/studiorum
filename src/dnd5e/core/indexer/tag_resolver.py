@@ -59,18 +59,6 @@ class TagResolver(BaseModel):
             )
             return text
 
-    def register_tag_handler(self, tag_type: str, handler_func: Callable) -> None:
-        """Register a custom tag handler function.
-
-        Note: Legacy function-based handlers are deprecated.
-        Please implement TagHandler interface instead.
-        """
-        self.custom_handlers[tag_type] = handler_func
-        raise NotImplementedError(
-            "Function-based handler registration is deprecated. "
-            "Please implement TagHandler interface instead."
-        )
-
     def register_handler(self, handler: TagHandler) -> None:
         """Register a new-style tag handler."""
         self.renderer.register_handler(handler)
@@ -112,10 +100,3 @@ class TagResolver(BaseModel):
     def has_handler(self, tag_type: str) -> bool:
         """Check if a handler exists for the given tag type."""
         return self.renderer.has_handler(tag_type)
-
-    # Backward compatibility properties and methods
-    @property
-    def _tag_handlers(self) -> dict[str, Any]:
-        """Backward compatibility property."""
-        # Return a dict-like view of handlers for backward compatibility
-        return self.custom_handlers

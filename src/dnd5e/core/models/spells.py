@@ -369,7 +369,7 @@ class Spell(BaseContent):
                             if item_text_parts:
                                 text_parts.append(f"• {' '.join(item_text_parts)}")
         elif isinstance(entries, dict):
-            # Handle legacy dict entry types - preserve original logic exactly
+            # Handle structured dict entries (current 5etools format)
             if "entries" in entries:
                 result = self._extract_text_from_entries(entries["entries"])
                 if result:

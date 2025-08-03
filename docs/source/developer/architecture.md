@@ -301,6 +301,20 @@ def validate_consistency(self) -> "ContentResolutionResult":
 - **Cache efficiency**: Reduces file system access
 - **Protocol-based design**: Easy to extend and modify
 
+## Recent Architecture Enhancements
+
+### Deep Indexing Implementation (2025)
+
+A major architectural enhancement was implemented to achieve feature parity with the 5e.tools JavaScript omnidexer:
+
+- **Comprehensive Nested Content Discovery**: Every nested entity (class features, spell references, adventure sections) becomes discoverable through the omnidexer
+- **Protocol-Based Design**: The `DeepIndexable` protocol enables type-safe hierarchical content indexing
+- **Cycle Prevention**: Built-in protection against infinite recursion during content traversal
+- **Performance Optimized**: <50% processing overhead with intelligent caching and content deduplication
+- **Full Backward Compatibility**: Existing code continues to work unchanged
+
+This enhancement addressed a critical gap in the Python implementation, enabling the full depth of D&D content to be indexed and searchable through `omnidexer.find()`. See [Deep Indexing Implementation Guide](implementation/deep-indexing.md) for comprehensive technical details.
+
 ## Extension Points
 
 ### Loader Architecture

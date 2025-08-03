@@ -110,7 +110,8 @@ async def _load_from_file(
         return content_items, f"file: {file_path}"
 
     elif content_type == ContentType.BOOK:
-        from dnd5e.core.models.books import Book, BookChapter
+        from dnd5e.core.models.books import Book
+        from dnd5e.core.models.chapter import Chapter
         from dnd5e.core.models.content import Source
 
         # Extract book metadata from filename if available
@@ -130,7 +131,7 @@ async def _load_from_file(
         chapters = []
         for section in book_sections:
             if isinstance(section, dict) and section.get("type") == "section":
-                chapter = BookChapter(
+                chapter = Chapter(
                     name=section.get("name", "Untitled Chapter"),
                     ordinal=None,
                     headers=None,

@@ -121,25 +121,6 @@ class TestTagResolver:
             # Should return original text on unexpected error
             assert result == "input text"
 
-    def test_tag_resolver_register_tag_handler_deprecated(
-        self, mock_omnidexer: Mock
-    ) -> None:
-        """Test that register_tag_handler raises NotImplementedError."""
-        resolver = TagResolver(omnidexer=mock_omnidexer)
-
-        def dummy_handler(tag: str) -> str:
-            return tag
-
-        with pytest.raises(NotImplementedError) as exc_info:
-            resolver.register_tag_handler("test", dummy_handler)
-
-        assert "Function-based handler registration is deprecated" in str(
-            exc_info.value
-        )
-
-        # Should still store the handler in custom_handlers
-        assert resolver.custom_handlers["test"] == dummy_handler
-
     def test_tag_resolver_register_handler(self, mock_omnidexer: Mock) -> None:
         """Test registering new-style tag handler."""
         resolver = TagResolver(omnidexer=mock_omnidexer)
@@ -282,20 +263,6 @@ class TestTagResolver:
 
             assert result is True
             mock_has_handler.assert_called_once_with("creature")
-
-    def test_tag_resolver_tag_handlers_property(self, mock_omnidexer: Mock) -> None:
-        """Test backward compatibility _tag_handlers property."""
-        resolver = TagResolver(omnidexer=mock_omnidexer)
-
-        # Add a custom handler
-        def test_handler(tag: str) -> str:
-            return f"processed_{tag}"
-
-        resolver.custom_handlers["test"] = test_handler
-
-        # _tag_handlers should return custom_handlers for backward compatibility
-        assert resolver._tag_handlers == resolver.custom_handlers
-        assert resolver._tag_handlers["test"] == test_handler
 
     def test_tag_resolver_arbitrary_types_allowed(self) -> None:
         """Test that TagResolver allows arbitrary types."""
@@ -457,25 +424,6 @@ class TestTagResolver:
         assert hasattr(resolver.renderer, "omnidexer")
         # Note: Actual TagRenderer might not expose omnidexer directly,
         # this is just testing the pattern
-
-    def test_tag_resolver_backwards_compatibility_interface(
-        self, mock_omnidexer: Mock
-    ) -> None:
-        """Test backwards compatibility interface."""
-        resolver = TagResolver(omnidexer=mock_omnidexer)
-
-        # Should have all the expected methods for backwards compatibility
-        assert hasattr(resolver, "process_text")
-        assert hasattr(resolver, "register_tag_handler")
-        assert hasattr(resolver, "get_tracked_content_for_appendix")
-        assert hasattr(resolver, "clear_tracked_content")
-        assert hasattr(resolver, "_tag_handlers")
-
-        # Methods should be callable
-        assert callable(resolver.process_text)
-        assert callable(resolver.register_tag_handler)
-        assert callable(resolver.get_tracked_content_for_appendix)
-        assert callable(resolver.clear_tracked_content)
 
     def test_tag_resolver_config_arbitrary_types(self) -> None:
         """Test that Config allows arbitrary types."""

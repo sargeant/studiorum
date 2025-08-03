@@ -4,7 +4,7 @@ import logging
 from collections.abc import Iterator
 from typing import Any, Union
 
-from ..entry_registry import ValidationMode, get_registry, validate_entry_type
+from ..entry_registry import ValidationMode, get_registry
 from ..exceptions import EntryProcessingError
 from ..models.content import Source
 from ..models.nested_content import (
@@ -110,22 +110,19 @@ class EntryParser:
 
             # Validate entry type if not empty
             if entry_type:
-                # Use instance validation mode or fall back to global
-                original_mode = self._registry.validation_mode
+                # Create ValidationContext for modern interface
+                from ..entry_registry import ValidationContext
 
-                if self._validation_mode:
-                    self._registry.validation_mode = self._validation_mode
+                context = ValidationContext(
+                    entry_data=entry,
+                    source=self.source.abbreviation,
+                    parent_name=self.parent_name,
+                    entry_type=entry_type,
+                    validation_mode=self._validation_mode,
+                )
 
-                try:
-                    validate_entry_type(
-                        entry_type=entry_type,
-                        entry=entry,  # type: ignore[arg-type]
-                        source=self.source.abbreviation,
-                        parent_name=self.parent_name,
-                    )
-                finally:
-                    # Restore original mode
-                    self._registry.validation_mode = original_mode
+                # Use modern ValidationContext interface
+                self._registry.validate_entry_type(context)
 
             # Dispatch to specific parsing methods
             if entry_type == "section":
@@ -366,7 +363,7 @@ class EntryParser:
             errors_encountered=self._errors_encountered,
             source=self.source.abbreviation,
             parent_name=self.parent_name,
-            registry_statistics=self._registry.statistics_dict,
+            registry_statistics=self._registry.statistics.entry_counts.copy(),
             unknown_types=list(self._registry.unknown_types),
         )
 
