@@ -61,10 +61,13 @@ def show_content_info(
 
             # First try abbreviation-based lookup for adventures and books
             if not content_type or content_type.lower() in ["adventure", "book"]:
+                # Initialize result to avoid UnboundLocalError
+                result = None
+
                 # Try adventure abbreviation lookup
                 if not content_type or content_type.lower() == "adventure":
                     result = await resolver.resolve_adventure(name_or_abbreviation)
-                    if result.is_success and result.content:
+                    if result and result.is_success and result.content:
                         content_item = result.content
 
                 # Try book abbreviation lookup if not found
@@ -72,7 +75,7 @@ def show_content_info(
                     not content_type or content_type.lower() == "book"
                 ):
                     result = await resolver.resolve_book(name_or_abbreviation)
-                    if result.is_success and result.content:
+                    if result and result.is_success and result.content:
                         content_item = result.content
 
             # Fall back to traditional name-based search
