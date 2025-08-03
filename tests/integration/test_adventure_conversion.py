@@ -104,6 +104,10 @@ class TestAdventureConversion:
                         pytest.skip(
                             f"Adventure {adventure_id} not available in test data"
                         )
+                    elif "DND template availability check failed" in result.stderr:
+                        pytest.skip(
+                            f"DND LaTeX template not available - cannot test {adventure_id} conversion"
+                        )
                     else:
                         pytest.fail(
                             f"Conversion of {adventure_id} failed: {result.stderr}"
