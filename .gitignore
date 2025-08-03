@@ -85,6 +85,9 @@ validation_report.txt.coverage
 coverage.xml
 .coverage
 .coverage.*
+test-quality-report.txt
+tests/performance_metrics.json
+tests/performance_baseline.json
 
 # AI tools
 .claude/
