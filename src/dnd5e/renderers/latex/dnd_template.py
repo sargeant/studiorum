@@ -44,13 +44,29 @@ class DNDTemplateManager:
         Returns:
             Tuple of (is_available, missing_files)
         """
+        from dnd5e.core.logging import get_logger
+
+        logger = get_logger(__name__)
+
+        logger.debug("Checking DND template availability")
+        logger.debug(f"Required template files: {self.template_files}")
+
         missing_files = []
 
         for template_file in self.template_files:
+            logger.debug(f"Checking for template file: {template_file}")
             if not self._find_template_file(template_file):
+                logger.debug(f"Template file missing: {template_file}")
                 missing_files.append(template_file)
+            else:
+                logger.debug(f"Template file found: {template_file}")
 
-        return len(missing_files) == 0, missing_files
+        is_available = len(missing_files) == 0
+        logger.debug(f"Template availability result: {is_available}")
+        if missing_files:
+            logger.debug(f"Missing template files: {missing_files}")
+
+        return is_available, missing_files
 
     def _find_template_file(self, filename: str) -> Path | None:
         """Find template file in LaTeX search paths.
@@ -61,21 +77,36 @@ class DNDTemplateManager:
         Returns:
             Path to file if found, None otherwise
         """
+        from dnd5e.core.logging import get_logger
+
+        logger = get_logger(__name__)
+
+        logger.debug(f"Looking for template file: {filename}")
+
         try:
             # Use kpsewhich to find file in LaTeX search paths
+            logger.debug(f"Running kpsewhich {filename}")
             result = subprocess.run(
                 ["kpsewhich", filename], capture_output=True, text=True, timeout=30
             )
 
-            if result.returncode == 0 and result.stdout.strip():
-                return Path(result.stdout.strip())
+            logger.debug(f"kpsewhich returncode: {result.returncode}")
+            logger.debug(f"kpsewhich stdout: '{result.stdout.strip()}'")
+            logger.debug(f"kpsewhich stderr: '{result.stderr.strip()}'")
 
-        except (
-            subprocess.TimeoutExpired,
-            subprocess.CalledProcessError,
-            FileNotFoundError,
-        ):
-            pass
+            if result.returncode == 0 and result.stdout.strip():
+                found_path = Path(result.stdout.strip())
+                logger.debug(f"Found {filename} via kpsewhich at: {found_path}")
+                return found_path
+            else:
+                logger.debug(f"kpsewhich failed to find {filename}")
+
+        except subprocess.TimeoutExpired:
+            logger.warning(f"kpsewhich timeout for {filename}")
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"kpsewhich error for {filename}: {e}")
+        except FileNotFoundError:
+            logger.warning(f"kpsewhich command not found when looking for {filename}")
 
         # Fallback: Check common installation directories (for CI environments)
         fallback_paths = [
@@ -84,10 +115,14 @@ class DNDTemplateManager:
             Path.home() / "texmf" / "tex" / "latex" / "dnd" / filename,
         ]
 
+        logger.debug(f"Checking fallback paths for {filename}:")
         for path in fallback_paths:
+            logger.debug(f"  Checking: {path} - exists: {path.exists()}")
             if path.exists():
+                logger.debug(f"Found {filename} via fallback at: {path}")
                 return path
 
+        logger.debug(f"Template file {filename} not found in any location")
         return None
 
     def check_latex_installation(self) -> tuple[bool, str]:
@@ -334,21 +369,39 @@ def check_dnd_template_status() -> bool:
     Returns:
         True if template is ready, False otherwise
     """
+    from dnd5e.core.logging import get_logger
+
+    logger = get_logger(__name__)
+
+    logger.debug("Performing DND template status check")
     manager = DNDTemplateManager()
 
     # Check LaTeX installation
-    latex_available, _ = manager.check_latex_installation()
+    logger.debug("Checking LaTeX installation")
+    latex_available, latex_version = manager.check_latex_installation()
+    logger.debug(f"LaTeX available: {latex_available}, version: {latex_version}")
     if not latex_available:
+        logger.debug("LaTeX not available - template check failed")
         return False
 
     # Check template availability
-    template_available, _ = manager.check_template_availability()
+    logger.debug("Checking template file availability")
+    template_available, missing_files = manager.check_template_availability()
+    logger.debug(f"Template available: {template_available}")
     if not template_available:
+        logger.debug(f"Template files missing: {missing_files} - template check failed")
         return False
 
     # Check required packages
-    packages_available, _ = manager.check_required_packages()
-    return packages_available
+    logger.debug("Checking required LaTeX packages")
+    packages_available, missing_packages = manager.check_required_packages()
+    logger.debug(f"Packages available: {packages_available}")
+    if not packages_available:
+        logger.debug(f"Missing packages: {missing_packages} - template check failed")
+
+    final_result = packages_available
+    logger.debug(f"Final DND template status: {final_result}")
+    return final_result
 
 
 def get_dnd_document_class_options() -> dict[str, dict[str, str]]:

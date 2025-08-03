@@ -20,6 +20,21 @@ class TestLaTeXEngineIntegration:
         self.runner = CliRunner()
         self.test_data_dir = Path(__file__).parent.parent.parent.parent / "test-data"
 
+        # Enable debug logging for CI debugging
+        import logging
+        import os
+
+        if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
+            logging.basicConfig(level=logging.DEBUG)
+            # Enable specific loggers
+            for logger_name in [
+                "dnd5e.renderers.latex.dnd_template",
+                "dnd5e.renderers.latex.template_engine",
+                "dnd5e.cli.commands.convert",
+            ]:
+                logger = logging.getLogger(logger_name)
+                logger.setLevel(logging.DEBUG)
+
     @pytest.mark.slow
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
