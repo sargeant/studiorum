@@ -264,5 +264,9 @@ def get_content_config() -> ContentConfiguration:
 
 def reset_config_manager() -> None:
     """Reset global config manager for testing."""
+    import tempfile
+
     global _config_manager
-    _config_manager = None
+    # Use a temporary directory for tests to avoid system config conflicts
+    temp_dir = Path(tempfile.mkdtemp())
+    _config_manager = ContentConfigManager(temp_dir / "test_config.yaml")

@@ -71,12 +71,18 @@ async def resolve_content_or_file(
     omnidexer = await get_omnidexer()
     resolver = ContentResolver(omnidexer)
 
+    # Initialize result to avoid UnboundLocalError
+    result = None
+
     if content_type == ContentType.ADVENTURE:
         result = await resolver.resolve_adventure(content_source)
     elif content_type == ContentType.BOOK:
         result = await resolver.resolve_book(content_source)
     else:
         result = await resolver.resolve_any(content_source, content_type)
+
+    if result is None:
+        raise ValueError(f"Failed to resolve content: {content_source}")
 
     return await _handle_resolution_result(result, content_source, content_type)
 

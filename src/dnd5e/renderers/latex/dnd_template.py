@@ -77,6 +77,17 @@ class DNDTemplateManager:
         ):
             pass
 
+        # Fallback: Check common installation directories (for CI environments)
+        fallback_paths = [
+            Path("/usr/share/texlive/texmf-local/tex/latex/dnd") / filename,
+            Path("/usr/local/share/texmf/tex/latex/dnd") / filename,
+            Path.home() / "texmf" / "tex" / "latex" / "dnd" / filename,
+        ]
+
+        for path in fallback_paths:
+            if path.exists():
+                return path
+
         return None
 
     def check_latex_installation(self) -> tuple[bool, str]:
