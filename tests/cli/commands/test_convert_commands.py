@@ -284,6 +284,21 @@ class TestConvertBookCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for test isolation
+        from dnd5e.core.cache import CacheManager
+        from dnd5e.core.config.sources import reset_config_manager
+        from dnd5e.core.content_type_resolver import reset_content_type_resolver
+        from dnd5e.core.entry_registry import reset_entry_registry
+        from dnd5e.core.interfaces import reset_content_type_registry
+        from dnd5e.core.loaders.content_factory import reset_content_factory
+
+        CacheManager.reset()
+        reset_content_factory()
+        reset_content_type_registry()
+        reset_content_type_resolver()
+        reset_entry_registry()
+        reset_config_manager()
+
         self.runner = CliRunner()
         self.mock_book_data = {
             "data": [
