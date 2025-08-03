@@ -14,6 +14,9 @@ from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceMan
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.resolvers.content_resolver import ContentResolver
 
+# Ensure async tests work properly
+pytestmark = pytest.mark.asyncio
+
 
 class TestContentLoadingPerformance:
     """Test performance of content loading system."""
@@ -53,7 +56,7 @@ class TestContentLoadingPerformance:
 
         # Test adventure resolution performance
         start_time = time.time()
-        adventure = resolver.resolve_adventure("TEST")
+        adventure = await resolver.resolve_adventure("TEST")
         end_time = time.time()
 
         adventure_time = end_time - start_time
@@ -65,7 +68,7 @@ class TestContentLoadingPerformance:
 
         # Test book resolution performance
         start_time = time.time()
-        book = resolver.resolve_book("TEST")
+        book = await resolver.resolve_book("TEST")
         end_time = time.time()
 
         book_time = end_time - start_time
@@ -83,12 +86,12 @@ class TestContentLoadingPerformance:
 
         # First resolution (cache miss)
         start_time = time.time()
-        result1 = resolver.resolve_adventure("TEST")
+        result1 = await resolver.resolve_adventure("TEST")
         first_time = time.time() - start_time
 
         # Second resolution (cache hit)
         start_time = time.time()
-        result2 = resolver.resolve_adventure("TEST")
+        result2 = await resolver.resolve_adventure("TEST")
         second_time = time.time() - start_time
 
         assert result1 is not None and result2 is not None, (
@@ -114,4 +117,9 @@ if __name__ == "__main__":
     # Simple test runner for performance testing
     import pytest
 
+    # Ensure async tests work properly
     pytest.main([__file__, "-v"])
+
+
+# Apply async mark to the entire module
+pytestmark = pytest.mark.asyncio

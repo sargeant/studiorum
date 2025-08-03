@@ -141,7 +141,8 @@ class TestConvertAdventureCommand:
         mock_result = ContentResolutionResult(
             status=ResolutionStatus.EXACT_MATCH, content=mock_adventure, query="cos"
         )
-        mock_resolver.resolve_adventure.return_value = mock_result
+        # Make the mock async
+        mock_resolver.resolve_adventure = AsyncMock(return_value=mock_result)
         mock_resolver_class.return_value = mock_resolver
 
         # Mock renderer
@@ -191,7 +192,8 @@ class TestConvertAdventureCommand:
         mock_result = ContentResolutionResult(
             status=ResolutionStatus.NO_MATCH, query="nonexistent"
         )
-        mock_resolver.resolve_adventure.return_value = mock_result
+        # Make the mock async
+        mock_resolver.resolve_adventure = AsyncMock(return_value=mock_result)
         mock_resolver_class.return_value = mock_resolver
 
         # Test command
@@ -793,7 +795,8 @@ class TestSpecialCases:
         mock_result = ContentResolutionResult(
             status=ResolutionStatus.EXACT_MATCH, content=mock_book, query="phb"
         )
-        mock_resolver.resolve_book.return_value = mock_result
+        # Make the mock async
+        mock_resolver.resolve_book = AsyncMock(return_value=mock_result)
         mock_resolver_class.return_value = mock_resolver
 
         # Mock renderer

@@ -7,11 +7,16 @@ from typing import Any
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import Mock, patch
 
+import pytest
+
 from dnd5e.core.loaders import FileSystemSourceManager, Omnidexer
 from dnd5e.core.loaders.base import SourceManager
 from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+
+# Ensure async tests work properly
+pytestmark = pytest.mark.asyncio
 
 
 class TestSourceManager(SourceManager):
@@ -167,7 +172,7 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         with open(self.test_content_file, "w") as f:
             json.dump(test_content, f, indent=2)
 
-    async def tearDown(self):
+    def tearDown(self):
         """Clean up temporary files."""
         self.temp_dir.cleanup()
 
@@ -201,7 +206,7 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         resolver = ContentResolver(omnidexer)
 
         # Resolve Test adventure
-        result = resolver.resolve_adventure("TEST")
+        result = await resolver.resolve_adventure("TEST")
 
         # Verify resolution was successful
         self.assertEqual(result.status, ResolutionStatus.EXACT_MATCH)
@@ -259,7 +264,7 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         await omnidexer.load_all_data()
         resolver = ContentResolver(omnidexer)
 
-        result = resolver.resolve_adventure("test")
+        result = await resolver.resolve_adventure("test")
 
         # Should still resolve but with empty content
         self.assertEqual(result.status, ResolutionStatus.EXACT_MATCH)
@@ -279,7 +284,7 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         await omnidexer.load_all_data()
         resolver = ContentResolver(omnidexer)
 
-        result = resolver.resolve_adventure("nonexistent")
+        result = await resolver.resolve_adventure("nonexistent")
 
         self.assertEqual(result.status, ResolutionStatus.NO_MATCH)
         self.assertIsNone(result.content)
@@ -297,7 +302,7 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         resolver = ContentResolver(omnidexer)
 
         # Resolve test adventure
-        test_adventure_result = resolver.resolve_adventure("TEST")
+        test_adventure_result = await resolver.resolve_adventure("TEST")
 
         # Should succeed
         self.assertEqual(test_adventure_result.status, ResolutionStatus.EXACT_MATCH)

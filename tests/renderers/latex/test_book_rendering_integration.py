@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -313,7 +313,7 @@ class TestBookRenderingIntegration:
         assert "\\end{document}" in result
         assert "Empty Book" in result
 
-    def test_book_compilation_integration(self, simple_book: Any) -> None:
+    async def test_book_compilation_integration(self, simple_book: Any) -> None:
         """Test full integration from book to PDF compilation."""
         from dnd5e.renderers.latex.compilation_config import (  # type: ignore
             CompilationResult,
@@ -337,9 +337,12 @@ class TestBookRenderingIntegration:
             return_value=True,
         ):
             with patch.object(
-                self.renderer.compiler, "compile_document", return_value=mock_result
+                self.renderer.compiler,
+                "compile_document",
+                return_value=mock_result,
+                new_callable=AsyncMock,
             ) as mock_compile:
-                result = self.renderer.compile_document_to_pdf(
+                result = await self.renderer.compile_document_to_pdf(
                     [simple_book], context=context
                 )
 

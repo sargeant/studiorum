@@ -3,7 +3,7 @@
 import time
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -366,7 +366,7 @@ class TestRenderingPerformance:
         print(f"\\nLarge document (50 chapters): {render_time:.2f}s")
 
     @pytest.mark.slow
-    def test_compilation_performance_integration(self, sample_spell: Any) -> None:
+    async def test_compilation_performance_integration(self, sample_spell: Any) -> None:
         """Test end-to-end performance including compilation."""
         from dnd5e.renderers.latex.compilation_config import (  # type: ignore
             CompilationResult,
@@ -388,13 +388,16 @@ class TestRenderingPerformance:
             return_value=True,
         ):
             with patch.object(
-                self.renderer.compiler, "compile_document", return_value=mock_result
+                self.renderer.compiler,
+                "compile_document",
+                return_value=mock_result,
+                new_callable=AsyncMock,
             ):
                 # Measure end-to-end performance
                 context = RenderContext(title="Compilation Performance Test")
                 start_time = time.perf_counter()
                 for _ in range(10):
-                    result = self.renderer.compile_document_to_pdf(
+                    result = await self.renderer.compile_document_to_pdf(
                         [sample_spell], context=context
                     )
                     assert result.success is True

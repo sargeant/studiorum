@@ -343,13 +343,26 @@ class TestDeepIndexing:
         assert fighter.name == "Fighter"
 
         # Should have indexed the class features due to deep indexing
-        fighting_style = omnidexer.find(
-            ContentType.CLASS_FEATURE, "Fighting Style", "PHB"
+        # Find all Fighting Style features and get the Fighter one specifically
+        all_fighting_styles = [
+            item
+            for item in omnidexer.get_all_by_type(ContentType.CLASS_FEATURE)
+            if item.name == "Fighting Style" and item.source.abbreviation == "PHB"
+        ]
+
+        # Find the Fighter's Fighting Style specifically
+        fighter_fighting_style = None
+        for fs in all_fighting_styles:
+            if hasattr(fs, "class_name") and fs.class_name == "Fighter":
+                fighter_fighting_style = fs
+                break
+
+        assert fighter_fighting_style is not None, (
+            f"Could not find Fighter's Fighting Style. Found: {[(fs.class_name if hasattr(fs, 'class_name') else 'Unknown', fs.level) for fs in all_fighting_styles]}"
         )
-        assert fighting_style is not None
-        assert fighting_style.name == "Fighting Style"
-        assert isinstance(fighting_style, ClassFeature)
-        assert fighting_style.level == 1
+        assert fighter_fighting_style.name == "Fighting Style"
+        assert isinstance(fighter_fighting_style, ClassFeature)
+        assert fighter_fighting_style.level == 1
 
         second_wind = omnidexer.find(ContentType.CLASS_FEATURE, "Second Wind", "PHB")
         assert second_wind is not None

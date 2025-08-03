@@ -571,7 +571,7 @@ This content type is not yet fully supported by the rendering system.
 
         return compilation_config
 
-    def compile_to_pdf(
+    async def compile_to_pdf(
         self,
         content: BaseContent,
         output_path: Path | None = None,
@@ -593,9 +593,11 @@ This content type is not yet fully supported by the rendering system.
         output_name = output_path.stem if output_path else content.name
         working_dir = output_path.parent if output_path else None
 
-        return self.compiler.compile_document(latex_source, output_name, working_dir)
+        return await self.compiler.compile_document(
+            latex_source, output_name, working_dir
+        )
 
-    def compile_document_to_pdf(
+    async def compile_document_to_pdf(
         self,
         content_items: Sequence[BaseContent],
         output_path: Path | None = None,
@@ -627,7 +629,9 @@ This content type is not yet fully supported by the rendering system.
             working_dir = self.compiler.config.output_dir
 
         # Compile to PDF
-        result = self.compiler.compile_document(latex_source, output_name, working_dir)
+        result = await self.compiler.compile_document(
+            latex_source, output_name, working_dir
+        )
 
         # Move output file to requested location if needed
         if output_path and result.success and result.output_file:

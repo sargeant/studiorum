@@ -8,6 +8,9 @@ from dnd5e.cli.main import get_omnidexer
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
+# Ensure async tests work properly
+pytestmark = pytest.mark.asyncio
+
 
 class TestBookResolution:
     """Test book resolution with dual-file architecture using real data."""
@@ -39,7 +42,7 @@ class TestBookResolution:
         async def _test():
             omnidexer = await get_omnidexer()
             resolver = ContentResolver(omnidexer)
-            result = resolver.resolve_book("TEST")
+            result = await resolver.resolve_book("TEST")
 
             assert result.status == ResolutionStatus.EXACT_MATCH
             assert result.content is not None
@@ -60,7 +63,7 @@ class TestBookResolution:
         async def _test():
             omnidexer = await get_omnidexer()
             resolver = ContentResolver(omnidexer)
-            result = resolver.resolve_book("TEST")
+            result = await resolver.resolve_book("TEST")
 
             assert result.status == ResolutionStatus.EXACT_MATCH
             assert result.content is not None
@@ -83,7 +86,7 @@ class TestBookResolution:
         async def _test():
             omnidexer = await get_omnidexer()
             resolver = ContentResolver(omnidexer)
-            result = resolver.resolve_book("nonexistent")
+            result = await resolver.resolve_book("nonexistent")
 
             assert result.status == ResolutionStatus.NO_MATCH
             assert result.content is None
@@ -96,7 +99,7 @@ class TestBookResolution:
         async def _test():
             omnidexer = await get_omnidexer()
             resolver = ContentResolver(omnidexer)
-            result = resolver.resolve_book("TEST")
+            result = await resolver.resolve_book("TEST")
 
             assert result.content is not None
             book = result.content
@@ -117,7 +120,7 @@ class TestBookResolution:
             resolver = ContentResolver(omnidexer)
 
             # Test book resolution
-            book_result = resolver.resolve_book("TEST")
+            book_result = await resolver.resolve_book("TEST")
             assert book_result.status == ResolutionStatus.EXACT_MATCH
             assert book_result.content is not None
             assert len(book_result.content.contents) > 0
@@ -127,7 +130,7 @@ class TestBookResolution:
             )
 
             # Test adventure resolution
-            adventure_result = resolver.resolve_adventure("TEST")
+            adventure_result = await resolver.resolve_adventure("TEST")
             if adventure_result.status == ResolutionStatus.EXACT_MATCH:
                 assert adventure_result.content is not None
                 assert len(adventure_result.content.contents) > 0
@@ -149,14 +152,14 @@ class TestBookResolution:
             stats_before = content_merger.get_cache_stats()
 
             # First load should be a cache miss
-            result1 = resolver.resolve_book("TEST")
+            result1 = await resolver.resolve_book("TEST")
             stats_after_first = content_merger.get_cache_stats()
 
             assert result1.content is not None
             assert stats_after_first["misses"] > stats_before["misses"]
 
             # Second load should use cache (assuming caching is enabled)
-            result2 = resolver.resolve_book("TEST")
+            result2 = await resolver.resolve_book("TEST")
             stats_after_second = content_merger.get_cache_stats()
 
             assert result2.content is not None
@@ -196,7 +199,7 @@ class TestBookResolution:
         async def _test():
             omnidexer = await get_omnidexer()
             resolver = ContentResolver(omnidexer)
-            result = resolver.resolve_book("TEST")
+            result = await resolver.resolve_book("TEST")
 
             # Verify complete pipeline worked for conversion
             assert result.status == ResolutionStatus.EXACT_MATCH

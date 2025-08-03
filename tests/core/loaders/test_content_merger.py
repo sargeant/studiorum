@@ -10,6 +10,9 @@ import pytest
 from dnd5e.core.loaders.content_merger import ContentMerger
 from dnd5e.core.models.content import ContentType
 
+# Ensure async tests work properly
+pytestmark = pytest.mark.asyncio
+
 
 class TestContentMerger:
     """Test cases for ContentMerger class."""
@@ -72,24 +75,28 @@ class TestContentMerger:
         with pytest.raises(ValueError, match="Unsupported content type"):
             content_merger._normalize_id_to_filename(ContentType.SPELL, "test")
 
-    def test_load_content_file_unsupported_type(self, content_merger):
+    async def test_load_content_file_unsupported_type(self, content_merger):
         """Test loading content file with unsupported type."""
         with pytest.raises(
             ValueError, match="Content type.*not supported for dual-file loading"
         ):
-            content_merger.load_content_file(ContentType.SPELL, "test")
+            await content_merger.load_content_file(ContentType.SPELL, "test")
 
-    def test_load_content_file_not_found(self, content_merger, mock_source_manager):
+    async def test_load_content_file_not_found(
+        self, content_merger, mock_source_manager
+    ):
         """Test loading content file that doesn't exist."""
         mock_source_manager.get_content_files.return_value = {
             ContentType.ADVENTURE: [],
             ContentType.BOOK: [],
         }
 
-        result = content_merger.load_content_file(ContentType.ADVENTURE, "nonexistent")
+        result = await content_merger.load_content_file(
+            ContentType.ADVENTURE, "nonexistent"
+        )
         assert result is None
 
-    def test_load_content_file_success(self, content_merger, mock_source_manager):
+    async def test_load_content_file_success(self, content_merger, mock_source_manager):
         """Test successful content file loading."""
         # Create temporary content file
         with tempfile.NamedTemporaryFile(
@@ -118,11 +125,15 @@ class TestContentMerger:
                 ContentType.BOOK: [],
             }
 
-            result = content_merger.load_content_file(ContentType.ADVENTURE, "CoS")
+            result = await content_merger.load_content_file(
+                ContentType.ADVENTURE, "CoS"
+            )
             assert result == test_content
 
             # Test caching - second call should return cached result
-            result2 = content_merger.load_content_file(ContentType.ADVENTURE, "CoS")
+            result2 = await content_merger.load_content_file(
+                ContentType.ADVENTURE, "CoS"
+            )
             assert result2 == test_content
 
         finally:
@@ -130,7 +141,7 @@ class TestContentMerger:
             if expected_path.exists():
                 expected_path.unlink()
 
-    def test_load_content_file_malformed_json(
+    async def test_load_content_file_malformed_json(
         self, content_merger, mock_source_manager
     ):
         """Test loading malformed JSON file."""
@@ -152,7 +163,9 @@ class TestContentMerger:
                 ContentType.BOOK: [],
             }
 
-            result = content_merger.load_content_file(ContentType.ADVENTURE, "CoS")
+            result = await content_merger.load_content_file(
+                ContentType.ADVENTURE, "CoS"
+            )
             assert result is None
 
         finally:
@@ -186,7 +199,9 @@ class TestContentMerger:
         assert stats["cache_keys"] == ["adventure:cos"]
         assert stats["memory_usage_estimate"] > 0
 
-    def test_case_insensitive_file_matching(self, content_merger, mock_source_manager):
+    async def test_case_insensitive_file_matching(
+        self, content_merger, mock_source_manager
+    ):
         """Test that file matching is case insensitive."""
         # Create temporary content file with different case
         with tempfile.NamedTemporaryFile(
@@ -208,7 +223,9 @@ class TestContentMerger:
             }
 
             # Should find file despite case mismatch
-            result = content_merger.load_content_file(ContentType.ADVENTURE, "CoS")
+            result = await content_merger.load_content_file(
+                ContentType.ADVENTURE, "CoS"
+            )
             assert result == test_content
 
         finally:

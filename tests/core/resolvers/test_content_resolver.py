@@ -13,6 +13,8 @@ from dnd5e.core.resolvers.content_resolver import (
     ResolutionStatus,
 )
 
+# Async tests are marked per-class as needed
+
 
 class TestContentResolutionResult:
     """Test ContentResolutionResult dataclass."""
@@ -88,6 +90,7 @@ class TestContentResolutionResult:
         assert without_suggestions.has_suggestions is False
 
 
+@pytest.mark.asyncio
 class TestContentResolver:
     """Test ContentResolver."""
 
@@ -139,44 +142,44 @@ class TestContentResolver:
         resolver = ContentResolver(mock_omnidexer)
         assert resolver.omnidexer == mock_omnidexer
 
-    def test_resolve_adventure_exact_match(
+    async def test_resolve_adventure_exact_match(
         self, resolver, mock_omnidexer, sample_adventure
     ) -> None:
         """Test resolving adventure with exact match."""
         mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
 
-        result = resolver.resolve_adventure("cos")
+        result = await resolver.resolve_adventure("cos")
 
         assert result.status == ResolutionStatus.EXACT_MATCH
         assert result.content == sample_adventure
         assert result.query == "cos"
         mock_omnidexer.get_all_by_type.assert_called_with(ContentType.ADVENTURE)
 
-    def test_resolve_adventure_case_insensitive(
+    async def test_resolve_adventure_case_insensitive(
         self, resolver, mock_omnidexer, sample_adventure
     ) -> None:
         """Test resolving adventure is case insensitive."""
         mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
 
-        result = resolver.resolve_adventure("COS")
+        result = await resolver.resolve_adventure("COS")
 
         assert result.status == ResolutionStatus.EXACT_MATCH
         assert result.content == sample_adventure
 
-    def test_resolve_book_exact_match(
+    async def test_resolve_book_exact_match(
         self, resolver, mock_omnidexer, sample_book
     ) -> None:
         """Test resolving book with exact match."""
         mock_omnidexer.get_all_by_type.return_value = [sample_book]
 
-        result = resolver.resolve_book("phb")
+        result = await resolver.resolve_book("phb")
 
         assert result.status == ResolutionStatus.EXACT_MATCH
         assert result.content == sample_book
         assert result.query == "phb"
         mock_omnidexer.get_all_by_type.assert_called_with(ContentType.BOOK)
 
-    def test_resolve_adventure_multiple_matches_picks_preferred(
+    async def test_resolve_adventure_multiple_matches_picks_preferred(
         self, resolver, mock_omnidexer
     ) -> None:
         """Test resolving adventure with multiple exact matches picks preferred one."""
@@ -205,7 +208,7 @@ class TestContentResolver:
 
         mock_omnidexer.get_all_by_type.return_value = [adventure1, adventure2]
 
-        result = resolver.resolve_adventure("test")
+        result = await resolver.resolve_adventure("test")
 
         # When multiple exact matches exist, resolver picks preferred one (shortest name)
         assert result.status == ResolutionStatus.EXACT_MATCH
@@ -214,74 +217,74 @@ class TestContentResolver:
         # Should pick the one with shorter name as tiebreaker (both have same length, picks first)
         assert result.content == adventure1
 
-    def test_resolve_adventure_no_match_with_suggestions(
+    async def test_resolve_adventure_no_match_with_suggestions(
         self, resolver, mock_omnidexer, sample_adventure
     ) -> None:
         """Test resolving adventure with no match but suggestions."""
         mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
 
-        result = resolver.resolve_adventure("co")  # Close to "cos"
+        result = await resolver.resolve_adventure("co")  # Close to "cos"
 
         assert result.status == ResolutionStatus.NO_MATCH
         assert result.content is None
         assert "cos" in result.suggestions
 
-    def test_resolve_adventure_empty_abbreviation(
+    async def test_resolve_adventure_empty_abbreviation(
         self, resolver, mock_omnidexer
     ) -> None:
         """Test resolving with empty abbreviation."""
-        result = resolver.resolve_adventure("")
+        result = await resolver.resolve_adventure("")
 
         assert result.status == ResolutionStatus.NO_MATCH
         assert result.query == ""
         mock_omnidexer.get_all_by_type.assert_not_called()
 
-    def test_resolve_adventure_whitespace_abbreviation(
+    async def test_resolve_adventure_whitespace_abbreviation(
         self, resolver, mock_omnidexer
     ) -> None:
         """Test resolving with whitespace-only abbreviation."""
-        result = resolver.resolve_adventure("   ")
+        result = await resolver.resolve_adventure("   ")
 
         assert result.status == ResolutionStatus.NO_MATCH
         assert result.query == "   "
 
-    def test_resolve_adventure_no_content_available(
+    async def test_resolve_adventure_no_content_available(
         self, resolver, mock_omnidexer
     ) -> None:
         """Test resolving when no content is available."""
         mock_omnidexer.get_all_by_type.return_value = []
 
-        result = resolver.resolve_adventure("cos")
+        result = await resolver.resolve_adventure("cos")
 
         assert result.status == ResolutionStatus.NO_MATCH
         assert result.content is None
         assert result.suggestions == []
 
-    def test_resolve_adventure_fuzzy_match(
+    async def test_resolve_adventure_fuzzy_match(
         self, resolver, mock_omnidexer, sample_adventure
     ) -> None:
         """Test resolving adventure with fuzzy matching."""
         mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
         mock_omnidexer.search.return_value = [sample_adventure]
 
-        result = resolver.resolve_adventure("cs")  # Close to "cos"
+        result = await resolver.resolve_adventure("cs")  # Close to "cos"
 
         # Should find fuzzy match through search
         assert result.status == ResolutionStatus.FUZZY_MATCH
         assert result.content == sample_adventure
 
-    def test_resolve_any_with_content_type(
+    async def test_resolve_any_with_content_type(
         self, resolver, mock_omnidexer, sample_adventure
     ) -> None:
         """Test resolve_any with specific content type."""
         mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
 
-        result = resolver.resolve_any("cos", ContentType.ADVENTURE)
+        result = await resolver.resolve_any("cos", ContentType.ADVENTURE)
 
         assert result.status == ResolutionStatus.EXACT_MATCH
         assert result.content == sample_adventure
 
-    def test_resolve_any_without_content_type(
+    async def test_resolve_any_without_content_type(
         self, resolver, mock_omnidexer, sample_adventure
     ) -> None:
         """Test resolve_any without content type specified."""
@@ -289,7 +292,7 @@ class TestContentResolver:
             lambda ct: [sample_adventure] if ct == ContentType.ADVENTURE else []
         )
 
-        result = resolver.resolve_any("cos")
+        result = await resolver.resolve_any("cos")
 
         assert result.status == ResolutionStatus.EXACT_MATCH
         assert result.content == sample_adventure
@@ -337,7 +340,7 @@ class TestContentResolver:
 
         assert len(suggestions) <= 3
 
-    def test_resolve_content_source_without_abbreviation(
+    async def test_resolve_content_source_without_abbreviation(
         self, resolver, mock_omnidexer
     ) -> None:
         """Test resolving content where source doesn't have abbreviation attribute."""
@@ -357,11 +360,13 @@ class TestContentResolver:
 
         mock_omnidexer.get_all_by_type.return_value = [adventure]
 
-        result = resolver.resolve_adventure("test")
+        result = await resolver.resolve_adventure("test")
 
         assert result.status == ResolutionStatus.NO_MATCH
 
-    def test_fuzzy_matching_multiple_results(self, resolver, mock_omnidexer) -> None:
+    async def test_fuzzy_matching_multiple_results(
+        self, resolver, mock_omnidexer
+    ) -> None:
         """Test fuzzy matching with multiple results."""
         source1 = Source(abbreviation="COS1", name="Test 1")
         source2 = Source(abbreviation="COS2", name="Test 2")
@@ -389,12 +394,12 @@ class TestContentResolver:
         mock_omnidexer.get_all_by_type.return_value = [adventure1, adventure2]
         mock_omnidexer.search.return_value = [adventure1, adventure2]
 
-        result = resolver.resolve_adventure("cos")
+        result = await resolver.resolve_adventure("cos")
 
         assert result.status == ResolutionStatus.MULTIPLE_MATCHES
         assert len(result.matches) == 2
 
-    def test_search_fallback_no_fuzzy_matches(
+    async def test_search_fallback_no_fuzzy_matches(
         self, resolver, mock_omnidexer, sample_adventure
     ) -> None:
         """Test search fallback when no fuzzy matches are found."""
@@ -418,7 +423,7 @@ class TestContentResolver:
             different_adventure
         ]  # Search returns different content
 
-        result = resolver.resolve_adventure(
+        result = await resolver.resolve_adventure(
             "co"
         )  # Close to COS, should get suggestions
 
@@ -437,13 +442,13 @@ class TestContentResolver:
             ("", False),
         ],
     )
-    def test_various_input_formats(
+    async def test_various_input_formats(
         self, resolver, mock_omnidexer, sample_adventure, input_abbrev, expected_match
     ) -> None:
         """Test various input formats for abbreviations."""
         mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
 
-        result = resolver.resolve_adventure(input_abbrev)
+        result = await resolver.resolve_adventure(input_abbrev)
 
         if expected_match:
             assert result.status == ResolutionStatus.EXACT_MATCH

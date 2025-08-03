@@ -190,7 +190,7 @@ class TestBookConversion:
         resolver = ContentResolver(omnidexer)
 
         # Resolve test book
-        resolution_result = resolver.resolve_book("TEST")
+        resolution_result = await resolver.resolve_book("TEST")
 
         assert resolution_result is not None, "Could not get resolution result"
         assert resolution_result.is_success, "Resolution should be successful"
@@ -226,8 +226,8 @@ class TestBookConversion:
         resolver = ContentResolver(omnidexer)
 
         # Resolve the same book twice
-        resolution_result1 = resolver.resolve_book("TEST")
-        resolution_result2 = resolver.resolve_book("TEST")
+        resolution_result1 = await resolver.resolve_book("TEST")
+        resolution_result2 = await resolver.resolve_book("TEST")
 
         # Both should succeed
         assert resolution_result1 is not None, "First test book resolution failed"
@@ -463,9 +463,9 @@ class TestBookConversion:
 
             # Resolve specific item
             if content_type == "book":
-                resolution_result = resolver.resolve_book(item_id)
+                resolution_result = await resolver.resolve_book(item_id)
             else:
-                resolution_result = resolver.resolve_adventure(item_id)
+                resolution_result = await resolver.resolve_adventure(item_id)
 
             assert resolution_result is not None, (
                 f"Should be able to get resolution result for {content_type} {item_id}"

@@ -190,7 +190,7 @@ class TestAdventureConversion:
         resolver = ContentResolver(omnidexer)
 
         # Resolve test adventure
-        resolution_result = resolver.resolve_adventure("TEST")
+        resolution_result = await resolver.resolve_adventure("TEST")
 
         assert resolution_result is not None, "Could not get resolution result"
         assert resolution_result.is_success, "Resolution should be successful"
@@ -226,8 +226,8 @@ class TestAdventureConversion:
         resolver = ContentResolver(omnidexer)
 
         # Resolve the same adventure twice
-        resolution_result1 = resolver.resolve_adventure("TEST")
-        resolution_result2 = resolver.resolve_adventure("TEST")
+        resolution_result1 = await resolver.resolve_adventure("TEST")
+        resolution_result2 = await resolver.resolve_adventure("TEST")
 
         # Both should succeed
         assert resolution_result1 is not None, "First resolution failed"

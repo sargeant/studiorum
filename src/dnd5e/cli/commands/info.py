@@ -63,7 +63,7 @@ def show_content_info(
             if not content_type or content_type.lower() in ["adventure", "book"]:
                 # Try adventure abbreviation lookup
                 if not content_type or content_type.lower() == "adventure":
-                    result = resolver.resolve_adventure(name_or_abbreviation)
+                    result = await resolver.resolve_adventure(name_or_abbreviation)
                     if result.is_success and result.content:
                         content_item = result.content
 
@@ -71,7 +71,7 @@ def show_content_info(
                 if not content_item and (
                     not content_type or content_type.lower() == "book"
                 ):
-                    result = resolver.resolve_book(name_or_abbreviation)
+                    result = await resolver.resolve_book(name_or_abbreviation)
                     if result.is_success and result.content:
                         content_item = result.content
 

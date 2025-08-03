@@ -143,7 +143,7 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
             resolver = ContentResolver(omnidexer)
 
             # Resolve "TEST" - should find exactly one match
-            result = resolver.resolve_adventure("TEST")
+            result = await resolver.resolve_adventure("TEST")
 
             self.assertEqual(
                 result.status, ResolutionStatus.EXACT_MATCH, "Should find exact match"
@@ -246,7 +246,7 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
                 source_info = adventure["source"]
                 if isinstance(source_info, str):
                     abbreviation = source_info.lower()
-                    result = resolver.resolve_adventure(abbreviation)
+                    result = await resolver.resolve_adventure(abbreviation)
 
                     self.assertEqual(
                         result.status,

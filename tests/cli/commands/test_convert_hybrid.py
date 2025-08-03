@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -83,7 +83,8 @@ class TestHybridParameterDetection:
             mock_result = ContentResolutionResult(
                 status=ResolutionStatus.EXACT_MATCH, content=mock_adventure, query="cos"
             )
-            mock_resolver.resolve_adventure.return_value = mock_result
+            # Make the mock async
+            mock_resolver.resolve_adventure = AsyncMock(return_value=mock_result)
 
             content_items, source_desc = await resolve_content_or_file(
                 "cos", ContentType.ADVENTURE

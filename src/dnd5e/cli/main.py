@@ -276,7 +276,7 @@ def quick_convert(
                         latex_content = await f.read()
 
                     # Compile using the configured compiler
-                    compilation_result = compiler.compile_document(
+                    compilation_result = await compiler.compile_document(
                         latex_content,
                         output_name=output_path.stem,
                         working_dir=output_path.parent,

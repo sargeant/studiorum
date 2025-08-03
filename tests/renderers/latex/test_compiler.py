@@ -15,6 +15,9 @@ from dnd5e.renderers.latex.compilation_config import (  # type: ignore
 )
 from dnd5e.renderers.latex.compiler import LaTeXCompiler  # type: ignore
 
+# Ensure async tests work properly
+pytestmark = pytest.mark.asyncio
+
 
 class TestLaTeXCompiler:
     """Tests for LaTeX compiler."""
@@ -86,7 +89,7 @@ class TestLaTeXCompiler:
         result = self.compiler._check_engine_availability(LaTeXEngine.LUALATEX)
         assert result is False
 
-    def test_check_dependencies_success(self) -> None:
+    async def test_check_dependencies_success(self) -> None:
         """Test successful dependency check."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".tex", delete=False) as f:
             f.write(
@@ -99,12 +102,12 @@ class TestLaTeXCompiler:
             self.compiler.config.check_dependencies = True
             self.compiler.config.required_packages = ["dndbook", "dnd", "fontspec"]
 
-            missing = self.compiler._check_dependencies(tex_file)
+            missing = await self.compiler._check_dependencies(tex_file)
             assert len(missing) == 0
         finally:
             tex_file.unlink()
 
-    def test_check_dependencies_missing_packages(self) -> None:
+    async def test_check_dependencies_missing_packages(self) -> None:
         """Test dependency check with missing packages."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".tex", delete=False) as f:
             f.write("\\documentclass{article}\n")
@@ -115,18 +118,18 @@ class TestLaTeXCompiler:
             self.compiler.config.check_dependencies = True
             self.compiler.config.required_packages = ["dndbook", "dnd"]
 
-            missing = self.compiler._check_dependencies(tex_file)
+            missing = await self.compiler._check_dependencies(tex_file)
             assert len(missing) == 2
             assert any("dndbook" in dep for dep in missing)
             assert any("dnd" in dep for dep in missing)
         finally:
             tex_file.unlink()
 
-    def test_check_dependencies_file_error(self) -> None:
+    async def test_check_dependencies_file_error(self) -> None:
         """Test dependency check with file read error."""
         nonexistent_file: Any = Path("/nonexistent/file.tex")
 
-        missing = self.compiler._check_dependencies(nonexistent_file)
+        missing = await self.compiler._check_dependencies(nonexistent_file)
         assert len(missing) == 1
         assert "Error reading LaTeX file" in missing[0]
 
@@ -212,7 +215,7 @@ class TestLaTeXCompiler:
         assert results["engine_pdflatex"] is False
         assert results["dnd_template"] is True
 
-    def test_compile_document_simple(self) -> None:
+    async def test_compile_document_simple(self) -> None:
         """Test simple document compilation (mocked)."""
         latex_content = """\\documentclass{article}
 \\begin{document}
@@ -228,7 +231,7 @@ Hello World
             )
             mock_compile.return_value = mock_result
 
-            result = self.compiler.compile_document(latex_content, "test")
+            result = await self.compiler.compile_document(latex_content, "test")
             assert result.success is True
             assert result.engine_used == LaTeXEngine.LUALATEX
 
@@ -239,7 +242,7 @@ Hello World
             assert args[1] == "test"
             assert isinstance(args[2], Path)  # working directory
 
-    def test_compile_document_with_working_dir(self) -> None:
+    async def test_compile_document_with_working_dir(self) -> None:
         """Test document compilation with specified working directory."""
         latex_content = "\\documentclass{article}\\begin{document}Test\\end{document}"
         working_dir: Any = Path("/tmp/test")
@@ -253,7 +256,7 @@ Hello World
             )
             mock_compile.return_value = mock_result
 
-            self.compiler.compile_document(latex_content, "test", working_dir)
+            await self.compiler.compile_document(latex_content, "test", working_dir)
 
             # Check that specified working directory was used
             args = mock_compile.call_args[0]
@@ -388,7 +391,7 @@ class TestLaTeXCompilerIntegration:
         )
         self.compiler = LaTeXCompiler(self.config)
 
-    def test_compile_simple_document_no_latex(self) -> None:
+    async def test_compile_simple_document_no_latex(self) -> None:
         """Test compiling when no LaTeX engines are available."""
         # Mock no engines available
         with patch.object(
@@ -398,12 +401,12 @@ class TestLaTeXCompilerIntegration:
                 "\\documentclass{article}\\begin{document}Hello\\end{document}"
             )
 
-            result = self.compiler.compile_document(latex_content, "test")
+            result = await self.compiler.compile_document(latex_content, "test")
             assert result.success is False
             assert result.error_message is not None
             assert "No LaTeX engines available" in result.error_message
 
-    def test_compile_with_dependency_error(self) -> None:
+    async def test_compile_with_dependency_error(self) -> None:
         """Test compilation with dependency check failure."""
         # Enable dependency checking
         self.compiler.config.check_dependencies = True
@@ -417,13 +420,13 @@ class TestLaTeXCompilerIntegration:
                 "\\documentclass{article}\\begin{document}Hello\\end{document}"
             )
 
-            result = self.compiler.compile_document(latex_content, "test")
+            result = await self.compiler.compile_document(latex_content, "test")
             assert result.success is False
             assert result.error_message is not None
             assert "Missing dependencies" in result.error_message
 
     @patch("subprocess.run")
-    def test_compile_with_engine_fallback(self, mock_run: Any) -> None:
+    async def test_compile_with_engine_fallback(self, mock_run: Any) -> None:
         """Test compilation with engine fallback."""
 
         # Mock first engine (LuaLaTeX) not available, second (XeLaTeX) available
@@ -449,7 +452,7 @@ class TestLaTeXCompilerIntegration:
                 "\\documentclass{article}\\begin{document}Hello\\end{document}"
             )
 
-            result = self.compiler.compile_document(latex_content, "test")
+            result = await self.compiler.compile_document(latex_content, "test")
             assert result.success is True
             assert result.engine_used == LaTeXEngine.XELATEX
 
