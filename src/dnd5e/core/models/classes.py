@@ -280,7 +280,7 @@ class Class(BaseContent):
         try:
             # Format: "FeatureName|ClassName||SubclassName||Level"
             parts = feature_ref.split("|")
-            if len(parts) < 5:
+            if len(parts) < 6:
                 return None
 
             feature_name = parts[0]
@@ -288,7 +288,7 @@ class Class(BaseContent):
             # parts[2] is empty (double pipe separator)
             # parts[3] is subclass_name (not used directly, taken from subclass parameter)
             # parts[4] is empty (double pipe separator)
-            level_str = parts[5] if len(parts) > 5 else ""
+            level_str = parts[5]
 
             try:
                 level = int(level_str)
