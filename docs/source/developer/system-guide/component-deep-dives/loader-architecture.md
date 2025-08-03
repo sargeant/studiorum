@@ -466,5 +466,5 @@ The loader architecture maintains compatibility with:
 - Check I/O patterns and async usage
 - Monitor cache hit rates
 
-For additional implementation details, see the [API Documentation](../api/index.md)
-and [Architecture Overview](../architecture.md).
+For additional implementation details, see the [API Documentation](../../api-reference/index.md)
+and [Architecture Overview](../architecture-overview.md).

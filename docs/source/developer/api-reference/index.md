@@ -1,16 +1,30 @@
-# API Documentation
+# API Reference
 
-Complete reference for all public APIs in 5e2pdf.
+Technical API documentation organized by functional area.
 
-## Table of Contents
+## Core APIs
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 1
 
 omnidexer
-latex-rendering
 content-models
 core-utilities
+```
+
+## Rendering & Output
+
+```{toctree}
+:maxdepth: 1
+
+latex-rendering
+```
+
+## System Configuration
+
+```{toctree}
+:maxdepth: 1
+
 configuration
 ```
 
@@ -169,6 +183,6 @@ When APIs need to change:
 
 ## Getting Help
 
-- Check the [implementation guides](../implementation/index.md) for detailed explanations
+- Check the [implementation guides](../system-guide/component-deep-dives/index.md) for detailed explanations
 - Look at [examples](../../examples/index.md) for practical usage patterns
 - Report API issues on [GitHub](https://github.com/sargeant/5e2pdf/issues)

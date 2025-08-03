@@ -897,4 +897,4 @@ The LaTeX rendering system maintains compatibility with:
 - Consider template caching optimization
 - Use async processing for large document sets
 
-For additional debugging techniques and troubleshooting guides, see the [API Documentation](../api/index.md) and [Contributing Guide](../contributing.md).
+For additional debugging techniques and troubleshooting guides, see the [API Documentation](../../api-reference/index.md) and [Contributing Guide](../../contributing/index.md).

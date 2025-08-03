@@ -1104,4 +1104,4 @@ def profile_parsing(data_list):
     return results
 ```
 
-For additional parsing techniques and model patterns, see the [API Documentation](../api/index.md) and [LaTeX Rendering Guide](latex-rendering.md).
+For additional parsing techniques and model patterns, see the [API Documentation](../../api-reference/index.md) and [LaTeX Rendering Guide](latex-rendering.md).

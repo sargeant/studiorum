@@ -1,6 +1,6 @@
-# Implementation Guides
+# Component Deep Dives
 
-In-depth guides for understanding and extending 5e2pdf's core systems.
+Detailed implementation guides for each major system component.
 
 ## Table of Contents
 
@@ -113,11 +113,11 @@ Additional implementation guides will be added covering:
 
 ### Understanding the System
 
-1. Start with the [Architecture Overview](../architecture.md)
+1. Start with the [Architecture Overview](../architecture-overview.md)
 2. Read the [Loader Architecture Guide](loader-architecture.md) for foundational concepts
 3. Study the [Deep Indexing Guide](deep-indexing.md) for content processing
-4. Review the [API Documentation](../api/index.md) for reference details
-5. Check the [Contributing Guide](../contributing.md) for development workflow
+4. Review the [API Documentation](../../api-reference/index.md) for reference details
+5. Check the [Contributing Guide](../../contributing/index.md) for development workflow
 
 ### Making Changes
 
@@ -175,17 +175,17 @@ When implementing new features:
 
 ## Getting Started
 
-1. **New to the project?** Start with the [Architecture Overview](../architecture.md)
-2. **Want to contribute?** Read the [Contributing Guide](../contributing.md) first
+1. **New to the project?** Start with the [Architecture Overview](../architecture-overview.md)
+2. **Want to contribute?** Read the [Contributing Guide](../../contributing/index.md) first
 3. **Implementing loaders?** Follow the [Loader Architecture Guide](loader-architecture.md)
 4. **Adding content types?** Study the [Deep Indexing Guide](deep-indexing.md)
-5. **Need API details?** Check the [API Documentation](../api/index.md)
+5. **Need API details?** Check the [API Documentation](../../api-reference/index.md)
 
 ## Related Documentation
 
-- **[Architecture](../architecture.md)**: System design and core components
-- **[Contributing](../contributing.md)**: Development workflow and standards
-- **[API Reference](../api/index.md)**: Detailed API documentation
+- **[Architecture](../architecture-overview.md)**: System design and core components
+- **[Contributing](../../contributing/index.md)**: Development workflow and standards
+- **[API Reference](../../api-reference/index.md)**: Detailed API documentation
 - **[Deep Indexing](deep-indexing.md)**: Content indexing implementation
 - **[Loader Architecture](loader-architecture.md)**: Dual-file loading system
 
