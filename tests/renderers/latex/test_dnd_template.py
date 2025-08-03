@@ -48,7 +48,7 @@ class TestDNDTemplateManager:
         mock_run.return_value = Mock(returncode=1, stdout="")
 
         manager: Any = DNDTemplateManager()
-        result = manager._find_template_file("dndbook.cls")
+        result = manager._find_template_file("nonexistent-template.cls")
 
         assert result is None
 

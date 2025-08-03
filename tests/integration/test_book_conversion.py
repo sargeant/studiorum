@@ -45,7 +45,10 @@ class TestBookConversion:
 
             # Check that the command succeeded
             if result.returncode != 0:
-                if "DND template availability check failed" in result.stderr:
+                if (
+                    "DND-5e-LaTeX-Template is not available" in result.stderr
+                    or "DND-5e-LaTeX-Template is not available" in result.stdout
+                ):
                     pytest.skip(
                         "DND LaTeX template not available - cannot test book conversion"
                     )
@@ -108,7 +111,10 @@ class TestBookConversion:
                 if result.returncode != 0:
                     if "not found" in result.stderr.lower():
                         pytest.skip(f"Book {book_id} not available in test data")
-                    elif "DND template availability check failed" in result.stderr:
+                    elif (
+                        "DND-5e-LaTeX-Template is not available" in result.stderr
+                        or "DND-5e-LaTeX-Template is not available" in result.stdout
+                    ):
                         pytest.skip(
                             f"DND LaTeX template not available - cannot test {book_id} conversion"
                         )
@@ -151,7 +157,10 @@ class TestBookConversion:
             conversion_time = end_time - start_time
 
             if result.returncode != 0:
-                if "DND template availability check failed" in result.stderr:
+                if (
+                    "DND-5e-LaTeX-Template is not available" in result.stderr
+                    or "DND-5e-LaTeX-Template is not available" in result.stdout
+                ):
                     pytest.skip(
                         "DND LaTeX template not available - cannot test book conversion"
                     )
@@ -289,7 +298,10 @@ class TestBookConversion:
             )
 
             if result.returncode != 0:
-                if "DND template availability check failed" in result.stderr:
+                if (
+                    "DND-5e-LaTeX-Template is not available" in result.stderr
+                    or "DND-5e-LaTeX-Template is not available" in result.stdout
+                ):
                     pytest.skip(
                         "DND LaTeX template not available - cannot test book conversion"
                     )
@@ -380,7 +392,10 @@ class TestBookConversion:
 
             # Should work without hardcoded paths
             if result.returncode != 0:
-                if "DND template availability check failed" in result.stderr:
+                if (
+                    "DND-5e-LaTeX-Template is not available" in result.stderr
+                    or "DND-5e-LaTeX-Template is not available" in result.stdout
+                ):
                     pytest.skip(
                         "DND LaTeX template not available - cannot test book conversion"
                     )
@@ -462,7 +477,10 @@ class TestBookConversion:
             )
 
             if result.returncode != 0:
-                if "DND template availability check failed" in result.stderr:
+                if (
+                    "DND-5e-LaTeX-Template is not available" in result.stderr
+                    or "DND-5e-LaTeX-Template is not available" in result.stdout
+                ):
                     pytest.skip(
                         "DND LaTeX template not available - cannot test book conversion"
                     )

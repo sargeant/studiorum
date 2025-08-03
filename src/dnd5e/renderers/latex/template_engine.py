@@ -450,17 +450,7 @@ class LaTeXTemplateEngine:
             RuntimeError: If DND template is not available
         """
         # Check DND template availability
-        template_available = self.check_dnd_template_availability()
-        if not template_available:
-            from dnd5e.core.logging import get_logger
-
-            logger = get_logger(__name__)
-            logger.error("DND template availability check failed")
-
-            # Get detailed status for debugging
-            status = self.get_dnd_template_status()
-            logger.error(f"Template status details: {status}")
-
+        if not self.check_dnd_template_availability():
             raise RuntimeError(
                 "DND-5e-LaTeX-Template is not available. "
                 "Please install the template before rendering."

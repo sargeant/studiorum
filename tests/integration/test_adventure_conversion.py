@@ -45,7 +45,10 @@ class TestAdventureConversion:
 
             # Check that the command succeeded
             if result.returncode != 0:
-                if "DND template availability check failed" in result.stderr:
+                if (
+                    "DND-5e-LaTeX-Template is not available" in result.stderr
+                    or "DND-5e-LaTeX-Template is not available" in result.stdout
+                ):
                     pytest.skip(
                         "DND LaTeX template not available - cannot test adventure conversion"
                     )
@@ -104,7 +107,10 @@ class TestAdventureConversion:
                         pytest.skip(
                             f"Adventure {adventure_id} not available in test data"
                         )
-                    elif "DND template availability check failed" in result.stderr:
+                    elif (
+                        "DND-5e-LaTeX-Template is not available" in result.stderr
+                        or "DND-5e-LaTeX-Template is not available" in result.stdout
+                    ):
                         pytest.skip(
                             f"DND LaTeX template not available - cannot test {adventure_id} conversion"
                         )
@@ -148,7 +154,16 @@ class TestAdventureConversion:
             end_time = time.time()
             conversion_time = end_time - start_time
 
-            assert result.returncode == 0, f"Conversion failed: {result.stderr}"
+            if result.returncode != 0:
+                if (
+                    "DND-5e-LaTeX-Template is not available" in result.stderr
+                    or "DND-5e-LaTeX-Template is not available" in result.stdout
+                ):
+                    pytest.skip(
+                        "DND LaTeX template not available - cannot test adventure conversion"
+                    )
+                else:
+                    raise AssertionError(f"Conversion failed: {result.stderr}")
 
             # Conversion should complete within 2 minutes for large adventures
             assert conversion_time < 120, (
@@ -283,7 +298,10 @@ class TestAdventureConversion:
             )
 
             if result.returncode != 0:
-                if "DND template availability check failed" in result.stderr:
+                if (
+                    "DND-5e-LaTeX-Template is not available" in result.stderr
+                    or "DND-5e-LaTeX-Template is not available" in result.stdout
+                ):
                     pytest.skip(
                         "DND LaTeX template not available - cannot test LaTeX output quality"
                     )
@@ -402,7 +420,16 @@ class TestAdventureConversion:
                 cwd=Path.cwd(),
             )
 
-            assert result.returncode == 0, f"Conversion failed: {result.stderr}"
+            if result.returncode != 0:
+                if (
+                    "DND-5e-LaTeX-Template is not available" in result.stderr
+                    or "DND-5e-LaTeX-Template is not available" in result.stdout
+                ):
+                    pytest.skip(
+                        "DND LaTeX template not available - cannot test adventure conversion"
+                    )
+                else:
+                    raise AssertionError(f"Conversion failed: {result.stderr}")
 
         # Check memory usage after conversion
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
