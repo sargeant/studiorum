@@ -124,35 +124,55 @@ uv run 5e2pdf --version
 
 ### Running Tests
 
+We provide comprehensive Makefile targets for all testing workflows:
+
 ```bash
-# Run all tests
-uv run pytest
+# Quick testing workflow
+make test              # Run fast tests (excludes slow tests)
+make test-all          # Run all tests including slow ones
 
-# Run specific test categories
+# Test with performance monitoring
+make test-perf         # Run fast tests with performance monitoring
+make test-perf-all     # Run all tests with performance monitoring
+
+# Test quality validation
+make test-quality-gate # Check test quality gates
+make test-quality-strict # Strict test quality validation
+
+# Direct pytest usage (if needed)
+uv run pytest                      # All tests
 uv run pytest tests/unit/          # Unit tests only
-uv run pytest -m "not slow"       # Skip slow tests
-uv run pytest -m integration       # Integration tests only
-
-# Run with coverage
-uv run pytest --cov=dnd5e --cov-report=html
-
-# Parallel execution (faster)
-uv run pytest -n auto
+uv run pytest -m "not slow"        # Skip slow tests
+uv run pytest --cov=dnd5e --cov-report=html  # With coverage
 ```
 
 ### Code Quality Checks
 
+Use our comprehensive Makefile targets for consistent quality checks:
+
 ```bash
-# Run all quality checks (same as CI)
+# Development workflow
+make check             # Run all code quality checks (ruff, mypy, imports, boundaries)
+make security          # Run security scans (pip-audit, bandit)
+make format            # Format code with ruff
+
+# All-in-one commands
+make all               # Run all checks, security, and tests
+make ci-check          # Run all quality and security checks (CI-ready)
+
+# Individual quality checks (if needed)
+make ruff              # Run ruff formatting and checks
+make mypy              # Run type checking
+make imports           # Check for circular imports
+make boundaries        # Check architectural boundaries
+make pip-audit         # Security vulnerability scan
+make bandit            # Static security analysis
+
+# Direct tool usage (if needed)
 uv run ruff check .                 # Linting
-uv run ruff format --check .        # Format checking
+uv run ruff format .                # Format code
 uv run mypy src/                    # Type checking
 uv run bandit -r src/               # Security scanning
-uv run pip-audit                    # Vulnerability scanning
-
-# Auto-fix issues
-uv run ruff check --fix .           # Fix linting issues
-uv run ruff format .                # Format code
 ```
 
 ## Pull Request Process
@@ -162,10 +182,18 @@ uv run ruff format .                # Format code
 **Automated Checks (must pass):**
 
 ```bash
-# Verify everything passes locally
+# Quick validation before submitting
+make ci-fast           # Fast CI checks (ruff, mypy, fast tests)
+make all               # Complete local validation
+
+# Or run individual checks
+make check             # All code quality checks
+make security          # Security scans
+make test              # Fast tests
+
+# Legacy direct commands (if needed)
 uv run pytest                       # All tests pass
 uv run ruff check .                 # No linting errors
-uv run ruff format --check .        # Code properly formatted
 uv run mypy src/                    # Type checking passes
 uv run bandit -r src/               # Security scan clean
 ```
@@ -312,18 +340,31 @@ python scripts/get_version.py
 
 ### Troubleshooting
 
+**Environment Diagnostics:**
+
+```bash
+# Quick environment check
+make doctor            # Comprehensive environment diagnosis
+
+# Dependency issues
+make upgrade           # Upgrade all dependencies
+make clean-all         # Deep clean including virtual environment
+```
+
 **Common issues:**
 
 - **uv not found**: Install uv using official installer
-- **Type errors**: Run `uv run mypy src/` for detailed error messages
-- **Test failures**: Use `uv run pytest -v` for verbose output
+- **Type errors**: Run `make mypy` or `uv run mypy src/` for detailed error messages
+- **Test failures**: Use `make test` or `uv run pytest -v` for verbose output
 - **Pre-commit issues**: Run `pre-commit run --all-files` to fix
+- **Environment issues**: Run `make doctor` for comprehensive diagnosis
 
 **Getting support:**
 
-1. Check existing GitHub issues
-2. Search documentation for similar problems
-3. Create detailed issue with reproduction steps
-4. Include environment information (`uv run 5e2pdf --version`)
+1. Run `make doctor` and include output in issue reports
+2. Check existing GitHub issues
+3. Search documentation for similar problems
+4. Create detailed issue with reproduction steps
+5. Include environment information (`uv run 5e2pdf --version`)
 
 Thank you for contributing to 5e2pdf! Your contributions help make D&D content more accessible through high-quality PDF generation.

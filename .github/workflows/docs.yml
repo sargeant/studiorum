@@ -40,13 +40,10 @@ jobs:
         uses: astral-sh/setup-uv@v3
 
       - name: Install dependencies
-        run: |
-          uv sync --extra docs
+        run: make uv-docs
 
       - name: Build documentation
-        run: |
-          cd docs
-          uv run sphinx-build -b html source _build/html
+        run: make docs
 
       - name: Upload HTML artifact
         uses: actions/upload-pages-artifact@v3

@@ -7,7 +7,7 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  test:
+  ci-fast:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -25,11 +25,54 @@ jobs:
     - name: Set up Python ${{ matrix.python-version }}
       run: uv python install ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: uv sync --group dev
+    - name: Run fast CI checks
+      run: make ci-fast
 
-    - name: Run unit tests with coverage
-      run: uv run python -m pytest tests/unit/ -m "not slow" --cov=src --cov-report=xml --cov-report=term-missing
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      if: matrix.python-version == '3.12'
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  ci-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+
+    - name: Set up Python
+      run: uv python install 3.12
+
+    - name: Run CI quality and security checks
+      run: make ci-check
+
+  ci-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+
+    - name: Set up Python
+      run: uv python install 3.12
+
+    - name: Run CI test suite with coverage
+      run: make ci-test
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -56,13 +99,13 @@ jobs:
       run: uv python install 3.12
 
     - name: Install dependencies
-      run: uv sync --group dev
+      run: make ci-install
 
     - name: Run test quality analysis
-      run: uv run python scripts/test_quality_metrics.py --report
+      run: make test-quality
 
     - name: Check test quality gates
-      run: uv run python scripts/test_quality_metrics.py --check --fail-on-issues
+      run: make test-quality-gate
 
     - name: Upload test quality report
       uses: actions/upload-artifact@v4
@@ -88,21 +131,20 @@ jobs:
       run: uv python install 3.12
 
     - name: Install dependencies
-      run: uv sync --group dev
+      run: make ci-install
 
-    - name: Run performance monitoring (fast tests)
-      run: uv run python scripts/test_performance_monitor.py --test-type=fast --threshold=10.0
+    - name: Run fast performance tests
+      run: make test-perf
 
     - name: Generate performance report
-      run: uv run python scripts/test_performance_monitor.py --report > performance-report.txt
-      if: always()
+      run: make test-perf-report
 
     - name: Upload performance report
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: performance-report
-        path: performance-report.txt
+        path: test-performance-report.txt
 
     - name: Comment performance report on PR
       uses: actions/github-script@v7
@@ -111,7 +153,7 @@ jobs:
         script: |
           const fs = require('fs');
           try {
-            const report = fs.readFileSync('performance-report.txt', 'utf8');
+            const report = fs.readFileSync('test-performance-report.txt', 'utf8');
             const body = `## 📊 Test Performance Report\n\n\`\`\`\n${report}\n\`\`\``;
 
             // Check if there's already a performance comment
@@ -143,65 +185,3 @@ jobs:
           } catch (error) {
             console.log('Could not post performance report:', error);
           }
-
-  lint:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up uv
-      uses: astral-sh/setup-uv@v3
-      with:
-        version: "latest"
-
-    - name: Set up Python
-      run: uv python install 3.12
-
-    - name: Install dependencies
-      run: uv sync --group dev
-
-    - name: Run ruff check
-      run: uv run ruff check src/ tests/
-
-    - name: Run ruff format check
-      run: uv run ruff format --check src/ tests/
-
-    - name: Check for circular imports
-      run: uv run python scripts/check_circular_imports.py src/dnd5e/ --fail-on-cycles
-
-    - name: Check architectural boundaries
-      run: uv run python scripts/check_architectural_boundaries.py src/dnd5e/ --fail-on-violations
-
-  security:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up uv
-      uses: astral-sh/setup-uv@v3
-      with:
-        version: "latest"
-
-    - name: Set up Python
-      run: uv python install 3.12
-
-    - name: Install dependencies
-      run: uv sync --group dev
-
-    - name: Run dependency vulnerability scan
-      run: uv run pip-audit --desc=off
-
-    - name: Run static security analysis
-      run: uv run bandit -ll -r src/ -f json -o bandit-report.json
-      continue-on-error: true
-
-    - name: Upload security scan results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: security-scan-results
-        path: bandit-report.json
