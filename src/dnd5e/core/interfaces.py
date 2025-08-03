@@ -255,3 +255,12 @@ def get_content_type_registry() -> ContentTypeRegistry:
         Global content type registry instance
     """
     return _content_type_registry
+
+
+def reset_content_type_registry() -> None:
+    """Reset the global content type registry (for testing).
+
+    This recreates the global registry instance to ensure clean state.
+    """
+    global _content_type_registry
+    _content_type_registry = ContentTypeRegistry()
