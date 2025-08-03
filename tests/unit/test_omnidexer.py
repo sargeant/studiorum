@@ -382,6 +382,19 @@ class TestDeepIndexing:
         # Load data and check indexing
         await omnidexer.load_all_data()
 
+        # Add explicit synchronization barriers to ensure all async operations complete
+        import asyncio
+
+        await asyncio.sleep(0.1)  # Allow background tasks to complete
+
+        # Force garbage collection to ensure cleanup
+        import gc
+
+        gc.collect()
+
+        # Additional small delay for file system operations
+        await asyncio.sleep(0.05)
+
         # Verify data was loaded
         stats = omnidexer.get_statistics()
         assert stats["total_items"] > 0, f"No data loaded. Stats: {stats}"
@@ -392,6 +405,9 @@ class TestDeepIndexing:
         assert fighter.name == "Fighter"
 
         # Should have indexed the class features due to deep indexing
+        # Add another sync barrier before checking deep indexing results
+        await asyncio.sleep(0.1)  # Ensure deep indexing is complete
+
         # Find all Fighting Style features and get the Fighter one specifically
         all_fighting_styles = [
             item
