@@ -40,7 +40,7 @@ class TestBookConversion:
                 ],
                 capture_output=True,
                 text=True,
-                cwd="/Users/sam/Code/5e2pdf",
+                cwd=Path.cwd(),
             )
 
             # Check that the command succeeded
@@ -95,7 +95,7 @@ class TestBookConversion:
                     ],
                     capture_output=True,
                     text=True,
-                    cwd="/Users/sam/Code/5e2pdf",
+                    cwd=Path.cwd(),
                 )
 
                 # Some books might not be available in test data
@@ -134,7 +134,7 @@ class TestBookConversion:
                 ],
                 capture_output=True,
                 text=True,
-                cwd="/Users/sam/Code/5e2pdf",
+                cwd=Path.cwd(),
             )
 
             end_time = time.time()
@@ -269,7 +269,7 @@ class TestBookConversion:
                 ],
                 capture_output=True,
                 text=True,
-                cwd="/Users/sam/Code/5e2pdf",
+                cwd=Path.cwd(),
             )
 
             assert result.returncode == 0, (
@@ -353,7 +353,7 @@ class TestBookConversion:
                 ],
                 capture_output=True,
                 text=True,
-                cwd="/Users/sam/Code/5e2pdf",
+                cwd=Path.cwd(),
             )
 
             # Should work without hardcoded paths
@@ -391,7 +391,7 @@ class TestBookConversion:
                 ],
                 capture_output=True,
                 text=True,
-                cwd="/Users/sam/Code/5e2pdf",
+                cwd=Path.cwd(),
             )
 
             # Should fail gracefully with appropriate error message
@@ -430,7 +430,7 @@ class TestBookConversion:
                 ],
                 capture_output=True,
                 text=True,
-                cwd="/Users/sam/Code/5e2pdf",
+                cwd=Path.cwd(),
             )
 
             assert result.returncode == 0, (
