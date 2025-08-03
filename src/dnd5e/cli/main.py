@@ -305,5 +305,16 @@ def quick_convert(
     asyncio.run(_quick_convert())
 
 
+def reset_cli_globals() -> None:
+    """Reset CLI global variables for testing.
+
+    This function clears the global state maintained by the CLI module
+    to ensure clean test isolation.
+    """
+    global _omnidexer, _tag_resolver
+    _omnidexer = None
+    _tag_resolver = None
+
+
 if __name__ == "__main__":
     app()

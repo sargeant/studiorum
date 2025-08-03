@@ -107,3 +107,14 @@ def get_settings() -> Settings:
     if _settings is None:
         _settings = Settings()
     return _settings
+
+
+def reset_settings() -> None:
+    """Reset global settings instance for testing.
+
+    This function clears the global settings instance to ensure
+    clean test isolation and prevent settings from persisting
+    across test runs.
+    """
+    global _settings
+    _settings = None

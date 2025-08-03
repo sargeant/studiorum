@@ -159,5 +159,15 @@ class DisplayManager:
         return self._active_progress is not None
 
 
+def reset_display_manager() -> None:
+    """Reset the global display manager singleton for testing.
+
+    This function clears the global display manager instance to ensure
+    clean test isolation and prevent UI state from persisting across
+    test runs.
+    """
+    DisplayManager._instance = None
+
+
 # Global instance
 display_manager = DisplayManager()
