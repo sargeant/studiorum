@@ -57,7 +57,7 @@ mpm --install=dndbook --install=fontspec
 5e2pdf setup check-templates
 
 # Install template manually
-git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git
+git clone https://github.com/ashonit/DND-5e-LaTeX-Template.git
 # Follow template installation instructions
 ```
 
