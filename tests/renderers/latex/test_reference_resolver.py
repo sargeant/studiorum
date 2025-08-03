@@ -99,7 +99,7 @@ class TestReferenceResolver:
         assert resolver.tag_integration == self.mock_tag_integration
         assert resolver.reference_cache == {}
         assert resolver.forward_references == {}
-        assert resolver.backward_references == {}
+        assert resolver.reverse_references == {}
         assert resolver.unresolved_references == set()
 
     def test_resolve_content_reference_with_cache(self):
@@ -246,8 +246,8 @@ class TestReferenceResolver:
         assert "ref_123" in self.resolver.forward_references[location]
 
         # Check backward reference tracking
-        assert "ref_123" in self.resolver.backward_references
-        assert location in self.resolver.backward_references["ref_123"]
+        assert "ref_123" in self.resolver.reverse_references
+        assert location in self.resolver.reverse_references["ref_123"]
 
     def test_track_reference_relationship_no_duplicates(self):
         """Test that reference relationship tracking avoids duplicates."""
@@ -262,7 +262,7 @@ class TestReferenceResolver:
 
         # Should only appear once
         assert self.resolver.forward_references[location].count("ref_123") == 1
-        assert self.resolver.backward_references["ref_123"].count(location) == 1
+        assert self.resolver.reverse_references["ref_123"].count(location) == 1
 
     def test_create_definition_label(self):
         """Test definition label creation."""
@@ -403,7 +403,7 @@ class TestReferenceResolver:
     def test_generate_forward_reference_list(self):
         """Test forward reference list generation."""
         # Setup test data
-        self.resolver.backward_references["ref_123"] = ["loc1", "loc2", "loc3"]
+        self.resolver.reverse_references["ref_123"] = ["loc1", "loc2", "loc3"]
 
         result = self.resolver.generate_forward_reference_list("ref_123")
 
@@ -415,18 +415,18 @@ class TestReferenceResolver:
 
         assert result == []
 
-    def test_generate_backward_reference_list(self):
+    def test_generate_reverse_reference_list(self):
         """Test backward reference list generation."""
         # Setup test data
         self.resolver.forward_references["location"] = ["ref1", "ref2", "ref3"]
 
-        result = self.resolver.generate_backward_reference_list("location")
+        result = self.resolver.generate_reverse_reference_list("location")
 
         assert result == ["ref1", "ref2", "ref3"]
 
-    def test_generate_backward_reference_list_empty(self):
+    def test_generate_reverse_reference_list_empty(self):
         """Test backward reference list generation for unknown location."""
-        result = self.resolver.generate_backward_reference_list("unknown_location")
+        result = self.resolver.generate_reverse_reference_list("unknown_location")
 
         assert result == []
 
@@ -507,7 +507,7 @@ class TestReferenceResolver:
         # Setup test data
         self.resolver.reference_cache = {"ref1": "result1", "ref2": "result2"}
         self.resolver.forward_references = {"loc1": ["ref1"], "loc2": ["ref2"]}
-        self.resolver.backward_references = {"ref1": ["loc1"], "ref2": ["loc2"]}
+        self.resolver.reverse_references = {"ref1": ["loc1"], "ref2": ["loc2"]}
         self.resolver.unresolved_references = {"unresolved1", "unresolved2"}
 
         # Setup mock return values
@@ -530,7 +530,7 @@ class TestReferenceResolver:
 
         assert result["total_references"] == 2
         assert result["forward_references"] == 2
-        assert result["backward_references"] == 2
+        assert result["reverse_references"] == 2
         assert result["unresolved"] == 2
         assert result["cross_reference_stats"] == {"total_refs": 5}
         assert result["content_stats"] == {"total_content": 10}
@@ -556,14 +556,14 @@ class TestReferenceResolver:
         # Setup test data
         self.resolver.reference_cache["key"] = "value"
         self.resolver.forward_references["loc"] = ["ref"]
-        self.resolver.backward_references["ref"] = ["loc"]
+        self.resolver.reverse_references["ref"] = ["loc"]
         self.resolver.unresolved_references.add("unresolved")
 
         self.resolver.clear_cache()
 
         assert self.resolver.reference_cache == {}
         assert self.resolver.forward_references == {}
-        assert self.resolver.backward_references == {}
+        assert self.resolver.reverse_references == {}
         assert self.resolver.unresolved_references == set()
 
     def test_export_reference_data_for_compilation(self):

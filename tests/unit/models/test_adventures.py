@@ -155,7 +155,7 @@ class TestAdventure:
         assert not adventure.is_metadata_only()
 
     def test_adventure_from_content_only_structure(self) -> None:
-        """Test adventure creation from content-only structure (legacy)."""
+        """Test adventure creation from content-only structure (current 5etools format)."""
         data = {
             "data": [
                 {
