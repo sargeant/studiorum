@@ -22,7 +22,7 @@ class TestDNDTemplateManager:
         assert manager.template_files
         assert manager.required_packages
         assert "dndbook.cls" in manager.template_files
-        assert "dndarticle.cls" in manager.template_files
+        assert "dnd.sty" in manager.template_files
         assert "expl3" in manager.required_packages
 
     @patch("subprocess.run")
