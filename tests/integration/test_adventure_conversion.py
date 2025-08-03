@@ -44,7 +44,13 @@ class TestAdventureConversion:
             )
 
             # Check that the command succeeded
-            assert result.returncode == 0, f"Conversion failed: {result.stderr}"
+            if result.returncode != 0:
+                if "DND template availability check failed" in result.stderr:
+                    pytest.skip(
+                        "DND LaTeX template not available - cannot test adventure conversion"
+                    )
+                else:
+                    raise AssertionError(f"Conversion failed: {result.stderr}")
 
             # Check that the output file was created
             assert output_file.exists(), f"Output file not created: {output_file}"

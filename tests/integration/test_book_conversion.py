@@ -102,6 +102,10 @@ class TestBookConversion:
                 if result.returncode != 0:
                     if "not found" in result.stderr.lower():
                         pytest.skip(f"Book {book_id} not available in test data")
+                    elif "DND template availability check failed" in result.stderr:
+                        pytest.skip(
+                            f"DND LaTeX template not available - cannot test {book_id} conversion"
+                        )
                     else:
                         pytest.fail(f"Conversion of {book_id} failed: {result.stderr}")
 
