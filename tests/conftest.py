@@ -164,12 +164,20 @@ async def loaded_omnidexer(
     """Create an omnidexer with loaded test data."""
     import json
 
-    # Create test data files
+    # Create test data files and ensure they're written to disk
     spell_file = temp_data_dir / "spells" / "test-spells.json"
     spell_file.write_text(json.dumps({"spell": [sample_spell_data]}))
 
     creature_file = temp_data_dir / "bestiary" / "test-creatures.json"
     creature_file.write_text(json.dumps({"monster": [sample_creature_data]}))
+
+    # Ensure files are flushed to disk before proceeding
+    import os
+
+    os.sync()  # Force filesystem sync
+
+    # Yield control to ensure any pending I/O operations complete
+    await asyncio.sleep(0)
 
     # Create source manager pointing to temp directory
     source_manager: Any = FileSystemSourceManager(temp_data_dir.parent)

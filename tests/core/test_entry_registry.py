@@ -207,74 +207,14 @@ class TestEntryTypeRegistry:
         assert len(result.errors) == 1
         assert "must be dict or string" in result.errors[0]
 
-    def test_validate_required_fields(self):
-        """Test validation of required fields."""
-        from dnd5e.core.entry_registry import ValidatedEntry, ValidationContext
+    # Removed deprecated test: test_validate_required_fields
+    # This tested legacy validate_required_fields() method which is replaced by Pydantic validation
 
-        entry_data = {"type": "section", "name": "Test Section"}
-        validated_entry = ValidatedEntry.from_dict(entry_data)
-        required_fields = {"type", "name"}
+    # Removed deprecated test: test_validate_required_fields_missing
+    # This tested legacy validate_required_fields() method which is replaced by Pydantic validation
 
-        context = ValidationContext(entry_data=entry_data)
-        result = self.registry.validate_required_fields(
-            validated_entry, required_fields, context
-        )
-
-        assert result.success is True
-        assert len(result.errors) == 0
-
-    def test_validate_required_fields_missing(self):
-        """Test validation with missing required fields."""
-        from dnd5e.core.entry_registry import ValidatedEntry, ValidationContext
-
-        entry_data = {"type": "section"}  # Missing 'name'
-        validated_entry = ValidatedEntry.from_dict(entry_data)
-        required_fields = {"type", "name", "entries"}
-
-        context = ValidationContext(entry_data=entry_data)
-        result = self.registry.validate_required_fields(
-            validated_entry, required_fields, context
-        )
-
-        assert result.success is False
-        assert len(result.errors) == 1
-        error_msg = result.errors[0]
-        assert "Missing required fields" in error_msg
-        assert "entries" in error_msg
-        assert "name" in error_msg
-
-    def test_get_common_fields(self):
-        """Test get_common_fields method."""
-        # Section is recursive but also has specific handling for 'name'
-        fields = self.registry.get_common_fields("section")
-        assert "type" in fields
-        assert "name" in fields
-
-        # Other recursive types should include 'entries'
-        fields = self.registry.get_common_fields("inset")
-        assert "type" in fields
-        assert "name" in fields
-
-        # Tables should include 'rows'
-        fields = self.registry.get_common_fields("table")
-        assert "type" in fields
-        assert "rows" in fields
-
-        # Lists should include 'items'
-        fields = self.registry.get_common_fields("list")
-        assert "type" in fields
-        assert "items" in fields
-
-        # Generic recursive types should have entries
-        fields = self.registry.get_common_fields(
-            "options"
-        )  # This is recursive but not specifically handled
-        assert "type" in fields
-        assert "entries" in fields
-
-        # Unknown types should just have 'type'
-        fields = self.registry.get_common_fields("unknownType")
-        assert fields == {"type"}
+    # Removed deprecated test: test_get_common_fields
+    # This tested legacy get_common_fields() method which is replaced by Pydantic validation
 
     def test_reset_statistics(self):
         """Test statistics reset functionality."""

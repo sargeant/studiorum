@@ -213,8 +213,8 @@ class TestBookConversion:
             for section in result.contents
             if hasattr(section, "entries") and section.entries
         ]
-        assert len(sections_with_content) >= 0, (
-            "Test book should have sections (content may be empty in test data)"
+        assert len(sections_with_content) > 0, (
+            "Test book should have sections with content (found empty sections)"
         )
 
     async def test_book_content_loading_caching(self):

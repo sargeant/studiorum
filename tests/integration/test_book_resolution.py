@@ -70,8 +70,10 @@ class TestBookResolution:
             # Should have enriched content
             assert len(result.content.contents) > 0
             if result.content.contents:
-                # Content may be empty in test data, that's OK
-                assert len(result.content.contents[0].entries) >= 0
+                # Content may be empty in test data - validate structure instead
+                assert isinstance(result.content.contents[0].entries, list), (
+                    "Entries should be a list"
+                )
 
         asyncio.run(_test())
 
@@ -119,8 +121,10 @@ class TestBookResolution:
             assert book_result.status == ResolutionStatus.EXACT_MATCH
             assert book_result.content is not None
             assert len(book_result.content.contents) > 0
-            # Content may be empty in test data, that's OK
-            assert len(book_result.content.contents[0].entries) >= 0
+            # Content may be empty in test data - validate structure instead
+            assert isinstance(book_result.content.contents[0].entries, list), (
+                "Entries should be a list"
+            )
 
             # Test adventure resolution
             adventure_result = resolver.resolve_adventure("TEST")
@@ -181,7 +185,8 @@ class TestBookResolution:
             # Books should still be accessible even if some content files are missing
             for book in books[:3]:  # Test first few books
                 assert book.name is not None
-                assert len(book.contents) >= 0  # May be empty for metadata-only
+                # Book contents may be empty for metadata-only books - validate structure
+                assert isinstance(book.contents, list), "Book contents should be a list"
 
         asyncio.run(_test())
 
@@ -208,12 +213,14 @@ class TestBookResolution:
             assert len(book.contents) > 0
             intro_chapter = book.contents[0]
             assert intro_chapter.name is not None
-            # Content may be empty in test data, that's OK for basic structure tests
-            assert len(intro_chapter.entries) >= 0  # Has content structure
+            # Content may be empty in test data - validate structure instead
+            assert isinstance(intro_chapter.entries, list), "Entries should be a list"
 
             # Content should be renderable (basic validation)
             assert isinstance(intro_chapter.entries, list)
-            # Test data may have minimal content
-            assert len(str(intro_chapter.entries)) >= 0  # Has content structure
+            # Test data may have minimal content - validate it's serializable
+            assert str(intro_chapter.entries) is not None, (
+                "Entries should be serializable"
+            )
 
         asyncio.run(_test())
