@@ -39,14 +39,14 @@ jobs:
         # Install minimal LaTeX (much faster than texlive-full)
         sudo apt-get update
         sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
-        # Clone DND-5e-LaTeX-Template to user's texmf directory
-        TEXMFHOME=$(kpsewhich --var-value=TEXMFHOME)
-        mkdir -p "$TEXMFHOME/tex/latex"
-        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git "$TEXMFHOME/tex/latex/dnd"
+        # Clone DND-5e-LaTeX-Template to system-wide location
+        sudo mkdir -p /usr/share/texlive/texmf-local/tex/latex/dnd
+        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git /tmp/dnd-template
+        sudo cp /tmp/dnd-template/*.cls /tmp/dnd-template/*.sty /tmp/dnd-template/*.def /tmp/dnd-template/*.clo /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
         # Update texmf database
         sudo mktexlsr
         # Verify installation
-        kpsewhich dndbook.cls || echo "Warning: dndbook.cls not found in LaTeX search path"
+        kpsewhich dndbook.cls && echo "✓ DND template installed successfully" || echo "⚠ Warning: dndbook.cls not found in LaTeX search path"
 
     - name: Run fast CI checks
       run: make ci-fast
@@ -108,14 +108,14 @@ jobs:
         # Install minimal LaTeX (much faster than texlive-full)
         sudo apt-get update
         sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
-        # Clone DND-5e-LaTeX-Template to user's texmf directory
-        TEXMFHOME=$(kpsewhich --var-value=TEXMFHOME)
-        mkdir -p "$TEXMFHOME/tex/latex"
-        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git "$TEXMFHOME/tex/latex/dnd"
+        # Clone DND-5e-LaTeX-Template to system-wide location
+        sudo mkdir -p /usr/share/texlive/texmf-local/tex/latex/dnd
+        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git /tmp/dnd-template
+        sudo cp /tmp/dnd-template/*.cls /tmp/dnd-template/*.sty /tmp/dnd-template/*.def /tmp/dnd-template/*.clo /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
         # Update texmf database
         sudo mktexlsr
         # Verify installation
-        kpsewhich dndbook.cls || echo "Warning: dndbook.cls not found in LaTeX search path"
+        kpsewhich dndbook.cls && echo "✓ DND template installed successfully" || echo "⚠ Warning: dndbook.cls not found in LaTeX search path"
 
     - name: Run CI test suite with coverage
       run: make ci-test
@@ -158,14 +158,14 @@ jobs:
         # Install minimal LaTeX (much faster than texlive-full)
         sudo apt-get update
         sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
-        # Clone DND-5e-LaTeX-Template to user's texmf directory
-        TEXMFHOME=$(kpsewhich --var-value=TEXMFHOME)
-        mkdir -p "$TEXMFHOME/tex/latex"
-        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git "$TEXMFHOME/tex/latex/dnd"
+        # Clone DND-5e-LaTeX-Template to system-wide location
+        sudo mkdir -p /usr/share/texlive/texmf-local/tex/latex/dnd
+        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git /tmp/dnd-template
+        sudo cp /tmp/dnd-template/*.cls /tmp/dnd-template/*.sty /tmp/dnd-template/*.def /tmp/dnd-template/*.clo /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
         # Update texmf database
         sudo mktexlsr
         # Verify installation
-        kpsewhich dndbook.cls || echo "Warning: dndbook.cls not found in LaTeX search path"
+        kpsewhich dndbook.cls && echo "✓ DND template installed successfully" || echo "⚠ Warning: dndbook.cls not found in LaTeX search path"
 
     - name: Install dependencies
       run: make ci-install
@@ -213,14 +213,14 @@ jobs:
         # Install minimal LaTeX (much faster than texlive-full)
         sudo apt-get update
         sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
-        # Clone DND-5e-LaTeX-Template to user's texmf directory
-        TEXMFHOME=$(kpsewhich --var-value=TEXMFHOME)
-        mkdir -p "$TEXMFHOME/tex/latex"
-        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git "$TEXMFHOME/tex/latex/dnd"
+        # Clone DND-5e-LaTeX-Template to system-wide location
+        sudo mkdir -p /usr/share/texlive/texmf-local/tex/latex/dnd
+        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git /tmp/dnd-template
+        sudo cp /tmp/dnd-template/*.cls /tmp/dnd-template/*.sty /tmp/dnd-template/*.def /tmp/dnd-template/*.clo /usr/share/texlive/texmf-local/tex/latex/dnd/ 2>/dev/null || true
         # Update texmf database
         sudo mktexlsr
         # Verify installation
-        kpsewhich dndbook.cls || echo "Warning: dndbook.cls not found in LaTeX search path"
+        kpsewhich dndbook.cls && echo "✓ DND template installed successfully" || echo "⚠ Warning: dndbook.cls not found in LaTeX search path"
 
     - name: Install dependencies
       run: make ci-install
