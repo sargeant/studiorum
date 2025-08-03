@@ -453,6 +453,80 @@ def test_content_resolution_integration(omnidexer, tag_resolver):
     assert all(content.is_resolved() for content in resolved_content)
 ```
 
+## Global State Management
+
+**Critical for parallel test execution stability and CI/CD reliability.**
+
+The 5e2pdf project uses several global singletons that must be properly isolated between tests to prevent contamination in parallel execution environments.
+
+### Required Global State Reset Pattern
+
+Any test that creates real `Omnidexer()` instances or other core system components must reset all global singletons:
+
+```python
+def setup_method(self) -> None:
+    """Reset global state for test isolation."""
+    from dnd5e.core.cache import CacheManager
+    from dnd5e.core.config.sources import reset_config_manager
+    from dnd5e.core.content_type_resolver import reset_content_type_resolver
+    from dnd5e.core.entry_registry import reset_entry_registry
+    from dnd5e.core.interfaces import reset_content_type_registry
+    from dnd5e.core.loaders.content_factory import reset_content_factory
+
+    # Complete isolation - reset ALL global singletons
+    CacheManager.reset()
+    reset_content_factory()
+    reset_content_type_registry()
+    reset_content_type_resolver()
+    reset_entry_registry()
+    reset_config_manager()
+```
+
+### Global Singletons Overview
+
+| Singleton | Purpose | Reset Function | Failure Symptoms |
+|-----------|---------|----------------|------------------|
+| `CacheManager` | Disk-based cache | `CacheManager.reset()` | Persistent state between runs |
+| `ContentFactory` | Content type creation | `reset_content_factory()` | "assert None is not None" |
+| `ContentTypeRegistry` | Type resolution mapping | `reset_content_type_registry()` | Deep indexing failures |
+| `ContentTypeResolver` | Registry-based resolution | `reset_content_type_resolver()` | Content loading corruption |
+| `EntryRegistry` | Entry validation registry | `reset_entry_registry()` | Validation failures |
+| `ConfigManager` | Configuration management | `reset_config_manager()` | Config directory errors in CI |
+
+### Mock vs Real Instance Strategy
+
+**Use Mocks When Possible:**
+```python
+# Preferred: Avoid global state entirely
+mock_omnidexer = Mock(spec=Omnidexer)  # Use spec for Pydantic validation
+```
+
+**Use Real Instances When Required:**
+```python
+# When testing deep integration, use full reset pattern above
+def setup_method(self) -> None:
+    # ... complete global state reset as shown above
+
+def test_real_omnidexer_functionality(self):
+    omnidexer = Omnidexer()  # Now safe to use real instance
+```
+
+### Common Global State Issues
+
+- **"Works individually, fails in parallel"** → Missing global state reset
+- **"Works first time, fails second"** → Persistent cache/config state
+- **"Input should be an instance of Omnidexer"** → Use `Mock(spec=Omnidexer)`
+- **"FileNotFoundError: config directory"** → Missing `reset_config_manager()`
+- **"assert None is not None"** → Content factory corruption
+
+### CI/CD Considerations
+
+In CI environments like GitHub Actions, additional isolation is critical:
+
+1. **Directory Creation**: Config manager may try to create directories that don't exist
+2. **Parallel Workers**: pytest-xdist runs tests in separate workers that share nothing
+3. **Shell Compatibility**: Ensure `SHELL := /bin/bash` in Makefiles for `-o pipefail` support
+
 ## Code Review Checklist
 
 When reviewing test code, check for:
