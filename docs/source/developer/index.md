@@ -59,7 +59,7 @@ This documentation serves multiple audiences:
 
 Complete reference for all public APIs, including:
 
-- **[Omnidexer API](api/omnidexer.md)**: Content indexing and discovery system
+- **[Omnidexer API](api-reference/core-apis.md)**: Content indexing and discovery system
 - Core models and content types
 - Renderer interfaces
 - Configuration and settings
@@ -68,8 +68,8 @@ Complete reference for all public APIs, including:
 
 Detailed guides for understanding and extending key systems:
 
-- **[Loader Architecture](implementation/loader-architecture.md)**: Sophisticated dual-file loading system with caching
-- **[Deep Indexing](implementation/deep-indexing.md)**: How the omnidexer discovers nested content
+- **[Loader Architecture](system-guide/component-deep-dives/loader-architecture.md)**: Sophisticated dual-file loading system with caching
+- **[Deep Indexing](system-guide/component-deep-dives/deep-indexing.md)**: How the omnidexer discovers nested content
 - Content parsing and validation
 - LaTeX rendering pipeline
 - Performance optimization techniques

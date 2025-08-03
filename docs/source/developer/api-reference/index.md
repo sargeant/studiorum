@@ -40,7 +40,7 @@ The API Documentation provides comprehensive reference material for all public i
 
 ## Key APIs
 
-### [Omnidexer](omnidexer.md)
+### [Omnidexer](core-apis.md)
 
 The omnidexer is 5e2pdf's content indexing and discovery system. It provides:
 
@@ -92,7 +92,7 @@ Base classes and data structures for representing D&D content with comprehensive
 - `LayoutHint`, `LayoutContext`: Layout system with column count constraints
 - `ContentReference`, `SpecialTag`: Tag processing with content type validation
 
-### [Core Utilities](core-utilities.md)
+### [Core Utilities](utilities.md)
 
 Foundational utilities and helper functions used throughout the system:
 

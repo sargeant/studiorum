@@ -334,9 +334,9 @@ python scripts/get_version.py
 
 ### Resources
 
-- **[Architecture Guide](architecture.md)**: System design and components
-- **[API Documentation](api/index.md)**: Detailed API reference
-- **[Implementation Guides](implementation/index.md)**: Step-by-step tutorials
+- **[Architecture Guide](../system-guide/architecture-overview.md)**: System design and components
+- **[API Documentation](../api-reference/index.md)**: Detailed API reference
+- **[Implementation Guides](../system-guide/component-deep-dives/index.md)**: Step-by-step tutorials
 
 ### Troubleshooting
 
