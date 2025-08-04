@@ -503,7 +503,8 @@ class RecursiveEntryProcessor:
                     alignment = "c"
                 elif cls == "text-right":
                     alignment = "r"
-                # Note: "bold" styling is handled in content, not column spec
+                # Note: "bold" and other text styling are passed through as CSS classes - not handled in column specs
+                # The JavaScript code shows colStyles primarily handle layout (Bootstrap grid) and alignment
 
             # Smart hybrid approach: use X for wide columns, l for most content
             if col_width is None:
