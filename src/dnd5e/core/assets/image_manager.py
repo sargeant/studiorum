@@ -249,7 +249,7 @@ class ImageManager:
         Returns:
             Cache key string
         """
-        return hashlib.md5(url.encode()).hexdigest()
+        return hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()
 
     def add_source(self, source: ImageSource) -> None:
         """Add an image source.
