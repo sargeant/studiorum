@@ -20,7 +20,7 @@ import dnd5e
 
 # -- Project information -----------------------------------------------------
 
-project = "5e2pdf"
+project = f"5e2pdf v{dnd5e.__version__}"
 copyright_ = "2025, Sam Sargeant"  # renamed to avoid shadowing builtin
 author = "Sam Sargeant"
 
@@ -146,7 +146,7 @@ html_css_files = [
 ]
 
 # HTML title
-html_title = f"{project} v{version}"
+html_title = project  # Project already includes version
 
 # Favicon
 html_favicon = None  # Add path to favicon if available
