@@ -351,8 +351,13 @@ class TestFullDatasetValidation:
         skip_threshold: Any = max(10, len(load_stats) * 0.2)  # 20% of total files
 
         # Adjust expectations based on available data
-        # In test environments, we may only have minimal sample data
-        min_expected_items = 1 if total_items < 100 else 1000
+        # Support both SRD data (~700 items) and full 5etools dataset (thousands)
+        if total_items < 100:
+            min_expected_items = 1  # Minimal test data
+        elif total_items < 1500:
+            min_expected_items = 500  # SRD or partial dataset
+        else:
+            min_expected_items = 1000  # Full dataset
         assert total_items >= min_expected_items, (
             f"Expected to load at least {min_expected_items} items, got {total_items} items"
         )
