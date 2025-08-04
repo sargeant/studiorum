@@ -276,7 +276,7 @@ class RecursiveEntryProcessor:
             if name:
                 return f"\\begin{{DndSidebar}}{{{self._escape_latex(name)}}}\n{content}\n\\end{{DndSidebar}}"
             else:
-                return f"\\begin{{DndSidebar}}\n{content}\n\\end{{DndSidebar}}"
+                return f"\\begin{{DndSidebar}}{{}}\n{content}\n\\end{{DndSidebar}}"
         else:
             result = []
             if name:
@@ -361,38 +361,52 @@ class RecursiveEntryProcessor:
         """
         caption = table.get("caption", "")
         col_labels = table.get("colLabels", [])
+        col_styles = table.get("colStyles", [])
         rows = table.get("rows", [])
 
         if not rows:
             return f"% Empty table: {caption}" if caption else "% Empty table"
 
         # Use DND table if available
-        if self.use_dnd_template and col_labels:
+        if self.use_dnd_template:
             result = []
             if caption:
                 result.append(f"% Table: {caption}")
 
-            # Build column specification
-            col_spec = "l" * len(col_labels)
+            # Determine column count from col_labels, col_styles, or first row
+            if col_labels:
+                col_count = len(col_labels)
+            elif col_styles:
+                col_count = len(col_styles)
+            elif rows and isinstance(rows[0], list):
+                col_count = len(rows[0])
+            else:
+                col_count = 2  # Default fallback
 
-            result.append("\\begin{DndTable}[")
+            # Build column specification from colStyles or use defaults
+            col_spec = self._build_column_spec(col_styles, col_count)
+
+            # Use correct DndTable syntax: \begin{DndTable}[header=Name]{column_spec}
+            header_text = self._escape_latex(caption) if caption else "Table"
             result.append(
-                f"  caption={{{self._escape_latex(caption) if caption else 'Table'}}},"
+                f"\\begin{{DndTable}}[header={{{header_text}}}]{{{col_spec}}}"
             )
-            result.append(f"  cols={{{col_spec}}}")
-            result.append("]")
 
-            # Header row
-            header_row = " & ".join(
-                [self._escape_latex(str(label)) for label in col_labels]
-            )
-            result.append(f"{header_row} \\\\")
+            # Header row (only if we have col_labels)
+            if col_labels:
+                header_row = " & ".join(
+                    [self._escape_latex(str(label)) for label in col_labels]
+                )
+                result.append(f"{header_row} \\\\")
 
             # Data rows
             for row in rows:
                 if isinstance(row, list):
                     row_data = " & ".join(
-                        [self._escape_latex(str(cell)) for cell in row]
+                        [
+                            self._process_text_with_tags(str(cell), context)
+                            for cell in row
+                        ]
                     )
                     result.append(f"{row_data} \\\\")
 
@@ -446,7 +460,9 @@ class RecursiveEntryProcessor:
         # Data rows
         for row in rows:
             if isinstance(row, list):
-                row_data = " & ".join([self._escape_latex(str(cell)) for cell in row])
+                row_data = " & ".join(
+                    [self._process_text_with_tags(str(cell), context) for cell in row]
+                )
                 result.append(f"{row_data} \\\\")
 
         result.append("\\hline")
@@ -454,6 +470,60 @@ class RecursiveEntryProcessor:
         result.append("\\end{table}")
 
         return "\n".join(result)
+
+    def _build_column_spec(self, col_styles: list[str], col_count: int) -> str:
+        """Build LaTeX column specification from 5etools colStyles.
+
+        Args:
+            col_styles: List of Bootstrap column style classes (e.g., ["col-2 bold", "col-10"])
+            col_count: Number of columns as fallback
+
+        Returns:
+            LaTeX column specification string using only DndTable-supported types (e.g., "cl")
+        """
+        if not col_styles:
+            # Fallback: use left-aligned columns
+            return "l" * col_count
+
+        col_specs = []
+        for style in col_styles:
+            # Parse Bootstrap classes like "col-2 bold", "col-10", "col-4 text-center"
+            classes = style.split()
+            col_width = None
+            alignment = "l"  # default left
+
+            for cls in classes:
+                if cls.startswith("col-"):
+                    try:
+                        width_num = int(cls.split("-")[1])
+                        col_width = width_num
+                    except (IndexError, ValueError):
+                        continue
+                elif cls == "text-center":
+                    alignment = "c"
+                elif cls == "text-right":
+                    alignment = "r"
+                # Note: "bold" and other text styling are passed through as CSS classes - not handled in column specs
+                # The JavaScript code shows colStyles primarily handle layout (Bootstrap grid) and alignment
+
+            # Smart hybrid approach: use X for wide columns, l for most content
+            if col_width is None:
+                # No width specified, default to left-aligned
+                col_specs.append("l")
+            elif col_width >= 8:
+                # Wide description columns - use expandable columns for text wrapping
+                col_specs.append("X")
+            elif col_width <= 2 and alignment == "c":
+                # Only center narrow columns when explicitly marked text-center
+                col_specs.append("c")
+            elif alignment == "r":
+                # Respect explicit right alignment
+                col_specs.append("r")
+            else:
+                # Default to left-aligned for most content
+                col_specs.append("l")
+
+        return "".join(col_specs)
 
     def _process_quote(self, quote: dict[str, Any], context: RenderContext) -> str:
         """Process a quote entry.
