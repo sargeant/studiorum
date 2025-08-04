@@ -34,8 +34,12 @@ class ImageProcessingConfig(BaseModel):
     max_image_width: int = Field(
         default=1200, description="Maximum image width in pixels"
     )
-    jpeg_quality: int = Field(default=85, description="JPEG quality for optimization")
-    png_compression: int = Field(default=6, description="PNG compression level (0-9)")
+    jpeg_quality: int = Field(
+        default=85, ge=1, le=100, description="JPEG quality for optimization"
+    )
+    png_compression: int = Field(
+        default=6, ge=0, le=9, description="PNG compression level (0-9)"
+    )
 
 
 class ProcessedImage(BaseModel):

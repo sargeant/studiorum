@@ -102,24 +102,29 @@ class TestFormatConverter:
         """Test successful WebP to PNG conversion."""
         # Setup mocks
         mock_exists.return_value = True
-        mock_stat.return_value = Mock(st_size=1000)
         mock_convert.return_value = None
 
         webp_path = Path("test.webp")
 
-        # Create output path mock
-        with patch("pathlib.Path.stat") as mock_out_stat:
-            mock_out_stat.return_value = Mock(st_size=800)
+        # Mock stat to return different sizes based on call context
+        def stat_side_effect():
+            # First call is for original file size, second for converted
+            if mock_stat.call_count == 1:
+                return Mock(st_size=1000)
+            else:
+                return Mock(st_size=800)
 
-            result = await self.converter.convert_webp_to_png(webp_path)
+        mock_stat.side_effect = stat_side_effect
 
-            assert isinstance(result, ConversionResult)
-            assert result.original_path == webp_path
-            assert result.converted_path == Path("test.png")
-            assert result.original_format == "WebP"
-            assert result.target_format == "PNG"
-            assert result.file_size_before == 1000
-            assert result.file_size_after == 800
+        result = await self.converter.convert_webp_to_png(webp_path)
+
+        assert isinstance(result, ConversionResult)
+        assert result.original_path == webp_path
+        assert result.converted_path == Path("test.png")
+        assert result.original_format == "WebP"
+        assert result.target_format == "PNG"
+        assert result.file_size_before == 1000
+        assert result.file_size_after == 800
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.exists")
