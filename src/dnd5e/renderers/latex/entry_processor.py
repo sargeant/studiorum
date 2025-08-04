@@ -631,9 +631,47 @@ class RecursiveEntryProcessor:
         if not text or not context.tag_resolver:
             return self._escape_latex(text)
 
+        # Skip obvious non-tag content to avoid parser warnings
+        if not self._is_valid_tag_input(text):
+            return self._escape_latex(text)
+
         # Type cast needed due to forward reference in RenderContext
         result = context.tag_resolver.process_text(text)
         return str(result)
+
+    def _is_valid_tag_input(self, text: str) -> bool:
+        """Check if text might contain valid 5etools tags.
+
+        This method pre-filters obvious non-tag content to prevent
+        unnecessary parser warnings and improve performance.
+
+        Args:
+            text: Text to validate
+
+        Returns:
+            True if text might contain valid tags, False to skip parsing
+        """
+        if not text or not isinstance(text, str):
+            return False
+
+        # Skip obvious dict/json strings that were stringified from cell objects
+        if text.startswith(("{'", '{"')) and text.endswith(("'}", '"}')):
+            return False
+
+        # Skip other obvious non-tag patterns
+        if text.startswith(("dict(", "list(", "tuple(")):
+            return False
+
+        # If text contains potential tag markers, it's worth parsing
+        if "{@" in text:
+            return True
+
+        # For short text without tag markers, skip parsing (performance optimization)
+        if len(text) < 3:
+            return False
+
+        # Default to parsing for other content
+        return True
 
     def _escape_latex(self, text: str) -> str:
         """Escape LaTeX special characters and Unicode characters.
