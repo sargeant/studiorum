@@ -7,9 +7,10 @@ Technical API documentation organized by functional area.
 ```{toctree}
 :maxdepth: 1
 
-omnidexer
+core-apis
 content-models
-core-utilities
+context-and-references
+utilities
 ```
 
 ## Rendering & Output
@@ -53,6 +54,21 @@ The omnidexer is 5e2pdf's content indexing and discovery system. It provides:
 - `Omnidexer`: Main indexing class
 - `IndexEntry`: Pydantic BaseModel for indexed content with hash and lookup key validation
 - `DeepIndexable`: Protocol for content with nested items
+
+### [Context and Reference Systems](context-and-references.md)
+
+Unified systems for state management and content resolution with full type safety:
+
+- Context hierarchy for consistent state passing across operations
+- Generic `Reference[T]` pattern for type-safe content resolution
+- Service injection and dependency management
+- Multi-format reference output (LaTeX, HTML, Markdown, Plain Text)
+
+**Key Classes:**
+- `ProcessingContext[T]`: Generic context for type-safe operations
+- `ServiceContext`: Context with dependency injection support
+- `Reference[T]`: Type-safe content references
+- `ReferenceManager`: Unified reference parsing and resolution
 
 ### [LaTeX Rendering](latex-rendering.md)
 

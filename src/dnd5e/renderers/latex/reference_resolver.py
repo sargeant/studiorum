@@ -6,22 +6,20 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from dnd5e.core.base_context import DocumentContext
 from dnd5e.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-class ReferenceContext(BaseModel):
-    """Context for reference resolution with validation."""
+class ReferenceContext(DocumentContext):
+    """Context for reference resolution with validation.
 
-    document_type: str = Field(
-        "general", description="Type of document (adventure, reference, supplement)"
-    )
-    current_section: str = Field("", description="Current document section")
-    current_page: int = Field(0, ge=0, description="Current page number (if known)")
-    appendix_mode: bool = Field(
-        False, description="Whether we're in appendix generation"
-    )
+    Inherits from DocumentContext to provide standardized document state management
+    while maintaining backward compatibility with existing reference resolution code.
+    """
+
+    # Additional reference-specific configuration
     cross_ref_enabled: bool = Field(
         True, description="Whether cross-references are enabled"
     )

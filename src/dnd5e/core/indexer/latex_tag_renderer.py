@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from pydantic import Field
+
 from dnd5e.core.logging import get_logger
 
 from .cross_reference_manager import CrossReferenceManager
@@ -19,7 +21,15 @@ if TYPE_CHECKING:
 
 
 class LaTeXRendererContext(RendererContext):
-    """Enhanced context for LaTeX-specific rendering with cross-references."""
+    """Enhanced context for LaTeX-specific rendering with cross-references.
+
+    Extends RendererContext with LaTeX-specific services and configuration.
+    """
+
+    # LaTeX-specific fields
+    latex_mode: bool = Field(default=True, description="Flag for LaTeX features")
+    cross_ref_manager: Any = Field(default=None, description="Cross-reference manager")
+    hyperlink_manager: Any = Field(default=None, description="Hyperlink manager")
 
     def __init__(
         self,
@@ -27,11 +37,25 @@ class LaTeXRendererContext(RendererContext):
         omnidexer: Omnidexer | None = None,
         cross_ref_manager: CrossReferenceManager | None = None,
         hyperlink_manager: HyperlinkManager | None = None,
+        **data: Any,
     ):
-        super().__init__(renderer, omnidexer)
-        self.cross_ref_manager = cross_ref_manager
-        self.hyperlink_manager = hyperlink_manager
-        self.latex_mode = True  # Flag for handlers to enable LaTeX features
+        # Initialize base context with additional LaTeX services
+        super().__init__(
+            renderer=renderer,
+            omnidexer=omnidexer,
+            latex_mode=True,
+            cross_ref_manager=cross_ref_manager,
+            hyperlink_manager=hyperlink_manager,
+            **data,
+        )
+
+    def get_cross_ref_manager(self) -> Any | None:
+        """Get the cross-reference manager."""
+        return self.cross_ref_manager
+
+    def get_hyperlink_manager(self) -> Any | None:
+        """Get the hyperlink manager."""
+        return self.hyperlink_manager
 
 
 class LaTeXTagRenderer(TagRenderer):
@@ -132,8 +156,9 @@ class LaTeXTagRenderer(TagRenderer):
         ref_id = self._generate_reference_id(node)
 
         # Register this content for cross-referencing
-        if context.cross_ref_manager is not None:
-            context.cross_ref_manager.register_content(
+        cross_ref_manager = context.get_cross_ref_manager()
+        if cross_ref_manager is not None:
+            cross_ref_manager.register_content(
                 content_type=node.tag_type,
                 name=getattr(node, "name", ""),
                 ref_id=ref_id,
@@ -141,13 +166,14 @@ class LaTeXTagRenderer(TagRenderer):
             )
 
         # Create hyperlinked version if enabled
-        if (
-            context.hyperlink_manager is not None
-            and context.hyperlink_manager.should_create_hyperlink(node.tag_type)
+        hyperlink_manager = context.get_hyperlink_manager()
+        if hyperlink_manager is not None and hyperlink_manager.should_create_hyperlink(
+            node.tag_type
         ):
-            return context.hyperlink_manager.create_hyperlink(
+            result = hyperlink_manager.create_hyperlink(
                 text=base_text, ref_id=ref_id, content_type=node.tag_type
             )
+            return str(result)  # Ensure string return type
 
         return base_text
 

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from dnd5e.core.base_context import ServiceContext
 from dnd5e.core.loaders.omnidexer import Omnidexer
 
 if TYPE_CHECKING:
@@ -15,18 +16,15 @@ if TYPE_CHECKING:
     from dnd5e.core.models.document_metadata import DocumentMetadata
 
 
-class RenderContext(BaseModel):
+class RenderContext(ServiceContext):
     """Context object passed to renderers containing shared state and utilities.
 
     Provides access to the omnidexer for content lookups, tag resolver for
     cross-references, and various rendering options and metadata.
-    """
 
-    # Core services
-    omnidexer: Omnidexer | None = Field(None, description="Content indexer for lookups")
-    tag_resolver: TagResolver | None = Field(
-        None, description="Tag resolver for cross-references"
-    )
+    Inherits from ServiceContext to provide standardized service access patterns
+    while maintaining full backward compatibility with existing renderer code.
+    """
 
     # Document metadata (structured)
     metadata: DocumentMetadata | None = Field(
@@ -73,6 +71,23 @@ class RenderContext(BaseModel):
     custom_data: dict[str, Any] = Field(
         default_factory=dict, description="Custom renderer data"
     )
+
+    def __init__(self, **data: Any) -> None:
+        """Initialize RenderContext with proper service mapping."""
+        # Extract services that should go to the base ServiceContext
+        services = {}
+        for service_name in ["omnidexer", "tag_resolver", "config"]:
+            if service_name in data:
+                services[service_name] = data.pop(service_name)
+
+        # Handle latex_config mapping - keep both latex_config and config populated
+        if "latex_config" in data:
+            latex_config = data["latex_config"]  # Keep for the latex_config field
+            if "config" not in services:
+                services["config"] = latex_config  # Also use as base config
+
+        # Initialize the base ServiceContext
+        super().__init__(**services, **data)
 
     @field_validator("page_size")
     @classmethod

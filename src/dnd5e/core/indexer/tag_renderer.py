@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from pydantic import Field
+
+from dnd5e.core.base_context import ServiceContext
 from dnd5e.core.logging import get_logger
 
 from .content_tracker import ContentTracker
@@ -16,17 +19,34 @@ if TYPE_CHECKING:
     from dnd5e.core.loaders.omnidexer import Omnidexer
 
 
-class RendererContext:
-    """Context object passed to handlers during rendering."""
+class RendererContext(ServiceContext):
+    """Context object passed to handlers during rendering.
 
-    def __init__(self, renderer: TagRenderer, omnidexer: Omnidexer | None = None):
-        self.renderer = renderer
-        self.omnidexer = omnidexer
-        self.content_tracker = renderer.content_tracker
+    Inherits from ServiceContext to provide standardized service access
+    while maintaining backward compatibility with the existing interface.
+    """
+
+    # Renderer field for backward compatibility
+    renderer: Any = Field(description="Tag renderer instance")
+
+    def __init__(
+        self, renderer: TagRenderer, omnidexer: Omnidexer | None = None, **data: Any
+    ):
+        # Initialize the base context with services
+        super().__init__(
+            omnidexer=omnidexer,
+            content_tracker=renderer.content_tracker,
+            renderer=renderer,
+            **data,
+        )
 
     def render_node(self, node: ASTNode) -> str:
         """Render a node using the renderer."""
-        return self.renderer.render_node(node, self)
+        from typing import cast
+
+        return cast(str, self.renderer.render_node(node, self))
+
+    # content_tracker is already available from ServiceContext base class
 
 
 class TagRenderer:

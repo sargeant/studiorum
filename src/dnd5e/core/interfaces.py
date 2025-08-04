@@ -244,23 +244,24 @@ class ContentTypeRegistry:
         return list(self._type_map.values())
 
 
-# Global registry instance
-_content_type_registry = ContentTypeRegistry()
-
-
 def get_content_type_registry() -> ContentTypeRegistry:
-    """Get the global content type registry.
+    """Get the content type registry from the service container.
 
     Returns:
-        Global content type registry instance
+        Content type registry instance
     """
-    return _content_type_registry
+    from dnd5e.core.container import get_global_container
+
+    container = get_global_container()
+    return container.get_content_type_registry()
 
 
 def reset_content_type_registry() -> None:
-    """Reset the global content type registry (for testing).
+    """Reset the content type registry (for testing).
 
-    This recreates the global registry instance to ensure clean state.
+    This function is kept for backward compatibility with existing tests.
+    It delegates to the service container's reset mechanism.
     """
-    global _content_type_registry
-    _content_type_registry = ContentTypeRegistry()
+    from dnd5e.core.container import reset_global_container
+
+    reset_global_container()

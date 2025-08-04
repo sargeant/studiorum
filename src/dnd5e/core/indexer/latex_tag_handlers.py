@@ -75,14 +75,15 @@ class LaTeXBaseContentTagHandler(BaseContentTagHandler):
             )
 
             # Create hyperlink if enabled
-            if (
-                hasattr(context, "hyperlink_manager")
-                and context.hyperlink_manager
-                and context.hyperlink_manager.should_create_hyperlink(self.tag_type)
-            ):
-                return context.hyperlink_manager.create_hyperlink(
-                    text=formatted_text, ref_id=ref_id, content_type=self.tag_type
-                )
+            if hasattr(context, "get_hyperlink_manager"):
+                hyperlink_manager = context.get_hyperlink_manager()
+                if hyperlink_manager and hyperlink_manager.should_create_hyperlink(
+                    self.tag_type
+                ):
+                    result = hyperlink_manager.create_hyperlink(
+                        text=formatted_text, ref_id=ref_id, content_type=self.tag_type
+                    )
+                    return str(result)  # Ensure string return type
 
         return formatted_text
 

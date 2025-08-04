@@ -68,6 +68,36 @@ This architecture solved the original problem of loading 94 duplicate adventures
 - **Integration** with ContentMerger for content enrichment
 - **Disambiguation** support for multiple matches
 
+### Context and Reference Systems
+
+**Purpose**: Unified state management and content resolution with type safety
+
+#### Context System (`src/dnd5e/core/base_context.py`)
+
+- **Hierarchical design**: `BaseContext` → `CoreContext` → specialized contexts
+- **Type safety**: Generic `ProcessingContext[T]` for compile-time guarantees
+- **Service injection**: `ServiceContext` for standardized dependency access
+- **Pydantic integration**: Full validation and serialization support
+
+**Key Components:**
+- `ProcessingContext[T]`: Type-safe processing operations
+- `ServiceContext`: Dependency injection and service access
+- `ValidationContext`: Entry validation with structured error reporting
+- `RendererContext`: Tag rendering with service composition
+
+#### Reference System (`src/dnd5e/core/unified_references.py`)
+
+- **Generic pattern**: `Reference[T]` for type-safe content resolution
+- **Multi-format support**: LaTeX, HTML, Markdown, Plain Text output
+- **Performance**: Built-in caching with type-safe operations
+- **Extensibility**: Abstract parsers and resolvers for new content types
+
+**Key Components:**
+- `Reference[T]`: Immutable reference with comprehensive metadata
+- `ReferenceParser[T]`: Abstract base for text reference extraction
+- `ReferenceResolver[T]`: Abstract base for content resolution
+- `ReferenceManager`: Unified coordination of parsing and resolution
+
 ### Model Layer
 
 **Purpose**: Enhanced data models with content status awareness

@@ -10,8 +10,7 @@ from rich import print as rprint
 
 from dnd5e.cli.display_manager import display_manager
 from dnd5e.cli.main import get_omnidexer, get_tag_resolver
-from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
-from dnd5e.core.config.settings import get_settings
+from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.renderers.base import RenderContext
@@ -24,27 +23,27 @@ console = display_manager.console
 
 
 def _create_latex_compiler() -> LaTeXCompiler:
-    """Create a LaTeX compiler with configuration from settings.
+    """Create a LaTeX compiler with configuration from unified config.
 
     Returns:
-        LaTeXCompiler configured with settings
+        LaTeXCompiler configured with unified application config
     """
-    settings = get_settings()
+    config = get_app_config()
 
-    # Create compilation configuration
-    config = CompilationConfig()
+    # Create compilation configuration from unified config
+    compilation_config = CompilationConfig(
+        primary_engine=LaTeXEngine(config.rendering.latex.engine.primary_engine),
+        fallback_engines=[
+            LaTeXEngine(engine)
+            for engine in config.rendering.latex.engine.fallback_engines
+        ],
+        timeout_seconds=config.rendering.latex.engine.timeout,
+        max_passes=config.rendering.latex.engine.max_passes,
+        show_progress=config.rendering.latex.engine.show_progress,
+        keep_intermediate_files=config.rendering.latex.engine.keep_temp_files,
+    )
 
-    # Map settings engine name to LaTeXEngine enum
-    engine_name = settings.latex_engine.lower()
-    for engine in LaTeXEngine:
-        if engine.value == engine_name:
-            config.primary_engine = engine
-            break
-    else:
-        # Default to LUALATEX if setting is invalid
-        config.primary_engine = LaTeXEngine.LUALATEX
-
-    return LaTeXCompiler(config)
+    return LaTeXCompiler(compilation_config)
 
 
 async def resolve_content_or_file(
@@ -280,9 +279,14 @@ def convert_adventure(
                 tag_resolver = await get_tag_resolver()
                 display_manager.update_task(load_task, completed=100)
 
-            # Create LaTeX configuration
-            settings = get_settings()
-            actual_paper_size = paper_size or settings.default_paper_size
+            # Create LaTeX configuration from unified config
+            app_config = get_app_config()
+            actual_paper_size = (
+                paper_size or app_config.rendering.latex.document.paper_size
+            )
+
+            # Import legacy config classes for backward compatibility
+            from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
 
             latex_doc_config = LaTeXDocumentConfig(
                 document_class=document_class,
@@ -435,9 +439,14 @@ def convert_book(
                 tag_resolver = await get_tag_resolver()
                 display_manager.update_task(load_task, completed=100)
 
-            # Create LaTeX configuration
-            settings = get_settings()
-            actual_paper_size = paper_size or settings.default_paper_size
+            # Create LaTeX configuration from unified config
+            app_config = get_app_config()
+            actual_paper_size = (
+                paper_size or app_config.rendering.latex.document.paper_size
+            )
+
+            # Import legacy config classes for backward compatibility
+            from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
 
             latex_doc_config = LaTeXDocumentConfig(
                 document_class=document_class,
@@ -625,9 +634,14 @@ def convert_supplement(
                 rprint("[red]Error:[/red] No valid content found")
                 raise typer.Exit(1)
 
-            # Create LaTeX configuration
-            settings = get_settings()
-            actual_paper_size = paper_size or settings.default_paper_size
+            # Create LaTeX configuration from unified config
+            app_config = get_app_config()
+            actual_paper_size = (
+                paper_size or app_config.rendering.latex.document.paper_size
+            )
+
+            # Import legacy config classes for backward compatibility
+            from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
 
             latex_doc_config = LaTeXDocumentConfig(
                 document_class=document_class,

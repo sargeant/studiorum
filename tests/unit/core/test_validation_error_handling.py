@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.config.settings import Settings
+from dnd5e.core.config.unified_config import ApplicationConfig
 from dnd5e.core.loaders.json_loader import JsonDataLoader
 from dnd5e.core.models.content import ContentType
 
@@ -151,12 +151,12 @@ class TestValidationStrictnessConfiguration:
 
     def test_default_settings_include_validation_options(self) -> None:
         """Test that default settings include validation configuration."""
-        settings = Settings()
+        config = ApplicationConfig()
 
         # Should have default validation settings
-        assert hasattr(settings, "validation_strictness")
-        assert hasattr(settings, "validation_summary")
-        assert hasattr(settings, "max_duplicate_errors")
+        assert hasattr(config.validation, "strictness")
+        assert hasattr(config.validation, "enable_summary")
+        assert hasattr(config.validation, "max_duplicate_errors")
 
     def test_validation_strictness_levels(self) -> None:
         """Test different validation strictness levels."""
@@ -167,17 +167,17 @@ class TestValidationStrictnessConfiguration:
         assert ValidationStrictness.NORMAL in ValidationStrictness
         assert ValidationStrictness.LENIENT in ValidationStrictness
 
-    @patch.dict("os.environ", {"VALIDATION_STRICTNESS": "strict"})
+    @patch.dict("os.environ", {"DND5E_VALIDATION__STRICTNESS": "strict"})
     def test_validation_strictness_from_environment(self) -> None:
         """Test that validation strictness can be set from environment."""
-        settings = Settings()
-        assert settings.validation_strictness == "strict"
+        config = ApplicationConfig()
+        assert config.validation.strictness == "strict"
 
-    @patch.dict("os.environ", {"VALIDATION_SUMMARY": "true"})
+    @patch.dict("os.environ", {"DND5E_VALIDATION__ENABLE_SUMMARY": "true"})
     def test_validation_summary_from_environment(self) -> None:
         """Test that validation summary can be enabled from environment."""
-        settings = Settings()
-        assert settings.validation_summary is True
+        config = ApplicationConfig()
+        assert config.validation.enable_summary is True
 
 
 class TestJsonLoaderValidationIntegration:

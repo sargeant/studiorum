@@ -252,6 +252,85 @@ class Settings(BaseSettings):
         env_file = ".env"
 ```
 
+### Unified Context Pattern
+
+5e2pdf implements a hierarchical context system for consistent state management across different operations:
+
+```python
+from dnd5e.core.base_context import BaseContext, CoreContext, ServiceContext
+
+class ProcessingContext[T](CoreContext):
+    """Generic context for type-safe processing operations."""
+    content: T = Field(description="Content being processed")
+    content_type_name: str = Field(description="Type identifier")
+    processing_options: dict[str, Any] = Field(default_factory=dict)
+
+class ServiceContext(CoreContext):
+    """Context with dependency injection support."""
+    omnidexer: Omnidexer | None = Field(default=None)
+    config: ApplicationConfig | LaTeXConfig | None = Field(default=None)
+```
+
+**Key Features:**
+- **Type Safety**: Generic `ProcessingContext[T]` ensures type consistency
+- **Service Injection**: `ServiceContext` provides standardized dependency access
+- **Inheritance Hierarchy**: `BaseContext` → `CoreContext` → specialized contexts
+- **Pydantic Integration**: Full validation and serialization support
+
+**Usage Pattern:**
+```python
+def process_content[T](content: T, context: ProcessingContext[T]) -> ProcessedResult[T]:
+    # Type-safe processing with validated context
+    if context.processing_options.get("validate", True):
+        validate_content(content)
+    return ProcessedResult(content=content, context=context)
+```
+
+### Unified Reference Pattern
+
+The system uses a generic `Reference[T]` pattern for type-safe content resolution:
+
+```python
+from dnd5e.core.unified_references import Reference, ReferenceParser, ReferenceResolver
+
+@dataclass(frozen=True)
+class Reference[T]:
+    """Generic reference to content of type T."""
+    source: str = Field(description="Text/tag that created this reference")
+    target: str = Field(description="Target identifier")
+    content_type: type[T] = Field(description="Type of content referenced")
+    display_text: str | None = Field(None, description="Custom display text")
+
+class ReferenceResolver[T](ABC):
+    """Abstract resolver for specific content types."""
+    @abstractmethod
+    def resolve(self, ref: Reference[T]) -> T | None: ...
+
+    @abstractmethod
+    def format_reference(self, ref: Reference[T], format_type: ReferenceFormat) -> str: ...
+```
+
+**Benefits:**
+- **Type Safety**: `Reference[T]` prevents type confusion at compile time
+- **Multi-format Support**: LaTeX, HTML, Markdown, Plain Text output
+- **Caching**: Built-in `ReferenceCache` with type-safe operations
+- **Extensibility**: Easy to add new content types and resolvers
+
+**Usage Pattern:**
+```python
+# Create type-safe reference
+spell_ref = Reference(
+    source="@spell{fireball}",
+    target="fireball",
+    content_type=Spell,
+    display_text="powerful fireball spell"
+)
+
+# Resolve with type safety
+resolver = SpellReferenceResolver()
+spell: Spell | None = resolver.resolve(spell_ref)  # Type is guaranteed
+```
+
 ## Architectural Principles
 
 ### Single Responsibility

@@ -21,20 +21,12 @@ class TestConvertAdventureCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for test isolation
+        # Reset global state for test isolation using service container
         from dnd5e.core.cache import CacheManager
-        from dnd5e.core.config.sources import reset_config_manager
-        from dnd5e.core.content_type_resolver import reset_content_type_resolver
-        from dnd5e.core.entry_registry import reset_entry_registry
-        from dnd5e.core.interfaces import reset_content_type_registry
-        from dnd5e.core.loaders.content_factory import reset_content_factory
+        from dnd5e.core.container import reset_all_services
 
         CacheManager.reset()
-        reset_content_factory()
-        reset_content_type_registry()
-        reset_content_type_resolver()
-        reset_entry_registry()
-        reset_config_manager()
+        reset_all_services()
 
         self.runner = CliRunner()
         self.mock_adventure_data = {
@@ -284,20 +276,12 @@ class TestConvertBookCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for test isolation
+        # Reset global state for test isolation using service container
         from dnd5e.core.cache import CacheManager
-        from dnd5e.core.config.sources import reset_config_manager
-        from dnd5e.core.content_type_resolver import reset_content_type_resolver
-        from dnd5e.core.entry_registry import reset_entry_registry
-        from dnd5e.core.interfaces import reset_content_type_registry
-        from dnd5e.core.loaders.content_factory import reset_content_factory
+        from dnd5e.core.container import reset_all_services
 
         CacheManager.reset()
-        reset_content_factory()
-        reset_content_type_registry()
-        reset_content_type_resolver()
-        reset_entry_registry()
-        reset_config_manager()
+        reset_all_services()
 
         self.runner = CliRunner()
         self.mock_book_data = {
@@ -1043,10 +1027,10 @@ class TestLaTeXDocumentOptions:
     @patch("dnd5e.cli.commands.convert.display_manager")
     @patch("aiofiles.open")
     @patch("pathlib.Path.mkdir")
-    @patch("dnd5e.cli.commands.convert.get_settings")
+    @patch("dnd5e.cli.commands.convert.get_app_config")
     def test_supplement_with_paper_size_from_settings(
         self,
-        mock_get_settings,
+        mock_get_app_config,
         mock_mkdir,
         mock_aiofiles_open,
         mock_display,
@@ -1075,10 +1059,10 @@ class TestLaTeXDocumentOptions:
             ]
         }
 
-        # Mock settings with custom paper size
-        mock_settings = Mock()
-        mock_settings.default_paper_size = "a5paper"
-        mock_get_settings.return_value = mock_settings
+        # Mock app config with custom paper size
+        mock_config = Mock()
+        mock_config.rendering.latex.document.paper_size = "a5paper"
+        mock_get_app_config.return_value = mock_config
 
         # Mock file operations
         mock_file = AsyncMock()

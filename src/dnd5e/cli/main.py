@@ -10,7 +10,7 @@ import typer
 from rich import print as rprint
 
 from dnd5e.cli.display_manager import display_manager
-from dnd5e.core.config.settings import get_settings
+from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.indexer.tag_resolver import TagResolver
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.logging.logger import setup_logging
@@ -30,9 +30,8 @@ app: typer.Typer = typer.Typer(
 # Use shared console from display manager
 console = display_manager.console
 
-# Global state
-_omnidexer: Omnidexer | None = None
-_tag_resolver: TagResolver | None = None
+# Service container for dependency injection
+# This replaces the global state variables with proper DI
 
 
 def _create_latex_compiler() -> LaTeXCompiler:
@@ -41,22 +40,22 @@ def _create_latex_compiler() -> LaTeXCompiler:
     Returns:
         LaTeXCompiler configured with settings
     """
-    settings = get_settings()
+    config = get_app_config()
 
-    # Create compilation configuration
-    config = CompilationConfig()
+    # Create compilation configuration from unified config
+    compilation_config = CompilationConfig(
+        primary_engine=LaTeXEngine(config.rendering.latex.engine.primary_engine),
+        fallback_engines=[
+            LaTeXEngine(engine)
+            for engine in config.rendering.latex.engine.fallback_engines
+        ],
+        timeout_seconds=config.rendering.latex.engine.timeout,
+        max_passes=config.rendering.latex.engine.max_passes,
+        show_progress=config.rendering.latex.engine.show_progress,
+        keep_intermediate_files=config.rendering.latex.engine.keep_temp_files,
+    )
 
-    # Map settings engine name to LaTeXEngine enum
-    engine_name = settings.latex_engine.lower()
-    for engine in LaTeXEngine:
-        if engine.value == engine_name:
-            config.primary_engine = engine
-            break
-    else:
-        # Default to LUALATEX if setting is invalid
-        config.primary_engine = LaTeXEngine.LUALATEX
-
-    return LaTeXCompiler(config)
+    return LaTeXCompiler(compilation_config)
 
 
 @app.command("version")
@@ -76,31 +75,41 @@ def main(
     Convert structured JSON data from 5e.tools into professional LaTeX documents
     that match the style of official D&D 5th edition books.
     """
-    settings = get_settings()
-    log_level = "INFO" if verbose else settings.log_level
+    config = get_app_config()
+
+    # Validate configuration at startup
+    try:
+        # This will trigger Pydantic validation and create directories
+        _ = config.model_dump()
+        if verbose:
+            logger = logging.getLogger(__name__)
+            logger.info("Configuration loaded successfully")
+            logger.info(f"LaTeX engine: {config.rendering.latex.engine.primary_engine}")
+            logger.info(f"Output path: {config.paths.output_path}")
+    except Exception as e:
+        rprint(f"[red]Configuration error:[/red] {e}")
+        raise typer.Exit(1)
+
+    log_level = "INFO" if verbose else config.logging.level
     setup_logging(level=log_level)
-    logging.info("Enabled verbose mode")
+    if verbose:
+        logging.info("Enabled verbose mode")
 
 
 async def get_omnidexer() -> Omnidexer:
-    """Get or create the global omnidexer instance."""
-    global _omnidexer
-    if _omnidexer is None:
-        _omnidexer = Omnidexer()
-        with display_manager.progress("Loading omnidexer") as _:
-            task = display_manager.add_task("[cyan]Loading content data...", total=None)
-            await _omnidexer.load_all_data()
-            display_manager.update_task(task, completed=100)
-    return _omnidexer
+    """Get the omnidexer instance from the service container."""
+    from dnd5e.core.container import get_global_container
+
+    container = get_global_container()
+    return await container.get_omnidexer()
 
 
 async def get_tag_resolver() -> TagResolver:
-    """Get or create the global tag resolver instance."""
-    global _tag_resolver
-    if _tag_resolver is None:
-        omnidexer = await get_omnidexer()
-        _tag_resolver = TagResolver(omnidexer)
-    return _tag_resolver
+    """Get the tag resolver instance from the service container."""
+    from dnd5e.core.container import get_global_container
+
+    container = get_global_container()
+    return await container.get_tag_resolver()
 
 
 # Import and mount CLI command modules
@@ -311,9 +320,9 @@ def reset_cli_globals() -> None:
     This function clears the global state maintained by the CLI module
     to ensure clean test isolation.
     """
-    global _omnidexer, _tag_resolver
-    _omnidexer = None
-    _tag_resolver = None
+    from dnd5e.core.container import reset_global_container
+
+    reset_global_container()
 
 
 if __name__ == "__main__":

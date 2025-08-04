@@ -13,6 +13,7 @@ from typing import Any, Union, overload
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from .base_context import ProcessingContext
 from .exceptions import (
     EntryProcessingWarning,
     EntryValidationError,
@@ -43,12 +44,14 @@ class EntryTypeCategory(Enum):
     MISC = "misc"  # Miscellaneous types
 
 
-class ValidationContext(BaseModel):
+class ValidationContext(ProcessingContext[Any]):
     """Context information for entry validation operations.
 
     This model provides structured context for validation operations,
     replacing the scattered dict[str, Any] parameters with a cohesive
     data structure that supports the flexible validation requirements.
+
+    Inherits from ProcessingContext to provide standardized context management.
     """
 
     model_config = ConfigDict(
@@ -56,6 +59,7 @@ class ValidationContext(BaseModel):
         arbitrary_types_allowed=True,  # Support complex entry types
     )
 
+    # Legacy fields mapped to base context
     entry_data: Any = Field(
         ..., description="The entry data to validate (dict, string, or other)"
     )
@@ -69,6 +73,28 @@ class ValidationContext(BaseModel):
     validation_mode: "ValidationMode | None" = Field(
         None, description="Override validation mode for this context"
     )
+
+    def __init__(self, **data: Any) -> None:
+        # Map legacy fields to base context fields
+        if "entry_data" in data and "content" not in data:
+            data["content"] = data["entry_data"]
+        if "entry_type" in data and "content_type_name" not in data:
+            data["content_type_name"] = data.get("entry_type", "unknown")
+        elif "content_type_name" not in data:
+            # Provide default content type name if not specified
+            data["content_type_name"] = "entry"
+        if "source" in data and "source_file" not in data:
+            data["source_file"] = data["source"]
+        if "parent_name" in data and "source_section" not in data:
+            data["source_section"] = data["parent_name"]
+
+        # Set up processing options
+        if "processing_options" not in data:
+            data["processing_options"] = {}
+        if "validation_mode" in data and data["validation_mode"] is not None:
+            data["processing_options"]["validation_mode"] = data["validation_mode"]
+
+        super().__init__(**data)
 
     @field_validator("entry_data", mode="before")
     @classmethod

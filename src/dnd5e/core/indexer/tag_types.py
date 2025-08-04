@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from ..base_context import ServiceContext
 from ..models.content import BaseContent, ContentType
 
 if TYPE_CHECKING:
@@ -191,24 +192,19 @@ class SpecialTag(BaseModel):
 TagResolutionResult = ContentReference | FormattingNode | SpecialTag | str
 
 
-class TagContext(BaseModel):
+class TagContext(ServiceContext):
     """Context information available during tag resolution.
 
     This provides access to the omnidexer and other contextual information
-    that tag handlers might need.
+    that tag handlers might need. Inherits from ServiceContext to provide
+    standardized service access patterns.
     """
-
-    omnidexer: Omnidexer = Field(description="Content indexer for tag resolution")
 
     def find_content(
         self, content_type: ContentType, name: str, source: str | None = None
     ) -> BaseContent | None:
         """Find content using the omnidexer."""
+        if self.omnidexer is None:
+            return None
         # Type: ignore the Any return from omnidexer since we know it returns BaseContent | None
         return self.omnidexer.find(content_type, name, source)  # type: ignore[no-any-return]
-
-    class Config:
-        # Allow complex types to avoid circular imports
-        arbitrary_types_allowed = True
-        # Make instances immutable like the original frozen dataclass
-        frozen = True

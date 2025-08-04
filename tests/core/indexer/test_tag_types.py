@@ -491,15 +491,17 @@ class TestTagContext:
 
         assert result is None
 
-    def test_tag_context_frozen_config(self) -> None:
-        """Test that TagContext is frozen (immutable)."""
+    def test_tag_context_mutable_config(self) -> None:
+        """Test that TagContext allows field updates (needed for layout engine)."""
         from dnd5e.core.loaders.omnidexer import Omnidexer
 
         mock_omnidexer = Mock(spec=Omnidexer)
         context = TagContext(omnidexer=mock_omnidexer)
 
-        with pytest.raises(ValidationError):
-            context.omnidexer = Mock()
+        # Context should allow updates (no longer frozen)
+        new_omnidexer = Mock(spec=Omnidexer)
+        context.omnidexer = new_omnidexer
+        assert context.omnidexer is new_omnidexer
 
     def test_tag_context_arbitrary_types_allowed(self) -> None:
         """Test that arbitrary types are allowed for omnidexer."""

@@ -6,6 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from ....core.base_context import DocumentContext
 from ....core.models.content import ContentType
 
 
@@ -113,11 +114,15 @@ class LayoutHint(BaseModel):
         arbitrary_types_allowed = True
 
 
-class LayoutContext(BaseModel):
-    """Context information for layout decisions with validation."""
+class LayoutContext(DocumentContext):
+    """Context information for layout decisions with validation.
 
+    Inherits from DocumentContext to provide standardized document state management
+    while adding layout-specific configuration and validation.
+    """
+
+    # Layout-specific configuration
     strategy: LayoutStrategy = Field(description="Layout strategy to use")
-    content_type: ContentType = Field(description="Type of content being laid out")
     page_position: str | None = Field(
         None, description="Position on page (top, middle, bottom)"
     )
@@ -129,15 +134,27 @@ class LayoutContext(BaseModel):
         None, ge=0, description="Available space in points"
     )
 
-    # Current document state
-    float_count: int = Field(0, ge=0, description="Number of floats currently active")
-    sidebar_count: int = Field(
-        0, ge=0, description="Number of sidebars currently active"
-    )
-    table_count: int = Field(0, ge=0, description="Number of tables currently active")
-
     # Layout preferences
     hints: LayoutHint | None = Field(None, description="Layout hints for this content")
+
+    def __init__(self, **data: Any) -> None:
+        # Map content_type to document_type for backward compatibility
+        if "content_type" in data and "document_type" not in data:
+            content_type = data.pop("content_type")
+            if hasattr(content_type, "value"):
+                data["document_type"] = content_type.value
+            else:
+                data["document_type"] = str(content_type)
+        super().__init__(**data)
+
+    @property
+    def content_type(self) -> ContentType:
+        """Get content type from document type for backward compatibility."""
+        try:
+            return ContentType(self.document_type)
+        except ValueError:
+            # Fallback to a default if document_type doesn't map to ContentType
+            return ContentType.SUPPLEMENT  # Use SUPPLEMENT as a reasonable default
 
     @field_validator("page_position")
     @classmethod
