@@ -327,10 +327,20 @@ class DocumentStructureBuilder:
                     filtered_entries.append(copy.deepcopy(entry))
                 section.content_items = filtered_entries
 
-        # Add chapter headers as subsections
+        # Add chapter headers as subsections only if they're not already present in entries
         if hasattr(chapter_data, "headers") and chapter_data.headers:
+            # Check which headers are already represented in the entry content
+            existing_entry_names = set()
+            if hasattr(chapter_data, "entries") and chapter_data.entries:
+                for entry in chapter_data.entries:
+                    if isinstance(entry, dict):
+                        entry_name = entry.get("name")
+                        if entry_name:
+                            existing_entry_names.add(entry_name)
+
+            # Only create subsections for headers that don't have corresponding entries
             for header in chapter_data.headers:
-                if isinstance(header, str):
+                if isinstance(header, str) and header not in existing_entry_names:
                     subsection = ContentSection(
                         title=header,
                         level=SectionLevel.SECTION,

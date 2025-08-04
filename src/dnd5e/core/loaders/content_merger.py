@@ -182,6 +182,9 @@ class ContentMerger:
                 section_name = section.get("name", "")
                 content_by_name[section_name] = section
 
+        # Track which content sections have been matched
+        matched_content_names = set()
+
         # Process each metadata content entry and merge with actual content
         for metadata_content in metadata_contents:
             if not isinstance(metadata_content, dict):
@@ -191,6 +194,18 @@ class ContentMerger:
 
             # Look for matching content section
             matching_content = content_by_name.get(content_name)
+            matched_content_name = content_name
+
+            # If no exact match found, try smart matching for appendix sections
+            if not matching_content and "ordinal" in metadata_content:
+                ordinal = metadata_content["ordinal"]
+                if isinstance(ordinal, dict) and ordinal.get("type") == "appendix":
+                    identifier = ordinal.get("identifier", "")
+                    # Try to match "Name" metadata with "Appendix X: Name" content
+                    appendix_name = f"Appendix {identifier}: {content_name}"
+                    matching_content = content_by_name.get(appendix_name)
+                    if matching_content:
+                        matched_content_name = appendix_name
 
             if matching_content:
                 # Merge metadata structure with content entries
@@ -205,6 +220,7 @@ class ContentMerger:
                     }
 
                 merged_contents.append(merged_content)
+                matched_content_names.add(matched_content_name)
                 logger.debug(f"Merged content for section: {content_name}")
             else:
                 # Keep metadata structure but with empty entries
@@ -215,8 +231,8 @@ class ContentMerger:
 
         # Add any content sections that don't have corresponding metadata
         for section_name, content_section in content_by_name.items():
-            # Check if this section was already processed
-            if not any(mc.get("name") == section_name for mc in merged_contents):
+            # Check if this section was already matched to metadata
+            if section_name not in matched_content_names:
                 content_entry = {
                     "name": section_name,
                     "entries": content_section.get("entries", []),

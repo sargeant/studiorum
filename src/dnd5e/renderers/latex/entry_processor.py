@@ -276,7 +276,7 @@ class RecursiveEntryProcessor:
             if name:
                 return f"\\begin{{DndSidebar}}{{{self._escape_latex(name)}}}\n{content}\n\\end{{DndSidebar}}"
             else:
-                return f"\\begin{{DndSidebar}}\n{content}\n\\end{{DndSidebar}}"
+                return f"\\begin{{DndSidebar}}{{}}\n{content}\n\\end{{DndSidebar}}"
         else:
             result = []
             if name:
