@@ -379,19 +379,15 @@ class TestContentMergerMerging:
             sample_metadata_entry, partial_content
         )
 
-        assert len(result["contents"]) == 3
+        # Only sections with content should be included (improved behavior)
+        assert len(result["contents"]) == 1
 
         # Introduction should have content
         intro = result["contents"][0]
         assert len(intro["entries"]) == 1
         assert intro["entries"][0] == "Only the introduction has content."
-
-        # Other sections should have empty entries
-        chapter1 = result["contents"][1]
-        assert chapter1["entries"] == []
-
-        epilogue = result["contents"][2]
-        assert epilogue["entries"] == []
+        assert intro["name"] == "Introduction"
+        assert intro["headers"] == ["Overview", "Setup"]
 
     def test_merge_metadata_content_extra_content_sections(
         self, content_merger, sample_metadata_entry, sample_content_data
@@ -445,14 +441,14 @@ class TestContentMergerMerging:
             sample_metadata_entry, content_with_non_sections
         )
 
+        # Only sections with content should be included (improved behavior)
+        assert len(result["contents"]) == 1
+
         # Only the Introduction section should be processed
         intro = result["contents"][0]
         assert len(intro["entries"]) == 1
         assert intro["entries"][0] == "Valid section content."
-
-        # Other sections should have empty entries
-        assert result["contents"][1]["entries"] == []
-        assert result["contents"][2]["entries"] == []
+        assert intro["name"] == "Introduction"
 
     def test_create_metadata_only_result(self, content_merger, sample_metadata_entry):
         """Test creating metadata-only result."""
