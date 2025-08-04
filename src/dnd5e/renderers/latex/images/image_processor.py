@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
 
 from dnd5e.renderers.base.context import RenderContext
+
+if TYPE_CHECKING:
+    from .format_converter import FormatConverter
+    from .image_optimizer import ImageOptimizer
+    from .image_placer import ImagePlacer
 
 
 class ImageProcessingConfig(BaseModel):
@@ -58,9 +63,11 @@ class ImageProcessor:
             config: Image processing configuration
         """
         self.config = config or ImageProcessingConfig()
-        self._format_converter: Any = None  # Will be initialized lazily
-        self._optimizer: Any = None  # Will be initialized lazily
-        self._placer: Any = None  # Will be initialized lazily
+        self._format_converter: FormatConverter | None = (
+            None  # Will be initialized lazily
+        )
+        self._optimizer: ImageOptimizer | None = None  # Will be initialized lazily
+        self._placer: ImagePlacer | None = None  # Will be initialized lazily
         self._image_manager: Any = None  # Will be initialized lazily
 
     async def process_image_entry(
@@ -197,7 +204,7 @@ class ImageProcessor:
                 result = await self._format_converter.convert_to_compatible_format(
                     image_path
                 )
-                if result:
+                if result is not None:
                     return result.converted_path
             return image_path
 

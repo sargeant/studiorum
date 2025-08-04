@@ -12,7 +12,7 @@ import aiofiles
 import aiohttp
 from pydantic import BaseModel, Field
 
-from dnd5e.core.config.paths import PathsConfig
+from dnd5e.core.config.unified_config import PathsConfig
 from dnd5e.renderers.base.context import RenderContext
 
 
@@ -52,7 +52,7 @@ class ImageManager:
             paths_config: Path configuration
         """
         self.paths_config = paths_config or PathsConfig()
-        self.cache_dir = self.paths_config.cache_dir / "images"
+        self.cache_dir = self.paths_config.build_path / "images"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         # Initialize image sources
