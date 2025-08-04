@@ -97,7 +97,7 @@ class Omnidexer:
 
     Example:
         >>> omnidexer = Omnidexer(enable_deep_indexing=True)
-        >>> await omnidexer.load_all_data()  # doctest: +SKIP
+        >>> omnidexer.load_all_data()  # doctest: +SKIP
         >>> # Find primary content
         >>> fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")  # doctest: +SKIP
         >>> # Find nested content (requires deep indexing)
@@ -242,7 +242,7 @@ class Omnidexer:
 
             # Index all loaded items
             for item in content_items:
-                await self._add_to_index(item, content_type)
+                self._add_to_index(item, content_type)
 
             self._loaded_types.add(content_type)
             logger.debug(
@@ -272,9 +272,7 @@ class Omnidexer:
 
         return hash_id in self._indexed_hashes
 
-    async def _add_to_index(
-        self, content: BaseContent, content_type: ContentType
-    ) -> None:
+    def _add_to_index(self, content: BaseContent, content_type: ContentType) -> None:
         """Add content item to all indexes with optional deep indexing."""
         # Check if already indexed to prevent cycles (outside lock for performance)
         if self._is_already_indexed(content, content_type):
