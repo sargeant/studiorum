@@ -73,6 +73,9 @@ class TagNode(ASTNode):
     def __init__(self, tag_type: str, original_text_span: TextSpan | None = None):
         super().__init__(original_text_span)
         self.tag_type = tag_type
+        # Default attributes for generic tags (used in parser fallback)
+        self.name: str = ""
+        self.display_text_nodes: list[ASTNode] = []
 
     def __repr__(self) -> str:
         return f"TagNode(tag_type={self.tag_type!r})"
