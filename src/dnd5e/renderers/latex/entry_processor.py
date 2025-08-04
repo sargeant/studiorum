@@ -303,24 +303,9 @@ class RecursiveEntryProcessor:
         Returns:
             LaTeX string
         """
-        # Use the new image processing pipeline
-        try:
-            # Run async image processing in sync context
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # If we're already in an async context, fall back to basic processing
-                # TODO: Refactor to make the entire processing pipeline async
-                return self._process_image_basic(image, context)
-            else:
-                # Run in the event loop
-                return loop.run_until_complete(
-                    self._image_processor.process_image_entry(image, context)
-                )
-        except Exception as e:
-            logger.warning(
-                f"Advanced image processing failed: {e}. Falling back to basic processing."
-            )
-            return self._process_image_basic(image, context)
+        # For now, use deterministic basic processing to avoid async/sync race conditions
+        # The new image processing pipeline will be enabled in a future async refactor
+        return self._process_image_basic(image, context)
 
     def _process_image_basic(
         self, image: dict[str, Any], context: RenderContext
