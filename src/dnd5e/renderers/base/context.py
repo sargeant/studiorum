@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from dnd5e.core.base_context import ServiceContext
 from dnd5e.core.loaders.omnidexer import Omnidexer
@@ -120,11 +120,7 @@ class RenderContext(ServiceContext):
 
         return size_lower
 
-    class Config:
-        # Allow Path objects and other complex types
-        arbitrary_types_allowed = True
-        # Defer validation of forward references
-        defer_build = True
+    model_config = ConfigDict(arbitrary_types_allowed=True, defer_build=True)
 
     def get_image_path(self, image_name: str) -> Path | None:
         """Get full path to an image asset.

@@ -5,7 +5,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..base_context import ServiceContext
 from ..models.content import BaseContent, ContentType
@@ -89,11 +89,7 @@ class ContentReference(BaseModel):
             )
         return self.effective_name
 
-    class Config:
-        # Allow content objects (they should be Pydantic models too)
-        arbitrary_types_allowed = True
-        # Make instances immutable like the original frozen dataclass
-        frozen = True
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
 
 
 class FormattingNode(BaseModel):
@@ -121,9 +117,7 @@ class FormattingNode(BaseModel):
     def __str__(self) -> str:
         return f"{self.format_type.value}({self.content})"
 
-    class Config:
-        # Make instances immutable like the original frozen dataclass
-        frozen = True
+    model_config = ConfigDict(frozen=True)
 
 
 class SpecialTag(BaseModel):
@@ -183,9 +177,7 @@ class SpecialTag(BaseModel):
     def __str__(self) -> str:
         return f"{self.tag_type}({self.effective_value})"
 
-    class Config:
-        # Make instances immutable like the original frozen dataclass
-        frozen = True
+    model_config = ConfigDict(frozen=True)
 
 
 # Union type for all possible tag resolution results

@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class TextSpan(BaseModel):
@@ -30,9 +30,7 @@ class TextSpan(BaseModel):
         """Check if this is an empty span."""
         return self.start == self.end
 
-    class Config:
-        # Make instances immutable for consistency with original frozen behavior
-        frozen = True
+    model_config = ConfigDict(frozen=True)
 
 
 class ASTNode:

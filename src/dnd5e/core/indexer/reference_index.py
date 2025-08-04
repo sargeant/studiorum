@@ -3,7 +3,7 @@
 from collections import defaultdict
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
@@ -37,9 +37,7 @@ class Reference(BaseModel):
             cleaned = cleaned[:197] + "..."
         return cleaned
 
-    class Config:
-        # Allow BaseContent objects (they should be Pydantic models too)
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class ReferenceIndex:

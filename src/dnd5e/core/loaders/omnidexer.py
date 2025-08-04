@@ -7,7 +7,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..cache import cached
 from ..interfaces import DeepIndexable
@@ -77,9 +77,7 @@ class IndexEntry(BaseModel):
             lookup_key=lookup_key,
         )
 
-    class Config:
-        # Allow BaseContent objects (they should be Pydantic models too)
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class Omnidexer:

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ....core.base_context import DocumentContext
 from ....core.models.content import ContentType
@@ -109,9 +109,7 @@ class LayoutHint(BaseModel):
         cleaned = v.strip()
         return cleaned if cleaned else None
 
-    class Config:
-        # Allow enum types
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class LayoutContext(DocumentContext):
@@ -180,9 +178,7 @@ class LayoutContext(DocumentContext):
             raise ValueError("Column position must be less than column count")
         return v
 
-    class Config:
-        # Allow enum types and other complex types
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class LayoutManager(ABC):
