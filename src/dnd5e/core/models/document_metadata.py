@@ -117,7 +117,7 @@ class DocumentMetadata(BaseModel):
     # LaTeX-specific options
     use_parts: bool = Field(False, description="Use \\part sectioning")
     max_section_depth: int = Field(default=3, description="Maximum sectioning depth")
-    numbering_depth: int = Field(default=2, description="Section numbering depth")
+    numbering_depth: int = Field(default=-1, description="Section numbering depth")
 
     # Custom fields
     custom_fields: dict[str, Any] = Field(
