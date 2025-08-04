@@ -102,54 +102,114 @@ def cached_operation(key: str) -> Any:
 
 ## Error Handling Patterns
 
-### Graceful Degradation
+### Result Pattern
 
-Continue processing when individual items fail:
+Standardized error handling using Result[T, E] for type-safe operations:
 
 ```python
-results = []
-for item in items:
-    try:
-        result = process_item(item)
-        results.append(result)
-    except ProcessingError as e:
-        logger.warning(f"Failed to process {item}: {e}")
-        # Continue with next item
+from dnd5e.core.result import Result, Success, Error
+from dnd5e.core.error_types import ValidationError, create_validation_error
+
+def validate_spell_level(level: int) -> Result[int, ValidationError]:
+    """Validate spell level with Result pattern."""
+    if not 1 <= level <= 9:
+        error = create_validation_error(
+            message=f"Spell level {level} must be between 1 and 9",
+            field_name="level",
+            suggestions=["Use a level between 1 and 9"]
+        )
+        return Error(error)
+    return Success(level)
+
+# Usage with type safety
+result = validate_spell_level(3)
+if result.is_success():
+    level = result.unwrap()  # Type is guaranteed to be int
+else:
+    error = result.error     # Type is guaranteed to be ValidationError
+    logger.error(f"Validation failed: {error.message}")
+```
+
+### Error Chaining
+
+Chain operations that may fail without nested try-catch blocks:
+
+```python
+def process_spell_data(data: dict) -> Result[ProcessedSpell, ValidationError]:
+    """Chain multiple validation steps."""
+    return (
+        validate_required_field(data, "name")
+        .and_then(lambda name: validate_spell_level(data.get("level", 1)))
+        .and_then(lambda level: validate_spell_school(data.get("school")))
+        .and_then(lambda school: create_processed_spell(data))
+    )
+
+# If any step fails, the chain stops and returns the error
+result = process_spell_data(spell_data)
+processed_spell = result.unwrap_or_else(lambda error: create_fallback_spell(error))
+```
+
+### Batch Error Collection
+
+Handle multiple errors in batch operations:
+
+```python
+from dnd5e.core.result import collect_results
+
+def validate_spell_batch(spell_list: list[dict]) -> Result[list[Spell], list[ValidationError]]:
+    """Validate multiple spells, collecting all errors."""
+    results = [validate_spell_data(data) for data in spell_list]
+    return collect_results(results)
+
+# Usage - either all succeed or collect all errors
+batch_result = validate_spell_batch(spell_data_list)
+if batch_result.is_success():
+    spells = batch_result.unwrap()  # All spells validated
+else:
+    errors = batch_result.error     # All validation errors
+    logger.error(f"Found {len(errors)} validation errors")
 ```
 
 ### Structured Logging
 
-Consistent logging patterns throughout the system:
+Consistent error logging with rich context:
 
 ```python
-from dnd5e.core.logging import get_logger
+from dnd5e.core.logging_strategy import get_standardized_logger, error_logging_context
 
-logger = get_logger(__name__)
+logger = get_standardized_logger(__name__)
 
-def process_content(content: BaseContent) -> None:
-    logger.info(f"Processing {content.content_type} '{content.name}'")
-    try:
-        # ... processing logic
-        logger.debug(f"Successfully processed {content.name}")
-    except Exception as e:
-        logger.error(f"Failed to process {content.name}: {e}")
-        raise
+def process_content(content_data: dict, source: str) -> Result[ProcessedContent, ValidationError]:
+    """Process content with structured logging."""
+    with error_logging_context(
+        logger,
+        "content_processing",
+        content_name=content_data.get("name", "unknown"),
+        file_path=source
+    ) as context:
+        result = validate_and_process(content_data)
+        logger.log_result(result, "content_processing", context=context)
+        return result
 ```
 
-### Validation Patterns
+### Graceful Degradation with Results
 
-Multi-stage validation with clear error reporting:
+Continue processing with detailed error tracking:
 
 ```python
-def validate_content(data: dict[str, Any]) -> None:
-    """Validate content data with detailed error reporting."""
-    errors = []
+def process_content_list(content_list: list[dict]) -> tuple[list[ProcessedContent], list[ValidationError]]:
+    """Process all content, separating successes and failures."""
+    successes = []
+    failures = []
 
-    if "name" not in data:
-        errors.append("Missing required field 'name'")
+    for content_data in content_list:
+        result = process_content(content_data)
+        if result.is_success():
+            successes.append(result.unwrap())
+        else:
+            failures.append(result.error)
 
-    if errors:
-        raise ValidationError(f"Content validation failed: {', '.join(errors)}")
+    return successes, failures
 ```
 
 ## Performance Patterns

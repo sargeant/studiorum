@@ -80,6 +80,7 @@ Information for contributors:
 
 - **[Contributing Guide](contributing/contributing.md)**: How to contribute to the project
 - **[Dependency Management](contributing/dependency-management.md)**: Dependency management strategy and best practices
+- **[Error Handling Guide](error-handling-guide.md)**: Standardized error handling patterns using Result[T, E]
 - **[Troubleshooting](development-workflows/troubleshooting-strategies.md)**: Comprehensive error handling and debugging guide
 - Code style and standards
 - Testing requirements
@@ -169,6 +170,13 @@ development-workflows/index
 :caption: API Reference
 
 api-reference/index
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Error Handling
+
+error-handling-guide
 ```
 
 ```{toctree}

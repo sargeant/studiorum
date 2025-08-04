@@ -147,7 +147,18 @@ class DocValidator:
             content = md_file.read_text(encoding="utf-8")
             lines = content.splitlines()
 
+            in_code_block = False
+
             for i, line in enumerate(lines, 1):
+                # Track code block boundaries
+                if line.strip().startswith("```"):
+                    in_code_block = not in_code_block
+                    continue
+
+                # Skip link validation inside code blocks
+                if in_code_block:
+                    continue
+
                 # Find markdown links
                 link_matches = re.findall(r"\[.*?\]\((.*?)\)", line)
                 for link in link_matches:

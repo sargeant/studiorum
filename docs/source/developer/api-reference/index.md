@@ -10,6 +10,7 @@ Technical API documentation organized by functional area.
 core-apis
 content-models
 context-and-references
+error-handling-api
 utilities
 ```
 
@@ -34,6 +35,7 @@ configuration
 The API Documentation provides comprehensive reference material for all public interfaces in 5e2pdf. This includes:
 
 - **Core APIs**: Primary interfaces for content loading, indexing, and rendering
+- **Error Handling APIs**: Result[T, E] pattern, structured error types, and standardized logging
 - **LaTeX Rendering**: Document generation and LaTeX compilation system
 - **Content Models**: Data structures representing D&D content
 - **Core Utilities**: Cache system, text processing, and helper functions
@@ -54,6 +56,23 @@ The omnidexer is 5e2pdf's content indexing and discovery system. It provides:
 - `Omnidexer`: Main indexing class
 - `IndexEntry`: Pydantic BaseModel for indexed content with hash and lookup key validation
 - `DeepIndexable`: Protocol for content with nested items
+
+### [Error Handling APIs](error-handling-api.md)
+
+Standardized error handling using Result[T, E] pattern with structured error types:
+
+- Type-safe error handling with Success/Error variants
+- Structured error types with severity levels and suggestions
+- Consistent logging patterns across all modules
+- Integration with existing validation systems
+- Rich error context for debugging and user guidance
+
+**Key Classes:**
+- `Result[T, E]`: Abstract base class for Success/Error results
+- `Success[T, E]`, `Error[T, E]`: Concrete result implementations
+- `BaseError`, `ValidationError`, `ProcessingError`: Structured error types
+- `StandardizedLogger`: Consistent error logging interface
+- `ErrorContext`: Rich context information for errors
 
 ### [Context and Reference Systems](context-and-references.md)
 
@@ -155,6 +174,25 @@ await omnidexer.load_all_data()
 
 # Find specific content
 spell = omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
+```
+
+### Error Handling
+
+```python
+from dnd5e.core.result import Success, Error
+from dnd5e.core.error_types import create_validation_error
+from dnd5e.core.validation_result import validate_model
+
+# Validate content with Result pattern
+result = validate_model(Spell, spell_data, source="phb.json")
+if result.is_success():
+    spell = result.unwrap()
+    print(f"Validated spell: {spell.name}")
+else:
+    error = result.error
+    logger.error(f"Validation failed: {error.message}")
+    for suggestion in error.suggestions or []:
+        print(f"Suggestion: {suggestion}")
 ```
 
 ### Deep Indexing

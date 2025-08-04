@@ -34,4 +34,5 @@ component-deep-dives/index
 - Content models and validation
 - Tag system and content organization
 - Performance optimization strategies
-- Error handling and debugging
+- Result[T, E] error handling patterns
+- Structured error types and logging
