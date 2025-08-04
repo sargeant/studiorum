@@ -7,6 +7,7 @@ Technical API documentation organized by functional area.
 ```{toctree}
 :maxdepth: 1
 
+service-container
 core-apis
 content-models
 context-and-references

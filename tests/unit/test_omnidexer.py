@@ -192,58 +192,34 @@ class TestDeepIndexing:
     """Tests for DeepIndexable protocol and deep indexing functionality."""
 
     def setup_method(self) -> None:
-        """Reset ALL global state for complete isolation."""
-        from dnd5e.cli.display_manager import reset_display_manager
+        """Reset global state for complete isolation using service container."""
         from dnd5e.cli.main import reset_cli_globals
         from dnd5e.core.cache import CacheManager
-        from dnd5e.core.config.paths import reset_path_config
-        from dnd5e.core.config.sources import reset_config_manager
-        from dnd5e.core.config.unified_config import reset_app_config
-        from dnd5e.core.content_type_resolver import reset_content_type_resolver
-        from dnd5e.core.entry_registry import reset_entry_registry
-        from dnd5e.core.interfaces import reset_content_type_registry
-        from dnd5e.core.loaders.content_factory import reset_content_factory
+        from dnd5e.core.container import reset_global_container
 
-        # Complete isolation - reset ALL global singletons
+        # Reset the service container (handles most singletons now)
+        reset_global_container()
+
+        # Reset remaining legacy global state
         CacheManager.reset()
         reset_cli_globals()
-        reset_content_factory()
-        reset_content_type_registry()
-        reset_content_type_resolver()
-        reset_display_manager()
-        reset_entry_registry()
-        reset_config_manager()
-        reset_path_config()
-        reset_app_config()
 
         import gc
 
         gc.collect()  # Force cleanup of any lingering objects
 
     def teardown_method(self) -> None:
-        """Clear cache after each test."""
-        from dnd5e.cli.display_manager import reset_display_manager
+        """Clear cache after each test using service container."""
         from dnd5e.cli.main import reset_cli_globals
         from dnd5e.core.cache import CacheManager
-        from dnd5e.core.config.paths import reset_path_config
-        from dnd5e.core.config.sources import reset_config_manager
-        from dnd5e.core.config.unified_config import reset_app_config
-        from dnd5e.core.content_type_resolver import reset_content_type_resolver
-        from dnd5e.core.entry_registry import reset_entry_registry
-        from dnd5e.core.interfaces import reset_content_type_registry
-        from dnd5e.core.loaders.content_factory import reset_content_factory
+        from dnd5e.core.container import reset_global_container
 
-        # Force complete isolation - reset ALL global singletons
+        # Reset the service container (handles most singletons now)
+        reset_global_container()
+
+        # Reset remaining legacy global state
         CacheManager.reset()
         reset_cli_globals()
-        reset_content_factory()
-        reset_content_type_registry()
-        reset_content_type_resolver()
-        reset_display_manager()
-        reset_entry_registry()
-        reset_config_manager()
-        reset_path_config()
-        reset_app_config()
 
         # Force garbage collection to clean up any file handles
         import gc

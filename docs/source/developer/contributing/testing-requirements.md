@@ -457,15 +457,34 @@ def test_content_resolution_integration(omnidexer, tag_resolver):
 
 **Critical for parallel test execution stability and CI/CD reliability.**
 
-The 5e2pdf project uses several global singletons that must be properly isolated between tests to prevent contamination in parallel execution environments.
+The 5e2pdf project uses a service container architecture to manage dependencies, with simplified global state reset for tests.
 
-### Required Global State Reset Pattern
+### Service Container Reset Pattern (Recommended)
 
-Any test that creates real `Omnidexer()` instances or other core system components must reset all global singletons:
+Any test that creates real `Omnidexer()` instances or other core system components should use the unified service container reset:
 
 ```python
 def setup_method(self) -> None:
-    """Reset global state for test isolation."""
+    """Reset global state for test isolation using service container."""
+    from dnd5e.cli.main import reset_cli_globals
+    from dnd5e.core.cache import CacheManager
+    from dnd5e.core.container import reset_global_container
+
+    # Reset the service container (handles most singletons now)
+    reset_global_container()
+
+    # Reset remaining legacy global state
+    CacheManager.reset()
+    reset_cli_globals()
+```
+
+### Legacy Reset Pattern (Deprecated)
+
+For backward compatibility, individual singleton resets are still available but not recommended:
+
+```python
+def setup_method(self) -> None:
+    """Reset global state for test isolation (legacy approach)."""
     from dnd5e.core.cache import CacheManager
     from dnd5e.core.config.sources import reset_config_manager
     from dnd5e.core.content_type_resolver import reset_content_type_resolver
@@ -473,7 +492,7 @@ def setup_method(self) -> None:
     from dnd5e.core.interfaces import reset_content_type_registry
     from dnd5e.core.loaders.content_factory import reset_content_factory
 
-    # Complete isolation - reset ALL global singletons
+    # Complete isolation - reset ALL global singletons (legacy)
     CacheManager.reset()
     reset_content_factory()
     reset_content_type_registry()
@@ -482,16 +501,16 @@ def setup_method(self) -> None:
     reset_config_manager()
 ```
 
-### Global Singletons Overview
+### Service Container vs Legacy Singletons
 
-| Singleton | Purpose | Reset Function | Failure Symptoms |
-|-----------|---------|----------------|------------------|
-| `CacheManager` | Disk-based cache | `CacheManager.reset()` | Persistent state between runs |
-| `ContentFactory` | Content type creation | `reset_content_factory()` | "assert None is not None" |
-| `ContentTypeRegistry` | Type resolution mapping | `reset_content_type_registry()` | Deep indexing failures |
-| `ContentTypeResolver` | Registry-based resolution | `reset_content_type_resolver()` | Content loading corruption |
-| `EntryRegistry` | Entry validation registry | `reset_entry_registry()` | Validation failures |
-| `ConfigManager` | Configuration management | `reset_config_manager()` | Config directory errors in CI |
+| Component | Service Container | Legacy Reset | Status |
+|-----------|------------------|--------------|--------|
+| `EntryRegistry` | ✅ `reset_global_container()` | `reset_entry_registry()` | Migrated |
+| `ReferenceManager` | ✅ `reset_global_container()` | `reset_reference_manager()` | Migrated |
+| `Omnidexer` | ✅ `reset_global_container()` | N/A | Managed |
+| `TagResolver` | ✅ `reset_global_container()` | N/A | Managed |
+| `CacheManager` | ❌ Individual reset required | `CacheManager.reset()` | Legacy |
+| `CLI Globals` | ❌ Individual reset required | `reset_cli_globals()` | Legacy |
 
 ### Mock vs Real Instance Strategy
 

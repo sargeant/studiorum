@@ -42,6 +42,33 @@ This architecture solved the original problem of loading 94 duplicate adventures
 
 ## Core Components
 
+### Service Container Architecture
+
+**Purpose**: Centralized dependency injection and lifecycle management
+
+#### ServiceContainer (`src/dnd5e/core/container.py`)
+
+The service container manages all core application services with lazy initialization and proper cleanup:
+
+- **Global Container**: `get_global_container()` for CLI and application usage
+- **Scoped Containers**: `service_container()` context manager for isolated usage
+- **Service Management**: Lazy loading of expensive services like Omnidexer
+- **Test Isolation**: `reset_global_container()` for test state management
+
+**Managed Services:**
+- `Omnidexer`: Content indexing and loading
+- `TagResolver`: Cross-reference resolution
+- `EntryRegistry`: Entry type validation
+- `ReferenceManager`: Reference parsing and resolution
+- `ContentFactory`: Dynamic content instantiation
+- `DisplayManager`: CLI progress and display
+
+**Benefits:**
+- Eliminates global singleton complexity
+- Simplified test setup (single reset call)
+- Type-safe service access through protocols
+- Automatic resource cleanup and lifecycle management
+
 ### Loader Architecture Layer
 
 **Purpose**: Intelligent content loading with dual-file support and caching

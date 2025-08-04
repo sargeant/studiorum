@@ -27,9 +27,40 @@ When planning new features, use this decision framework:
 Before implementing features, ensure alignment with:
 
 - **Type Safety**: Will this maintain full mypy compliance?
-- **Performance**: Does this follow async/await patterns where appropriate?
+- **Performance**: Does this follow sync patterns (async migration complete)?
 - **Extensibility**: Can this be extended without breaking changes?
 - **Testing**: Can this be comprehensively tested?
+- **Service Container**: Does this use dependency injection instead of global singletons?
+
+#### Service Container Architecture
+
+**Current State**: The codebase has migrated to a service container pattern for dependency management.
+
+**Key Principles**:
+- Use `get_global_container()` for accessing core services
+- Avoid direct global singleton access (deprecated patterns)
+- Use `reset_global_container()` for test isolation
+- Prefer scoped containers for batch operations
+
+**Migration Status**:
+- ✅ `EntryRegistry` - Migrated to service container
+- ✅ `ReferenceManager` - Migrated to service container
+- ✅ `Omnidexer` - Managed by service container
+- ✅ `TagResolver` - Managed by service container
+- ❌ `CacheManager` - Still uses individual reset
+- ❌ CLI globals - Still require individual reset
+
+**Implementation Guidelines**:
+```python
+# ✅ Preferred approach
+from dnd5e.core.container import get_global_container
+container = get_global_container()
+registry = container.get_entry_registry()
+
+# ❌ Deprecated approach (backward compatible)
+from dnd5e.core.entry_registry import get_registry
+registry = get_registry()  # Uses container internally
+```
 
 #### 3. Resource Planning
 

@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from dnd5e.core.interfaces import ContentTypeRegistry
     from dnd5e.core.loaders.content_factory import ContentFactory
     from dnd5e.core.loaders.omnidexer import Omnidexer
+    from dnd5e.core.unified_references import ReferenceManager
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,10 @@ class ServiceContainer(Protocol):
         """Get or create the application configuration instance."""
         ...
 
+    def get_reference_manager(self) -> ReferenceManager:
+        """Get or create the reference manager instance."""
+        ...
+
     def close(self) -> None:
         """Clean up all managed resources."""
         ...
@@ -87,6 +92,7 @@ class DefaultServiceContainer:
         self._content_type_resolver: RegistryBasedContentTypeResolver | None = None
         self._entry_registry: EntryTypeRegistry | None = None
         self._app_config: ApplicationConfig | None = None
+        self._reference_manager: ReferenceManager | None = None
 
         # Track if container is closed
         self._closed = False
@@ -260,6 +266,25 @@ class DefaultServiceContainer:
 
         return self._app_config
 
+    def get_reference_manager(self) -> ReferenceManager:
+        """Get or create the reference manager instance.
+
+        Returns:
+            The reference manager instance
+
+        Raises:
+            RuntimeError: If container has been closed
+        """
+        self._check_not_closed()
+
+        if self._reference_manager is None:
+            logger.debug("Creating reference manager instance")
+            from dnd5e.core.unified_references import ReferenceManager
+
+            self._reference_manager = ReferenceManager()
+
+        return self._reference_manager
+
     def close(self) -> None:
         """Clean up all managed resources.
 
@@ -319,6 +344,8 @@ class DefaultServiceContainer:
                 services.append("entry_registry")
             if self._app_config is not None:
                 services.append("app_config")
+            if self._reference_manager is not None:
+                services.append("reference_manager")
 
         services_str = f", services=[{', '.join(services)}]" if services else ""
         return f"DefaultServiceContainer(status={status}{services_str})"

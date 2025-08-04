@@ -443,19 +443,18 @@ def create_cross_reference(
     return ref.with_latex_info(latex_label or f"{content_type}:{name}", section, page)
 
 
-# Global reference manager instance
-_global_reference_manager: ReferenceManager | None = None
-
-
 def get_reference_manager() -> ReferenceManager:
-    """Get the global reference manager instance."""
-    global _global_reference_manager
-    if _global_reference_manager is None:
-        _global_reference_manager = ReferenceManager()
-    return _global_reference_manager
+    """Get the reference manager instance from the service container."""
+    from dnd5e.core.container import get_global_container
+
+    return get_global_container().get_reference_manager()
 
 
 def reset_reference_manager() -> None:
-    """Reset the global reference manager (for testing)."""
-    global _global_reference_manager
-    _global_reference_manager = None
+    """Reset the reference manager (for testing).
+
+    This is now handled by the service container reset mechanism.
+    """
+    # This function is maintained for backward compatibility
+    # but the actual reset is handled by the service container
+    pass

@@ -100,6 +100,51 @@ def cached_operation(key: str) -> Any:
 - Configurable cache sizes
 - Automatic eviction
 
+### Service Container Pattern
+
+Dependency injection through a centralized service container for managing component lifecycles:
+
+```python
+from dnd5e.core.container import get_global_container, ServiceContainer
+
+# Access services through the container
+container = get_global_container()
+omnidexer = container.get_omnidexer()
+tag_resolver = container.get_tag_resolver()
+entry_registry = container.get_entry_registry()
+reference_manager = container.get_reference_manager()
+
+# Context manager for scoped containers
+from dnd5e.core.container import service_container
+
+with service_container() as container:
+    # Services are automatically cleaned up
+    service = container.get_omnidexer()
+    # ... use service
+# Container automatically closed here
+```
+
+**Service Container Benefits:**
+- Centralized dependency management
+- Lazy initialization of expensive services
+- Proper lifecycle management and cleanup
+- Simplified test isolation
+- Type-safe service access
+- Support for both global and scoped containers
+
+**Migration from Global Singletons:**
+
+```python
+# Old approach (deprecated)
+from dnd5e.core.entry_registry import get_registry
+registry = get_registry()  # Uses global singleton
+
+# New approach (recommended)
+from dnd5e.core.container import get_global_container
+container = get_global_container()
+registry = container.get_entry_registry()  # Uses service container
+```
+
 ## Error Handling Patterns
 
 ### Result Pattern
