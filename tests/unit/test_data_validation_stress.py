@@ -85,8 +85,7 @@ class TestDataValidationStress:
                 unknown_warnings.append(message)
         return unknown_warnings
 
-    @pytest.mark.asyncio
-    async def test_load_all_spells_no_validation_errors(self) -> None:
+    def test_load_all_spells_no_validation_errors(self) -> None:
         """Test loading all spell data without validation errors."""
         source_manager: Any = FileSystemSourceManager()
         spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
@@ -102,7 +101,7 @@ class TestDataValidationStress:
             if not spell_file.exists():
                 continue
 
-            spells = await spell_loader.load(spell_file)
+            spells = spell_loader.load(spell_file)
             total_spells += len(spells)
 
         # Check for validation warnings
@@ -120,8 +119,7 @@ class TestDataValidationStress:
             f"✅ Successfully loaded {total_spells} spells with {len(validation_warnings)} warnings"
         )
 
-    @pytest.mark.asyncio
-    async def test_load_all_creatures_no_validation_errors(self) -> None:
+    def test_load_all_creatures_no_validation_errors(self) -> None:
         """Test loading all creature data without validation errors."""
         source_manager: Any = FileSystemSourceManager()
         creature_loader = JsonDataLoader.create_for_type(ContentType.CREATURE)
@@ -137,7 +135,7 @@ class TestDataValidationStress:
             if not creature_file.exists():
                 continue
 
-            creatures = await creature_loader.load(creature_file)
+            creatures = creature_loader.load(creature_file)
             total_creatures += len(creatures)
 
         # Check for validation warnings
@@ -155,8 +153,7 @@ class TestDataValidationStress:
             f"✅ Successfully loaded {total_creatures} creatures with {len(validation_warnings)} warnings"
         )
 
-    @pytest.mark.asyncio
-    async def test_load_all_items_no_validation_errors(self) -> None:
+    def test_load_all_items_no_validation_errors(self) -> None:
         """Test loading all item data without validation errors."""
         source_manager: Any = FileSystemSourceManager()
         item_loader = JsonDataLoader.create_for_type(ContentType.ITEM)
@@ -172,7 +169,7 @@ class TestDataValidationStress:
             if not item_file.exists():
                 continue
 
-            items = await item_loader.load(item_file)
+            items = item_loader.load(item_file)
             total_items += len(items)
 
         # Check for validation warnings
@@ -190,14 +187,13 @@ class TestDataValidationStress:
             f"✅ Successfully loaded {total_items} items with {len(validation_warnings)} warnings"
         )
 
-    @pytest.mark.asyncio
-    async def test_omnidexer_full_data_load(self) -> None:
+    def test_omnidexer_full_data_load(self) -> None:
         """Test loading all available data through the omnidexer."""
         source_manager: Any = FileSystemSourceManager()
         omnidexer: Any = Omnidexer(source_manager)
 
         # Load all data
-        load_stats = await omnidexer.load_all_data()
+        load_stats = omnidexer.load_all_data()
 
         # Verify data was loaded
         assert load_stats, "No data was loaded"
@@ -228,8 +224,7 @@ class TestDataValidationStress:
         print(f"   Unknown data warnings: {len(unknown_warnings)}")
         print(f"   Load stats: {load_stats}")
 
-    @pytest.mark.asyncio
-    async def test_complex_data_structures_validation(self) -> None:
+    def test_complex_data_structures_validation(self) -> None:
         """Test that complex data structures are properly handled."""
         complex_spell_data = {
             "name": "Complex Test Spell",
@@ -325,8 +320,7 @@ class TestDataValidationStress:
 
         print("✅ Complex data structures validated successfully")
 
-    @pytest.mark.asyncio
-    async def test_file_format_detection_accuracy(self) -> None:
+    def test_file_format_detection_accuracy(self) -> None:
         """Test that file format detection correctly identifies different file types."""
         source_manager: Any = FileSystemSourceManager()
         spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
@@ -356,7 +350,7 @@ class TestDataValidationStress:
                 continue
 
             # Use spell loader as representative loader
-            await spell_loader.load(file_path)
+            spell_loader.load(file_path)
 
             # Check log messages for detection
             log_messages = [record.getMessage() for record in self.log_capture.records]
@@ -450,9 +444,8 @@ class TestDataValidationStress:
 
         print("✅ Edge case data structures validated successfully")
 
-    @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_memory_usage_during_full_load(self) -> None:
+    def test_memory_usage_during_full_load(self) -> None:
         """Test memory usage doesn't grow excessively during full data load."""
         try:
             import os
@@ -468,7 +461,7 @@ class TestDataValidationStress:
         omnidexer: Any = Omnidexer(source_manager)
 
         # Load all data
-        load_stats = await omnidexer.load_all_data()
+        load_stats = omnidexer.load_all_data()
 
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
         memory_increase = final_memory - initial_memory
@@ -489,20 +482,18 @@ class TestDataValidationStress:
             f"(+{memory_increase:.1f}MB) for {total_items} items"
         )
 
-    @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_concurrent_data_loading(self) -> None:
+    def test_concurrent_data_loading(self) -> None:
         """Test that concurrent data loading works without issues."""
         source_manager: Any = FileSystemSourceManager()
 
         # Create multiple omnidexers to test concurrent loading
         async def load_data() -> Any:
             omnidexer: Any = Omnidexer(source_manager)
-            return await omnidexer.load_all_data()
+            return omnidexer.load_all_data()
 
-        # Run 3 concurrent loads
-        tasks = [load_data() for _ in range(3)]
-        results = await asyncio.gather(*tasks)
+        # Run 3 concurrent loads (now sync)
+        results = [load_data() for _ in range(3)]
 
         # All loads should succeed and return similar results
         assert len(results) == 3

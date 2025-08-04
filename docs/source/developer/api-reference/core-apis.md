@@ -51,7 +51,7 @@ omnidexer = Omnidexer(enable_deep_indexing=False)
 #### `load_all_data()`
 
 ```python
-async def load_all_data(self) -> None
+def load_all_data(self) -> None
 ```
 
 Loads all available D&D content from configured sources and indexes it.
@@ -63,7 +63,7 @@ Loads all available D&D content from configured sources and indexes it.
 **Example:**
 ```python
 omnidexer = Omnidexer()
-await omnidexer.load_all_data()
+omnidexer.load_all_data()
 print(f"Loaded {len(omnidexer._index)} items")
 ```
 

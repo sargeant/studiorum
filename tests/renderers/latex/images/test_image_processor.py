@@ -1,6 +1,5 @@
 """Tests for the image processor core functionality."""
 
-import asyncio
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -105,36 +104,32 @@ class TestImageProcessor:
         self.context.assets_dir = Path("/tmp/assets")
         self.context.images_dir = Path("/tmp/images")
 
-    @pytest.mark.asyncio
-    async def test_process_image_entry_disabled(self):
+    def test_process_image_entry_disabled(self):
         """Test processing when images are disabled."""
         self.context.include_images = False
         image_entry = {"href": "test.png", "title": "Test Image"}
 
-        result = await self.processor.process_image_entry(image_entry, self.context)
+        result = self.processor.process_image_entry(image_entry, self.context)
 
         assert result == "% Image placeholder: Test Image"
 
-    @pytest.mark.asyncio
-    async def test_process_image_entry_no_href(self):
+    def test_process_image_entry_no_href(self):
         """Test processing image entry without href."""
         image_entry = {"title": "Test Image"}
 
-        result = await self.processor.process_image_entry(image_entry, self.context)
+        result = self.processor.process_image_entry(image_entry, self.context)
 
         assert result == "% Image placeholder: Test Image"
 
-    @pytest.mark.asyncio
-    async def test_process_image_entry_no_title(self):
+    def test_process_image_entry_no_title(self):
         """Test processing image entry without title."""
         image_entry = {}
 
-        result = await self.processor.process_image_entry(image_entry, self.context)
+        result = self.processor.process_image_entry(image_entry, self.context)
 
         assert result == "% Image placeholder"
 
-    @pytest.mark.asyncio
-    async def test_process_image_pipeline_exception(self):
+    def test_process_image_pipeline_exception(self):
         """Test handling exceptions in image processing pipeline."""
         image_entry = {"href": "test.png", "title": "Test Image"}
 
@@ -144,68 +139,62 @@ class TestImageProcessor:
             "_process_image_pipeline",
             side_effect=Exception("Test error"),
         ):
-            result = await self.processor.process_image_entry(image_entry, self.context)
+            result = self.processor.process_image_entry(image_entry, self.context)
 
             assert "Image processing failed" in result
             assert "Test Image" in result
 
-    @pytest.mark.asyncio
-    async def test_resolve_image_path_local(self):
+    def test_resolve_image_path_local(self):
         """Test resolving local image paths."""
         # Mock assets directory to exist
         with patch.object(Path, "exists", return_value=True):
-            result = await self.processor._resolve_image_path("test.png", self.context)
+            result = self.processor._resolve_image_path("test.png", self.context)
 
             expected = self.context.assets_dir / "test.png"
             assert result == expected
 
-    @pytest.mark.asyncio
-    async def test_resolve_image_path_url(self):
+    def test_resolve_image_path_url(self):
         """Test resolving URL image paths."""
-        result = await self.processor._resolve_image_path(
+        result = self.processor._resolve_image_path(
             "https://example.com/test.png", self.context
         )
 
         # For now, should return placeholder
         assert result == Path("placeholder.png")
 
-    @pytest.mark.asyncio
-    async def test_convert_format_disabled(self):
+    def test_convert_format_disabled(self):
         """Test format conversion when disabled."""
         self.processor.config.enable_webp_conversion = False
         image_path = Path("test.webp")
 
-        result = await self.processor._convert_format_if_needed(image_path)
+        result = self.processor._convert_format_if_needed(image_path)
 
         assert result == image_path
 
-    @pytest.mark.asyncio
-    async def test_convert_format_not_needed(self):
+    def test_convert_format_not_needed(self):
         """Test format conversion when not needed."""
         image_path = Path("test.png")
 
-        result = await self.processor._convert_format_if_needed(image_path)
+        result = self.processor._convert_format_if_needed(image_path)
 
         assert result == image_path
 
-    @pytest.mark.asyncio
-    async def test_optimize_image_disabled(self):
+    def test_optimize_image_disabled(self):
         """Test image optimization when disabled."""
         self.processor.config.enable_optimization = False
         image_path = Path("test.png")
 
-        result = await self.processor._optimize_image(image_path, self.context)
+        result = self.processor._optimize_image(image_path, self.context)
 
         assert result == image_path
 
-    @pytest.mark.asyncio
-    async def test_generate_latex_basic_with_title(self):
+    def test_generate_latex_basic_with_title(self):
         """Test basic LaTeX generation with title."""
         self.processor.config.enable_placement_optimization = False
         image_path = Path("test.png")
         image_entry = {"title": "Test Image"}
 
-        result = await self.processor._generate_latex_command(
+        result = self.processor._generate_latex_command(
             image_path, image_entry, self.context
         )
 
@@ -214,14 +203,13 @@ class TestImageProcessor:
         assert "\\caption{Test Image}" in result
         assert "\\end{figure}" in result
 
-    @pytest.mark.asyncio
-    async def test_generate_latex_basic_no_title(self):
+    def test_generate_latex_basic_no_title(self):
         """Test basic LaTeX generation without title."""
         self.processor.config.enable_placement_optimization = False
         image_path = Path("test.png")
         image_entry = {}
 
-        result = await self.processor._generate_latex_command(
+        result = self.processor._generate_latex_command(
             image_path, image_entry, self.context
         )
 
@@ -248,8 +236,7 @@ class TestImageProcessorIntegration:
         self.context.assets_dir = Path("/tmp/test_assets")
         self.context.images_dir = None
 
-    @pytest.mark.asyncio
-    async def test_full_pipeline_mock(self):
+    def test_full_pipeline_mock(self):
         """Test full processing pipeline with mocked components."""
         image_entry = {
             "href": "test.webp",
@@ -276,6 +263,6 @@ class TestImageProcessorIntegration:
                 return_value="\\includegraphics{test_opt.png}",
             ),
         ):
-            result = await self.processor.process_image_entry(image_entry, self.context)
+            result = self.processor.process_image_entry(image_entry, self.context)
 
             assert result == "\\includegraphics{test_opt.png}"

@@ -5,7 +5,6 @@ import json
 import logging
 from pathlib import Path
 
-import aiofiles
 import typer
 from rich import print as rprint
 
@@ -96,20 +95,20 @@ def main(
         logging.info("Enabled verbose mode")
 
 
-async def get_omnidexer() -> Omnidexer:
+def get_omnidexer() -> Omnidexer:
     """Get the omnidexer instance from the service container."""
     from dnd5e.core.container import get_global_container
 
     container = get_global_container()
-    return await container.get_omnidexer()
+    return container.get_omnidexer()
 
 
-async def get_tag_resolver() -> TagResolver:
+def get_tag_resolver() -> TagResolver:
     """Get the tag resolver instance from the service container."""
     from dnd5e.core.container import get_global_container
 
     container = get_global_container()
-    return await container.get_tag_resolver()
+    return container.get_tag_resolver()
 
 
 # Import and mount CLI command modules
@@ -190,7 +189,7 @@ def quick_convert(
     Perfect for quick conversions and testing.
     """
 
-    async def _quick_convert() -> None:
+    def _quick_convert() -> None:
         try:
             # Validate input
             if not input_file.exists():
@@ -208,13 +207,13 @@ def quick_convert(
                 load_task = display_manager.add_task(
                     "[cyan]Initializing...", total=None
                 )
-                omnidexer = await get_omnidexer()
-                tag_resolver = await get_tag_resolver()
+                omnidexer = get_omnidexer()
+                tag_resolver = get_tag_resolver()
                 display_manager.update_task(load_task, completed=100)
 
             # Load content from file
-            async with aiofiles.open(input_file) as f:
-                content = await f.read()
+            with open(input_file) as f:
+                content = f.read()
                 data = json.loads(content)
 
             # Simple content detection and loading
@@ -267,8 +266,8 @@ def quick_convert(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
-                await f.write(result)
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(result)
 
             rprint(
                 f"[green]✓[/green] Converted {len(content_items)} items to {output_path}"
@@ -283,14 +282,18 @@ def quick_convert(
                     compiler = _create_latex_compiler()
 
                     # Read the LaTeX file content
-                    async with aiofiles.open(output_path, "r", encoding="utf-8") as f:
-                        latex_content = await f.read()
+                    with open(output_path, "r", encoding="utf-8") as f:
+                        latex_content = f.read()
 
                     # Compile using the configured compiler
-                    compilation_result = await compiler.compile_document(
-                        latex_content,
-                        output_name=output_path.stem,
-                        working_dir=output_path.parent,
+                    import asyncio
+
+                    compilation_result = asyncio.run(
+                        compiler.compile_document(
+                            latex_content,
+                            output_name=output_path.stem,
+                            working_dir=output_path.parent,
+                        )
                     )
 
                     if compilation_result.success:
@@ -313,7 +316,7 @@ def quick_convert(
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_quick_convert())
+    _quick_convert()
 
 
 def reset_cli_globals() -> None:

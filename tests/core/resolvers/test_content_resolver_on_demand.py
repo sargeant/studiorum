@@ -1,6 +1,6 @@
 """Tests for ContentResolver on-demand loading functionality."""
 
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -9,8 +9,7 @@ from dnd5e.core.models.books import Book
 from dnd5e.core.models.content import ContentType, Source
 from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
-# Ensure async tests work properly
-pytestmark = pytest.mark.asyncio
+# Tests converted to sync after async removal migration
 
 
 class TestContentResolverOnDemand:
@@ -75,34 +74,32 @@ class TestContentResolverOnDemand:
         assert resolver.content_merger is not None
         assert resolver.content_merger.source_manager is mock_omnidexer.source_manager
 
-    async def test_enrich_content_non_dual_file_type(self, content_resolver):
+    def test_enrich_content_non_dual_file_type(self, content_resolver):
         """Test that non-dual-file content types are returned unchanged."""
         spell = Mock()
         spell.name = "Fireball"
 
-        result = await content_resolver._enrich_content_if_needed(
-            spell, ContentType.SPELL
-        )
+        result = content_resolver._enrich_content_if_needed(spell, ContentType.SPELL)
         assert result is spell  # Should return the same object
 
-    async def test_enrich_content_adventure_no_id(self, content_resolver):
+    def test_enrich_content_adventure_no_id(self, content_resolver):
         """Test enrichment when adventure has no ID."""
         adventure = Mock()
         adventure.name = "Test Adventure"
         adventure.id = None
 
-        result = await content_resolver._enrich_content_if_needed(
+        result = content_resolver._enrich_content_if_needed(
             adventure, ContentType.ADVENTURE
         )
         assert result is adventure  # Should return original if no ID
 
     @patch("dnd5e.core.resolvers.content_resolver.logger")
-    async def test_enrich_content_adventure_success(
+    def test_enrich_content_adventure_success(
         self, mock_logger, content_resolver, mock_adventure_metadata, mock_content_data
     ):
         """Test successful adventure enrichment."""
         # Mock the content merger
-        content_resolver.content_merger.load_content_file = AsyncMock(
+        content_resolver.content_merger.load_content_file = Mock(
             return_value=mock_content_data
         )
         content_resolver.content_merger.merge_metadata_content = Mock(
@@ -126,7 +123,7 @@ class TestContentResolverOnDemand:
             return_value=Mock(name="Enriched Adventure")
         )
 
-        await content_resolver._enrich_content_if_needed(
+        content_resolver._enrich_content_if_needed(
             mock_adventure_metadata, ContentType.ADVENTURE
         )
 
@@ -140,16 +137,16 @@ class TestContentResolverOnDemand:
         adventure_class.model_validate.assert_called_once()
 
     @patch("dnd5e.core.resolvers.content_resolver.logger")
-    async def test_enrich_content_merger_failure(
+    def test_enrich_content_merger_failure(
         self, mock_logger, content_resolver, mock_adventure_metadata
     ):
         """Test enrichment when content merger fails."""
         # Mock content merger to raise exception
-        content_resolver.content_merger.load_content_file = AsyncMock(
+        content_resolver.content_merger.load_content_file = Mock(
             side_effect=Exception("Content load failed")
         )
 
-        result = await content_resolver._enrich_content_if_needed(
+        result = content_resolver._enrich_content_if_needed(
             mock_adventure_metadata, ContentType.ADVENTURE
         )
 
@@ -157,7 +154,7 @@ class TestContentResolverOnDemand:
         assert result is mock_adventure_metadata
         mock_logger.error.assert_called_once()
 
-    async def test_resolve_adventure_with_enrichment(
+    def test_resolve_adventure_with_enrichment(
         self, content_resolver, mock_adventure_metadata, mock_content_data
     ):
         """Test that resolve_adventure enriches the result."""
@@ -171,11 +168,11 @@ class TestContentResolverOnDemand:
             name="Enriched Test Adventure",
             source=Source(abbreviation="ETA", name="Enriched Test Adventure"),
         )
-        content_resolver._enrich_content_if_needed = AsyncMock(
+        content_resolver._enrich_content_if_needed = Mock(
             return_value=enriched_adventure
         )
 
-        result = await content_resolver.resolve_adventure("ta")
+        result = content_resolver.resolve_adventure("ta")
 
         # Verify resolution was successful
         assert result.status == ResolutionStatus.EXACT_MATCH
@@ -186,7 +183,7 @@ class TestContentResolverOnDemand:
             mock_adventure_metadata, ContentType.ADVENTURE
         )
 
-    async def test_resolve_book_with_enrichment(self, content_resolver):
+    def test_resolve_book_with_enrichment(self, content_resolver):
         """Test that resolve_book enriches the result."""
         # Mock book metadata
         book = Mock()
@@ -203,11 +200,9 @@ class TestContentResolverOnDemand:
             name="Enriched Test Book",
             source=Source(abbreviation="ETB", name="Enriched Test Book"),
         )
-        content_resolver._enrich_content_if_needed = AsyncMock(
-            return_value=enriched_book
-        )
+        content_resolver._enrich_content_if_needed = Mock(return_value=enriched_book)
 
-        result = await content_resolver.resolve_book("tb")
+        result = content_resolver.resolve_book("tb")
 
         # Verify resolution was successful
         assert result.status == ResolutionStatus.EXACT_MATCH
@@ -218,7 +213,7 @@ class TestContentResolverOnDemand:
             book, ContentType.BOOK
         )
 
-    async def test_resolve_multiple_matches_not_enriched(self, content_resolver):
+    def test_resolve_multiple_matches_not_enriched(self, content_resolver):
         """Test that multiple matches are not enriched (returned as-is for user selection)."""
         # Mock multiple adventures with same abbreviation
         adventure1 = Adventure(
@@ -238,9 +233,9 @@ class TestContentResolverOnDemand:
         )  # No preference
 
         # Mock enrichment (should not be called)
-        content_resolver._enrich_content_if_needed = AsyncMock()
+        content_resolver._enrich_content_if_needed = Mock()
 
-        result = await content_resolver.resolve_adventure("test")
+        result = content_resolver.resolve_adventure("test")
 
         # Should return multiple matches without enrichment
         assert result.status == ResolutionStatus.MULTIPLE_MATCHES
@@ -249,7 +244,7 @@ class TestContentResolverOnDemand:
         # Enrichment should not be called for multiple matches
         content_resolver._enrich_content_if_needed.assert_not_called()
 
-    async def test_preferred_match_with_enrichment(self, content_resolver):
+    def test_preferred_match_with_enrichment(self, content_resolver):
         """Test that preferred matches from multiple matches are enriched."""
         # Create two adventures with same abbreviation
         adventure1 = Adventure(
@@ -273,11 +268,11 @@ class TestContentResolverOnDemand:
             name="Enriched Test Adventure",
             source=Source(abbreviation="ETA", name="Enriched Test Adventure"),
         )
-        content_resolver._enrich_content_if_needed = AsyncMock(
+        content_resolver._enrich_content_if_needed = Mock(
             return_value=enriched_adventure
         )
 
-        result = await content_resolver.resolve_adventure("test")
+        result = content_resolver.resolve_adventure("test")
 
         # Should resolve to preferred match and enrich it
         assert result.status == ResolutionStatus.EXACT_MATCH

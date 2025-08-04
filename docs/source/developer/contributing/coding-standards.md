@@ -66,7 +66,6 @@ Imports are automatically organized by ruff:
 
 ```python
 # Standard library imports (alphabetical)
-import asyncio
 import json
 from pathlib import Path
 from typing import Any, Optional
@@ -299,11 +298,11 @@ def parse_spell_level(level_data: Any) -> int:
     return level
 
 # Use context managers for resource management
-async def load_content_file(file_path: Path) -> dict[str, Any]:
+def load_content_file(file_path: Path) -> dict[str, Any]:
     """Load content file with proper error handling."""
     try:
-        async with aiofiles.open(file_path, 'r') as file:
-            content = await file.read()
+        with open(file_path, 'r') as file:
+            content = file.read()
             return json.loads(content)
     except FileNotFoundError:
         raise ContentError(f"Content file not found: {file_path}")
@@ -410,53 +409,54 @@ def validate_spell_slots(cls, values: dict[str, Any]) -> dict[str, Any]:
     return values
 ```
 
-## Async/Await Patterns
+## I/O and Resource Management Patterns
 
-### Async Function Design
+### Efficient I/O Operations
 ```python
-# Use async for I/O operations
-async def load_all_spells() -> list[Spell]:
+# Use efficient I/O operations
+def load_all_spells() -> list[Spell]:
     """Load all spells from data sources."""
-    file_paths = await discover_spell_files()
+    file_paths = discover_spell_files()
 
-    # Process files concurrently
-    tasks = [load_spell_file(path) for path in file_paths]
-    spell_lists = await asyncio.gather(*tasks, return_exceptions=True)
-
-    # Handle exceptions gracefully
+    # Process files with error handling
     spells = []
-    for result in spell_lists:
-        if isinstance(result, Exception):
-            logger.warning(f"Failed to load spell file: {result}")
-        else:
-            spells.extend(result)
+    for path in file_paths:
+        try:
+            spell_list = load_spell_file(path)
+            spells.extend(spell_list)
+        except Exception as e:
+            logger.warning(f"Failed to load spell file {path}: {e}")
 
     return spells
 
-# Use async context managers
-async def with_content_lock(content_id: str) -> AsyncContextManager[None]:
+# Use context managers for resource management
+from contextlib import contextmanager
+from typing import Generator
+
+@contextmanager
+def with_content_lock(content_id: str) -> Generator[None, None, None]:
     """Acquire exclusive lock on content for modification."""
-    lock = await acquire_content_lock(content_id)
+    lock = acquire_content_lock(content_id)
     try:
         yield
     finally:
-        await release_content_lock(lock)
+        release_content_lock(lock)
 
-# Proper error handling in async functions
-async def fetch_remote_content(url: str) -> dict[str, Any]:
+# Proper error handling with retries
+def fetch_remote_content(url: str) -> dict[str, Any]:
     """Fetch content from remote URL with retries."""
-    import aiohttp
+    import requests
+    import time
 
-    async with aiohttp.ClientSession() as session:
-        for attempt in range(3):
-            try:
-                async with session.get(url) as response:
-                    response.raise_for_status()
-                    return await response.json()
-            except aiohttp.ClientError as e:
-                if attempt == 2:  # Last attempt
-                    raise ContentError(f"Failed to fetch {url}: {e}")
-                await asyncio.sleep(2 ** attempt)  # Exponential backoff
+    for attempt in range(3):
+        try:
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            if attempt == 2:  # Last attempt
+                raise ContentError(f"Failed to fetch {url}: {e}")
+            time.sleep(2 ** attempt)  # Exponential backoff
 ```
 
 ## Documentation Standards

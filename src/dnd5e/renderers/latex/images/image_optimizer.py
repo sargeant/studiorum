@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 from typing import Any
 
@@ -63,7 +62,7 @@ class ImageOptimizer:
             )
         self.config = config or OptimizationConfig()
 
-    async def optimize_image(
+    def optimize_image(
         self,
         image_path: Path,
         output_dir: Path | None = None,
@@ -92,10 +91,8 @@ class ImageOptimizer:
         # Get original file info
         original_file_size = image_path.stat().st_size
 
-        # Run optimization in thread pool
-        result = await asyncio.get_event_loop().run_in_executor(
-            None, self._optimize_sync, image_path, output_path, context_hint
-        )
+        # Run optimization synchronously
+        result = self._optimize_sync(image_path, output_path, context_hint)
 
         # Get optimized file size
         optimized_file_size = output_path.stat().st_size

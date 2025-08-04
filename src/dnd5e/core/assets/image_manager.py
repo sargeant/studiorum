@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-import aiofiles
 import aiohttp
 from pydantic import BaseModel, Field
 
@@ -229,9 +228,9 @@ class ImageManager:
                         output_path.parent.mkdir(parents=True, exist_ok=True)
 
                         # Write file
-                        async with aiofiles.open(output_path, "wb") as f:
+                        with open(output_path, "wb") as f:
                             async for chunk in response.content.iter_chunked(8192):
-                                await f.write(chunk)
+                                f.write(chunk)
 
                         return True
 

@@ -8,8 +8,8 @@ dependency injection.
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from collections.abc import Iterator
+from contextlib import contextmanager
 
 # Lazy imports to avoid circular dependencies
 from typing import TYPE_CHECKING, Any, Protocol
@@ -30,11 +30,11 @@ logger = logging.getLogger(__name__)
 class ServiceContainer(Protocol):
     """Protocol for service containers that manage application dependencies."""
 
-    async def get_omnidexer(self) -> Omnidexer:
+    def get_omnidexer(self) -> Omnidexer:
         """Get or create the omnidexer instance."""
         ...
 
-    async def get_tag_resolver(self) -> TagResolver:
+    def get_tag_resolver(self) -> TagResolver:
         """Get or create the tag resolver instance."""
         ...
 
@@ -62,7 +62,7 @@ class ServiceContainer(Protocol):
         """Get or create the application configuration instance."""
         ...
 
-    async def close(self) -> None:
+    def close(self) -> None:
         """Clean up all managed resources."""
         ...
 
@@ -91,7 +91,7 @@ class DefaultServiceContainer:
         # Track if container is closed
         self._closed = False
 
-    async def get_omnidexer(self) -> Omnidexer:
+    def get_omnidexer(self) -> Omnidexer:
         """Get or create the omnidexer instance.
 
         The omnidexer is lazily initialized and cached for the lifetime
@@ -117,12 +117,12 @@ class DefaultServiceContainer:
                 task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                await self._omnidexer.load_all_data()
+                self._omnidexer.load_all_data()
                 display_manager.update_task(task, completed=100)
 
         return self._omnidexer
 
-    async def get_tag_resolver(self) -> TagResolver:
+    def get_tag_resolver(self) -> TagResolver:
         """Get or create the tag resolver instance.
 
         The tag resolver depends on the omnidexer and is lazily initialized.
@@ -139,7 +139,7 @@ class DefaultServiceContainer:
             logger.debug("Creating tag resolver instance")
             from dnd5e.core.indexer.tag_resolver import TagResolver
 
-            omnidexer = await self.get_omnidexer()
+            omnidexer = self.get_omnidexer()
             self._tag_resolver = TagResolver(omnidexer)
 
         return self._tag_resolver
@@ -260,7 +260,7 @@ class DefaultServiceContainer:
 
         return self._app_config
 
-    async def close(self) -> None:
+    def close(self) -> None:
         """Clean up all managed resources.
 
         This method should be called when the container is no longer needed
@@ -324,15 +324,15 @@ class DefaultServiceContainer:
         return f"DefaultServiceContainer(status={status}{services_str})"
 
 
-@asynccontextmanager
-async def service_container() -> AsyncIterator[ServiceContainer]:
-    """Create and manage a service container as an async context manager.
+@contextmanager
+def service_container() -> Iterator[ServiceContainer]:
+    """Create and manage a service container as a context manager.
 
     This context manager ensures proper cleanup of the container when done.
 
     Usage:
-        async with service_container() as container:
-            omnidexer = await container.get_omnidexer()
+        with service_container() as container:
+            omnidexer = container.get_omnidexer()
             # ... use services
         # Container is automatically closed here
 
@@ -343,7 +343,7 @@ async def service_container() -> AsyncIterator[ServiceContainer]:
     try:
         yield container
     finally:
-        await container.close()
+        container.close()
 
 
 # Global container instance for CLI usage

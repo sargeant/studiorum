@@ -1,6 +1,5 @@
 """Setup wizard CLI command."""
 
-import asyncio
 from pathlib import Path
 from typing import Any
 
@@ -249,10 +248,12 @@ def _scan_content() -> None:
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
-    async def _do_scan() -> None:
+    def _do_scan() -> None:
         try:
-            await source_manager.ensure_all_sources()
-            await source_manager.build_content_index()
+            import asyncio
+
+            asyncio.run(source_manager.ensure_all_sources())
+            asyncio.run(source_manager.build_content_index())
 
             stats = source_manager.get_statistics()
 
@@ -276,7 +277,7 @@ def _scan_content() -> None:
         except Exception as e:
             console.print(f"[red]❌ Error during scan: {e}[/red]")
 
-    asyncio.run(_do_scan())
+    _do_scan()
 
 
 @app.command("check")
@@ -296,10 +297,12 @@ def check_setup() -> None:
     # Check source availability
     source_manager = ContentSourceManager(config)
 
-    async def _check() -> None:
+    def _check() -> None:
         try:
-            await source_manager.ensure_all_sources()
-            await source_manager.build_content_index()
+            import asyncio
+
+            asyncio.run(source_manager.ensure_all_sources())
+            asyncio.run(source_manager.build_content_index())
 
             stats = source_manager.get_statistics()
 
@@ -330,7 +333,7 @@ def check_setup() -> None:
             console.print("Run [bold]5e2pdf setup wizard[/bold] to reconfigure.")
             raise typer.Exit(1)
 
-    asyncio.run(_check())
+    _check()
 
 
 @app.command("reset")

@@ -3,13 +3,14 @@
 import json
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from unittest import IsolatedAsyncioTestCase
+
+import pytest
 
 from dnd5e.core.loaders.json_loader import JsonDataLoader
 from dnd5e.core.models.content import ContentType
 
 
-class TestMetadataContentDetection(IsolatedAsyncioTestCase):
+class TestMetadataContentDetection:
     """Test metadata vs content file detection logic."""
 
     def test_detect_adventure_metadata_file(self) -> None:
@@ -38,7 +39,7 @@ class TestMetadataContentDetection(IsolatedAsyncioTestCase):
         loader = JsonDataLoader(ContentType.ADVENTURE)
         is_metadata = loader._is_adventure_metadata_file(metadata_data)
 
-        self.assertTrue(is_metadata, "Should detect adventure metadata file")
+        assert is_metadata
 
     def test_detect_adventure_content_file(self) -> None:
         """Test detection of adventure content files (adventure-*.json)."""
@@ -70,7 +71,7 @@ class TestMetadataContentDetection(IsolatedAsyncioTestCase):
         loader = JsonDataLoader(ContentType.ADVENTURE)
         is_content = loader._is_adventure_content_file(content_data)
 
-        self.assertTrue(is_content, "Should detect adventure content file")
+        assert is_content
 
     def test_detect_book_metadata_file(self) -> None:
         """Test detection of book metadata files (books.json)."""
@@ -100,7 +101,7 @@ class TestMetadataContentDetection(IsolatedAsyncioTestCase):
         loader = JsonDataLoader(ContentType.BOOK)
         is_metadata = loader._is_book_metadata_file(metadata_data)
 
-        self.assertTrue(is_metadata, "Should detect book metadata file")
+        assert is_metadata
 
     def test_detect_book_content_file(self) -> None:
         """Test detection of book content files (book-*.json)."""
@@ -131,7 +132,7 @@ class TestMetadataContentDetection(IsolatedAsyncioTestCase):
         loader = JsonDataLoader(ContentType.BOOK)
         is_content = loader._is_book_content_file(content_data)
 
-        self.assertTrue(is_content, "Should detect book content file")
+        assert is_content
 
     def test_other_content_types_not_detected_as_metadata(self) -> None:
         """Test that other content types are not detected as metadata files."""
@@ -157,10 +158,10 @@ class TestMetadataContentDetection(IsolatedAsyncioTestCase):
             loader = JsonDataLoader(content_type)
 
             # The methods exist but should return False for non-adventure/book data
-            self.assertFalse(loader._is_adventure_metadata_file(spell_data))
-            self.assertFalse(loader._is_adventure_content_file(spell_data))
-            self.assertFalse(loader._is_book_metadata_file(spell_data))
-            self.assertFalse(loader._is_book_content_file(spell_data))
+            assert not loader._is_adventure_metadata_file(spell_data)
+            assert not loader._is_adventure_content_file(spell_data)
+            assert not loader._is_book_metadata_file(spell_data)
+            assert not loader._is_book_content_file(spell_data)
 
     def test_adventure_metadata_vs_content_distinction(self) -> None:
         """Test that we can distinguish between adventure metadata and content."""
@@ -191,15 +192,15 @@ class TestMetadataContentDetection(IsolatedAsyncioTestCase):
 
         loader = JsonDataLoader(ContentType.ADVENTURE)
 
-        self.assertTrue(loader._is_adventure_metadata_file(metadata_data))
-        self.assertFalse(loader._is_adventure_content_file(metadata_data))
+        assert loader._is_adventure_metadata_file(metadata_data)
+        assert not loader._is_adventure_content_file(metadata_data)
 
-        self.assertFalse(loader._is_adventure_metadata_file(content_data))
-        self.assertTrue(loader._is_adventure_content_file(content_data))
+        assert not loader._is_adventure_metadata_file(content_data)
+        assert loader._is_adventure_content_file(content_data)
 
         # Mixed data should not be classified as either type
-        self.assertFalse(loader._is_adventure_metadata_file(mixed_data))
-        self.assertFalse(loader._is_adventure_content_file(mixed_data))
+        assert not loader._is_adventure_metadata_file(mixed_data)
+        assert not loader._is_adventure_content_file(mixed_data)
 
     def test_book_metadata_vs_content_distinction(self) -> None:
         """Test that we can distinguish between book metadata and content."""
@@ -219,13 +220,13 @@ class TestMetadataContentDetection(IsolatedAsyncioTestCase):
 
         loader = JsonDataLoader(ContentType.BOOK)
 
-        self.assertTrue(loader._is_book_metadata_file(metadata_data))
-        self.assertFalse(loader._is_book_content_file(metadata_data))
+        assert loader._is_book_metadata_file(metadata_data)
+        assert not loader._is_book_content_file(metadata_data)
 
-        self.assertFalse(loader._is_book_metadata_file(content_data))
-        self.assertTrue(loader._is_book_content_file(content_data))
+        assert not loader._is_book_metadata_file(content_data)
+        assert loader._is_book_content_file(content_data)
 
-    async def test_loader_can_still_load_content_files_directly(self) -> None:
+    def test_loader_can_still_load_content_files_directly(self) -> None:
         """Test that JsonDataLoader can still load content files when used directly (for backwards compatibility)."""
         # Create adventure content file
         content_data = {
@@ -244,17 +245,17 @@ class TestMetadataContentDetection(IsolatedAsyncioTestCase):
 
         try:
             loader = JsonDataLoader(ContentType.ADVENTURE)
-            adventures = await loader.load(temp_path)
+            adventures = loader.load(temp_path)
 
             # Should successfully load the adventure from content file when called directly
-            self.assertEqual(len(adventures), 1)
+            assert len(adventures) == 1
             adventure = adventures[0]
-            self.assertIsNotNone(adventure.name)
+            assert adventure.name is not None
 
         finally:
             temp_path.unlink()
 
-    async def test_loader_can_still_load_book_content_files_directly(self) -> None:
+    def test_loader_can_still_load_book_content_files_directly(self) -> None:
         """Test that JsonDataLoader can still load book content files when used directly (for backwards compatibility)."""
         # Create book content file
         content_data = {
@@ -273,17 +274,17 @@ class TestMetadataContentDetection(IsolatedAsyncioTestCase):
 
         try:
             loader = JsonDataLoader(ContentType.BOOK)
-            books = await loader.load(temp_path)
+            books = loader.load(temp_path)
 
             # Should successfully load the book from content file when called directly
-            self.assertEqual(len(books), 1)
+            assert len(books) == 1
             book = books[0]
-            self.assertIsNotNone(book.name)
+            assert book.name is not None
 
         finally:
             temp_path.unlink()
 
-    async def test_loader_processes_metadata_files_normally(self) -> None:
+    def test_loader_processes_metadata_files_normally(self) -> None:
         """Test that JsonDataLoader processes metadata files normally."""
         # Create adventure metadata file (should be processed)
         metadata_data = {
@@ -306,15 +307,15 @@ class TestMetadataContentDetection(IsolatedAsyncioTestCase):
 
         try:
             loader = JsonDataLoader(ContentType.ADVENTURE)
-            adventures = await loader.load(temp_path)
+            adventures = loader.load(temp_path)
 
             # Should successfully load the adventure from metadata file
-            self.assertEqual(len(adventures), 1)
+            assert len(adventures) == 1
             adventure = adventures[0]
-            self.assertEqual(adventure.name, "Test Adventure")
+            assert adventure.name == "Test Adventure"
             # Type assertion since we know this is an Adventure model
             if hasattr(adventure, "id"):
-                self.assertEqual(adventure.id, "TEST")
+                assert adventure.id == "TEST"
 
         finally:
             temp_path.unlink()

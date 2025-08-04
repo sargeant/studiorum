@@ -3,18 +3,19 @@
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest import IsolatedAsyncioTestCase
 from unittest.mock import Mock, patch
+
+import pytest
 
 from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
 
 
-class TestSourceDiscovery(IsolatedAsyncioTestCase):
+class TestSourceDiscovery:
     """Test comprehensive source discovery and file separation."""
 
-    async def test_books_metadata_vs_content_separation(self) -> None:
+    def test_books_metadata_vs_content_separation(self) -> None:
         """Test that books follow the same metadata/content pattern as adventures."""
         with TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -101,28 +102,22 @@ class TestSourceDiscovery(IsolatedAsyncioTestCase):
             omnidexer = Omnidexer(source_manager=mock_source_manager)
 
             # Load data
-            load_stats = await omnidexer.load_all_data()
+            load_stats = omnidexer.load_all_data()
 
             # Verify only metadata books were loaded (not content files)
-            self.assertEqual(
-                load_stats.get("book", 0),
-                2,
-                "Should load exactly 2 books from metadata file",
+            assert load_stats.get("book", 0) == 2, (
+                "Should load exactly 2 books from metadata file"
             )
 
             # Verify we can get books
             all_books = omnidexer.get_all_by_type(ContentType.BOOK)
-            self.assertEqual(
-                len(all_books),
-                2,
-                "Should have exactly 2 books (no duplicates)",
-            )
+            assert len(all_books) == 2
 
             # Verify the books have correct names
             book_names = {book.name for book in all_books}
-            self.assertEqual(book_names, {"Player's Handbook", "Monster Manual"})
+            assert book_names == {"Player's Handbook", "Monster Manual"}
 
-    async def test_mixed_adventures_and_books_separation(self) -> None:
+    def test_mixed_adventures_and_books_separation(self) -> None:
         """Test that both adventures and books are properly separated from their content files."""
         # This test focuses on verifying that the source manager correctly
         # separates metadata files from content files for both adventures and books.
@@ -161,26 +156,22 @@ class TestSourceDiscovery(IsolatedAsyncioTestCase):
                             content_files_found.append(str(path))
 
                 # Should find metadata files
-                self.assertTrue(
-                    any("adventures.json" in f for f in metadata_files_found),
-                    "adventures.json metadata file should be included",
+                assert any("adventures.json" in f for f in metadata_files_found), (
+                    "adventures.json metadata file should be included"
                 )
-                self.assertTrue(
-                    any("books.json" in f for f in metadata_files_found),
-                    "books.json metadata file should be included",
+                assert any("books.json" in f for f in metadata_files_found), (
+                    "books.json metadata file should be included"
                 )
 
                 # Should NOT find content files
-                self.assertFalse(
-                    any("adventure-cos.json" in f for f in content_files_found),
-                    "adventure-cos.json content file should be skipped",
-                )
-                self.assertFalse(
-                    any("book-phb.json" in f for f in content_files_found),
-                    "book-phb.json content file should be skipped",
+                assert not any(
+                    "adventure-cos.json" in f for f in content_files_found
+                ), "adventure-cos.json content file should be skipped"
+                assert not any("book-phb.json" in f for f in content_files_found), (
+                    "book-phb.json content file should be skipped"
                 )
 
-    async def test_error_cases_missing_metadata_files(self) -> None:
+    def test_error_cases_missing_metadata_files(self) -> None:
         """Test error handling when metadata files are missing but content files exist."""
         with TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -212,20 +203,20 @@ class TestSourceDiscovery(IsolatedAsyncioTestCase):
 
             # Create omnidexer and load data
             omnidexer = Omnidexer(source_manager=mock_source_manager)
-            load_stats = await omnidexer.load_all_data()
+            load_stats = omnidexer.load_all_data()
 
             # Should load nothing since only content files exist
-            self.assertEqual(load_stats.get("adventure", 0), 0)
-            self.assertEqual(load_stats.get("book", 0), 0)
+            assert load_stats.get("adventure", 0) == 0
+            assert load_stats.get("book", 0) == 0
 
             # Verify no content in omnidexer
             all_adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
             all_books = omnidexer.get_all_by_type(ContentType.BOOK)
 
-            self.assertEqual(len(all_adventures), 0)
-            self.assertEqual(len(all_books), 0)
+            assert len(all_adventures) == 0
+            assert len(all_books) == 0
 
-    async def test_malformed_metadata_files_handling(self) -> None:
+    def test_malformed_metadata_files_handling(self) -> None:
         """Test handling of malformed metadata files."""
         with TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -255,12 +246,12 @@ class TestSourceDiscovery(IsolatedAsyncioTestCase):
 
             # Create omnidexer and load data
             omnidexer = Omnidexer(source_manager=mock_source_manager)
-            load_stats = await omnidexer.load_all_data()
+            load_stats = omnidexer.load_all_data()
 
             # Should handle malformed data gracefully (may load 0 or fail gracefully)
             adventure_count = load_stats.get("adventure", 0)
-            self.assertIsInstance(adventure_count, int)
-            self.assertGreaterEqual(adventure_count, 0)
+            assert isinstance(adventure_count, int)
+            assert adventure_count >= 0
 
     def test_configurable_source_manager_interface_methods(self) -> None:
         """Test that ConfigurableSourceManager properly implements dual-file interface methods."""
@@ -289,23 +280,23 @@ class TestSourceDiscovery(IsolatedAsyncioTestCase):
                 metadata_files = source_manager.get_metadata_files()
 
                 # Should contain adventures and books metadata
-                self.assertIn(ContentType.ADVENTURE, metadata_files)
-                self.assertIn(ContentType.BOOK, metadata_files)
+                assert ContentType.ADVENTURE in metadata_files
+                assert ContentType.BOOK in metadata_files
 
                 # Count metadata files
                 total_metadata = sum(len(paths) for paths in metadata_files.values())
-                self.assertEqual(total_metadata, 2, "Should have 2 metadata files")
+                assert total_metadata == 2, "Should have 2 metadata files"
 
                 # Test get_content_files
                 content_files = source_manager.get_content_files()
 
                 # Should contain adventures and books content
-                self.assertIn(ContentType.ADVENTURE, content_files)
-                self.assertIn(ContentType.BOOK, content_files)
+                assert ContentType.ADVENTURE in content_files
+                assert ContentType.BOOK in content_files
 
                 # Count content files
                 total_content = sum(len(paths) for paths in content_files.values())
-                self.assertEqual(total_content, 4, "Should have 4 content files")
+                assert total_content == 4, "Should have 4 content files"
 
                 # Test get_data_paths (should match metadata for adventures/books)
                 data_paths = source_manager.get_data_paths()
@@ -316,12 +307,12 @@ class TestSourceDiscovery(IsolatedAsyncioTestCase):
                     adventure_metadata_paths = set(
                         metadata_files[ContentType.ADVENTURE]
                     )
-                    self.assertEqual(adventure_data_paths, adventure_metadata_paths)
+                    assert adventure_data_paths == adventure_metadata_paths
 
                 if ContentType.BOOK in data_paths:
                     book_data_paths = set(data_paths[ContentType.BOOK])
                     book_metadata_paths = set(metadata_files[ContentType.BOOK])
-                    self.assertEqual(book_data_paths, book_metadata_paths)
+                    assert book_data_paths == book_metadata_paths
 
     def test_file_pattern_edge_cases(self) -> None:
         """Test edge cases for file pattern matching."""
@@ -354,19 +345,15 @@ class TestSourceDiscovery(IsolatedAsyncioTestCase):
                 is_metadata = source_manager._is_metadata_file(file_path)
                 is_content = source_manager._is_content_file(file_path)
 
-                self.assertEqual(
-                    is_metadata,
-                    should_be_metadata,
-                    f"File {file_path} metadata detection failed: expected {should_be_metadata}, got {is_metadata}",
+                assert is_metadata == should_be_metadata, (
+                    f"File {file_path} metadata detection failed: expected {should_be_metadata}, got {is_metadata}"
                 )
-                self.assertEqual(
-                    is_content,
-                    should_be_content,
-                    f"File {file_path} content detection failed: expected {should_be_content}, got {is_content}",
+
+                assert is_content == should_be_content, (
+                    f"File {file_path} content detection failed: expected {should_be_content}, got {is_content}"
                 )
 
                 # Files should not be both metadata and content
-                self.assertFalse(
-                    is_metadata and is_content,
-                    f"File {file_path} should not be both metadata and content",
+                assert not (is_metadata and is_content), (
+                    f"File {file_path} should not be both metadata and content"
                 )

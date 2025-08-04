@@ -5,7 +5,6 @@ This module tests the performance characteristics of the new
 dual-file architecture content loading system.
 """
 
-import asyncio
 import time
 
 import pytest
@@ -14,21 +13,20 @@ from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceMan
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.resolvers.content_resolver import ContentResolver
 
-# Ensure async tests work properly
-pytestmark = pytest.mark.asyncio
+# Tests converted to sync after async removal migration
 
 
 class TestContentLoadingPerformance:
     """Test performance of content loading system."""
 
     @pytest.mark.slow
-    async def test_omnidexer_loading_performance(self):
+    def test_omnidexer_loading_performance(self):
         """Test that omnidexer loading completes in reasonable time."""
         start_time = time.time()
 
         source_manager = ConfigurableSourceManager()
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        omnidexer.load_all_data()
 
         end_time = time.time()
         loading_time = end_time - start_time
@@ -46,17 +44,17 @@ class TestContentLoadingPerformance:
         assert len(books) > 0, "Should have loaded books"
 
     @pytest.mark.slow
-    async def test_content_resolution_performance(self):
+    def test_content_resolution_performance(self):
         """Test that content resolution is reasonably fast."""
         source_manager = ConfigurableSourceManager()
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        omnidexer.load_all_data()
 
         resolver = ContentResolver(omnidexer)
 
         # Test adventure resolution performance
         start_time = time.time()
-        adventure = await resolver.resolve_adventure("TEST")
+        adventure = resolver.resolve_adventure("TEST")
         end_time = time.time()
 
         adventure_time = end_time - start_time
@@ -68,7 +66,7 @@ class TestContentLoadingPerformance:
 
         # Test book resolution performance
         start_time = time.time()
-        book = await resolver.resolve_book("TEST")
+        book = resolver.resolve_book("TEST")
         end_time = time.time()
 
         book_time = end_time - start_time
@@ -76,22 +74,22 @@ class TestContentLoadingPerformance:
         assert book is not None, "Should resolve book"
         assert book_time < 15, f"Book resolution took too long: {book_time:.2f}s"
 
-    async def test_caching_effectiveness(self):
+    def test_caching_effectiveness(self):
         """Test that caching improves performance on repeated access."""
         source_manager = ConfigurableSourceManager()
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        omnidexer.load_all_data()
 
         resolver = ContentResolver(omnidexer)
 
         # First resolution (cache miss)
         start_time = time.time()
-        result1 = await resolver.resolve_adventure("TEST")
+        result1 = resolver.resolve_adventure("TEST")
         first_time = time.time() - start_time
 
         # Second resolution (cache hit)
         start_time = time.time()
-        result2 = await resolver.resolve_adventure("TEST")
+        result2 = resolver.resolve_adventure("TEST")
         second_time = time.time() - start_time
 
         assert result1 is not None and result2 is not None, (
@@ -121,5 +119,4 @@ if __name__ == "__main__":
     pytest.main([__file__, "-v"])
 
 
-# Apply async mark to the entire module
-pytestmark = pytest.mark.asyncio
+# Module converted to sync after async removal migration

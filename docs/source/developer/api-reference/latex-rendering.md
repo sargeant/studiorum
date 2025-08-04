@@ -23,7 +23,7 @@ The LaTeX rendering system provides a comprehensive API for transforming D&D con
 - **Multi-engine compilation** (PDFLaTeX, XeLaTeX, LuaLaTeX)
 - **Comprehensive error handling** and diagnostics
 - **Unicode support** with LaTeX character mapping
-- **Performance optimization** with caching and async support
+- **Performance optimization** with caching and efficient processing
 
 ## LaTeXDocumentRenderer
 

@@ -50,7 +50,7 @@ This architecture solved the original problem of loading 94 duplicate adventures
 
 - **Comprehensive indexing** with SHA256 content hashing
 - **Deep indexing** support via `DeepIndexable` protocol
-- **Async/sync loading** with performance monitoring
+- **Synchronous loading** with performance monitoring
 - **Cache statistics** for optimization insights
 
 #### ContentMerger (`src/dnd5e/core/loaders/content_merger.py`)
@@ -138,7 +138,7 @@ This architecture solved the original problem of loading 94 duplicate adventures
 - **Lazy loading** of large content files (12,917 lines for CoS)
 - **LRU caching** with TTL and file modification tracking
 - **On-demand merging** reduces memory footprint
-- **Async/await support** for I/O-bound operations
+- **Synchronous I/O** with efficient file handling
 - **SHA256 hashing** for content change detection
 
 ### Type Safety and Maintainability
@@ -327,7 +327,7 @@ def validate_consistency(self) -> "ContentResolutionResult":
 ### Scalability
 
 - **On-demand loading**: Only loads content when requested
-- **Async support**: Non-blocking I/O operations
+- **Efficient I/O**: Optimized file handling patterns
 - **Cache efficiency**: Reduces file system access
 - **Protocol-based design**: Easy to extend and modify
 

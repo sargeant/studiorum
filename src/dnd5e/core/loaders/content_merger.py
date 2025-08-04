@@ -8,8 +8,6 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Any, cast
 
-import aiofiles
-
 from ..config.settings import get_settings
 from ..models.content import ContentType
 from ..types import (
@@ -51,7 +49,7 @@ class ContentMerger:
         # Cache statistics
         self._cache_stats = {"hits": 0, "misses": 0, "evictions": 0, "invalidations": 0}
 
-    async def load_content_file(
+    def load_content_file(
         self, content_type: ContentType, content_id: str
     ) -> ContentFileData | None:
         """Load content file by ID pattern with enhanced caching.
@@ -73,7 +71,7 @@ class ContentMerger:
 
         # Skip caching if disabled
         if not self.settings.enable_caching:
-            return await self._load_content_from_disk(content_type, content_id)
+            return self._load_content_from_disk(content_type, content_id)
 
         # Generate cache key
         cache_key = f"{content_type.value}:{content_id}"
@@ -90,7 +88,7 @@ class ContentMerger:
 
         # Load content from disk
         self._cache_stats["misses"] += 1
-        content_data = await self._load_content_from_disk(content_type, content_id)  # type: ignore[assignment]
+        content_data = self._load_content_from_disk(content_type, content_id)  # type: ignore[assignment]
 
         if content_data is not None:
             # Find the actual file path for cache metadata
@@ -296,7 +294,7 @@ class ContentMerger:
         result["contents"] = empty_contents
         return result
 
-    async def _load_content_from_disk(
+    def _load_content_from_disk(
         self, content_type: ContentType, content_id: str
     ) -> ContentFileData | None:
         """Load content file from disk without caching.
@@ -329,8 +327,8 @@ class ContentMerger:
 
         # Load and parse content file
         try:
-            async with aiofiles.open(matching_file, "r", encoding="utf-8") as f:
-                content = await f.read()
+            with open(matching_file, "r", encoding="utf-8") as f:
+                content = f.read()
                 content_data = json.loads(content)
 
             logger.debug(f"Loaded content file: {matching_file}")

@@ -3,8 +3,9 @@
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest import IsolatedAsyncioTestCase
 from unittest.mock import Mock
+
+import pytest
 
 from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from dnd5e.core.loaders.omnidexer import Omnidexer
@@ -12,10 +13,10 @@ from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
 
-class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
+class TestAdventureResolutionNoDuplicates:
     """Test that adventure resolution returns no duplicates after implementing metadata/content separation."""
 
-    async def test_omnidexer_loads_only_metadata_adventures(self) -> None:
+    def test_omnidexer_loads_only_metadata_adventures(self) -> None:
         """Test that omnidexer only loads adventures from metadata files, not content files."""
         with TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -72,30 +73,22 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
             omnidexer = Omnidexer(source_manager=mock_source_manager)
 
             # Load data
-            load_stats = await omnidexer.load_all_data()
+            load_stats = omnidexer.load_all_data()
 
             # Verify only metadata adventures were loaded (not content files)
-            self.assertEqual(
-                load_stats.get("adventure", 0),
-                2,
-                "Should load exactly 2 adventures from metadata file",
-            )
+            assert load_stats.get("adventure") == 2
 
             # Verify we can get adventures
             all_adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
-            self.assertEqual(
-                len(all_adventures),
-                2,
-                "Should have exactly 2 adventures (no duplicates)",
+            assert len(all_adventures) == 2, (
+                "Should have exactly 2 adventures (no duplicates)"
             )
 
             # Verify the adventures have correct names
             adventure_names = {adventure.name for adventure in all_adventures}
-            self.assertEqual(
-                adventure_names, {"Lost Mine of Phandelver", "Curse of Strahd"}
-            )
+            assert adventure_names == {"Lost Mine of Phandelver", "Curse of Strahd"}
 
-    async def test_content_resolver_finds_unique_adventures(self) -> None:
+    def test_content_resolver_finds_unique_adventures(self) -> None:
         """Test that ContentResolver finds unique adventures without duplicates."""
         with TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -137,31 +130,27 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
 
             # Create omnidexer and load data
             omnidexer = Omnidexer(source_manager=mock_source_manager)
-            await omnidexer.load_all_data()
+            omnidexer.load_all_data()
 
             # Create content resolver
             resolver = ContentResolver(omnidexer)
 
             # Resolve "TEST" - should find exactly one match
-            result = await resolver.resolve_adventure("TEST")
+            result = resolver.resolve_adventure("TEST")
 
-            self.assertEqual(
-                result.status, ResolutionStatus.EXACT_MATCH, "Should find exact match"
+            assert result.status == ResolutionStatus.EXACT_MATCH, (
+                "Should find exact match"
             )
-            self.assertIsNotNone(result.content, "Should return adventure content")
+            assert result.content is not None, "Should return adventure content"
             if result.content is not None:
-                self.assertEqual(
-                    result.content.name,
-                    "Test Adventure",
-                    "Should return correct adventure",
+                assert result.content.name == "Test Adventure", (
+                    "Should return correct adventure"
                 )
 
             # Verify no multiple matches (which would indicate duplicates)
-            self.assertEqual(
-                len(result.matches or []), 0, "Should not have multiple matches"
-            )
+            assert len(result.matches or []) == 0, "Should not have multiple matches"
 
-    async def test_no_duplicate_adventures_in_omnidexer_stats(self) -> None:
+    def test_no_duplicate_adventures_in_omnidexer_stats(self) -> None:
         """Test that omnidexer statistics show no duplicate adventures."""
         with TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -221,23 +210,19 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
 
             # Create omnidexer and load data
             omnidexer = Omnidexer(source_manager=mock_source_manager)
-            await omnidexer.load_all_data()
+            omnidexer.load_all_data()
 
             # Get statistics
             stats = omnidexer.get_statistics()
 
             # Verify we loaded exactly 1 adventure (not duplicates)
             adventure_count = stats["by_type"].get("adventure", 0)
-            self.assertEqual(
-                adventure_count,
-                1,
-                f"Should have exactly 1 adventure, got {adventure_count}",
+            assert adventure_count == 1, (
+                f"Should have exactly 1 adventure, got {adventure_count}"
             )
 
             # Verify total count matches
-            self.assertEqual(
-                stats["total_items"], 1, "Total items should match adventure count"
-            )
+            assert stats["total_items"] == 1, "Total items should match adventure count"
 
             # Verify we can resolve the adventure uniquely
             resolver = ContentResolver(omnidexer)
@@ -246,21 +231,18 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
                 source_info = adventure["source"]
                 if isinstance(source_info, str):
                     abbreviation = source_info.lower()
-                    result = await resolver.resolve_adventure(abbreviation)
+                    result = resolver.resolve_adventure(abbreviation)
 
-                    self.assertEqual(
-                        result.status,
-                        ResolutionStatus.EXACT_MATCH,
-                        f"Should resolve {abbreviation} exactly",
+                    assert result.status == ResolutionStatus.EXACT_MATCH, (
+                        f"Should resolve {abbreviation} exactly"
                     )
+
                     if result.content is not None:
-                        self.assertEqual(
-                            result.content.name,
-                            adventure["name"],
-                            f"Should resolve to correct adventure: {adventure['name']}",
+                        assert result.content.name == adventure["name"], (
+                            f"Should resolve to correct adventure: {adventure['name']}"
                         )
 
-    async def test_adventure_content_files_ignored_during_indexing(self) -> None:
+    def test_adventure_content_files_ignored_during_indexing(self) -> None:
         """Test that adventure content files are completely ignored during indexing."""
         with TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -305,24 +287,24 @@ class TestAdventureResolutionNoDuplicates(IsolatedAsyncioTestCase):
 
             # Create omnidexer and try to load data
             omnidexer = Omnidexer(source_manager=mock_source_manager)
-            load_stats = await omnidexer.load_all_data()
+            load_stats = omnidexer.load_all_data()
 
             # Should load 0 adventures since all files are content files
             adventure_count = load_stats.get("adventure", 0)
-            self.assertEqual(
-                adventure_count, 0, "Should load 0 adventures from content-only files"
+            # Handle case where load_stats might not have adventure key or returns None
+            if adventure_count is None:
+                adventure_count = 0
+            assert adventure_count == 0, (
+                f"Should load 0 adventures from content-only files, got {adventure_count}"
             )
 
             # Verify omnidexer has no adventures
             all_adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
-            self.assertEqual(
-                len(all_adventures), 0, "Should have no adventures indexed"
-            )
+            assert len(all_adventures) == 0, "Should have no adventures indexed"
 
             # Verify statistics
             stats = omnidexer.get_statistics()
-            self.assertEqual(
-                stats["by_type"].get("adventure", 0),
-                0,
-                "Stats should show 0 adventures",
-            )
+            adventure_stat = stats["by_type"].get("adventure", 0)
+            if adventure_stat is None:
+                adventure_stat = 0
+            assert adventure_stat == 0

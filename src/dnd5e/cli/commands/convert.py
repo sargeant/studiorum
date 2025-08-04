@@ -4,7 +4,6 @@ import asyncio
 import json
 from pathlib import Path
 
-import aiofiles
 import typer
 from rich import print as rprint
 
@@ -46,7 +45,7 @@ def _create_latex_compiler() -> LaTeXCompiler:
     return LaTeXCompiler(compilation_config)
 
 
-async def resolve_content_or_file(
+def resolve_content_or_file(
     content_source: str, content_type: ContentType
 ) -> tuple[list[BaseContent], str]:
     """Resolve input as either file path or content abbreviation.
@@ -64,34 +63,34 @@ async def resolve_content_or_file(
     # Check if it's a file path
     file_path = Path(content_source)
     if file_path.is_file():
-        return await _load_from_file(file_path, content_type)
+        return _load_from_file(file_path, content_type)
 
     # Otherwise, treat as content abbreviation
-    omnidexer = await get_omnidexer()
+    omnidexer = get_omnidexer()
     resolver = ContentResolver(omnidexer)
 
     # Initialize result to avoid UnboundLocalError
     result = None
 
     if content_type == ContentType.ADVENTURE:
-        result = await resolver.resolve_adventure(content_source)
+        result = resolver.resolve_adventure(content_source)
     elif content_type == ContentType.BOOK:
-        result = await resolver.resolve_book(content_source)
+        result = resolver.resolve_book(content_source)
     else:
-        result = await resolver.resolve_any(content_source, content_type)
+        result = resolver.resolve_any(content_source, content_type)
 
     if result is None:
         raise ValueError(f"Failed to resolve content: {content_source}")
 
-    return await _handle_resolution_result(result, content_source, content_type)
+    return _handle_resolution_result(result, content_source, content_type)
 
 
-async def _load_from_file(
+def _load_from_file(
     file_path: Path, content_type: ContentType
 ) -> tuple[list[BaseContent], str]:
     """Load content from a JSON file."""
-    async with aiofiles.open(file_path) as f:
-        content = await f.read()
+    with open(file_path, encoding="utf-8") as f:
+        content = f.read()
         data = json.loads(content)
 
     if content_type == ContentType.ADVENTURE:
@@ -165,7 +164,7 @@ async def _load_from_file(
         raise typer.Exit(1)
 
 
-async def _handle_resolution_result(
+def _handle_resolution_result(
     result: ContentResolutionResult, abbreviation: str, content_type: ContentType
 ) -> tuple[list[BaseContent], str]:
     """Handle the result of content resolution."""
@@ -253,10 +252,10 @@ def convert_adventure(
       5e2pdf list adventures                    # See available content
     """
 
-    async def _convert() -> None:
+    def _convert() -> None:
         try:
             # Resolve content source (file or abbreviation)
-            content_items, source_desc = await resolve_content_or_file(
+            content_items, source_desc = resolve_content_or_file(
                 content_source, ContentType.ADVENTURE
             )
 
@@ -277,8 +276,8 @@ def convert_adventure(
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = await get_omnidexer()
-                tag_resolver = await get_tag_resolver()
+                omnidexer = get_omnidexer()
+                tag_resolver = get_tag_resolver()
                 display_manager.update_task(load_task, completed=100)
 
             # Create LaTeX configuration from unified config
@@ -348,8 +347,8 @@ def convert_adventure(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
-                await f.write(result)
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(result)
 
             rprint(
                 f"[green]✓[/green] Adventure converted ({source_desc}): {output_path}"
@@ -357,13 +356,13 @@ def convert_adventure(
 
             # Compile PDF if requested
             if compile_pdf:
-                await _compile_pdf(output_path)
+                asyncio.run(_compile_pdf(output_path))
 
         except Exception as e:
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_convert())
+    _convert()
 
 
 @app.command("book")
@@ -415,10 +414,10 @@ def convert_book(
       5e2pdf list books                         # See available content
     """
 
-    async def _convert() -> None:
+    def _convert() -> None:
         try:
             # Resolve content source (file or abbreviation)
-            content_items, source_desc = await resolve_content_or_file(
+            content_items, source_desc = resolve_content_or_file(
                 content_source, ContentType.BOOK
             )
 
@@ -439,8 +438,8 @@ def convert_book(
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = await get_omnidexer()
-                tag_resolver = await get_tag_resolver()
+                omnidexer = get_omnidexer()
+                tag_resolver = get_tag_resolver()
                 display_manager.update_task(load_task, completed=100)
 
             # Create LaTeX configuration from unified config
@@ -506,20 +505,20 @@ def convert_book(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
-                await f.write(result)
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(result)
 
             rprint(f"[green]✓[/green] Book converted ({source_desc}): {output_path}")
 
             # Compile PDF if requested
             if compile_pdf:
-                await _compile_pdf(output_path)
+                asyncio.run(_compile_pdf(output_path))
 
         except Exception as e:
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_convert())
+    _convert()
 
 
 @app.command("supplement")
@@ -565,7 +564,7 @@ def convert_supplement(
     format into a formatted supplement document.
     """
 
-    async def _convert() -> None:
+    def _convert() -> None:
         try:
             # Validate input
             if not input_file.exists():
@@ -585,13 +584,13 @@ def convert_supplement(
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = await get_omnidexer()
-                tag_resolver = await get_tag_resolver()
+                omnidexer = get_omnidexer()
+                tag_resolver = get_tag_resolver()
                 display_manager.update_task(load_task, completed=100)
 
             # Load supplement content
-            async with aiofiles.open(input_file) as f:
-                content = await f.read()
+            with open(input_file, encoding="utf-8") as f:
+                content = f.read()
                 supplement_data = json.loads(content)
 
             # Parse various content types
@@ -681,8 +680,8 @@ def convert_supplement(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
-                await f.write(result)
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(result)
 
             rprint(
                 f"[green]✓[/green] Supplement converted ({len(content_items)} items): {output_path}"
@@ -690,13 +689,13 @@ def convert_supplement(
 
             # Compile PDF if requested
             if compile_pdf:
-                await _compile_pdf(output_path)
+                asyncio.run(_compile_pdf(output_path))
 
         except Exception as e:
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_convert())
+    _convert()
 
 
 @app.command("bulk")
@@ -733,15 +732,15 @@ def convert_bulk(
       5e2pdf convert bulk cos phb mm --type mixed
     """
 
-    async def _bulk_convert() -> None:
+    def _bulk_convert() -> None:
         try:
             # Load omnidexer and resolver
             with display_manager.progress("Initializing") as _:
                 init_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = await get_omnidexer()
-                tag_resolver = await get_tag_resolver()
+                omnidexer = get_omnidexer()
+                tag_resolver = get_tag_resolver()
                 resolver = ContentResolver(omnidexer)
                 display_manager.update_task(init_task, completed=100)
 
@@ -753,9 +752,9 @@ def convert_bulk(
                 )
 
                 if content_type == "adventure":
-                    results = await resolver.resolve_adventures_bulk(content_list)
+                    results = resolver.resolve_adventures_bulk(content_list)
                 elif content_type == "book":
-                    results = await resolver.resolve_books_bulk(content_list)
+                    results = resolver.resolve_books_bulk(content_list)
                 elif content_type == "mixed":
                     # For mixed content, try to determine types from abbreviations
                     mixed_requests = []
@@ -773,7 +772,7 @@ def convert_bulk(
                             mixed_requests.append((abbrev, ContentType.BOOK))
                         else:
                             mixed_requests.append((abbrev, ContentType.ADVENTURE))
-                    results = await resolver.resolve_multiple(mixed_requests)
+                    results = resolver.resolve_multiple(mixed_requests)
                 else:
                     rprint(f"[red]Error:[/red] Invalid content type: {content_type}")
                     raise typer.Exit(1)
@@ -830,14 +829,12 @@ def convert_bulk(
                         latex_result = renderer.render_document([content], context)
 
                         # Write output
-                        async with aiofiles.open(
-                            output_path, "w", encoding="utf-8"
-                        ) as f:
-                            await f.write(latex_result)
+                        with open(output_path, "w", encoding="utf-8") as f:
+                            f.write(latex_result)
 
                         # Compile PDF if requested
                         if compile_pdf:
-                            await _compile_pdf(output_path)
+                            asyncio.run(_compile_pdf(output_path))
 
                         return result.query, True
                     except Exception as e:
@@ -857,11 +854,15 @@ def convert_bulk(
                 ]
 
                 # Process with progress updates
-                completed_results = []
-                for task in asyncio.as_completed(conversion_tasks):
-                    item_name, success = await task
-                    completed_results.append((item_name, success))
-                    display_manager.update_task(convert_task, advance=1)
+                async def process_conversions() -> list[tuple[str, bool]]:
+                    completed_results = []
+                    for task in asyncio.as_completed(conversion_tasks):
+                        item_name, success = await task
+                        completed_results.append((item_name, success))
+                        display_manager.update_task(convert_task, advance=1)
+                    return completed_results
+
+                completed_results = asyncio.run(process_conversions())
 
             # Report results
             successful_conversions = [
@@ -891,7 +892,7 @@ def convert_bulk(
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_bulk_convert())
+    _bulk_convert()
 
 
 async def _compile_pdf(latex_path: Path) -> None:
@@ -902,8 +903,8 @@ async def _compile_pdf(latex_path: Path) -> None:
         compiler = _create_latex_compiler()
 
         # Read the LaTeX file content
-        async with aiofiles.open(latex_path, "r", encoding="utf-8") as f:
-            latex_content = await f.read()
+        with open(latex_path, "r", encoding="utf-8") as f:
+            latex_content = f.read()
 
         with display_manager.progress("Compiling PDF") as _:
             compile_task = display_manager.add_task(

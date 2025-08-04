@@ -4,8 +4,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import aiofiles
-
 from ..logging import get_logger
 from ..models.content import ContentType
 from ..models.fluff import (
@@ -47,14 +45,14 @@ class FluffDataLoader(DataLoader[BaseFluff]):
             ContentType.BACKGROUND: ["backgroundFluff", "background_fluff"],
         }
 
-    async def load(self, path: Path) -> list[BaseFluff]:
+    def load(self, path: Path) -> list[BaseFluff]:
         """Load fluff data with liberal parsing."""
         try:
             logger.info(f"Loading {self._content_type.value} fluff data from {path}")
 
-            # Read JSON file asynchronously
-            async with aiofiles.open(path, encoding="utf-8") as f:
-                content = await f.read()
+            # Read JSON file synchronously
+            with open(path, encoding="utf-8") as f:
+                content = f.read()
                 data = json.loads(content)
 
             # Extract fluff content

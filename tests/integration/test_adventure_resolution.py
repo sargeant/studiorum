@@ -4,7 +4,6 @@ import json
 import tempfile
 from pathlib import Path
 from typing import Any
-from unittest import IsolatedAsyncioTestCase
 from unittest.mock import Mock, patch
 
 import pytest
@@ -15,8 +14,7 @@ from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceMan
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
-# Ensure async tests work properly
-pytestmark = pytest.mark.asyncio
+# Test uses sync methods only
 
 
 class TestSourceManager(SourceManager):
@@ -87,10 +85,10 @@ class TestSourceManager(SourceManager):
         return 100
 
 
-class TestAdventureResolution(IsolatedAsyncioTestCase):
+class TestAdventureResolution:
     """End-to-end integration tests for adventure resolution."""
 
-    async def asyncSetUp(self):
+    def setup_method(self):
         """Set up test environment with temporary data files."""
         # Create temporary directory for test data
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -172,18 +170,18 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         with open(self.test_content_file, "w") as f:
             json.dump(test_content, f, indent=2)
 
-    def tearDown(self):
+    def teardown_method(self):
         """Clean up temporary files."""
         self.temp_dir.cleanup()
 
-    async def test_resolve_adventure_test_full_flow(self):
+    def test_resolve_adventure_test_full_flow(self):
         """Test end-to-end resolution of Test Adventure."""
         # Create source manager with our test data
         source_manager = TestSourceManager(self.data_dir)
 
         # Create omnidexer and load data
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        omnidexer.load_all_data()
 
         # Debug: check what files were found
         data_paths = source_manager.get_data_paths()
@@ -200,40 +198,40 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
         print(f"Adventures loaded: {len(adventures)}")
         for adv in adventures:
             print(f"  - {adv.name} (id: {adv.id})")
-        self.assertEqual(len(adventures), 1)  # Only Test Adventure metadata
+        assert len(adventures) == 1  # Only Test Adventure metadata
 
         # Create content resolver
         resolver = ContentResolver(omnidexer)
 
         # Resolve Test adventure
-        result = await resolver.resolve_adventure("TEST")
+        result = resolver.resolve_adventure("TEST")
 
         # Verify resolution was successful
-        self.assertEqual(result.status, ResolutionStatus.EXACT_MATCH)
-        self.assertIsNotNone(result.content)
+        assert result.status == ResolutionStatus.EXACT_MATCH
+        assert result.content is not None
 
         # Verify adventure has correct metadata
         adventure = result.content
-        self.assertEqual(adventure.name, "Test Adventure")
-        self.assertEqual(adventure.id, "test-adventure")
+        assert adventure.name == "Test Adventure"
+        assert adventure.id == "test-adventure"
 
         # Verify adventure has merged content
-        self.assertEqual(len(adventure.contents), 2)
+        assert len(adventure.contents) == 2
 
         # Check Chapter 1
         chapter1 = adventure.contents[0]
-        self.assertEqual(chapter1.name, "Chapter 1: The Beginning")
-        self.assertEqual(len(chapter1.entries), 3)  # Updated to match test content
-        self.assertIn("small village", str(chapter1.entries[0]))
-        self.assertIn("ancient repository", str(chapter1.entries[1]))
+        assert chapter1.name == "Chapter 1: The Beginning"
+        assert len(chapter1.entries) == 3  # Updated to match test content
+        assert "small village" in str(chapter1.entries[0])
+        assert "ancient repository" in str(chapter1.entries[1])
 
         # Check Chapter 2
         chapter2 = adventure.contents[1]
-        self.assertEqual(chapter2.name, "Chapter 2: The Repository")
-        self.assertEqual(len(chapter2.entries), 2)  # Updated to match test content
-        self.assertIn("forgotten knowledge", str(chapter2.entries[0]))
+        assert chapter2.name == "Chapter 2: The Repository"
+        assert len(chapter2.entries) == 2  # Updated to match test content
+        assert "forgotten knowledge" in str(chapter2.entries[0])
 
-    async def test_resolve_adventure_missing_content_file(self):
+    def test_resolve_adventure_missing_content_file(self):
         """Test resolution when content file is missing."""
         # Create additional metadata entry without content file
         metadata_content = {
@@ -261,73 +259,71 @@ class TestAdventureResolution(IsolatedAsyncioTestCase):
 
         # Load and resolve
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        omnidexer.load_all_data()
         resolver = ContentResolver(omnidexer)
 
-        result = await resolver.resolve_adventure("test")
+        result = resolver.resolve_adventure("test")
 
         # Should still resolve but with empty content
-        self.assertEqual(result.status, ResolutionStatus.EXACT_MATCH)
+        assert result.status == ResolutionStatus.EXACT_MATCH
         adventure = result.content
-        self.assertEqual(adventure.name, "Test Adventure")
-        self.assertEqual(len(adventure.contents), 1)
-        self.assertEqual(adventure.contents[0].entries, [])  # Empty entries
+        assert adventure.name == "Test Adventure"
+        assert len(adventure.contents) == 1
+        assert adventure.contents[0].entries == []  # Empty entries
 
         temp_dir.cleanup()
 
-    async def test_resolve_nonexistent_adventure(self):
+    def test_resolve_nonexistent_adventure(self):
         """Test resolution of non-existent adventure."""
         # Use TestSourceManager with our test data
         source_manager = TestSourceManager(self.data_dir)
 
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        omnidexer.load_all_data()
         resolver = ContentResolver(omnidexer)
 
-        result = await resolver.resolve_adventure("nonexistent")
+        result = resolver.resolve_adventure("nonexistent")
 
-        self.assertEqual(result.status, ResolutionStatus.NO_MATCH)
-        self.assertIsNone(result.content)
+        assert result.status == ResolutionStatus.NO_MATCH
+        assert result.content is None
         # Should have suggestions for similar adventures
-        self.assertTrue(
-            len(result.suggestions) > 0 or result.status == ResolutionStatus.NO_MATCH
-        )
+        assert len(result.suggestions) > 0 or result.status == ResolutionStatus.NO_MATCH
 
-    async def test_multiple_adventures_loaded(self):
+    def test_multiple_adventures_loaded(self):
         """Test that multiple adventures can be resolved independently."""
         source_manager = TestSourceManager(self.data_dir)
 
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        omnidexer.load_all_data()
         resolver = ContentResolver(omnidexer)
 
         # Resolve test adventure
-        test_adventure_result = await resolver.resolve_adventure("TEST")
+        test_adventure_result = resolver.resolve_adventure("TEST")
 
         # Should succeed
-        self.assertEqual(test_adventure_result.status, ResolutionStatus.EXACT_MATCH)
-        self.assertIsNotNone(test_adventure_result.content)
+        assert test_adventure_result.status == ResolutionStatus.EXACT_MATCH
+        assert test_adventure_result.content is not None
 
         # Verify it has correct content
-        self.assertEqual(test_adventure_result.content.name, "Test Adventure")
-        self.assertEqual(test_adventure_result.content.source.abbreviation, "TEST")
+        assert test_adventure_result.content.name == "Test Adventure"
+        assert test_adventure_result.content.source.abbreviation == "TEST"
 
-    async def test_adventure_count_metadata_only(self):
+    def test_adventure_count_metadata_only(self):
         """Test that omnidexer only contains metadata entries, not content files."""
         source_manager = TestSourceManager(self.data_dir)
 
         omnidexer = Omnidexer(source_manager)
-        await omnidexer.load_all_data()
+        omnidexer.load_all_data()
 
         # Get all adventures from omnidexer
         adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
 
         # Should only have 1 adventure (from metadata), not 2 (metadata + content)
-        self.assertEqual(len(adventures), 1)
+        assert len(adventures) == 1
 
         # Adventure should have metadata but empty content
         for adventure in adventures:
-            self.assertTrue(adventure.name in ["Test Adventure"])
+            assert adventure.name in ["Test Adventure"]
             # Before resolution, chapters should have empty entries
             for chapter in adventure.contents:
-                self.assertEqual(chapter.entries, [])
+                assert chapter.entries == []

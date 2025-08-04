@@ -85,20 +85,18 @@ class TestFormatConverter:
         assert result is True
 
     @pytest.mark.asyncio
-    async def test_convert_webp_to_png_file_not_found(self):
+    def test_convert_webp_to_png_file_not_found(self):
         """Test WebP conversion when file doesn't exist."""
         nonexistent_path = Path("nonexistent.webp")
 
         with pytest.raises(FileNotFoundError):
-            await self.converter.convert_webp_to_png(nonexistent_path)
+            self.converter.convert_webp_to_png(nonexistent_path)
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.stat")
     @patch.object(FormatConverter, "_convert_webp_sync")
-    async def test_convert_webp_to_png_success(
-        self, mock_convert, mock_stat, mock_exists
-    ):
+    def test_convert_webp_to_png_success(self, mock_convert, mock_stat, mock_exists):
         """Test successful WebP to PNG conversion."""
         # Setup mocks
         mock_exists.return_value = True
@@ -116,7 +114,7 @@ class TestFormatConverter:
 
         mock_stat.side_effect = stat_side_effect
 
-        result = await self.converter.convert_webp_to_png(webp_path)
+        result = self.converter.convert_webp_to_png(webp_path)
 
         assert isinstance(result, ConversionResult)
         assert result.original_path == webp_path
@@ -130,7 +128,7 @@ class TestFormatConverter:
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.stat")
     @patch.object(FormatConverter, "_convert_webp_sync")
-    async def test_convert_webp_to_png_custom_output(
+    def test_convert_webp_to_png_custom_output(
         self, mock_convert, mock_stat, mock_exists
     ):
         """Test WebP conversion with custom output directory."""
@@ -145,12 +143,12 @@ class TestFormatConverter:
         with patch("pathlib.Path.stat") as mock_out_stat:
             mock_out_stat.return_value = Mock(st_size=800)
 
-            result = await self.converter.convert_webp_to_png(webp_path, output_dir)
+            result = self.converter.convert_webp_to_png(webp_path, output_dir)
 
             assert result.converted_path == output_dir / "test.png"
 
     @pytest.mark.asyncio
-    async def test_convert_to_compatible_format_webp(self):
+    def test_convert_to_compatible_format_webp(self):
         """Test compatible format conversion for WebP."""
         webp_path = Path("test.webp")
 
@@ -165,22 +163,22 @@ class TestFormatConverter:
             )
             mock_convert.return_value = mock_result
 
-            result = await self.converter.convert_to_compatible_format(webp_path)
+            result = self.converter.convert_to_compatible_format(webp_path)
 
             assert result == mock_result
             mock_convert.assert_called_once_with(webp_path, None)
 
     @pytest.mark.asyncio
-    async def test_convert_to_compatible_format_png(self):
+    def test_convert_to_compatible_format_png(self):
         """Test compatible format conversion for PNG (no conversion needed)."""
         png_path = Path("test.png")
 
-        result = await self.converter.convert_to_compatible_format(png_path)
+        result = self.converter.convert_to_compatible_format(png_path)
 
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_convert_to_compatible_format_unknown(self):
+    def test_convert_to_compatible_format_unknown(self):
         """Test compatible format conversion for unknown format."""
         unknown_path = Path("test.xyz")
 
@@ -195,7 +193,7 @@ class TestFormatConverter:
             )
             mock_convert.return_value = mock_result
 
-            result = await self.converter.convert_to_compatible_format(unknown_path)
+            result = self.converter.convert_to_compatible_format(unknown_path)
 
             assert result == mock_result
             mock_convert.assert_called_once_with(unknown_path, None)

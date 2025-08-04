@@ -13,7 +13,7 @@ class DataLoader[T: BaseContent](ABC):
     """Abstract base class for data loaders."""
 
     @abstractmethod
-    async def load(self, path: Path) -> list[T]:
+    def load(self, path: Path) -> list[T]:
         """Load data from file and return validated content objects."""
         pass
 

@@ -21,14 +21,14 @@ def load_all_data_sync(omnidexer):
     """Synchronous wrapper for omnidexer.load_all_data() for testing."""
     import asyncio
 
-    return asyncio.run(omnidexer.load_all_data())
+    return omnidexer.load_all_data()
 
 
 def resolve_book_sync(resolver, book_id):
     """Synchronous wrapper for resolver.resolve_book() for testing."""
     import asyncio
 
-    return asyncio.run(resolver.resolve_book(book_id))
+    return resolver.resolve_book(book_id)
 
 
 class TestBookConversion:
@@ -516,10 +516,10 @@ class TestBookConversion:
         """Test that books and adventures follow the same architectural patterns."""
         # This test ensures both content types work through the same dual-file architecture
 
-        async def check_content_type(content_type, item_id, expected_name_substring):
+        def check_content_type(content_type, item_id, expected_name_substring):
             source_manager = ConfigurableSourceManager()
             omnidexer = Omnidexer(source_manager)
-            await omnidexer.load_all_data()
+            omnidexer.load_all_data()
 
             resolver = ContentResolver(omnidexer)
 
@@ -529,9 +529,9 @@ class TestBookConversion:
 
             # Resolve specific item
             if content_type == "book":
-                resolution_result = await resolver.resolve_book(item_id)
+                resolution_result = resolver.resolve_book(item_id)
             else:
-                resolution_result = await resolver.resolve_adventure(item_id)
+                resolution_result = resolver.resolve_adventure(item_id)
 
             assert resolution_result is not None, (
                 f"Should be able to get resolution result for {content_type} {item_id}"
@@ -550,13 +550,9 @@ class TestBookConversion:
 
             return result
 
-        import asyncio
-
         # Test both books and adventures
-        book_result = asyncio.run(check_content_type("book", "TEST", "Test Sourcebook"))
-        adventure_result = asyncio.run(
-            check_content_type("adventure", "TEST", "Test Adventure")
-        )
+        book_result = check_content_type("book", "TEST", "Test Sourcebook")
+        adventure_result = check_content_type("adventure", "TEST", "Test Adventure")
 
         # Both should have content after resolution
         assert book_result.has_content(), "Book should have content after resolution"

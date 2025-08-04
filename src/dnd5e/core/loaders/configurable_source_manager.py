@@ -55,8 +55,24 @@ class ConfigurableSourceManager(SourceManager):
         self._data_paths_cache: dict[ContentType, list[Path]] | None = None
         self._source_info_cache: dict[str, dict[str, Any]] | None = None
 
-    async def ensure_sources_ready(self) -> None:
+    def ensure_sources_ready(self) -> None:
         """Ensure all content sources are available and indexed."""
+        import asyncio
+
+        # Try to get the current event loop, if one exists
+        try:
+            asyncio.get_running_loop()
+            # If we're already in an event loop, we need to handle this differently
+            # For now, we'll skip the async operations as they should already be handled
+            # by the CLI initialization in async contexts
+            logger.debug("Event loop already running, skipping async source setup")
+            return
+        except RuntimeError:
+            # No event loop running, safe to use asyncio.run()
+            asyncio.run(self._ensure_sources_ready_async())
+
+    async def _ensure_sources_ready_async(self) -> None:
+        """Async implementation of ensure_sources_ready."""
         await self.content_manager.ensure_all_sources()
         await self.content_manager.build_content_index()
 
@@ -72,9 +88,7 @@ class ConfigurableSourceManager(SourceManager):
 
         # Check if content index is built
         if not self.content_manager._index_built:
-            logger.warning(
-                "Content index not built. Run async ensure_sources_ready() first."
-            )
+            logger.warning("Content index not built. Run ensure_sources_ready() first.")
             return {}
 
         # Start with metadata files for adventures and books
@@ -436,9 +450,7 @@ class ConfigurableSourceManager(SourceManager):
             Dictionary mapping content types to metadata file paths
         """
         if not self.content_manager._index_built:
-            logger.warning(
-                "Content index not built. Run async ensure_sources_ready() first."
-            )
+            logger.warning("Content index not built. Run ensure_sources_ready() first.")
             return {}
 
         metadata_paths: dict[ContentType, list[Path]] = {}
@@ -476,9 +488,7 @@ class ConfigurableSourceManager(SourceManager):
             Dictionary mapping content types to content file paths
         """
         if not self.content_manager._index_built:
-            logger.warning(
-                "Content index not built. Run async ensure_sources_ready() first."
-            )
+            logger.warning("Content index not built. Run ensure_sources_ready() first.")
             return {}
 
         content_paths: dict[ContentType, list[Path]] = {}

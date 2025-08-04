@@ -7,8 +7,6 @@ import tempfile
 import time
 from pathlib import Path
 
-import aiofiles
-
 from .compilation_config import (
     CompilationConfig,
     CompilationPass,
@@ -366,8 +364,8 @@ class LaTeXCompiler:
         missing_deps = []
 
         try:
-            async with aiofiles.open(tex_file, encoding="utf-8") as f:
-                content = await f.read()
+            with open(tex_file, encoding="utf-8") as f:
+                content = f.read()
 
             # Check for required packages
             for package in self.config.required_packages:

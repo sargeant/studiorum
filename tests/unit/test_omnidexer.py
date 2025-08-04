@@ -24,7 +24,7 @@ def load_all_data_sync(omnidexer: Omnidexer) -> dict[str, int]:
     """
     import asyncio
 
-    return asyncio.run(omnidexer.load_all_data())
+    return omnidexer.load_all_data()
 
 
 class TestIndexEntry:

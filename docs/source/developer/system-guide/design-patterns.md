@@ -42,22 +42,22 @@ class IndexEntry(BaseModel):
 - Clear error messages
 - API documentation generation
 
-### Async/Await Pattern
+### Synchronous I/O Pattern
 
-I/O operations use async/await for performance:
+I/O operations use efficient synchronous patterns for simplicity and reliability:
 
 ```python
-async def load_all_data(self) -> None:
-    """Load all content data asynchronously."""
-    tasks = [self._load_content_type(ct) for ct in ContentType]
-    await asyncio.gather(*tasks)
+def load_all_data(self) -> None:
+    """Load all content data efficiently."""
+    for content_type in ContentType:
+        self._load_content_type(content_type)
 ```
 
 **Benefits:**
-- Non-blocking operations
-- Better resource utilization
-- Scalable performance
-- Clean error handling
+- Simplified error handling
+- Predictable execution flow
+- Easier debugging and testing
+- Reduced complexity
 
 ### Factory Pattern for Content Creation
 
@@ -175,12 +175,12 @@ class ContentLoader:
 Process items in batches for efficiency:
 
 ```python
-async def process_in_batches(items: list[Any], batch_size: int = 50) -> list[Any]:
+def process_in_batches(items: list[Any], batch_size: int = 50) -> list[Any]:
     """Process items in batches to manage memory usage."""
     results = []
     for i in range(0, len(items), batch_size):
         batch = items[i:i + batch_size]
-        batch_results = await process_batch(batch)
+        batch_results = process_batch(batch)
         results.extend(batch_results)
     return results
 ```

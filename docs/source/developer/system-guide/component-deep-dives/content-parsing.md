@@ -814,7 +814,7 @@ class OptimizedAdventure(Adventure):
 ### Batch Processing
 
 ```python
-async def batch_parse_content(
+def batch_parse_content(
     data_items: list[dict[str, Any]],
     batch_size: int = 100
 ) -> list[BaseContent]:
@@ -837,8 +837,9 @@ async def batch_parse_content(
 
         results.extend(batch_results)
 
-        # Optional: yield control for async processing
-        await asyncio.sleep(0)  # Allow other tasks to run
+        # Optional: progress callback for long operations
+        if len(results) % (batch_size * 10) == 0:
+            logger.info(f"Processed {len(results)} items...")
 
     return results
 ```

@@ -43,7 +43,7 @@ merger = ContentMerger(
 )
 
 # Load and merge content
-merged_data = await merger.get_merged_content(
+merged_data = merger.get_merged_content(
     metadata_path="adventures.json",
     content_id="cos",
     content_directory="adventure-content/"
@@ -56,7 +56,7 @@ merged_data = await merger.get_merged_content(
 class ContentMerger:
     """Advanced content merging with caching and file tracking."""
 
-    async def get_merged_content(
+    def get_merged_content(
         self,
         metadata_path: Path,
         content_id: str,
@@ -89,7 +89,7 @@ indexer = Omnidexer(
 )
 
 # Load and index content
-adventures = await indexer.load_adventures("adventures.json")
+adventures = indexer.load_adventures("adventures.json")
 
 # Perform deep indexing
 deep_index = indexer.build_deep_index(adventures)
@@ -99,7 +99,7 @@ deep_index = indexer.build_deep_index(adventures)
 
 - **SHA256 content hashing** for change detection
 - **Deep indexing** via `DeepIndexable` protocol
-- **Async/sync loading** support
+- **Synchronous loading** with efficient file handling
 - **Performance monitoring** with detailed metrics
 
 ### ContentResolver
@@ -120,7 +120,7 @@ resolver = ContentResolver(
 )
 
 # Resolve content with fuzzy matching
-adventure = await resolver.resolve_adventure("CoS")  # "Curse of Strahd"
+adventure = resolver.resolve_adventure("CoS")  # "Curse of Strahd"
 ```
 
 #### Multi-Tier Resolution
@@ -141,7 +141,7 @@ from typing import Protocol
 class ContentLoader(Protocol):
     """Protocol for content loading implementations."""
 
-    async def load_content(
+    def load_content(
         self,
         identifier: str,
         **kwargs
@@ -209,7 +209,7 @@ class LRUCache:
 #### Graceful Degradation
 
 ```python
-async def load_with_fallback(
+def load_with_fallback(
     self,
     metadata_path: Path,
     content_id: str
@@ -218,11 +218,11 @@ async def load_with_fallback(
 
     try:
         # Try to load merged content
-        return await self.get_merged_content(metadata_path, content_id)
+        return self.get_merged_content(metadata_path, content_id)
     except ContentNotFoundError:
         # Fall back to metadata-only
         logger.warning(f"Content file not found for {content_id}, using metadata only")
-        return await self.get_metadata_only(metadata_path, content_id)
+        return self.get_metadata_only(metadata_path, content_id)
     except Exception as e:
         # Log error and provide minimal fallback
         logger.error(f"Error loading content for {content_id}: {e}")
@@ -235,24 +235,20 @@ async def load_with_fallback(
 
 ```python
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import Mock, patch, mock_open
 from dnd5e.core.loaders.content_merger import ContentMerger
 
 class TestContentMerger:
     """Comprehensive test suite for ContentMerger."""
 
-    @pytest.mark.asyncio
-    async def test_successful_merge(self):
+    def test_successful_merge(self):
         """Test successful metadata-content merging."""
         merger = ContentMerger()
 
-        with patch('aiofiles.open') as mock_open:
-            # Mock file operations
-            mock_open.return_value.__aenter__.return_value.read = AsyncMock(
-                return_value='{"adventures": [{"id": "cos"}]}'
-            )
-
-            result = await merger.get_merged_content(
+        with patch('builtins.open', mock_open(
+            read_data='{"adventures": [{"id": "cos"}]}'
+        )):
+            result = merger.get_merged_content(
                 Path("adventures.json"),
                 "cos"
             )
@@ -277,7 +273,7 @@ class TestContentMerger:
 
 ```python
 @pytest.mark.integration
-async def test_end_to_end_loading():
+def test_end_to_end_loading():
     """Test complete loading workflow."""
 
     # Setup test data
@@ -289,12 +285,12 @@ async def test_end_to_end_loading():
     resolver = ContentResolver(merger)
 
     # Load adventures
-    adventures = await indexer.load_adventures(
+    adventures = indexer.load_adventures(
         test_data_dir / "adventures.json"
     )
 
     # Resolve specific adventure
-    cos = await resolver.resolve_adventure("cos")
+    cos = resolver.resolve_adventure("cos")
 
     # Verify content is merged
     assert cos.has_content()
@@ -339,7 +335,7 @@ from dnd5e.core.loaders.base import ContentLoader
 class CustomContentLoader(ContentLoader):
     """Custom loader for specialized content formats."""
 
-    async def load_content(
+    def load_content(
         self,
         identifier: str,
         source_path: Path,
@@ -372,14 +368,14 @@ class RedisCache(CacheBackend):
         import redis
         self.redis = redis.from_url(redis_url)
 
-    async def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Optional[Any]:
         """Get item from Redis cache."""
-        data = await self.redis.get(key)
+        data = self.redis.get(key)
         return pickle.loads(data) if data else None
 
-    async def set(self, key: str, value: Any, ttl: int) -> None:
+    def set(self, key: str, value: Any, ttl: int) -> None:
         """Set item in Redis cache with TTL."""
-        await self.redis.setex(key, ttl, pickle.dumps(value))
+        self.redis.setex(key, ttl, pickle.dumps(value))
 ```
 
 ## Performance Optimization
@@ -392,9 +388,9 @@ class RedisCache(CacheBackend):
 
 ### I/O Optimization
 
-- **Async file operations**: Use `aiofiles` for non-blocking file I/O
+- **Efficient file operations**: Optimized file reading and writing patterns
 - **Batch operations**: Load multiple items in single operations when possible
-- **Connection pooling**: Reuse file handles and connections
+- **Resource management**: Proper file handle management and cleanup
 
 ### Profiling and Monitoring
 
@@ -463,7 +459,7 @@ The loader architecture maintains compatibility with:
 **Performance issues**:
 
 - Profile with cProfile or py-spy
-- Check I/O patterns and async usage
+- Check I/O patterns and file handling efficiency
 - Monitor cache hit rates
 
 For additional implementation details, see the [API Documentation](../../api-reference/index.md)

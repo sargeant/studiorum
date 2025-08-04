@@ -21,14 +21,14 @@ def load_all_data_sync(omnidexer):
     """Synchronous wrapper for omnidexer.load_all_data() for testing."""
     import asyncio
 
-    return asyncio.run(omnidexer.load_all_data())
+    return omnidexer.load_all_data()
 
 
 def resolve_adventure_sync(resolver, adventure_id):
     """Synchronous wrapper for resolver.resolve_adventure() for testing."""
     import asyncio
 
-    return asyncio.run(resolver.resolve_adventure(adventure_id))
+    return resolver.resolve_adventure(adventure_id)
 
 
 class TestAdventureConversion:

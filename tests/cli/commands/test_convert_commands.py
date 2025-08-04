@@ -4,7 +4,7 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -48,12 +48,12 @@ class TestConvertAdventureCommand:
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_adventure_with_file_path(
         self,
         mock_mkdir,
-        mock_aiofiles_open,
+        mock_builtin_open,
         mock_display,
         mock_renderer_class,
         mock_tag_resolver,
@@ -61,14 +61,15 @@ class TestConvertAdventureCommand:
     ):
         """Test converting adventure from file path."""
         # Mock file operations
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = json.dumps(self.mock_adventure_data)
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies - create a mock that passes isinstance checks
         mock_omnidexer_instance = Mock(spec=Omnidexer)
         mock_omnidexer.return_value = mock_omnidexer_instance
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock renderer
         mock_renderer = Mock()
@@ -97,7 +98,7 @@ class TestConvertAdventureCommand:
             assert "Adventure converted" in result.stdout
 
             # Verify file operations
-            mock_aiofiles_open.assert_called()
+            mock_builtin_open.assert_called()
             mock_mkdir.assert_called()
 
         finally:
@@ -108,12 +109,12 @@ class TestConvertAdventureCommand:
     @patch("dnd5e.cli.commands.convert.ContentResolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_adventure_with_abbreviation(
         self,
         mock_mkdir,
-        mock_aiofiles_open,
+        mock_builtin_open,
         mock_display,
         mock_renderer_class,
         mock_resolver_class,
@@ -122,12 +123,13 @@ class TestConvertAdventureCommand:
     ):
         """Test converting adventure from abbreviation."""
         # Mock file operations
-        mock_file = AsyncMock()
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_file = Mock()
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock resolver
         mock_resolver = Mock()
@@ -150,7 +152,7 @@ class TestConvertAdventureCommand:
             status=ResolutionStatus.EXACT_MATCH, content=mock_adventure, query="cos"
         )
         # Make the mock async
-        mock_resolver.resolve_adventure = AsyncMock(return_value=mock_result)
+        mock_resolver.resolve_adventure = Mock(return_value=mock_result)
         mock_resolver_class.return_value = mock_resolver
 
         # Mock renderer
@@ -201,7 +203,7 @@ class TestConvertAdventureCommand:
             status=ResolutionStatus.NO_MATCH, query="nonexistent"
         )
         # Make the mock async
-        mock_resolver.resolve_adventure = AsyncMock(return_value=mock_result)
+        mock_resolver.resolve_adventure = Mock(return_value=mock_result)
         mock_resolver_class.return_value = mock_resolver
 
         # Test command
@@ -215,14 +217,14 @@ class TestConvertAdventureCommand:
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     @patch("dnd5e.cli.commands.convert._compile_pdf")
     def test_convert_adventure_with_pdf_compilation(
         self,
         mock_compile_pdf,
         mock_mkdir,
-        mock_aiofiles_open,
+        mock_builtin_open,
         mock_display,
         mock_renderer_class,
         mock_tag_resolver,
@@ -230,13 +232,14 @@ class TestConvertAdventureCommand:
     ):
         """Test adventure conversion with PDF compilation."""
         # Mock file operations
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = json.dumps(self.mock_adventure_data)
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock renderer
         mock_renderer = Mock()
@@ -298,12 +301,12 @@ class TestConvertBookCommand:
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_book_with_file_path(
         self,
         mock_mkdir,
-        mock_aiofiles_open,
+        mock_builtin_open,
         mock_display,
         mock_renderer_class,
         mock_tag_resolver,
@@ -311,13 +314,14 @@ class TestConvertBookCommand:
     ):
         """Test converting book from file path."""
         # Mock file operations
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = json.dumps(self.mock_book_data)
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock renderer
         mock_renderer = Mock()
@@ -352,12 +356,12 @@ class TestConvertBookCommand:
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_book_with_custom_options(
         self,
         mock_mkdir,
-        mock_aiofiles_open,
+        mock_builtin_open,
         mock_display,
         mock_renderer_class,
         mock_tag_resolver,
@@ -365,13 +369,14 @@ class TestConvertBookCommand:
     ):
         """Test book conversion with custom options."""
         # Mock file operations
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = json.dumps(self.mock_book_data)
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock renderer
         mock_renderer = Mock()
@@ -444,12 +449,12 @@ class TestConvertSupplementCommand:
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_supplement_with_spells(
         self,
         mock_mkdir,
-        mock_aiofiles_open,
+        mock_builtin_open,
         mock_display,
         mock_renderer_class,
         mock_tag_resolver,
@@ -457,13 +462,14 @@ class TestConvertSupplementCommand:
     ):
         """Test converting supplement with spells."""
         # Mock file operations
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = json.dumps(self.mock_supplement_data)
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock renderer
         mock_renderer = Mock()
@@ -505,23 +511,24 @@ class TestConvertSupplementCommand:
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     def test_convert_supplement_empty_content(
         self,
-        mock_aiofiles_open,
+        mock_builtin_open,
         mock_display,
         mock_tag_resolver,
         mock_omnidexer,
     ):
         """Test error handling for supplement with no valid content."""
         # Mock file operations - empty content
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = json.dumps({"unknown": []})
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -550,19 +557,19 @@ class TestPDFCompilation:
     """Test PDF compilation functionality."""
 
     @pytest.mark.asyncio
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
     async def test_compile_pdf_success(
-        self, mock_display, mock_create_compiler, mock_aiofiles_open
+        self, mock_display, mock_create_compiler, mock_builtin_open
     ):
         """Test successful PDF compilation."""
         # Mock file reading
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock LaTeX compiler
         mock_compiler = Mock()
@@ -587,19 +594,19 @@ class TestPDFCompilation:
         mock_compiler.compile_document.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
     async def test_compile_pdf_failure(
-        self, mock_display, mock_create_compiler, mock_aiofiles_open
+        self, mock_display, mock_create_compiler, mock_builtin_open
     ):
         """Test PDF compilation failure handling."""
         # Mock file reading
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock failed LaTeX compiler
         mock_compiler = Mock()
@@ -621,19 +628,19 @@ class TestPDFCompilation:
         mock_compiler.compile_document.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
     async def test_compile_pdf_latex_not_found(
-        self, mock_display, mock_create_compiler, mock_aiofiles_open
+        self, mock_display, mock_create_compiler, mock_builtin_open
     ):
         """Test handling when LaTeX engine is not installed."""
         # Mock file reading
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock FileNotFoundError (LaTeX engine not found)
         mock_compiler = Mock()
@@ -666,19 +673,20 @@ class TestErrorHandlingPaths:
 
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     def test_json_decode_error(
-        self, mock_aiofiles_open, mock_tag_resolver, mock_omnidexer
+        self, mock_builtin_open, mock_tag_resolver, mock_omnidexer
     ):
         """Test handling of invalid JSON files."""
         # Mock file operations - invalid JSON
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = "invalid json content {"
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Create temporary file with invalid JSON
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -699,13 +707,13 @@ class TestErrorHandlingPaths:
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     def test_renderer_exception(
-        self, mock_aiofiles_open, mock_renderer_class, mock_tag_resolver, mock_omnidexer
+        self, mock_builtin_open, mock_renderer_class, mock_tag_resolver, mock_omnidexer
     ):
         """Test handling of renderer exceptions."""
         # Mock file operations
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = json.dumps(
             {
                 "adventure": [
@@ -722,11 +730,12 @@ class TestErrorHandlingPaths:
                 ]
             }
         )
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock renderer to raise exception
         mock_renderer = Mock()
@@ -762,12 +771,12 @@ class TestSpecialCases:
     @patch("dnd5e.cli.commands.convert.ContentResolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_phb_abbreviation_fallback(
         self,
         mock_mkdir,
-        mock_aiofiles_open,
+        mock_builtin_open,
         mock_display,
         mock_renderer_class,
         mock_resolver_class,
@@ -776,7 +785,7 @@ class TestSpecialCases:
     ):
         """Test PHB abbreviation fallback to content resolver."""
         # Mock file operations
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = json.dumps(
             {
                 "data": [
@@ -788,11 +797,12 @@ class TestSpecialCases:
                 ]
             }
         )
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock resolver with successful book resolution
         mock_resolver = Mock()
@@ -811,7 +821,7 @@ class TestSpecialCases:
             status=ResolutionStatus.EXACT_MATCH, content=mock_book, query="phb"
         )
         # Make the mock async
-        mock_resolver.resolve_book = AsyncMock(return_value=mock_result)
+        mock_resolver.resolve_book = Mock(return_value=mock_result)
         mock_resolver_class.return_value = mock_resolver
 
         # Mock renderer
@@ -859,12 +869,12 @@ class TestLaTeXDocumentOptions:
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_adventure_with_latex_options(
         self,
         mock_mkdir,
-        mock_aiofiles_open,
+        mock_builtin_open,
         mock_display,
         mock_renderer_class,
         mock_tag_resolver,
@@ -872,13 +882,14 @@ class TestLaTeXDocumentOptions:
     ):
         """Test adventure command with LaTeX document options."""
         # Mock file operations
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = json.dumps(self.mock_adventure_data)
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock renderer
         mock_renderer = Mock()
@@ -943,12 +954,12 @@ class TestLaTeXDocumentOptions:
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_book_with_default_latex_options(
         self,
         mock_mkdir,
-        mock_aiofiles_open,
+        mock_builtin_open,
         mock_display,
         mock_renderer_class,
         mock_tag_resolver,
@@ -967,13 +978,14 @@ class TestLaTeXDocumentOptions:
         }
 
         # Mock file operations
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = json.dumps(mock_book_data)
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock renderer
         mock_renderer = Mock()
@@ -1025,14 +1037,14 @@ class TestLaTeXDocumentOptions:
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("aiofiles.open")
+    @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     @patch("dnd5e.cli.commands.convert.get_app_config")
     def test_supplement_with_paper_size_from_settings(
         self,
         mock_get_app_config,
         mock_mkdir,
-        mock_aiofiles_open,
+        mock_builtin_open,
         mock_display,
         mock_renderer_class,
         mock_tag_resolver,
@@ -1065,13 +1077,14 @@ class TestLaTeXDocumentOptions:
         mock_get_app_config.return_value = mock_config
 
         # Mock file operations
-        mock_file = AsyncMock()
+        mock_file = Mock()
         mock_file.read.return_value = json.dumps(mock_supplement_data)
-        mock_aiofiles_open.return_value.__aenter__.return_value = mock_file
+        mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
-        mock_tag_resolver.return_value = TagResolver(omnidexer=None)
+        mock_tag_resolver_instance = Mock(spec=TagResolver)
+        mock_tag_resolver.return_value = mock_tag_resolver_instance
 
         # Mock renderer
         mock_renderer = Mock()

@@ -4,8 +4,6 @@ import re
 from pathlib import Path
 from typing import Any
 
-import aiofiles
-
 
 class LaTeXTemplateEngine:
     """Template engine for LaTeX document generation.
@@ -209,9 +207,7 @@ class LaTeXTemplateEngine:
 {{% endif %}}
 """.strip()
 
-    async def render_template(
-        self, template_name: str, variables: dict[str, Any]
-    ) -> str:
+    def render_template(self, template_name: str, variables: dict[str, Any]) -> str:
         """Render a template with the given variables.
 
         Args:
@@ -221,13 +217,13 @@ class LaTeXTemplateEngine:
         Returns:
             Rendered template content
         """
-        template = await self._get_template(template_name)
+        template = self._get_template(template_name)
         if not template:
             raise ValueError(f"Template '{template_name}' not found")
 
         return self._substitute_variables(template, variables)
 
-    async def _get_template(self, template_name: str) -> str | None:
+    def _get_template(self, template_name: str) -> str | None:
         """Get template content by name.
 
         Args:
@@ -243,8 +239,8 @@ class LaTeXTemplateEngine:
         # Try to load from file
         template_file = self.templates_dir / f"{template_name}.tex"
         if template_file.exists():
-            async with aiofiles.open(template_file, encoding="utf-8") as f:
-                content = await f.read()
+            with open(template_file, encoding="utf-8") as f:
+                content = f.read()
             self._template_cache[template_name] = content
             return content
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -74,7 +73,7 @@ class ImageProcessor:
         self._placer: ImagePlacer | None = None  # Will be initialized lazily
         self._image_manager: Any = None  # Will be initialized lazily
 
-    async def process_image_entry(
+    def process_image_entry(
         self,
         image_entry: dict[str, Any],
         context: RenderContext,
@@ -103,7 +102,7 @@ class ImageProcessor:
 
         try:
             # Process the image through the pipeline
-            processed = await self._process_image_pipeline(href, image_entry, context)
+            processed = self._process_image_pipeline(href, image_entry, context)
             return processed.latex_command
 
         except Exception as e:
@@ -115,7 +114,7 @@ class ImageProcessor:
                 else f"% Image processing failed: {e}"
             )
 
-    async def _process_image_pipeline(
+    def _process_image_pipeline(
         self,
         image_path: str,
         image_entry: dict[str, Any],
@@ -132,16 +131,16 @@ class ImageProcessor:
             Processed image with LaTeX command
         """
         # Step 1: Resolve and download image if needed
-        resolved_path = await self._resolve_image_path(image_path, context)
+        resolved_path = self._resolve_image_path(image_path, context)
 
         # Step 2: Convert format if needed (WebP -> PNG)
-        converted_path = await self._convert_format_if_needed(resolved_path)
+        converted_path = self._convert_format_if_needed(resolved_path)
 
         # Step 3: Optimize image (resize, compress)
-        optimized_path = await self._optimize_image(converted_path, context)
+        optimized_path = self._optimize_image(converted_path, context)
 
         # Step 4: Generate LaTeX with intelligent placement
-        latex_command = await self._generate_latex_command(
+        latex_command = self._generate_latex_command(
             optimized_path, image_entry, context
         )
 
@@ -154,9 +153,7 @@ class ImageProcessor:
             caption=image_entry.get("title"),
         )
 
-    async def _resolve_image_path(
-        self, image_path: str, context: RenderContext
-    ) -> Path:
+    def _resolve_image_path(self, image_path: str, context: RenderContext) -> Path:
         """Resolve image path, handling URLs and local paths.
 
         Args:
@@ -180,7 +177,7 @@ class ImageProcessor:
         else:
             return Path(image_path)
 
-    async def _convert_format_if_needed(self, image_path: Path) -> Path:
+    def _convert_format_if_needed(self, image_path: Path) -> Path:
         """Convert image format if needed (e.g., WebP to PNG).
 
         Args:
@@ -205,9 +202,7 @@ class ImageProcessor:
         try:
             # Check if conversion is needed
             if self._format_converter.is_conversion_needed(image_path):
-                result = await self._format_converter.convert_to_compatible_format(
-                    image_path
-                )
+                result = self._format_converter.convert_to_compatible_format(image_path)
                 if result is not None:
                     return result.converted_path
             return image_path
@@ -216,7 +211,7 @@ class ImageProcessor:
             # If conversion fails, return original
             return image_path
 
-    async def _optimize_image(self, image_path: Path, context: RenderContext) -> Path:
+    def _optimize_image(self, image_path: Path, context: RenderContext) -> Path:
         """Optimize image size and quality.
 
         Args:
@@ -246,14 +241,14 @@ class ImageProcessor:
 
         try:
             # TODO: Extract context hint from image entry
-            result = await self._optimizer.optimize_image(image_path)
+            result = self._optimizer.optimize_image(image_path)
             return result.optimized_path
 
         except Exception:
             # If optimization fails, return original
             return image_path
 
-    async def _generate_latex_command(
+    def _generate_latex_command(
         self,
         image_path: Path,
         image_entry: dict[str, Any],

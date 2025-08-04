@@ -1,6 +1,5 @@
 """Content resolver for mapping user abbreviations to content objects."""
 
-import asyncio
 import difflib
 import logging
 from enum import Enum
@@ -89,7 +88,7 @@ class ContentResolver:
         self.omnidexer = omnidexer
         self.content_merger = ContentMerger(omnidexer.source_manager)
 
-    async def resolve_adventure(self, abbreviation: str) -> ContentResolutionResult:
+    def resolve_adventure(self, abbreviation: str) -> ContentResolutionResult:
         """Resolve abbreviation to an adventure.
 
         Args:
@@ -98,9 +97,9 @@ class ContentResolver:
         Returns:
             ContentResolutionResult with resolution details
         """
-        return await self._resolve_content(ContentType.ADVENTURE, abbreviation)
+        return self._resolve_content(ContentType.ADVENTURE, abbreviation)
 
-    async def resolve_book(self, abbreviation: str) -> ContentResolutionResult:
+    def resolve_book(self, abbreviation: str) -> ContentResolutionResult:
         """Resolve abbreviation to a book.
 
         Args:
@@ -109,9 +108,9 @@ class ContentResolver:
         Returns:
             ContentResolutionResult with resolution details
         """
-        return await self._resolve_content(ContentType.BOOK, abbreviation)
+        return self._resolve_content(ContentType.BOOK, abbreviation)
 
-    async def resolve_any(
+    def resolve_any(
         self, abbreviation: str, content_type: ContentType | None = None
     ) -> ContentResolutionResult:
         """Resolve abbreviation to any content type.
@@ -124,18 +123,18 @@ class ContentResolver:
             ContentResolutionResult with resolution details
         """
         if content_type:
-            return await self._resolve_content(content_type, abbreviation)
+            return self._resolve_content(content_type, abbreviation)
 
         # Try all content types if not specified
         for ct in [ContentType.ADVENTURE, ContentType.BOOK]:
-            result = await self._resolve_content(ct, abbreviation)
+            result = self._resolve_content(ct, abbreviation)
             if result.is_success:
                 return result
 
         # If no exact matches, return the first result with suggestions
-        return await self._resolve_content(ContentType.ADVENTURE, abbreviation)
+        return self._resolve_content(ContentType.ADVENTURE, abbreviation)
 
-    async def resolve_multiple(
+    def resolve_multiple(
         self, requests: list[tuple[str, ContentType]]
     ) -> list[ContentResolutionResult]:
         """Resolve multiple abbreviations concurrently for optimal performance.
@@ -158,30 +157,24 @@ class ContentResolver:
             task = self._resolve_content(content_type, abbreviation)
             tasks.append(task)
 
-        # Execute all resolutions concurrently
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        # Convert exceptions to failed resolution results
-        final_results: list[ContentResolutionResult] = []
-        for i, result in enumerate(results):
-            if isinstance(result, Exception):
-                abbreviation, content_type = requests[i]
-                final_results.append(
+        # Execute all resolutions sequentially
+        results = []
+        for abbreviation, content_type in requests:
+            try:
+                results.append(self._resolve_content(content_type, abbreviation))
+            except Exception:
+                # Convert exception to failed resolution result
+                results.append(
                     ContentResolutionResult(
                         status=ResolutionStatus.NO_MATCH,
                         query=abbreviation,
-                        suggestions=self.find_suggestions(
-                            abbreviation, content_type, limit=3
-                        ),
+                        content=None,
                     )
                 )
-            else:
-                resolved_result = cast(ContentResolutionResult, result)
-                final_results.append(resolved_result)
 
-        return final_results
+        return results
 
-    async def resolve_adventures_bulk(
+    def resolve_adventures_bulk(
         self, abbreviations: list[str]
     ) -> list[ContentResolutionResult]:
         """Resolve multiple adventures concurrently.
@@ -193,9 +186,9 @@ class ContentResolver:
             List of ContentResolutionResult objects
         """
         requests = [(abbrev, ContentType.ADVENTURE) for abbrev in abbreviations]
-        return await self.resolve_multiple(requests)
+        return self.resolve_multiple(requests)
 
-    async def resolve_books_bulk(
+    def resolve_books_bulk(
         self, abbreviations: list[str]
     ) -> list[ContentResolutionResult]:
         """Resolve multiple books concurrently.
@@ -207,7 +200,7 @@ class ContentResolver:
             List of ContentResolutionResult objects
         """
         requests = [(abbrev, ContentType.BOOK) for abbrev in abbreviations]
-        return await self.resolve_multiple(requests)
+        return self.resolve_multiple(requests)
 
     def find_suggestions(
         self, abbreviation: str, content_type: ContentType, limit: int = 5
@@ -242,7 +235,7 @@ class ContentResolver:
 
         return suggestions
 
-    async def _resolve_content(
+    def _resolve_content(
         self, content_type: ContentType, abbreviation: str
     ) -> ContentResolutionResult:
         """Internal method to resolve content by type and abbreviation.
@@ -279,7 +272,7 @@ class ContentResolver:
 
         if len(exact_matches) == 1:
             # For adventures and books, merge metadata with content
-            resolved_content = await self._enrich_content_if_needed(
+            resolved_content = self._enrich_content_if_needed(
                 exact_matches[0], content_type
             )
             return ContentResolutionResult(
@@ -291,7 +284,7 @@ class ContentResolver:
             # Try to resolve ambiguity by preferring non-versioned content
             preferred_match = self._select_preferred_match(exact_matches)
             if preferred_match:
-                resolved_content = await self._enrich_content_if_needed(
+                resolved_content = self._enrich_content_if_needed(
                     preferred_match, content_type
                 )
                 return ContentResolutionResult(
@@ -320,7 +313,7 @@ class ContentResolver:
             ]
 
             if len(fuzzy_matches) == 1:
-                resolved_content = await self._enrich_content_if_needed(
+                resolved_content = self._enrich_content_if_needed(
                     fuzzy_matches[0], content_type
                 )
                 return ContentResolutionResult(
@@ -420,7 +413,7 @@ class ContentResolver:
         # Look for pattern like "(2014)" or "(2024)" at the end of the name
         return bool(re.search(r"\(\d{4}\)\s*$", name))
 
-    async def _enrich_content_if_needed(
+    def _enrich_content_if_needed(
         self, content: BaseContent, content_type: ContentType
     ) -> BaseContent:
         """Enrich content with on-demand loading for dual-file types.
@@ -454,7 +447,7 @@ class ContentResolver:
 
         try:
             # Load the content file
-            content_data = await self.content_merger.load_content_file(
+            content_data = self.content_merger.load_content_file(
                 content_type, content_id
             )
 

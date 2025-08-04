@@ -205,7 +205,7 @@ def loaded_omnidexer(
 
     # Create and load omnidexer
     omnidexer = Omnidexer(source_manager)
-    asyncio.run(omnidexer.load_all_data())
+    omnidexer.load_all_data()
 
     return omnidexer
 
@@ -240,7 +240,7 @@ def make_omnidexer():
 
         # Create and load omnidexer
         omnidexer = Omnidexer(source_manager)
-        asyncio.run(omnidexer.load_all_data())
+        omnidexer.load_all_data()
 
         return omnidexer
 
@@ -273,7 +273,7 @@ def test_data_omnidexer() -> Omnidexer:
     asyncio.run(source_manager.ensure_sources_ready())
 
     omnidexer = Omnidexer(source_manager)
-    asyncio.run(omnidexer.load_all_data())
+    omnidexer.load_all_data()
     return omnidexer
 
 

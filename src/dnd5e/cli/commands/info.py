@@ -1,7 +1,5 @@
 """Info command for 5e2pdf CLI."""
 
-import asyncio
-
 import typer
 from rich import print as rprint
 from rich.panel import Panel
@@ -45,14 +43,14 @@ def show_content_info(
       5e2pdf info content fireball --type spell # Spell by name
     """
 
-    async def _show_info() -> None:
+    def _show_info() -> None:
         try:
             # Load omnidexer
             with display_manager.progress("Loading info data") as _:
                 load_task = display_manager.add_task(
                     "[cyan]Loading content data...", total=None
                 )
-                omnidexer = await get_omnidexer()
+                omnidexer = get_omnidexer()
                 display_manager.update_task(load_task, completed=100)
 
             # Create resolver for abbreviation lookup
@@ -66,7 +64,7 @@ def show_content_info(
 
                 # Try adventure abbreviation lookup
                 if not content_type or content_type.lower() == "adventure":
-                    result = await resolver.resolve_adventure(name_or_abbreviation)
+                    result = resolver.resolve_adventure(name_or_abbreviation)
                     if result and result.is_success and result.content:
                         content_item = result.content
 
@@ -74,7 +72,7 @@ def show_content_info(
                 if not content_item and (
                     not content_type or content_type.lower() == "book"
                 ):
-                    result = await resolver.resolve_book(name_or_abbreviation)
+                    result = resolver.resolve_book(name_or_abbreviation)
                     if result and result.is_success and result.content:
                         content_item = result.content
 
@@ -120,7 +118,7 @@ def show_content_info(
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_show_info())
+    _show_info()
 
 
 @app.command("file")

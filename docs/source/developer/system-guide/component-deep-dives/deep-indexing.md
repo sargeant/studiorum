@@ -242,7 +242,7 @@ def test_my_content_deep_indexing():
     assert len(nested_items) > 0
 
     # Test full indexing workflow
-    await omnidexer.load_all_data()
+    omnidexer.load_all_data()
     found_items = omnidexer.find_all(ContentType.MY_NESTED_TYPE)
     assert len(found_items) > 0
 ```
@@ -325,7 +325,7 @@ Based on testing with real 5e.tools data:
 
 1. **Lazy Loading**: Enable/disable deep indexing via configuration
 2. **Cycle Prevention**: Hash-based tracking prevents infinite recursion
-3. **Parallel Processing**: Async/await support for concurrent loading
+3. **Efficient Processing**: Optimized loading with resource management
 4. **Error Resilience**: Individual parsing failures don't halt entire process
 
 ### Configuration
@@ -408,10 +408,10 @@ def test_entry_parser():
 Test the complete deep indexing workflow:
 
 ```python
-async def test_full_deep_indexing():
+def test_full_deep_indexing():
     """Test complete deep indexing with real data."""
     omnidexer = Omnidexer(enable_deep_indexing=True)
-    await omnidexer.load_all_data()
+    omnidexer.load_all_data()
 
     # Verify nested content is indexed
     sections = omnidexer.find_all(ContentType.ADVENTURE_SECTION)
@@ -437,13 +437,13 @@ def test_performance_benchmarks():
     # Baseline without deep indexing
     start = time.time()
     omnidexer_baseline = Omnidexer(enable_deep_indexing=False)
-    await omnidexer_baseline.load_all_data()
+    omnidexer_baseline.load_all_data()
     baseline_time = time.time() - start
 
     # With deep indexing
     start = time.time()
     omnidexer_deep = Omnidexer(enable_deep_indexing=True)
-    await omnidexer_deep.load_all_data()
+    omnidexer_deep.load_all_data()
     deep_time = time.time() - start
 
     # Verify overhead is acceptable (<50%)
@@ -481,7 +481,7 @@ def create_mock_adventure() -> Adventure:
 ```python
 # Limited to primary content only
 omnidexer = Omnidexer()
-await omnidexer.load_all_data()
+omnidexer.load_all_data()
 
 # Could only find top-level content
 fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")
@@ -492,7 +492,7 @@ fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")
 ```python
 # Full nested content indexing
 omnidexer = Omnidexer(enable_deep_indexing=True)
-await omnidexer.load_all_data()
+omnidexer.load_all_data()
 
 # Find top-level content (unchanged)
 fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")
@@ -539,7 +539,7 @@ from dnd5e.core.models.content import ContentType
 
 # Initialize with deep indexing
 omnidexer = Omnidexer(enable_deep_indexing=True)
-await omnidexer.load_all_data()
+omnidexer.load_all_data()
 
 # Find all adventure sections
 sections = omnidexer.find_all(ContentType.ADVENTURE_SECTION)

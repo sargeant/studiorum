@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 from typing import Any
 
@@ -42,7 +41,7 @@ class FormatConverter:
                 "Install with: pip install Pillow"
             )
 
-    async def convert_webp_to_png(
+    def convert_webp_to_png(
         self, webp_path: Path, output_dir: Path | None = None
     ) -> ConversionResult:
         """Convert WebP image to PNG format.
@@ -69,10 +68,8 @@ class FormatConverter:
         # Get file sizes
         original_size = webp_path.stat().st_size
 
-        # Run conversion in thread pool to avoid blocking
-        await asyncio.get_event_loop().run_in_executor(
-            None, self._convert_webp_sync, webp_path, output_path
-        )
+        # Run conversion synchronously
+        self._convert_webp_sync(webp_path, output_path)
 
         converted_size = output_path.stat().st_size
 
@@ -114,7 +111,7 @@ class FormatConverter:
         except Exception as e:
             raise ValueError(f"Failed to convert WebP to PNG: {e}") from e
 
-    async def convert_to_compatible_format(
+    def convert_to_compatible_format(
         self, image_path: Path, output_dir: Path | None = None
     ) -> ConversionResult | None:
         """Convert image to LaTeX-compatible format if needed.
@@ -130,15 +127,15 @@ class FormatConverter:
         suffix = image_path.suffix.lower()
 
         if suffix == ".webp":
-            return await self.convert_webp_to_png(image_path, output_dir)
+            return self.convert_webp_to_png(image_path, output_dir)
         elif suffix in {".png", ".jpg", ".jpeg", ".pdf"}:
             # Already LaTeX compatible
             return None
         else:
             # Unknown format - try to convert to PNG
-            return await self._convert_unknown_format(image_path, output_dir)
+            return self._convert_unknown_format(image_path, output_dir)
 
-    async def _convert_unknown_format(
+    def _convert_unknown_format(
         self, image_path: Path, output_dir: Path | None = None
     ) -> ConversionResult:
         """Convert unknown image format to PNG.
@@ -156,9 +153,7 @@ class FormatConverter:
 
         original_size = image_path.stat().st_size
 
-        await asyncio.get_event_loop().run_in_executor(
-            None, self._convert_to_png_sync, image_path, output_path
-        )
+        self._convert_to_png_sync(image_path, output_path)
 
         converted_size = output_path.stat().st_size
 

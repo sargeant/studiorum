@@ -1,6 +1,5 @@
 """Omnidexer system for comprehensive content indexing."""
 
-import asyncio
 import hashlib
 from collections import defaultdict
 from datetime import timedelta
@@ -124,8 +123,8 @@ class Omnidexer:
         self.source_manager = source_manager or ConfigurableSourceManager()
         self.enable_deep_indexing = enable_deep_indexing
 
-        # Async lock for thread-safe indexing operations
-        self._index_lock = asyncio.Lock()
+        # Note: Removing async lock since we're converting to sync
+        # Thread safety no longer needed for sync operations
 
         # Index structures
         self._index: dict[str, IndexEntry] = {}  # hash_id -> entry
@@ -189,13 +188,13 @@ class Omnidexer:
         self._loaders[content_type] = loader
         logger.info(f"Registered loader for {content_type.value}")
 
-    async def load_all_data(self, data_path: Path | None = None) -> dict[str, int]:
+    def load_all_data(self, data_path: Path | None = None) -> dict[str, int]:
         """Load all available data and build comprehensive index."""
         logger.info("Starting omnidexer data loading...")
 
         # Ensure sources are ready if using configurable source manager
         if isinstance(self.source_manager, ConfigurableSourceManager):
-            await self.source_manager.ensure_sources_ready()
+            self.source_manager.ensure_sources_ready()
 
         # Get data paths from source manager
         data_paths = self.source_manager.get_data_paths()
@@ -204,34 +203,23 @@ class Omnidexer:
         # for content_type, paths in data_paths.items():
         #     print(f"DEBUG Omnidexer: {content_type} has {len(paths)} files")
 
-        # Create loading tasks
-        load_tasks = []
+        # Process all data sequentially
+        load_stats: dict[str, int] = defaultdict(int)
+        total_loaded = 0
+
         for content_type, paths in data_paths.items():
             if content_type in self._loaders:
                 for path in paths:
-                    task = self._load_content_type(content_type, path)
-                    load_tasks.append(task)
+                    result = self._load_content_type(content_type, path)
+                    if isinstance(result, dict):
+                        for content_type_str, count in result.items():
+                            load_stats[content_type_str] += count
+                            total_loaded += count
             else:
                 logger.warning(f"No loader registered for {content_type.value}")
 
-        if not load_tasks:
+        if total_loaded == 0:
             logger.warning("No data files found to load")
-            return {}
-
-        # Execute all loading tasks concurrently
-        logger.info(f"Starting {len(load_tasks)} loading tasks")
-        results = await asyncio.gather(*load_tasks, return_exceptions=True)
-
-        # Process results
-        load_stats: dict[str, int] = defaultdict(int)
-        total_loaded = 0
-        for result in results:
-            if isinstance(result, Exception):
-                logger.error(f"Loading task failed: {result}")
-            elif isinstance(result, dict):
-                for content_type_str, count in result.items():
-                    load_stats[content_type_str] += count
-                    total_loaded += count
 
         logger.info(
             f"Omnidexer loaded {total_loaded} total items across {len(load_stats)} content types"
@@ -240,7 +228,7 @@ class Omnidexer:
 
         return load_stats
 
-    async def _load_content_type(
+    def _load_content_type(
         self, content_type: ContentType, path: Path
     ) -> dict[str, int]:
         """Load a specific content type from path."""
@@ -250,7 +238,7 @@ class Omnidexer:
 
         try:
             loader = self._loaders[content_type]
-            content_items = await loader.load(path)
+            content_items = loader.load(path)
 
             # Index all loaded items
             for item in content_items:
@@ -297,37 +285,34 @@ class Omnidexer:
 
         entry = IndexEntry.create(content, content_type)
 
-        # Use async lock to ensure thread-safe index updates
-        async with self._index_lock:
-            # Double-check after acquiring lock to prevent race conditions
-            if entry.hash_id in self._indexed_hashes:
-                return
+        # Check for duplicate hash_id (cycle prevention)
+        if entry.hash_id in self._indexed_hashes:
+            return
 
-            # Track this content as indexed
-            self._indexed_hashes.add(entry.hash_id)
+        # Track this content as indexed
+        self._indexed_hashes.add(entry.hash_id)
 
-            # Primary hash-based index
-            self._index[entry.hash_id] = entry
+        # Primary hash-based index
+        self._index[entry.hash_id] = entry
 
-            # Type-based index (for content type + name/source lookups)
-            self._by_type[content_type][entry.lookup_key] = entry
+        # Type-based index (for content type + name/source lookups)
+        self._by_type[content_type][entry.lookup_key] = entry
 
-            # Source-based index (for finding all content from a source)
-            # Handle different source formats
-            if hasattr(content.source, "abbreviation"):
-                source_abbrev = content.source.abbreviation
-            elif isinstance(content.source, dict):
-                source_abbrev = content.source.get("abbreviation", str(content.source))
-            else:
-                source_abbrev = str(content.source)
-            self._by_source[source_abbrev].append(entry)
+        # Source-based index (for finding all content from a source)
+        # Handle different source formats
+        if hasattr(content.source, "abbreviation"):
+            source_abbrev = content.source.abbreviation
+        elif isinstance(content.source, dict):
+            source_abbrev = content.source.get("abbreviation", str(content.source))
+        else:
+            source_abbrev = str(content.source)
+        self._by_source[source_abbrev].append(entry)
 
-            # Name-based index (for fuzzy name searches)
-            name_key = content.name.lower()
-            self._by_name[name_key].append(entry)
+        # Name-based index (for fuzzy name searches)
+        name_key = content.name.lower()
+        self._by_name[name_key].append(entry)
 
         # Deep indexing: if enabled and content supports it, index nested content
-        # Note: Deep indexing done outside lock to avoid deadlock on recursive calls
         if self.enable_deep_indexing and isinstance(content, DeepIndexable):
             try:
                 nested_content = content.get_deep_index_entries(self)
@@ -335,7 +320,7 @@ class Omnidexer:
                     # Determine content type for nested item
                     nested_type = ContentType.from_content(nested_item)
                     # Recursively add nested content (cycle prevention handled above)
-                    await self._add_to_index(nested_item, nested_type)
+                    self._add_to_index(nested_item, nested_type)
 
                 logger.debug(
                     f"Deep indexed {len(nested_content)} nested items from {content_type.value}: {content.name}"

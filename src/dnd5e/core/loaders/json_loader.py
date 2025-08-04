@@ -1,12 +1,10 @@
 """JSON data loader with Pydantic validation."""
 
-import asyncio
 import json
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
-import aiofiles
 from pydantic import ValidationError
 
 from ..cache import get_cache
@@ -48,9 +46,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             # If we can't stat the file, just use the path
             return f"json_loader:{self._content_type.value}:{path}:0:0"
 
-    async def load(
-        self, path: Path
-    ) -> list[BaseContent]:  # Changed from T to BaseContent
+    def load(self, path: Path) -> list[BaseContent]:  # Changed from T to BaseContent
         """Load JSON file and validate against Pydantic model."""
         # Try to get from cache first
         cache = get_cache()
@@ -63,22 +59,22 @@ class JsonDataLoader(DataLoader[BaseContent]):
             return cached_result  # type: ignore[no-any-return]
 
         # Load from file if not in cache
-        result = await self._load_from_file(path)
+        result = self._load_from_file(path)
 
         # Cache the result (24 hour TTL)
         cache.set(cache_key, result, expire=timedelta(hours=24).total_seconds())
 
         return result
 
-    async def _load_from_file(self, path: Path) -> list[BaseContent]:
+    def _load_from_file(self, path: Path) -> list[BaseContent]:
         """Load JSON file from disk."""
         try:
             logger.info(f"Loading {self._content_type.value} data from {path}")
 
-            # Read JSON file asynchronously
-            async with aiofiles.open(path, encoding="utf-8") as f:
+            # Read JSON file synchronously
+            with open(path, encoding="utf-8") as f:
                 try:
-                    content = await f.read()
+                    content = f.read()
                     data = json.loads(content)
                 except json.JSONDecodeError as e:
                     # Check if this might be an index file with malformed JSON
@@ -95,15 +91,8 @@ class JsonDataLoader(DataLoader[BaseContent]):
             # Extract content based on file structure
             content_list = self._extract_content(data, path)
 
-            # Validate each item - use concurrent validation for large files
-            if len(content_list) > 50:  # Threshold for concurrent processing
-                validated_content = await self._validate_items_concurrently(
-                    content_list, path
-                )
-            else:
-                validated_content = await self._validate_items_sequentially(
-                    content_list, path
-                )
+            # Validate each item sequentially
+            validated_content = self._validate_items_sequentially(content_list, path)
 
             logger.info(
                 f"Successfully loaded {len(validated_content)} {self._content_type.value} items from {path}"
@@ -116,7 +105,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             )
             return []
 
-    async def _validate_items_sequentially(
+    def _validate_items_sequentially(
         self, content_list: list[dict], path: Path
     ) -> list[BaseContent]:
         """Validate content items sequentially (for smaller files)."""
@@ -157,76 +146,6 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 logger.error(f"Unexpected error validating item in {path}: {e}")
 
         return validated_content
-
-    async def _validate_items_concurrently(
-        self, content_list: list[dict], path: Path
-    ) -> list[BaseContent]:
-        """Validate content items concurrently for better performance on large files."""
-
-        # Process items in batches to avoid overwhelming the system
-        batch_size = 20
-        validated_content = []
-
-        for i in range(0, len(content_list), batch_size):
-            batch = content_list[i : i + batch_size]
-
-            # Create validation tasks for this batch
-            validation_tasks = []
-            for item in batch:
-                task = self._validate_single_item(item, path)
-                validation_tasks.append(task)
-
-            # Process batch concurrently
-            batch_results = await asyncio.gather(
-                *validation_tasks, return_exceptions=True
-            )
-
-            # Collect successful validations
-            for result in batch_results:
-                if isinstance(result, BaseContent):
-                    validated_content.append(result)
-                elif isinstance(result, Exception):
-                    logger.debug(f"Validation failed: {result}")
-
-        return validated_content
-
-    async def _validate_single_item(self, item: dict, path: Path) -> BaseContent | None:
-        """Validate a single content item."""
-        try:
-            # Skip copy-template items that reference other content
-            if self._is_copy_template(item):
-                logger.debug(
-                    f"Skipping copy-template item {item.get('name', 'unknown')} in {path}"
-                )
-                return None
-
-            # Skip sections when parsing inappropriate content types
-            if item.get("type") == "section" and self._content_type not in [
-                ContentType.BOOK,
-                ContentType.ADVENTURE,
-            ]:
-                logger.debug(
-                    f"Skipping section item when parsing {self._content_type.value}"
-                )
-                return None
-
-            # Ensure source information is present
-            item = self._ensure_source_info(item, path)
-
-            # Add missing required fields with reasonable defaults
-            item = self._add_missing_required_fields(item)
-
-            validated_item = self._content_factory.create_content(
-                item, self._content_type
-            )
-            return validated_item
-        except ValidationError as e:
-            # Handle validation error with enhanced error tracking
-            self._handle_validation_error(e, item, path)
-            return None
-        except Exception as e:
-            logger.error(f"Unexpected error validating item in {path}: {e}")
-            return None
 
     def get_content_type(self) -> ContentType:
         return self._content_type
