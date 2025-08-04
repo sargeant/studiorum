@@ -441,6 +441,36 @@ class LoaderTagHandler(TagHandler):
         pass
 
 
+# Note: Simple passthrough tags (skill, quickref, status, etc.) are now
+# handled automatically by the improved fallback renderer. No explicit handlers needed!
+
+
+class AreaTagHandler(TagHandler):
+    """Handler for @area tags - renders as 'area $content'."""
+
+    def handles(self, tag_type: str) -> bool:
+        return tag_type == "area"
+
+    def render(self, node: TagNode, context: "RendererContext") -> str:
+        """Render area tag with 'area ' prefix."""
+        # Get the display text from the node
+        if hasattr(node, "display_text_nodes") and node.display_text_nodes:
+            # Render display text nodes recursively
+            display_text = "".join(
+                context.render_node(child) for child in node.display_text_nodes
+            )
+        else:
+            # Fallback to node name
+            display_text = getattr(node, "name", str(node))
+
+        # Return with "area " prefix and escape LaTeX special characters
+        return f"area {escape_latex_text(display_text)}"
+
+    def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
+        """Area tags don't need content tracking."""
+        pass
+
+
 # Registry of all default handlers
 def get_default_handlers() -> list[TagHandler]:
     """Get the list of default tag handlers."""
@@ -470,4 +500,8 @@ def get_default_handlers() -> list[TagHandler]:
         # UI handlers (ignored)
         FilterTagHandler(),
         LoaderTagHandler(),
+        # Special formatting handlers
+        AreaTagHandler(),
+        # Note: Simple passthrough tags (skill, quickref, status, etc.)
+        # are handled automatically by the improved fallback renderer
     ]

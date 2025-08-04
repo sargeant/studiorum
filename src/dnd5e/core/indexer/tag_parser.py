@@ -225,9 +225,19 @@ class TagASTTransformer(Transformer):
         elif tag_type == "loader":
             return LoaderTagNode(name)
 
-        # Generic fallback
+        # Generic fallback - create node with name/display text for automatic passthrough
         else:
-            return TagNode(tag_type)
+            node = TagNode(tag_type)
+            node.name = name  # Store the parsed name for fallback rendering
+
+            # For simple passthrough, always prefer name over additional reference parts
+            # This handles cases like {@quickref difficult terrain||3} where we want
+            # "difficult terrain" (name) not "3" (display text reference)
+            if name:
+                node.display_text_nodes = [TextNode(name)]
+            else:
+                node.display_text_nodes = []
+            return node
 
     def _nodes_to_text(self, nodes: list[ASTNode]) -> str:
         """Convert a list of nodes to plain text string."""

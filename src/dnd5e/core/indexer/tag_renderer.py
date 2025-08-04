@@ -9,6 +9,7 @@ from pydantic import Field
 from dnd5e.core.base_context import ServiceContext
 from dnd5e.core.logging import get_logger
 
+from ..latex_utils import escape_latex_text
 from .content_tracker import ContentTracker
 from .tag_ast import ASTNode, DocumentNode, TagNode, TextNode
 from .tag_handlers import TagHandler, get_default_handlers
@@ -94,6 +95,7 @@ class TagRenderer:
             "book",
             "filter",
             "loader",
+            "area",
         ]
 
         types = []
@@ -114,7 +116,7 @@ class TagRenderer:
             context = RendererContext(self, self.omnidexer)
 
         if isinstance(node, TextNode):
-            return node.text
+            return escape_latex_text(node.text)
 
         elif isinstance(node, TagNode):
             # Find appropriate handler
@@ -155,8 +157,8 @@ class TagRenderer:
                 self.render_node(child, context) for child in node.display_text_nodes
             )
         elif hasattr(node, "name"):
-            # Use tag name
-            return str(node.name)
+            # Use tag name with LaTeX escaping
+            return escape_latex_text(str(node.name))
         else:
             # Last resort - show tag type
             return f"{{@{node.tag_type}...}}"
