@@ -314,6 +314,7 @@ class EntryTypeRegistry:
             "code",
             "hr",
             "wrappedHtml",
+            "cell",
         },
     }
 

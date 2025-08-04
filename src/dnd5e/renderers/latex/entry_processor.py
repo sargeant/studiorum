@@ -151,6 +151,8 @@ class RecursiveEntryProcessor:
                 return self._process_dice(entry, context)
             elif entry_type == "item":
                 return self._process_item(entry, context)
+            elif entry_type == "cell":
+                return self._process_cell(entry, context)
             else:
                 # Generic entry with name and entries
                 if entry_type:
@@ -402,12 +404,19 @@ class RecursiveEntryProcessor:
             # Data rows
             for row in rows:
                 if isinstance(row, list):
-                    row_data = " & ".join(
-                        [
-                            self._process_text_with_tags(str(cell), context)
-                            for cell in row
-                        ]
-                    )
+                    processed_cells = []
+                    for cell in row:
+                        if isinstance(cell, dict):
+                            # Process dict cells (e.g., {"type": "cell", "roll": {...}})
+                            processed_cell = self.process_entry_dict(cell, context)
+                        else:
+                            # Process string cells
+                            processed_cell = self._process_text_with_tags(
+                                str(cell), context
+                            )
+                        processed_cells.append(processed_cell)
+
+                    row_data = " & ".join(processed_cells)
                     result.append(f"{row_data} \\\\")
 
             result.append("\\end{DndTable}")
@@ -460,9 +469,19 @@ class RecursiveEntryProcessor:
         # Data rows
         for row in rows:
             if isinstance(row, list):
-                row_data = " & ".join(
-                    [self._process_text_with_tags(str(cell), context) for cell in row]
-                )
+                processed_cells = []
+                for cell in row:
+                    if isinstance(cell, dict):
+                        # Process dict cells (e.g., {"type": "cell", "roll": {...}})
+                        processed_cell = self.process_entry_dict(cell, context)
+                    else:
+                        # Process string cells
+                        processed_cell = self._process_text_with_tags(
+                            str(cell), context
+                        )
+                    processed_cells.append(processed_cell)
+
+                row_data = " & ".join(processed_cells)
                 result.append(f"{row_data} \\\\")
 
         result.append("\\hline")
@@ -1033,6 +1052,48 @@ class RecursiveEntryProcessor:
             result.extend(processed_entries)
 
         return " ".join(result)
+
+    def _process_cell(self, cell: dict[str, Any], context: RenderContext) -> str:
+        """Process a cell entry with roll data for tables.
+
+        Args:
+            cell: Cell dictionary with optional roll data
+            context: Rendering context
+
+        Returns:
+            LaTeX string for table cell content
+
+        Examples:
+            {"type": "cell", "roll": {"exact": 1}} -> "1"
+            {"type": "cell", "roll": {"min": 3, "max": 4}} -> "3–4"
+            {"type": "cell", "roll": {"exact": 2}, "entry": "{@creature goblin}"} -> "2 Goblin"
+        """
+        roll_data = cell.get("roll", {})
+        entry_content = cell.get("entry", "")
+
+        # Format roll data if present
+        roll_text = ""
+        if roll_data:
+            if "exact" in roll_data:
+                roll_text = str(roll_data["exact"])
+            elif "min" in roll_data and "max" in roll_data:
+                min_val = roll_data["min"]
+                max_val = roll_data["max"]
+                if min_val == max_val:
+                    roll_text = str(min_val)
+                else:
+                    # Use en dash for ranges
+                    roll_text = f"{min_val}–{max_val}"
+
+        # Process entry content if present (may contain tags)
+        if entry_content:
+            processed_entry = self._process_text_with_tags(entry_content, context)
+            if roll_text:
+                return f"{roll_text} {processed_entry}"
+            else:
+                return processed_entry
+
+        return roll_text
 
     def get_processing_statistics(self) -> dict[str, Any]:
         """Get processing statistics for this processor instance.
