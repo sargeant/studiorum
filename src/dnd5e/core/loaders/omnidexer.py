@@ -124,6 +124,9 @@ class Omnidexer:
         self.source_manager = source_manager or ConfigurableSourceManager()
         self.enable_deep_indexing = enable_deep_indexing
 
+        # Async lock for thread-safe indexing operations
+        self._index_lock = asyncio.Lock()
+
         # Index structures
         self._index: dict[str, IndexEntry] = {}  # hash_id -> entry
         self._by_type: dict[ContentType, dict[str, IndexEntry]] = defaultdict(
@@ -251,7 +254,7 @@ class Omnidexer:
 
             # Index all loaded items
             for item in content_items:
-                self._add_to_index(item, content_type)
+                await self._add_to_index(item, content_type)
 
             self._loaded_types.add(content_type)
             logger.debug(
@@ -281,9 +284,11 @@ class Omnidexer:
 
         return hash_id in self._indexed_hashes
 
-    def _add_to_index(self, content: BaseContent, content_type: ContentType) -> None:
+    async def _add_to_index(
+        self, content: BaseContent, content_type: ContentType
+    ) -> None:
         """Add content item to all indexes with optional deep indexing."""
-        # Check if already indexed to prevent cycles
+        # Check if already indexed to prevent cycles (outside lock for performance)
         if self._is_already_indexed(content, content_type):
             logger.debug(
                 f"Skipping already indexed {content_type.value}: {content.name}"
@@ -292,30 +297,37 @@ class Omnidexer:
 
         entry = IndexEntry.create(content, content_type)
 
-        # Track this content as indexed
-        self._indexed_hashes.add(entry.hash_id)
+        # Use async lock to ensure thread-safe index updates
+        async with self._index_lock:
+            # Double-check after acquiring lock to prevent race conditions
+            if entry.hash_id in self._indexed_hashes:
+                return
 
-        # Primary hash-based index
-        self._index[entry.hash_id] = entry
+            # Track this content as indexed
+            self._indexed_hashes.add(entry.hash_id)
 
-        # Type-based index (for content type + name/source lookups)
-        self._by_type[content_type][entry.lookup_key] = entry
+            # Primary hash-based index
+            self._index[entry.hash_id] = entry
 
-        # Source-based index (for finding all content from a source)
-        # Handle different source formats
-        if hasattr(content.source, "abbreviation"):
-            source_abbrev = content.source.abbreviation
-        elif isinstance(content.source, dict):
-            source_abbrev = content.source.get("abbreviation", str(content.source))
-        else:
-            source_abbrev = str(content.source)
-        self._by_source[source_abbrev].append(entry)
+            # Type-based index (for content type + name/source lookups)
+            self._by_type[content_type][entry.lookup_key] = entry
 
-        # Name-based index (for fuzzy name searches)
-        name_key = content.name.lower()
-        self._by_name[name_key].append(entry)
+            # Source-based index (for finding all content from a source)
+            # Handle different source formats
+            if hasattr(content.source, "abbreviation"):
+                source_abbrev = content.source.abbreviation
+            elif isinstance(content.source, dict):
+                source_abbrev = content.source.get("abbreviation", str(content.source))
+            else:
+                source_abbrev = str(content.source)
+            self._by_source[source_abbrev].append(entry)
+
+            # Name-based index (for fuzzy name searches)
+            name_key = content.name.lower()
+            self._by_name[name_key].append(entry)
 
         # Deep indexing: if enabled and content supports it, index nested content
+        # Note: Deep indexing done outside lock to avoid deadlock on recursive calls
         if self.enable_deep_indexing and isinstance(content, DeepIndexable):
             try:
                 nested_content = content.get_deep_index_entries(self)
@@ -323,7 +335,7 @@ class Omnidexer:
                     # Determine content type for nested item
                     nested_type = ContentType.from_content(nested_item)
                     # Recursively add nested content (cycle prevention handled above)
-                    self._add_to_index(nested_item, nested_type)
+                    await self._add_to_index(nested_item, nested_type)
 
                 logger.debug(
                     f"Deep indexed {len(nested_content)} nested items from {content_type.value}: {content.name}"
