@@ -178,7 +178,9 @@ def quick_convert(
     content_type: str = typer.Option(
         "auto", "--type", "-t", help="Content type (adventure, book, auto)"
     ),
-    with_images: bool = typer.Option(False, "--images", help="Include images"),
+    with_images: bool = typer.Option(
+        False, "--images/--no-images", help="Include images"
+    ),
     compile_pdf: bool = typer.Option(False, "--pdf", help="Compile to PDF"),
 ) -> None:
     """

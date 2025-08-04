@@ -208,7 +208,9 @@ def convert_adventure(
         None, "--output", "-o", help="Output LaTeX file"
     ),
     title: str | None = typer.Option(None, "--title", help="Document title"),
-    with_images: bool = typer.Option(False, "--images", help="Include images"),
+    with_images: bool = typer.Option(
+        False, "--images/--no-images", help="Include images"
+    ),
     with_items: bool = typer.Option(
         True, "--items/--no-items", help="Include item lists"
     ),
@@ -373,7 +375,9 @@ def convert_book(
         None, "--output", "-o", help="Output LaTeX file"
     ),
     title: str | None = typer.Option(None, "--title", help="Document title"),
-    with_images: bool = typer.Option(False, "--images", help="Include images"),
+    with_images: bool = typer.Option(
+        False, "--images/--no-images", help="Include images"
+    ),
     with_index: bool = typer.Option(True, "--index/--no-index", help="Include index"),
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
@@ -528,7 +532,9 @@ def convert_supplement(
     content_types: list[str] = typer.Option(
         ["all"], "--type", help="Content types to include"
     ),
-    with_images: bool = typer.Option(False, "--images", help="Include images"),
+    with_images: bool = typer.Option(
+        False, "--images/--no-images", help="Include images"
+    ),
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
     ),
@@ -704,7 +710,9 @@ def convert_bulk(
     output_dir: Path = typer.Option(
         Path("output/bulk"), "--output-dir", "-d", help="Output directory"
     ),
-    with_images: bool = typer.Option(False, "--images", help="Include images"),
+    with_images: bool = typer.Option(
+        False, "--images/--no-images", help="Include images"
+    ),
     compile_pdf: bool = typer.Option(
         False, "--pdf", help="Compile to PDF after conversion"
     ),

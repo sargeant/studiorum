@@ -1,5 +1,6 @@
 """Recursive entry processor for LaTeX rendering of 5etools entry structures."""
 
+import asyncio
 import logging
 from typing import Any
 
@@ -7,6 +8,7 @@ from ...core.entry_registry import ValidationMode, get_registry
 from ...core.exceptions import EntryProcessingError
 from ...core.types import EntryData, ProcessingContext
 from ..base import RenderContext
+from .images.image_processor import ImageProcessingConfig, ImageProcessor
 from .unicode_mappings import (
     get_latex_special_chars,
     get_unicode_to_latex_mappings,
@@ -30,12 +32,14 @@ class RecursiveEntryProcessor:
         self,
         use_dnd_template: bool = True,
         validation_mode: ValidationMode | None = None,
+        image_processor: ImageProcessor | None = None,
     ):
         """Initialize the recursive entry processor.
 
         Args:
             use_dnd_template: Whether to use DND template environments
             validation_mode: Override global validation mode for this processor
+            image_processor: Image processor for handling image entries
         """
         self.use_dnd_template = use_dnd_template
         self._depth = 0  # Track nesting depth for proper sectioning
@@ -43,6 +47,9 @@ class RecursiveEntryProcessor:
         self._registry = get_registry()
         self._entries_processed = 0
         self._errors_encountered = 0
+
+        # Initialize image processor
+        self._image_processor = image_processor or ImageProcessor()
 
     def process_entries(
         self, entries: list[str | dict[str, Any]], context: RenderContext
@@ -287,7 +294,38 @@ class RecursiveEntryProcessor:
             return "\n\n".join(result)
 
     def _process_image(self, image: dict[str, Any], context: RenderContext) -> str:
-        """Process an image entry.
+        """Process an image entry with enhanced image processing pipeline.
+
+        Args:
+            image: Image dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        # Use the new image processing pipeline
+        try:
+            # Run async image processing in sync context
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If we're already in an async context, fall back to basic processing
+                # TODO: Refactor to make the entire processing pipeline async
+                return self._process_image_basic(image, context)
+            else:
+                # Run in the event loop
+                return loop.run_until_complete(
+                    self._image_processor.process_image_entry(image, context)
+                )
+        except Exception as e:
+            logger.warning(
+                f"Advanced image processing failed: {e}. Falling back to basic processing."
+            )
+            return self._process_image_basic(image, context)
+
+    def _process_image_basic(
+        self, image: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Basic image processing fallback.
 
         Args:
             image: Image dictionary
@@ -302,7 +340,7 @@ class RecursiveEntryProcessor:
         if not href:
             return f"% Image placeholder: {title}" if title else "% Image placeholder"
 
-        # Basic image inclusion
+        # Basic image inclusion (original implementation)
         result = []
         if title:
             result.append("\\begin{figure}[ht]")
