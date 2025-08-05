@@ -13,13 +13,13 @@ class TestLaTeXDocumentConfig:
         config = LaTeXDocumentConfig()
 
         assert config.document_class == "dndbook"
-        assert config.class_options == ["justified", "twocolumn"]
+        assert config.class_options == ["twocolumn"]
         assert config.font_scheme == "dmsguild"
         assert config.paper_size == "letterpaper"
         assert config.font_size == "11pt"
         assert config.background is None
         assert config.high_contrast is False
-        assert config.justified_text is True
+        assert config.justified_text is False
         assert config.fancy_headers is False
         assert config.two_column is True
         assert config.include_toc is True
@@ -88,7 +88,7 @@ class TestLaTeXDocumentConfig:
         config = LaTeXDocumentConfig()
         options = config.get_class_options_list()
 
-        expected = ["justified", "letterpaper", "11pt", "twocolumn"]
+        expected = ["letterpaper", "11pt", "twocolumn"]
         assert options == expected
 
     def test_get_class_options_list_with_background(self) -> None:

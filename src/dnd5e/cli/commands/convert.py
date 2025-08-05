@@ -7,6 +7,19 @@ from pathlib import Path
 import typer
 from rich import print as rprint
 
+from dnd5e.cli.config_factory import (
+    get_background_default,
+    get_compile_pdf_default,
+    get_concurrent_limit_default,
+    get_document_class_default,
+    get_font_size_default,
+    get_justified_default,
+    get_two_column_default,
+    get_with_creatures_default,
+    get_with_images_default,
+    get_with_index_default,
+    get_with_items_default,
+)
 from dnd5e.cli.display_manager import display_manager
 from dnd5e.cli.main import get_omnidexer, get_tag_resolver
 from dnd5e.core.config.unified_config import get_app_config
@@ -208,35 +221,46 @@ def convert_adventure(
     ),
     title: str | None = typer.Option(None, "--title", help="Document title"),
     with_images: bool = typer.Option(
-        False, "--images/--no-images", help="Include images"
+        get_with_images_default(), "--images/--no-images", help="Include images"
     ),
     with_items: bool = typer.Option(
-        True, "--items/--no-items", help="Include item lists"
+        get_with_items_default(), "--items/--no-items", help="Include item lists"
     ),
     with_creatures: bool = typer.Option(
-        True, "--creatures/--no-creatures", help="Include creature lists"
+        get_with_creatures_default(),
+        "--creatures/--no-creatures",
+        help="Include creature lists",
     ),
     compile_pdf: bool = typer.Option(
-        False, "--pdf", help="Compile to PDF after conversion"
+        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion"
     ),
     # LaTeX document class options
     document_class: str = typer.Option(
-        "dndbook", "--document-class", help="LaTeX document class (dndbook, dndarticle)"
+        get_document_class_default(),
+        "--document-class",
+        help="LaTeX document class (dndbook, dndarticle)",
     ),
     paper_size: str | None = typer.Option(
         None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
     ),
     font_size: str = typer.Option(
-        "11pt", "--font-size", help="Base font size (10pt, 11pt, 12pt)"
+        get_font_size_default(), "--font-size", help="Base font size (10pt, 11pt, 12pt)"
     ),
     background: str | None = typer.Option(
-        None, "--background", "--bg", help="Background style (print, none, full)"
+        get_background_default(),
+        "--background",
+        "--bg",
+        help="Background style (print, none, full)",
     ),
     two_column: bool = typer.Option(
-        True, "--two-column/--one-column", help="Use two-column layout"
+        get_two_column_default(),
+        "--two-column/--one-column",
+        help="Use two-column layout",
     ),
     justified: bool = typer.Option(
-        False, "--justified/--not-justified", help="Justify text columns"
+        get_justified_default(),
+        "--justified/--not-justified",
+        help="Justify text columns",
     ),
 ) -> None:
     """
@@ -375,30 +399,41 @@ def convert_book(
     ),
     title: str | None = typer.Option(None, "--title", help="Document title"),
     with_images: bool = typer.Option(
-        False, "--images/--no-images", help="Include images"
+        get_with_images_default(), "--images/--no-images", help="Include images"
     ),
-    with_index: bool = typer.Option(True, "--index/--no-index", help="Include index"),
+    with_index: bool = typer.Option(
+        get_with_index_default(), "--index/--no-index", help="Include index"
+    ),
     compile_pdf: bool = typer.Option(
-        False, "--pdf", help="Compile to PDF after conversion"
+        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion"
     ),
     # LaTeX document class options
     document_class: str = typer.Option(
-        "dndbook", "--document-class", help="LaTeX document class (dndbook, dndarticle)"
+        get_document_class_default(),
+        "--document-class",
+        help="LaTeX document class (dndbook, dndarticle)",
     ),
     paper_size: str | None = typer.Option(
         None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
     ),
     font_size: str = typer.Option(
-        "11pt", "--font-size", help="Base font size (10pt, 11pt, 12pt)"
+        get_font_size_default(), "--font-size", help="Base font size (10pt, 11pt, 12pt)"
     ),
     background: str | None = typer.Option(
-        None, "--background", "--bg", help="Background style (print, none, full)"
+        get_background_default(),
+        "--background",
+        "--bg",
+        help="Background style (print, none, full)",
     ),
     two_column: bool = typer.Option(
-        True, "--two-column/--one-column", help="Use two-column layout"
+        get_two_column_default(),
+        "--two-column/--one-column",
+        help="Use two-column layout",
     ),
     justified: bool = typer.Option(
-        False, "--justified/--not-justified", help="Justify text columns"
+        get_justified_default(),
+        "--justified/--not-justified",
+        help="Justify text columns",
     ),
 ) -> None:
     """
@@ -532,29 +567,38 @@ def convert_supplement(
         ["all"], "--type", help="Content types to include"
     ),
     with_images: bool = typer.Option(
-        False, "--images/--no-images", help="Include images"
+        get_with_images_default(), "--images/--no-images", help="Include images"
     ),
     compile_pdf: bool = typer.Option(
-        False, "--pdf", help="Compile to PDF after conversion"
+        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion"
     ),
     # LaTeX document class options
     document_class: str = typer.Option(
-        "dndbook", "--document-class", help="LaTeX document class (dndbook, dndarticle)"
+        get_document_class_default(),
+        "--document-class",
+        help="LaTeX document class (dndbook, dndarticle)",
     ),
     paper_size: str | None = typer.Option(
         None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
     ),
     font_size: str = typer.Option(
-        "11pt", "--font-size", help="Base font size (10pt, 11pt, 12pt)"
+        get_font_size_default(), "--font-size", help="Base font size (10pt, 11pt, 12pt)"
     ),
     background: str | None = typer.Option(
-        None, "--background", "--bg", help="Background style (print, none, full)"
+        get_background_default(),
+        "--background",
+        "--bg",
+        help="Background style (print, none, full)",
     ),
     two_column: bool = typer.Option(
-        True, "--two-column/--one-column", help="Use two-column layout"
+        get_two_column_default(),
+        "--two-column/--one-column",
+        help="Use two-column layout",
     ),
     justified: bool = typer.Option(
-        False, "--justified/--not-justified", help="Justify text columns"
+        get_justified_default(),
+        "--justified/--not-justified",
+        help="Justify text columns",
     ),
 ) -> None:
     """
@@ -710,13 +754,15 @@ def convert_bulk(
         Path("output/bulk"), "--output-dir", "-d", help="Output directory"
     ),
     with_images: bool = typer.Option(
-        False, "--images/--no-images", help="Include images"
+        get_with_images_default(), "--images/--no-images", help="Include images"
     ),
     compile_pdf: bool = typer.Option(
-        False, "--pdf", help="Compile to PDF after conversion"
+        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion"
     ),
     concurrent_limit: int = typer.Option(
-        5, "--concurrent", help="Maximum concurrent operations"
+        get_concurrent_limit_default(),
+        "--concurrent",
+        help="Maximum concurrent operations",
     ),
 ) -> None:
     """

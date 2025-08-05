@@ -303,26 +303,28 @@ class TestUtilityFunctions:
         # Test book recommendations
         book_options: Any = get_recommended_class_options("book")
         assert "bg" in book_options
-        assert "justified" in book_options
+        assert "justified" not in book_options  # justified_text is False by default
         assert "twocolumn" in book_options
 
         # Test article recommendations
         article_options: Any = get_recommended_class_options("article")
         assert "bg" in article_options
-        assert "justified" in article_options
+        assert "justified" not in article_options  # justified_text is False by default
         assert "onecolumn" in article_options
 
         # Test adventure recommendations
         adventure_options: Any = get_recommended_class_options("adventure")
         assert "bg" in adventure_options
-        assert "justified" in adventure_options
+        assert (
+            "justified" not in adventure_options
+        )  # justified_text is False by default
         assert "twocolumn" in adventure_options
         assert "fancy" in adventure_options
 
         # Test unknown content type
         unknown_options: Any = get_recommended_class_options("unknown")
         assert "bg" in unknown_options
-        assert "justified" in unknown_options
+        assert "justified" not in unknown_options  # justified_text is False by default
 
 
 class TestIntegration:
@@ -391,4 +393,4 @@ class TestIntegration:
             assert isinstance(recommendations, list)
             assert len(recommendations) > 0
             assert "bg" in recommendations  # All should have bg
-            assert "justified" in recommendations  # All should have justified
+            # "justified" is not included by default since justified_text defaults to False

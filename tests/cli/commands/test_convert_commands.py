@@ -1028,7 +1028,7 @@ class TestLaTeXDocumentOptions:
                 context.latex_config.document.background is None
             )  # default no background
             assert context.latex_config.document.two_column is True
-            assert context.latex_config.document.justified_text is True
+            assert context.latex_config.document.justified_text is False
 
         finally:
             Path(file_path).unlink()

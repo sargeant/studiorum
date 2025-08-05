@@ -62,11 +62,31 @@ class ProcessingConfig(BaseModel):
     """Configuration for content processing."""
 
     max_workers: int = Field(
-        default=4, ge=1, le=16, description="Maximum number of worker processes"
+        default=5, ge=1, le=16, description="Maximum number of worker processes"
     )
     enable_caching: bool = Field(default=True, description="Enable content caching")
     cache_ttl: int = Field(
         default=3600, ge=0, description="Cache time-to-live in seconds"
+    )
+
+
+class ContentConfig(BaseModel):
+    """Configuration for content inclusion."""
+
+    include_images: bool = Field(default=False, description="Include images by default")
+    include_items: bool = Field(
+        default=True, description="Include item lists by default"
+    )
+    include_creatures: bool = Field(
+        default=True, description="Include creature lists by default"
+    )
+
+
+class CompilationConfig(BaseModel):
+    """Configuration for compilation behavior."""
+
+    auto_compile_pdf: bool = Field(
+        default=False, description="Automatically compile to PDF"
     )
 
 
@@ -137,11 +157,11 @@ class LaTeXDocumentConfig(BaseModel):
     high_contrast: bool = Field(
         default=False, description="Use high contrast mode for printing"
     )
-    justified_text: bool = Field(default=True, description="Justify text columns")
+    justified_text: bool = Field(default=False, description="Justify text columns")
     fancy_headers: bool = Field(default=True, description="Use fancy page headers")
     two_column: bool = Field(default=True, description="Use two-column layout")
     show_toc: bool = Field(default=True, description="Include table of contents")
-    show_index: bool = Field(default=False, description="Include alphabetical index")
+    show_index: bool = Field(default=True, description="Include alphabetical index")
 
 
 class LaTeXRenderingConfig(BaseModel):
@@ -208,6 +228,12 @@ class RenderingConfig(BaseModel):
     )
     debug: bool = Field(default=False, description="Enable debug mode")
     strict_mode: bool = Field(default=False, description="Enable strict validation")
+    content: ContentConfig = Field(
+        default_factory=ContentConfig, description="Content configuration"
+    )
+    compilation: CompilationConfig = Field(
+        default_factory=CompilationConfig, description="Compilation configuration"
+    )
     latex: LaTeXConfig = Field(
         default_factory=LaTeXConfig, description="LaTeX-specific configuration"
     )
