@@ -197,7 +197,7 @@ class DiceTagHandler(TagHandler):
         assert isinstance(node, DiceTagNode), f"Expected DiceTagNode, got {type(node)}"
         dice_node = cast(DiceTagNode, node)
 
-        return f"\\texttt{{{dice_node.expression}}}"
+        return f"{dice_node.expression}"
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
         """Dice tags don't need content tracking."""
