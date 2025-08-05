@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import os
 from pathlib import Path
 
 import typer
@@ -277,10 +278,8 @@ def convert_adventure(
     """
 
     def _convert() -> None:
+        result = None  # Initialize to avoid UnboundLocalError
         try:
-            # Initialize result to avoid UnboundLocalError in exception handler
-            result = ""
-
             # Resolve content source (file or abbreviation)
             content_items, source_desc = resolve_content_or_file(
                 content_source, ContentType.ADVENTURE
@@ -374,19 +373,27 @@ def convert_adventure(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(output_path, "w", encoding="utf-8") as f:
-                f.write(result)
-
-            rprint(
-                f"[green]✓[/green] Adventure converted ({source_desc}): {output_path}"
-            )
+            if result:
+                with open(output_path, "w", encoding="utf-8") as f:
+                    f.write(result)
+                rprint(
+                    f"[green]✓[/green] Adventure converted ({source_desc}): {output_path}"
+                )
+            else:
+                rprint("[red]Error:[/red] No content was generated")
+                raise typer.Exit(1)
 
             # Compile PDF if requested
             if compile_pdf:
                 asyncio.run(_compile_pdf(output_path))
 
         except Exception as e:
+            import traceback
+
             rprint(f"[red]Error:[/red] {e}")
+            if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
+                # In CI, print full traceback for debugging
+                traceback.print_exc()
             raise typer.Exit(1)
 
     _convert()
@@ -453,10 +460,8 @@ def convert_book(
     """
 
     def _convert() -> None:
+        result = None  # Initialize to avoid UnboundLocalError
         try:
-            # Initialize result to avoid UnboundLocalError in exception handler
-            result = ""
-
             # Resolve content source (file or abbreviation)
             content_items, source_desc = resolve_content_or_file(
                 content_source, ContentType.BOOK
@@ -546,17 +551,27 @@ def convert_book(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(output_path, "w", encoding="utf-8") as f:
-                f.write(result)
-
-            rprint(f"[green]✓[/green] Book converted ({source_desc}): {output_path}")
+            if result:
+                with open(output_path, "w", encoding="utf-8") as f:
+                    f.write(result)
+                rprint(
+                    f"[green]✓[/green] Book converted ({source_desc}): {output_path}"
+                )
+            else:
+                rprint("[red]Error:[/red] No content was generated")
+                raise typer.Exit(1)
 
             # Compile PDF if requested
             if compile_pdf:
                 asyncio.run(_compile_pdf(output_path))
 
         except Exception as e:
+            import traceback
+
             rprint(f"[red]Error:[/red] {e}")
+            if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
+                # In CI, print full traceback for debugging
+                traceback.print_exc()
             raise typer.Exit(1)
 
     _convert()
@@ -615,10 +630,8 @@ def convert_supplement(
     """
 
     def _convert() -> None:
+        result = None  # Initialize to avoid UnboundLocalError
         try:
-            # Initialize result to avoid UnboundLocalError in exception handler
-            result = ""
-
             # Validate input
             if not input_file.exists():
                 rprint(f"[red]Error:[/red] Supplement file not found: {input_file}")
@@ -733,19 +746,27 @@ def convert_supplement(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(output_path, "w", encoding="utf-8") as f:
-                f.write(result)
-
-            rprint(
-                f"[green]✓[/green] Supplement converted ({len(content_items)} items): {output_path}"
-            )
+            if result:
+                with open(output_path, "w", encoding="utf-8") as f:
+                    f.write(result)
+                rprint(
+                    f"[green]✓[/green] Supplement converted ({len(content_items)} items): {output_path}"
+                )
+            else:
+                rprint("[red]Error:[/red] No content was generated")
+                raise typer.Exit(1)
 
             # Compile PDF if requested
             if compile_pdf:
                 asyncio.run(_compile_pdf(output_path))
 
         except Exception as e:
+            import traceback
+
             rprint(f"[red]Error:[/red] {e}")
+            if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
+                # In CI, print full traceback for debugging
+                traceback.print_exc()
             raise typer.Exit(1)
 
     _convert()
@@ -944,7 +965,12 @@ def convert_bulk(
                     rprint(f"  ✗ {name}")
 
         except Exception as e:
+            import traceback
+
             rprint(f"[red]Error:[/red] {e}")
+            if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
+                # In CI, print full traceback for debugging
+                traceback.print_exc()
             raise typer.Exit(1)
 
     _bulk_convert()
