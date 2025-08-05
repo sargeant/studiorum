@@ -7,6 +7,7 @@ Understanding the 5e2pdf system architecture and components.
 Start here to understand the high-level system design:
 
 - {doc}`architecture-overview` - System architecture and design principles
+- {doc}`service-container` - Dependency injection and service lifecycle management
 
 ## Component Deep Dives
 

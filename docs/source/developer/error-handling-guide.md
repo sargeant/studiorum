@@ -411,7 +411,6 @@ return Error(create_validation_error(
 
 The error handling system is designed for future extensibility:
 
-- **Async support** - `async_try_result()` for async operations
 - **Structured error codes** - Machine-readable error classification
 - **Internationalization** - Multi-language error messages
 - **Error recovery** - Automatic retry and fallback strategies

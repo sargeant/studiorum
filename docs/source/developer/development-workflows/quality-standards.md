@@ -117,7 +117,7 @@ class ContentProcessor:
         """
         pass
 
-    async def process(self, content: BaseContent) -> ProcessedContent:
+    def process(self, content: BaseContent) -> ProcessedContent:
         """Process content object for rendering.
 
         Args:
@@ -305,7 +305,7 @@ def test_memory_usage_during_loading():
     tracemalloc.start()
 
     omnidexer = Omnidexer()
-    await omnidexer.load_all_data()
+    omnidexer.load_all_data()
 
     current, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
@@ -318,21 +318,26 @@ def test_memory_usage_during_loading():
 
 ### Code Efficiency Guidelines
 
-#### Prefer Async for I/O Operations
+#### Efficient I/O Operations
 ```python
-# Good: Async for I/O bound operations
-async def load_content_files(file_paths: list[Path]) -> list[dict]:
-    """Load multiple files concurrently."""
-    async with aiofiles.open() as file:
-        tasks = [load_single_file(path) for path in file_paths]
-        return await asyncio.gather(*tasks)
-
-# Avoid: Synchronous I/O in async context
-async def load_content_files_slow(file_paths: list[Path]) -> list[dict]:
+# Good: Efficient synchronous I/O operations
+def load_content_files(file_paths: list[Path]) -> list[dict]:
+    """Load multiple files efficiently."""
     results = []
     for path in file_paths:
-        with open(path) as file:  # Blocking I/O
+        with open(path) as file:
             results.append(json.load(file))
+    return results
+
+# Consider: Batch processing for large datasets
+def load_content_files_batch(file_paths: list[Path], batch_size: int = 100) -> list[dict]:
+    """Load files in batches to manage memory usage."""
+    results = []
+    for i in range(0, len(file_paths), batch_size):
+        batch = file_paths[i:i + batch_size]
+        for path in batch:
+            with open(path) as file:
+                results.append(json.load(file))
     return results
 ```
 

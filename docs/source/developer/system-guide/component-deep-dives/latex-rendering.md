@@ -287,7 +287,7 @@ LATEX_ENGINES = {
 #### Multi-Pass Compilation
 
 ```python
-async def compile_document(
+def compile_document(
     self,
     latex_content: str,
     output_name: str = "document",
@@ -580,21 +580,13 @@ template_engine = LaTeXTemplateEngine({
 
 ```python
 # Batch processing for large content sets
-async def process_content_batch(content_items: list[BaseContent]) -> dict[str, Any]:
-    """Process content items concurrently where possible."""
+def process_content_batch(content_items: list[BaseContent]) -> dict[str, Any]:
+    """Process content items in batches."""
 
-    # Separate items that can be processed concurrently
-    concurrent_items = [item for item in content_items if supports_concurrent_processing(item)]
-    sequential_items = [item for item in content_items if not supports_concurrent_processing(item)]
+    # Process all items sequentially
+    results = [process_content_item(item) for item in content_items]
 
-    # Process concurrent items in parallel
-    tasks = [process_content_item(item) for item in concurrent_items]
-    concurrent_results = await asyncio.gather(*tasks)
-
-    # Process sequential items
-    sequential_results = [process_content_item(item) for item in sequential_items]
-
-    return combine_processing_results(concurrent_results + sequential_results)
+    return combine_processing_results(results)
 ```
 
 ### Compilation Performance
@@ -669,7 +661,7 @@ class TestRecursiveEntryProcessor:
 
 ```python
 @pytest.mark.integration
-async def test_complete_document_rendering():
+def test_complete_document_rendering():
     """Test end-to-end document rendering."""
 
     # Setup test content
@@ -842,7 +834,7 @@ class CustomLaTeXEngine:
         self.command = command
         self.options = options
 
-    async def compile(self, tex_file: Path, output_dir: Path) -> CompilationResult:
+    def compile(self, tex_file: Path, output_dir: Path) -> CompilationResult:
         """Compile using custom engine."""
         # Implementation specific to custom engine
         pass

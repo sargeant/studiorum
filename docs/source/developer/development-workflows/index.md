@@ -42,6 +42,6 @@ troubleshooting-strategies
 
 **Key Principles:**
 - Type safety with mypy compliance
-- Performance by design with async/await
+- Performance by design with efficient processing
 - Graceful degradation and error handling
 - Clear interfaces and extensibility

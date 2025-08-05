@@ -63,7 +63,7 @@ uv run 5e2pdf --version
 
 #### **Testing (Comprehensive)**
 
-- **pytest** with asyncio, coverage, and parallel execution support
+- **pytest** with coverage and parallel execution support
 - **Minimum 90% code coverage** required
 - **Test categories**: unit, integration, performance
 - **Test markers**: `@pytest.mark.slow`, `@pytest.mark.integration`
@@ -283,7 +283,7 @@ Brief description of changes and motivation.
 **Key areas for optimization:**
 
 - **Caching strategies**: Extend LRU cache implementations
-- **Async processing**: Add async/await support to I/O operations
+- **Efficient processing**: Optimize I/O operations and data processing
 - **Memory usage**: Optimize large dataset handling
 - **Parsing performance**: Improve JSON processing speed
 

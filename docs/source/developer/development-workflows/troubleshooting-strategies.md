@@ -277,7 +277,7 @@ def safe_process_entry(entry):
 ```python
 # 1. Check omnidexer status
 indexer = Omnidexer()
-adventures = await indexer.load_adventures("adventures.json")
+adventures = indexer.load_adventures("adventures.json")
 print(f"Loaded {len(adventures)} adventures")
 
 # 2. List available content
@@ -476,13 +476,10 @@ def profile_conversion(content_file: Path):
 
 3. **File I/O**:
    ```python
-   # Use async I/O for large files
-   import asyncio
-   import aiofiles
-
-   async def load_large_content(file_path: Path):
-       async with aiofiles.open(file_path) as f:
-           return await f.read()
+   # Use synchronous I/O for large files
+   def load_large_content(file_path: Path):
+       with open(file_path) as f:
+           return f.read()
    ```
 
 ## Debug Mode and Logging

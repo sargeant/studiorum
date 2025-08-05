@@ -31,7 +31,7 @@ Use this framework to categorize requests and select the appropriate systematic 
 4. **Implementation Phase**
    - Implement following established code patterns
    - Use type hints and Pydantic validation
-   - Follow async/await patterns for I/O operations
+   - Follow synchronous processing patterns for operations
    - Add comprehensive logging and error handling
 
 5. **Validation Phase**
@@ -84,7 +84,7 @@ Use this framework to categorize requests and select the appropriate systematic 
 - Structured logging: `from dnd5e.core.logging import get_logger`
 - Performance profiling: `cProfile` or `py-spy`
 - Memory debugging: `tracemalloc`
-- Async debugging: Check for proper `await` usage
+- Logic debugging: Check for proper function call patterns and data flow
 
 ### Code Quality Improvements
 **Pattern**: Assessment → Prioritization → Incremental Changes → Validation
@@ -214,7 +214,7 @@ Run this validation sequence before considering any task complete:
 ### Performance
 - [ ] No performance regressions on critical paths
 - [ ] Memory usage remains within acceptable bounds
-- [ ] Async operations use proper await patterns
+- [ ] Operations use proper synchronous patterns
 - [ ] Caching strategies are appropriate
 
 ### Integration
@@ -265,7 +265,7 @@ Run this validation sequence before considering any task complete:
 2. **Understand Bottlenecks**
    - Identify I/O vs CPU bound operations
    - Check caching effectiveness
-   - Review async usage patterns
+   - Review synchronous processing patterns
    - Examine memory allocation patterns
 
 ## Common Task Patterns
@@ -295,7 +295,7 @@ Run this validation sequence before considering any task complete:
 
 ### Common Issues
 1. **Type Errors**: Usually indicate missing type hints or incorrect assumptions
-2. **Async Errors**: Check for missing await keywords or incorrect async usage
+2. **Logic Errors**: Check for incorrect function calls or data flow patterns
 3. **Validation Errors**: Review Pydantic model definitions and input data
 4. **Performance Issues**: Profile to identify actual bottlenecks
 5. **Import Errors**: Check for circular imports or missing dependencies

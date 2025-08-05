@@ -171,7 +171,7 @@ from dnd5e.core.models.content import ContentType
 
 # Initialize and load content
 omnidexer = Omnidexer()
-await omnidexer.load_all_data()
+omnidexer.load_all_data()
 
 # Find specific content
 spell = omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
@@ -201,7 +201,7 @@ else:
 ```python
 # Enable deep indexing for nested content
 omnidexer = Omnidexer(enable_deep_indexing=True)
-await omnidexer.load_all_data()
+omnidexer.load_all_data()
 
 # Find nested content
 action_surge = omnidexer.find(ContentType.CLASS_FEATURE, "Action Surge", "PHB")

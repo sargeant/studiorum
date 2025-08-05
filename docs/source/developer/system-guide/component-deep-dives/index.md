@@ -7,6 +7,11 @@ Detailed implementation guides for each major system component.
 ```{toctree}
 :maxdepth: 2
 
+entry-types-system
+image-processing
+layout-engine
+unified-configuration
+error-handling-system
 deep-indexing
 loader-architecture
 content-parsing
@@ -23,6 +28,69 @@ The Implementation Guides provide detailed technical explanations of 5e2pdf's ke
 - **Maintainers** making architectural decisions
 
 ## Available Guides
+
+### [Entry Types System](entry-types-system.md)
+
+Comprehensive guide to the typed entry models system:
+
+- Type-safe replacement for `dict[str, Any]` patterns with 13+ specialized Pydantic models
+- Factory pattern for creating appropriate entry types from raw data
+- Integration with content models and validation systems
+- Migration strategies from untyped to typed entries
+- Performance considerations and extension patterns
+- Testing approaches for entry validation and type safety
+
+### [Image Processing Pipeline](image-processing.md)
+
+Comprehensive guide to the image processing system for LaTeX documents:
+
+- Complete 4-component pipeline: FormatConverter, ImageOptimizer, ImagePlacer, and ImageProcessor
+- WebP/PNG conversion system with transparency handling for LaTeX compatibility
+- Size and quality optimization with context-aware strategies
+- Intelligent LaTeX placement with floating figures, text wrapping, and margin images
+- Configuration system and error handling with graceful fallback strategies
+- Integration with RecursiveEntryProcessor and RenderContext
+- Performance optimization with lazy loading and caching support
+- Extensibility patterns for new formats, sources, and placement strategies
+
+### [Layout Engine System](layout-engine.md)
+
+Comprehensive guide to the sophisticated multi-component layout system:
+
+- Central LayoutEngine coordinating 5 specialized managers: MultiColumn, Float, Sidebar, Table, and Typography
+- 6 layout strategies optimized for different document types (Adventure, Reference, Supplement, etc.)
+- Advanced float positioning with content-aware placement and collision avoidance
+- Intelligent table formatting with automatic column specification and width optimization
+- Comprehensive LayoutContext and LayoutHint systems for fine-grained control
+- Batch processing capabilities with global optimization and content coordination
+- Document type optimization and performance statistics
+- Extension patterns for custom managers, strategies, and layout environments
+
+### [Unified Configuration System](unified-configuration.md)
+
+Comprehensive guide to the hierarchical Pydantic-based configuration architecture:
+
+- Single source of truth consolidating scattered configuration patterns with type safety
+- Hierarchical organization: ApplicationConfig → LoggingConfig, PathsConfig, ProcessingConfig, ValidationConfig, RenderingConfig
+- Environment variable support with DND5E_ prefix and nested delimiter (DND5E_RENDERING__LATEX__ENGINE__PRIMARY_ENGINE)
+- CLI integration through configuration factory providing seamless parameter defaults
+- Legacy compatibility bridges for existing LaTeX config and settings patterns
+- Comprehensive validation with field constraints, cross-field validation, and error reporting
+- Global configuration access with lazy initialization and testing support
+- Extension patterns for new configuration sections and custom validation rules
+
+### [Error Handling System](error-handling-system.md)
+
+Comprehensive guide to the type-safe Result[T, E] pattern and structured error management:
+
+- Complete Result[T, E] pattern implementation with Success/Error types and monadic operations (map, and_then, unwrap)
+- Structured error types: ValidationError, ProcessingError, IOOperationError, UnknownTypeError with rich context and suggestions
+- Error chaining and batch processing with collect_results for complex validation pipelines
+- Standardized logging integration with ErrorContext, severity levels, and structured formatting
+- Legacy compatibility bridges for existing exception-based patterns and gradual migration strategies
+- Advanced patterns: try_result, error recovery, fallback strategies, and retry mechanisms
+- Testing strategies for success/error cases, error propagation, and logging integration
+- Performance considerations: lazy error creation, efficient batch processing, and memory management
 
 ### [Loader Architecture](loader-architecture.md)
 
@@ -90,7 +158,7 @@ Additional implementation guides will be added covering:
 
 ### Performance by Design
 
-- Async/await for I/O operations
+- Efficient I/O operations
 - Efficient indexing structures
 - Lazy loading where possible
 - Memory-conscious data structures
@@ -137,13 +205,35 @@ Additional implementation guides will be added covering:
 ## Code Organization
 
 ```
-src/dnd5e/core/
-├── interfaces.py       # Protocols and abstract base classes
-├── models/            # Content models and types
-├── loaders/           # Data loading and omnidexer
-├── parsers/           # Content parsing logic
-├── config/            # Configuration management
-└── utils/             # Shared utilities
+src/dnd5e/
+├── cli/                    # Command-line interface
+│   ├── commands/          # CLI command implementations
+│   ├── panels/            # Rich-based display panels
+│   ├── config_factory.py  # CLI configuration defaults
+│   ├── display_manager.py # Progress and output display
+│   └── main.py            # CLI entry point
+├── core/                   # Core application logic
+│   ├── assets/            # Asset management (images, fonts)
+│   ├── config/            # Configuration management (unified, LaTeX, paths)
+│   ├── indexer/           # Content indexing and cross-references
+│   ├── loaders/           # Data loading and omnidexer
+│   ├── logging/           # Logging infrastructure
+│   ├── models/            # Content models and types (Pydantic-based)
+│   ├── parsers/           # Content parsing logic
+│   ├── resolvers/         # Content resolution (fuzzy matching)
+│   ├── sources/           # Data source management (GitHub, local)
+│   ├── text/              # Tag processing system (AST-based)
+│   ├── validation/        # Validation system and error tracking
+│   ├── container.py       # Service container (dependency injection)
+│   ├── result.py          # Result[T, E] pattern implementation
+│   └── unified_references.py # Generic reference system
+└── renderers/              # Output rendering system
+    ├── base/              # Base renderer abstractions
+    ├── latex/             # LaTeX-specific rendering
+    │   ├── images/        # Image processing pipeline (4 components)
+    │   ├── layout/        # Layout engine system (5 managers)
+    │   └── templates/     # Jinja2 LaTeX templates
+    └── tags/              # Tag rendering system
 ```
 
 ### Key Concepts
@@ -169,7 +259,7 @@ Before implementing new features:
 When implementing new features:
 
 - **Profile first**: Measure before optimizing
-- **Async when I/O bound**: Use async/await for network/disk operations
+- **Optimize I/O operations**: Use efficient patterns for network/disk operations
 - **Cache intelligently**: Balance memory usage vs. computation
 - **Test with real data**: Use actual 5e.tools datasets for testing
 

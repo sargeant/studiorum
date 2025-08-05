@@ -46,28 +46,23 @@ This architecture solved the original problem of loading 94 duplicate adventures
 
 **Purpose**: Centralized dependency injection and lifecycle management
 
-#### ServiceContainer (`src/dnd5e/core/container.py`)
+The service container provides a clean architectural foundation for managing complex application services, replacing scattered global singletons with centralized, type-safe service management.
 
-The service container manages all core application services with lazy initialization and proper cleanup:
-
-- **Global Container**: `get_global_container()` for CLI and application usage
-- **Scoped Containers**: `service_container()` context manager for isolated usage
-- **Service Management**: Lazy loading of expensive services like Omnidexer
-- **Test Isolation**: `reset_global_container()` for test state management
+**Key Benefits:**
+- **Dependency Injection**: Type-safe service access with automatic dependency resolution
+- **Lifecycle Management**: Proper initialization, cleanup, and resource management
+- **Test Isolation**: Single `reset_global_container()` call replaces complex test setup
+- **Performance**: Lazy initialization ensures services are created only when needed
 
 **Managed Services:**
-- `Omnidexer`: Content indexing and loading
-- `TagResolver`: Cross-reference resolution
-- `EntryRegistry`: Entry type validation
+- `Omnidexer`: Content indexing and loading with progress display
+- `TagResolver`: Cross-reference resolution with automatic omnidexer dependency
+- `EntryRegistry`: Entry type validation and registry management
 - `ReferenceManager`: Reference parsing and resolution
 - `ContentFactory`: Dynamic content instantiation
-- `DisplayManager`: CLI progress and display
+- `DisplayManager`: CLI progress and display coordination
 
-**Benefits:**
-- Eliminates global singleton complexity
-- Simplified test setup (single reset call)
-- Type-safe service access through protocols
-- Automatic resource cleanup and lifecycle management
+For comprehensive implementation details, usage patterns, and migration guide, see {doc}`service-container`.
 
 ### Loader Architecture Layer
 

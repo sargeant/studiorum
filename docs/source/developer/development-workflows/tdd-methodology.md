@@ -224,9 +224,9 @@ class TestContentParser:
 
 ```python
 class TestOmnidexerIntegration:
-    async def test_full_loading_workflow(self):
+    def test_full_loading_workflow(self):
         omnidexer = Omnidexer()
-        await omnidexer.load_all_data()
+        omnidexer.load_all_data()
 
         # Test cross-component functionality
         spell = omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
@@ -294,7 +294,7 @@ def test_memory_usage_during_loading():
 
     tracemalloc.start()
     omnidexer = Omnidexer()
-    await omnidexer.load_all_data()
+    omnidexer.load_all_data()
 
     current, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
@@ -309,7 +309,7 @@ def test_memory_usage_during_loading():
 1. **Assertion Errors**: Check expected vs actual values
 2. **Type Errors**: Verify input data types match expectations
 3. **Import Errors**: Ensure all dependencies are available
-4. **Async Errors**: Check for proper await usage
+4. **Logic Errors**: Check for proper function call patterns and data flow
 
 ### Debugging Tools
 

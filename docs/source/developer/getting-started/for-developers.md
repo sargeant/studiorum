@@ -27,7 +27,7 @@ When planning new features, use this decision framework:
 Before implementing features, ensure alignment with:
 
 - **Type Safety**: Will this maintain full mypy compliance?
-- **Performance**: Does this follow sync patterns (async migration complete)?
+- **Performance**: Does this follow established synchronous patterns?
 - **Extensibility**: Can this be extended without breaking changes?
 - **Testing**: Can this be comprehensively tested?
 - **Service Container**: Does this use dependency injection instead of global singletons?
@@ -88,7 +88,7 @@ When faced with adding functionality to existing systems:
 - Code becomes difficult to maintain or understand
 - Security or reliability issues exist
 
-**Example**: Replacing synchronous file loading with async operations.
+**Example**: Replacing direct file access with a centralized caching system.
 
 #### Hybrid Approach When:
 - New requirements partially fit existing patterns
@@ -124,13 +124,13 @@ When faced with adding functionality to existing systems:
 **Trade-off Example:**
 ```python
 # More maintainable (prefer this)
-async def load_content_simple(content_type: ContentType) -> list[BaseContent]:
+def load_content_simple(content_type: ContentType) -> list[BaseContent]:
     """Clear, straightforward implementation."""
-    data = await fetch_data(content_type)
+    data = fetch_data(content_type)
     return [parse_content(item) for item in data]
 
 # More performant but complex (use only if proven necessary)
-async def load_content_optimized(content_type: ContentType) -> list[BaseContent]:
+def load_content_optimized(content_type: ContentType) -> list[BaseContent]:
     """Optimized version with caching and batching."""
     # Complex caching logic, batching, and optimization
     # Harder to understand and maintain
@@ -225,7 +225,7 @@ async def load_content_optimized(content_type: ContentType) -> list[BaseContent]
 #### Migration Pattern
 **Use For**: Replacing core systems, updating dependencies
 **Approach**: Parallel implementation with gradual migration
-**Example**: Moving from synchronous to asynchronous loading
+**Example**: Migrating from individual loaders to service container pattern
 
 #### Modular Expansion Pattern
 **Use For**: Adding major new capabilities
@@ -244,7 +244,7 @@ async def load_content_optimized(content_type: ContentType) -> list[BaseContent]
 **Feature Dependencies**: Enable specific capabilities
 - Jinja2 for templating
 - LaTeX distribution for PDF generation
-- aiofiles for async file operations
+- pathlib for file system operations
 
 **Development Dependencies**: Support development workflow
 - pytest for testing
@@ -283,7 +283,7 @@ async def load_content_optimized(content_type: ContentType) -> list[BaseContent]
 - Optimization areas: Template compilation, content caching
 
 **Concurrent Operations**:
-- Current: Single-threaded with async I/O
+- Current: Single-threaded synchronous processing
 - Scaling option: Multi-process for CPU-intensive tasks
 - Consideration: Balance complexity vs. performance gains
 
@@ -383,14 +383,14 @@ src/dnd5e/core/
 ```python
 # Good: Specific protocols
 class Loadable(Protocol):
-    async def load(self) -> Any: ...
+    def load(self) -> Any: ...
 
 class Parseable(Protocol):
     def parse(self, data: Any) -> BaseContent: ...
 
 # Avoid: Kitchen sink interfaces
 class ContentProcessor(Protocol):
-    async def load(self) -> Any: ...
+    def load(self) -> Any: ...
     def parse(self, data: Any) -> BaseContent: ...
     def validate(self, content: BaseContent) -> bool: ...
     def render(self, content: BaseContent) -> str: ...

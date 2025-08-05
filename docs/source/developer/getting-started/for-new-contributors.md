@@ -69,7 +69,7 @@ This guide will help you make your first contribution and grow into an independe
 
 3. **Understand Key Patterns**
    - Pydantic models for validation
-   - Async/await for I/O operations
+   - Synchronous I/O operations
    - Protocol-based interfaces
    - Comprehensive error handling
 
@@ -221,7 +221,7 @@ This guide will help you make your first contribution and grow into an independe
 
 ### External Learning
 1. **Python Skills**
-   - Async/await programming
+   - Synchronous programming patterns
    - Type hints and mypy
    - Pydantic for data validation
    - pytest for testing
