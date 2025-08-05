@@ -52,6 +52,12 @@
 % Disable automatic section numbering while preserving TOC entries
 \setcounter{secnumdepth}{-1}
 
+<@ if not justified_text @>
+% Disable text justification
+\raggedright
+\raggedbottom
+<@ endif @>
+
 % Hyperlink configuration
 \hypersetup{
     colorlinks=true,

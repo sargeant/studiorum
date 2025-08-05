@@ -236,7 +236,7 @@ def convert_adventure(
         True, "--two-column/--one-column", help="Use two-column layout"
     ),
     justified: bool = typer.Option(
-        True, "--justified/--not-justified", help="Justify text columns"
+        False, "--justified/--not-justified", help="Justify text columns"
     ),
 ) -> None:
     """
@@ -398,7 +398,7 @@ def convert_book(
         True, "--two-column/--one-column", help="Use two-column layout"
     ),
     justified: bool = typer.Option(
-        True, "--justified/--not-justified", help="Justify text columns"
+        False, "--justified/--not-justified", help="Justify text columns"
     ),
 ) -> None:
     """
@@ -554,7 +554,7 @@ def convert_supplement(
         True, "--two-column/--one-column", help="Use two-column layout"
     ),
     justified: bool = typer.Option(
-        True, "--justified/--not-justified", help="Justify text columns"
+        False, "--justified/--not-justified", help="Justify text columns"
     ),
 ) -> None:
     """

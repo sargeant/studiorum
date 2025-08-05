@@ -16,7 +16,7 @@ class LaTeXDocumentConfig(BaseModel):
 
     # Class options
     class_options: list[str] = Field(
-        default_factory=lambda: ["justified", "twocolumn"],
+        default_factory=lambda: ["twocolumn"],
         description="List of class options to pass to document class",
     )
 
@@ -45,7 +45,7 @@ class LaTeXDocumentConfig(BaseModel):
         default=False, description="Use high contrast mode for printing"
     )
 
-    justified_text: bool = Field(default=True, description="Justify text columns")
+    justified_text: bool = Field(default=False, description="Justify text columns")
 
     fancy_headers: bool = Field(
         default=False, description="Enable fancy headers for adventure-style documents"

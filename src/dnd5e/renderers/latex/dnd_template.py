@@ -391,12 +391,12 @@ def get_recommended_class_options(content_type: str) -> list[str]:
         List of recommended class options
     """
     recommendations = {
-        "book": ["bg", "justified", "twocolumn"],
-        "supplement": ["bg", "justified", "twocolumn"],
-        "reference": ["bg", "justified", "twocolumn"],
-        "article": ["bg", "justified", "onecolumn"],
-        "adventure": ["bg", "justified", "twocolumn", "fancy"],
-        "homebrew": ["bg", "justified", "twocolumn"],
+        "book": ["bg", "twocolumn"],
+        "supplement": ["bg", "twocolumn"],
+        "reference": ["bg", "twocolumn"],
+        "article": ["bg", "onecolumn"],
+        "adventure": ["bg", "twocolumn", "fancy"],
+        "homebrew": ["bg", "twocolumn"],
     }
 
-    return recommendations.get(content_type, ["bg", "justified"])
+    return recommendations.get(content_type, ["bg"])
