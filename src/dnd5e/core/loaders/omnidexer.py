@@ -163,6 +163,11 @@ class Omnidexer:
         ContentType.CLASS,
         ContentType.VEHICLE,
         ContentType.VARIANT_RULE,
+        ContentType.ACTION,
+        ContentType.CONDITION,
+        ContentType.SENSE,
+        ContentType.HAZARD,
+        ContentType.STATUS,
     )
 
     _FLUFF_CONTENT_TYPES = (

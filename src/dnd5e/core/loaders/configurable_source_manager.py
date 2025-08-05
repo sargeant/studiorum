@@ -105,6 +105,11 @@ class ConfigurableSourceManager(SourceManager):
             ContentType.RACE: ["race", "races"],
             ContentType.VEHICLE: ["vehicle", "vehicles"],
             ContentType.VARIANT_RULE: ["variantrule", "variantrules"],
+            ContentType.ACTION: ["action", "actions"],
+            ContentType.CONDITION: ["condition", "conditions", "conditionsdiseases"],
+            ContentType.SENSE: ["sense", "senses"],
+            ContentType.HAZARD: ["hazard", "hazards", "trapshazards"],
+            ContentType.STATUS: ["status", "statuses", "conditionsdiseases"],
             # Fluff content patterns - these should be checked first
             ContentType.SPELL_FLUFF: ["fluff-spell", "spell-fluff"],
             ContentType.CREATURE_FLUFF: [
@@ -120,6 +125,12 @@ class ConfigurableSourceManager(SourceManager):
 
         # Track files already assigned to avoid conflicts
         assigned_files = set()
+
+        # Files that should be shared between multiple content types
+        shared_files = {
+            "conditionsdiseases.json": [ContentType.CONDITION, ContentType.STATUS],
+            # Add other shared files as needed
+        }
 
         # Organize content types by priority
         fluff_content_types = [
@@ -138,14 +149,22 @@ class ConfigurableSourceManager(SourceManager):
             # Search through all source files for directory matches
             for source_name, files in all_files.items():
                 for file_path in files:
+                    file_name = file_path.name.lower()
+
                     # Skip files already assigned or should be filtered
+                    # Exception: allow shared files to be assigned to multiple content types
+                    is_shared_file = (
+                        file_name in shared_files
+                        and content_type in shared_files[file_name]
+                    )
+
                     if (
                         file_path in assigned_files
+                        and not is_shared_file
                         or self._should_skip_file_at_discovery(file_path)
                     ):
                         continue
 
-                    file_name = file_path.name.lower()
                     parent_name = file_path.parent.name.lower()
 
                     # Check parent directory names
@@ -157,7 +176,12 @@ class ConfigurableSourceManager(SourceManager):
                         ):
                             continue
                         type_paths.append(file_path)
-                        assigned_files.add(file_path)
+                        # Only mark as assigned if it's not a shared file
+                        if not (
+                            file_name in shared_files
+                            and len(shared_files[file_name]) > 1
+                        ):
+                            assigned_files.add(file_path)
 
             if type_paths:
                 data_paths[content_type] = type_paths
@@ -170,14 +194,21 @@ class ConfigurableSourceManager(SourceManager):
             # Search through all source files for filename matches
             for source_name, files in all_files.items():
                 for file_path in files:
+                    file_name = file_path.name.lower()
+
                     # Skip files already assigned or should be filtered
+                    # Exception: allow shared files to be assigned to multiple content types
+                    is_shared_file = (
+                        file_name in shared_files
+                        and content_type in shared_files[file_name]
+                    )
+
                     if (
                         file_path in assigned_files
+                        and not is_shared_file
                         or self._should_skip_file_at_discovery(file_path)
                     ):
                         continue
-
-                    file_name = file_path.name.lower()
 
                     # Check filename patterns
                     if any(pattern in file_name for pattern in patterns):
@@ -188,7 +219,12 @@ class ConfigurableSourceManager(SourceManager):
                         ):
                             continue
                         type_paths.append(file_path)
-                        assigned_files.add(file_path)
+                        # Only mark as assigned if it's not a shared file
+                        if not (
+                            file_name in shared_files
+                            and len(shared_files[file_name]) > 1
+                        ):
+                            assigned_files.add(file_path)
 
             if type_paths:
                 data_paths[content_type] = type_paths

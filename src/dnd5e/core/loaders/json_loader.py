@@ -306,6 +306,31 @@ class JsonDataLoader(DataLoader[BaseContent]):
             if isinstance(variant_rule_data, list):
                 return variant_rule_data
             return []
+        elif self._content_type == ContentType.ACTION and "action" in data:
+            action_data = data["action"]
+            if isinstance(action_data, list):
+                return action_data
+            return []
+        elif self._content_type == ContentType.CONDITION and "condition" in data:
+            condition_data = data["condition"]
+            if isinstance(condition_data, list):
+                return condition_data
+            return []
+        elif self._content_type == ContentType.SENSE and "sense" in data:
+            sense_data = data["sense"]
+            if isinstance(sense_data, list):
+                return sense_data
+            return []
+        elif self._content_type == ContentType.HAZARD and "hazard" in data:
+            hazard_data = data["hazard"]
+            if isinstance(hazard_data, list):
+                return hazard_data
+            return []
+        elif self._content_type == ContentType.STATUS and "status" in data:
+            status_data = data["status"]
+            if isinstance(status_data, list):
+                return status_data
+            return []
 
         # Generic fallbacks
         content_type_name = self._content_type.value
@@ -394,6 +419,11 @@ class JsonDataLoader(DataLoader[BaseContent]):
             },
             ContentType.ITEM_FLUFF: {"itemFluff", "item_fluff"},
             ContentType.VARIANT_RULE: {"variantrule", "variantrules"},
+            ContentType.ACTION: {"action", "actions"},
+            ContentType.CONDITION: {"condition", "conditions"},
+            ContentType.SENSE: {"sense", "senses"},
+            ContentType.HAZARD: {"hazard", "hazards"},
+            ContentType.STATUS: {"status", "statuses"},
         }
 
         return content_type_keys.get(self._content_type, set())
