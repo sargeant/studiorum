@@ -94,6 +94,7 @@ test-report.xml
 .claude/
 .gemini/
 CLAUDE.md
+.serena
 
 # Coverage reports
 htmlcov/
