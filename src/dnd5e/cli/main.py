@@ -10,10 +10,10 @@ from rich import print as rprint
 
 from dnd5e.cli.display_manager import display_manager
 from dnd5e.core.config.unified_config import get_app_config
-from dnd5e.core.indexer.tag_resolver import TagResolver
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.logging.logger import setup_logging
 from dnd5e.core.models.content import BaseContent
+from dnd5e.core.text.tag_resolver import TagResolver
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine

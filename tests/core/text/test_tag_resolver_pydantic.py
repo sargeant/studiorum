@@ -7,9 +7,9 @@ from unittest.mock import Mock, patch
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.indexer.tag_parser import TagParseError, TagParser
-from dnd5e.core.indexer.tag_renderer import TagRenderer
-from dnd5e.core.indexer.tag_resolver import TagResolver
+from dnd5e.core.text.tag_parser import TagParseError, TagParser
+from dnd5e.core.text.tag_resolver import TagResolver
+from dnd5e.renderers.base.tag_renderer import TagRenderer
 
 
 class TestTagResolver:
@@ -398,7 +398,7 @@ class TestTagResolver:
     def test_tag_resolver_error_logging(self, mock_omnidexer: Mock) -> None:
         """Test that errors are properly logged."""
         with (
-            patch("dnd5e.core.indexer.tag_resolver.logger") as mock_logger,
+            patch("dnd5e.core.text.tag_resolver.logger") as mock_logger,
             patch.object(TagParser, "parse") as mock_parse,
         ):
             mock_parse.side_effect = TagParseError("Test parse error")

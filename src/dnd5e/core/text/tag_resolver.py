@@ -6,10 +6,10 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from dnd5e.core.logging import get_logger
+from dnd5e.renderers.base.tag_handlers import TagHandler
+from dnd5e.renderers.base.tag_renderer import TagRenderer
 
-from .tag_handlers import TagHandler
 from .tag_parser import TagParseError, TagParser
-from .tag_renderer import TagRenderer
 
 logger = get_logger(__name__)
 

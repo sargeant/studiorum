@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.indexer.tag_ast import (  # type: ignore
+from dnd5e.core.text.tag_ast import (  # type: ignore
     AdventureTagNode,
     BackgroundTagNode,
     BoldTagNode,
@@ -30,7 +30,7 @@ from dnd5e.core.indexer.tag_ast import (  # type: ignore
     TagNode,
     TextNode,
 )
-from dnd5e.core.indexer.tag_parser import (  # type: ignore
+from dnd5e.core.text.tag_parser import (  # type: ignore
     TagASTTransformer,
     TagParseError,
     TagParser,
@@ -470,8 +470,8 @@ class TestTagParser:
     def test_grammar_file_exists(self) -> None:
         """Test that grammar file exists."""
         grammar_path = (
-            Path(__file__).parent.parent.parent
-            / "src/dnd5e/core/indexer/tag_grammar.lark"
+            Path(__file__).parent.parent.parent.parent
+            / "src/dnd5e/core/text/tag_grammar.lark"
         )
         assert grammar_path.exists(), f"Grammar file not found at {grammar_path}"
 
@@ -482,9 +482,9 @@ class TestTagParser:
         def mock_lark(*args: Any, **kwargs: Any) -> None:
             raise Exception("Lark parser error")
 
-        import dnd5e.core.indexer.tag_parser  # type: ignore
+        import dnd5e.core.text.tag_parser  # type: ignore
 
-        monkeypatch.setattr(dnd5e.core.indexer.tag_parser, "Lark", mock_lark)
+        monkeypatch.setattr(dnd5e.core.text.tag_parser, "Lark", mock_lark)
 
         with pytest.raises(TagParseError, match="Failed to initialize parser"):
             TagParser()

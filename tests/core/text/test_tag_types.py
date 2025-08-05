@@ -6,7 +6,8 @@ from unittest.mock import Mock
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.indexer.tag_types import (
+from dnd5e.core.models.content import BaseContent, ContentType, Source
+from dnd5e.core.text.tag_types import (
     ContentReference,
     FormattingNode,
     FormatType,
@@ -14,7 +15,6 @@ from dnd5e.core.indexer.tag_types import (
     TagContext,
     TagResolutionResult,
 )
-from dnd5e.core.models.content import BaseContent, ContentType, Source
 
 
 class TestFormatType:

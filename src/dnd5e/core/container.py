@@ -19,10 +19,10 @@ if TYPE_CHECKING:
     from dnd5e.core.config.unified_config import ApplicationConfig
     from dnd5e.core.content_type_resolver import RegistryBasedContentTypeResolver
     from dnd5e.core.entry_registry import EntryTypeRegistry
-    from dnd5e.core.indexer.tag_resolver import TagResolver
     from dnd5e.core.interfaces import ContentTypeRegistry
     from dnd5e.core.loaders.content_factory import ContentFactory
     from dnd5e.core.loaders.omnidexer import Omnidexer
+    from dnd5e.core.text.tag_resolver import TagResolver
     from dnd5e.core.unified_references import ReferenceManager
 
 logger = logging.getLogger(__name__)
@@ -143,7 +143,7 @@ class DefaultServiceContainer:
 
         if self._tag_resolver is None:
             logger.debug("Creating tag resolver instance")
-            from dnd5e.core.indexer.tag_resolver import TagResolver
+            from dnd5e.core.text.tag_resolver import TagResolver
 
             omnidexer = self.get_omnidexer()
             self._tag_resolver = TagResolver(omnidexer)

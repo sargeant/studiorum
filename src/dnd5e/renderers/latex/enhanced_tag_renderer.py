@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING, Any
 from pydantic import Field
 
 from dnd5e.core.logging import get_logger
+from dnd5e.core.text.tag_ast import ASTNode, DocumentNode, TagNode
+from dnd5e.renderers.base.tag_renderer import RendererContext, TagRenderer
 
-from .cross_reference_manager import CrossReferenceManager
-from .hyperlink_manager import HyperlinkManager
-from .latex_content_tracker import LaTeXContentTracker
-from .tag_ast import ASTNode, DocumentNode, TagNode
-from .tag_renderer import RendererContext, TagRenderer
+from ...core.indexer.cross_reference_manager import CrossReferenceManager
+from ...core.indexer.hyperlink_manager import HyperlinkManager
+from ...core.indexer.latex_content_tracker import LaTeXContentTracker
 
 logger = get_logger(__name__)
 

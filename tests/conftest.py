@@ -11,7 +11,6 @@ from dnd5e.core.config.sources import (  # type: ignore
     ContentSource,
     SourceType,
 )
-from dnd5e.core.indexer.tag_resolver import TagResolver  # type: ignore
 from dnd5e.core.loaders.configurable_source_manager import (
     ConfigurableSourceManager,  # type: ignore
 )
@@ -19,6 +18,7 @@ from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
 from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
 from dnd5e.core.models.creatures import Creature  # type: ignore
 from dnd5e.core.models.spells import Spell  # type: ignore
+from dnd5e.core.text.tag_resolver import TagResolver  # type: ignore
 
 
 @pytest.fixture

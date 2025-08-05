@@ -12,8 +12,8 @@ from dnd5e.core.loaders.omnidexer import Omnidexer
 
 if TYPE_CHECKING:
     from dnd5e.core.config.latex_config import LaTeXConfig
-    from dnd5e.core.indexer.tag_resolver import TagResolver
     from dnd5e.core.models.document_metadata import DocumentMetadata
+    from dnd5e.core.text.tag_resolver import TagResolver
 
 
 class RenderContext(ServiceContext):
@@ -74,6 +74,9 @@ class RenderContext(ServiceContext):
 
     def __init__(self, **data: Any) -> None:
         """Initialize RenderContext with proper service mapping."""
+        # Ensure model is rebuilt before instantiation
+        _ensure_model_rebuilt()
+
         # Extract services that should go to the base ServiceContext
         services = {}
         for service_name in ["omnidexer", "tag_resolver", "config"]:
@@ -185,18 +188,23 @@ class RenderContext(ServiceContext):
         return self.model_copy(update=updates)
 
 
-# Rebuild the model to resolve forward references after all imports are available
-def _rebuild_model() -> None:
-    """Rebuild RenderContext model to resolve forward references."""
-    try:
-        from dnd5e.core.config.latex_config import LaTeXConfig  # noqa: F401
-        from dnd5e.core.indexer.tag_resolver import TagResolver  # noqa: F401
-        from dnd5e.core.models.document_metadata import DocumentMetadata  # noqa: F401
-
-        RenderContext.model_rebuild()
-    except ImportError:
-        # Forward references will be resolved when modules are imported
-        pass
+# Lazy model rebuild to avoid circular imports
+_model_rebuilt = False
 
 
-_rebuild_model()
+def _ensure_model_rebuilt() -> None:
+    """Ensure RenderContext model is rebuilt to resolve forward references."""
+    global _model_rebuilt
+    if not _model_rebuilt:
+        try:
+            from dnd5e.core.config.latex_config import LaTeXConfig  # noqa: F401
+            from dnd5e.core.models.document_metadata import (
+                DocumentMetadata,  # noqa: F401
+            )
+            from dnd5e.core.text.tag_resolver import TagResolver  # noqa: F401
+
+            RenderContext.model_rebuild()
+            _model_rebuilt = True
+        except ImportError:
+            # Forward references will be resolved when modules are imported
+            pass

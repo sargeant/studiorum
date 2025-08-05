@@ -7,12 +7,13 @@ from typing import Any
 import jinja2
 from jinja2 import Environment, FileSystemLoader, Template
 
-from ...core.config.latex_config import LaTeXConfig, get_default_latex_config
-from ...core.latex_utils import (
+from dnd5e.core.latex_utils import (
     contains_dangerous_latex,
     escape_latex_text,
     validate_safe_latex,
 )
+
+from ...core.config.latex_config import LaTeXConfig, get_default_latex_config
 from ...core.types import LaTeXConfig as LaTeXConfigDict, TemplateData
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
 

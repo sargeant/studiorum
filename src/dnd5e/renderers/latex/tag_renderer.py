@@ -1,13 +1,14 @@
 """LaTeX-specific tag rendering - handles formatting structured tag results."""
 
-from ...core.indexer.tag_types import (
+from dnd5e.core.latex_utils import escape_latex_text
+from dnd5e.core.text.tag_types import (
     ContentReference,
     FormattingNode,
     FormatType,
     SpecialTag,
     TagResolutionResult,
 )
-from ...core.latex_utils import escape_latex_text
+
 from ...core.logging import get_logger
 from ...core.models.content import ContentType
 

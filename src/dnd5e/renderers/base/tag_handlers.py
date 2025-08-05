@@ -3,9 +3,9 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, cast
 
-from ..latex_utils import escape_latex_text
-from .content_tracker import ContentTracker
-from .tag_ast import (
+from dnd5e.core.indexer.content_tracker import ContentTracker
+from dnd5e.core.latex_utils import escape_latex_text
+from dnd5e.core.text.tag_ast import (
     AdventureTagNode,
     BoldTagNode,
     BookTagNode,
