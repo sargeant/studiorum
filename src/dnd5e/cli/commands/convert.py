@@ -75,22 +75,6 @@ def resolve_content_or_file(
     """
     # Check if it's a file path
     file_path = Path(content_source)
-
-    # Debug output for CI
-    import os
-
-    if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
-        import sys
-
-        print(
-            f"DEBUG: resolve_content_or_file called with: {content_source}",
-            file=sys.stderr,
-        )
-        print(f"DEBUG: file_path = {file_path}", file=sys.stderr)
-        print(f"DEBUG: file_path.exists() = {file_path.exists()}", file=sys.stderr)
-        print(f"DEBUG: file_path.is_file() = {file_path.is_file()}", file=sys.stderr)
-        print(f"DEBUG: cwd = {os.getcwd()}", file=sys.stderr)
-
     if file_path.is_file():
         return _load_from_file(file_path, content_type)
 
@@ -294,6 +278,9 @@ def convert_adventure(
 
     def _convert() -> None:
         try:
+            # Initialize result to avoid UnboundLocalError in exception handler
+            result = ""
+
             # Resolve content source (file or abbreviation)
             content_items, source_desc = resolve_content_or_file(
                 content_source, ContentType.ADVENTURE
@@ -467,6 +454,9 @@ def convert_book(
 
     def _convert() -> None:
         try:
+            # Initialize result to avoid UnboundLocalError in exception handler
+            result = ""
+
             # Resolve content source (file or abbreviation)
             content_items, source_desc = resolve_content_or_file(
                 content_source, ContentType.BOOK
@@ -626,6 +616,9 @@ def convert_supplement(
 
     def _convert() -> None:
         try:
+            # Initialize result to avoid UnboundLocalError in exception handler
+            result = ""
+
             # Validate input
             if not input_file.exists():
                 rprint(f"[red]Error:[/red] Supplement file not found: {input_file}")
