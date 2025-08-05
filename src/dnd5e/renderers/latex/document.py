@@ -369,12 +369,10 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             Basic rendered content
         """
         # Check if this is a raw book entry that should be processed recursively
-        if isinstance(content, dict | str) and self._is_book_entry(content, context):
+        if self._is_book_entry(content, context):
             return self._render_book_entry(content, context)
         # Check if this is a raw adventure entry that should be processed recursively
-        if isinstance(content, dict | str) and self._is_adventure_entry(
-            content, context
-        ):
+        if self._is_adventure_entry(content, context):
             return self._render_adventure_entry(content, context)
         # Handle both dict and object formats for content name
         if hasattr(content, "name"):
@@ -440,6 +438,9 @@ This content type is not yet fully supported by the rendering system.
         elif isinstance(content, dict):
             # Dict entries with typical book entry structure
             return any(key in content for key in ["type", "entries", "name"])
+        elif hasattr(content, "entries") and hasattr(content, "document_type"):
+            # Section objects from nested entries that contain book content
+            return bool(content.document_type == "book")
 
         return False
 
@@ -503,7 +504,7 @@ This content type is not yet fully supported by the rendering system.
         """Render a raw book entry using RecursiveEntryProcessor.
 
         Args:
-            content: Raw book entry (string or dict)
+            content: Raw book entry (string, dict, or Section)
             context: Rendering context
 
         Returns:
@@ -526,6 +527,10 @@ This content type is not yet fully supported by the rendering system.
         elif isinstance(content, dict):
             # Process dict entry
             return processor.process_entry_dict(content, context)
+        elif hasattr(content, "entries"):
+            # Process Section object - render its entries
+            processed_entries = processor.process_entries(content.entries, context)
+            return "\n\n".join(processed_entries)
         else:
             return str(content)
 

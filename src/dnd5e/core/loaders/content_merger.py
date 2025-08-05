@@ -167,7 +167,11 @@ class ContentMerger:
             logger.error("Content data format invalid - 'data' field is not a list")
             return self._create_metadata_only_result(metadata_entry)
 
-        # Start with metadata as base structure
+        # For books, use simplified merging that ignores complex header structure
+        if self._is_book_metadata(metadata_entry):
+            return self._merge_book_content_simplified(metadata_entry, content_sections)
+
+        # Start with metadata as base structure (adventures use complex merging)
         merged_result = dict(metadata_entry)
 
         # Create merged contents array that combines metadata structure with content data
@@ -466,3 +470,80 @@ class ContentMerger:
             "cache_enabled": self.settings.enable_caching,
             "cache_ttl": self.settings.cache_ttl,
         }
+
+    def _is_book_metadata(self, metadata_entry: dict[str, Any]) -> bool:
+        """Check if metadata entry is for a book (vs adventure).
+
+        Args:
+            metadata_entry: Metadata entry to check
+
+        Returns:
+            True if this is book metadata
+        """
+        # Adventures have level and storyline fields, books don't
+        if "level" in metadata_entry or "storyline" in metadata_entry:
+            return False
+
+        # Books typically have author field and contents with chapters
+        # but no adventure-specific fields
+        contents = metadata_entry.get("contents", [])
+        if not contents:
+            return False
+
+        # Additional check: books generally have author field
+        return "author" in metadata_entry
+
+    def _merge_book_content_simplified(
+        self, metadata_entry: dict[str, Any], content_sections: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """Simplified book content merging that bypasses complex header matching.
+
+        This approach ignores the complex header structure from books.json metadata
+        and directly uses the content structure from book-*.json files.
+
+        Args:
+            metadata_entry: Book metadata from books.json
+            content_sections: Content sections from book-*.json
+
+        Returns:
+            Merged book data with simplified structure
+        """
+        # Start with basic metadata (name, source, etc.)
+        result = {
+            "name": metadata_entry.get("name", "Unknown Book"),
+            "source": metadata_entry.get("source", "Unknown"),
+            "id": metadata_entry.get("id", "unknown"),
+        }
+
+        # Add other metadata fields if present
+        for key in ["published", "isbn", "image", "tags"]:
+            if key in metadata_entry:
+                result[key] = metadata_entry[key]
+
+        # Use content sections directly as contents - no complex header matching
+        result["contents"] = []
+        for section in content_sections:
+            if isinstance(section, dict) and section.get("type") == "section":
+                # Convert content sections to simplified book chapter format
+                chapter = {
+                    "name": section.get("name", "Unnamed Chapter"),
+                    "entries": section.get("entries", []),
+                }
+
+                # Preserve other section metadata if present
+                if "id" in section:
+                    chapter["ordinal"] = {
+                        "type": "section",
+                        "identifier": section["id"],
+                    }
+                if "page" in section:
+                    chapter["page"] = section["page"]
+
+                result["contents"].append(chapter)
+
+        logger.debug(
+            f"Simplified book merge: {len(result['contents'])} chapters "
+            f"from {len(content_sections)} content sections"
+        )
+
+        return result
