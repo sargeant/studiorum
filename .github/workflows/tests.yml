@@ -27,8 +27,8 @@ jobs:
 
     - name: Run linting and type checks
       run: |
-        uv ruff check src tests
-        uv mypy src/
+        uv run ruff check src tests
+        uv run mypy src/
 
     - name: Run comprehensive test suite with coverage
       run: make ci-test
