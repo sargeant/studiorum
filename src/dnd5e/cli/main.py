@@ -67,6 +67,9 @@ def show_version() -> None:
 @app.callback()
 def main(
     verbose: bool = typer.Option(False, "--verbose", help="Enable verbose output"),
+    debug: bool = typer.Option(
+        False, "--debug", help="Enable debug output (most verbose)"
+    ),
 ) -> None:
     """
     🎲 **5e2pdf** - Modern D&D 5e content converter
@@ -80,7 +83,7 @@ def main(
     try:
         # This will trigger Pydantic validation and create directories
         _ = config.model_dump()
-        if verbose:
+        if verbose or debug:
             logger = logging.getLogger(__name__)
             logger.info("Configuration loaded successfully")
             logger.info(f"LaTeX engine: {config.rendering.latex.engine.primary_engine}")
@@ -89,9 +92,19 @@ def main(
         rprint(f"[red]Configuration error:[/red] {e}")
         raise typer.Exit(1)
 
-    log_level = "INFO" if verbose else config.logging.level
+    # Determine log level priority: debug > verbose > config default
+    if debug:
+        log_level = "DEBUG"
+    elif verbose:
+        log_level = "INFO"
+    else:
+        log_level = config.logging.level
+
     setup_logging(level=log_level)
-    if verbose:
+
+    if debug:
+        logging.info("Enabled debug mode")
+    elif verbose:
         logging.info("Enabled verbose mode")
 
 
