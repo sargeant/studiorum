@@ -90,17 +90,23 @@ class TestLaTeXEngineIntegration:
         mock_display.add_task.return_value = "task_id"
         mock_display.update_task = Mock()
 
-        # Use real test data file instead of mocked data
+        # Use real test data file with absolute path for CI compatibility
         test_file = self.test_data_dir / "adventure-example.json"
         assert test_file.exists(), f"Test data file {test_file} not found"
 
         with tempfile.TemporaryDirectory() as temp_dir:
             output_file = Path(temp_dir) / "test_adventure.tex"
 
-            # Test command with PDF flag
+            # Test command with PDF flag - use absolute paths for CI
             result = self.runner.invoke(
                 app,
-                ["adventure", str(test_file), "--output", str(output_file), "--pdf"],
+                [
+                    "adventure",
+                    str(test_file.absolute()),
+                    "--output",
+                    str(output_file),
+                    "--pdf",
+                ],
             )
 
             # Verify success
@@ -138,16 +144,23 @@ class TestLaTeXEngineIntegration:
         mock_display.add_task.return_value = "task_id"
         mock_display.update_task = Mock()
 
-        # Use real test data file instead of mocked data
+        # Use real test data file with absolute path for CI compatibility
         test_file = self.test_data_dir / "book-example.json"
         assert test_file.exists(), f"Test data file {test_file} not found"
 
         with tempfile.TemporaryDirectory() as temp_dir:
             output_file = Path(temp_dir) / "test_book.tex"
 
-            # Test command with PDF flag
+            # Test command with PDF flag - use absolute paths for CI
             result = self.runner.invoke(
-                app, ["book", str(test_file), "--output", str(output_file), "--pdf"]
+                app,
+                [
+                    "book",
+                    str(test_file.absolute()),
+                    "--output",
+                    str(output_file),
+                    "--pdf",
+                ],
             )
 
             # Verify success

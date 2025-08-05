@@ -79,11 +79,11 @@ def resolve_content_or_file(
         return _load_from_file(file_path, content_type)
 
     # Otherwise, treat as content abbreviation
-    omnidexer = get_omnidexer()
-    resolver = ContentResolver(omnidexer)
-
     # Initialize result to avoid UnboundLocalError
     result = None
+
+    omnidexer = get_omnidexer()
+    resolver = ContentResolver(omnidexer)
 
     if content_type == ContentType.ADVENTURE:
         result = resolver.resolve_adventure(content_source)
