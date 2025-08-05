@@ -74,12 +74,30 @@ class TestConvertCommandsWithReducedMocking:
         assert "Convert supplement" in result.stdout
 
     @pytest.mark.slow
+    @patch("dnd5e.cli.commands.convert.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_adventure_conversion_with_real_data_latex_only(
-        self, mock_display, mock_create_compiler
+        self,
+        mock_display,
+        mock_create_compiler,
+        mock_get_tag_resolver,
+        mock_get_omnidexer,
     ):
         """Test adventure conversion using real test data, only mocking LaTeX compiler."""
+        # Mock omnidexer and tag resolver to avoid loading 5etools data in CI
+        mock_omnidexer = Mock()
+        mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
+        mock_omnidexer.get_all_by_type = Mock(return_value=[])
+        mock_get_omnidexer.return_value = mock_omnidexer
+
+        mock_tag_resolver = Mock()
+        mock_tag_resolver.resolve = Mock(
+            side_effect=lambda text, _: text
+        )  # Pass through tags unchanged
+        mock_get_tag_resolver.return_value = mock_tag_resolver
+
         # Only mock the LaTeX compiler and display manager (external dependencies)
         mock_compiler = Mock()
         mock_result = Mock()
@@ -123,12 +141,30 @@ class TestConvertCommandsWithReducedMocking:
             assert "\\end{document}" in latex_content
 
     @pytest.mark.slow
+    @patch("dnd5e.cli.commands.convert.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_book_conversion_with_real_data_latex_only(
-        self, mock_display, mock_create_compiler
+        self,
+        mock_display,
+        mock_create_compiler,
+        mock_get_tag_resolver,
+        mock_get_omnidexer,
     ):
         """Test book conversion using real test data, only mocking LaTeX compiler."""
+        # Mock omnidexer and tag resolver to avoid loading 5etools data in CI
+        mock_omnidexer = Mock()
+        mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
+        mock_omnidexer.get_all_by_type = Mock(return_value=[])
+        mock_get_omnidexer.return_value = mock_omnidexer
+
+        mock_tag_resolver = Mock()
+        mock_tag_resolver.resolve = Mock(
+            side_effect=lambda text, _: text
+        )  # Pass through tags unchanged
+        mock_get_tag_resolver.return_value = mock_tag_resolver
+
         # Only mock the LaTeX compiler and display manager (external dependencies)
         mock_compiler = Mock()
         mock_result = Mock()
@@ -170,12 +206,30 @@ class TestConvertCommandsWithReducedMocking:
             assert "\\end{document}" in latex_content
 
     @pytest.mark.slow
+    @patch("dnd5e.cli.commands.convert.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_pdf_compilation_uses_configured_compiler(
-        self, mock_display, mock_create_compiler
+        self,
+        mock_display,
+        mock_create_compiler,
+        mock_get_tag_resolver,
+        mock_get_omnidexer,
     ):
         """Test that PDF compilation uses the configured LaTeX compiler."""
+        # Mock omnidexer and tag resolver to avoid loading 5etools data in CI
+        mock_omnidexer = Mock()
+        mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
+        mock_omnidexer.get_all_by_type = Mock(return_value=[])
+        mock_get_omnidexer.return_value = mock_omnidexer
+
+        mock_tag_resolver = Mock()
+        mock_tag_resolver.resolve = Mock(
+            side_effect=lambda text, _: text
+        )  # Pass through tags unchanged
+        mock_get_tag_resolver.return_value = mock_tag_resolver
+
         # Mock the LaTeX compiler to verify it's called correctly
         mock_compiler = Mock()
         mock_result = Mock()

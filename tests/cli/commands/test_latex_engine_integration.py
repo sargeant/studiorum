@@ -70,12 +70,30 @@ class TestLaTeXEngineIntegration:
                 logger.setLevel(logging.DEBUG)
 
     @pytest.mark.slow
+    @patch("dnd5e.cli.commands.convert.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_adventure_pdf_uses_latex_compiler_with_config(
-        self, mock_display, mock_create_compiler
+        self,
+        mock_display,
+        mock_create_compiler,
+        mock_get_tag_resolver,
+        mock_get_omnidexer,
     ):
         """Test that adventure PDF compilation uses LaTeXCompiler with proper configuration."""
+        # Mock omnidexer and tag resolver to avoid loading 5etools data in CI
+        mock_omnidexer = Mock()
+        mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
+        mock_omnidexer.get_all_by_type = Mock(return_value=[])
+        mock_get_omnidexer.return_value = mock_omnidexer
+
+        mock_tag_resolver = Mock()
+        mock_tag_resolver.resolve = Mock(
+            side_effect=lambda text, _: text
+        )  # Pass through tags unchanged
+        mock_get_tag_resolver.return_value = mock_tag_resolver
+
         # Only mock the LaTeX compiler and display manager (external dependencies)
         mock_compiler = Mock()
         mock_result = Mock()
@@ -126,10 +144,30 @@ class TestLaTeXEngineIntegration:
             assert "\\documentclass" in latex_content
 
     @pytest.mark.slow
+    @patch("dnd5e.cli.commands.convert.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    def test_book_pdf_uses_configured_engine(self, mock_display, mock_create_compiler):
+    def test_book_pdf_uses_configured_engine(
+        self,
+        mock_display,
+        mock_create_compiler,
+        mock_get_tag_resolver,
+        mock_get_omnidexer,
+    ):
         """Test that book PDF compilation uses configured LaTeX engine."""
+        # Mock omnidexer and tag resolver to avoid loading 5etools data in CI
+        mock_omnidexer = Mock()
+        mock_omnidexer.find = Mock(return_value=None)  # No cross-references found
+        mock_omnidexer.get_all_by_type = Mock(return_value=[])
+        mock_get_omnidexer.return_value = mock_omnidexer
+
+        mock_tag_resolver = Mock()
+        mock_tag_resolver.resolve = Mock(
+            side_effect=lambda text, _: text
+        )  # Pass through tags unchanged
+        mock_get_tag_resolver.return_value = mock_tag_resolver
+
         # Only mock the LaTeX compiler and display manager (external dependencies)
         mock_compiler = Mock()
         mock_result = Mock()
