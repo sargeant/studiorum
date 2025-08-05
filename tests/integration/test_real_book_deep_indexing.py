@@ -201,7 +201,7 @@ class TestRealBookDeepIndexing:
         omnidexer = Omnidexer(enable_deep_indexing=True)
 
         try:
-            await omnidexer.load_all_data()
+            omnidexer.load_all_data()
         except Exception:
             pytest.skip("Full data loading not available")
 

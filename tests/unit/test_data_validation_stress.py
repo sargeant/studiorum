@@ -488,12 +488,18 @@ class TestDataValidationStress:
         source_manager: Any = FileSystemSourceManager()
 
         # Create multiple omnidexers to test concurrent loading
-        async def load_data() -> Any:
+        def load_data() -> Any:
             omnidexer: Any = Omnidexer(source_manager)
             return omnidexer.load_all_data()
 
-        # Run 3 concurrent loads (now sync)
-        results = [load_data() for _ in range(3)]
+        # Run 3 concurrent loads using ThreadPoolExecutor
+        import concurrent.futures
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            futures = [executor.submit(load_data) for _ in range(3)]
+            results = [
+                future.result() for future in concurrent.futures.as_completed(futures)
+            ]
 
         # All loads should succeed and return similar results
         assert len(results) == 3
