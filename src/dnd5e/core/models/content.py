@@ -40,6 +40,13 @@ class ContentType(str, Enum):
     BOOK_TABLE = "bookTable"
     BOOK_INSET = "bookInset"
 
+    # Rule glossary types
+    ACTION = "action"
+    CONDITION = "condition"
+    SENSE = "sense"
+    HAZARD = "hazard"
+    STATUS = "status"
+
     @classmethod
     def from_content(cls, content: BaseContent) -> ContentType:
         """Determine content type from content object.

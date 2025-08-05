@@ -1215,12 +1215,11 @@ class RecursiveEntryProcessor:
         # Map statblock tags to ContentType enums
         tag_to_content_type = {
             "variantrule": "VARIANT_RULE",
-            # TODO: Add more mappings when content types are available
-            # "action": "ACTION",
-            # "condition": "CONDITION",
-            # "sense": "SENSE",
-            # "hazard": "HAZARD",
-            # "status": "CONDITION",  # Alias for condition
+            "action": "ACTION",
+            "condition": "CONDITION",
+            "sense": "SENSE",
+            "hazard": "HAZARD",
+            "status": "STATUS",
         }
 
         content_type_name = tag_to_content_type.get(tag)

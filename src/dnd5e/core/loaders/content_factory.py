@@ -35,6 +35,7 @@ class ContentFactory:
         from ..models.items import Item
         from ..models.nested_content import VariantRule
         from ..models.races import Race
+        from ..models.rule_types import Action, Condition, Hazard, Sense, Status
         from ..models.spells import Spell
         from ..models.vehicles import Vehicle
 
@@ -54,6 +55,12 @@ class ContentFactory:
             ContentType.CREATURE_FLUFF: CreatureFluff,
             ContentType.ITEM_FLUFF: ItemFluff,
             ContentType.SPELL_FLUFF: SpellFluff,
+            # Rule glossary types
+            ContentType.ACTION: Action,
+            ContentType.CONDITION: Condition,
+            ContentType.SENSE: Sense,
+            ContentType.HAZARD: Hazard,
+            ContentType.STATUS: Status,
         }
 
     def create_content(
