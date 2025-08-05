@@ -17,12 +17,17 @@ class TestLaTeXEngineIntegration:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Complete isolation using the new service container
+        # Complete isolation using service container pattern
+        from dnd5e.cli.main import reset_cli_globals
         from dnd5e.core.cache import CacheManager
-        from dnd5e.core.container import reset_all_services
+        from dnd5e.core.container import reset_global_container
 
+        # Reset the service container (handles most singletons now)
+        reset_global_container()
+
+        # Reset remaining legacy global state
         CacheManager.reset()
-        reset_all_services()
+        reset_cli_globals()
 
         self.runner = CliRunner()
         self.test_data_dir = Path(__file__).parent.parent.parent.parent / "test-data"
