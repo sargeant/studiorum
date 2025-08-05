@@ -418,9 +418,12 @@ class RecursiveEntryProcessor:
 
             # Header row (only if we have col_labels)
             if col_labels:
-                header_row = " & ".join(
-                    [self._escape_latex(str(label)) for label in col_labels]
-                )
+                # Process header labels with tag resolution like data cells
+                processed_headers = []
+                for label in col_labels:
+                    processed_label = self._process_text_with_tags(str(label), context)
+                    processed_headers.append(processed_label)
+                header_row = " & ".join(processed_headers)
                 result.append(f"{header_row} \\\\")
 
             # Data rows

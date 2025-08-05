@@ -234,7 +234,7 @@ class TestRecursiveEntryProcessor:
         assert "\\begin{DndTable}[" in result
         assert "header={Test Table}" in result  # Updated format
         assert "{ll}" in result  # Column spec format
-        assert "Name & Value \\\\" in result
+        assert "processed_Name & processed_Value \\\\" in result
         assert "processed_Item 1 & 10 \\\\" in result
         assert "processed_Item 2 & 20 \\\\" in result
         assert "\\end{DndTable}" in result
