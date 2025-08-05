@@ -1259,15 +1259,15 @@ class RecursiveEntryProcessor:
     def _render_statblock_content(
         self, content: dict[str, Any], name: str, context: RenderContext
     ) -> str:
-        """Render resolved statblock content inline.
+        """Render resolved statblock content with appropriate section header.
 
         Args:
             content: Resolved content dictionary
-            name: Content name for fallback
+            name: Content name for header
             context: Rendering context
 
         Returns:
-            LaTeX string with inline content
+            LaTeX string with section header and content
         """
         entries = content.get("entries", [])
 
@@ -1276,14 +1276,16 @@ class RecursiveEntryProcessor:
             section_cmd = self._get_section_command(self._depth)
             return f"\\{section_cmd}{{{self._escape_latex(name)}}}"
 
-        # Process the entries inline - render content without a separate header
-        # since this should be inline where the statblock reference appears
+        # Add section header for the statblock
+        section_cmd = self._get_section_command(self._depth)
+        header = f"\\{section_cmd}{{{self._escape_latex(name)}}}"
+
+        # Process the entries after the header
         processed_entries = self.process_entries(entries, context)
 
-        # Join with paragraph breaks for readability
+        # Combine header with content
         content_text = "\n\n".join(processed_entries)
-
-        return content_text
+        return f"{header}\n\n{content_text}"
 
     def get_processing_statistics(self) -> dict[str, Any]:
         """Get processing statistics for this processor instance.
