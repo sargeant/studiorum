@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING, Any
 from pydantic import Field
 
 from dnd5e.core.base_context import ServiceContext
+from dnd5e.core.indexer.content_tracker import ContentTracker
+from dnd5e.core.latex_utils import escape_latex_text
 from dnd5e.core.logging import get_logger
+from dnd5e.core.text.tag_ast import ASTNode, DocumentNode, TagNode, TextNode
 
-from ..latex_utils import escape_latex_text
-from .content_tracker import ContentTracker
-from .tag_ast import ASTNode, DocumentNode, TagNode, TextNode
 from .tag_handlers import TagHandler, get_default_handlers
 
 logger = get_logger(__name__)

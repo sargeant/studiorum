@@ -12,8 +12,8 @@ from dnd5e.core.loaders.omnidexer import Omnidexer
 
 if TYPE_CHECKING:
     from dnd5e.core.config.latex_config import LaTeXConfig
-    from dnd5e.core.indexer.tag_resolver import TagResolver
     from dnd5e.core.models.document_metadata import DocumentMetadata
+    from dnd5e.core.text.tag_resolver import TagResolver
 
 
 class RenderContext(ServiceContext):
@@ -190,8 +190,8 @@ def _rebuild_model() -> None:
     """Rebuild RenderContext model to resolve forward references."""
     try:
         from dnd5e.core.config.latex_config import LaTeXConfig  # noqa: F401
-        from dnd5e.core.indexer.tag_resolver import TagResolver  # noqa: F401
         from dnd5e.core.models.document_metadata import DocumentMetadata  # noqa: F401
+        from dnd5e.core.text.tag_resolver import TagResolver  # noqa: F401
 
         RenderContext.model_rebuild()
     except ImportError:

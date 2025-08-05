@@ -8,7 +8,7 @@ from dnd5e.core.indexer.cross_reference_manager import (
     CrossReferenceManager,  # type: ignore
 )
 from dnd5e.core.indexer.hyperlink_manager import HyperlinkManager  # type: ignore
-from dnd5e.core.indexer.latex_tag_renderer import (  # type: ignore
+from dnd5e.renderers.latex.enhanced_tag_renderer import (  # type: ignore
     LaTeXContentTracker,
     LaTeXRendererContext,
     LaTeXTagRenderer,

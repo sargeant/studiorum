@@ -10,10 +10,10 @@ import pytest
 from typer.testing import CliRunner
 
 from dnd5e.cli.commands.convert import _compile_pdf, app
-from dnd5e.core.indexer.tag_resolver import TagResolver
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.books import Book
 from dnd5e.core.models.content import Source
+from dnd5e.core.text.tag_resolver import TagResolver
 
 
 class TestConvertAdventureCommand:

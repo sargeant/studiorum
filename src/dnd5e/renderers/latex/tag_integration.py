@@ -6,16 +6,15 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
+from dnd5e.core.indexer.cross_reference_manager import CrossReferenceManager
+from dnd5e.core.indexer.hyperlink_manager import HyperlinkManager
+from dnd5e.core.indexer.latex_content_tracker import LaTeXContentTracker
 from dnd5e.core.logging import get_logger
+from dnd5e.core.text.tag_parser import TagParser
+from dnd5e.core.text.tag_resolver import TagResolver
 from dnd5e.core.types import LaTeXConfig, MetadataDict
-
-from ...core.indexer.cross_reference_manager import CrossReferenceManager
-from ...core.indexer.hyperlink_manager import HyperlinkManager
-from ...core.indexer.latex_content_tracker import LaTeXContentTracker
-from ...core.indexer.latex_tag_handlers import get_latex_enhanced_handlers
-from ...core.indexer.latex_tag_renderer import LaTeXTagRenderer
-from ...core.indexer.tag_parser import TagParser
-from ...core.indexer.tag_resolver import TagResolver
+from dnd5e.renderers.latex.enhanced_tag_handlers import get_latex_enhanced_handlers
+from dnd5e.renderers.latex.enhanced_tag_renderer import LaTeXTagRenderer
 
 logger = get_logger(__name__)
 
@@ -196,7 +195,7 @@ class LaTeXTagIntegration:
         if not self.hyperlink_manager:
             return
 
-        from ...core.indexer.hyperlink_manager import HyperlinkStyle
+        from dnd5e.core.indexer.hyperlink_manager import HyperlinkStyle
 
         for content_type, style_config in styles.items():
             style = HyperlinkStyle(

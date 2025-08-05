@@ -4,15 +4,15 @@ from unittest.mock import Mock
 
 import pytest
 
-from dnd5e.core.indexer.tag_types import (
+from dnd5e.core.models.content import ContentType, Source
+from dnd5e.core.models.creatures import Creature
+from dnd5e.core.models.spells import Spell
+from dnd5e.core.text.tag_types import (
     ContentReference,
     FormattingNode,
     FormatType,
     SpecialTag,
 )
-from dnd5e.core.models.content import ContentType, Source
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.models.spells import Spell
 from dnd5e.renderers.latex.tag_renderer import (
     ConfigurableLaTeXTagRenderer,
     ContentTypeStyleConfig,

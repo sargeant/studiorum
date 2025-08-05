@@ -5,11 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from dnd5e.core.logging import get_logger
-
-from .content_tracker import ContentTracker
-from .cross_reference_manager import CrossReferenceManager
-from .tag_ast import TagNode
-from .tag_handlers import (
+from dnd5e.core.text.tag_ast import TagNode
+from dnd5e.renderers.base.tag_handlers import (
     AdventureTagHandler,
     BaseContentTagHandler,
     BookTagHandler,
@@ -17,11 +14,15 @@ from .tag_handlers import (
     TagHandler,
 )
 
+from ...core.indexer.content_tracker import ContentTracker
+from ...core.indexer.cross_reference_manager import CrossReferenceManager
+
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from .latex_tag_renderer import LaTeXRendererContext
-    from .tag_renderer import RendererContext
+    from dnd5e.renderers.base.tag_renderer import RendererContext
+
+    from .enhanced_tag_renderer import LaTeXRendererContext
 
 
 class LaTeXBaseContentTagHandler(BaseContentTagHandler):
@@ -193,7 +194,7 @@ class LaTeXAdventureTagHandler(AdventureTagHandler):
         """Render adventure reference with enhancements."""
         # Get base rendering - need to pass correct node type to parent
         if hasattr(node, "adventure") or hasattr(node, "name"):
-            from .tag_ast import AdventureTagNode
+            from dnd5e.core.text.tag_ast import AdventureTagNode
 
             if not isinstance(node, AdventureTagNode):
                 # Create compatible node for parent handler
@@ -279,7 +280,7 @@ class LaTeXBookTagHandler(BookTagHandler):
         """Render book reference with enhancements."""
         # Get base rendering - need to pass correct node type to parent
         if hasattr(node, "book") or hasattr(node, "name"):
-            from .tag_ast import BookTagNode
+            from dnd5e.core.text.tag_ast import BookTagNode
 
             if not isinstance(node, BookTagNode):
                 # Create compatible node for parent handler

@@ -4,7 +4,8 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from ...core.latex_utils import escape_latex_text
+from dnd5e.core.latex_utils import escape_latex_text
+
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.document_metadata import (
     ContentSection,
