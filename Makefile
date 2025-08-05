@@ -132,13 +132,7 @@ bandit: uv
 # Run all tests
 test: uv
 	@echo "Running all tests..."
-	$(UV) pytest --maxfail=1 -n auto
-
-# Run unit tests (legacy target)
-pytest: test
-
-# Run unit tests (legacy target)
-pytest: test
+	$(UV) pytest
 
 # Test Performance and Quality Monitoring
 ## Run tests with performance monitoring (fast)
