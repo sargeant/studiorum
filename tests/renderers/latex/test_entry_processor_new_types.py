@@ -247,7 +247,7 @@ class TestNewEntryTypes:
         }
         result = self.processor.process_entry_dict(entry, self.context)
 
-        assert "\\textbf{Simple Item.}" in result
+        assert "\\textbf{processed_Simple Item.}" in result
         assert "processed_This is a simple list item." in result
 
     def test_process_entry_dict_item_with_entries(self):
@@ -259,7 +259,7 @@ class TestNewEntryTypes:
         }
         result = self.processor.process_entry_dict(entry, self.context)
 
-        assert "\\textbf{Complex Item.}" in result
+        assert "\\textbf{processed_Complex Item.}" in result
         assert "processed_First paragraph." in result
         assert "processed_Second paragraph." in result
 
@@ -269,3 +269,56 @@ class TestNewEntryTypes:
         result = self.processor.process_entry_dict(entry, self.context)
 
         assert "processed_Unnamed item content." in result
+
+    def test_process_entry_dict_item_punctuation_handling(self):
+        """Test processing item entries with smart punctuation handling."""
+        # Test item ending with colon - should not get extra period
+        entry_colon = {
+            "type": "item",
+            "name": "Rules:",
+            "entry": "This explains the rules.",
+        }
+        result_colon = self.processor.process_entry_dict(entry_colon, self.context)
+        assert "\\textbf{processed_Rules:}" in result_colon
+        assert "\\textbf{processed_Rules:.}" not in result_colon
+
+        # Test item ending with semicolon - should not get extra period
+        entry_semicolon = {
+            "type": "item",
+            "name": "Note;",
+            "entry": "This is a note.",
+        }
+        result_semicolon = self.processor.process_entry_dict(
+            entry_semicolon, self.context
+        )
+        assert "\\textbf{processed_Note;}" in result_semicolon
+        assert "\\textbf{processed_Note;.}" not in result_semicolon
+
+        # Test item ending with period - should not get extra period
+        entry_period = {
+            "type": "item",
+            "name": "Complete.",
+            "entry": "This is complete.",
+        }
+        result_period = self.processor.process_entry_dict(entry_period, self.context)
+        assert "\\textbf{processed_Complete.}" in result_period
+        assert "\\textbf{processed_Complete..}" not in result_period
+
+        # Test normal item - should get period added
+        entry_normal = {
+            "type": "item",
+            "name": "Normal Item",
+            "entry": "This is normal.",
+        }
+        result_normal = self.processor.process_entry_dict(entry_normal, self.context)
+        assert "\\textbf{processed_Normal Item.}" in result_normal
+
+        # Test item with trailing spaces - should handle correctly
+        entry_spaces = {
+            "type": "item",
+            "name": "Spaced: ",
+            "entry": "This has trailing spaces.",
+        }
+        result_spaces = self.processor.process_entry_dict(entry_spaces, self.context)
+        assert "\\textbf{processed_Spaced: }" in result_spaces
+        assert "\\textbf{processed_Spaced: .}" not in result_spaces

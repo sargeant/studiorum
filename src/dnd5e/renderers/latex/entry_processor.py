@@ -1105,7 +1105,13 @@ class RecursiveEntryProcessor:
         result = []
 
         if name:
-            result.append(f"\\textbf{{{self._escape_latex(name)}.}}")
+            # Process name with tag resolution
+            processed_name = self._process_text_with_tags(name, context)
+            # Add period only if name doesn't end with punctuation
+            if name.rstrip().endswith((".", ":", ";")):
+                result.append(f"\\textbf{{{processed_name}}}")
+            else:
+                result.append(f"\\textbf{{{processed_name}.}}")
 
         # Handle either single entry or multiple entries
         if entry:
