@@ -27,8 +27,7 @@ help:
 	@echo "  all          - Run all checks, security, and tests"
 	@echo "  check        - Run code quality checks (ruff, mypy, imports, boundaries)"
 	@echo "  security     - Run security scans (pip-audit, bandit)"
-	@echo "  test         - Run fast tests"
-	@echo "  test-all     - Run all tests including slow ones"
+	@echo "  test         - Run tests"
 	@echo "  format       - Format code with ruff"
 	@echo "  docs         - Build and open documentation"
 	@echo "  clean        - Clean build artifacts"
@@ -130,19 +129,13 @@ bandit: uv
 	@echo "Running static security analysis..."
 	$(UV) bandit -ll -r $(SRC_DIR)/ || (echo "Security analysis failed"; exit 1)
 
-# Run fast tests (excluding slow tests)
+# Run all tests
 test: uv
-	@echo "Running fast tests..."
-	$(UV) pytest -m "not slow" -n auto || (echo "Fast tests failed"; exit 1)
+	@echo "Running all tests..."
+	$(UV) pytest --maxfail=1 -n auto
 
 # Run unit tests (legacy target)
 pytest: test
-
-# Run all tests including slow ones
-test-all: uv
-	@echo "Running all tests..."
-	$(UV) pytest -n auto --maxfail=1 || (echo "Tests failed"; exit 1)
-	@echo "All tests completed successfully"
 
 # Run unit tests (legacy target)
 pytest: test
