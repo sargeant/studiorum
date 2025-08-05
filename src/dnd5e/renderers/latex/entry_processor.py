@@ -1243,9 +1243,11 @@ class RecursiveEntryProcessor:
                 if resolved_content:
                     # Return the content as a dictionary for processing
                     if hasattr(resolved_content, "model_dump"):
-                        return resolved_content.model_dump()
+                        content_dict = resolved_content.model_dump()
+                        return dict(content_dict) if content_dict else None
                     elif hasattr(resolved_content, "__dict__"):
-                        return resolved_content.__dict__
+                        content_dict = resolved_content.__dict__
+                        return dict(content_dict) if content_dict else None
                     else:
                         return {"name": name, "entries": [str(resolved_content)]}
             except Exception as e:
