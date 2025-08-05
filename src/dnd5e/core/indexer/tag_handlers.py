@@ -410,12 +410,18 @@ class FilterTagHandler(TagHandler):
         return tag_type == "filter"
 
     def render(self, node: TagNode, context: "RendererContext") -> str:
-        """Filter tags are omitted from output."""
-        # Type check (though we don't use the node)
+        """Filter tags return their display text."""
         assert isinstance(node, FilterTagNode), (
             f"Expected FilterTagNode, got {type(node)}"
         )
-        return ""
+        filter_node = cast(FilterTagNode, node)
+
+        # Extract display text (first part before |)
+        # Format: "Common|items|rarity=Common" -> "Common"
+        content = filter_node.content
+        if "|" in content:
+            return content.split("|", 1)[0]
+        return content
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
         """Filter tags don't need content tracking."""
