@@ -301,6 +301,11 @@ class JsonDataLoader(DataLoader[BaseContent]):
             if isinstance(class_data, list):
                 return class_data
             return []
+        elif self._content_type == ContentType.VARIANT_RULE and "variantrule" in data:
+            variant_rule_data = data["variantrule"]
+            if isinstance(variant_rule_data, list):
+                return variant_rule_data
+            return []
 
         # Generic fallbacks
         content_type_name = self._content_type.value
@@ -388,6 +393,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 "monster_fluff",
             },
             ContentType.ITEM_FLUFF: {"itemFluff", "item_fluff"},
+            ContentType.VARIANT_RULE: {"variantrule", "variantrules"},
         }
 
         return content_type_keys.get(self._content_type, set())

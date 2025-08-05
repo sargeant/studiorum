@@ -162,6 +162,7 @@ class Omnidexer:
         ContentType.BACKGROUND,
         ContentType.CLASS,
         ContentType.VEHICLE,
+        ContentType.VARIANT_RULE,
     )
 
     _FLUFF_CONTENT_TYPES = (

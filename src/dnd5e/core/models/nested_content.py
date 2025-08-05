@@ -116,7 +116,7 @@ class VariantRule(BaseContent):
 
     page: int | None = Field(None, description="Page number")
     id: str | None = Field(None, description="Rule ID")
-    parent_name: str = Field(..., description="Parent book/section name")
+    parent_name: str | None = Field(None, description="Parent book/section name")
     entries: list[Any] = Field(default_factory=list, description="Rule content")
 
     def get_hash_key(self) -> str:

@@ -33,6 +33,7 @@ class ContentFactory:
         from ..models.feats import Feat
         from ..models.fluff import CreatureFluff, ItemFluff, SpellFluff
         from ..models.items import Item
+        from ..models.nested_content import VariantRule
         from ..models.races import Race
         from ..models.spells import Spell
         from ..models.vehicles import Vehicle
@@ -48,6 +49,7 @@ class ContentFactory:
             ContentType.ITEM: Item,
             ContentType.RACE: Race,
             ContentType.SPELL: Spell,
+            ContentType.VARIANT_RULE: VariantRule,
             ContentType.VEHICLE: Vehicle,
             ContentType.CREATURE_FLUFF: CreatureFluff,
             ContentType.ITEM_FLUFF: ItemFluff,

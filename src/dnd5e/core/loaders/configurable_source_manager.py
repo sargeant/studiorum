@@ -104,6 +104,7 @@ class ConfigurableSourceManager(SourceManager):
             ContentType.FEAT: ["feat", "feats"],
             ContentType.RACE: ["race", "races"],
             ContentType.VEHICLE: ["vehicle", "vehicles"],
+            ContentType.VARIANT_RULE: ["variantrule", "variantrules"],
             # Fluff content patterns - these should be checked first
             ContentType.SPELL_FLUFF: ["fluff-spell", "spell-fluff"],
             ContentType.CREATURE_FLUFF: [

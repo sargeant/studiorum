@@ -160,6 +160,8 @@ class RecursiveEntryProcessor:
                 return self._process_item(entry, context)
             elif entry_type == "cell":
                 return self._process_cell(entry, context)
+            elif entry_type == "statblock":
+                return self._process_statblock(entry, context)
             else:
                 # Generic entry with name and entries
                 if entry_type:
@@ -1163,6 +1165,124 @@ class RecursiveEntryProcessor:
                 return processed_entry
 
         return roll_text
+
+    def _process_statblock(
+        self, statblock: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Process a statblock entry by resolving external content references.
+
+        Args:
+            statblock: Statblock dictionary with tag, name, and source
+            context: Rendering context
+
+        Returns:
+            LaTeX string with resolved content rendered inline
+        """
+        tag = statblock.get("tag", "")
+        name = statblock.get("name", "")
+        source = statblock.get("source", "")
+
+        logger.debug(f"Processing statblock: tag={tag}, name={name}, source={source}")
+
+        # Try to resolve the external reference
+        resolved_content = self._resolve_statblock_reference(tag, name, source, context)
+
+        if resolved_content:
+            # Render the resolved content inline
+            return self._render_statblock_content(resolved_content, name, context)
+        else:
+            # Fallback: render just the name as a header (current behavior)
+            logger.warning(
+                f"Could not resolve statblock reference: {tag} '{name}' from {source}"
+            )
+            section_cmd = self._get_section_command(self._depth)
+            return f"\\{section_cmd}{{{self._escape_latex(name)}}}"
+
+    def _resolve_statblock_reference(
+        self, tag: str, name: str, source: str, context: RenderContext
+    ) -> dict[str, Any] | None:
+        """Resolve a statblock reference to actual content.
+
+        Args:
+            tag: Content type tag (variantrule, action, condition, etc.)
+            name: Content name
+            source: Source abbreviation
+            context: Rendering context
+
+        Returns:
+            Resolved content dictionary or None if not found
+        """
+        # Map statblock tags to ContentType enums
+        tag_to_content_type = {
+            "variantrule": "VARIANT_RULE",
+            # TODO: Add more mappings when content types are available
+            # "action": "ACTION",
+            # "condition": "CONDITION",
+            # "sense": "SENSE",
+            # "hazard": "HAZARD",
+            # "status": "CONDITION",  # Alias for condition
+        }
+
+        content_type_name = tag_to_content_type.get(tag)
+        if not content_type_name:
+            logger.debug(f"Unsupported statblock tag type: {tag}")
+            return None
+
+        try:
+            from ...core.models.content import ContentType
+
+            content_type = getattr(ContentType, content_type_name)
+        except AttributeError:
+            logger.debug(f"ContentType.{content_type_name} not found")
+            return None
+
+        # Try to find the content in the omnidexer
+        if context.omnidexer:
+            try:
+                resolved_content = context.omnidexer.find(content_type, name, source)
+                if resolved_content:
+                    # Return the content as a dictionary for processing
+                    if hasattr(resolved_content, "model_dump"):
+                        return resolved_content.model_dump()
+                    elif hasattr(resolved_content, "__dict__"):
+                        return resolved_content.__dict__
+                    else:
+                        return {"name": name, "entries": [str(resolved_content)]}
+            except Exception as e:
+                logger.warning(
+                    f"Error resolving statblock reference {tag} '{name}': {e}"
+                )
+
+        return None
+
+    def _render_statblock_content(
+        self, content: dict[str, Any], name: str, context: RenderContext
+    ) -> str:
+        """Render resolved statblock content inline.
+
+        Args:
+            content: Resolved content dictionary
+            name: Content name for fallback
+            context: Rendering context
+
+        Returns:
+            LaTeX string with inline content
+        """
+        entries = content.get("entries", [])
+
+        if not entries:
+            # No entries found, render just the name
+            section_cmd = self._get_section_command(self._depth)
+            return f"\\{section_cmd}{{{self._escape_latex(name)}}}"
+
+        # Process the entries inline - render content without a separate header
+        # since this should be inline where the statblock reference appears
+        processed_entries = self.process_entries(entries, context)
+
+        # Join with paragraph breaks for readability
+        content_text = "\n\n".join(processed_entries)
+
+        return content_text
 
     def get_processing_statistics(self) -> dict[str, Any]:
         """Get processing statistics for this processor instance.
