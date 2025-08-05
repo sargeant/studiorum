@@ -206,8 +206,13 @@ def show_source_stats() -> None:
                 source_items = omnidexer.get_all_by_source(source)
                 content_types: dict[str, int] = {}
                 for item in source_items:
-                    ct = ContentType.from_content(item).value
-                    content_types[ct] = content_types.get(ct, 0) + 1
+                    try:
+                        ct = ContentType.from_content(item).value
+                        content_types[ct] = content_types.get(ct, 0) + 1
+                    except ValueError:
+                        # Handle unknown content types (like BaseFluff)
+                        ct_name = type(item).__name__.lower()
+                        content_types[ct_name] = content_types.get(ct_name, 0) + 1
 
                 primary_content = (
                     max(content_types.items(), key=lambda x: x[1])[0].title()
