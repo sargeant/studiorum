@@ -303,9 +303,8 @@ class RecursiveEntryProcessor:
         Returns:
             LaTeX string
         """
-        # For now, use deterministic basic processing to avoid async/sync race conditions
-        # The new image processing pipeline will be enabled in a future async refactor
-        return self._process_image_basic(image, context)
+        # Use the image processor which respects the include_images flag
+        return self._image_processor.process_image_entry(image, context)
 
     def _process_image_basic(
         self, image: dict[str, Any], context: RenderContext

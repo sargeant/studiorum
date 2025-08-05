@@ -116,10 +116,11 @@ class TestRecursiveEntryProcessor:
         entry = {"type": "image", "href": "path/to/image.png", "title": "Test Image"}
         result = self.processor.process_entry_dict(entry, self.context)
 
-        # Using basic processing for deterministic behavior
-        assert "\\begin{figure}[ht]" in result
+        # Using enhanced image processor with improved formatting
+        assert "\\begin{figure}" in result
         assert "\\centering" in result
-        assert "\\includegraphics[width=0.8\\textwidth]{path/to/image.png}" in result
+        assert "\\includegraphics" in result
+        assert "path/to/image.png" in result
         assert "\\caption{Test Image}" in result
         assert "\\end{figure}" in result
 
@@ -128,10 +129,12 @@ class TestRecursiveEntryProcessor:
         entry = {"type": "image", "href": "path/to/image.png"}
         result = self.processor.process_entry_dict(entry, self.context)
 
-        # Using basic processing for deterministic behavior
-        assert "\\begin{center}" in result
-        assert "\\includegraphics[width=0.8\\textwidth]{path/to/image.png}" in result
-        assert "\\end{center}" in result
+        # Using enhanced image processor - images without title still use figure environment
+        assert "\\begin{figure}" in result
+        assert "\\centering" in result
+        assert "\\includegraphics" in result
+        assert "path/to/image.png" in result
+        assert "\\end{figure}" in result
         # Should not have caption for images without title
         assert "\\caption{" not in result
 
@@ -148,6 +151,27 @@ class TestRecursiveEntryProcessor:
         result = self.processor.process_entry_dict(entry, self.context)
 
         assert result == "% Image placeholder"
+
+    def test_process_entry_dict_image_disabled(self):
+        """Test processing image when images are disabled."""
+        # Create context with images disabled
+        context = RenderContext()
+        context.include_images = False
+
+        # Mock tag resolver
+        from unittest.mock import Mock
+
+        mock_tag_resolver = Mock()
+        mock_tag_resolver.process_text = Mock(side_effect=lambda x: f"processed_{x}")
+        context.tag_resolver = mock_tag_resolver
+
+        entry = {"type": "image", "href": "path/to/image.png", "title": "Test Image"}
+        result = self.processor.process_entry_dict(entry, context)
+
+        # Should return placeholder comment when images disabled
+        assert result == "% Image placeholder: Test Image"
+        assert "\\includegraphics" not in result
+        assert "\\begin{figure}" not in result
 
     def test_process_entry_dict_list_unordered(self):
         """Test processing unordered list."""
