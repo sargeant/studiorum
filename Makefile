@@ -13,7 +13,7 @@ TEST_DIR := tests
 DOCS_DIR := docs
 SCRIPTS_DIR := scripts
 
-.PHONY: help uv uv-docs test mypy pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full ci-fast test-perf-baseline test-perf-compare test-quality-gate test-quality-strict doctor upgrade
+.PHONY: help uv uv-docs test mypy pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full test-perf-baseline test-perf-compare test-quality-gate test-quality-strict doctor upgrade
 
 # Parallel execution control - only sync targets should be serial
 # This allows make to run independent targets in parallel while ensuring
@@ -55,7 +55,6 @@ help:
 	@echo "  docs-check   - Check documentation for issues"
 	@echo ""
 	@echo "CI/CD targets:"
-	@echo "  ci-fast      - Run fast CI checks (ruff, mypy, fast tests)"
 	@echo "  ci-check     - Run all quality and security checks"
 	@echo "  ci-test      - Run full test suite with coverage"
 	@echo "  ci-full      - Complete CI pipeline"
@@ -290,12 +289,6 @@ ci-full: ci-install ci-check ci-test
 ## Lightweight CI for fast feedback
 # Quick validation for rapid feedback in development
 # Includes: formatting, type checking, fast tests only
-ci-fast: ci-install
-	@echo "Running fast CI checks..."
-	$(UV) ruff check $(SRC_DIR) $(TEST_DIR) || (echo "Fast CI checks failed"; exit 1)
-	$(UV) mypy $(SRC_DIR)/ || (echo "Fast CI checks failed"; exit 1)
-	$(UV) pytest -m "not slow" -x || (echo "Fast CI checks failed"; exit 1)
-	@echo "Fast CI checks completed"
 
 # Diagnostics and maintenance
 # These targets help diagnose environment issues and maintain the project

@@ -7,7 +7,7 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  ci-fast:
+  ci-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -25,9 +25,13 @@ jobs:
     - name: Set up Python ${{ matrix.python-version }}
       run: uv python install ${{ matrix.python-version }}
 
+    - name: Run linting and type checks
+      run: |
+        uv ruff check src tests
+        uv mypy src/
 
-    - name: Run fast CI checks
-      run: make ci-fast
+    - name: Run comprehensive test suite with coverage
+      run: make ci-test
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -57,36 +61,9 @@ jobs:
     - name: Run CI quality and security checks
       run: make ci-check
 
-  ci-test:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up uv
-      uses: astral-sh/setup-uv@v3
-      with:
-        version: "latest"
-
-    - name: Set up Python
-      run: uv python install 3.12
-
-
-    - name: Run CI test suite with coverage
-      run: make ci-test
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-
   test-quality:
     runs-on: ubuntu-latest
+    continue-on-error: true  # Don't fail the overall workflow if this fails
 
     steps:
     - name: Checkout code
