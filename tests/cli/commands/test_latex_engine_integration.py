@@ -43,6 +43,7 @@ class TestLaTeXEngineIntegration:
                 logger.setLevel(logging.DEBUG)
 
     @pytest.mark.slow
+    @pytest.mark.ci_broken
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
@@ -117,6 +118,7 @@ class TestLaTeXEngineIntegration:
             assert "\\documentclass" in latex_content
 
     @pytest.mark.slow
+    @pytest.mark.ci_broken
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")

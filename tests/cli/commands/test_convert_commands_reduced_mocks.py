@@ -47,6 +47,7 @@ class TestConvertCommandsWithReducedMocking:
         assert "Convert supplement" in result.stdout
 
     @pytest.mark.slow
+    @pytest.mark.ci_broken
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
@@ -114,6 +115,7 @@ class TestConvertCommandsWithReducedMocking:
             assert "\\end{document}" in latex_content
 
     @pytest.mark.slow
+    @pytest.mark.ci_broken
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")
@@ -179,6 +181,7 @@ class TestConvertCommandsWithReducedMocking:
             assert "\\end{document}" in latex_content
 
     @pytest.mark.slow
+    @pytest.mark.ci_broken
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")

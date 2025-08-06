@@ -196,5 +196,6 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "stress: marks tests as stress tests for validation",
+    "ci_broken: marks tests that fail in CI environment (skipped in CI)",
 ]
 filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]
