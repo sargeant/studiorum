@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/entry_renderers.py
+# hypothesis_version: 6.136.7
+
+['ability_scores', 'ac_text', 'actions', 'attunement_text', 'background', 'background_entry', 'bonus', 'casting_time', 'cha', 'charges_text', 'class', 'class_entry', 'components_text', 'con', 'condition_immunities', 'cr_text', 'creature', 'creature_entry', 'damage_immunities', 'damage_resistances', 'damage_text', 'description_text', 'dex', 'duration_text', 'enhanced_rarity_text', 'feat', 'feat_entry', 'formatted_abilities', 'get_description_text', 'higher_level_text', 'hp_text', 'int', 'item', 'item_entry', 'languages', 'legendary', 'level_text', 'metadata_line', 'properties', 'race', 'race_entry', 'range_text', 'rarity_text', 'reactions', 'saving_throws', 'senses', 'size_type_alignment', 'skills', 'speed_text', 'spell', 'spell_entry', 'str', 'traits', 'type_text', 'value_text', 'weight_text', 'wis']

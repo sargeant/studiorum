@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.indexer.tag_resolver import TagResolver
+from dnd5e.core.text.tag_resolver import TagResolver
 
 
 class TestTagSystemPerformance:
@@ -46,6 +46,7 @@ class TestTagSystemPerformance:
 
         return " ".join(parts)
 
+    @pytest.mark.slow
     def test_tag_system_basic_performance(
         self, sample_text: str, loaded_omnidexer: Any
     ) -> None:
@@ -80,6 +81,7 @@ class TestTagSystemPerformance:
         assert isinstance(result, str)
         assert len(result) > 0
 
+    @pytest.mark.slow
     def test_memory_usage_basic(self, sample_text: str, loaded_omnidexer: Any) -> None:
         """Test that tag processing doesn't create excessive memory usage."""
         import gc

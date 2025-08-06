@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/entry_registry.py
+# hypothesis_version: 6.136.7
+
+['Entry type category', 'Entry type name', 'ValidatedEntry', 'abilityAttackMod', 'abilityDc', 'abilityGeneric', 'actions', 'allow', 'attack', 'before', 'block', 'bonus', 'bonusSpeed', 'code', 'content', 'dice', 'embedded', 'entries', 'entry_data', 'error', 'flowBlock', 'flowchart', 'gallery', 'homebrew', 'hr', 'href', 'image', 'ingredient', 'inline', 'inlineBlock', 'inset', 'insetReadaloud', 'item', 'itemSpell', 'itemSub', 'items', 'link', 'list', 'list_item', 'media', 'misc', 'name', 'optfeature', 'options', 'patron', 'permissive', 'quote', 'recursive', 'rows', 'section', 'silent', 'spellcasting', 'statblock', 'statblockInline', 'strict', 'table', 'tableGroup', 'text', 'type', 'unknown', 'variant', 'variantInner', 'variantSub', 'wrappedHtml']

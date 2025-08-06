@@ -185,18 +185,19 @@ class TestCompilationConfig:
     def test_validate_success(self) -> None:
         """Test successful configuration validation."""
         config: Any = CompilationConfig()
-        errors = config.validate()
+        errors = config.validate_config()
         assert len(errors) == 0
 
     def test_validate_errors(self) -> None:
         """Test configuration validation errors."""
-        config: Any = CompilationConfig(
+        # Use model_construct to bypass Pydantic validation and create invalid object
+        config: Any = CompilationConfig.model_construct(
             max_passes=0,
             timeout_seconds=5,
-            output_dir="not_a_path",  # type: ignore[arg-type]  # Should be Path object
+            output_dir="not_a_path",  # Should be Path object
         )
 
-        errors = config.validate()
+        errors = config.validate_config()
         assert len(errors) == 3
         assert any("max_passes must be at least 1" in error for error in errors)
         assert any("timeout_seconds should be at least 10" in error for error in errors)
@@ -204,15 +205,16 @@ class TestCompilationConfig:
 
     def test_validate_max_passes_too_high(self) -> None:
         """Test validation of excessive max_passes."""
-        config: Any = CompilationConfig(max_passes=15)
-        errors = config.validate()
+        # Use model_construct to bypass Pydantic validation
+        config: Any = CompilationConfig.model_construct(max_passes=15)
+        errors = config.validate_config()
         assert len(errors) == 1
         assert "max_passes should not exceed 10" in errors[0]
 
     def test_validate_valid_output_dir(self) -> None:
         """Test validation with valid output directory."""
         config: Any = CompilationConfig(output_dir=Path("/tmp"))
-        errors = config.validate()
+        errors = config.validate_config()
         assert len(errors) == 0
 
 

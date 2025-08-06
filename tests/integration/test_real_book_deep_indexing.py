@@ -5,9 +5,9 @@ import pytest
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.models.nested_content import (
-    BookInset,
-    BookSection,
-    BookTable,
+    Inset,
+    Section,
+    Table,
     VariantRule,
 )
 
@@ -45,7 +45,7 @@ class TestRealBookDeepIndexing:
 
         # Verify content types
         content_types = {type(entry).__name__ for entry in deep_entries}
-        expected_types = {"BookSection", "BookTable", "BookInset", "VariantRule"}
+        expected_types = {"Section", "Table", "Inset", "VariantRule"}
 
         # Should have at least one type of nested content
         assert len(content_types & expected_types) > 0, (
@@ -73,7 +73,7 @@ class TestRealBookDeepIndexing:
         sections = omnidexer.get_all_by_type(ContentType.BOOK_SECTION)
         if sections:
             section = sections[0]
-            assert isinstance(section, BookSection)
+            assert isinstance(section, Section)
             assert section.name is not None
             assert section.parent_name is not None
 
@@ -89,7 +89,7 @@ class TestRealBookDeepIndexing:
         tables = omnidexer.get_all_by_type(ContentType.BOOK_TABLE)
         if tables:
             table = tables[0]
-            assert isinstance(table, BookTable)
+            assert isinstance(table, Table)
             assert table.name is not None
             assert table.parent_name is not None
 
@@ -97,7 +97,7 @@ class TestRealBookDeepIndexing:
         insets = omnidexer.get_all_by_type(ContentType.BOOK_INSET)
         if insets:
             inset = insets[0]
-            assert isinstance(inset, BookInset)
+            assert isinstance(inset, Inset)
             assert inset.name is not None
             assert inset.parent_name is not None
 
@@ -201,7 +201,7 @@ class TestRealBookDeepIndexing:
         omnidexer = Omnidexer(enable_deep_indexing=True)
 
         try:
-            await omnidexer.load_all_data()
+            omnidexer.load_all_data()
         except Exception:
             pytest.skip("Full data loading not available")
 

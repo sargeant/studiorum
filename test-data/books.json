@@ -1,0 +1,23 @@
+{
+  "book": [
+    {
+      "name": "Test Sourcebook",
+      "id": "test-book",
+      "source": "TEST",
+      "group": "homebrew",
+      "published": "2024-01-01",
+      "contents": [
+        {
+          "name": "Chapter 1: Test Rules",
+          "ordinal": {"type": "chapter", "identifier": 1},
+          "entries": []
+        },
+        {
+          "name": "Chapter 2: Implementation Guidelines",
+          "ordinal": {"type": "chapter", "identifier": 2},
+          "entries": []
+        }
+      ]
+    }
+  ]
+}

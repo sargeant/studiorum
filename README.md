@@ -121,12 +121,21 @@ Contributions are welcome! Whether you're fixing a bug, adding a feature, or imp
 5. **Run tests and quality checks**:
 
     ```bash
-    uv run pytest
-    uv run ruff check src tests
-    uv run mypy src/
+    # Quick development workflow
+    make check          # Run all code quality checks
+    make test           # Run fast tests
+    make security       # Run security scans
+
+    # Or run everything at once
+    make all            # Run all checks, security, and tests
+
+    # For CI-ready validation
+    make ci-fast        # Quick CI feedback loop
     ```
 
 6. **Submit a pull request** with a clear description of your changes.
+
+For comprehensive development workflows, see `make help` for all available commands or check our [Developer Documentation](docs/source/developer/contributing.md).
 
 ## License
 

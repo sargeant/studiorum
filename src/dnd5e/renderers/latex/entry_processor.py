@@ -1,11 +1,14 @@
 """Recursive entry processor for LaTeX rendering of 5etools entry structures."""
 
+import asyncio
 import logging
 from typing import Any
 
-from ...core.entry_registry import ValidationMode, get_registry, validate_entry_type
+from ...core.entry_registry import ValidationMode, get_registry
 from ...core.exceptions import EntryProcessingError
+from ...core.types import EntryData, ProcessingContext
 from ..base import RenderContext
+from .images.image_processor import ImageProcessingConfig, ImageProcessor
 from .unicode_mappings import (
     get_latex_special_chars,
     get_unicode_to_latex_mappings,
@@ -29,12 +32,14 @@ class RecursiveEntryProcessor:
         self,
         use_dnd_template: bool = True,
         validation_mode: ValidationMode | None = None,
+        image_processor: ImageProcessor | None = None,
     ):
         """Initialize the recursive entry processor.
 
         Args:
             use_dnd_template: Whether to use DND template environments
             validation_mode: Override global validation mode for this processor
+            image_processor: Image processor for handling image entries
         """
         self.use_dnd_template = use_dnd_template
         self._depth = 0  # Track nesting depth for proper sectioning
@@ -42,6 +47,9 @@ class RecursiveEntryProcessor:
         self._registry = get_registry()
         self._entries_processed = 0
         self._errors_encountered = 0
+
+        # Initialize image processor
+        self._image_processor = image_processor or ImageProcessor()
 
     def process_entries(
         self, entries: list[str | dict[str, Any]], context: RenderContext
@@ -93,22 +101,19 @@ class RecursiveEntryProcessor:
 
             # Validate entry type if not empty
             if entry_type:
-                # Use instance validation mode or fall back to global
-                original_mode = self._registry.validation_mode
+                # Create ValidationContext for modern interface
+                from ...core.entry_registry import ValidationContext
 
-                if self._validation_mode:
-                    self._registry.validation_mode = self._validation_mode
+                validation_context = ValidationContext(
+                    entry_data=entry,
+                    source=getattr(context, "source_name", "unknown"),
+                    parent_name=f"depth_{self._depth}",
+                    entry_type=entry_type,
+                    validation_mode=self._validation_mode,
+                )
 
-                try:
-                    validate_entry_type(
-                        entry_type=entry_type,
-                        entry=entry,
-                        source=getattr(context, "source_name", "unknown"),
-                        parent_name=f"depth_{self._depth}",
-                    )
-                finally:
-                    # Restore original mode
-                    self._registry.validation_mode = original_mode
+                # Use modern ValidationContext interface
+                self._registry.validate_entry_type(validation_context)
 
             # Dispatch to specific processing methods
             if entry_type == "section":
@@ -153,6 +158,10 @@ class RecursiveEntryProcessor:
                 return self._process_dice(entry, context)
             elif entry_type == "item":
                 return self._process_item(entry, context)
+            elif entry_type == "cell":
+                return self._process_cell(entry, context)
+            elif entry_type == "statblock":
+                return self._process_statblock(entry, context)
             else:
                 # Generic entry with name and entries
                 if entry_type:
@@ -278,7 +287,7 @@ class RecursiveEntryProcessor:
             if name:
                 return f"\\begin{{DndSidebar}}{{{self._escape_latex(name)}}}\n{content}\n\\end{{DndSidebar}}"
             else:
-                return f"\\begin{{DndSidebar}}\n{content}\n\\end{{DndSidebar}}"
+                return f"\\begin{{DndSidebar}}{{}}\n{content}\n\\end{{DndSidebar}}"
         else:
             result = []
             if name:
@@ -287,7 +296,22 @@ class RecursiveEntryProcessor:
             return "\n\n".join(result)
 
     def _process_image(self, image: dict[str, Any], context: RenderContext) -> str:
-        """Process an image entry.
+        """Process an image entry with enhanced image processing pipeline.
+
+        Args:
+            image: Image dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string
+        """
+        # Use the image processor which respects the include_images flag
+        return self._image_processor.process_image_entry(image, context)
+
+    def _process_image_basic(
+        self, image: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Basic image processing fallback.
 
         Args:
             image: Image dictionary
@@ -302,7 +326,7 @@ class RecursiveEntryProcessor:
         if not href:
             return f"% Image placeholder: {title}" if title else "% Image placeholder"
 
-        # Basic image inclusion
+        # Basic image inclusion (original implementation)
         result = []
         if title:
             result.append("\\begin{figure}[ht]")
@@ -363,39 +387,63 @@ class RecursiveEntryProcessor:
         """
         caption = table.get("caption", "")
         col_labels = table.get("colLabels", [])
+        col_styles = table.get("colStyles", [])
         rows = table.get("rows", [])
 
         if not rows:
             return f"% Empty table: {caption}" if caption else "% Empty table"
 
         # Use DND table if available
-        if self.use_dnd_template and col_labels:
+        if self.use_dnd_template:
             result = []
             if caption:
                 result.append(f"% Table: {caption}")
 
-            # Build column specification
-            col_spec = "l" * len(col_labels)
+            # Determine column count from col_labels, col_styles, or first row
+            if col_labels:
+                col_count = len(col_labels)
+            elif col_styles:
+                col_count = len(col_styles)
+            elif rows and isinstance(rows[0], list):
+                col_count = len(rows[0])
+            else:
+                col_count = 2  # Default fallback
 
-            result.append("\\begin{DndTable}[")
+            # Build column specification from colStyles or use defaults
+            col_spec = self._build_column_spec(col_styles, col_count)
+
+            # Use correct DndTable syntax: \begin{DndTable}[header=Name]{column_spec}
+            header_text = self._escape_latex(caption) if caption else "Table"
             result.append(
-                f"  caption={{{self._escape_latex(caption) if caption else 'Table'}}},"
+                f"\\begin{{DndTable}}[header={{{header_text}}}]{{{col_spec}}}"
             )
-            result.append(f"  cols={{{col_spec}}}")
-            result.append("]")
 
-            # Header row
-            header_row = " & ".join(
-                [self._escape_latex(str(label)) for label in col_labels]
-            )
-            result.append(f"{header_row} \\\\")
+            # Header row (only if we have col_labels)
+            if col_labels:
+                # Process header labels with tag resolution like data cells
+                processed_headers = []
+                for label in col_labels:
+                    processed_label = self._process_text_with_tags(str(label), context)
+                    processed_headers.append(processed_label)
+                header_row = " & ".join(processed_headers)
+                result.append(f"{header_row} \\\\")
 
             # Data rows
             for row in rows:
                 if isinstance(row, list):
-                    row_data = " & ".join(
-                        [self._escape_latex(str(cell)) for cell in row]
-                    )
+                    processed_cells = []
+                    for cell in row:
+                        if isinstance(cell, dict):
+                            # Process dict cells (e.g., {"type": "cell", "roll": {...}})
+                            processed_cell = self.process_entry_dict(cell, context)
+                        else:
+                            # Process string cells
+                            processed_cell = self._process_text_with_tags(
+                                str(cell), context
+                            )
+                        processed_cells.append(processed_cell)
+
+                    row_data = " & ".join(processed_cells)
                     result.append(f"{row_data} \\\\")
 
             result.append("\\end{DndTable}")
@@ -448,7 +496,19 @@ class RecursiveEntryProcessor:
         # Data rows
         for row in rows:
             if isinstance(row, list):
-                row_data = " & ".join([self._escape_latex(str(cell)) for cell in row])
+                processed_cells = []
+                for cell in row:
+                    if isinstance(cell, dict):
+                        # Process dict cells (e.g., {"type": "cell", "roll": {...}})
+                        processed_cell = self.process_entry_dict(cell, context)
+                    else:
+                        # Process string cells
+                        processed_cell = self._process_text_with_tags(
+                            str(cell), context
+                        )
+                    processed_cells.append(processed_cell)
+
+                row_data = " & ".join(processed_cells)
                 result.append(f"{row_data} \\\\")
 
         result.append("\\hline")
@@ -456,6 +516,60 @@ class RecursiveEntryProcessor:
         result.append("\\end{table}")
 
         return "\n".join(result)
+
+    def _build_column_spec(self, col_styles: list[str], col_count: int) -> str:
+        """Build LaTeX column specification from 5etools colStyles.
+
+        Args:
+            col_styles: List of Bootstrap column style classes (e.g., ["col-2 bold", "col-10"])
+            col_count: Number of columns as fallback
+
+        Returns:
+            LaTeX column specification string using only DndTable-supported types (e.g., "cl")
+        """
+        if not col_styles:
+            # Fallback: use left-aligned columns
+            return "l" * col_count
+
+        col_specs = []
+        for style in col_styles:
+            # Parse Bootstrap classes like "col-2 bold", "col-10", "col-4 text-center"
+            classes = style.split()
+            col_width = None
+            alignment = "l"  # default left
+
+            for cls in classes:
+                if cls.startswith("col-"):
+                    try:
+                        width_num = int(cls.split("-")[1])
+                        col_width = width_num
+                    except (IndexError, ValueError):
+                        continue
+                elif cls == "text-center":
+                    alignment = "c"
+                elif cls == "text-right":
+                    alignment = "r"
+                # Note: "bold" and other text styling are passed through as CSS classes - not handled in column specs
+                # The JavaScript code shows colStyles primarily handle layout (Bootstrap grid) and alignment
+
+            # Smart hybrid approach: use X for wide columns, l for most content
+            if col_width is None:
+                # No width specified, default to left-aligned
+                col_specs.append("l")
+            elif col_width >= 8:
+                # Wide description columns - use expandable columns for text wrapping
+                col_specs.append("X")
+            elif col_width <= 2 and alignment == "c":
+                # Only center narrow columns when explicitly marked text-center
+                col_specs.append("c")
+            elif alignment == "r":
+                # Respect explicit right alignment
+                col_specs.append("r")
+            else:
+                # Default to left-aligned for most content
+                col_specs.append("l")
+
+        return "".join(col_specs)
 
     def _process_quote(self, quote: dict[str, Any], context: RenderContext) -> str:
         """Process a quote entry.
@@ -544,7 +658,47 @@ class RecursiveEntryProcessor:
         if not text or not context.tag_resolver:
             return self._escape_latex(text)
 
-        return context.tag_resolver.process_text(text)
+        # Skip obvious non-tag content to avoid parser warnings
+        if not self._is_valid_tag_input(text):
+            return self._escape_latex(text)
+
+        # Type cast needed due to forward reference in RenderContext
+        result = context.tag_resolver.process_text(text)
+        return str(result)
+
+    def _is_valid_tag_input(self, text: str) -> bool:
+        """Check if text might contain valid 5etools tags.
+
+        This method pre-filters obvious non-tag content to prevent
+        unnecessary parser warnings and improve performance.
+
+        Args:
+            text: Text to validate
+
+        Returns:
+            True if text might contain valid tags, False to skip parsing
+        """
+        if not text or not isinstance(text, str):
+            return False
+
+        # Skip obvious dict/json strings that were stringified from cell objects
+        if text.startswith(("{'", '{"')) and text.endswith(("'}", '"}')):
+            return False
+
+        # Skip other obvious non-tag patterns
+        if text.startswith(("dict(", "list(", "tuple(")):
+            return False
+
+        # If text contains potential tag markers, it's worth parsing
+        if "{@" in text:
+            return True
+
+        # For short text without tag markers, skip parsing (performance optimization)
+        if len(text) < 3:
+            return False
+
+        # Default to parsing for other content
+        return True
 
     def _escape_latex(self, text: str) -> str:
         """Escape LaTeX special characters and Unicode characters.
@@ -953,7 +1107,13 @@ class RecursiveEntryProcessor:
         result = []
 
         if name:
-            result.append(f"\\textbf{{{self._escape_latex(name)}.}}")
+            # Process name with tag resolution
+            processed_name = self._process_text_with_tags(name, context)
+            # Add period only if name doesn't end with punctuation
+            if name.rstrip().endswith((".", ":", ";")):
+                result.append(f"\\textbf{{{processed_name}}}")
+            else:
+                result.append(f"\\textbf{{{processed_name}.}}")
 
         # Handle either single entry or multiple entries
         if entry:
@@ -963,6 +1123,169 @@ class RecursiveEntryProcessor:
             result.extend(processed_entries)
 
         return " ".join(result)
+
+    def _process_cell(self, cell: dict[str, Any], context: RenderContext) -> str:
+        """Process a cell entry with roll data for tables.
+
+        Args:
+            cell: Cell dictionary with optional roll data
+            context: Rendering context
+
+        Returns:
+            LaTeX string for table cell content
+
+        Examples:
+            {"type": "cell", "roll": {"exact": 1}} -> "1"
+            {"type": "cell", "roll": {"min": 3, "max": 4}} -> "3–4"
+            {"type": "cell", "roll": {"exact": 2}, "entry": "{@creature goblin}"} -> "2 Goblin"
+        """
+        roll_data = cell.get("roll", {})
+        entry_content = cell.get("entry", "")
+
+        # Format roll data if present
+        roll_text = ""
+        if roll_data:
+            if "exact" in roll_data:
+                roll_text = str(roll_data["exact"])
+            elif "min" in roll_data and "max" in roll_data:
+                min_val = roll_data["min"]
+                max_val = roll_data["max"]
+                if min_val == max_val:
+                    roll_text = str(min_val)
+                else:
+                    # Use en dash for ranges
+                    roll_text = f"{min_val}–{max_val}"
+
+        # Process entry content if present (may contain tags)
+        if entry_content:
+            processed_entry = self._process_text_with_tags(entry_content, context)
+            if roll_text:
+                return f"{roll_text} {processed_entry}"
+            else:
+                return processed_entry
+
+        return roll_text
+
+    def _process_statblock(
+        self, statblock: dict[str, Any], context: RenderContext
+    ) -> str:
+        """Process a statblock entry by resolving external content references.
+
+        Args:
+            statblock: Statblock dictionary with tag, name, and source
+            context: Rendering context
+
+        Returns:
+            LaTeX string with resolved content rendered inline
+        """
+        tag = statblock.get("tag", "")
+        name = statblock.get("name", "")
+        source = statblock.get("source", "")
+
+        logger.debug(f"Processing statblock: tag={tag}, name={name}, source={source}")
+
+        # Try to resolve the external reference
+        resolved_content = self._resolve_statblock_reference(tag, name, source, context)
+
+        if resolved_content:
+            # Render the resolved content inline
+            return self._render_statblock_content(resolved_content, name, context)
+        else:
+            # Fallback: render just the name as a header (current behavior)
+            logger.warning(
+                f"Could not resolve statblock reference: {tag} '{name}' from {source}"
+            )
+            section_cmd = self._get_section_command(self._depth)
+            return f"\\{section_cmd}{{{self._escape_latex(name)}}}"
+
+    def _resolve_statblock_reference(
+        self, tag: str, name: str, source: str, context: RenderContext
+    ) -> dict[str, Any] | None:
+        """Resolve a statblock reference to actual content.
+
+        Args:
+            tag: Content type tag (variantrule, action, condition, etc.)
+            name: Content name
+            source: Source abbreviation
+            context: Rendering context
+
+        Returns:
+            Resolved content dictionary or None if not found
+        """
+        # Map statblock tags to ContentType enums
+        tag_to_content_type = {
+            "variantrule": "VARIANT_RULE",
+            "action": "ACTION",
+            "condition": "CONDITION",
+            "sense": "SENSE",
+            "hazard": "HAZARD",
+            "status": "STATUS",
+        }
+
+        content_type_name = tag_to_content_type.get(tag)
+        if not content_type_name:
+            logger.debug(f"Unsupported statblock tag type: {tag}")
+            return None
+
+        try:
+            from ...core.models.content import ContentType
+
+            content_type = getattr(ContentType, content_type_name)
+        except AttributeError:
+            logger.debug(f"ContentType.{content_type_name} not found")
+            return None
+
+        # Try to find the content in the omnidexer
+        if context.omnidexer:
+            try:
+                resolved_content = context.omnidexer.find(content_type, name, source)
+                if resolved_content:
+                    # Return the content as a dictionary for processing
+                    if hasattr(resolved_content, "model_dump"):
+                        content_dict = resolved_content.model_dump()
+                        return dict(content_dict) if content_dict else None
+                    elif hasattr(resolved_content, "__dict__"):
+                        content_dict = resolved_content.__dict__
+                        return dict(content_dict) if content_dict else None
+                    else:
+                        return {"name": name, "entries": [str(resolved_content)]}
+            except Exception as e:
+                logger.warning(
+                    f"Error resolving statblock reference {tag} '{name}': {e}"
+                )
+
+        return None
+
+    def _render_statblock_content(
+        self, content: dict[str, Any], name: str, context: RenderContext
+    ) -> str:
+        """Render resolved statblock content with appropriate section header.
+
+        Args:
+            content: Resolved content dictionary
+            name: Content name for header
+            context: Rendering context
+
+        Returns:
+            LaTeX string with section header and content
+        """
+        entries = content.get("entries", [])
+
+        if not entries:
+            # No entries found, render just the name
+            section_cmd = self._get_section_command(self._depth)
+            return f"\\{section_cmd}{{{self._escape_latex(name)}}}"
+
+        # Add section header for the statblock
+        section_cmd = self._get_section_command(self._depth)
+        header = f"\\{section_cmd}{{{self._escape_latex(name)}}}"
+
+        # Process the entries after the header
+        processed_entries = self.process_entries(entries, context)
+
+        # Combine header with content
+        content_text = "\n\n".join(processed_entries)
+        return f"{header}\n\n{content_text}"
 
     def get_processing_statistics(self) -> dict[str, Any]:
         """Get processing statistics for this processor instance.

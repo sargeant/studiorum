@@ -203,6 +203,18 @@ class ContentConfigManager:
         """Create default configuration with recommended sources."""
         config = ContentConfiguration()
 
+        # Add test-data source (highest priority for testing)
+        config.add_source(
+            ContentSource(
+                name="test-data",
+                type=SourceType.DIRECTORY,
+                path=Path("test-data"),
+                enabled=True,
+                priority=0,  # Highest priority
+                url=None,
+            )
+        )
+
         # Add SRD source
         config.add_source(
             ContentSource(
@@ -248,3 +260,13 @@ def get_config_manager() -> ContentConfigManager:
 def get_content_config() -> ContentConfiguration:
     """Get current content configuration."""
     return get_config_manager().get_config()
+
+
+def reset_config_manager() -> None:
+    """Reset global config manager for testing."""
+    import tempfile
+
+    global _config_manager
+    # Use a temporary directory for tests to avoid system config conflicts
+    temp_dir = Path(tempfile.mkdtemp())
+    _config_manager = ContentConfigManager(temp_dir / "test_config.yaml")

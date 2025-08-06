@@ -46,9 +46,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             # If we can't stat the file, just use the path
             return f"json_loader:{self._content_type.value}:{path}:0:0"
 
-    async def load(
-        self, path: Path
-    ) -> list[BaseContent]:  # Changed from T to BaseContent
+    def load(self, path: Path) -> list[BaseContent]:  # Changed from T to BaseContent
         """Load JSON file and validate against Pydantic model."""
         # Try to get from cache first
         cache = get_cache()
@@ -61,26 +59,25 @@ class JsonDataLoader(DataLoader[BaseContent]):
             return cached_result  # type: ignore[no-any-return]
 
         # Load from file if not in cache
-        result = await self._load_from_file(path)
+        result = self._load_from_file(path)
 
         # Cache the result (24 hour TTL)
         cache.set(cache_key, result, expire=timedelta(hours=24).total_seconds())
 
         return result
 
-    async def _load_from_file(self, path: Path) -> list[BaseContent]:
+    def _load_from_file(self, path: Path) -> list[BaseContent]:
         """Load JSON file from disk."""
         try:
             logger.info(f"Loading {self._content_type.value} data from {path}")
 
-            # Read JSON file
+            # Read JSON file synchronously
             with open(path, encoding="utf-8") as f:
                 try:
-                    data = json.load(f)
+                    content = f.read()
+                    data = json.loads(content)
                 except json.JSONDecodeError as e:
                     # Check if this might be an index file with malformed JSON
-                    f.seek(0)
-                    content = f.read()
                     if "{@" in content and any(
                         pattern in path.name.lower()
                         for pattern in ["-list.", "index.", "_list.", "_index."]
@@ -94,42 +91,8 @@ class JsonDataLoader(DataLoader[BaseContent]):
             # Extract content based on file structure
             content_list = self._extract_content(data, path)
 
-            # Validate each item
-            validated_content = []
-            for item in content_list:
-                try:
-                    # Skip copy-template items that reference other content
-                    if self._is_copy_template(item):
-                        logger.debug(
-                            f"Skipping copy-template item {item.get('name', 'unknown')} in {path}"
-                        )
-                        continue
-
-                    # Skip sections when parsing inappropriate content types
-                    if item.get("type") == "section" and self._content_type not in [
-                        ContentType.BOOK,
-                        ContentType.ADVENTURE,
-                    ]:
-                        logger.debug(
-                            f"Skipping section item when parsing {self._content_type.value}"
-                        )
-                        continue
-
-                    # Ensure source information is present
-                    item = self._ensure_source_info(item, path)
-
-                    # Add missing required fields with reasonable defaults
-                    item = self._add_missing_required_fields(item)
-
-                    validated_item = self._content_factory.create_content(
-                        item, self._content_type
-                    )
-                    validated_content.append(validated_item)
-                except ValidationError as e:
-                    # Handle validation error with enhanced error tracking
-                    self._handle_validation_error(e, item, path)
-                except Exception as e:
-                    logger.error(f"Unexpected error validating item in {path}: {e}")
+            # Validate each item sequentially
+            validated_content = self._validate_items_sequentially(content_list, path)
 
             logger.info(
                 f"Successfully loaded {len(validated_content)} {self._content_type.value} items from {path}"
@@ -137,8 +100,52 @@ class JsonDataLoader(DataLoader[BaseContent]):
             return validated_content
 
         except Exception as e:
-            logger.error(f"Failed to load {path}: {e}")
+            logger.warning(
+                f"Failed to load {self._content_type.value} from {path}: {e}"
+            )
             return []
+
+    def _validate_items_sequentially(
+        self, content_list: list[dict], path: Path
+    ) -> list[BaseContent]:
+        """Validate content items sequentially (for smaller files)."""
+        validated_content = []
+        for item in content_list:
+            try:
+                # Skip copy-template items that reference other content
+                if self._is_copy_template(item):
+                    logger.debug(
+                        f"Skipping copy-template item {item.get('name', 'unknown')} in {path}"
+                    )
+                    continue
+
+                # Skip sections when parsing inappropriate content types
+                if item.get("type") == "section" and self._content_type not in [
+                    ContentType.BOOK,
+                    ContentType.ADVENTURE,
+                ]:
+                    logger.debug(
+                        f"Skipping section item when parsing {self._content_type.value}"
+                    )
+                    continue
+
+                # Ensure source information is present
+                item = self._ensure_source_info(item, path)
+
+                # Add missing required fields with reasonable defaults
+                item = self._add_missing_required_fields(item)
+
+                validated_item = self._content_factory.create_content(
+                    item, self._content_type
+                )
+                validated_content.append(validated_item)
+            except ValidationError as e:
+                # Handle validation error with enhanced error tracking
+                self._handle_validation_error(e, item, path)
+            except Exception as e:
+                logger.error(f"Unexpected error validating item in {path}: {e}")
+
+        return validated_content
 
     def get_content_type(self) -> ContentType:
         return self._content_type
@@ -201,6 +208,30 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 return item_data
             return []
         elif self._content_type == ContentType.ADVENTURE:
+            # Handle both metadata files (adventures.json) and content files (adventure-*.json)
+
+            # Check if this is a metadata file (adventures.json) and process it
+            if self._is_adventure_metadata_file(data):
+                logger.debug("Processing adventure metadata file")
+                adventure_data = data["adventure"]
+                if isinstance(adventure_data, list):
+                    return adventure_data
+                return []
+
+            # Check if this is a content file (adventure-*.json) and process it
+            if self._is_adventure_content_file(data):
+                logger.debug("Processing adventure content file")
+                # Transform content file format to expected Adventure format
+                return self._process_adventure_content_file(data)
+
+            # Handle mixed format (metadata + data in same file)
+            if "data" in data and isinstance(data["data"], list):
+                # This is a mixed format file with both metadata and content
+                # Return the entire file structure as a single adventure
+                logger.debug("Processing mixed format adventure (metadata + data)")
+                return [data]
+
+            # Legacy handling for other adventure formats
             if "adventure" in data:
                 adventure_data = data["adventure"]
                 if isinstance(adventure_data, list):
@@ -211,14 +242,26 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 adventure_data = data["adventureData"]
                 if isinstance(adventure_data, list) and adventure_data:
                     return adventure_data
-            elif "data" in data:
-                # Handle 5etools adventure data format with data array
-                # Return the entire file as a single adventure, not individual sections
-                adventure_data = data["data"]
-                if isinstance(adventure_data, list) and adventure_data:
-                    return [data]  # Wrap entire file structure as single adventure
+
             return []
         elif self._content_type == ContentType.BOOK:
+            # Handle both metadata files (books.json) and content files (book-*.json)
+
+            # Check if this is a metadata file (books.json) and process it
+            if self._is_book_metadata_file(data):
+                logger.debug("Processing book metadata file")
+                book_data = data["book"]
+                if isinstance(book_data, list):
+                    return book_data
+                return []
+
+            # Check if this is a content file (book-*.json) and process it
+            if self._is_book_content_file(data):
+                logger.debug("Processing book content file")
+                # Return the entire file structure as a single book (preserve original format)
+                return [data]
+
+            # Legacy handling for other book formats (priority order: book > bookData > data)
             if "book" in data:
                 book_data = data["book"]
                 if isinstance(book_data, list):
@@ -229,12 +272,14 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 book_data = data["bookData"]
                 if isinstance(book_data, list) and book_data:
                     return book_data
-            elif "data" in data:
-                # Handle 5etools book data format with data array
-                # Return the entire file as a single book, not individual sections
-                book_data = data["data"]
-                if isinstance(book_data, list) and book_data:
-                    return [data]  # Wrap entire file structure as single book
+
+            # Handle mixed format (metadata + data in same file) - lowest priority
+            if "data" in data and isinstance(data["data"], list) and data["data"]:
+                # This is a mixed format file with both metadata and content
+                # Return the entire file structure as a single book
+                logger.debug("Processing mixed format book (metadata + data)")
+                return [data]
+
             return []
         elif self._content_type == ContentType.FEAT and "feat" in data:
             feat_data = data["feat"]
@@ -255,6 +300,36 @@ class JsonDataLoader(DataLoader[BaseContent]):
             class_data = data["class"]
             if isinstance(class_data, list):
                 return class_data
+            return []
+        elif self._content_type == ContentType.VARIANT_RULE and "variantrule" in data:
+            variant_rule_data = data["variantrule"]
+            if isinstance(variant_rule_data, list):
+                return variant_rule_data
+            return []
+        elif self._content_type == ContentType.ACTION and "action" in data:
+            action_data = data["action"]
+            if isinstance(action_data, list):
+                return action_data
+            return []
+        elif self._content_type == ContentType.CONDITION and "condition" in data:
+            condition_data = data["condition"]
+            if isinstance(condition_data, list):
+                return condition_data
+            return []
+        elif self._content_type == ContentType.SENSE and "sense" in data:
+            sense_data = data["sense"]
+            if isinstance(sense_data, list):
+                return sense_data
+            return []
+        elif self._content_type == ContentType.HAZARD and "hazard" in data:
+            hazard_data = data["hazard"]
+            if isinstance(hazard_data, list):
+                return hazard_data
+            return []
+        elif self._content_type == ContentType.STATUS and "status" in data:
+            status_data = data["status"]
+            if isinstance(status_data, list):
+                return status_data
             return []
 
         # Generic fallbacks
@@ -343,6 +418,12 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 "monster_fluff",
             },
             ContentType.ITEM_FLUFF: {"itemFluff", "item_fluff"},
+            ContentType.VARIANT_RULE: {"variantrule", "variantrules"},
+            ContentType.ACTION: {"action", "actions"},
+            ContentType.CONDITION: {"condition", "conditions"},
+            ContentType.SENSE: {"sense", "senses"},
+            ContentType.HAZARD: {"hazard", "hazards"},
+            ContentType.STATUS: {"status", "statuses"},
         }
 
         return content_type_keys.get(self._content_type, set())
@@ -749,15 +830,6 @@ class JsonDataLoader(DataLoader[BaseContent]):
         )
         return []
 
-    def _make_fluff_compatible(
-        self, fluff_item: dict[str, Any], path: Path
-    ) -> dict[str, Any] | None:
-        """Convert fluff item to be compatible with main content model - deprecated."""
-        logger.debug(
-            f"Fluff compatibility conversion called for {self._content_type.value} in {path}"
-        )
-        return None
-
     def _infer_item_type(self, item: dict[str, Any]) -> str:
         """Infer item type from common fields."""
         if "weaponCategory" in item:
@@ -838,6 +910,77 @@ class JsonDataLoader(DataLoader[BaseContent]):
         # Only consider it a pure content file if it has ONLY 'data' and no metadata fields
         return not has_metadata
 
+    def _process_adventure_content_file(
+        self, data: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        """Process adventure content file into format expected by Adventure model.
+
+        Content files have structure:
+        {
+            "data": [
+                {"type": "section", "name": "...", "entries": [...]}
+            ]
+        }
+
+        We need to create a single adventure object with the content data.
+        """
+        if "data" not in data or not isinstance(data["data"], list):
+            return []
+
+        # Create a synthetic adventure object with the content
+        adventure: dict[str, Any] = {
+            "name": "Adventure",  # Default name for content-only files
+            "id": "temp",
+            "source": "TEMP",
+            "contents": [],
+            # Transform the data sections into contents
+        }
+
+        # Process the data array into contents
+        for item in data["data"]:
+            if isinstance(item, dict) and item.get("type") == "section":
+                chapter = {
+                    "name": item.get("name", "Unnamed Chapter"),
+                    "entries": item.get("entries", []),
+                }
+                adventure["contents"].append(chapter)
+
+        return [adventure]
+
+    def _process_book_content_file(self, data: dict[str, Any]) -> list[dict[str, Any]]:
+        """Process book content file into format expected by Book model.
+
+        Content files have structure:
+        {
+            "data": [
+                {"type": "section", "name": "...", "entries": [...]}
+            ]
+        }
+
+        We need to create a single book object with the content data.
+        """
+        if "data" not in data or not isinstance(data["data"], list):
+            return []
+
+        # Create a synthetic book object with the content
+        book: dict[str, Any] = {
+            "name": "Book",  # Default name for content-only files
+            "id": "temp",
+            "source": "TEMP",
+            "contents": [],
+        }
+
+        # Process the data array into contents
+        for item in data["data"]:
+            if isinstance(item, dict) and item.get("type") == "section":
+                chapter = {
+                    "name": item.get("name", "Unnamed Chapter"),
+                    "entries": item.get("entries", []),
+                }
+                book["contents"].append(chapter)
+
+        return [book]
+
     def _is_book_metadata_file(self, data: dict[str, Any]) -> bool:
         """Check if this is a book metadata file (books.json).
 
@@ -876,6 +1019,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
             not isinstance(data, dict)
             or "data" not in data
             or not isinstance(data["data"], list)
+            or not data[
+                "data"
+            ]  # Empty data arrays should not be treated as content files
         ):
             return False
 
@@ -883,12 +1029,16 @@ class JsonDataLoader(DataLoader[BaseContent]):
         if "book" in data:
             return False
 
-        # Check if it has metadata fields - if so, it's a mixed file and should be loaded
+        # Check if it has metadata fields or other format keys - if so, it's a mixed file and should be loaded
         metadata_fields = {"name", "id", "source", "published", "author", "level"}
+        legacy_format_keys = {
+            "bookData"
+        }  # Other legacy format keys that indicate mixed format
         has_metadata = any(field in data for field in metadata_fields)
+        has_legacy_format = any(key in data for key in legacy_format_keys)
 
-        # Only consider it a pure content file if it has ONLY 'data' and no metadata fields
-        return not has_metadata
+        # Only consider it a pure content file if it has ONLY 'data' and no metadata/legacy format fields
+        return not (has_metadata or has_legacy_format)
 
     def _extract_text_from_entries(self, entries: Any) -> list[str]:
         """Recursively extract text from complex entry structures."""
@@ -898,7 +1048,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             for entry in entries:
                 text_parts.extend(self._extract_text_from_entries(entry))
         elif isinstance(entries, dict):
-            # Handle different entry types
+            # Handle structured dict entries (current 5etools format)
             if "entries" in entries:
                 text_parts.extend(self._extract_text_from_entries(entries["entries"]))
             elif "text" in entries:
@@ -983,7 +1133,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
             path: Path to the source file
         """
         # Create context for error tracking
-        context = {
+        from dnd5e.core.validation.error_tracker import ErrorContext
+
+        context: ErrorContext = {
             "file": str(path),
             "item_name": item.get("name", "unknown"),
             "content_type": self._content_type.value,

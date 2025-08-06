@@ -5,18 +5,19 @@ import json
 import logging
 from pathlib import Path
 
-import aiofiles
 import typer
 from rich import print as rprint
 
 from dnd5e.cli.display_manager import display_manager
-from dnd5e.core.config.settings import get_settings
-from dnd5e.core.indexer.tag_resolver import TagResolver
+from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.logging.logger import setup_logging
 from dnd5e.core.models.content import BaseContent
+from dnd5e.core.text.tag_resolver import TagResolver
 from dnd5e.renderers.base import RenderContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
+from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
+from dnd5e.renderers.latex.compiler import LaTeXCompiler
 
 # Create the main Typer app
 app: typer.Typer = typer.Typer(
@@ -28,9 +29,32 @@ app: typer.Typer = typer.Typer(
 # Use shared console from display manager
 console = display_manager.console
 
-# Global state
-_omnidexer: Omnidexer | None = None
-_tag_resolver: TagResolver | None = None
+# Service container for dependency injection
+# This replaces the global state variables with proper DI
+
+
+def _create_latex_compiler() -> LaTeXCompiler:
+    """Create a LaTeX compiler with configuration from settings.
+
+    Returns:
+        LaTeXCompiler configured with settings
+    """
+    config = get_app_config()
+
+    # Create compilation configuration from unified config
+    compilation_config = CompilationConfig(
+        primary_engine=LaTeXEngine(config.rendering.latex.engine.primary_engine),
+        fallback_engines=[
+            LaTeXEngine(engine)
+            for engine in config.rendering.latex.engine.fallback_engines
+        ],
+        timeout_seconds=config.rendering.latex.engine.timeout,
+        max_passes=config.rendering.latex.engine.max_passes,
+        show_progress=config.rendering.latex.engine.show_progress,
+        keep_intermediate_files=config.rendering.latex.engine.keep_temp_files,
+    )
+
+    return LaTeXCompiler(compilation_config)
 
 
 @app.command("version")
@@ -43,6 +67,9 @@ def show_version() -> None:
 @app.callback()
 def main(
     verbose: bool = typer.Option(False, "--verbose", help="Enable verbose output"),
+    debug: bool = typer.Option(
+        False, "--debug", help="Enable debug output (most verbose)"
+    ),
 ) -> None:
     """
     🎲 **5e2pdf** - Modern D&D 5e content converter
@@ -50,31 +77,51 @@ def main(
     Convert structured JSON data from 5e.tools into professional LaTeX documents
     that match the style of official D&D 5th edition books.
     """
-    settings = get_settings()
-    log_level = "INFO" if verbose else settings.log_level
+    config = get_app_config()
+
+    # Validate configuration at startup
+    try:
+        # This will trigger Pydantic validation and create directories
+        _ = config.model_dump()
+        if verbose or debug:
+            logger = logging.getLogger(__name__)
+            logger.info("Configuration loaded successfully")
+            logger.info(f"LaTeX engine: {config.rendering.latex.engine.primary_engine}")
+            logger.info(f"Output path: {config.paths.output_path}")
+    except Exception as e:
+        rprint(f"[red]Configuration error:[/red] {e}")
+        raise typer.Exit(1)
+
+    # Determine log level priority: debug > verbose > config default
+    if debug:
+        log_level = "DEBUG"
+    elif verbose:
+        log_level = "INFO"
+    else:
+        log_level = config.logging.level
+
     setup_logging(level=log_level)
-    logging.info("Enabled verbose mode")
+
+    if debug:
+        logging.info("Enabled debug mode")
+    elif verbose:
+        logging.info("Enabled verbose mode")
 
 
-async def get_omnidexer() -> Omnidexer:
-    """Get or create the global omnidexer instance."""
-    global _omnidexer
-    if _omnidexer is None:
-        _omnidexer = Omnidexer()
-        with display_manager.progress("Loading omnidexer") as _:
-            task = display_manager.add_task("[cyan]Loading content data...", total=None)
-            await _omnidexer.load_all_data()
-            display_manager.update_task(task, completed=100)
-    return _omnidexer
+def get_omnidexer() -> Omnidexer:
+    """Get the omnidexer instance from the service container."""
+    from dnd5e.core.container import get_global_container
+
+    container = get_global_container()
+    return container.get_omnidexer()
 
 
-async def get_tag_resolver() -> TagResolver:
-    """Get or create the global tag resolver instance."""
-    global _tag_resolver
-    if _tag_resolver is None:
-        omnidexer = await get_omnidexer()
-        _tag_resolver = TagResolver(omnidexer)
-    return _tag_resolver
+def get_tag_resolver() -> TagResolver:
+    """Get the tag resolver instance from the service container."""
+    from dnd5e.core.container import get_global_container
+
+    container = get_global_container()
+    return container.get_tag_resolver()
 
 
 # Import and mount CLI command modules
@@ -143,7 +190,9 @@ def quick_convert(
     content_type: str = typer.Option(
         "auto", "--type", "-t", help="Content type (adventure, book, auto)"
     ),
-    with_images: bool = typer.Option(False, "--images", help="Include images"),
+    with_images: bool = typer.Option(
+        False, "--images/--no-images", help="Include images"
+    ),
     compile_pdf: bool = typer.Option(False, "--pdf", help="Compile to PDF"),
 ) -> None:
     """
@@ -153,7 +202,7 @@ def quick_convert(
     Perfect for quick conversions and testing.
     """
 
-    async def _quick_convert() -> None:
+    def _quick_convert() -> None:
         try:
             # Validate input
             if not input_file.exists():
@@ -171,13 +220,13 @@ def quick_convert(
                 load_task = display_manager.add_task(
                     "[cyan]Initializing...", total=None
                 )
-                omnidexer = await get_omnidexer()
-                tag_resolver = await get_tag_resolver()
+                omnidexer = get_omnidexer()
+                tag_resolver = get_tag_resolver()
                 display_manager.update_task(load_task, completed=100)
 
             # Load content from file
-            async with aiofiles.open(input_file) as f:
-                content = await f.read()
+            with open(input_file) as f:
+                content = f.read()
                 data = json.loads(content)
 
             # Simple content detection and loading
@@ -230,8 +279,8 @@ def quick_convert(
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
-                await f.write(result)
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(result)
 
             rprint(
                 f"[green]✓[/green] Converted {len(content_items)} items to {output_path}"
@@ -241,32 +290,57 @@ def quick_convert(
             if compile_pdf and output_path.suffix == ".tex":
                 pdf_path = output_path.with_suffix(".pdf")
                 rprint(f"[cyan]Compiling PDF: {pdf_path}[/cyan]")
-                import subprocess
 
                 try:
-                    subprocess.run(
-                        [
-                            "xelatex",
-                            "-output-directory",
-                            str(output_path.parent),
-                            str(output_path),
-                        ],
-                        check=True,
-                        capture_output=True,
+                    compiler = _create_latex_compiler()
+
+                    # Read the LaTeX file content
+                    with open(output_path, "r", encoding="utf-8") as f:
+                        latex_content = f.read()
+
+                    # Compile using the configured compiler
+                    import asyncio
+
+                    compilation_result = asyncio.run(
+                        compiler.compile_document(
+                            latex_content,
+                            output_name=output_path.stem,
+                            working_dir=output_path.parent,
+                        )
                     )
-                    rprint(f"[green]✓[/green] PDF compiled: {pdf_path}")
-                except subprocess.CalledProcessError as e:
+
+                    if compilation_result.success:
+                        rprint(
+                            f"[green]✓[/green] PDF compiled: {compilation_result.output_file}"
+                        )
+                    else:
+                        rprint(
+                            f"[red]LaTeX compilation failed:[/red] {compilation_result.error_message or 'Unknown error'}"
+                        )
+
+                except Exception as e:
                     rprint(f"[red]Error compiling PDF:[/red] {e}")
-                except FileNotFoundError:
-                    rprint(
-                        "[yellow]Warning:[/yellow] xelatex not found. Install LaTeX to compile PDFs."
-                    )
+                    if "not found" in str(e).lower():
+                        rprint("[yellow]Install LaTeX to compile PDFs:[/yellow]")
+                        rprint("On macOS: brew install --cask mactex")
+                        rprint("On Ubuntu: sudo apt-get install texlive-full")
 
         except Exception as e:
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_quick_convert())
+    _quick_convert()
+
+
+def reset_cli_globals() -> None:
+    """Reset CLI global variables for testing.
+
+    This function clears the global state maintained by the CLI module
+    to ensure clean test isolation.
+    """
+    from dnd5e.core.container import reset_global_container
+
+    reset_global_container()
 
 
 if __name__ == "__main__":

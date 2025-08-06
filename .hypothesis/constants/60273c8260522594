@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/loaders/content_merger.py
+# hypothesis_version: 6.136.7
+
+[0.0, 100, '-', 'access_time', 'cache_enabled', 'cache_keys', 'cache_ttl', 'cached_items', 'contents', 'data', 'entries', 'evictions', 'file_path', 'hit_rate', 'hits', 'id', 'identifier', 'invalidations', 'max_cache_size', 'misses', 'mtime', 'name', 'ordinal', 'r', 'section', 'total_requests', 'type', 'utf-8']

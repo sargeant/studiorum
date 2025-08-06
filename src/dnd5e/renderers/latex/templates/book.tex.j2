@@ -27,11 +27,11 @@
 % Enhanced chapter and section styling for books
 <@ if not use_dnd_template_styling @>
 \titleformat{\chapter}[display]
-    {\normalfont\scshape\Huge\color{DndRed}}
+    {\normalfont\scshape\Huge}
     {\chaptertitlename\ \thechapter}{0pt}{\Huge}
 
 \titleformat{\section}
-    {\normalfont\scshape\Large\color{DndRed}}
+    {\normalfont\scshape\Large}
     {\thesection}{1em}{}
 
 \titleformat{\subsection}
@@ -45,62 +45,7 @@
 <@ endif @>
 <@ endblock @>
 
-<#-- Fallback document body for legacy content (when not using structured sections) --#>
+<#-- Book content is handled by the modern structured content system in base.tex.j2 --#>
 <@ block document_body @>
-<#-- This block provides compatibility with legacy templates --#>
-<#-- Structured content is now handled by the document_structure block in base.tex.j2 --#>
-
-<#-- Legacy chapter rendering --#>
-<@ if chapters @>
-<@ for chapter in chapters @>
-\chapter{<# chapter.title | latex_escape #>}
-<@ if chapter.subtitle @>
-\textit{<# chapter.subtitle | latex_escape #>}
-<@ endif @>
-
-<@ for section in chapter.sections @>
-\section{<# section.title | latex_escape #>}
-<# section.content #>
-
-<@ if section.subsections @>
-<@ for subsection in section.subsections @>
-\subsection{<# subsection.title | latex_escape #>}
-<# subsection.content #>
-<@ endfor @>
-<@ endif @>
-
-<@ endfor @>
-
-<@ if chapter.appendices @>
-<@ for appendix in chapter.appendices @>
-\section*{<# appendix.title | latex_escape #>}
-\addcontentsline{toc}{section}{<# appendix.title | latex_escape #>}
-<# appendix.content #>
-<@ endfor @>
-<@ endif @>
-
-<@ endfor @>
-<@ endif @>
-
-<#-- Legacy content type rendering --#>
-<@ if spells @>
-\chapter{Spells}
-<@ for spell in spells @>
-% Spell content will be rendered by content renderers
-<@ endfor @>
-<@ endif @>
-
-<@ if creatures @>
-\chapter{Creatures}
-<@ for creature in creatures @>
-% Creature content will be rendered by content renderers
-<@ endfor @>
-<@ endif @>
-
-<@ if items @>
-\chapter{Magic Items}
-<@ for item in items @>
-% Item content will be rendered by content renderers
-<@ endfor @>
-<@ endif @>
+<#-- Books use chapters which are rendered via the structured content system --#>
 <@ endblock @>

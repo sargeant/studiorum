@@ -1,9 +1,10 @@
 """LaTeX compilation configuration and settings."""
 
-from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import TypedDict, Unpack
+from typing import Any, TypedDict, Unpack
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class CompilationConfigKwargs(TypedDict, total=False):
@@ -39,40 +40,80 @@ class CompilationMode(Enum):
     FINAL = "final"  # Full compilation with all features
 
 
-@dataclass
-class CompilationConfig:
+class CompilationConfig(BaseModel):
     """Configuration for LaTeX compilation process."""
 
     # Engine configuration
-    primary_engine: LaTeXEngine = LaTeXEngine.LUALATEX
-    fallback_engines: list[LaTeXEngine] = field(
-        default_factory=lambda: [LaTeXEngine.XELATEX, LaTeXEngine.PDFLATEX]
+    primary_engine: LaTeXEngine = Field(
+        default=LaTeXEngine.LUALATEX, description="Primary LaTeX engine to use"
+    )
+    fallback_engines: list[LaTeXEngine] = Field(
+        default_factory=lambda: [LaTeXEngine.XELATEX, LaTeXEngine.PDFLATEX],
+        description="Fallback engines to try if primary fails",
     )
 
     # Compilation behavior
-    mode: CompilationMode = CompilationMode.NORMAL
-    max_passes: int = 4
-    timeout_seconds: int = 300  # 5 minutes default
+    mode: CompilationMode = Field(
+        default=CompilationMode.NORMAL, description="Compilation mode"
+    )
+    max_passes: int = Field(
+        default=4, ge=1, le=10, description="Maximum compilation passes"
+    )
+    timeout_seconds: int = Field(
+        default=300, ge=10, le=3600, description="Timeout per compilation pass"
+    )
 
     # Output configuration
-    output_dir: Path | None = None
-    keep_intermediate_files: bool = False
-    verbose_logging: bool = False
+    output_dir: Path | None = Field(
+        None, description="Output directory for compiled files"
+    )
+    keep_intermediate_files: bool = Field(
+        default=False, description="Keep intermediate LaTeX files"
+    )
+    verbose_logging: bool = Field(
+        default=False, description="Enable verbose compilation logging"
+    )
 
     # Engine-specific options
-    engine_options: dict[str, list[str]] = field(default_factory=dict)
+    engine_options: dict[str, list[str]] = Field(
+        default_factory=dict, description="Engine-specific command options"
+    )
 
     # Dependency checking
-    check_dependencies: bool = True
-    required_packages: list[str] = field(
-        default_factory=lambda: ["dndbook", "dnd", "fontspec"]
+    check_dependencies: bool = Field(
+        default=True, description="Check for required LaTeX packages"
+    )
+    required_packages: list[str] = Field(
+        default_factory=lambda: ["dndbook", "dnd", "fontspec"],
+        description="Required LaTeX packages",
     )
 
     # Progress tracking
-    show_progress: bool = True
-    progress_style: str = "rich"  # "rich", "simple", "none"
+    show_progress: bool = Field(default=True, description="Show compilation progress")
+    progress_style: str = Field(default="rich", description="Progress display style")
 
-    def __post_init__(self) -> None:
+    @field_validator("progress_style")
+    @classmethod
+    def validate_progress_style(cls, v: str) -> str:
+        """Validate progress style is supported."""
+        valid_styles = {"rich", "simple", "none"}
+        if v not in valid_styles:
+            raise ValueError(
+                f"Invalid progress style: {v}. Must be one of {valid_styles}"
+            )
+        return v
+
+    @field_validator("engine_options")
+    @classmethod
+    def validate_engine_options(cls, v: dict[str, list[str]]) -> dict[str, list[str]]:
+        """Validate engine options format."""
+        valid_engines = {engine.value for engine in LaTeXEngine}
+        for engine in v:
+            if engine not in valid_engines:
+                raise ValueError(f"Unknown LaTeX engine: {engine}")
+        return v
+
+    def model_post_init(self, __context: Any) -> None:
         """Initialize default engine options."""
         if not self.engine_options:
             self.engine_options = self._get_default_engine_options()
@@ -162,7 +203,7 @@ class CompilationConfig:
 
         return config
 
-    def validate(self) -> list[str]:
+    def validate_config(self) -> list[str]:
         """Validate the configuration.
 
         Returns:
@@ -185,18 +226,23 @@ class CompilationConfig:
         return errors
 
 
-@dataclass
-class CompilationResult:
+class CompilationResult(BaseModel):
     """Result of a LaTeX compilation attempt."""
 
-    success: bool
-    engine_used: LaTeXEngine
-    passes_completed: int
-    total_time: float
-    output_file: Path | None = None
-    log_file: Path | None = None
-    error_message: str | None = None
-    warnings: list[str] = field(default_factory=list)
+    success: bool = Field(description="Whether compilation was successful")
+    engine_used: LaTeXEngine = Field(description="LaTeX engine that was used")
+    passes_completed: int = Field(
+        ge=0, description="Number of compilation passes completed"
+    )
+    total_time: float = Field(ge=0.0, description="Total compilation time in seconds")
+    output_file: Path | None = Field(None, description="Path to compiled output file")
+    log_file: Path | None = Field(None, description="Path to compilation log file")
+    error_message: str | None = Field(
+        None, description="Error message if compilation failed"
+    )
+    warnings: list[str] = Field(
+        default_factory=list, description="List of compilation warnings"
+    )
 
     def __str__(self) -> str:
         """String representation of compilation result."""
@@ -212,19 +258,20 @@ class CompilationResult:
             )
 
 
-@dataclass
-class CompilationPass:
+class CompilationPass(BaseModel):
     """Information about a single compilation pass."""
 
-    pass_number: int
-    engine: LaTeXEngine
-    command: list[str]
-    start_time: float
-    end_time: float | None = None
-    return_code: int | None = None
-    stdout: str = ""
-    stderr: str = ""
-    needs_rerun: bool = False
+    pass_number: int = Field(ge=1, description="Pass number (1-based)")
+    engine: LaTeXEngine = Field(description="LaTeX engine used for this pass")
+    command: list[str] = Field(description="Command line arguments used")
+    start_time: float = Field(description="Start time timestamp")
+    end_time: float | None = Field(None, description="End time timestamp")
+    return_code: int | None = Field(None, description="Process return code")
+    stdout: str = Field(default="", description="Standard output from compilation")
+    stderr: str = Field(default="", description="Standard error from compilation")
+    needs_rerun: bool = Field(
+        default=False, description="Whether another pass is needed"
+    )
 
     @property
     def duration(self) -> float | None:

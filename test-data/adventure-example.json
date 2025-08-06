@@ -1,0 +1,46 @@
+{
+  "adventure": [
+    {
+      "name": "Test Adventure",
+      "id": "test-adventure",
+      "source": "TEST",
+      "group": "homebrew",
+      "published": "2024-01-01",
+      "storyline": "Test Campaign",
+      "level": {"start": 1, "end": 5},
+      "contents": [
+        {
+          "name": "Chapter 1: The Beginning",
+          "ordinal": {"type": "chapter", "identifier": 1},
+          "headers": ["The Village", "The Quest"],
+          "entries": [
+            {
+              "type": "section",
+              "name": "The Village",
+              "entries": [
+                "The village of Testbrook sits nestled in a valley.",
+                {
+                  "type": "entries",
+                  "name": "Village Features",
+                  "entries": [
+                    "The village has a tavern called The Testing Grounds.",
+                    "Population: 200 residents"
+                  ]
+                },
+                {
+                  "type": "table",
+                  "caption": "Village NPCs",
+                  "colLabels": ["Name", "Role"],
+                  "rows": [
+                    ["Tessa Testkeeper", "Tavern Owner"],
+                    ["Bob Builder", "Village Carpenter"]
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/parsers/entry_parser.py
+# hypothesis_version: 6.136.7
+
+['Inset', 'Table', 'Unnamed Section', 'adventure', 'alternative', 'alternative:', 'book', 'caption', 'colLabels', 'custom', 'different', 'entries', 'id', 'inset', 'insetReadaloud', 'name', 'option', 'optional', 'optional rule:', 'optional:', 'page', 'rows', 'section', 'table', 'type', 'unknown_types', 'using', 'variant', 'variant rule:', 'variant:']

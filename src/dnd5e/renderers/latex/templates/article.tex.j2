@@ -24,7 +24,7 @@
 % Section styling for articles (only if not using DND template styling)
 <@ if not use_dnd_template_styling @>
 \titleformat{\section}
-    {\normalfont\scshape\Large\color{DndRed}}
+    {\normalfont\scshape\Large}
     {\thesection}{1em}{}
 
 \titleformat{\subsection}
@@ -42,60 +42,11 @@
 <@ endif @>
 <@ endblock @>
 
-<#-- Fallback document body for legacy content (when not using structured sections) --#>
+<#-- Article content is handled by the modern structured content system in base.tex.j2 --#>
 <@ block document_body @>
-<#-- This block provides compatibility with legacy templates --#>
-<#-- Structured content is now handled by the document_structure block in base.tex.j2 --#>
-
 <@ if abstract @>
 \begin{abstract}
-<# abstract #>
+<# abstract | safe #>
 \end{abstract}
-<@ endif @>
-
-<#-- Legacy section rendering --#>
-<@ if sections @>
-<@ for section in sections @>
-\section{<# section.title | latex_escape #>}
-<# section.content #>
-
-<@ if section.subsections @>
-<@ for subsection in section.subsections @>
-\subsection{<# subsection.title | latex_escape #>}
-<# subsection.content #>
-
-<@ if subsection.subsubsections @>
-<@ for subsubsection in subsection.subsubsections @>
-\subsubsection{<# subsubsection.title | latex_escape #>}
-<# subsubsection.content #>
-<@ endfor @>
-<@ endif @>
-
-<@ endfor @>
-<@ endif @>
-
-<@ endfor @>
-<@ endif @>
-
-<#-- Legacy content type rendering --#>
-<@ if spells @>
-\section{Spells}
-<@ for spell in spells @>
-% Spell content will be rendered by content renderers
-<@ endfor @>
-<@ endif @>
-
-<@ if creatures @>
-\section{Creatures}
-<@ for creature in creatures @>
-% Creature content will be rendered by content renderers
-<@ endfor @>
-<@ endif @>
-
-<@ if items @>
-\section{Magic Items}
-<@ for item in items @>
-% Item content will be rendered by content renderers
-<@ endfor @>
 <@ endif @>
 <@ endblock @>

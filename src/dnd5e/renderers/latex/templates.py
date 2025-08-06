@@ -239,7 +239,8 @@ class LaTeXTemplateEngine:
         # Try to load from file
         template_file = self.templates_dir / f"{template_name}.tex"
         if template_file.exists():
-            content = template_file.read_text(encoding="utf-8")
+            with open(template_file, encoding="utf-8") as f:
+                content = f.read()
             self._template_cache[template_name] = content
             return content
 

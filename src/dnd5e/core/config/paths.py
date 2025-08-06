@@ -135,3 +135,14 @@ def get_path_config(root_path: Path | None = None) -> PathConfig:
         _path_config.ensure_directories()
 
     return _path_config
+
+
+def reset_path_config() -> None:
+    """Reset global path configuration for testing.
+
+    This function clears the global path configuration instance to ensure
+    clean test isolation and prevent path configurations from persisting
+    across test runs.
+    """
+    global _path_config
+    _path_config = None

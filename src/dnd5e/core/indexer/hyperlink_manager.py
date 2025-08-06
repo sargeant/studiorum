@@ -2,22 +2,74 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 from dnd5e.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-@dataclass
-class HyperlinkStyle:
+class HyperlinkStyle(BaseModel):
     """Configuration for hyperlink appearance."""
 
-    color: str = "black"  # LaTeX color name
-    border: bool = False  # Whether to show border
-    underline: bool = False  # Whether to underline
-    font_style: str = "normal"  # "normal", "bold", "italic"
+    color: str = Field(default="black", description="LaTeX color name")
+    border: bool = Field(default=False, description="Whether to show border")
+    underline: bool = Field(default=False, description="Whether to underline")
+    font_style: str = Field(default="normal", description="Font style")
+
+    @field_validator("color")
+    @classmethod
+    def validate_latex_color(cls, v: str) -> str:
+        """Validate LaTeX color names to prevent compilation errors."""
+        # Common LaTeX color names that should always work
+        valid_colors = {
+            "black",
+            "white",
+            "red",
+            "green",
+            "blue",
+            "cyan",
+            "magenta",
+            "yellow",
+            "gray",
+            "grey",
+            "darkgray",
+            "darkgrey",
+            "lightgray",
+            "lightgrey",
+            "brown",
+            "lime",
+            "olive",
+            "orange",
+            "pink",
+            "purple",
+            "teal",
+            "violet",
+            "darkgreen",
+            "navy",
+            "maroon",
+        }
+
+        color_lower = v.lower().strip()
+        if color_lower not in valid_colors:
+            # Allow it but log a warning for unknown colors
+            logger.warning(f"Unknown LaTeX color '{v}' - may cause compilation issues")
+
+        return v.strip()
+
+    @field_validator("font_style")
+    @classmethod
+    def validate_font_style(cls, v: str) -> str:
+        """Validate font style options."""
+        valid_styles = {"normal", "bold", "italic", "bolditalic"}
+
+        style_lower = v.lower().strip()
+        if style_lower not in valid_styles:
+            raise ValueError(f"Invalid font style '{v}'. Must be one of {valid_styles}")
+
+        return style_lower
 
 
 class HyperlinkManager:

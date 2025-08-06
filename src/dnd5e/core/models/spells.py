@@ -2,9 +2,45 @@
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .content import BaseContent
+from .entry_types import Entry, validate_entries
+
+
+class DurationDetails(BaseModel):
+    """Structured duration information for timed spells."""
+
+    type: str = Field(..., description="Duration unit (hour, minute, day, etc.)")
+    amount: int = Field(..., description="Duration amount")
+
+
+class DistanceDetails(BaseModel):
+    """Structured distance information for spell ranges."""
+
+    type: str = Field(..., description="Distance unit (feet, miles, self, etc.)")
+    amount: int | None = Field(
+        None, description="Distance amount (None for special types)"
+    )
+
+
+class ClassReference(BaseModel):
+    """Reference to a character class in spell lists."""
+
+    name: str = Field(..., description="Class name")
+    source: str | None = Field(None, description="Source book")
+
+
+class SpellClassList(BaseModel):
+    """Spell class availability information."""
+
+    fromClassList: list[ClassReference] = Field(
+        default_factory=list, description="Classes that can cast this spell"
+    )
+
+
+# Use the new typed Entry system
+# EntryContent is replaced by the discriminated union in entry_types.py
 
 
 class SpellComponent(BaseModel):
@@ -31,7 +67,7 @@ class SpellDuration(BaseModel):
     """Represents spell duration."""
 
     type: Literal["instant", "timed", "permanent", "special"]
-    duration: dict[str, Any] | None = None
+    duration: DurationDetails | None = None
     concentration: bool = False
 
     def __str__(self) -> str:
@@ -42,8 +78,8 @@ class SpellDuration(BaseModel):
         elif self.type == "special":
             return "Special"
         elif self.duration:
-            amount = self.duration.get("amount", 1)
-            unit = self.duration.get("type", "unknown")
+            amount = self.duration.amount
+            unit = self.duration.type
             duration_str = f"{amount} {unit}"
             if self.concentration:
                 return f"Concentration, up to {duration_str}"
@@ -74,21 +110,21 @@ class SpellRange(BaseModel):
     """Represents spell range."""
 
     type: str = Field(..., description="Range type (point, line, cone, etc.)")
-    distance: dict[str, Any] | None = Field(None, description="Distance specification")
+    distance: DistanceDetails | None = Field(None, description="Distance specification")
 
     def __str__(self) -> str:
         if self.type == "point":
             if self.distance:
-                dist_type = self.distance.get("type", "feet")
-                amount = self.distance.get("amount", 0)
+                dist_type = self.distance.type
+                amount = self.distance.amount or 0
                 if amount == 0:
                     return "Touch"
                 return f"{amount} {dist_type}"
             return "Touch"
         elif self.type == "self":
             if self.distance:
-                area_type = self.distance.get("type", "")
-                amount = self.distance.get("amount", 0)
+                area_type = self.distance.type
+                amount = self.distance.amount or 0
                 return f"Self ({amount}-foot {area_type})"
             return "Self"
         elif self.type == "sight":
@@ -108,8 +144,8 @@ class Spell(BaseContent):
     range: SpellRange = Field(..., description="Spell range")
     components: SpellComponent = Field(..., description="Spell components")
     duration: list[SpellDuration] = Field(..., description="Spell duration")
-    entries: list[str | dict[str, Any]] = Field(..., description="Spell description")
-    higher_level: list[str | dict[str, Any]] | None = Field(
+    entries: list[Entry] = Field(..., description="Spell description")
+    higher_level: list[Entry] | None = Field(
         None, alias="entriesHigherLevel", description="At higher levels"
     )
     damage_inflict: list[str] | None = Field(
@@ -121,7 +157,7 @@ class Spell(BaseContent):
     spell_attack: list[str] | None = Field(
         None, alias="spellAttack", description="Spell attack types"
     )
-    classes: dict[str, Any] | None = Field(None, description="Class lists")
+    classes: SpellClassList | None = Field(None, description="Class lists")
     condition_inflict: list[str] | None = Field(
         None, alias="conditionInflict", description="Conditions inflicted"
     )
@@ -183,6 +219,35 @@ class Spell(BaseContent):
             return parsed_durations
         return v
 
+    @field_validator("classes", mode="before")
+    @classmethod
+    def parse_classes(cls, v: Any) -> SpellClassList | None:
+        """Parse classes from various formats."""
+        if v is None:
+            return None
+        if isinstance(v, dict):
+            return SpellClassList.model_validate(v)
+        # For unexpected types, return None rather than Any
+        return None
+
+    @field_validator("entries", mode="before")
+    @classmethod
+    def parse_entries(cls, v: Any) -> list[Entry] | Any:
+        """Parse entries from various formats using new typed entry system."""
+        if not isinstance(v, list):
+            return v
+        return validate_entries(v)
+
+    @field_validator("higher_level", mode="before")
+    @classmethod
+    def parse_higher_level(cls, v: Any) -> list[Entry] | None | Any:
+        """Parse higher level entries from various formats using new typed entry system."""
+        if v is None:
+            return None
+        if not isinstance(v, list):
+            return v
+        return validate_entries(v)
+
     def get_level_text(self) -> str:
         """Get formatted spell level text."""
         if self.level == 0:
@@ -242,8 +307,35 @@ class Spell(BaseContent):
                 result = self._extract_text_from_entries(entry)
                 if result:
                     text_parts.append(result)
+        elif hasattr(entries, "type") and hasattr(entries, "entries"):
+            # Handle structured entry models
+            if hasattr(entries, "name") and entries.name:
+                text_parts.append(f"**{entries.name}**")
+            if hasattr(entries, "entries") and entries.entries:
+                result = self._extract_text_from_entries(entries.entries)
+                if result:
+                    text_parts.append(result)
+            # Handle additional fields that might be present in extra fields
+            if hasattr(entries, "text") and entries.text:
+                text_parts.append(entries.text)
+            if hasattr(entries, "by") and entries.by:
+                text_parts.append(f"— {entries.by}")
+            if hasattr(entries, "items") and entries.items:
+                items = entries.items
+                if isinstance(items, list):
+                    for item in items:
+                        if isinstance(item, str):
+                            text_parts.append(f"• {item}")
+                        elif isinstance(item, dict):
+                            item_text_parts = []
+                            if "name" in item:
+                                item_text_parts.append(f"**{item['name']}**")
+                            if "text" in item:
+                                item_text_parts.append(item["text"])
+                            if item_text_parts:
+                                text_parts.append(f"• {' '.join(item_text_parts)}")
         elif isinstance(entries, dict):
-            # Handle different entry types
+            # Handle structured dict entries (current 5etools format)
             if "entries" in entries:
                 result = self._extract_text_from_entries(entries["entries"])
                 if result:
@@ -358,15 +450,12 @@ class Spell(BaseContent):
 
     def get_spell_list_classes(self) -> str:
         """Get formatted list of classes that can cast this spell."""
-        if not self.classes or "fromClassList" not in self.classes:
+        if not self.classes or not self.classes.fromClassList:
             return ""
 
         class_names = []
-        for class_ref in self.classes["fromClassList"]:
-            if isinstance(class_ref, dict) and "name" in class_ref:
-                class_names.append(class_ref["name"])
-            elif isinstance(class_ref, str):
-                class_names.append(class_ref)
+        for class_ref in self.classes.fromClassList:
+            class_names.append(class_ref.name)
 
         return ", ".join(class_names)
 

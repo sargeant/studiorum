@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/indexer/latex_tag_renderer.py
+# hypothesis_version: 6.136.7
+
+['-', '[^a-zA-Z0-9]+', 'adventure', 'background', 'book', 'class', 'condition', 'creature', 'feat', 'item', 'name', 'race', 'source', 'spell', 'unnamed']

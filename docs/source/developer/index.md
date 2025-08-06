@@ -2,14 +2,56 @@
 
 Technical documentation for contributors and developers extending 5e2pdf.
 
+## Choose Your Path
+
+The Developer Documentation is organized by audience and use case:
+
+::::{grid} 1 2 2 3
+
+:::{grid-item-card} Getting Started
+:link: getting-started/index
+:link-type: doc
+
+Audience-specific onboarding for developers, AI agents, and new contributors.
+:::
+
+:::{grid-item-card} System Guide
+:link: system-guide/index
+:link-type: doc
+
+Architecture overview and detailed component implementation guides.
+:::
+
+:::{grid-item-card} Development Workflows
+:link: development-workflows/index
+:link-type: doc
+
+Methodologies, quality standards, and systematic approaches.
+:::
+
+:::{grid-item-card} API Reference
+:link: api-reference/index
+:link-type: doc
+
+Technical API documentation organized by functional area.
+:::
+
+:::{grid-item-card} Contributing Guide
+:link: contributing/index
+:link-type: doc
+
+Everything needed to contribute code, documentation, and improvements.
+:::
+
+::::
+
 ## Overview
 
-The Developer Documentation provides in-depth technical information about 5e2pdf's architecture, APIs, and extension points. This section is intended for:
+This documentation serves multiple audiences:
 
-- Contributors wanting to submit pull requests
-- Developers integrating 5e2pdf into other tools
-- Advanced users creating custom renderers or parsers
-- Anyone interested in understanding how 5e2pdf works internally
+- **Developers** - Strategic guidance for feature development and architectural decisions
+- **AI Agents** - Systematic approaches, task frameworks, and quality validation patterns
+- **New Contributors** - Progressive onboarding from first contribution to independent development
 
 ## Key Components
 
@@ -17,7 +59,7 @@ The Developer Documentation provides in-depth technical information about 5e2pdf
 
 Complete reference for all public APIs, including:
 
-- **[Omnidexer API](api/omnidexer.md)**: Content indexing and discovery system
+- **[Omnidexer API](api-reference/core-apis.md)**: Content indexing and discovery system
 - Core models and content types
 - Renderer interfaces
 - Configuration and settings
@@ -26,7 +68,8 @@ Complete reference for all public APIs, including:
 
 Detailed guides for understanding and extending key systems:
 
-- **[Deep Indexing](implementation/deep-indexing.md)**: How the omnidexer discovers nested content
+- **[Loader Architecture](system-guide/component-deep-dives/loader-architecture.md)**: Sophisticated dual-file loading system with caching
+- **[Deep Indexing](system-guide/component-deep-dives/deep-indexing.md)**: How the omnidexer discovers nested content
 - Content parsing and validation
 - LaTeX rendering pipeline
 - Performance optimization techniques
@@ -35,8 +78,10 @@ Detailed guides for understanding and extending key systems:
 
 Information for contributors:
 
-- **[Contributing Guide](contributing.md)**: How to contribute to the project
-- **[Dependency Management](dependency-management.md)**: Dependency management strategy and best practices
+- **[Contributing Guide](contributing/contributing.md)**: How to contribute to the project
+- **[Dependency Management](contributing/dependency-management.md)**: Dependency management strategy and best practices
+- **[Error Handling Guide](error-handling-guide.md)**: Standardized error handling patterns using Result[T, E]
+- **[Troubleshooting](development-workflows/troubleshooting-strategies.md)**: Comprehensive error handling and debugging guide
 - Code style and standards
 - Testing requirements
 - Pull request process
@@ -45,7 +90,7 @@ Information for contributors:
 
 High-level system design and design decisions:
 
-- **[System Architecture](architecture.md)**: Overall system structure
+- **[System Architecture](system-guide/architecture-overview.md)**: Overall system structure
 - Component relationships
 - Data flow diagrams
 - Extension points
@@ -100,25 +145,43 @@ src/dnd5e/
 ## Table of Contents
 
 ```{toctree}
-:maxdepth: 1
-:caption: Project Information
+:maxdepth: 2
+:caption: Getting Started
 
-architecture
-dependency-management
+getting-started/index
 ```
 
 ```{toctree}
 :maxdepth: 2
-:caption: Implementation Guides
+:caption: System Guide
 
-implementation/index
+system-guide/index
 ```
 
 ```{toctree}
 :maxdepth: 2
-:caption: API Documentation
+:caption: Development Workflows
 
-api/index
+development-workflows/index
 ```
 
-For detailed information on any of these topics, explore the sections below.
+```{toctree}
+:maxdepth: 2
+:caption: API Reference
+
+api-reference/index
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Error Handling
+
+error-handling-guide
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Contributing
+
+contributing/index
+```

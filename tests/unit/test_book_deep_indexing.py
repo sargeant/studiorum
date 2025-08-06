@@ -1,12 +1,13 @@
 """Tests for book deep indexing functionality."""
 
 from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.books import Book, BookChapter
+from dnd5e.core.models.books import Book
+from dnd5e.core.models.chapter import Chapter
 from dnd5e.core.models.content import Source
 from dnd5e.core.models.nested_content import (
-    BookInset,
-    BookSection,
-    BookTable,
+    Inset,
+    Section,
+    Table,
     VariantRule,
 )
 
@@ -24,7 +25,7 @@ class TestBookDeepIndexing:
 
     def test_book_parses_section_entries(self):
         """Test that book parses section entries correctly."""
-        chapter = BookChapter(
+        chapter = Chapter(
             name="Chapter 1",
             entries=[
                 {
@@ -50,7 +51,7 @@ class TestBookDeepIndexing:
         result = book.get_deep_index_entries(omnidexer)
 
         assert len(result) == 1
-        assert isinstance(result[0], BookSection)
+        assert isinstance(result[0], Section)
         assert result[0].name == "Character Creation"
         assert result[0].page == 10
         assert result[0].parent_name == "Player's Handbook > Chapter 1"
@@ -58,7 +59,7 @@ class TestBookDeepIndexing:
 
     def test_book_parses_variant_rules(self):
         """Test that book parses variant rules correctly."""
-        chapter = BookChapter(
+        chapter = Chapter(
             name="Chapter 9",
             entries=[
                 {
@@ -89,7 +90,7 @@ class TestBookDeepIndexing:
 
     def test_book_distinguishes_variant_rules_from_sections(self):
         """Test that book correctly distinguishes variant rules from regular sections."""
-        chapter = BookChapter(
+        chapter = Chapter(
             name="Chapter 9",
             entries=[
                 {
@@ -129,12 +130,12 @@ class TestBookDeepIndexing:
         assert variant_rule.name == "Optional Rule: Initiative Variants"
 
         # Second should be regular section
-        section = next(r for r in result if isinstance(r, BookSection))
+        section = next(r for r in result if isinstance(r, Section))
         assert section.name == "Running Combat"
 
     def test_book_parses_table_entries(self):
         """Test that book parses table entries correctly."""
-        chapter = BookChapter(
+        chapter = Chapter(
             name="Chapter 5",
             entries=[
                 {
@@ -157,7 +158,7 @@ class TestBookDeepIndexing:
         result = book.get_deep_index_entries(omnidexer)
 
         assert len(result) == 1
-        assert isinstance(result[0], BookTable)
+        assert isinstance(result[0], Table)
         assert result[0].name == "Ability Score Costs"
         assert result[0].caption == "Ability Score Costs"
         assert result[0].col_labels == ["Score", "Cost"]
@@ -165,7 +166,7 @@ class TestBookDeepIndexing:
 
     def test_book_parses_inset_entries(self):
         """Test that book parses inset entries correctly."""
-        chapter = BookChapter(
+        chapter = Chapter(
             name="Chapter 1",
             entries=[
                 {
@@ -190,14 +191,14 @@ class TestBookDeepIndexing:
         result = book.get_deep_index_entries(omnidexer)
 
         assert len(result) == 1
-        assert isinstance(result[0], BookInset)
+        assert isinstance(result[0], Inset)
         assert result[0].name == "Building Bruenor"
         assert result[0].inset_type == "inset"
         assert result[0].page == 15
 
     def test_book_handles_complex_nested_structure(self):
         """Test that book handles complex nested content correctly."""
-        chapter = BookChapter(
+        chapter = Chapter(
             name="Chapter 9",
             entries=[
                 {
@@ -244,9 +245,9 @@ class TestBookDeepIndexing:
         )
         table = next(r for r in result if r.name == "Initiative Order")
 
-        assert isinstance(combat_section, BookSection)
+        assert isinstance(combat_section, Section)
         assert isinstance(variant_rule, VariantRule)
-        assert isinstance(table, BookTable)
+        assert isinstance(table, Table)
 
         # Check parent relationships
         assert combat_section.parent_name == "Dungeon Master's Guide > Chapter 9"
@@ -283,12 +284,12 @@ class TestBookDeepIndexing:
 
         # Should parse the chapter entries
         assert len(result) == 1
-        assert isinstance(result[0], BookSection)
+        assert isinstance(result[0], Section)
         assert result[0].name == "Introduction"
 
     def test_book_generates_appropriate_content_names(self):
         """Test that book generates appropriate names for unnamed content."""
-        chapter = BookChapter(
+        chapter = Chapter(
             name="Chapter 1",
             entries=[
                 {
@@ -316,8 +317,8 @@ class TestBookDeepIndexing:
 
         assert len(result) == 2
 
-        table = next(r for r in result if isinstance(r, BookTable))
-        inset = next(r for r in result if isinstance(r, BookInset))
+        table = next(r for r in result if isinstance(r, Table))
+        inset = next(r for r in result if isinstance(r, Inset))
 
         # Should generate meaningful names
         assert "Table" in table.name
@@ -327,7 +328,7 @@ class TestBookDeepIndexing:
 
     def test_book_with_multiple_chapters_and_ordinals(self):
         """Test book with multiple chapters using different ordinal types."""
-        chapter1 = BookChapter(
+        chapter1 = Chapter(
             name="Character Creation",
             ordinal={"type": "chapter", "identifier": "1"},
             entries=[
@@ -339,7 +340,7 @@ class TestBookDeepIndexing:
             ],
         )
 
-        appendix = BookChapter(
+        appendix = Chapter(
             name="Conditions",
             ordinal={"type": "appendix", "identifier": "A"},
             entries=[

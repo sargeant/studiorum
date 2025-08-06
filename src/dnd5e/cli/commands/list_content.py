@@ -1,6 +1,5 @@
 """List command for 5e2pdf CLI."""
 
-import asyncio
 from pathlib import Path
 from typing import Any
 
@@ -85,10 +84,10 @@ def list_content(
     Useful for finding specific spells, creatures, items, etc.
     """
 
-    async def _list_content() -> None:
+    def _list_content() -> None:
         try:
             # Load omnidexer (get_omnidexer handles its own progress display)
-            omnidexer = await get_omnidexer()
+            omnidexer = get_omnidexer()
 
             # Filter content
             if content_type:
@@ -152,7 +151,7 @@ def list_content(
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_list_content())
+    _list_content()
 
 
 @app.command("sources")
@@ -163,10 +162,10 @@ def list_sources() -> None:
     Shows all source books that have content loaded in the system.
     """
 
-    async def _list_sources() -> None:
+    def _list_sources() -> None:
         try:
             # Load omnidexer (get_omnidexer handles its own progress display)
-            omnidexer = await get_omnidexer()
+            omnidexer = get_omnidexer()
 
             # Get statistics
             stats = omnidexer.get_statistics()
@@ -190,7 +189,7 @@ def list_sources() -> None:
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_list_sources())
+    _list_sources()
 
 
 @app.command("adventures")
@@ -202,10 +201,10 @@ def list_adventures() -> None:
     making it easy to use them with convert commands.
     """
 
-    async def _list_adventures() -> None:
+    def _list_adventures() -> None:
         try:
             # Load omnidexer (get_omnidexer handles its own progress display)
-            omnidexer = await get_omnidexer()
+            omnidexer = get_omnidexer()
 
             # Get all adventures
             adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
@@ -236,7 +235,7 @@ def list_adventures() -> None:
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_list_adventures())
+    _list_adventures()
 
 
 @app.command("books")
@@ -248,10 +247,10 @@ def list_books() -> None:
     making it easy to use them with convert commands.
     """
 
-    async def _list_books() -> None:
+    def _list_books() -> None:
         try:
             # Load omnidexer (get_omnidexer handles its own progress display)
-            omnidexer = await get_omnidexer()
+            omnidexer = get_omnidexer()
 
             # Get all books
             books = omnidexer.get_all_by_type(ContentType.BOOK)
@@ -280,7 +279,7 @@ def list_books() -> None:
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_list_books())
+    _list_books()
 
 
 def _format_file_size(size_bytes: int) -> str:

@@ -27,7 +27,7 @@ class TestCompilationProgress:
 
     def test_compilation_progress_initialization(self) -> None:
         """Test compilation progress initialization."""
-        progress: Any = CompilationProgress("lualatex", 3)
+        progress: Any = CompilationProgress(engine="lualatex", total_passes=3)
 
         assert progress.engine == "lualatex"
         assert progress.total_passes == 3
@@ -40,7 +40,7 @@ class TestCompilationProgress:
 
     def test_update_overall_progress(self) -> None:
         """Test overall progress calculation."""
-        progress: Any = CompilationProgress("lualatex", 4)
+        progress: Any = CompilationProgress(engine="lualatex", total_passes=4)
 
         # First pass, 50% complete
         progress.current_pass = 1
@@ -69,12 +69,12 @@ class TestCompilationProgress:
     def test_update_overall_progress_edge_cases(self) -> None:
         """Test overall progress calculation edge cases."""
         # Zero passes
-        progress: Any = CompilationProgress("lualatex", 0)
+        progress: Any = CompilationProgress(engine="lualatex", total_passes=0)
         progress.update_overall_progress()
         assert progress.overall_progress == 0.0
 
         # Progress never exceeds 1.0
-        progress2: Any = CompilationProgress("lualatex", 1)
+        progress2: Any = CompilationProgress(engine="lualatex", total_passes=1)
         progress2.current_pass = 1
         progress2.pass_progress = 2.0  # Invalid value
         progress2.update_overall_progress()
@@ -347,7 +347,7 @@ class TestProgressTracker:
         tracker: Any = ProgressTracker(style="simple")
 
         # Initialize compilation first
-        tracker._progress = CompilationProgress("lualatex", 3)
+        tracker._progress = CompilationProgress(engine="lualatex", total_passes=3)
 
         with patch.object(tracker._reporter, "start_pass") as mock_start:
             with patch.object(tracker._reporter, "finish_pass") as mock_finish:
@@ -368,7 +368,7 @@ class TestProgressTracker:
     def test_compilation_pass_context_manager_with_exception(self) -> None:
         """Test compilation pass context manager with exception."""
         tracker: Any = ProgressTracker(style="simple")
-        tracker._progress = CompilationProgress("lualatex", 3)
+        tracker._progress = CompilationProgress(engine="lualatex", total_passes=3)
 
         with patch.object(tracker._reporter, "start_pass") as mock_start:
             with patch.object(tracker._reporter, "finish_pass") as mock_finish:
@@ -389,7 +389,7 @@ class TestProgressTracker:
     def test_update_progress(self) -> None:
         """Test progress update."""
         tracker: Any = ProgressTracker(style="simple")
-        tracker._progress = CompilationProgress("lualatex", 3)
+        tracker._progress = CompilationProgress(engine="lualatex", total_passes=3)
 
         with patch.object(tracker._reporter, "update_pass_progress") as mock_update:
             tracker.update_progress(0.7, "Processing files")

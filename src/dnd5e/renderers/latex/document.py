@@ -4,13 +4,15 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from ...core.latex_utils import escape_latex_text
+from dnd5e.core.latex_utils import escape_latex_text
+
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.document_metadata import (
     ContentSection,
     DocumentMetadata,
     DocumentType,
 )
+from ...core.types import LaTeXConfig, RenderContextDict
 from ..base import DocumentRenderer, RenderContext, RenderingError
 from .compilation_config import CompilationConfig, CompilationResult, LaTeXEngine
 from .compiler import LaTeXCompiler
@@ -23,7 +25,7 @@ from .template_engine import LaTeXTemplateEngine
 class LaTeXDocumentRenderer(DocumentRenderer):
     """LaTeX document renderer that creates complete D&D-style documents."""
 
-    def __init__(self, config: dict[str, Any] | None = None):
+    def __init__(self, config: LaTeXConfig | None = None):
         """Initialize LaTeX document renderer.
 
         Args:
@@ -43,9 +45,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         """Return the output format."""
         return "latex"
 
-    def render(
-        self, content: BaseContent, context: dict[str, Any] | None = None
-    ) -> str:
+    def render(self, content: BaseContent, context: RenderContext | None = None) -> str:
         """Render a single content item as a minimal document.
 
         Args:
@@ -55,7 +55,8 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Complete LaTeX document
         """
-        render_context = RenderContext(**(context or {}))
+        # Use provided context or create default
+        render_context = context or RenderContext()
         return self.render_document([content], render_context)
 
     def render_document(
@@ -124,6 +125,10 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         sections, document_context = self._structure_builder.build_document_structure(
             content_list, context
         )
+
+        # Update template engine with LaTeX config from context if available
+        if hasattr(context, "latex_config") and context.latex_config:
+            self.template_engine.update_latex_config(context.latex_config)
 
         # Create template context
         template_context = self.template_engine.create_dnd_template_context(
@@ -365,12 +370,10 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             Basic rendered content
         """
         # Check if this is a raw book entry that should be processed recursively
-        if isinstance(content, dict | str) and self._is_book_entry(content, context):
+        if self._is_book_entry(content, context):
             return self._render_book_entry(content, context)
         # Check if this is a raw adventure entry that should be processed recursively
-        if isinstance(content, dict | str) and self._is_adventure_entry(
-            content, context
-        ):
+        if self._is_adventure_entry(content, context):
             return self._render_adventure_entry(content, context)
         # Handle both dict and object formats for content name
         if hasattr(content, "name"):
@@ -436,6 +439,9 @@ This content type is not yet fully supported by the rendering system.
         elif isinstance(content, dict):
             # Dict entries with typical book entry structure
             return any(key in content for key in ["type", "entries", "name"])
+        elif hasattr(content, "entries") and hasattr(content, "document_type"):
+            # Section objects from nested entries that contain book content
+            return bool(content.document_type == "book")
 
         return False
 
@@ -484,7 +490,9 @@ This content type is not yet fully supported by the rendering system.
         if isinstance(content, str):
             # Process string content with tags
             if hasattr(context, "tag_resolver") and context.tag_resolver:
-                return context.tag_resolver.process_text(content)
+                # Type cast needed due to forward reference in RenderContext
+                result = context.tag_resolver.process_text(content)
+                return str(result)
             else:
                 return self._escape_latex(content)
         elif isinstance(content, dict):
@@ -497,7 +505,7 @@ This content type is not yet fully supported by the rendering system.
         """Render a raw book entry using RecursiveEntryProcessor.
 
         Args:
-            content: Raw book entry (string or dict)
+            content: Raw book entry (string, dict, or Section)
             context: Rendering context
 
         Returns:
@@ -512,17 +520,23 @@ This content type is not yet fully supported by the rendering system.
         if isinstance(content, str):
             # Process string content with tags
             if hasattr(context, "tag_resolver") and context.tag_resolver:
-                return context.tag_resolver.process_text(content)
+                # Type cast needed due to forward reference in RenderContext
+                result = context.tag_resolver.process_text(content)
+                return str(result)
             else:
                 return self._escape_latex(content)
         elif isinstance(content, dict):
             # Process dict entry
             return processor.process_entry_dict(content, context)
+        elif hasattr(content, "entries"):
+            # Process Section object - render its entries
+            processed_entries = processor.process_entries(content.entries, context)
+            return "\n\n".join(processed_entries)
         else:
             return str(content)
 
     def _create_compilation_config(
-        self, config: dict[str, Any] | None = None
+        self, config: LaTeXConfig | dict[str, Any] | None = None
     ) -> CompilationConfig:
         """Create compilation configuration from renderer config.
 
@@ -563,7 +577,7 @@ This content type is not yet fully supported by the rendering system.
 
         return compilation_config
 
-    def compile_to_pdf(
+    async def compile_to_pdf(
         self,
         content: BaseContent,
         output_path: Path | None = None,
@@ -579,15 +593,17 @@ This content type is not yet fully supported by the rendering system.
         Returns:
             CompilationResult with compilation details
         """
-        render_context = RenderContext(**(context or {}))
+        render_context = RenderContext()
         latex_source = self.render_document([content], render_context)
 
         output_name = output_path.stem if output_path else content.name
         working_dir = output_path.parent if output_path else None
 
-        return self.compiler.compile_document(latex_source, output_name, working_dir)
+        return await self.compiler.compile_document(
+            latex_source, output_name, working_dir
+        )
 
-    def compile_document_to_pdf(
+    async def compile_document_to_pdf(
         self,
         content_items: Sequence[BaseContent],
         output_path: Path | None = None,
@@ -619,7 +635,9 @@ This content type is not yet fully supported by the rendering system.
             working_dir = self.compiler.config.output_dir
 
         # Compile to PDF
-        result = self.compiler.compile_document(latex_source, output_name, working_dir)
+        result = await self.compiler.compile_document(
+            latex_source, output_name, working_dir
+        )
 
         # Move output file to requested location if needed
         if output_path and result.success and result.output_file:

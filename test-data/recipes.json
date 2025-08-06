@@ -1,0 +1,17 @@
+{
+  "recipe": [
+    {
+      "name": "Test Potion Brewing",
+      "source": "TEST",
+      "type": "alchemy",
+      "time": "1 hour",
+      "cost": 50,
+      "ingredients": ["water", "herbs", "magic essence"],
+      "result": "Basic Healing Potion",
+      "entries": [
+        "A simple recipe for creating basic healing potions.",
+        "Combine ingredients over low heat while stirring clockwise."
+      ]
+    }
+  ]
+}

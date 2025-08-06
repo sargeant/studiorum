@@ -44,32 +44,27 @@
 \author{<# metadata.get_author_list() | latex_escape #>}
 <@ endif @>
 \date{<# metadata.get_formatted_date() | latex_escape #>}
-<@ else @>
-<#-- Fallback to legacy metadata format --#>
-<@ if title @>
-\title{<# title | latex_escape #>}
-<@ endif @>
-<@ if subtitle @>
-\subtitle{<# subtitle | latex_escape #>}
-<@ endif @>
-<@ if author @>
-\author{<# author | latex_escape #>}
-<@ endif @>
-<@ if date @>
-\date{<# date | latex_escape #>}
-<@ endif @>
 <@ endif @>
 <@ endblock @>
 
 <#-- Additional configuration --#>
 <@ block document_config @>
-% Hyperlink configuration optimized for DND template
+% Disable automatic section numbering while preserving TOC entries
+\setcounter{secnumdepth}{-1}
+
+<@ if not justified_text @>
+% Disable text justification
+\raggedright
+\raggedbottom
+<@ endif @>
+
+% Hyperlink configuration
 \hypersetup{
     colorlinks=true,
-    linkcolor=DndRed,
-    urlcolor=DndRed,
-    citecolor=DndRed,
-    filecolor=DndRed,
+    linkcolor=black,
+    urlcolor=black,
+    citecolor=black,
+    filecolor=black,
     bookmarks=true,
     bookmarksopen=true,
     bookmarksnumbered=true,
@@ -134,11 +129,6 @@
 <@ for section in sections @>
 <@ include 'section.tex.j2' @>
 <@ endfor @>
-<@ else @>
-<#-- Fallback to legacy content block --#>
-<@ block document_body @>
-<#-- Main content goes here --#>
-<@ endblock @>
 <@ endif @>
 <@ endblock @>
 

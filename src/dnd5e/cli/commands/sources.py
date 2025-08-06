@@ -1,6 +1,5 @@
 """CLI commands for managing content sources."""
 
-import asyncio
 from pathlib import Path
 
 import typer
@@ -177,6 +176,8 @@ def remove_source(
         console.print(f"Removing cached data for '{name}'...")
         source_manager = ContentSourceManager(config)
         try:
+            import asyncio
+
             asyncio.run(source_manager.remove_source_data(name))
             console.print("[green]✅ Cached data removed[/green]")
         except Exception as e:
@@ -201,11 +202,13 @@ def update_sources(
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
-    async def _update() -> bool:
+    def _update() -> bool:
         if name:
             # Update specific source
             console.print(f"Updating source '{name}'...")
-            success = await source_manager.update_source(name)
+            import asyncio
+
+            success = asyncio.run(source_manager.update_source(name))
             if success:
                 console.print(f"[green]✅ Successfully updated '{name}'[/green]")
                 return True
@@ -216,14 +219,14 @@ def update_sources(
             # Update all sources
             console.print("Updating all content sources...")
             try:
-                await source_manager.ensure_all_sources()
+                asyncio.run(source_manager.ensure_all_sources())
                 console.print("[green]✅ All sources updated successfully[/green]")
                 return True
             except Exception as e:
                 console.print(f"[red]❌ Failed to update sources: {e}[/red]")
                 return False
 
-    success = asyncio.run(_update())
+    success = _update()
     if not success:
         raise typer.Exit(1)
 
@@ -237,11 +240,13 @@ def source_info(
     source_manager = ContentSourceManager(config)
 
     # Build content index if needed
-    async def _get_info() -> dict | None:
-        await source_manager.build_content_index()
+    def _get_info() -> dict | None:
+        import asyncio
+
+        asyncio.run(source_manager.build_content_index())
         return source_manager.get_source_info(name)
 
-    info = asyncio.run(_get_info())
+    info = _get_info()
 
     if not info:
         console.print(f"[red]Error:[/red] Source '{name}' not found")
@@ -288,12 +293,14 @@ def scan_content() -> None:
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
-    async def _scan() -> None:
+    def _scan() -> None:
+        import asyncio
+
         console.print("Ensuring all sources are available...")
-        await source_manager.ensure_all_sources()
+        asyncio.run(source_manager.ensure_all_sources())
 
         console.print("Scanning content files...")
-        await source_manager.build_content_index(force_rebuild=True)
+        asyncio.run(source_manager.build_content_index(force_rebuild=True))
 
         # Show statistics
         stats = source_manager.get_statistics()
@@ -313,7 +320,7 @@ def scan_content() -> None:
             f"\n[bold green]Total: {stats['total_files']} files from {stats['total_sources']} sources[/bold green]"
         )
 
-    asyncio.run(_scan())
+    _scan()
 
 
 @app.command("defaults")

@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/resolvers/content_resolver.py
+# hypothesis_version: 6.136.7
+
+[0.4, 0.6, '(2014)', 'PHB', '\\(\\d{4}\\)\\s*$', '__dict__', 'abbreviation', 'exact_match', 'fuzzy_match', 'id', 'model_dump', 'model_validate', 'multiple_matches', 'no_match', 'query', 'suggestions']

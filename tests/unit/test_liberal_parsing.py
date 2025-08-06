@@ -22,8 +22,7 @@ from dnd5e.core.models.spells import Spell  # type: ignore
 class TestLiberalParsing:
     """Test liberal parsing capabilities."""
 
-    @pytest.mark.asyncio
-    async def test_foundry_file_detection_and_skip(self) -> None:
+    def test_foundry_file_detection_and_skip(self) -> None:
         """Test that Foundry VTT files are detected and skipped."""
         foundry_data = {
             "spell": [
@@ -44,7 +43,7 @@ class TestLiberalParsing:
             f.flush()
 
             spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
-            spells = await spell_loader.load(Path(f.name))
+            spells = spell_loader.load(Path(f.name))
 
             # Should skip Foundry file and return empty list
             assert len(spells) == 0
@@ -52,8 +51,7 @@ class TestLiberalParsing:
         Path(f.name).unlink()  # Clean up
         print("✅ Foundry VTT file detection and skip working")
 
-    @pytest.mark.asyncio
-    async def test_template_file_detection_and_skip(self) -> None:
+    def test_template_file_detection_and_skip(self) -> None:
         """Test that template files are detected and skipped."""
         template_data = {
             "monster": [
@@ -80,7 +78,7 @@ class TestLiberalParsing:
             f.flush()
 
             creature_loader = JsonDataLoader.create_for_type(ContentType.CREATURE)
-            creatures = await creature_loader.load(Path(f.name))
+            creatures = creature_loader.load(Path(f.name))
 
             # Should skip template file and return empty list
             assert len(creatures) == 0
@@ -88,8 +86,7 @@ class TestLiberalParsing:
         Path(f.name).unlink()  # Clean up
         print("✅ Template file detection and skip working")
 
-    @pytest.mark.asyncio
-    async def test_copy_template_detection_and_skip(self) -> None:
+    def test_copy_template_detection_and_skip(self) -> None:
         """Test that copy-template items are detected and skipped."""
         copy_template_data = {
             "monster": [
@@ -140,7 +137,7 @@ class TestLiberalParsing:
             f.flush()
 
             creature_loader = JsonDataLoader.create_for_type(ContentType.CREATURE)
-            creatures = await creature_loader.load(Path(f.name))
+            creatures = creature_loader.load(Path(f.name))
 
             # Should only load the valid creature, skip copy templates
             assert len(creatures) == 1
@@ -149,8 +146,7 @@ class TestLiberalParsing:
         Path(f.name).unlink()  # Clean up
         print("✅ Copy-template detection and skip working")
 
-    @pytest.mark.asyncio
-    async def test_fluff_file_detection_and_liberal_parsing(self) -> None:
+    def test_fluff_file_detection_and_liberal_parsing(self) -> None:
         """Test that fluff files are detected and parsed liberally."""
         fluff_data = {
             "spellFluff": [
@@ -189,7 +185,7 @@ class TestLiberalParsing:
             f.flush()
 
             fluff_loader = FluffDataLoader.create_for_type(ContentType.SPELL_FLUFF)
-            fluff_items = await fluff_loader.load(Path(f.name))
+            fluff_items = fluff_loader.load(Path(f.name))
 
             # Should load fluff items with liberal parsing
             assert len(fluff_items) == 2
@@ -204,8 +200,7 @@ class TestLiberalParsing:
         Path(f.name).unlink()  # Clean up
         print("✅ Fluff file detection and liberal parsing working")
 
-    @pytest.mark.asyncio
-    async def test_missing_required_fields_default_handling(self) -> None:
+    def test_missing_required_fields_default_handling(self) -> None:
         """Test that missing required fields are handled with defaults."""
         creature_data = {
             "monster": [
@@ -234,7 +229,7 @@ class TestLiberalParsing:
             f.flush()
 
             creature_loader = JsonDataLoader.create_for_type(ContentType.CREATURE)
-            creatures = await creature_loader.load(Path(f.name))
+            creatures = creature_loader.load(Path(f.name))
 
             # Should load creature with default alignment
             assert len(creatures) == 1
@@ -527,8 +522,7 @@ class TestLiberalParsing:
 
         print("✅ Complex skill format handling working")
 
-    @pytest.mark.asyncio
-    async def test_liberal_parsing_stress_test(self) -> None:
+    def test_liberal_parsing_stress_test(self) -> None:
         """Stress test liberal parsing with highly complex nested structures."""
         extremely_complex_data = {
             "spell": [
@@ -665,7 +659,7 @@ class TestLiberalParsing:
             f.flush()
 
             spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
-            spells = await spell_loader.load(Path(f.name))
+            spells = spell_loader.load(Path(f.name))
 
             # Should successfully parse the ultra-complex spell
             assert len(spells) == 1

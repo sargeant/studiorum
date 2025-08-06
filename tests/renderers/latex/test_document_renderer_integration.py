@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -13,6 +13,9 @@ from dnd5e.renderers.latex.compilation_config import (  # type: ignore
     LaTeXEngine,
 )
 from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
+
+# Apply async mark to the entire module
+pytestmark = pytest.mark.asyncio
 
 
 class MockContent(BaseContent):
@@ -75,7 +78,7 @@ class TestLaTeXDocumentRendererIntegration:
         # Should keep default engine
         assert config.primary_engine == LaTeXEngine.LUALATEX
 
-    def test_compile_to_pdf_single_content(self) -> None:
+    async def test_compile_to_pdf_single_content(self) -> None:
         """Test compiling single content item to PDF."""
         content: Any = MockContent("Test Spell")
 
@@ -95,9 +98,12 @@ class TestLaTeXDocumentRendererIntegration:
             return_value="\\documentclass{article}\\begin{document}Test Spell\\end{document}",
         ):
             with patch.object(
-                self.renderer.compiler, "compile_document", return_value=mock_result
+                self.renderer.compiler,
+                "compile_document",
+                return_value=mock_result,
+                new_callable=AsyncMock,
             ) as mock_compile:
-                result = self.renderer.compile_to_pdf(content)
+                result = await self.renderer.compile_to_pdf(content)
 
                 assert result.success is True
                 assert result.engine_used == LaTeXEngine.LUALATEX
@@ -110,7 +116,7 @@ class TestLaTeXDocumentRendererIntegration:
                 assert args[1] == "Test Spell"  # output name
                 assert args[2] is None  # working directory
 
-    def test_compile_to_pdf_with_output_path(self) -> None:
+    async def test_compile_to_pdf_with_output_path(self) -> None:
         """Test compiling with specified output path."""
         content: Any = MockContent("Test Item")
         output_path: Any = Path("/tmp/custom_output.pdf")
@@ -130,9 +136,12 @@ class TestLaTeXDocumentRendererIntegration:
             return_value="\\documentclass{article}\\begin{document}Test Item\\end{document}",
         ):
             with patch.object(
-                self.renderer.compiler, "compile_document", return_value=mock_result
+                self.renderer.compiler,
+                "compile_document",
+                return_value=mock_result,
+                new_callable=AsyncMock,
             ) as mock_compile:
-                result = self.renderer.compile_to_pdf(content, output_path)
+                result = await self.renderer.compile_to_pdf(content, output_path)
 
                 assert result.success is True
                 assert result.output_file == output_path
@@ -142,7 +151,7 @@ class TestLaTeXDocumentRendererIntegration:
                 assert args[1] == "custom_output"  # output name from path
                 assert args[2] == output_path.parent  # working directory
 
-    def test_compile_to_pdf_with_context(self) -> None:
+    async def test_compile_to_pdf_with_context(self) -> None:
         """Test compiling with render context."""
         content: Any = MockContent("Test Monster")
         context = {
@@ -165,9 +174,12 @@ class TestLaTeXDocumentRendererIntegration:
             return_value="\\documentclass{article}\\begin{document}Test Monster Manual\\end{document}",
         ):
             with patch.object(
-                self.renderer.compiler, "compile_document", return_value=mock_result
+                self.renderer.compiler,
+                "compile_document",
+                return_value=mock_result,
+                new_callable=AsyncMock,
             ) as mock_compile:
-                result = self.renderer.compile_to_pdf(content, context=context)
+                result = await self.renderer.compile_to_pdf(content, context=context)
 
                 assert result.success is True
                 assert result.passes_completed == 2
@@ -178,7 +190,7 @@ class TestLaTeXDocumentRendererIntegration:
                 assert isinstance(latex_source, str)
                 assert len(latex_source) > 0
 
-    def test_compile_document_to_pdf_multiple_content(self) -> None:
+    async def test_compile_document_to_pdf_multiple_content(self) -> None:
         """Test compiling multiple content items to PDF."""
         content_items = [
             MockContent("Spell 1"),
@@ -203,9 +215,12 @@ class TestLaTeXDocumentRendererIntegration:
             return_value="\\documentclass{article}\\begin{document}Test\\end{document}",
         ):
             with patch.object(
-                self.renderer.compiler, "compile_document", return_value=mock_result
+                self.renderer.compiler,
+                "compile_document",
+                return_value=mock_result,
+                new_callable=AsyncMock,
             ) as mock_compile:
-                result = self.renderer.compile_document_to_pdf(
+                result = await self.renderer.compile_document_to_pdf(
                     content_items, context=context
                 )
 
@@ -218,7 +233,7 @@ class TestLaTeXDocumentRendererIntegration:
                 assert isinstance(args[0], str)  # LaTeX source
                 assert args[1] == "Test Compendium"  # output name from context
 
-    def test_compile_document_to_pdf_with_output_path(self) -> None:
+    async def test_compile_document_to_pdf_with_output_path(self) -> None:
         """Test compiling multiple content items with output path."""
         content_items = [MockContent("Test Content")]
         output_path: Any = Path("/custom/path/output.pdf")
@@ -238,11 +253,14 @@ class TestLaTeXDocumentRendererIntegration:
             return_value="\\documentclass{article}\\begin{document}Test\\end{document}",
         ):
             with patch.object(
-                self.renderer.compiler, "compile_document", return_value=mock_result
+                self.renderer.compiler,
+                "compile_document",
+                return_value=mock_result,
+                new_callable=AsyncMock,
             ):
                 with patch.object(Path, "rename") as mock_rename:
                     with patch.object(Path, "mkdir") as mock_mkdir:
-                        result = self.renderer.compile_document_to_pdf(
+                        result = await self.renderer.compile_document_to_pdf(
                             content_items, output_path=output_path
                         )
 
@@ -253,7 +271,7 @@ class TestLaTeXDocumentRendererIntegration:
                         mock_mkdir.assert_called_once()
                         mock_rename.assert_called_once_with(output_path)
 
-    def test_compile_document_to_pdf_failure(self) -> None:
+    async def test_compile_document_to_pdf_failure(self) -> None:
         """Test compilation failure handling."""
         content_items = [MockContent("Test Content")]
 
@@ -272,9 +290,12 @@ class TestLaTeXDocumentRendererIntegration:
             return_value="\\documentclass{article}\\begin{document}Test\\end{document}",
         ):
             with patch.object(
-                self.renderer.compiler, "compile_document", return_value=mock_result
+                self.renderer.compiler,
+                "compile_document",
+                return_value=mock_result,
+                new_callable=AsyncMock,
             ):
-                result = self.renderer.compile_document_to_pdf(content_items)
+                result = await self.renderer.compile_document_to_pdf(content_items)
 
                 assert result.success is False
                 assert result.error_message == "Package not found"
@@ -320,7 +341,7 @@ class TestLaTeXDocumentRendererIntegration:
         """Test renderer output format."""
         assert self.renderer.output_format == "latex"
 
-    def test_render_and_compile_integration(self) -> None:
+    async def test_render_and_compile_integration(self) -> None:
         """Test integration between rendering and compilation."""
         content: Any = MockContent("Integration Test")
 
@@ -340,9 +361,12 @@ class TestLaTeXDocumentRendererIntegration:
             )
 
             with patch.object(
-                self.renderer.compiler, "compile_document", return_value=mock_result
+                self.renderer.compiler,
+                "compile_document",
+                return_value=mock_result,
+                new_callable=AsyncMock,
             ):
-                result = self.renderer.compile_to_pdf(content)
+                result = await self.renderer.compile_to_pdf(content)
 
                 assert result.success is True
 
@@ -362,7 +386,7 @@ class TestLaTeXDocumentRendererIntegration:
         with pytest.raises(ValueError, match="Invalid configuration"):
             LaTeXDocumentRenderer(invalid_config)
 
-    def test_render_with_structured_document(self) -> None:
+    async def test_render_with_structured_document(self) -> None:
         """Test rendering with structured document metadata."""
         from dnd5e.core.models.document_metadata import (  # type: ignore
             DocumentMetadata,
@@ -393,9 +417,12 @@ class TestLaTeXDocumentRendererIntegration:
             return_value="\\documentclass{article}\\begin{document}Structured Test Content with sufficient length for testing purposes and ensuring the assertion passes\\end{document}",
         ):
             with patch.object(
-                self.renderer.compiler, "compile_document", return_value=mock_result
+                self.renderer.compiler,
+                "compile_document",
+                return_value=mock_result,
+                new_callable=AsyncMock,
             ) as mock_compile:
-                result = self.renderer.compile_document_to_pdf(
+                result = await self.renderer.compile_document_to_pdf(
                     content_items, context=context
                 )
 

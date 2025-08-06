@@ -21,6 +21,7 @@ class ContentType(str, Enum):
     BACKGROUND = "background"
     FEAT = "feat"
     RACE = "race"
+    VEHICLE = "vehicle"
     SUPPLEMENT = "supplement"
     SPELL_FLUFF = "spellFluff"
     CREATURE_FLUFF = "creatureFluff"
@@ -38,6 +39,13 @@ class ContentType(str, Enum):
     VARIANT_RULE = "variantRule"
     BOOK_TABLE = "bookTable"
     BOOK_INSET = "bookInset"
+
+    # Rule glossary types
+    ACTION = "action"
+    CONDITION = "condition"
+    SENSE = "sense"
+    HAZARD = "hazard"
+    STATUS = "status"
 
     @classmethod
     def from_content(cls, content: BaseContent) -> ContentType:

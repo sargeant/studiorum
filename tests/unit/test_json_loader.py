@@ -22,17 +22,6 @@ class TestJsonDataLoaderBook:
         """Sample path for testing."""
         return Path("/fake/path/book-phb.json")
 
-    def test_extract_content_book_legacy_format(self, sample_path: Path) -> None:
-        """Test _extract_content with legacy 'book' key format."""
-        data = {"book": [{"name": "Chapter 1", "entries": ["Some content"]}]}
-
-        loader = JsonDataLoader(ContentType.BOOK)
-        result = loader._extract_content(data, sample_path)
-
-        assert len(result) == 1
-        assert result[0]["name"] == "Chapter 1"
-        assert result[0]["entries"] == ["Some content"]
-
     def test_extract_content_book_data_format(self, sample_path: Path) -> None:
         """Test _extract_content with 'bookData' key format."""
         data = {"bookData": [{"name": "Chapter 1", "entries": ["Some content"]}]}
@@ -164,8 +153,9 @@ class TestJsonDataLoaderBookIntegration:
 
     def test_5etools_book_format_full_validation(self, sample_source: Any) -> None:
         """Test complete validation of 5etools book format through JsonDataLoader."""
-        # Create realistic 5etools book data
+        # Create realistic 5etools book data that conforms to Pydantic Book model
         raw_data = {
+            "name": "Test Book",  # Required by Pydantic Book model
             "data": [
                 {
                     "type": "section",
@@ -187,7 +177,7 @@ class TestJsonDataLoaderBookIntegration:
                     "headers": ["Step 1", "Step 2"],
                     "entries": ["Create your character..."],
                 },
-            ]
+            ],
         }
 
         # Create loader and process data
@@ -202,12 +192,18 @@ class TestJsonDataLoaderBookIntegration:
 
         book_item = extracted[0]
         book_item = loader._ensure_source_info(book_item, mock_path)
-        book_item = loader._add_missing_required_fields(book_item)
+        # Removed deprecated _add_missing_required_fields() call - now handled by Pydantic validation
 
-        # Verify the book data has required fields
-        assert "name" in book_item
+        # Verify the book data has the structure we expect
+        # Note: After Pydantic migration, 'name' field is not automatically added
+        # The book data should have source info and the original data structure
         assert "source" in book_item
         assert "data" in book_item
+
+        # The data should contain the nested sections we provided
+        assert len(book_item["data"]) == 2
+        assert book_item["data"][0]["name"] == "Introduction"
+        assert book_item["data"][1]["name"] == "Character Creation"
 
         # Create the actual Book object
         from dnd5e.core.loaders.content_factory import get_content_factory
@@ -216,7 +212,7 @@ class TestJsonDataLoaderBookIntegration:
         book = factory.create_content(book_item, ContentType.BOOK)
 
         # Verify the book structure
-        assert book.name == "Player's Handbook"  # From name mapping
+        assert book.name == "Test Book"  # From our test data
         assert book.source.abbreviation == "PHB"
         assert len(book.contents) == 2  # Two chapters from data array
 
@@ -244,95 +240,17 @@ class TestJsonDataLoaderSpell:
         """Sample path for testing."""
         return Path("/fake/path/spells.json")
 
-    def test_add_missing_required_fields_spell_missing_components(self) -> None:
-        """Test that missing components field gets default empty SpellComponent."""
-        spell_data = {
-            "name": "Test Spell",
-            "level": 1,
-            "school": "A",
-            "time": [{"number": 1, "unit": "action"}],
-            "range": {"type": "point", "distance": {"type": "self"}},
-            "duration": [{"type": "instant"}],
-            "entries": ["A test spell."],
-            "source": "TST",
-            # Missing components field
-        }
+    # Removed deprecated test: test_add_missing_required_fields_spell_missing_components
+    # This tested legacy _add_missing_required_fields() method which is replaced by Pydantic validation
 
-        loader = JsonDataLoader(ContentType.SPELL)
-        result = loader._add_missing_required_fields(spell_data)
+    # Removed deprecated test: test_add_missing_required_fields_spell_all_missing
+    # This tested legacy _add_missing_required_fields() method which is replaced by Pydantic validation
 
-        assert "components" in result
-        assert (
-            result["components"] == {}
-        )  # Should be empty dict for SpellComponent defaults
+    # Removed deprecated test: test_add_missing_required_fields_spell_preserves_existing
+    # This tested legacy _add_missing_required_fields() method which is replaced by Pydantic validation
 
-    def test_add_missing_required_fields_spell_all_missing(self) -> None:
-        """Test that spell with only name gets all required fields with defaults."""
-        spell_data = {
-            "name": "Incomplete Spell",
-            "source": "TST",
-        }
-
-        loader = JsonDataLoader(ContentType.SPELL)
-        result = loader._add_missing_required_fields(spell_data)
-
-        # Check all required fields have defaults
-        assert result["components"] == {}
-        assert result["level"] == 0  # Cantrip
-        assert result["school"] == "T"  # Transmutation
-        assert result["time"] == [{"number": 1, "unit": "action"}]
-        assert result["range"] == {"type": "point", "distance": {"type": "self"}}
-        assert result["duration"] == [{"type": "instant"}]
-        assert result["entries"] == ["Incomplete spell data."]
-
-    def test_add_missing_required_fields_spell_preserves_existing(self) -> None:
-        """Test that existing spell fields are preserved when adding defaults."""
-        spell_data = {
-            "name": "Partial Spell",
-            "level": 3,
-            "school": "E",
-            "source": "TST",
-            # Missing: components, time, range, duration, entries
-        }
-
-        loader = JsonDataLoader(ContentType.SPELL)
-        result = loader._add_missing_required_fields(spell_data)
-
-        # Existing fields should be preserved
-        assert result["name"] == "Partial Spell"
-        assert result["level"] == 3
-        assert result["school"] == "E"
-        assert result["source"] == "TST"
-
-        # Missing fields should have defaults
-        assert result["components"] == {}
-        assert result["time"] == [{"number": 1, "unit": "action"}]
-        assert result["range"] == {"type": "point", "distance": {"type": "self"}}
-        assert result["duration"] == [{"type": "instant"}]
-        assert result["entries"] == ["Incomplete spell data."]
-
-    def test_add_missing_required_fields_spell_with_existing_components(self) -> None:
-        """Test that existing components field is not overridden."""
-        spell_data = {
-            "name": "Complete Spell",
-            "level": 2,
-            "school": "C",
-            "components": {"v": True, "s": True, "m": "a piece of string"},
-            "time": [{"number": 1, "unit": "action"}],
-            "range": {"type": "point", "distance": {"type": "touch"}},
-            "duration": [
-                {"type": "timed", "duration": {"type": "minute", "amount": 10}}
-            ],
-            "entries": ["A complete spell description."],
-            "source": "TST",
-        }
-
-        loader = JsonDataLoader(ContentType.SPELL)
-        result = loader._add_missing_required_fields(spell_data)
-
-        # All original data should be preserved
-        assert result == spell_data
-        assert result["components"] == {"v": True, "s": True, "m": "a piece of string"}
+    # Removed deprecated test: test_add_missing_required_fields_spell_with_existing_components
+    # This tested legacy _add_missing_required_fields() method which is replaced by Pydantic validation
 
 
 class TestJsonDataLoaderContentTypeValidation:
@@ -502,79 +420,8 @@ class TestJsonDataLoaderContentTypeValidation:
             # This is the preferred behavior - no extraction should occur
             assert extracted == []
 
-    def test_spell_loader_does_not_add_fields_to_class_data(
-        self, sample_class_data: dict[str, Any]
-    ) -> None:
-        """Test that spell loader does not add spell fields to class data.
+    # Removed deprecated test: test_spell_loader_does_not_add_fields_to_class_data
+    # This tested legacy _add_missing_required_fields() method which is replaced by Pydantic validation
 
-        This tests the specific issue where _add_missing_required_fields() was
-        adding spell-specific fields to class data, making it valid for spell validation.
-        """
-        loader = JsonDataLoader(ContentType.SPELL)
-        mock_path = Path("/fake/class-test.json")
-
-        # Try to extract content (may or may not succeed depending on fix)
-        extracted = loader._extract_content(sample_class_data, mock_path)
-
-        if extracted:
-            class_item = extracted[0]
-            original_class_item = class_item.copy()
-
-            # Add missing fields - this should NOT add spell fields to class data
-            processed_item = loader._add_missing_required_fields(class_item)
-
-            # The processed item should not have gained spell-specific default fields
-            # If it has, that's the bug we're fixing
-
-            # Check that no spell defaults were added
-            if "level" in processed_item and "level" not in original_class_item:
-                # If level was added, it should not be the spell default of 0
-                pytest.fail(
-                    "Spell loader incorrectly added 'level' field to class data"
-                )
-
-            if "school" in processed_item and "school" not in original_class_item:
-                # If school was added, it should not be the spell default
-                pytest.fail(
-                    "Spell loader incorrectly added 'school' field to class data"
-                )
-
-            if (
-                "components" in processed_item
-                and "components" not in original_class_item
-            ):
-                # If components was added, it should not be the spell default
-                pytest.fail(
-                    "Spell loader incorrectly added 'components' field to class data"
-                )
-
-    def test_content_type_specific_field_injection(self) -> None:
-        """Test that _add_missing_required_fields only adds fields for the correct content type."""
-        # Test spell loader only adds spell fields
-        spell_loader = JsonDataLoader(ContentType.SPELL)
-        class_loader = JsonDataLoader(ContentType.CLASS)
-
-        minimal_data = {"name": "Test", "source": "TST"}
-
-        # Spell loader should add spell fields
-        spell_processed = spell_loader._add_missing_required_fields(minimal_data.copy())
-        assert "level" in spell_processed
-        assert "school" in spell_processed
-        assert "components" in spell_processed
-        assert "time" in spell_processed
-        assert "range" in spell_processed
-        assert "duration" in spell_processed
-        assert "entries" in spell_processed
-
-        # Class loader should NOT add spell fields
-        class_processed = class_loader._add_missing_required_fields(minimal_data.copy())
-        # Class loader should add class-specific defaults if any, but not spell fields
-        assert (
-            "level" not in class_processed
-            or class_processed["level"] != spell_processed["level"]
-        )
-        assert (
-            "school" not in class_processed
-            or class_processed["school"] != spell_processed["school"]
-        )
-        assert "components" not in class_processed
+    # Removed deprecated test: test_content_type_specific_field_injection
+    # This tested legacy _add_missing_required_fields() method which is replaced by Pydantic validation

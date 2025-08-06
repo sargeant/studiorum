@@ -2,14 +2,22 @@
 
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from dnd5e.core.models.books import Book, BookChapter  # type: ignore
+from dnd5e.core.models.books import Book  # type: ignore
+from dnd5e.core.models.chapter import Chapter  # type: ignore
 from dnd5e.core.models.content import Source  # type: ignore
 from dnd5e.renderers.base.context import RenderContext  # type: ignore
 from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
+
+
+def compile_document_to_pdf_sync(renderer, books, context):
+    """Synchronous wrapper for renderer.compile_document_to_pdf() for testing."""
+    import asyncio
+
+    return asyncio.run(renderer.compile_document_to_pdf(books, context=context))
 
 
 class TestBookRenderingIntegration:
@@ -29,7 +37,7 @@ class TestBookRenderingIntegration:
     def simple_book(self, sample_source: Any) -> Any:
         """Simple book with basic chapters."""
         chapters = [
-            BookChapter(
+            Chapter(
                 name="Introduction",
                 ordinal={"type": "chapter", "identifier": 1},
                 headers=["What Is D&D?", "How to Play"],
@@ -38,7 +46,7 @@ class TestBookRenderingIntegration:
                     "This game is about storytelling in worlds of sword and sorcery.",
                 ],
             ),
-            BookChapter(
+            Chapter(
                 name="Character Creation",
                 ordinal={"type": "chapter", "identifier": 2},
                 headers=["Choose a Race", "Choose a Class"],
@@ -64,12 +72,12 @@ class TestBookRenderingIntegration:
     def complex_book(self, sample_source: Any) -> Any:
         """Complex book with multiple chapter types and nested content."""
         chapters = [
-            BookChapter(
+            Chapter(
                 name="Introduction",
                 ordinal={"type": "chapter", "identifier": 1},
                 entries=["Welcome to the game."],
             ),
-            BookChapter(
+            Chapter(
                 name="Races",
                 ordinal={"type": "chapter", "identifier": 2},
                 entries=[
@@ -95,7 +103,7 @@ class TestBookRenderingIntegration:
                     },
                 ],
             ),
-            BookChapter(
+            Chapter(
                 name="Spells",
                 ordinal={"type": "appendix", "identifier": "A"},
                 entries=[
@@ -215,7 +223,7 @@ class TestBookRenderingIntegration:
             name="Dungeon Master's Guide",
             source=sample_source,
             contents=[
-                BookChapter(
+                Chapter(
                     name="Running the Game",
                     ordinal={"type": "chapter", "identifier": 1},
                     entries=["This chapter explains how to run D&D."],
@@ -247,7 +255,7 @@ class TestBookRenderingIntegration:
             name="Problematic Book",
             source=sample_source,
             contents=[
-                BookChapter(
+                Chapter(
                     name="Bad Chapter",
                     ordinal=None,
                     headers=None,
@@ -336,10 +344,13 @@ class TestBookRenderingIntegration:
             return_value=True,
         ):
             with patch.object(
-                self.renderer.compiler, "compile_document", return_value=mock_result
+                self.renderer.compiler,
+                "compile_document",
+                return_value=mock_result,
+                new_callable=AsyncMock,
             ) as mock_compile:
-                result = self.renderer.compile_document_to_pdf(
-                    [simple_book], context=context
+                result = compile_document_to_pdf_sync(
+                    self.renderer, [simple_book], context
                 )
 
                 assert result.success is True
@@ -446,7 +457,7 @@ class TestBookRenderingEntryProcessing:
         """Book with rich entry content for testing entry processing."""
         source = Source(abbreviation="TEST", name="Test Book", page=None, url=None)
         chapters = [
-            BookChapter(
+            Chapter(
                 name="Rich Content Chapter",
                 ordinal=None,
                 headers=None,
@@ -564,7 +575,7 @@ class TestBookRenderingEntryProcessing:
         """Test handling of unknown entry types."""
         source = Source(abbreviation="TEST", name="Test Book", page=None, url=None)
         chapters = [
-            BookChapter(
+            Chapter(
                 name="Unknown Entry Chapter",
                 ordinal=None,
                 headers=None,

@@ -140,16 +140,14 @@ class DeepIndexable(Protocol):
         - Validate content structure before processing
 
     Examples:
-        ```python
-        class Adventure(BaseContent, DeepIndexable):
-            def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
-                nested_content = []
-                for chapter in self.contents:
-                    parser = EntryParser(source=self.source, parent_name=f"{self.name} > {chapter.name}")
-                    for content_item in parser.parse_entries(chapter.entries, "adventure"):
-                        nested_content.append(content_item)
-                return nested_content
-        ```
+        >>> class Adventure(BaseContent, DeepIndexable):
+        ...     def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+        ...         nested_content = []
+        ...         for chapter in self.contents:
+        ...             parser = EntryParser(source=self.source, parent_name=f"{self.name} > {chapter.name}")
+        ...             for content_item in parser.parse_entries(chapter.entries, "adventure"):
+        ...                 nested_content.append(content_item)
+        ...         return nested_content
 
     See Also:
         - docs/omnidexer-deep-indexing.md for comprehensive implementation guide
@@ -179,23 +177,20 @@ class DeepIndexable(Protocol):
             - Use omnidexer parameter for reference resolution when needed
 
         Example:
-            ```python
-            def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
-                nested_content = []
-                try:
-                    for item in self.nested_items:
-                        try:
-                            parsed_item = self._parse_item(item, omnidexer)
-                            if parsed_item:
-                                nested_content.append(parsed_item)
-                        except Exception as e:
-                            logger.warning(f"Failed to parse item {item}: {e}")
-                            continue
-                except Exception as e:
-                    logger.error(f"Failed to extract nested content: {e}")
-
-                return nested_content
-            ```
+            >>> def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
+            ...     nested_content = []
+            ...     try:
+            ...         for item in self.nested_items:
+            ...             try:
+            ...                 parsed_item = self._parse_item(item, omnidexer)
+            ...                 if parsed_item:
+            ...                     nested_content.append(parsed_item)
+            ...             except Exception as e:
+            ...                 logger.warning(f"Failed to parse item {item}: {e}")
+            ...                 continue
+            ...     except Exception as e:
+            ...         logger.error(f"Failed to extract nested content: {e}")
+            ...     return nested_content
         """
         ...
 
@@ -249,14 +244,24 @@ class ContentTypeRegistry:
         return list(self._type_map.values())
 
 
-# Global registry instance
-_content_type_registry = ContentTypeRegistry()
-
-
 def get_content_type_registry() -> ContentTypeRegistry:
-    """Get the global content type registry.
+    """Get the content type registry from the service container.
 
     Returns:
-        Global content type registry instance
+        Content type registry instance
     """
-    return _content_type_registry
+    from dnd5e.core.container import get_global_container
+
+    container = get_global_container()
+    return container.get_content_type_registry()
+
+
+def reset_content_type_registry() -> None:
+    """Reset the content type registry (for testing).
+
+    This function is kept for backward compatibility with existing tests.
+    It delegates to the service container's reset mechanism.
+    """
+    from dnd5e.core.container import reset_global_container
+
+    reset_global_container()

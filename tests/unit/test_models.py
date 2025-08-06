@@ -375,7 +375,7 @@ class TestSpellComponent:
         )
         assert comp2.material == "a diamond worth 1,000 gp"
 
-        # Dict material component (legacy format)
+        # Dict material component (current 5etools format)
         comp3 = SpellComponent.model_validate(
             {"v": True, "s": True, "m": {"text": "bat guano"}}
         )

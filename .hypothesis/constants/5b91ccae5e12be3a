@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/layout/base.py
+# hypothesis_version: 6.136.7
+
+['!b', '!h', '!p', '!t', 'DndArea', 'DndComment', 'DndReadAloud', 'DndSidebar', 'DndSubArea', 'H', '\\columnbreak\n', '\\newpage\n', 'adventure', 'bottom', 'column_count', 'column_position', 'float*=b', 'magazine', 'middle', 'multi_column', 'page_position', 'reference', 'single_column', 'space_after', 'space_before', 'supplement', 'table_columns', 'table_width', 'top']

@@ -84,11 +84,17 @@ validation_report.json
 validation_report.txt.coverage
 coverage.xml
 .coverage
+.coverage.*
+test-quality-report.txt
+tests/performance_metrics.json
+tests/performance_baseline.json
+test-report.xml
 
 # AI tools
 .claude/
 .gemini/
 CLAUDE.md
+.serena
 
 # Coverage reports
 htmlcov/
@@ -97,6 +103,7 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 .pytest_cache/
+.hypothesis/
 
 # Output directory
 output/
@@ -104,5 +111,5 @@ output/
 # Developer stuff
 private/
 private
-5etools-src/
+5etools-src
 docs/_build/

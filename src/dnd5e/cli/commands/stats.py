@@ -1,7 +1,5 @@
 """Stats command for 5e2pdf CLI."""
 
-import asyncio
-
 import typer
 from rich import print as rprint
 from rich.panel import Panel
@@ -24,7 +22,7 @@ def show_overview() -> None:
     counts by type, source, and other metrics.
     """
 
-    async def _show_overview() -> None:
+    def _show_overview() -> None:
         try:
             # Load omnidexer
             with display_manager.progress("Loading stats data") as _:
@@ -32,7 +30,7 @@ def show_overview() -> None:
                     "[cyan]Loading content data...", total=None
                 )
                 omnidexer = Omnidexer()
-                await omnidexer.load_all_data()
+                omnidexer.load_all_data()
                 display_manager.update_task(load_task, completed=100)
 
             # Get statistics
@@ -91,7 +89,7 @@ def show_overview() -> None:
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_show_overview())
+    _show_overview()
 
 
 @app.command("content")
@@ -105,7 +103,7 @@ def show_content_stats(
     including breakdowns by various attributes.
     """
 
-    async def _show_content_stats() -> None:
+    def _show_content_stats() -> None:
         try:
             # Load omnidexer
             with display_manager.progress("Loading stats data") as _:
@@ -113,7 +111,7 @@ def show_content_stats(
                     "[cyan]Loading content data...", total=None
                 )
                 omnidexer = Omnidexer()
-                await omnidexer.load_all_data()
+                omnidexer.load_all_data()
                 display_manager.update_task(load_task, completed=100)
 
             # Get content type
@@ -159,7 +157,7 @@ def show_content_stats(
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_show_content_stats())
+    _show_content_stats()
 
 
 @app.command("sources")
@@ -171,7 +169,7 @@ def show_source_stats() -> None:
     showing what each book contributes to the collection.
     """
 
-    async def _show_source_stats() -> None:
+    def _show_source_stats() -> None:
         try:
             # Load omnidexer
             with display_manager.progress("Loading stats data") as _:
@@ -179,7 +177,7 @@ def show_source_stats() -> None:
                     "[cyan]Loading content data...", total=None
                 )
                 omnidexer = Omnidexer()
-                await omnidexer.load_all_data()
+                omnidexer.load_all_data()
                 display_manager.update_task(load_task, completed=100)
 
             # Get statistics
@@ -208,8 +206,13 @@ def show_source_stats() -> None:
                 source_items = omnidexer.get_all_by_source(source)
                 content_types: dict[str, int] = {}
                 for item in source_items:
-                    ct = ContentType.from_content(item).value
-                    content_types[ct] = content_types.get(ct, 0) + 1
+                    try:
+                        ct = ContentType.from_content(item).value
+                        content_types[ct] = content_types.get(ct, 0) + 1
+                    except ValueError:
+                        # Handle unknown content types (like BaseFluff)
+                        ct_name = type(item).__name__.lower()
+                        content_types[ct_name] = content_types.get(ct_name, 0) + 1
 
                 primary_content = (
                     max(content_types.items(), key=lambda x: x[1])[0].title()
@@ -227,7 +230,7 @@ def show_source_stats() -> None:
             rprint(f"[red]Error:[/red] {e}")
             raise typer.Exit(1)
 
-    asyncio.run(_show_source_stats())
+    _show_source_stats()
 
 
 def _analyze_spells(spells: list) -> dict:

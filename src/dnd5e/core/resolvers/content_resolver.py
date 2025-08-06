@@ -1,11 +1,16 @@
 """Content resolver for mapping user abbreviations to content objects."""
 
 import difflib
-from dataclasses import dataclass
+import logging
 from enum import Enum
-from typing import Any
+from typing import Any, cast
 
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from dnd5e.core.loaders.content_merger import ContentMerger
 from dnd5e.core.models.content import BaseContent, ContentType
+
+logger = logging.getLogger(__name__)
 
 
 class ResolutionStatus(Enum):
@@ -17,22 +22,38 @@ class ResolutionStatus(Enum):
     FUZZY_MATCH = "fuzzy_match"
 
 
-@dataclass
-class ContentResolutionResult:
-    """Result of content resolution attempt."""
+class ContentResolutionResult(BaseModel):
+    """Result of content resolution attempt with comprehensive validation."""
 
-    status: ResolutionStatus
-    content: BaseContent | None = None
-    matches: list[BaseContent] | None = None
-    suggestions: list[str] | None = None
-    query: str = ""
+    status: ResolutionStatus = Field(description="Status of the resolution attempt")
+    content: BaseContent | None = Field(None, description="Resolved content if found")
+    matches: list[BaseContent] = Field(
+        default_factory=list, description="Multiple matches found"
+    )
+    suggestions: list[str] = Field(
+        default_factory=list, description="Suggested alternatives"
+    )
+    query: str = Field(default="", description="Original query string")
 
-    def __post_init__(self) -> None:
-        """Initialize default values."""
-        if self.matches is None:
-            self.matches = []
-        if self.suggestions is None:
-            self.suggestions = []
+    @field_validator("query")
+    @classmethod
+    def validate_query(cls, v: str) -> str:
+        """Validate query string (preserve original input for tracking)."""
+        return v
+
+    @field_validator("suggestions")
+    @classmethod
+    def validate_suggestions(cls, v: list[str]) -> list[str]:
+        """Validate and clean suggestions list."""
+        # Remove empty strings and duplicates while preserving order
+        seen = set()
+        cleaned = []
+        for suggestion in v:
+            cleaned_suggestion = suggestion.strip()
+            if cleaned_suggestion and cleaned_suggestion not in seen:
+                seen.add(cleaned_suggestion)
+                cleaned.append(cleaned_suggestion)
+        return cleaned
 
     @property
     def is_success(self) -> bool:
@@ -49,6 +70,11 @@ class ContentResolutionResult:
         """Check if suggestions are available."""
         return bool(self.suggestions and len(self.suggestions) > 0)
 
+    model_config = ConfigDict(
+        # Allow content objects (they should be Pydantic models too)
+        arbitrary_types_allowed=True
+    )
+
 
 class ContentResolver:
     """Resolves user abbreviations to content objects using omnidexer."""
@@ -60,6 +86,7 @@ class ContentResolver:
             omnidexer: The Omnidexer instance to use for content lookup
         """
         self.omnidexer = omnidexer
+        self.content_merger = ContentMerger(omnidexer.source_manager)
 
     def resolve_adventure(self, abbreviation: str) -> ContentResolutionResult:
         """Resolve abbreviation to an adventure.
@@ -106,6 +133,74 @@ class ContentResolver:
 
         # If no exact matches, return the first result with suggestions
         return self._resolve_content(ContentType.ADVENTURE, abbreviation)
+
+    def resolve_multiple(
+        self, requests: list[tuple[str, ContentType]]
+    ) -> list[ContentResolutionResult]:
+        """Resolve multiple abbreviations concurrently for optimal performance.
+
+        This method processes multiple resolution requests in parallel, which is
+        particularly beneficial when multiple adventures/books need content loading.
+
+        Args:
+            requests: List of (abbreviation, content_type) tuples to resolve
+
+        Returns:
+            List of ContentResolutionResult objects corresponding to input requests
+        """
+        if not requests:
+            return []
+
+        # Create tasks for all resolution requests
+        tasks = []
+        for abbreviation, content_type in requests:
+            task = self._resolve_content(content_type, abbreviation)
+            tasks.append(task)
+
+        # Execute all resolutions sequentially
+        results = []
+        for abbreviation, content_type in requests:
+            try:
+                results.append(self._resolve_content(content_type, abbreviation))
+            except Exception:
+                # Convert exception to failed resolution result
+                results.append(
+                    ContentResolutionResult(
+                        status=ResolutionStatus.NO_MATCH,
+                        query=abbreviation,
+                        content=None,
+                    )
+                )
+
+        return results
+
+    def resolve_adventures_bulk(
+        self, abbreviations: list[str]
+    ) -> list[ContentResolutionResult]:
+        """Resolve multiple adventures concurrently.
+
+        Args:
+            abbreviations: List of adventure abbreviations to resolve
+
+        Returns:
+            List of ContentResolutionResult objects
+        """
+        requests = [(abbrev, ContentType.ADVENTURE) for abbrev in abbreviations]
+        return self.resolve_multiple(requests)
+
+    def resolve_books_bulk(
+        self, abbreviations: list[str]
+    ) -> list[ContentResolutionResult]:
+        """Resolve multiple books concurrently.
+
+        Args:
+            abbreviations: List of book abbreviations to resolve
+
+        Returns:
+            List of ContentResolutionResult objects
+        """
+        requests = [(abbrev, ContentType.BOOK) for abbrev in abbreviations]
+        return self.resolve_multiple(requests)
 
     def find_suggestions(
         self, abbreviation: str, content_type: ContentType, limit: int = 5
@@ -176,18 +271,25 @@ class ContentResolver:
         ]
 
         if len(exact_matches) == 1:
+            # For adventures and books, merge metadata with content
+            resolved_content = self._enrich_content_if_needed(
+                exact_matches[0], content_type
+            )
             return ContentResolutionResult(
                 status=ResolutionStatus.EXACT_MATCH,
-                content=exact_matches[0],
+                content=resolved_content,
                 query=abbreviation,
             )
         elif len(exact_matches) > 1:
             # Try to resolve ambiguity by preferring non-versioned content
             preferred_match = self._select_preferred_match(exact_matches)
             if preferred_match:
+                resolved_content = self._enrich_content_if_needed(
+                    preferred_match, content_type
+                )
                 return ContentResolutionResult(
                     status=ResolutionStatus.EXACT_MATCH,
-                    content=preferred_match,
+                    content=resolved_content,
                     query=abbreviation,
                 )
             return ContentResolutionResult(
@@ -211,9 +313,12 @@ class ContentResolver:
             ]
 
             if len(fuzzy_matches) == 1:
+                resolved_content = self._enrich_content_if_needed(
+                    fuzzy_matches[0], content_type
+                )
                 return ContentResolutionResult(
                     status=ResolutionStatus.FUZZY_MATCH,
-                    content=fuzzy_matches[0],
+                    content=resolved_content,
                     query=abbreviation,
                 )
             elif len(fuzzy_matches) > 1:
@@ -307,3 +412,76 @@ class ContentResolver:
 
         # Look for pattern like "(2014)" or "(2024)" at the end of the name
         return bool(re.search(r"\(\d{4}\)\s*$", name))
+
+    def _enrich_content_if_needed(
+        self, content: BaseContent, content_type: ContentType
+    ) -> BaseContent:
+        """Enrich content with on-demand loading for dual-file types.
+
+        For adventures and books, this method loads the content file and merges it
+        with metadata to provide complete content. For other content types, returns
+        the content unchanged.
+
+        Args:
+            content: The content object (likely metadata-only for adventures/books)
+            content_type: The type of content being resolved
+
+        Returns:
+            Enriched content object with merged metadata+content data
+        """
+        # Only enrich adventures and books (dual-file types)
+        if content_type not in [ContentType.ADVENTURE, ContentType.BOOK]:
+            return content
+
+        # Extract content ID from the content object
+        content_id = getattr(content, "id", None)
+        if not content_id:
+            logger.warning(
+                f"No ID found for {content_type.value}, cannot load content file"
+            )
+            return content
+
+        logger.debug(
+            f"Enriching {content_type.value} '{content.name}' (ID: {content_id}) with content data"
+        )
+
+        try:
+            # Load the content file
+            content_data = self.content_merger.load_content_file(
+                content_type, content_id
+            )
+
+            # Convert content object to dict for merging
+            if hasattr(content, "model_dump"):
+                # Pydantic model
+                metadata_dict = content.model_dump()
+            elif hasattr(content, "__dict__"):
+                # Regular object
+                metadata_dict = content.__dict__.copy()
+            else:
+                # Fallback - convert to dict
+                metadata_dict = dict(content)
+
+            # Merge metadata and content data
+            merged_data = self.content_merger.merge_metadata_content(
+                metadata_dict, content_data
+            )
+
+            # Create new content object from merged data
+            content_class = type(content)
+            if hasattr(content_class, "model_validate"):
+                # Pydantic model
+                enriched_content = content_class.model_validate(merged_data)
+            else:
+                # Regular class - try to create instance
+                enriched_content = content_class(**merged_data)
+
+            logger.debug(
+                f"Successfully enriched {content_type.value} with {len(merged_data.get('contents', []))} sections"
+            )
+            return enriched_content
+
+        except Exception as e:
+            logger.error(f"Failed to enrich {content_type.value} '{content.name}': {e}")
+            # Return original content if enrichment fails
+            return content

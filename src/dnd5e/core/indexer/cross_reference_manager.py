@@ -3,26 +3,60 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
 from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 from dnd5e.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-@dataclass
-class CrossReference:
+class CrossReference(BaseModel):
     """Represents a cross-reference in the document."""
 
-    id: str  # Unique identifier (e.g., "creature:ancient-red-dragon")
-    content_type: str  # Type of content ("creature", "spell", etc.)
-    name: str  # Display name ("Ancient Red Dragon")
-    source: str | None = None  # Source book ("MM", "PHB", etc.)
-    page: str | None = None  # Page in source book
-    latex_label: str | None = None  # Generated LaTeX label
-    section: str | None = None  # Document section where defined
-    referenced_count: int = 0  # Number of times referenced
+    id: str = Field(
+        min_length=1,
+        description="Unique identifier (e.g., 'creature:ancient-red-dragon')",
+    )
+    content_type: str = Field(
+        min_length=1, description="Type of content ('creature', 'spell', etc.)"
+    )
+    name: str = Field(description="Display name ('Ancient Red Dragon')")
+    source: str | None = Field(None, description="Source book ('MM', 'PHB', etc.)")
+    page: str | None = Field(None, description="Page in source book")
+    latex_label: str | None = Field(None, description="Generated LaTeX label")
+    section: str | None = Field(None, description="Document section where defined")
+    referenced_count: int = Field(
+        default=0, ge=0, description="Number of times referenced"
+    )
+
+    @field_validator("latex_label")
+    @classmethod
+    def validate_latex_label(cls, v: str | None) -> str | None:
+        """Validate LaTeX label format."""
+        if v is None:
+            return v
+        # LaTeX labels should only contain letters, numbers, hyphens, colons, and underscores
+        if not re.match(r"^[a-zA-Z][a-zA-Z0-9_:-]*$", v):
+            raise ValueError(f"Invalid LaTeX label format: {v}")
+        return v
+
+    @field_validator("id")
+    @classmethod
+    def validate_id(cls, v: str) -> str:
+        """Validate reference ID format."""
+        # Reference IDs should be non-empty and follow content_type:name pattern
+        if ":" not in v:
+            raise ValueError(f"Reference ID must contain ':' separator: {v}")
+        return v.strip()
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        """Validate and normalize name, handling empty strings."""
+        normalized = v.strip()
+        return normalized if normalized else "unnamed"
 
 
 class CrossReferenceManager:

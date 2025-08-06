@@ -1,7 +1,8 @@
 """Core data models for D&D 5e content."""
 
-from .adventures import Adventure, AdventureChapter
-from .books import Book, BookChapter
+from .adventures import Adventure
+from .books import Book
+from .chapter import Chapter
 from .content import BaseContent, ContentType, Source
 from .creatures import ArmorClass, Creature, HitPoints
 from .items import Item, ItemRarity, ItemType
@@ -21,7 +22,6 @@ __all__ = [
     "ItemType",
     "ItemRarity",
     "Adventure",
-    "AdventureChapter",
     "Book",
-    "BookChapter",
+    "Chapter",
 ]

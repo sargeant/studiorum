@@ -1,4 +1,4 @@
-/* Custom CSS for 5e2pdf documentation */
+/* Custom CSS for 5e2pdf documentation with Shibuya theme */
 :root {
     --color-d20: #d20000;
     --color-d20-light: #ff4444;
@@ -6,43 +6,41 @@
     --color-success: #27ae60;
     --color-warning: #f39c12;
     --color-danger: #e74c3c;
+    --5e2pdf-accent: #1e40af;
 }
 
-/* Header branding */
-.site-header {
-    background: linear-gradient(135deg, var(--color-brand-primary) 0%, var(--color-d20) 100%);
-}
-
-/* Hero section styling */
+/* Hero section styling - adapted for Shibuya */
 .hero-section {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%);
+    background: linear-gradient(135deg, var(--5e2pdf-accent) 0%, #3b82f6 50%, #8b5cf6 100%);
     color: white;
-    padding: 3rem 0;
+    padding: 3rem 2rem;
     text-align: center;
     border-radius: 12px;
-    margin: 2rem 0;
+    margin: 2rem auto;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
 }
 
 .hero-title {
-    font-size: 3rem;
+    font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 700;
     margin-bottom: 1rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    line-height: 1.2;
 }
 
 .hero-subtitle {
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 3vw, 1.25rem);
     opacity: 0.9;
     margin-bottom: 2rem;
+    line-height: 1.4;
 }
 
-/* Enhanced code block styling */
+/* Enhanced code block styling - Shibuya compatible */
 .highlight {
     border-radius: 8px;
     margin: 1.5em 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .highlight pre {
@@ -50,161 +48,88 @@
     margin: 0;
     overflow-x: auto;
     border-radius: 8px;
+    font-size: 0.9em;
+    line-height: 1.5;
 }
 
-/* Language labels for code blocks */
-.highlight::before {
-    content: attr(data-language);
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 0.25rem 0.75rem;
-    background: var(--color-brand-primary);
-    color: white;
-    font-size: 0.75rem;
-    font-weight: 500;
-    border-radius: 0 8px 0 8px;
-    text-transform: uppercase;
-}
-
-/* Better table styling */
+/* Better table styling - Shibuya compatible */
 table.docutils {
-    border-collapse: collapse;
-    border: 1px solid var(--color-border, #e1e5e9);
     border-radius: 8px;
     overflow: hidden;
-    width: 100%;
     margin: 1.5em 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 table.docutils th {
-    background: linear-gradient(135deg, var(--color-brand-primary) 0%, #4f46e5 100%);
+    background: var(--5e2pdf-accent);
     color: white;
     font-weight: 600;
-    text-align: left;
 }
 
 table.docutils td,
 table.docutils th {
-    padding: 1rem;
-    border-bottom: 1px solid var(--color-border, #e1e5e9);
+    padding: 0.75rem 1rem;
     vertical-align: top;
 }
 
 table.docutils tbody tr:hover {
-    background-color: rgba(79, 70, 229, 0.05);
+    background-color: rgba(30, 64, 175, 0.05);
 }
 
-/* Enhanced admonition styling */
+/* Enhanced admonition styling - Shibuya compatible */
 .admonition {
     border-radius: 8px;
     margin: 1.5em 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border: none;
-    overflow: hidden;
 }
 
 .admonition.note {
-    border-left: 4px solid var(--color-brand-primary);
-    background: linear-gradient(90deg, rgba(79, 70, 229, 0.1) 0%, rgba(79, 70, 229, 0.05) 100%);
+    border-left: 4px solid var(--5e2pdf-accent);
 }
 
 .admonition.warning {
     border-left: 4px solid var(--color-warning);
-    background: linear-gradient(90deg, rgba(243, 156, 18, 0.1) 0%, rgba(243, 156, 18, 0.05) 100%);
 }
 
 .admonition.danger {
     border-left: 4px solid var(--color-danger);
-    background: linear-gradient(90deg, rgba(231, 76, 60, 0.1) 0%, rgba(231, 76, 60, 0.05) 100%);
 }
 
 .admonition.tip {
     border-left: 4px solid var(--color-success);
-    background: linear-gradient(90deg, rgba(39, 174, 96, 0.1) 0%, rgba(39, 174, 96, 0.05) 100%);
 }
 
-.admonition-title {
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.admonition-title::before {
-    content: "ℹ️";
-    font-size: 1.1em;
-}
-
-.admonition.warning .admonition-title::before {
-    content: "⚠️";
-}
-
-.admonition.danger .admonition-title::before {
-    content: "🚨";
-}
-
-.admonition.tip .admonition-title::before {
-    content: "💡";
-}
-
-/* Custom styling for mermaid diagrams */
+/* Custom styling for mermaid diagrams - Shibuya compatible */
 .mermaid {
     text-align: center;
     margin: 2rem 0;
-    background: white;
-    border-radius: 8px;
-    padding: 1rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-/* Navigation improvements */
-.toctree-wrapper {
-    margin: 2rem 0;
-    background: rgba(79, 70, 229, 0.02);
     border-radius: 8px;
     padding: 1.5rem;
-    border: 1px solid rgba(79, 70, 229, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
 }
 
-.toctree-wrapper ul {
-    padding-left: 0;
-    margin: 0;
-}
-
-.toctree-wrapper li {
-    list-style-type: none;
-    margin: 0.5rem 0;
-    position: relative;
-    padding-left: 1.5rem;
-}
-
-.toctree-wrapper li::before {
-    content: "📄";
-    position: absolute;
-    left: 0;
-    top: 0;
+/* Navigation improvements - simplified for Shibuya */
+.toctree-wrapper {
+    margin: 2rem 0;
+    background: rgba(30, 64, 175, 0.02);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid rgba(30, 64, 175, 0.1);
 }
 
 .toctree-wrapper a {
     text-decoration: none;
-    color: var(--color-brand-primary);
     font-weight: 500;
     transition: all 0.2s ease;
-    display: inline-block;
-    padding: 0.25rem 0;
 }
 
 .toctree-wrapper a:hover {
     text-decoration: none;
     color: var(--color-d20);
-    transform: translateX(4px);
 }
 
-/* API documentation styling */
+/* API documentation styling - Shibuya compatible */
 .api-section {
     background: rgba(155, 89, 182, 0.02);
     border-radius: 8px;
@@ -224,7 +149,7 @@ table.docutils tbody tr:hover {
     color: #00ff41;
     padding: 1rem;
     border-radius: 8px;
-    font-family: 'Courier New', monospace;
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', 'Courier New', monospace;
     margin: 1rem 0;
     border-left: 4px solid #00ff41;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -236,39 +161,24 @@ table.docutils tbody tr:hover {
     font-weight: bold;
 }
 
-/* Better spacing for content */
-.content section {
-    margin-bottom: 3rem;
+/* Fix for hidden toctree boxes showing in Shibuya theme */
+.toctree-wrapper.hidden,
+.compound.toctree-wrapper {
+    display: none !important;
 }
 
-.content h1, .content h2, .content h3 {
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-}
-
-.content h1 {
-    border-bottom: 3px solid var(--color-brand-primary);
-    padding-bottom: 0.5rem;
-}
-
-.content h2 {
-    border-bottom: 2px solid rgba(79, 70, 229, 0.3);
-    padding-bottom: 0.25rem;
-}
-
-/* Enhanced inline code styling */
-code {
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(155, 89, 182, 0.1) 100%);
-    padding: 0.2em 0.5em;
+/* Enhanced inline code styling - Shibuya compatible */
+:not(pre) > code {
+    background: rgba(30, 64, 175, 0.1);
+    padding: 0.2em 0.4em;
     border-radius: 4px;
     font-size: 0.9em;
-    border: 1px solid rgba(79, 70, 229, 0.2);
     font-weight: 500;
 }
 
 /* Copy button styling */
 .copybtn {
-    background: var(--color-brand-primary) !important;
+    background: var(--5e2pdf-accent) !important;
     border-radius: 4px !important;
     border: none !important;
     color: white !important;
@@ -284,7 +194,7 @@ code {
 
 /* Progress indicators */
 .progress-section {
-    background: linear-gradient(135deg, rgba(39, 174, 96, 0.1) 0%, rgba(46, 204, 113, 0.1) 100%);
+    background: rgba(39, 174, 96, 0.1);
     border-radius: 8px;
     padding: 1rem;
     margin: 1rem 0;
@@ -293,7 +203,6 @@ code {
 
 /* Quick reference cards */
 .quick-ref-card {
-    background: white;
     border-radius: 8px;
     padding: 1.5rem;
     margin: 1rem 0;
@@ -309,7 +218,7 @@ code {
 
 .quick-ref-card h3 {
     margin-top: 0;
-    color: var(--color-brand-primary);
+    color: var(--5e2pdf-accent);
     font-size: 1.2rem;
 }
 
@@ -341,21 +250,14 @@ code {
 
 /* Responsive improvements */
 @media (max-width: 768px) {
-    .hero-title {
-        font-size: 2rem;
-    }
-
-    .hero-subtitle {
-        font-size: 1rem;
-    }
-
-    .highlight {
-        margin: 1em 0;
+    .hero-section {
+        padding: 2rem 1rem;
+        margin: 1rem;
     }
 
     .highlight pre {
         padding: 0.75rem;
-        font-size: 0.9em;
+        font-size: 0.85em;
     }
 
     table.docutils {
@@ -367,10 +269,6 @@ code {
         padding: 0.5rem;
     }
 
-    .admonition {
-        margin: 1em 0;
-    }
-
     .toctree-wrapper {
         padding: 1rem;
     }
@@ -380,24 +278,153 @@ code {
     }
 }
 
-/* Dark mode support */
+/* Landing page specific styling */
+.action-section .sd-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 2px solid var(--5e2pdf-accent);
+}
+
+.action-section .sd-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(30, 64, 175, 0.2);
+}
+
+.action-button {
+    background: linear-gradient(135deg, var(--5e2pdf-accent) 0%, #3b82f6 100%);
+    color: white !important;
+    font-weight: 600;
+}
+
+.highlight-card {
+    background: linear-gradient(135deg, rgba(30, 64, 175, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border-left: 4px solid var(--5e2pdf-accent);
+}
+
+/* Feature card enhancements */
+.sd-grid .sd-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.sd-grid .sd-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Lead text styling for landing */
+.lead {
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    opacity: 0.8;
+}
+
+/* Text center utility */
+.text-center {
+    text-align: center;
+}
+
+/* Heroicon styling */
+.heroicon {
+    display: inline-flex;
+    width: 1.5em;
+    height: 1.5em;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+    vertical-align: middle;
+    /* Adjust vertical position to center with text */
+    transform: translateY(-0.125em);
+}
+
+.heroicon img {
+    width: 100%;
+    height: 100%;
+    filter: var(--icon-filter, none);
+}
+
+/* Light mode icon colors */
+:root {
+    --icon-filter: invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+}
+
+/* Dark mode icon colors - Shibuya uses .dark class on html */
+html.dark {
+    --icon-filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+}
+
+/* Additional selectors for other themes */
+[data-theme="dark"],
+[data-bs-theme="dark"],
+html[data-theme="dark"] {
+    --icon-filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+}
+
+/* Media query fallback for dark mode */
 @media (prefers-color-scheme: dark) {
+    :root:not(.light) {
+        --icon-filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+    }
+}
+
+/* Larger icons for landing page feature cards */
+.sd-card-title-large {
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    min-height: 3.5em; /* Consistent height for wrapped titles */
+    padding: 0.5rem 1rem;
+}
+
+.sd-card-title-large .heroicon {
+    width: 2em;
+    height: 2em;
+    margin-right: 0.75rem;
+}
+
+/* Ensure consistent card heights */
+.sd-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.sd-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.sd-card-body > p:first-child {
+    margin-top: 0;
+}
+
+/* Fix card title styling in grid */
+.sd-card .sd-card-title {
+    margin-bottom: 0.75rem;
+}
+
+/* Dark mode enhancements - Shibuya will handle most dark mode */
+@media (prefers-color-scheme: dark) {
+    .command-example {
+        background: #0d1117;
+        border-color: #00ff41;
+    }
+
     .hero-section {
         background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     }
 
-    .mermaid {
-        background: #2d3748;
-        color: white;
+    .action-section .sd-card {
+        border-color: #3b82f6;
     }
 
-    .quick-ref-card {
-        background: #2d3748;
-        color: white;
-        border-color: #4a5568;
-    }
-
-    .command-example {
-        background: #1a202c;
+    .action-section .sd-card:hover {
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
     }
 }

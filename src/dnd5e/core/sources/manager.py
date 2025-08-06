@@ -2,6 +2,7 @@
 
 import asyncio
 from pathlib import Path
+from typing import cast
 
 from ..config.sources import (
     ContentConfiguration,
@@ -95,14 +96,26 @@ class ContentSourceManager:
 
         enabled_sources = self.config.get_enabled_sources()
 
+        # Create tasks for all sources to process concurrently
+        source_tasks = []
         for source in enabled_sources:
-            try:
-                files = await self._get_source_files(source)
+            task = self._get_source_files(source)
+            source_tasks.append((source, task))
+
+        # Execute all source indexing concurrently
+        tasks = [task for _, task in source_tasks]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Process results
+        for i, (source, _) in enumerate(source_tasks):
+            result = results[i]
+            if isinstance(result, Exception):
+                logger.error(f"Failed to index source '{source.name}': {result}")
+                self._content_index[source.name] = []
+            else:
+                files = cast(list[Path], result)
                 self._content_index[source.name] = files
                 logger.info(f"Indexed {len(files)} files from source '{source.name}'")
-            except Exception as e:
-                logger.error(f"Failed to index source '{source.name}': {e}")
-                self._content_index[source.name] = []
 
         total_files = sum(len(files) for files in self._content_index.values())
         logger.info(

@@ -4,7 +4,6 @@ This module runs comprehensive validation tests against the entire
 real 5etools dataset to ensure data loading works correctly.
 """
 
-import asyncio
 import logging
 import time
 from collections import defaultdict
@@ -164,9 +163,8 @@ class TestFullDatasetValidation:
                 skips["empty_content"] += 1
         return dict(skips)
 
-    @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_full_spell_dataset_validation(self) -> None:
+    def test_full_spell_dataset_validation(self) -> None:
         """Test validation of the complete spell dataset."""
         report: Any = ValidationReport()  # Initialize report
 
@@ -184,7 +182,7 @@ class TestFullDatasetValidation:
                 continue
 
             start_time = time.time()
-            spells = await spell_loader.load(spell_file)
+            spells = spell_loader.load(spell_file)
             load_time = time.time() - start_time
 
             report.add_load_result("spells", spell_file, len(spells), load_time)
@@ -212,9 +210,8 @@ class TestFullDatasetValidation:
 
         assert total_spells > 0, "No spells were loaded"
 
-    @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_full_creature_dataset_validation(self) -> None:
+    def test_full_creature_dataset_validation(self) -> None:
         """Test validation of the complete creature dataset."""
         report: Any = ValidationReport()  # Initialize report
 
@@ -232,7 +229,7 @@ class TestFullDatasetValidation:
                 continue
 
             start_time = time.time()
-            creatures = await creature_loader.load(creature_file)
+            creatures = creature_loader.load(creature_file)
             load_time = time.time() - start_time
 
             report.add_load_result(
@@ -262,9 +259,8 @@ class TestFullDatasetValidation:
 
         assert total_creatures > 0, "No creatures were loaded"
 
-    @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_full_item_dataset_validation(self) -> None:
+    def test_full_item_dataset_validation(self) -> None:
         """Test validation of the complete item dataset."""
         report: Any = ValidationReport()  # Initialize report
 
@@ -282,7 +278,7 @@ class TestFullDatasetValidation:
                 continue
 
             start_time = time.time()
-            items = await item_loader.load(item_file)
+            items = item_loader.load(item_file)
             load_time = time.time() - start_time
 
             report.add_load_result("items", item_file, len(items), load_time)
@@ -310,9 +306,8 @@ class TestFullDatasetValidation:
 
         assert total_items > 0, "No items were loaded"
 
-    @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_omnidexer_full_dataset_load(self) -> None:
+    def test_omnidexer_full_dataset_load(self) -> None:
         """Test the omnidexer loading the complete dataset."""
         source_manager: Any = FileSystemSourceManager()
         omnidexer: Any = Omnidexer(source_manager)
@@ -320,7 +315,7 @@ class TestFullDatasetValidation:
         print("\n🌟 Testing omnidexer full dataset load...")
 
         start_time = time.time()
-        load_stats = await omnidexer.load_all_data()
+        load_stats = omnidexer.load_all_data()
         total_load_time = time.time() - start_time
 
         # Analyze results
@@ -351,8 +346,13 @@ class TestFullDatasetValidation:
         skip_threshold: Any = max(10, len(load_stats) * 0.2)  # 20% of total files
 
         # Adjust expectations based on available data
-        # In test environments, we may only have minimal sample data
-        min_expected_items = 1 if total_items < 100 else 1000
+        # Support both SRD data (~700 items) and full 5etools dataset (thousands)
+        if total_items < 100:
+            min_expected_items = 1  # Minimal test data
+        elif total_items < 1500:
+            min_expected_items = 500  # SRD or partial dataset
+        else:
+            min_expected_items = 1000  # Full dataset
         assert total_items >= min_expected_items, (
             f"Expected to load at least {min_expected_items} items, got {total_items} items"
         )
@@ -388,9 +388,8 @@ class TestFullDatasetValidation:
         assert len(statistics["by_type"]) > 0
         assert len(statistics["by_source"]) > 0
 
-    @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_data_consistency_across_loaders(self) -> None:
+    def test_data_consistency_across_loaders(self) -> None:
         """Test that different loaders produce consistent results."""
         source_manager: Any = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
@@ -405,7 +404,7 @@ class TestFullDatasetValidation:
                 all_spells: list[Any] = []
                 for spell_file in spell_files:
                     if spell_file.exists():
-                        spells = await spell_loader.load(spell_file)
+                        spells = spell_loader.load(spell_file)
                         all_spells.extend(spells)
                 loads.append(len(all_spells))
 
@@ -416,9 +415,8 @@ class TestFullDatasetValidation:
 
         print("✅ Data consistency test passed")
 
-    @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_memory_efficiency_large_dataset(self) -> None:
+    def test_memory_efficiency_large_dataset(self) -> None:
         """Test memory efficiency when loading large datasets."""
         try:
             import os
@@ -434,7 +432,7 @@ class TestFullDatasetValidation:
         omnidexer: Any = Omnidexer(source_manager)
 
         # Load full dataset
-        load_stats = await omnidexer.load_all_data()
+        load_stats = omnidexer.load_all_data()
 
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
         memory_increase = final_memory - initial_memory
@@ -468,13 +466,12 @@ class TestFullDatasetValidation:
                 f"Memory per item too high: {memory_per_item:.4f}MB > {max_memory_per_item}MB"
             )
 
-    @pytest.mark.asyncio
     @pytest.mark.slow
-    async def test_concurrent_dataset_loading(self) -> None:
+    def test_concurrent_dataset_loading(self) -> None:
         """Test concurrent loading of dataset doesn't cause issues."""
         source_manager: Any = FileSystemSourceManager()
 
-        async def load_subset() -> int:
+        def load_subset() -> int:
             """Load a subset of the data."""
             Omnidexer(source_manager)
             # Load just spells for faster concurrent test
@@ -487,13 +484,18 @@ class TestFullDatasetValidation:
             total_spells = 0
             for spell_file in spell_files:
                 if spell_file.exists():
-                    spells = await spell_loader.load(spell_file)
+                    spells = spell_loader.load(spell_file)
                     total_spells += len(spells)
             return total_spells
 
-        # Run 5 concurrent loads
-        tasks = [load_subset() for _ in range(5)]
-        results = await asyncio.gather(*tasks)
+        # Run 5 concurrent loads using ThreadPoolExecutor
+        import concurrent.futures
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(load_subset) for _ in range(5)]
+            results = [
+                future.result() for future in concurrent.futures.as_completed(futures)
+            ]
 
         # All loads should succeed and return same result
         assert all(isinstance(result, int) for result in results), "Some loads failed"

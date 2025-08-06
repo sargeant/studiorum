@@ -33,8 +33,11 @@ class ContentFactory:
         from ..models.feats import Feat
         from ..models.fluff import CreatureFluff, ItemFluff, SpellFluff
         from ..models.items import Item
+        from ..models.nested_content import VariantRule
         from ..models.races import Race
+        from ..models.rule_types import Action, Condition, Hazard, Sense, Status
         from ..models.spells import Spell
+        from ..models.vehicles import Vehicle
 
         # Build class map
         self._class_map = {
@@ -47,9 +50,17 @@ class ContentFactory:
             ContentType.ITEM: Item,
             ContentType.RACE: Race,
             ContentType.SPELL: Spell,
+            ContentType.VARIANT_RULE: VariantRule,
+            ContentType.VEHICLE: Vehicle,
             ContentType.CREATURE_FLUFF: CreatureFluff,
             ContentType.ITEM_FLUFF: ItemFluff,
             ContentType.SPELL_FLUFF: SpellFluff,
+            # Rule glossary types
+            ContentType.ACTION: Action,
+            ContentType.CONDITION: Condition,
+            ContentType.SENSE: Sense,
+            ContentType.HAZARD: Hazard,
+            ContentType.STATUS: Status,
         }
 
     def create_content(
@@ -109,3 +120,12 @@ def get_content_factory() -> ContentFactory:
         Global content factory instance
     """
     return _content_factory
+
+
+def reset_content_factory() -> None:
+    """Reset the global content factory (for testing).
+
+    This recreates the global factory instance to ensure clean state.
+    """
+    global _content_factory
+    _content_factory = ContentFactory()

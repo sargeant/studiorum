@@ -2,59 +2,128 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from dnd5e.core.indexer.tag_resolver import TagResolver
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from dnd5e.core.base_context import ServiceContext
 from dnd5e.core.loaders.omnidexer import Omnidexer
 
 if TYPE_CHECKING:
+    from dnd5e.core.config.latex_config import LaTeXConfig
     from dnd5e.core.models.document_metadata import DocumentMetadata
+    from dnd5e.core.text.tag_resolver import TagResolver
 
 
-@dataclass
-class RenderContext:
+class RenderContext(ServiceContext):
     """Context object passed to renderers containing shared state and utilities.
 
     Provides access to the omnidexer for content lookups, tag resolver for
     cross-references, and various rendering options and metadata.
+
+    Inherits from ServiceContext to provide standardized service access patterns
+    while maintaining full backward compatibility with existing renderer code.
     """
 
-    # Core services
-    omnidexer: Omnidexer | None = None
-    tag_resolver: TagResolver | None = None
-
     # Document metadata (structured)
-    metadata: DocumentMetadata | None = None
+    metadata: DocumentMetadata | None = Field(
+        None, description="Structured document metadata"
+    )
+
+    # LaTeX configuration
+    latex_config: LaTeXConfig | None = Field(
+        None, description="LaTeX compilation configuration"
+    )
 
     # Document metadata (legacy)
-    title: str | None = None
-    subtitle: str | None = None
-    author: str | None = None
-    date: str | None = None
+    title: str | None = Field(None, description="Document title")
+    subtitle: str | None = Field(None, description="Document subtitle")
+    author: str | None = Field(None, description="Document author")
+    date: str | None = Field(None, description="Document date")
 
     # Rendering options
-    include_images: bool = False
-    include_toc: bool = True
-    include_index: bool = False
-    page_size: str = "letterpaper"
-    font_size: str = "10pt"
+    include_images: bool = Field(default=False, description="Whether to include images")
+    include_toc: bool = Field(
+        default=True, description="Whether to include table of contents"
+    )
+    include_index: bool = Field(default=False, description="Whether to include index")
+    page_size: str = Field(default="letterpaper", description="Page size for output")
+    font_size: str = Field(default="10pt", description="Base font size")
 
     # Content filtering
-    include_items: bool = True
-    include_creatures: bool = True
-    include_spells: bool = True
-    content_filters: list[str] = field(default_factory=list)
+    include_items: bool = Field(default=True, description="Whether to include items")
+    include_creatures: bool = Field(
+        default=True, description="Whether to include creatures"
+    )
+    include_spells: bool = Field(default=True, description="Whether to include spells")
+    content_filters: list[str] = Field(
+        default_factory=list, description="Content type filters"
+    )
 
     # Paths and resources
-    output_dir: Path | None = None
-    assets_dir: Path | None = None
-    images_dir: Path | None = None
-    fonts_dir: Path | None = None
+    output_dir: Path | None = Field(None, description="Output directory path")
+    assets_dir: Path | None = Field(None, description="Assets directory path")
+    images_dir: Path | None = Field(None, description="Images directory path")
+    fonts_dir: Path | None = Field(None, description="Fonts directory path")
 
     # Custom data
-    custom_data: dict[str, Any] = field(default_factory=dict)
+    custom_data: dict[str, Any] = Field(
+        default_factory=dict, description="Custom renderer data"
+    )
+
+    def __init__(self, **data: Any) -> None:
+        """Initialize RenderContext with proper service mapping."""
+        # Ensure model is rebuilt before instantiation
+        _ensure_model_rebuilt()
+
+        # Extract services that should go to the base ServiceContext
+        services = {}
+        for service_name in ["omnidexer", "tag_resolver", "config"]:
+            if service_name in data:
+                services[service_name] = data.pop(service_name)
+
+        # Handle latex_config mapping - keep both latex_config and config populated
+        if "latex_config" in data:
+            latex_config = data["latex_config"]  # Keep for the latex_config field
+            if "config" not in services:
+                services["config"] = latex_config  # Also use as base config
+
+        # Initialize the base ServiceContext
+        super().__init__(**services, **data)
+
+    @field_validator("page_size")
+    @classmethod
+    def validate_page_size(cls, v: str) -> str:
+        """Validate LaTeX page size."""
+        valid_sizes = {
+            "letterpaper",
+            "a4paper",
+            "a5paper",
+            "b5paper",
+            "executivepaper",
+            "legalpaper",
+        }
+
+        size_lower = v.lower().strip()
+        if size_lower not in valid_sizes:
+            raise ValueError(f"Invalid page size '{v}'. Must be one of {valid_sizes}")
+
+        return size_lower
+
+    @field_validator("font_size")
+    @classmethod
+    def validate_font_size(cls, v: str) -> str:
+        """Validate LaTeX font size."""
+        valid_sizes = {"10pt", "11pt", "12pt", "14pt", "17pt", "20pt"}
+
+        size_lower = v.lower().strip()
+        if size_lower not in valid_sizes:
+            raise ValueError(f"Invalid font size '{v}'. Must be one of {valid_sizes}")
+
+        return size_lower
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, defer_build=True)
 
     def get_image_path(self, image_name: str) -> Path | None:
         """Get full path to an image asset.
@@ -116,6 +185,26 @@ class RenderContext:
         Returns:
             New RenderContext with updates applied
         """
-        from dataclasses import replace
+        return self.model_copy(update=updates)
 
-        return replace(self, **updates)
+
+# Lazy model rebuild to avoid circular imports
+_model_rebuilt = False
+
+
+def _ensure_model_rebuilt() -> None:
+    """Ensure RenderContext model is rebuilt to resolve forward references."""
+    global _model_rebuilt
+    if not _model_rebuilt:
+        try:
+            from dnd5e.core.config.latex_config import LaTeXConfig  # noqa: F401
+            from dnd5e.core.models.document_metadata import (
+                DocumentMetadata,  # noqa: F401
+            )
+            from dnd5e.core.text.tag_resolver import TagResolver  # noqa: F401
+
+            RenderContext.model_rebuild()
+            _model_rebuilt = True
+        except ImportError:
+            # Forward references will be resolved when modules are imported
+            pass

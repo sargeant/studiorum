@@ -1,0 +1,24 @@
+{
+  "cult": [
+    {
+      "name": "Test Cult",
+      "source": "TEST",
+      "type": "organization",
+      "entries": [
+        "A mysterious organization dedicated to testing functionality.",
+        "Members wear plain robes and carry test documents."
+      ]
+    }
+  ],
+  "boon": [
+    {
+      "name": "Test Blessing",
+      "source": "TEST",
+      "type": "supernatural gift",
+      "entries": [
+        "You gain a +1 bonus to all ability checks for testing purposes.",
+        "This blessing lasts until the test is complete."
+      ]
+    }
+  ]
+}

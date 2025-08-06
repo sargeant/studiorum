@@ -9,7 +9,6 @@ Run this file to see the deep indexing system in action:
     python docs/examples/deep-indexing.py
 """
 
-import asyncio
 import time
 from collections import defaultdict
 
@@ -17,7 +16,7 @@ from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
 
 
-async def basic_deep_indexing_example():
+def basic_deep_indexing_example():
     """Basic example of loading and querying deep indexed content."""
     print("=== Basic Deep Indexing Example ===")
 
@@ -27,7 +26,7 @@ async def basic_deep_indexing_example():
     # Load all content
     print("Loading all D&D content...")
     start_time = time.time()
-    await omnidexer.load_all_data()
+    omnidexer.load_all_data()
     load_time = time.time() - start_time
 
     print(f"Loaded {omnidexer.total_items} items in {load_time:.2f} seconds")
@@ -66,12 +65,12 @@ async def basic_deep_indexing_example():
             print(f"  - {rule.name} from {rule.source}")
 
 
-async def content_type_exploration():
+def content_type_exploration():
     """Explore all available content types in the deep indexed system."""
     print("\n=== Content Type Exploration ===")
 
     omnidexer = Omnidexer(enable_deep_indexing=True)
-    await omnidexer.load_all_data()
+    omnidexer.load_all_data()
 
     # Get all indexed content types
     content_types = omnidexer.get_content_types()
@@ -109,12 +108,12 @@ async def content_type_exploration():
                 print(f"  ... and {len(items) - 3} more")
 
 
-async def search_and_discovery_examples():
+def search_and_discovery_examples():
     """Examples of different search and discovery patterns."""
     print("\n=== Search and Discovery Examples ===")
 
     omnidexer = Omnidexer(enable_deep_indexing=True)
-    await omnidexer.load_all_data()
+    omnidexer.load_all_data()
 
     # 1. Find all content from a specific source
     print("\n--- Content by Source ---")
@@ -160,7 +159,7 @@ async def search_and_discovery_examples():
             print(f"  - {entry.hierarchical_name}")
 
 
-async def performance_comparison():
+def performance_comparison():
     """Compare performance with and without deep indexing."""
     print("\n=== Performance Comparison ===")
 
@@ -168,7 +167,7 @@ async def performance_comparison():
     print("Testing without deep indexing...")
     start_time = time.time()
     omnidexer_shallow = Omnidexer(enable_deep_indexing=False)
-    await omnidexer_shallow.load_all_data()
+    omnidexer_shallow.load_all_data()
     shallow_time = time.time() - start_time
     shallow_count = omnidexer_shallow.total_items
 
@@ -178,7 +177,7 @@ async def performance_comparison():
     print("Testing with deep indexing...")
     start_time = time.time()
     omnidexer_deep = Omnidexer(enable_deep_indexing=True)
-    await omnidexer_deep.load_all_data()
+    omnidexer_deep.load_all_data()
     deep_time = time.time() - start_time
     deep_count = omnidexer_deep.total_items
 
@@ -206,12 +205,12 @@ async def performance_comparison():
             print(f"  {key}: {value}")
 
 
-async def advanced_usage_examples():
+def advanced_usage_examples():
     """Advanced usage patterns and techniques."""
     print("\n=== Advanced Usage Examples ===")
 
     omnidexer = Omnidexer(enable_deep_indexing=True)
-    await omnidexer.load_all_data()
+    omnidexer.load_all_data()
 
     # 1. Content relationship discovery
     print("\n--- Content Relationships ---")
@@ -281,7 +280,7 @@ async def advanced_usage_examples():
         )
 
 
-async def custom_content_example():
+def custom_content_example():
     """Example of implementing DeepIndexable for custom content."""
     print("\n=== Custom Content Implementation Example ===")
 
@@ -364,12 +363,12 @@ async def custom_content_example():
     )
 
 
-async def troubleshooting_examples():
+def troubleshooting_examples():
     """Examples of troubleshooting and debugging deep indexing."""
     print("\n=== Troubleshooting Examples ===")
 
     omnidexer = Omnidexer(enable_deep_indexing=True)
-    await omnidexer.load_all_data()
+    omnidexer.load_all_data()
 
     # 1. Check for missing expected content
     print("\n--- Missing Content Checks ---")
@@ -438,19 +437,19 @@ async def troubleshooting_examples():
         )
 
 
-async def main():
+def main():
     """Run all examples."""
     print("Omnidexer Deep Indexing Examples")
     print("=" * 50)
 
     try:
-        await basic_deep_indexing_example()
-        await content_type_exploration()
-        await search_and_discovery_examples()
-        await performance_comparison()
-        await advanced_usage_examples()
-        await custom_content_example()
-        await troubleshooting_examples()
+        basic_deep_indexing_example()
+        content_type_exploration()
+        search_and_discovery_examples()
+        performance_comparison()
+        advanced_usage_examples()
+        custom_content_example()
+        troubleshooting_examples()
 
         print("\n" + "=" * 50)
         print("All examples completed successfully!")
@@ -465,4 +464,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

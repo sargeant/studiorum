@@ -5,9 +5,112 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel, Field, model_validator
 
 from .content import BaseContent
+from .entry_types import Entry
 
 if TYPE_CHECKING:
     pass
+
+
+class SkillChoice(BaseModel):
+    """Skill choice selection for starting proficiencies."""
+
+    choose: dict[str, Any] = Field(..., description="Choice structure")
+
+
+class StartingProficiencies(BaseModel):
+    """Starting proficiencies for a character class."""
+
+    armor: list[str] | None = Field(None, description="Armor proficiencies")
+    weapons: list[str] | None = Field(None, description="Weapon proficiencies")
+    tools: list[str] | None = Field(None, description="Tool proficiencies")
+    skills: list[str | SkillChoice] | None = Field(
+        None, description="Skill proficiencies or choices"
+    )
+    saves: list[str] | None = Field(None, description="Saving throw proficiencies")
+    languages: list[str] | None = Field(None, description="Language proficiencies")
+
+
+class EquipmentOption(BaseModel):
+    """Equipment option choice structure."""
+
+    a: list[str | dict[str, Any]] | None = Field(None, description="Option A items")
+    b: list[str | dict[str, Any]] | None = Field(None, description="Option B items")
+    c: list[str | dict[str, Any]] | None = Field(None, description="Option C items")
+    d: list[str | dict[str, Any]] | None = Field(None, description="Option D items")
+
+
+class StartingEquipment(BaseModel):
+    """Starting equipment for a character class."""
+
+    additional_from_background: bool | None = Field(
+        None,
+        alias="additionalFromBackground",
+        description="Gets additional equipment from background",
+    )
+    default: list[str] | None = Field(
+        None, description="Default equipment descriptions"
+    )
+    default_data: list[EquipmentOption] | None = Field(
+        None, alias="defaultData", description="Structured equipment options"
+    )
+    gold_alternative: str | None = Field(
+        None,
+        alias="goldAlternative",
+        description="Gold alternative for buying equipment",
+    )
+
+
+class MulticlassingRequirements(BaseModel):
+    """Multiclassing ability score requirements."""
+
+    strength: int | None = Field(None, alias="str", description="Strength requirement")
+    dexterity: int | None = Field(
+        None, alias="dex", description="Dexterity requirement"
+    )
+    constitution: int | None = Field(
+        None, alias="con", description="Constitution requirement"
+    )
+    intelligence: int | None = Field(
+        None, alias="int", description="Intelligence requirement"
+    )
+    wisdom: int | None = Field(None, alias="wis", description="Wisdom requirement")
+    charisma: int | None = Field(None, alias="cha", description="Charisma requirement")
+    # Support "or" requirements
+    or_: list[dict[str, int]] | None = Field(
+        None, alias="or", description="Alternative requirements"
+    )
+
+
+class MulticlassingProficiencies(BaseModel):
+    """Proficiencies gained from multiclassing."""
+
+    armor: list[str] | None = Field(None, description="Armor proficiencies gained")
+    weapons: list[str] | None = Field(None, description="Weapon proficiencies gained")
+    tools: list[str] | None = Field(None, description="Tool proficiencies gained")
+    skills: list[str] | None = Field(None, description="Skill proficiencies gained")
+
+
+class Multiclassing(BaseModel):
+    """Multiclassing rules for a character class."""
+
+    requirements: MulticlassingRequirements | None = Field(
+        None, description="Ability score requirements for multiclassing"
+    )
+    proficiencies_gained: MulticlassingProficiencies | None = Field(
+        None,
+        alias="proficienciesGained",
+        description="Proficiencies gained when multiclassing into this class",
+    )
+    spell_slot_level_div: int | None = Field(
+        None,
+        alias="spellSlotLevelDiv",
+        description="Spell slot level divisor for multiclass spellcasting",
+    )
+    caster_progression: str | None = Field(
+        None,
+        alias="casterProgression",
+        description="Caster progression type for multiclassing",
+    )
 
 
 class ClassFeature(BaseContent):
@@ -20,7 +123,7 @@ class ClassFeature(BaseContent):
 
     # Optional detailed fields (from the separate classFeature definitions)
     page: int | None = None
-    entries: list[Any] = Field(default_factory=list)
+    entries: list[Entry] = Field(default_factory=list)
     header: int | None = None
     srd: bool | None = None
     basic_rules: bool | None = Field(default=None, alias="basicRules")
@@ -38,7 +141,7 @@ class SubclassFeature(BaseContent):
 
     # Optional detailed fields
     page: int | None = None
-    entries: list[Any] = Field(default_factory=list)
+    entries: list[Entry] = Field(default_factory=list)
     header: int | None = None
     srd: bool | None = None
     basic_rules: bool | None = Field(default=None, alias="basicRules")
@@ -61,7 +164,9 @@ class Class(BaseContent):
     # Core fields - optional for sidekicks
     hd: dict[str, int] | None = None
     proficiency: list[str] | None = None
-    class_features: list[Any] | None = Field(default=None, alias="classFeatures")
+    class_features: list[str | dict[str, Any]] | None = Field(
+        default=None, alias="classFeatures"
+    )
 
     # Sidekick identification
     is_sidekick: bool | None = Field(default=None, alias="isSidekick")
@@ -75,13 +180,13 @@ class Class(BaseContent):
     spells_known_progression: list[int] | None = Field(
         default=None, alias="spellsKnownProgression"
     )
-    starting_proficiencies: dict[str, Any] | None = Field(
+    starting_proficiencies: StartingProficiencies | None = Field(
         default=None, alias="startingProficiencies"
     )
-    starting_equipment: dict[str, Any] | None = Field(
+    starting_equipment: StartingEquipment | None = Field(
         default=None, alias="startingEquipment"
     )
-    multiclassing: dict[str, Any] | None = None
+    multiclassing: Multiclassing | None = None
     subclasses: list[Subclass] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -175,7 +280,7 @@ class Class(BaseContent):
         try:
             # Format: "FeatureName|ClassName||SubclassName||Level"
             parts = feature_ref.split("|")
-            if len(parts) < 5:
+            if len(parts) < 6:
                 return None
 
             feature_name = parts[0]
@@ -183,7 +288,7 @@ class Class(BaseContent):
             # parts[2] is empty (double pipe separator)
             # parts[3] is subclass_name (not used directly, taken from subclass parameter)
             # parts[4] is empty (double pipe separator)
-            level_str = parts[5] if len(parts) > 5 else ""
+            level_str = parts[5]
 
             try:
                 level = int(level_str)

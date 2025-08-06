@@ -47,9 +47,7 @@ class ContentRenderer(BaseRenderer):
         content_type = ContentType.from_content(content)
         return content_type in self.supported_content_types
 
-    def render(
-        self, content: BaseContent, context: dict[str, Any] | None = None
-    ) -> str:
+    def render(self, content: BaseContent, context: RenderContext | None = None) -> str:
         """Render content using the content-specific interface.
 
         Implementation of BaseRenderer.render() that delegates to render_content().

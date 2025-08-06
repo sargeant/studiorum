@@ -1,0 +1,19 @@
+{
+  "table": [
+    {
+      "name": "Test Random Events",
+      "source": "TEST",
+      "type": "random table",
+      "caption": "Random Test Events",
+      "colLabels": ["d6", "Event"],
+      "rows": [
+        ["1", "A test begins unexpectedly"],
+        ["2", "Documentation appears"],
+        ["3", "A bug is discovered"],
+        ["4", "Code compiles successfully"],
+        ["5", "All tests pass"],
+        ["6", "Feature works as intended"]
+      ]
+    }
+  ]
+}

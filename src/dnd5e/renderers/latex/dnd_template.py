@@ -20,14 +20,9 @@ class DNDTemplateManager:
         """Initialize DND template manager."""
         self.template_files = [
             "dndbook.cls",
-            "dndarticle.cls",
             "dndcore.def",
             "dndoptions.clo",
-            "dndfonts.sty",
-            "dndheader.sty",
-            "dndmonster.sty",
-            "dndsections.sty",
-            "dndsidebar.sty",
+            "dnd.sty",
         ]
         self.required_packages = [
             "expl3",
@@ -76,6 +71,17 @@ class DNDTemplateManager:
             FileNotFoundError,
         ):
             pass
+
+        # Fallback: Check common installation directories (for CI environments)
+        fallback_paths = [
+            Path("/usr/share/texlive/texmf-local/tex/latex/dnd") / filename,
+            Path("/usr/local/share/texmf/tex/latex/dnd") / filename,
+            Path.home() / "texmf" / "tex" / "latex" / "dnd" / filename,
+        ]
+
+        for path in fallback_paths:
+            if path.exists():
+                return path
 
         return None
 
@@ -385,12 +391,12 @@ def get_recommended_class_options(content_type: str) -> list[str]:
         List of recommended class options
     """
     recommendations = {
-        "book": ["bg", "justified", "twocolumn"],
-        "supplement": ["bg", "justified", "twocolumn"],
-        "reference": ["bg", "justified", "twocolumn"],
-        "article": ["bg", "justified", "onecolumn"],
-        "adventure": ["bg", "justified", "twocolumn", "fancy"],
-        "homebrew": ["bg", "justified", "twocolumn"],
+        "book": ["bg", "twocolumn"],
+        "supplement": ["bg", "twocolumn"],
+        "reference": ["bg", "twocolumn"],
+        "article": ["bg", "onecolumn"],
+        "adventure": ["bg", "twocolumn", "fancy"],
+        "homebrew": ["bg", "twocolumn"],
     }
 
-    return recommendations.get(content_type, ["bg", "justified"])
+    return recommendations.get(content_type, ["bg"])

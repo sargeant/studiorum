@@ -116,18 +116,9 @@ class VariantRule(BaseContent):
 
     page: int | None = Field(None, description="Page number")
     id: str | None = Field(None, description="Rule ID")
-    parent_name: str = Field(..., description="Parent book/section name")
+    parent_name: str | None = Field(None, description="Parent book/section name")
     entries: list[Any] = Field(default_factory=list, description="Rule content")
 
     def get_hash_key(self) -> str:
         """Generate a unique hash key for indexing."""
         return f"variantrule:{self.name}:{self.source.abbreviation}:{self.parent_name}"
-
-
-# Legacy aliases for backward compatibility
-AdventureSection = Section
-AdventureTable = Table
-AdventureInset = Inset
-BookSection = Section
-BookTable = Table
-BookInset = Inset

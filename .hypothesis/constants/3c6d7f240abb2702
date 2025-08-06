@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/models/__init__.py
+# hypothesis_version: 6.136.7
+
+['Adventure', 'ArmorClass', 'BaseContent', 'Book', 'Chapter', 'ContentType', 'Creature', 'HitPoints', 'Item', 'ItemRarity', 'ItemType', 'Source', 'Spell', 'SpellComponent', 'SpellDuration']

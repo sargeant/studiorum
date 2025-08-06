@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/cli/commands/setup.py
+# hypothesis_version: 6.136.7
+
+['\nChoose setup option', '1', '2', '3', 'Branch', 'Cache Directory', 'Component', 'Content Files', 'Content Scan Results', 'Content Sources', 'Details', 'Directory path', 'Files', 'Name', 'Reset cancelled.', 'Setup Status', 'Setup Wizard', 'Source', 'Source name', 'Source type', 'Status', 'Type', 'URL', 'blue', 'check', 'cyan', 'directory', 'done', 'file_count', 'github', 'green', 'magenta', 'master', 'name', 'reset', 'right', 'sources', 'srd', 'srd-data', 'type', 'wizard', '✅ Available', '✅ Configured', '✅ Enabled', '✅ Ready', '❌ Disabled']

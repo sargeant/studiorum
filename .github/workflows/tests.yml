@@ -4,10 +4,10 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
-  test:
+  ci-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -25,14 +25,12 @@ jobs:
     - name: Set up Python ${{ matrix.python-version }}
       run: uv python install ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: uv sync --group dev
-
-    - name: Run unit tests with coverage
-      run: uv run python -m pytest tests/unit/ -m "not slow" --cov=src --cov-report=xml --cov-report=term-missing
+    - name: Run comprehensive test suite with coverage
+      run: make ci-test
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
+      if: matrix.python-version == '3.12'
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage.xml
@@ -40,7 +38,7 @@ jobs:
         name: codecov-umbrella
         fail_ci_if_error: false
 
-  lint:
+  ci-check:
     runs-on: ubuntu-latest
 
     steps:
@@ -55,49 +53,5 @@ jobs:
     - name: Set up Python
       run: uv python install 3.12
 
-    - name: Install dependencies
-      run: uv sync --group dev
-
-    - name: Run ruff check
-      run: uv run ruff check src/ tests/
-
-    - name: Run ruff format check
-      run: uv run ruff format --check src/ tests/
-
-    - name: Check for circular imports
-      run: uv run python scripts/check_circular_imports.py src/dnd5e/ --fail-on-cycles
-
-    - name: Check architectural boundaries
-      run: uv run python scripts/check_architectural_boundaries.py src/dnd5e/ --fail-on-violations
-
-  security:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up uv
-      uses: astral-sh/setup-uv@v3
-      with:
-        version: "latest"
-
-    - name: Set up Python
-      run: uv python install 3.12
-
-    - name: Install dependencies
-      run: uv sync --group dev
-
-    - name: Run dependency vulnerability scan
-      run: uv run pip-audit --desc=off
-
-    - name: Run static security analysis
-      run: uv run bandit -ll -r src/ -f json -o bandit-report.json
-      continue-on-error: true
-
-    - name: Upload security scan results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: security-scan-results
-        path: bandit-report.json
+    - name: Run CI quality and security checks
+      run: make ci-check

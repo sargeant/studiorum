@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/models/classes.py
+# hypothesis_version: 6.136.7
+
+['Armor proficiencies', 'Charisma requirement', 'Choice structure', 'Class', 'Option A items', 'Option B items', 'Option C items', 'Option D items', 'Strength requirement', 'Tool proficiencies', 'Weapon proficiencies', 'Wisdom requirement', 'abbreviation', 'after', 'basicRules', 'cantripProgression', 'casterProgression', 'cha', 'classFeature', 'classFeatures', 'className', 'classSource', 'con', 'defaultData', 'dex', 'gainSubclassFeature', 'goldAlternative', 'hd', 'int', 'isSidekick', 'name', 'or', 'proficienciesGained', 'proficiency', 'shortName', 'spellSlotLevelDiv', 'spellcastingAbility', 'startingEquipment', 'str', 'subclassFeatures', 'subclassShortName', 'subclassSource', 'wis', '|']

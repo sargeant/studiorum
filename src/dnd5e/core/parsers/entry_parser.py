@@ -2,9 +2,9 @@
 
 import logging
 from collections.abc import Iterator
-from typing import Any
+from typing import Any, Union
 
-from ..entry_registry import ValidationMode, get_registry, validate_entry_type
+from ..entry_registry import ValidationMode, get_registry
 from ..exceptions import EntryProcessingError
 from ..models.content import Source
 from ..models.nested_content import (
@@ -13,6 +13,14 @@ from ..models.nested_content import (
     Section,
     Table,
     VariantRule,
+)
+from ..types import (
+    EntryDict,
+    InsetEntry,
+    NestedEntriesEntry,
+    ParsingStatistics,
+    SectionEntry,
+    TableEntry,
 )
 
 logger = logging.getLogger(__name__)
@@ -46,7 +54,7 @@ class EntryParser:
         self._errors_encountered = 0
 
     def parse_entries(
-        self, entries: list[Any], content_type: str = "adventure"
+        self, entries: list[str | EntryDict], content_type: str = "adventure"
     ) -> Iterator[Any]:
         """Parse a list of entries and yield indexable content objects.
 
@@ -63,7 +71,9 @@ class EntryParser:
         for entry in entries:
             yield from self._parse_single_entry(entry, content_type)
 
-    def _parse_single_entry(self, entry: Any, content_type: str) -> Iterator[Any]:
+    def _parse_single_entry(
+        self, entry: str | EntryDict, content_type: str
+    ) -> Iterator[Any]:
         """Parse a single entry and yield indexable content.
 
         Args:
@@ -100,33 +110,30 @@ class EntryParser:
 
             # Validate entry type if not empty
             if entry_type:
-                # Use instance validation mode or fall back to global
-                original_mode = self._registry.validation_mode
+                # Create ValidationContext for modern interface
+                from ..entry_registry import ValidationContext
 
-                if self._validation_mode:
-                    self._registry.validation_mode = self._validation_mode
+                context = ValidationContext(
+                    entry_data=entry,
+                    source=self.source.abbreviation,
+                    parent_name=self.parent_name,
+                    entry_type=entry_type,
+                    validation_mode=self._validation_mode,
+                )
 
-                try:
-                    validate_entry_type(
-                        entry_type=entry_type,
-                        entry=entry,
-                        source=self.source.abbreviation,
-                        parent_name=self.parent_name,
-                    )
-                finally:
-                    # Restore original mode
-                    self._registry.validation_mode = original_mode
+                # Use modern ValidationContext interface
+                self._registry.validate_entry_type(context)
 
             # Dispatch to specific parsing methods
             if entry_type == "section":
-                yield from self._parse_section(entry, content_type)
+                yield from self._parse_section(entry, content_type)  # type: ignore[arg-type]
             elif entry_type == "table":
-                yield from self._parse_table(entry, content_type)
+                yield from self._parse_table(entry, content_type)  # type: ignore[arg-type]
             elif entry_type in ("inset", "insetReadaloud"):
-                yield from self._parse_inset(entry, content_type)
+                yield from self._parse_inset(entry, content_type)  # type: ignore[arg-type]
             elif entry_type == "entries":
                 # Nested entries - can be variant rules or subsections
-                yield from self._parse_nested_entries(entry, content_type)
+                yield from self._parse_nested_entries(entry, content_type)  # type: ignore[arg-type]
             else:
                 # For unknown/unhandled entry types, still recursively parse nested entries
                 if entry_type:
@@ -148,13 +155,13 @@ class EntryParser:
             # Wrap other exceptions with context
             raise EntryProcessingError(
                 message=f"Failed to parse entry: {str(e)}",
-                entry=entry if isinstance(entry, dict) else None,
+                entry=entry if isinstance(entry, dict) else None,  # type: ignore[arg-type]
                 source=self.source.abbreviation,
                 parent_name=self.parent_name,
                 entry_type=entry.get("type") if isinstance(entry, dict) else None,
             ) from e
 
-    def _parse_section(self, entry: dict[str, Any], content_type: str) -> Iterator[Any]:
+    def _parse_section(self, entry: SectionEntry, content_type: str) -> Iterator[Any]:
         """Parse a section entry."""
         name = entry.get("name", "Unnamed Section")
         page = entry.get("page")
@@ -179,7 +186,7 @@ class EntryParser:
             nested_parser = EntryParser(self.source, f"{self.parent_name} > {name}")
             yield from nested_parser.parse_entries(entries, content_type)
 
-    def _parse_table(self, entry: dict[str, Any], content_type: str) -> Iterator[Any]:
+    def _parse_table(self, entry: TableEntry, content_type: str) -> Iterator[Any]:
         """Parse a table entry."""
         # Use caption as name, fallback to generic name
         name = entry.get("caption", "Table")
@@ -213,7 +220,7 @@ class EntryParser:
 
         yield table
 
-    def _parse_inset(self, entry: dict[str, Any], content_type: str) -> Iterator[Any]:
+    def _parse_inset(self, entry: InsetEntry, content_type: str) -> Iterator[Any]:
         """Parse an inset/sidebar entry."""
         name = entry.get("name", "Inset")
         if not name or name == "Inset":
@@ -239,7 +246,7 @@ class EntryParser:
         yield inset
 
     def _parse_nested_entries(
-        self, entry: dict[str, Any], content_type: str
+        self, entry: NestedEntriesEntry, content_type: str
     ) -> Iterator[Any]:
         """Parse nested entries that might be variant rules or subsections."""
         name = entry.get("name")
@@ -293,7 +300,7 @@ class EntryParser:
         # Note: Nested parsing is handled by _parse_section separately to avoid duplication
 
     def _is_variant_rule_content(
-        self, name: str, entries: list[Any], content_type: str
+        self, name: str, entries: list[str | EntryDict], content_type: str
     ) -> bool:
         """Determine if content should be treated as a variant rule.
 
@@ -345,20 +352,20 @@ class EntryParser:
 
         return False
 
-    def get_processing_statistics(self) -> dict[str, Any]:
+    def get_processing_statistics(self) -> ParsingStatistics:
         """Get processing statistics for this parser instance.
 
         Returns:
             Dictionary with processing statistics
         """
-        return {
-            "entries_processed": self._entries_processed,
-            "errors_encountered": self._errors_encountered,
-            "source": self.source.abbreviation,
-            "parent_name": self.parent_name,
-            "registry_statistics": self._registry.statistics,
-            "unknown_types": list(self._registry.unknown_types),
-        }
+        return ParsingStatistics(
+            entries_processed=self._entries_processed,
+            errors_encountered=self._errors_encountered,
+            source=self.source.abbreviation,
+            parent_name=self.parent_name,
+            registry_statistics=self._registry.statistics.entry_counts.copy(),
+            unknown_types=list(self._registry.unknown_types),
+        )
 
     def log_processing_summary(self) -> None:
         """Log a summary of processing statistics."""

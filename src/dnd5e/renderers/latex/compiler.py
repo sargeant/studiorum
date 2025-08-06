@@ -33,11 +33,11 @@ class LaTeXCompiler:
         )
 
         # Validation
-        config_errors = self.config.validate()
+        config_errors = self.config.validate_config()
         if config_errors:
             raise ValueError(f"Invalid configuration: {'; '.join(config_errors)}")
 
-    def compile_document(
+    async def compile_document(
         self,
         latex_content: str,
         output_name: str = "document",
@@ -63,12 +63,14 @@ class LaTeXCompiler:
             cleanup_dir = True
 
         try:
-            return self._compile_in_directory(latex_content, output_name, work_dir)
+            return await self._compile_in_directory(
+                latex_content, output_name, work_dir
+            )
         finally:
             if cleanup_dir and not self.config.keep_intermediate_files:
                 shutil.rmtree(work_dir, ignore_errors=True)
 
-    def _compile_in_directory(
+    async def _compile_in_directory(
         self, latex_content: str, output_name: str, work_dir: Path
     ) -> CompilationResult:
         """Compile LaTeX document in specified directory.
@@ -96,7 +98,7 @@ class LaTeXCompiler:
                 continue
 
             try:
-                result = self._compile_with_engine(engine, tex_file, work_dir)
+                result = await self._compile_with_engine(engine, tex_file, work_dir)
                 if result.success:
                     result.total_time = time.time() - start_time
                     return result
@@ -123,7 +125,7 @@ class LaTeXCompiler:
                 error_message="No LaTeX engines available",
             )
 
-    def _compile_with_engine(
+    async def _compile_with_engine(
         self, engine: LaTeXEngine, tex_file: Path, work_dir: Path
     ) -> CompilationResult:
         """Compile with a specific LaTeX engine.
@@ -142,7 +144,7 @@ class LaTeXCompiler:
 
         # Check dependencies before compilation
         if self.config.check_dependencies:
-            dep_errors = self._check_dependencies(tex_file)
+            dep_errors = await self._check_dependencies(tex_file)
             if dep_errors:
                 return CompilationResult(
                     success=False,
@@ -350,7 +352,7 @@ class LaTeXCompiler:
         except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
             return False
 
-    def _check_dependencies(self, tex_file: Path) -> list[str]:
+    async def _check_dependencies(self, tex_file: Path) -> list[str]:
         """Check for missing LaTeX packages and dependencies.
 
         Args:
@@ -362,7 +364,8 @@ class LaTeXCompiler:
         missing_deps = []
 
         try:
-            content = tex_file.read_text(encoding="utf-8")
+            with open(tex_file, encoding="utf-8") as f:
+                content = f.read()
 
             # Check for required packages
             for package in self.config.required_packages:

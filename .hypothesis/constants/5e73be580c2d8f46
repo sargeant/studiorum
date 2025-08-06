@@ -1,0 +1,4 @@
+# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/loaders/fluff_loader.py
+# hypothesis_version: 6.136.7
+
+['FluffDataLoader', 'Unknown', 'backgroundFluff', 'background_fluff', 'classFluff', 'class_fluff', 'creatureFluff', 'description', 'entries', 'entry', 'extra_data', 'featFluff', 'feat_fluff', 'fluff', 'fluffData', 'images', 'itemFluff', 'item_fluff', 'monsterFluff', 'monster_fluff', 'name', 'raceFluff', 'race_fluff', 'source', 'spellFluff', 'spell_fluff', 'text', 'utf-8']

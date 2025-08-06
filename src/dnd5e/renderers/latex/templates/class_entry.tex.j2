@@ -1,4 +1,4 @@
 % Entry template for class rendering using EntryRenderer
-\subsection{<# class.name #>}
+\subsection{<# class.name | latex_escape #>}
 
-<# class.description_text | default("") #>
+<# class.description_text | default("") | safe #>

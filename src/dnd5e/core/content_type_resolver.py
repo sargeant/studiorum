@@ -33,12 +33,9 @@ class RegistryBasedContentTypeResolver:
         from .models.fluff import CreatureFluff, ItemFluff, SpellFluff
         from .models.items import Item
         from .models.nested_content import (
-            AdventureInset,
-            AdventureSection,
-            AdventureTable,
-            BookInset,
-            BookSection,
-            BookTable,
+            Inset,
+            Section,
+            Table,
             VariantRule,
         )
         from .models.races import Race
@@ -61,13 +58,13 @@ class RegistryBasedContentTypeResolver:
         self._registry.register(SpellFluff, ContentType.SPELL_FLUFF)
 
         # Register nested content types
-        self._registry.register(AdventureSection, ContentType.ADVENTURE_SECTION)
-        self._registry.register(AdventureTable, ContentType.ADVENTURE_TABLE)
-        self._registry.register(AdventureInset, ContentType.ADVENTURE_INSET)
-        self._registry.register(BookSection, ContentType.BOOK_SECTION)
+        self._registry.register(Section, ContentType.ADVENTURE_SECTION)
+        self._registry.register(Table, ContentType.ADVENTURE_TABLE)
+        self._registry.register(Inset, ContentType.ADVENTURE_INSET)
+        self._registry.register(Section, ContentType.BOOK_SECTION)
         self._registry.register(VariantRule, ContentType.VARIANT_RULE)
-        self._registry.register(BookTable, ContentType.BOOK_TABLE)
-        self._registry.register(BookInset, ContentType.BOOK_INSET)
+        self._registry.register(Table, ContentType.BOOK_TABLE)
+        self._registry.register(Inset, ContentType.BOOK_INSET)
 
     def resolve_type(self, content: BaseContent) -> ContentType:
         """Resolve content type from content instance.
@@ -107,3 +104,12 @@ def get_content_type_resolver() -> ContentTypeResolver:
         Global content type resolver instance
     """
     return _content_type_resolver
+
+
+def reset_content_type_resolver() -> None:
+    """Reset the global content type resolver (for testing).
+
+    This recreates the global resolver instance to ensure clean state.
+    """
+    global _content_type_resolver
+    _content_type_resolver = RegistryBasedContentTypeResolver()
