@@ -202,7 +202,7 @@ class RecursiveEntryProcessor:
         result = []
         if name:
             # Determine sectioning command based on depth
-            section_cmd = self._get_section_command(self._depth)
+            section_cmd = self._get_section_command(self._depth, context)
             result.append(f"\\{section_cmd}{{{self._escape_latex(name)}}}")
 
         if entries:
@@ -234,7 +234,7 @@ class RecursiveEntryProcessor:
         result = []
         if name:
             # Use subsection for named entries blocks
-            section_cmd = self._get_section_command(self._depth + 1)
+            section_cmd = self._get_section_command(self._depth + 1, context)
             result.append(f"\\{section_cmd}{{{self._escape_latex(name)}}}")
 
         if entries:
@@ -357,20 +357,71 @@ class RecursiveEntryProcessor:
         if not items:
             return ""
 
-        # Determine list environment
-        env = "enumerate" if list_type == "ordered" else "itemize"
+        # Determine list environment based on style
+        if list_type == "ordered":
+            env = "enumerate"
+        elif list_type == "list-hang-notitle" or list_type == "list-hang":
+            env = "description"
+        else:
+            env = "itemize"
 
         result = [f"\\begin{{{env}}}"]
 
         for item in items:
             if isinstance(item, str):
-                result.append(f"\\item {self._process_text_with_tags(item, context)}")
+                if env == "description":
+                    # For description lists, use empty label
+                    result.append(
+                        f"\\item[] {self._process_text_with_tags(item, context)}"
+                    )
+                else:
+                    result.append(
+                        f"\\item {self._process_text_with_tags(item, context)}"
+                    )
             elif isinstance(item, dict):
                 # Handle nested entries in list items
-                processed_item = self.process_entry_dict(item, context)
-                result.append(f"\\item {processed_item}")
+                if env == "description":
+                    # For description lists, try to extract name as label
+                    item_name = item.get("name", "")
+                    if item_name:
+                        # For description lists, process only the content part (not the name)
+                        if item.get("type") == "item":
+                            # Special handling for "item" type - extract just entry/entries
+                            entry_content = item.get("entry", "")
+                            entries_content = item.get("entries", [])
+                            if entry_content:
+                                processed_content = self._process_text_with_tags(
+                                    entry_content, context
+                                )
+                            elif entries_content:
+                                processed_content = self.process_entries(
+                                    entries_content, context
+                                )
+                            else:
+                                processed_content = ""
+                        else:
+                            # For other dict types, process normally
+                            processed_content = self.process_entry_dict(item, context)
+                        # Apply punctuation logic to the label
+                        processed_name = self._process_text_with_tags(
+                            item_name, context
+                        )
+                        if item_name.rstrip().endswith((".", ":", ";")):
+                            label = processed_name
+                        else:
+                            label = f"{processed_name}."
+                        result.append(f"\\item[{label}] {processed_content}")
+                    else:
+                        processed_item = self.process_entry_dict(item, context)
+                        result.append(f"\\item[] {processed_item}")
+                else:
+                    processed_item = self.process_entry_dict(item, context)
+                    result.append(f"\\item {processed_item}")
             else:
-                result.append(f"\\item {str(item)}")
+                if env == "description":
+                    result.append(f"\\item[] {str(item)}")
+                else:
+                    result.append(f"\\item {str(item)}")
 
         result.append(f"\\end{{{env}}}")
         return "\n".join(result)
@@ -614,7 +665,7 @@ class RecursiveEntryProcessor:
 
         result = []
         if name:
-            section_cmd = self._get_section_command(self._depth + 1)
+            section_cmd = self._get_section_command(self._depth + 1, context)
             result.append(f"\\{section_cmd}{{{self._escape_latex(name)}}}")
 
         if entries:
@@ -627,22 +678,44 @@ class RecursiveEntryProcessor:
 
         return "\n\n".join(result)
 
-    def _get_section_command(self, depth: int) -> str:
+    def _get_section_command(self, depth: int, context: RenderContext) -> str:
         """Get appropriate sectioning command for the given depth.
 
         Args:
             depth: Nesting depth (0 = section, 1 = subsection, etc.)
+            context: Rendering context to check document type
 
         Returns:
             LaTeX sectioning command name
         """
-        commands = [
-            "section",
-            "subsection",
-            "subsubsection",
-            "paragraph",
-            "subparagraph",
-        ]
+        from ...core.models.document_metadata import DocumentType
+
+        # Check if we have document type information
+        document_type = None
+        if context.metadata and context.metadata.document_type:
+            document_type = context.metadata.document_type
+
+        # For books and adventures, entry content should start at section level
+        # because the document structure builder already creates \chapter{} commands
+        # Map JSON depths to LaTeX sectioning to match expected hierarchy
+        if document_type in [DocumentType.BOOK, DocumentType.ADVENTURE]:
+            commands = [
+                "section",  # depth 0 - "Key Plot Points", "Nakari's Lair"
+                "subsection",  # depth 1 - intermediate level
+                "subsection",  # depth 2 - "Lair Locations"
+                "subsubsection",  # depth 3 - "N1: East Entrance", etc.
+                "paragraph",  # depth 4+ - deeper nested content
+            ]
+        else:
+            # For articles, supplements, etc. - no chapters, start with sections
+            commands = [
+                "section",  # depth 0
+                "subsection",  # depth 1
+                "subsubsection",  # depth 2
+                "paragraph",  # depth 3
+                "subparagraph",  # depth 4+
+            ]
+
         return commands[min(depth, len(commands) - 1)]
 
     def _process_text_with_tags(self, text: str, context: RenderContext) -> str:
@@ -1195,7 +1268,7 @@ class RecursiveEntryProcessor:
             logger.warning(
                 f"Could not resolve statblock reference: {tag} '{name}' from {source}"
             )
-            section_cmd = self._get_section_command(self._depth)
+            section_cmd = self._get_section_command(self._depth, context)
             return f"\\{section_cmd}{{{self._escape_latex(name)}}}"
 
     def _resolve_statblock_reference(
@@ -1273,11 +1346,11 @@ class RecursiveEntryProcessor:
 
         if not entries:
             # No entries found, render just the name
-            section_cmd = self._get_section_command(self._depth)
+            section_cmd = self._get_section_command(self._depth, context)
             return f"\\{section_cmd}{{{self._escape_latex(name)}}}"
 
         # Add section header for the statblock
-        section_cmd = self._get_section_command(self._depth)
+        section_cmd = self._get_section_command(self._depth, context)
         header = f"\\{section_cmd}{{{self._escape_latex(name)}}}"
 
         # Process the entries after the header

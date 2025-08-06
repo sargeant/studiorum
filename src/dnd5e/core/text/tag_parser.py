@@ -9,6 +9,7 @@ from dnd5e.core.logging import get_logger
 
 from .tag_ast import (
     AdventureTagNode,
+    AreaTagNode,
     ASTNode,
     BackgroundTagNode,
     BoldTagNode,
@@ -50,6 +51,39 @@ class TagParseError(Exception):
 
 class TagASTTransformer(Transformer):
     """Transformer that converts Lark parse tree to our custom AST."""
+
+    # Parameter count expectations for validation
+    TAG_PARAMETER_COUNTS = {
+        # Standard content tags: name|source|display|page (1-4 parameters)
+        "creature": (1, 4),
+        "spell": (1, 4),
+        "item": (1, 4),
+        "class": (1, 4),
+        "race": (1, 4),
+        "background": (1, 4),
+        "feat": (1, 4),
+        "condition": (1, 4),
+        "disease": (1, 4),
+        "status": (1, 4),
+        # Adventure/book tags: display|source|chapter/page (1-3 parameters)
+        "adventure": (1, 3),
+        "book": (1, 3),
+        # Special reference tags
+        "area": (1, 3),  # name|area_id|flags
+        "deity": (1, 4),  # name|pantheon|source|display
+        # Simple value tags
+        "recharge": (1, 2),  # value|flags
+        "chance": (1, 1),
+        "dice": (1, 1),
+        "damage": (1, 1),
+        "hit": (1, 1),
+        "dc": (1, 1),
+        # Formatting tags
+        "bold": (1, 1),
+        "italic": (1, 1),
+        "loader": (1, 1),
+        "filter": (1, 1),
+    }
 
     def __init__(self, original_text: str):
         super().__init__()
@@ -159,10 +193,29 @@ class TagASTTransformer(Transformer):
             return "}"
         return escaped
 
+    def _validate_parameter_count(self, tag_type: str, actual_count: int) -> None:
+        """Validate that the tag has the expected number of parameters."""
+        if tag_type in self.TAG_PARAMETER_COUNTS:
+            min_count, max_count = self.TAG_PARAMETER_COUNTS[tag_type]
+            if actual_count < min_count:
+                logger.warning(
+                    f"Tag '@{tag_type}' has {actual_count} parameters, "
+                    f"expected at least {min_count}"
+                )
+            elif actual_count > max_count:
+                logger.warning(
+                    f"Tag '@{tag_type}' has {actual_count} parameters, "
+                    f"expected at most {max_count}"
+                )
+        # For unknown tag types, we don't validate (allows extensibility)
+
     def _create_tag_node_with_nodes(
         self, tag_type: str, parts: list[list[ASTNode]]
     ) -> TagNode:
         """Create the appropriate tag node with nested node support."""
+        # Validate parameter count
+        self._validate_parameter_count(tag_type, len(parts))
+
         # Extract parts: name, source, display_text, page
         name_nodes = parts[0] if len(parts) > 0 else []
         source_nodes = parts[1] if len(parts) > 1 else []
@@ -177,8 +230,26 @@ class TagASTTransformer(Transformer):
         # Keep display_text as nodes for nested tag support
         final_display_text_nodes = display_text_nodes if display_text_nodes else None
 
-        # Content reference tags
-        if tag_type == "creature":
+        # Adventure tags have different structure: {displayText|source|chapter/page}
+        if tag_type == "adventure":
+            display_text = name  # First part is display text for adventures
+            adventure_source = source
+            chapter_page = (
+                self._nodes_to_text(display_text_nodes) if display_text_nodes else None
+            )
+            return AdventureTagNode(display_text, adventure_source, None, chapter_page)
+
+        # Book tags have similar structure: {displayText|source|page}
+        elif tag_type == "book":
+            display_text = name  # First part is display text for books
+            book_source = source
+            book_page = (
+                self._nodes_to_text(display_text_nodes) if display_text_nodes else None
+            )
+            return BookTagNode(display_text, book_source, book_page)
+
+        # Content reference tags (use standard structure)
+        elif tag_type == "creature":
             return CreatureTagNode(name, source, final_display_text_nodes, page)
         elif tag_type == "spell":
             return SpellTagNode(name, source, final_display_text_nodes, page)
@@ -192,10 +263,6 @@ class TagASTTransformer(Transformer):
             return BackgroundTagNode(name, source, final_display_text_nodes, page)
         elif tag_type == "feat":
             return FeatTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "adventure":
-            return AdventureTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "book":
-            return BookTagNode(name, source, page)
         elif tag_type == "condition":
             return ConditionTagNode(name)
 
@@ -219,11 +286,20 @@ class TagASTTransformer(Transformer):
         elif tag_type == "chance":
             return ChanceTagNode(name)
         elif tag_type == "recharge":
-            return RechargeTagNode(name)
+            # Recharge tags can have format: recharge_value|flags
+            flags = self._nodes_to_text(source_nodes) if source_nodes else None
+            return RechargeTagNode(name, flags)
         elif tag_type == "filter":
             return FilterTagNode(name)
         elif tag_type == "loader":
             return LoaderTagNode(name)
+        elif tag_type == "area":
+            # Area tags have format: name|area_id|flags
+            area_id = source  # Second part is area_id, not source
+            flags = (
+                self._nodes_to_text(display_text_nodes) if display_text_nodes else None
+            )
+            return AreaTagNode(name, area_id, flags)
 
         # Generic fallback - create node with name/display text for automatic passthrough
         else:

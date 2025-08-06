@@ -323,10 +323,21 @@ class RechargeTagHandler(TagHandler):
         recharge_node = cast(RechargeTagNode, node)
 
         recharge = recharge_node.recharge
+        flags = recharge_node.flags
+
+        # Check for minimal formatting flag
+        is_minimal = "m" in flags
+
         if "-" in recharge:
-            return f"(Recharge {recharge})"
+            recharge_text = f"Recharge {recharge}"
         else:
-            return f"(Recharge {recharge}--6)"
+            recharge_text = f"Recharge {recharge}--6"
+
+        # Apply formatting based on flags
+        if is_minimal:
+            return recharge_text
+        else:
+            return f"({recharge_text})"
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
         """Recharge tags don't need content tracking."""
@@ -452,13 +463,13 @@ class LoaderTagHandler(TagHandler):
 
 
 class AreaTagHandler(TagHandler):
-    """Handler for @area tags - renders as 'area $content'."""
+    """Handler for @area tags - renders with appropriate prefix based on flags."""
 
     def handles(self, tag_type: str) -> bool:
         return tag_type == "area"
 
     def render(self, node: TagNode, context: "RendererContext") -> str:
-        """Render area tag with 'area ' prefix."""
+        """Render area tag with appropriate prefix based on flags."""
         # Get the display text from the node
         if hasattr(node, "display_text_nodes") and node.display_text_nodes:
             # Render display text nodes recursively
@@ -466,11 +477,11 @@ class AreaTagHandler(TagHandler):
                 context.render_node(child) for child in node.display_text_nodes
             )
         else:
-            # Fallback to node name
-            display_text = getattr(node, "name", str(node))
+            # Fallback to node name with default "area " prefix
+            display_text = f"area {getattr(node, 'name', str(node))}"
 
-        # Return with "area " prefix and escape LaTeX special characters
-        return f"area {escape_latex_text(display_text)}"
+        # AreaTagNode already handles the prefix logic based on flags
+        return escape_latex_text(display_text)
 
     def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
         """Area tags don't need content tracking."""

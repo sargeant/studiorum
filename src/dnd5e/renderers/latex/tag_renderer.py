@@ -185,8 +185,8 @@ class ConfigurableLaTeXTagRenderer(LaTeXTagRenderer):
         else:  # plain
             formatted = self._escape_latex(display_text)
 
-        # Add page reference if available
-        if ref.page:
+        # Add page reference if available, and not 1
+        if ref.page and ref.page != "1":
             if ref.content_type == ContentType.ADVENTURE:
                 formatted += f" (p. {ref.page})"
             elif ref.content_type == ContentType.BOOK:

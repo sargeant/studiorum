@@ -329,14 +329,12 @@ class DocumentStructureBuilder:
 
         # Add chapter headers as subsections only if they're not already present in entries
         if hasattr(chapter_data, "headers") and chapter_data.headers:
-            # Check which headers are already represented in the entry content
+            # Check which headers are already represented in the entry content (recursively)
             existing_entry_names = set()
             if hasattr(chapter_data, "entries") and chapter_data.entries:
-                for entry in chapter_data.entries:
-                    if isinstance(entry, dict):
-                        entry_name = entry.get("name")
-                        if entry_name:
-                            existing_entry_names.add(entry_name)
+                existing_entry_names = self._extract_all_entry_names(
+                    chapter_data.entries
+                )
 
             # Only create subsections for headers that don't have corresponding entries
             for header in chapter_data.headers:
@@ -353,6 +351,31 @@ class DocumentStructureBuilder:
                     section.subsections.append(subsection)
 
         return section
+
+    def _extract_all_entry_names(self, entries: list[Any]) -> set[str]:
+        """Recursively extract all entry names from a nested entry structure.
+
+        Args:
+            entries: List of entries (strings, dicts, etc.)
+
+        Returns:
+            Set of all entry names found at any depth
+        """
+        entry_names = set()
+
+        for entry in entries:
+            if isinstance(entry, dict):
+                # Check if this entry has a name
+                entry_name = entry.get("name")
+                if entry_name:
+                    entry_names.add(entry_name)
+
+                # Recursively check nested entries
+                nested_entries = entry.get("entries")
+                if nested_entries and isinstance(nested_entries, list):
+                    entry_names.update(self._extract_all_entry_names(nested_entries))
+
+        return entry_names
 
     def _create_content_type_chapters(
         self, organized_content: dict[str, list[BaseContent]], context: RenderContext

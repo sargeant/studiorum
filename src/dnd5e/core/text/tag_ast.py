@@ -76,6 +76,8 @@ class TagNode(ASTNode):
         # Default attributes for generic tags (used in parser fallback)
         self.name: str = ""
         self.display_text_nodes: list[ASTNode] = []
+        # Flag support - many tags use flags in final parameter for behavior modification
+        self.flags: str = ""
 
     def __repr__(self) -> str:
         return f"TagNode(tag_type={self.tag_type!r})"
@@ -359,12 +361,18 @@ class ChanceTagNode(TagNode):
 class RechargeTagNode(TagNode):
     """Node representing a recharge tag."""
 
-    def __init__(self, recharge: str, original_text_span: TextSpan | None = None):
+    def __init__(
+        self,
+        recharge: str,
+        flags: str | None = None,
+        original_text_span: TextSpan | None = None,
+    ):
         super().__init__("recharge", original_text_span)
         self.recharge = recharge
+        self.flags = flags or ""
 
     def __repr__(self) -> str:
-        return f"RechargeTagNode(recharge={self.recharge!r})"
+        return f"RechargeTagNode(recharge={self.recharge!r}, flags={self.flags!r})"
 
 
 # Reference Tags
@@ -436,6 +444,38 @@ class LoaderTagNode(TagNode):
 
     def __repr__(self) -> str:
         return f"LoaderTagNode(content={self.content!r})"
+
+
+class AreaTagNode(TagNode):
+    """Node representing an area reference tag."""
+
+    def __init__(
+        self,
+        name: str,
+        area_id: str | None = None,
+        flags: str | None = None,
+        original_text_span: TextSpan | None = None,
+    ):
+        super().__init__("area", original_text_span)
+        self.name = name
+        self.area_id = area_id
+        self.flags = flags or ""
+        # Set display text based on flags (following 5etools logic)
+        if "x" in self.flags:
+            # Just the name, no prefix
+            display_text = name
+        elif "u" in self.flags:
+            # Uppercase "Area"
+            display_text = f"Area {name}"
+        else:
+            # Lowercase "area"
+            display_text = f"area {name}"
+
+        self.display_text_nodes = [TextNode(display_text)]
+        self.children.extend(self.display_text_nodes)
+
+    def __repr__(self) -> str:
+        return f"AreaTagNode(name={self.name!r}, area_id={self.area_id!r}, flags={self.flags!r})"
 
 
 # Visitor Pattern

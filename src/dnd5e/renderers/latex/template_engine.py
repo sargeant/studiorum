@@ -409,6 +409,7 @@ class LaTeXTemplateEngine:
                 "class_options": content_config["class_options"],
                 "content_type": content_type,
                 "use_dnd_template": True,
+                "use_dnd_template_styling": True,
                 "dnd_template_available": self.check_dnd_template_availability(),
             }
         )
