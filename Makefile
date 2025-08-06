@@ -187,7 +187,6 @@ test-quality-strict: uv
 docs: uv-docs
 	@echo "Building documentation..."
 	cd $(DOCS_DIR) && $(UV) sphinx-build -b html source _build/html || (echo "Documentation build failed"; exit 1)
-	open $(DOCS_DIR)/_build/html/index.html
 	@echo "Documentation built and opened"
 
 ## Start documentation auto-rebuild server
