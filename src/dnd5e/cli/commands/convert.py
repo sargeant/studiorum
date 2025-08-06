@@ -329,7 +329,7 @@ def convert_adventure(
             from ...core.models.document_metadata import DocumentMetadata, DocumentType
 
             metadata = DocumentMetadata(
-                title=title or f"Adventure: {content_items[0].name}",
+                title=title or f"{content_items[0].name}",
                 subtitle=None,
                 short_title=None,
                 editor=None,
@@ -351,7 +351,7 @@ def convert_adventure(
 
             # Create render context
             context = RenderContext(
-                title=title or f"Adventure: {content_items[0].name}",
+                title=title or f"{content_items[0].name}",
                 include_images=with_images,
                 include_toc=True,
                 include_items=with_items,
