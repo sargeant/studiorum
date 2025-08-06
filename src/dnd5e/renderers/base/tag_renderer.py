@@ -80,10 +80,20 @@ class TagRenderer:
             "race",
             "background",
             "feat",
+            "skill",
+            "action",
+            "status",
+            "sense",
+            "hazard",
             "bold",
             "b",
             "italic",
             "i",
+            "s",
+            "strike",
+            "u",
+            "underline",
+            "code",
             "dice",
             "hit",
             "dc",
@@ -91,6 +101,8 @@ class TagRenderer:
             "condition",
             "chance",
             "recharge",
+            "quickref",
+            "note",
             "adventure",
             "book",
             "filter",
@@ -136,7 +148,11 @@ class TagRenderer:
                     )
                     return self._fallback_render(node)
             else:
-                # No handler found - use fallback
+                # No handler found - log and use fallback
+                logger.info(
+                    "No handler registered for tag type '%s', using fallback rendering",
+                    node.tag_type,
+                )
                 return self._fallback_render(node)
 
         elif isinstance(node, DocumentNode):
@@ -153,15 +169,33 @@ class TagRenderer:
         if hasattr(node, "display_text_nodes") and node.display_text_nodes:
             # Use display text
             context = RendererContext(self, self.omnidexer)
-            return "".join(
+            display_text = "".join(
                 self.render_node(child, context) for child in node.display_text_nodes
             )
+            logger.debug(
+                "Fallback render for '%s': using display text '%s'",
+                node.tag_type,
+                display_text,
+            )
+            return display_text
         elif hasattr(node, "name"):
             # Use tag name with LaTeX escaping
-            return escape_latex_text(str(node.name))
+            rendered_name = escape_latex_text(str(node.name))
+            logger.debug(
+                "Fallback render for '%s': using name '%s'",
+                node.tag_type,
+                rendered_name,
+            )
+            return rendered_name
         else:
-            # Last resort - show tag type
-            return f"{{@{node.tag_type}...}}"
+            # Last resort - show tag type as placeholder
+            placeholder = f"{{@{node.tag_type}}}"
+            logger.debug(
+                "Fallback render for '%s': using placeholder '%s'",
+                node.tag_type,
+                placeholder,
+            )
+            return placeholder
 
     def track_document_content(self, document: DocumentNode) -> None:
         """Track all content in a document without rendering."""

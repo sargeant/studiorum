@@ -478,6 +478,111 @@ class AreaTagNode(TagNode):
         return f"AreaTagNode(name={self.name!r}, area_id={self.area_id!r}, flags={self.flags!r})"
 
 
+class SkillTagNode(TagNode):
+    """Node for skill reference tags."""
+
+    def __init__(
+        self,
+        name: str,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+    ):
+        super().__init__("skill")
+        self.name = name
+        self.source = source
+        self.page = page
+        self.display_text_nodes = display_text_nodes or []
+        self.children.extend(self.display_text_nodes)
+
+    def __repr__(self) -> str:
+        return f"SkillTagNode(name={self.name!r})"
+
+
+class ActionTagNode(TagNode):
+    """Node for action reference tags."""
+
+    def __init__(
+        self,
+        name: str,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+    ):
+        super().__init__("action")
+        self.name = name
+        self.source = source
+        self.page = page
+        self.display_text_nodes = display_text_nodes or []
+        self.children.extend(self.display_text_nodes)
+
+    def __repr__(self) -> str:
+        return f"ActionTagNode(name={self.name!r})"
+
+
+class StatusTagNode(TagNode):
+    """Node for status reference tags."""
+
+    def __init__(
+        self,
+        name: str,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+    ):
+        super().__init__("status")
+        self.name = name
+        self.source = source
+        self.page = page
+        self.display_text_nodes = display_text_nodes or []
+        self.children.extend(self.display_text_nodes)
+
+    def __repr__(self) -> str:
+        return f"StatusTagNode(name={self.name!r})"
+
+
+class SenseTagNode(TagNode):
+    """Node for sense reference tags."""
+
+    def __init__(
+        self,
+        name: str,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+    ):
+        super().__init__("sense")
+        self.name = name
+        self.source = source
+        self.page = page
+        self.display_text_nodes = display_text_nodes or []
+        self.children.extend(self.display_text_nodes)
+
+    def __repr__(self) -> str:
+        return f"SenseTagNode(name={self.name!r})"
+
+
+class HazardTagNode(TagNode):
+    """Node for hazard reference tags."""
+
+    def __init__(
+        self,
+        name: str,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+    ):
+        super().__init__("hazard")
+        self.name = name
+        self.source = source
+        self.page = page
+        self.display_text_nodes = display_text_nodes or []
+        self.children.extend(self.display_text_nodes)
+
+    def __repr__(self) -> str:
+        return f"HazardTagNode(name={self.name!r})"
+
+
 # Visitor Pattern
 
 

@@ -8,6 +8,7 @@ from lark import Lark, Token, Transformer
 from dnd5e.core.logging import get_logger
 
 from .tag_ast import (
+    ActionTagNode,
     AdventureTagNode,
     AreaTagNode,
     ASTNode,
@@ -24,13 +25,17 @@ from .tag_ast import (
     DocumentNode,
     FeatTagNode,
     FilterTagNode,
+    HazardTagNode,
     HitTagNode,
     ItalicTagNode,
     ItemTagNode,
     LoaderTagNode,
     RaceTagNode,
     RechargeTagNode,
+    SenseTagNode,
+    SkillTagNode,
     SpellTagNode,
+    StatusTagNode,
     TagNode,
     TextNode,
 )
@@ -65,9 +70,13 @@ class TagASTTransformer(Transformer):
         "condition": (1, 4),
         "disease": (1, 4),
         "status": (1, 4),
-        # Adventure/book tags: display|source|chapter/page (1-3 parameters)
-        "adventure": (1, 3),
-        "book": (1, 3),
+        "skill": (1, 4),
+        "action": (1, 4),
+        "sense": (1, 4),
+        "hazard": (1, 4),
+        # Adventure/book tags: display|source|chapter/page|section (1-4 parameters)
+        "adventure": (1, 4),
+        "book": (1, 4),
         # Special reference tags
         "area": (1, 3),  # name|area_id|flags
         "deity": (1, 4),  # name|pantheon|source|display
@@ -81,6 +90,13 @@ class TagASTTransformer(Transformer):
         # Formatting tags
         "bold": (1, 1),
         "italic": (1, 1),
+        "s": (1, 1),
+        "strike": (1, 1),
+        "u": (1, 1),
+        "underline": (1, 1),
+        "code": (1, 1),
+        "note": (1, 1),
+        "quickref": (1, 3),
         "loader": (1, 1),
         "filter": (1, 1),
     }
@@ -265,6 +281,16 @@ class TagASTTransformer(Transformer):
             return FeatTagNode(name, source, final_display_text_nodes, page)
         elif tag_type == "condition":
             return ConditionTagNode(name)
+        elif tag_type == "skill":
+            return SkillTagNode(name, source, final_display_text_nodes, page)
+        elif tag_type == "action":
+            return ActionTagNode(name, source, final_display_text_nodes, page)
+        elif tag_type == "status":
+            return StatusTagNode(name, source, final_display_text_nodes, page)
+        elif tag_type == "sense":
+            return SenseTagNode(name, source, final_display_text_nodes, page)
+        elif tag_type == "hazard":
+            return HazardTagNode(name, source, final_display_text_nodes, page)
 
         # Formatting tags (use display text if available, otherwise first part)
         elif tag_type in ("bold", "b"):

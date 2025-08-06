@@ -380,7 +380,11 @@ class RecursiveEntryProcessor:
                     )
             elif isinstance(item, dict):
                 # Handle nested entries in list items
-                if env == "description":
+                # Special case: if this item is itself a list, don't wrap with \item
+                if item.get("type") == "list":
+                    processed_item = self.process_entry_dict(item, context)
+                    result.append(processed_item)  # No \item wrapper for nested lists
+                elif env == "description":
                     # For description lists, try to extract name as label
                     item_name = item.get("name", "")
                     if item_name:
@@ -394,8 +398,8 @@ class RecursiveEntryProcessor:
                                     entry_content, context
                                 )
                             elif entries_content:
-                                processed_content = self.process_entries(
-                                    entries_content, context
+                                processed_content = "\n".join(
+                                    self.process_entries(entries_content, context)
                                 )
                             else:
                                 processed_content = ""

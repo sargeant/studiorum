@@ -209,7 +209,7 @@ class LaTeXAdventureTagHandler(AdventureTagHandler):
             # Fallback to basic rendering if not an adventure node
             name = getattr(node, "name", str(node))
             page = getattr(node, "page", None)
-            base_text = f"{name}" + (f" (p. {page})" if page else "")
+            base_text = f"{name}" + (f" (p. {page})" if page and page != "1" else "")
 
         # Add LaTeX enhancements if in LaTeX mode
         if hasattr(context, "latex_mode") and context.latex_mode:

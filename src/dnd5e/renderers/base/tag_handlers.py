@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, cast
 
 from dnd5e.core.indexer.content_tracker import ContentTracker
 from dnd5e.core.latex_utils import escape_latex_text
+from dnd5e.core.logging import get_logger
+from dnd5e.core.models.content import ContentType
 from dnd5e.core.text.tag_ast import (
     AdventureTagNode,
     BoldTagNode,
@@ -24,6 +26,8 @@ from dnd5e.core.text.tag_ast import (
 
 if TYPE_CHECKING:
     from .tag_renderer import RendererContext
+
+logger = get_logger(__name__)
 
 
 class TagHandler(ABC):
@@ -48,9 +52,12 @@ class TagHandler(ABC):
 class BaseContentTagHandler(TagHandler):
     """Base handler for content reference tags (creature, spell, item, etc.)."""
 
-    def __init__(self, tag_type: str, latex_format: str):
+    def __init__(
+        self, tag_type: str, latex_format: str, content_type: ContentType | None = None
+    ):
         self.tag_type = tag_type
         self.latex_format = latex_format  # e.g., "\\textbf{{{}}}" for bold
+        self.content_type = content_type  # For validation
 
     def handles(self, tag_type: str) -> bool:
         """Check if this handler handles the tag type."""
@@ -58,6 +65,9 @@ class BaseContentTagHandler(TagHandler):
 
     def render(self, node: TagNode, context: "RendererContext") -> str:
         """Render content reference tag."""
+        # Validate content reference
+        self._validate_content_reference(node, context)
+
         # Get the display text from the node
         if hasattr(node, "display_text_nodes") and node.display_text_nodes:
             # Render display text nodes recursively
@@ -83,6 +93,38 @@ class BaseContentTagHandler(TagHandler):
         if name:
             tracker.add_content(self.tag_type, name, source, page)
 
+    def _validate_content_reference(
+        self, node: TagNode, context: "RendererContext"
+    ) -> bool:
+        """Validate that the content reference exists. Returns True if valid."""
+        if not self.content_type or not context.omnidexer:
+            return True  # Skip validation if we don't have the info
+
+        name = getattr(node, "name", None)
+        source = getattr(node, "source", None)
+
+        if not name:
+            return True  # No name to validate
+
+        # Try to find the content
+        try:
+            content = context.omnidexer.find(self.content_type, name, source)
+            if content is None:
+                source_info = f" from {source}" if source else ""
+                logger.warning(
+                    "Invalid %s reference: '%s'%s not found",
+                    self.tag_type,
+                    name,
+                    source_info,
+                )
+                return False
+            return True
+        except Exception as e:
+            logger.debug(
+                "Error validating %s reference '%s': %s", self.tag_type, name, e
+            )
+            return True  # Don't fail on validation errors
+
     def _escape_latex(self, text: str) -> str:
         """Escape LaTeX special characters."""
         return escape_latex_text(text)
@@ -92,49 +134,53 @@ class CreatureTagHandler(BaseContentTagHandler):
     """Handler for creature reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("creature", "\\textbf{{{}}}")
+        super().__init__("creature", "\\textbf{{{}}}", ContentType.CREATURE)
 
 
 class SpellTagHandler(BaseContentTagHandler):
     """Handler for spell reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("spell", "\\textit{{{}}}")
+        super().__init__("spell", "\\textit{{{}}}", ContentType.SPELL)
 
 
 class ItemTagHandler(BaseContentTagHandler):
     """Handler for item reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("item", "\\textit{{{}}}")
+        super().__init__("item", "\\textit{{{}}}", ContentType.ITEM)
 
 
 class ClassTagHandler(BaseContentTagHandler):
     """Handler for class reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("class", "\\textbf{{{}}}")
+        super().__init__("class", "\\textbf{{{}}}", ContentType.CLASS)
 
 
 class RaceTagHandler(BaseContentTagHandler):
     """Handler for race reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("race", "{}")  # No special formatting for races
+        super().__init__(
+            "race", "{}", ContentType.RACE
+        )  # No special formatting for races
 
 
 class BackgroundTagHandler(BaseContentTagHandler):
     """Handler for background reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("background", "{}")  # No special formatting
+        super().__init__(
+            "background", "{}", ContentType.BACKGROUND
+        )  # No special formatting
 
 
 class FeatTagHandler(BaseContentTagHandler):
     """Handler for feat reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("feat", "\\textbf{{{}}}")
+        super().__init__("feat", "\\textbf{{{}}}", ContentType.FEAT)
 
 
 class BoldTagHandler(TagHandler):
@@ -367,12 +413,12 @@ class AdventureTagHandler(TagHandler):
                 context.render_node(child)
                 for child in adventure_node.display_text_nodes
             )
-            if adventure_node.page:
+            if adventure_node.page and adventure_node.page != "1":
                 return f"{display_text} (p. {adventure_node.page})"
             return display_text
         else:
             # Use adventure name
-            if adventure_node.page:
+            if adventure_node.page and adventure_node.page != "1":
                 return f"{adventure_node.name} (p. {adventure_node.page})"
             return adventure_node.name
 
@@ -488,6 +534,129 @@ class AreaTagHandler(TagHandler):
         pass
 
 
+# Additional formatting and special tag handlers
+
+
+class StrikethroughTagHandler(TagHandler):
+    """Handler for strikethrough formatting tags."""
+
+    def handles(self, tag_type: str) -> bool:
+        return tag_type in ("s", "strike")
+
+    def render(self, node: TagNode, context: "RendererContext") -> str:
+        """Render strikethrough text."""
+        # Get content from first parameter
+        content = getattr(node, "name", str(node))
+        return f"\\sout{{{escape_latex_text(content)}}}"
+
+    def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
+        """Strikethrough tags don't need content tracking."""
+        pass
+
+
+class UnderlineTagHandler(TagHandler):
+    """Handler for underline formatting tags."""
+
+    def handles(self, tag_type: str) -> bool:
+        return tag_type in ("u", "underline")
+
+    def render(self, node: TagNode, context: "RendererContext") -> str:
+        """Render underlined text."""
+        # Get content from first parameter
+        content = getattr(node, "name", str(node))
+        return f"\\underline{{{escape_latex_text(content)}}}"
+
+    def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
+        """Underline tags don't need content tracking."""
+        pass
+
+
+class CodeTagHandler(TagHandler):
+    """Handler for monospace code formatting tags."""
+
+    def handles(self, tag_type: str) -> bool:
+        return tag_type == "code"
+
+    def render(self, node: TagNode, context: "RendererContext") -> str:
+        """Render monospace code."""
+        # Get content from first parameter
+        content = getattr(node, "name", str(node))
+        return f"\\texttt{{{escape_latex_text(content)}}}"
+
+    def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
+        """Code tags don't need content tracking."""
+        pass
+
+
+class SkillTagHandler(BaseContentTagHandler):
+    """Handler for skill reference tags."""
+
+    def __init__(self) -> None:
+        # No SKILL ContentType exists yet, so no validation
+        super().__init__("skill", "\\textit{{{}}}", None)
+
+
+class ActionTagHandler(BaseContentTagHandler):
+    """Handler for action reference tags."""
+
+    def __init__(self) -> None:
+        super().__init__("action", "\\textit{{{}}}", ContentType.ACTION)
+
+
+class StatusTagHandler(BaseContentTagHandler):
+    """Handler for status reference tags."""
+
+    def __init__(self) -> None:
+        super().__init__("status", "\\textit{{{}}}", ContentType.STATUS)
+
+
+class SenseTagHandler(BaseContentTagHandler):
+    """Handler for sense reference tags."""
+
+    def __init__(self) -> None:
+        super().__init__("sense", "\\textit{{{}}}", ContentType.SENSE)
+
+
+class HazardTagHandler(BaseContentTagHandler):
+    """Handler for hazard reference tags."""
+
+    def __init__(self) -> None:
+        super().__init__("hazard", "\\textbf{{{}}}", ContentType.HAZARD)
+
+
+class QuickrefTagHandler(TagHandler):
+    """Handler for quickref tags - simple passthrough to first parameter."""
+
+    def handles(self, tag_type: str) -> bool:
+        return tag_type == "quickref"
+
+    def render(self, node: TagNode, context: "RendererContext") -> str:
+        """Render quickref as simple text."""
+        # Quickref format is usually {@quickref name||page} - use the name
+        content = getattr(node, "name", str(node))
+        return escape_latex_text(content)
+
+    def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
+        """Quickref tags don't need content tracking."""
+        pass
+
+
+class NoteTagHandler(TagHandler):
+    """Handler for note callout tags."""
+
+    def handles(self, tag_type: str) -> bool:
+        return tag_type == "note"
+
+    def render(self, node: TagNode, context: "RendererContext") -> str:
+        """Render note as emphasized text."""
+        content = getattr(node, "name", str(node))
+        return f"\\textit{{Note: {escape_latex_text(content)}}}"
+
+    def track_content(self, node: TagNode, tracker: ContentTracker) -> None:
+        """Note tags don't need content tracking."""
+        pass
+
+
 # Registry of all default handlers
 def get_default_handlers() -> list[TagHandler]:
     """Get the list of default tag handlers."""
@@ -500,9 +669,17 @@ def get_default_handlers() -> list[TagHandler]:
         RaceTagHandler(),
         BackgroundTagHandler(),
         FeatTagHandler(),
+        SkillTagHandler(),
+        ActionTagHandler(),
+        StatusTagHandler(),
+        SenseTagHandler(),
+        HazardTagHandler(),
         # Formatting handlers
         BoldTagHandler(),
         ItalicTagHandler(),
+        StrikethroughTagHandler(),
+        UnderlineTagHandler(),
+        CodeTagHandler(),
         DiceTagHandler(),
         # Special handlers
         HitTagHandler(),
@@ -511,6 +688,8 @@ def get_default_handlers() -> list[TagHandler]:
         ConditionTagHandler(),
         ChanceTagHandler(),
         RechargeTagHandler(),
+        QuickrefTagHandler(),
+        NoteTagHandler(),
         # Reference handlers
         AdventureTagHandler(),
         BookTagHandler(),
@@ -519,6 +698,4 @@ def get_default_handlers() -> list[TagHandler]:
         LoaderTagHandler(),
         # Special formatting handlers
         AreaTagHandler(),
-        # Note: Simple passthrough tags (skill, quickref, status, etc.)
-        # are handled automatically by the improved fallback renderer
     ]
