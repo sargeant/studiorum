@@ -28,54 +28,23 @@ Convert D&D 5e JSON data from [5e.tools](https://5e.tools) to beautifully format
 ```
 
 ```{warning}
-This tool is under active development and not yet in a fully working state.
+This tool is under development and not in a fully working state.
 ```
 
 ## Overview
 
-5e2pdf is a Python CLI tool that transforms the comprehensive D&D 5e JSON datasets from 5e.tools into professional-quality PDF documents using LaTeX. Whether you're a DM preparing for sessions or a player creating reference materials, 5e2pdf provides the tools to create custom, print-ready D&D content.
+5e2pdf is a Python CLI tool that transforms the D&D 5e JSON datasets from 5e.tools into high-quality PDF documents using LaTeX. Whether you're a DM preparing for sessions or a player creating reference materials, 5e2pdf provides the tools to create custom, print-ready D&D content.
 
-## Key Features
+## Under Development
 
-````{grid} 1 2 2 2
-:gutter: 3
+This tool is a work in progress. Not all features are working, however it can:
 
-```{grid-item-card}
-:text-align: center
-:class-title: sd-card-title-large
+- Load and parse the full 5e.tools data source, or any homebrew source
+- Generate a `.tex` document for books/adventures that will build using the [DND-5e-LaTeX-Template from ashonit](https://github.com/ashonit/DND-5e-LaTeX-Template)
 
-<span class="heroicon"><img src="/_static/icons/book-open.svg" alt="Book icon"></span> Wide Content Support
-+++
-Works with all 5e.tools JSON data including spells, creatures, items, adventures, and more
-```
+The content is 95% complete for adventures, 70% for books.
 
-```{grid-item-card}
-:text-align: center
-:class-title: sd-card-title-large
-
-<span class="heroicon"><img src="/_static/icons/sparkles.svg" alt="Sparkles icon"></span> Professional Typography
-+++
-LaTeX-based rendering for publication-quality output with beautiful formatting
-```
-
-```{grid-item-card}
-:text-align: center
-:class-title: sd-card-title-large
-
-<span class="heroicon"><img src="/_static/icons/adjustments-horizontal.svg" alt="Adjustments icon"></span> Flexible Output
-+++
-Generate PDFs for specific content types, sources, or custom collections
-```
-
-```{grid-item-card}
-:text-align: center
-:class-title: sd-card-title-large
-
-<span class="heroicon"><img src="/_static/icons/document-text.svg" alt="Document icon"></span> Developer Documentation
-+++
-Documentation for coders who want to extend or enhance
-```
-````
+This was built for the purpose of generating PDFs, however you could use the `dnd5e` Python library to generate whatever content you wish.
 
 ## Quick Start
 
@@ -92,8 +61,9 @@ Get up and running with 5e2pdf in minutes:
 <span class="heroicon"><img src="/_static/icons/arrow-down-tray.svg" alt="Download icon"></span> Install
 
 ~~~bash
-pip install 5e2pdf
+pip install git+https://github.com/sargeant/5e2pdf#egg=5e2pdf
 ~~~
+(PyPI coming later)
 ```
 
 ```{grid-item-card}
@@ -116,7 +86,7 @@ pip install 5e2pdf
 <span class="heroicon"><img src="/_static/icons/document-duplicate.svg" alt="Document icon"></span> Generate a Book
 
 ~~~bash
-5e2pdf convert book phb --pdf --a4
+5e2pdf convert book phb
 ~~~
 ```
 
@@ -128,18 +98,18 @@ pip install 5e2pdf
 <span class="heroicon"><img src="/_static/icons/map.svg" alt="Map icon"></span> Create Adventures
 
 ~~~bash
-5e2pdf convert adventure lmop --pdf
+5e2pdf convert adventure lmop
 ~~~
 ```
 ````
 
-## Getting Started
+## Documentation
 
-````{grid} 1 1 3 3
+````{grid} 1 1 2 2
 :gutter: 3
 
 ```{grid-item-card}
-:link: user-guide/index
+:link: http://5e2pdf.sargeant.net.nz/user-guide
 :link-type: doc
 :text-align: center
 :class-title: sd-card-title-large
@@ -150,48 +120,14 @@ Complete guide for users getting started with 5e2pdf
 ```
 
 ```{grid-item-card}
-:link: api/index
+:link: http://5e2pdf.sargeant.net.nz/developer
 :link-type: doc
 :text-align: center
 :class-title: sd-card-title-large
 
 <span class="heroicon"><img src="/_static/icons/wrench.svg" alt="Wrench icon"></span> API Reference
 +++
-Comprehensive API documentation and references
-```
-
-```{grid-item-card}
-:link: examples/index
-:link-type: doc
-:text-align: center
-:class-title: sd-card-title-large
-
-<span class="heroicon"><img src="/_static/icons/light-bulb.svg" alt="Light bulb icon"></span> Examples
-+++
-Practical examples and tutorials to get you started
-```
-````
-
-````{grid} 1 1 2 2
-:gutter: 3
-:class-container: action-section
-
-```{grid-item-card}
-:text-align: center
-:class-header: action-button
-
-[<span class="heroicon"><img src="/_static/icons/rocket-launch.svg" alt="Rocket icon"></span> Get Started](quickstart)
-+++
-Start using 5e2pdf today
-```
-
-```{grid-item-card}
-:text-align: center
-:class-header: action-button
-
-[<span class="heroicon"><img src="/_static/icons/bug-ant.svg" alt="Bug icon"></span> Report Issues](https://github.com/sargeant/5e2pdf/issues)
-+++
-Help improve 5e2pdf
+Developer documentation and API reference for `dnd5e`
 ```
 ````
 
@@ -226,5 +162,5 @@ MIT
 ````
 
 ```{rst-class} text-center lead
-*Built with ❤️ for the D&D community*
+*Over-engineered for a niche use case* -- Claude Sonnet 4
 ```
