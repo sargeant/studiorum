@@ -6,7 +6,7 @@ from pathlib import Path
 from dnd5e.core.models.content import BaseContent
 from dnd5e.core.types import RendererConfig
 
-from .context import RenderContext
+from ..core.interfaces import RenderingContext
 
 
 class RenderingError(Exception):
@@ -37,7 +37,9 @@ class BaseRenderer(ABC):
         pass
 
     @abstractmethod
-    def render(self, content: BaseContent, context: RenderContext | None = None) -> str:
+    def render(
+        self, content: BaseContent, context: RenderingContext | None = None
+    ) -> str:
         """Render content to the target format.
 
         Args:
@@ -56,7 +58,7 @@ class BaseRenderer(ABC):
         self,
         content: BaseContent,
         output_path: Path,
-        context: RenderContext | None = None,
+        context: RenderingContext | None = None,
     ) -> None:
         """Render content and write to file.
 

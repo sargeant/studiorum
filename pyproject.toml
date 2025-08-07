@@ -195,5 +195,8 @@ markers = [
     "integration: marks tests as integration tests",
     "stress: marks tests as stress tests for validation",
     "ci_broken: marks tests that fail in CI environment (skipped in CI)",
+    "latex_compilation: marks tests that require LaTeX compilation",
+    "performance: marks tests that benchmark performance",
+    "benchmark: marks tests that run detailed benchmarks",
 ]
 filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]

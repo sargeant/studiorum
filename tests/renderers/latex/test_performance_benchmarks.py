@@ -11,7 +11,7 @@ from dnd5e.core.models.books import Book  # type: ignore
 from dnd5e.core.models.chapter import Chapter  # type: ignore
 from dnd5e.core.models.content import Source  # type: ignore
 from dnd5e.core.models.spells import Spell  # type: ignore
-from dnd5e.renderers.base.context import RenderContext  # type: ignore
+from dnd5e.renderers.core.interfaces import RenderingContext  # type: ignore
 from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
 
 
@@ -73,7 +73,9 @@ class TestRenderingPerformance:
     @pytest.mark.slow
     def test_single_spell_rendering_performance(self, sample_spell: Any) -> None:
         """Benchmark single spell rendering performance."""
-        context = RenderContext(title="Spell Performance Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Spell Performance Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -107,7 +109,9 @@ class TestRenderingPerformance:
     @pytest.mark.slow
     def test_single_creature_rendering_performance(self, sample_creature: Any) -> None:
         """Benchmark single creature rendering performance."""
-        context = RenderContext(title="Creature Performance Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Creature Performance Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -141,7 +145,10 @@ class TestRenderingPerformance:
     @pytest.mark.slow
     def test_book_rendering_performance(self, sample_book: Any) -> None:
         """Benchmark book rendering performance."""
-        context = RenderContext(title="Book Performance Test", include_toc=True)
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"title": "Book Performance Test", "include_toc": True},
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -197,7 +204,9 @@ class TestRenderingPerformance:
             }
             mixed_content.append(Spell.model_validate(simple_spell_data))
 
-        context = RenderContext(title="Mixed Content Performance Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Mixed Content Performance Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -237,7 +246,9 @@ class TestRenderingPerformance:
         import psutil
 
         process = psutil.Process(os.getpid())
-        context = RenderContext(title="Memory Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Memory Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -275,7 +286,9 @@ class TestRenderingPerformance:
     @pytest.mark.slow
     def test_template_engine_caching_performance(self, sample_spell: Any) -> None:
         """Test that template engine caching improves performance."""
-        context = RenderContext(title="Caching Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Caching Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -363,7 +376,10 @@ class TestRenderingPerformance:
             cover=None,
         )
 
-        context = RenderContext(title="Large Document Test", include_toc=True)
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"title": "Large Document Test", "include_toc": True},
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -415,7 +431,10 @@ class TestRenderingPerformance:
                 new_callable=AsyncMock,
             ):
                 # Measure end-to-end performance
-                context = RenderContext(title="Compilation Performance Test")
+                context = RenderingContext(
+                    output_format="latex",
+                    metadata={"title": "Compilation Performance Test"},
+                )
                 start_time = time.perf_counter()
                 for _ in range(10):
                     result = compile_document_to_pdf_sync(

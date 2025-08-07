@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from ...core.models.content import BaseContent
-from .context import RenderContext
+from ..core.interfaces import RenderingContext
 from .renderer import BaseRenderer
 
 
@@ -18,7 +18,7 @@ class DocumentRenderer(BaseRenderer):
 
     @abstractmethod
     def render_document(
-        self, content_items: Sequence[BaseContent], context: RenderContext
+        self, content_items: Sequence[BaseContent], context: RenderingContext
     ) -> str:
         """Render a complete document from multiple content items.
 
@@ -32,7 +32,7 @@ class DocumentRenderer(BaseRenderer):
         pass
 
     @abstractmethod
-    def render_document_header(self, context: RenderContext) -> str:
+    def render_document_header(self, context: RenderingContext) -> str:
         """Render document header/preamble.
 
         Args:
@@ -44,7 +44,7 @@ class DocumentRenderer(BaseRenderer):
         pass
 
     @abstractmethod
-    def render_document_footer(self, context: RenderContext) -> str:
+    def render_document_footer(self, context: RenderingContext) -> str:
         """Render document footer/closing.
 
         Args:
@@ -56,7 +56,7 @@ class DocumentRenderer(BaseRenderer):
         pass
 
     def render_table_of_contents(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderingContext
     ) -> str:
         """Render table of contents.
 
@@ -70,7 +70,7 @@ class DocumentRenderer(BaseRenderer):
         return ""  # Default implementation returns empty string
 
     def render_index(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderingContext
     ) -> str:
         """Render document index.
 
@@ -87,7 +87,7 @@ class DocumentRenderer(BaseRenderer):
         self,
         content_items: list[BaseContent],
         output_path: Path,
-        context: RenderContext,
+        context: RenderingContext,
     ) -> None:
         """Render complete document and write to file.
 

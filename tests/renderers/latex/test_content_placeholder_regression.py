@@ -9,7 +9,7 @@ import pytest
 from dnd5e.core.models.books import Book, Chapter
 from dnd5e.core.models.content import Source
 from dnd5e.core.models.document_metadata import DocumentMetadata, DocumentType
-from dnd5e.renderers.base import RenderContext
+from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex.document import LaTeXDocumentRenderer
 from dnd5e.renderers.latex.document_structure import (
     ContentSection,
@@ -28,7 +28,9 @@ class TestContentPlaceholderRegression:
             title="Test Book",
             document_type=DocumentType.BOOK,
         )
-        self.context = RenderContext(metadata=metadata)
+        self.context = RenderingContext(
+            output_format="latex", metadata={"document_metadata": metadata}
+        )
 
     def test_string_placeholder_replacement_is_limited(self) -> None:
         """Test that string placeholders are replaced only once, not globally."""
@@ -167,7 +169,7 @@ class TestContentPlaceholderRegression:
         )
 
         # Build document structure
-        builder = DocumentStructureBuilder(self.context.metadata)
+        builder = DocumentStructureBuilder(self.context.metadata["document_metadata"])
         sections, _ = builder.build_document_structure([book], self.context)
 
         # Create a simple template-like document

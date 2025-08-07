@@ -96,7 +96,7 @@ class TagASTTransformer(Transformer):
         "underline": (1, 1),
         "code": (1, 1),
         "note": (1, 1),
-        "quickref": (1, 3),
+        "quickref": (1, 5),
         "loader": (1, 1),
         "filter": (1, 1),
     }

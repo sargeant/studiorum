@@ -13,7 +13,8 @@ from ...core.models.document_metadata import (
     DocumentType,
 )
 from ...core.types import LaTeXConfig, RenderContextDict
-from ..base import DocumentRenderer, RenderContext, RenderingError
+from ..base import DocumentRenderer, RenderingError
+from ..core.interfaces import RenderingContext
 from .compilation_config import CompilationConfig, CompilationResult, LaTeXEngine
 from .compiler import LaTeXCompiler
 from .content_organizer import ContentOrganizer
@@ -45,7 +46,9 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         """Return the output format."""
         return "latex"
 
-    def render(self, content: BaseContent, context: RenderContext | None = None) -> str:
+    def render(
+        self, content: BaseContent, context: RenderingContext | None = None
+    ) -> str:
         """Render a single content item as a minimal document.
 
         Args:
@@ -56,11 +59,11 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             Complete LaTeX document
         """
         # Use provided context or create default
-        render_context = context or RenderContext()
+        render_context = context or RenderingContext(output_format="latex")
         return self.render_document([content], render_context)
 
     def render_document(
-        self, content_items: Sequence[BaseContent], context: RenderContext
+        self, content_items: Sequence[BaseContent], context: RenderingContext
     ) -> str:
         """Render a complete LaTeX document.
 
@@ -79,7 +82,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             raise RenderingError(f"Failed to render LaTeX document: {e}") from e
 
     def render_structured_document(
-        self, content_items: Sequence[BaseContent], context: RenderContext
+        self, content_items: Sequence[BaseContent], context: RenderingContext
     ) -> str:
         """Render a structured LaTeX document using DocumentStructureBuilder.
 
@@ -91,11 +94,11 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             Complete structured LaTeX document
         """
         # Get document metadata from context
-        metadata = getattr(context, "metadata", None)
+        metadata = context.metadata.get("document_metadata", None)
         if not metadata:
             # Create default metadata if none provided
             metadata = DocumentMetadata(
-                title=context.title or "D&D 5e Content",
+                title=context.metadata.get("title", "D&D 5e Content"),
                 subtitle=None,
                 short_title=None,
                 editor=None,
@@ -118,6 +121,9 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         # Initialize structure builder
         self._structure_builder = DocumentStructureBuilder(metadata)
         self.content_organizer.document_type = metadata.document_type
+
+        # Add document_type to context metadata so entry processor can access it
+        context.metadata["document_type"] = metadata.document_type
 
         # Organize content and build structure
         content_list = list(content_items)
@@ -168,7 +174,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return rendered_document
 
     def _render_content_in_sections(
-        self, document: str, sections: list[ContentSection], context: RenderContext
+        self, document: str, sections: list[ContentSection], context: RenderingContext
     ) -> str:
         """Render content items within document sections.
 
@@ -224,7 +230,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
 
         return document
 
-    def render_document_header(self, context: RenderContext) -> str:
+    def render_document_header(self, context: RenderingContext) -> str:
         """Render LaTeX document preamble and begin document.
 
         Args:
@@ -234,19 +240,21 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             LaTeX document header
         """
         template_vars = {
-            "title": context.title or "D&D 5e Content",
-            "subtitle": context.subtitle or "",
-            "author": context.author or "",
-            "date": context.date or r"\today",
-            "page_size": context.page_size,
-            "font_size": context.font_size,
-            "include_images": context.include_images,
-            "fonts_dir": str(context.fonts_dir) if context.fonts_dir else None,
+            "title": context.metadata.get("title", "D&D 5e Content"),
+            "subtitle": context.metadata.get("subtitle", ""),
+            "author": context.metadata.get("author", ""),
+            "date": context.metadata.get("date", r"\today"),
+            "page_size": context.metadata.get("page_size", "a4paper"),
+            "font_size": context.metadata.get("font_size", "10pt"),
+            "include_images": context.metadata.get("include_images", True),
+            "fonts_dir": str(context.metadata.get("fonts_dir"))
+            if context.metadata.get("fonts_dir")
+            else None,
         }
 
         return self.template_engine.render_template("document_header", template_vars)
 
-    def render_document_footer(self, context: RenderContext) -> str:
+    def render_document_footer(self, context: RenderingContext) -> str:
         """Render LaTeX document footer.
 
         Args:
@@ -258,7 +266,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return self.template_engine.render_template("document_footer", {})
 
     def render_table_of_contents(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderingContext
     ) -> str:
         """Render table of contents.
 
@@ -269,7 +277,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             LaTeX table of contents
         """
-        if not context.include_toc:
+        if not context.metadata.get("include_toc", True):
             return ""
 
         template_vars = {"content_items": content_items, "title": "Table of Contents"}
@@ -277,7 +285,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         return self.template_engine.render_template("table_of_contents", template_vars)
 
     def render_index(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderingContext
     ) -> str:
         """Render document index.
 
@@ -288,7 +296,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             LaTeX index
         """
-        if not context.include_index:
+        if not context.metadata.get("include_index", True):
             return ""
 
         # Build index entries
@@ -329,7 +337,9 @@ class LaTeXDocumentRenderer(DocumentRenderer):
 
         return self.template_engine.render_template("index", template_vars)
 
-    def render_content_item(self, content: BaseContent, context: RenderContext) -> str:
+    def render_content_item(
+        self, content: BaseContent, context: RenderingContext
+    ) -> str:
         """Render an individual content item.
 
         Args:
@@ -346,7 +356,8 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             return self._render_basic_content(content, context)
 
         # Check if content should be included
-        if not context.should_include_content_type(content_type.value):
+        should_include_fn = context.metadata.get("should_include_content_type")
+        if should_include_fn and not should_include_fn(content_type.value):
             return ""
 
         # Use EntryRenderer system
@@ -358,7 +369,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             return self._render_basic_content(content, context)
 
     def _render_basic_content(
-        self, content: BaseContent, context: RenderContext
+        self, content: BaseContent, context: RenderingContext
     ) -> str:
         """Render content using basic fallback formatting.
 
@@ -416,7 +427,7 @@ This content type is not yet fully supported by the rendering system.
         """
         return escape_latex_text(text)
 
-    def _is_book_entry(self, content: Any, context: RenderContext) -> bool:
+    def _is_book_entry(self, content: Any, context: RenderingContext) -> bool:
         """Check if content is a raw book entry that should be processed recursively.
 
         Args:
@@ -430,7 +441,12 @@ This content type is not yet fully supported by the rendering system.
         if not hasattr(context, "metadata") or not context.metadata:
             return False
 
-        if context.metadata.document_type != DocumentType.BOOK:
+        # Get document metadata from context
+        document_metadata = context.metadata.get("document_metadata", None)
+        if (
+            not document_metadata
+            or document_metadata.document_type != DocumentType.BOOK
+        ):
             return False
 
         # Check if content looks like a book entry
@@ -441,11 +457,11 @@ This content type is not yet fully supported by the rendering system.
             return any(key in content for key in ["type", "entries", "name"])
         elif hasattr(content, "entries") and hasattr(content, "document_type"):
             # Section objects from nested entries that contain book content
-            return bool(content.document_type == "book")
+            return bool(getattr(content, "document_type", None) == "book")
 
         return False
 
-    def _is_adventure_entry(self, content: Any, context: RenderContext) -> bool:
+    def _is_adventure_entry(self, content: Any, context: RenderingContext) -> bool:
         """Check if content is a raw adventure entry.
 
         Args:
@@ -459,7 +475,12 @@ This content type is not yet fully supported by the rendering system.
         if not hasattr(context, "metadata") or not context.metadata:
             return False
 
-        if context.metadata.document_type != DocumentType.ADVENTURE:
+        # Get document metadata from context
+        document_metadata = context.metadata.get("document_metadata", None)
+        if (
+            not document_metadata
+            or document_metadata.document_type != DocumentType.ADVENTURE
+        ):
             return False
 
         # Check if content looks like an adventure entry
@@ -471,7 +492,7 @@ This content type is not yet fully supported by the rendering system.
 
         return False
 
-    def _render_adventure_entry(self, content: Any, context: RenderContext) -> str:
+    def _render_adventure_entry(self, content: Any, context: RenderingContext) -> str:
         """Render a raw adventure entry using RecursiveEntryProcessor.
 
         Args:
@@ -489,9 +510,9 @@ This content type is not yet fully supported by the rendering system.
 
         if isinstance(content, str):
             # Process string content with tags
-            if hasattr(context, "tag_resolver") and context.tag_resolver:
-                # Type cast needed due to forward reference in RenderContext
-                result = context.tag_resolver.process_text(content)
+            tag_resolver = context.metadata.get("tag_resolver")
+            if tag_resolver:
+                result = tag_resolver.process_text(content)
                 return str(result)
             else:
                 return self._escape_latex(content)
@@ -501,7 +522,7 @@ This content type is not yet fully supported by the rendering system.
         else:
             return ""
 
-    def _render_book_entry(self, content: Any, context: RenderContext) -> str:
+    def _render_book_entry(self, content: Any, context: RenderingContext) -> str:
         """Render a raw book entry using RecursiveEntryProcessor.
 
         Args:
@@ -519,9 +540,9 @@ This content type is not yet fully supported by the rendering system.
 
         if isinstance(content, str):
             # Process string content with tags
-            if hasattr(context, "tag_resolver") and context.tag_resolver:
-                # Type cast needed due to forward reference in RenderContext
-                result = context.tag_resolver.process_text(content)
+            tag_resolver = context.metadata.get("tag_resolver")
+            if tag_resolver:
+                result = tag_resolver.process_text(content)
                 return str(result)
             else:
                 return self._escape_latex(content)
@@ -593,7 +614,7 @@ This content type is not yet fully supported by the rendering system.
         Returns:
             CompilationResult with compilation details
         """
-        render_context = RenderContext()
+        render_context = RenderingContext(output_format="latex")
         latex_source = self.render_document([content], render_context)
 
         output_name = output_path.stem if output_path else content.name
@@ -607,7 +628,7 @@ This content type is not yet fully supported by the rendering system.
         self,
         content_items: Sequence[BaseContent],
         output_path: Path | None = None,
-        context: RenderContext | None = None,
+        context: RenderingContext | None = None,
     ) -> CompilationResult:
         """Compile multiple content items to PDF.
 
@@ -620,7 +641,7 @@ This content type is not yet fully supported by the rendering system.
             CompilationResult with compilation details
         """
         if not context:
-            context = RenderContext()
+            context = RenderingContext(output_format="latex")
 
         # Generate LaTeX source
         latex_source = self.render_document(content_items, context)
@@ -631,7 +652,7 @@ This content type is not yet fully supported by the rendering system.
             output_name = output_path.stem
             working_dir = output_path.parent
         else:
-            output_name = context.title or "document"
+            output_name = context.metadata.get("title", "document")
             working_dir = self.compiler.config.output_dir
 
         # Compile to PDF

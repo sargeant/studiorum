@@ -6,8 +6,9 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from dnd5e.core.logging import get_logger
-from dnd5e.renderers.base.tag_handlers import TagHandler
-from dnd5e.renderers.base.tag_renderer import TagRenderer
+from dnd5e.renderers.core.handlers import get_default_core_handlers
+from dnd5e.renderers.core.interfaces import CoreTagHandler, RenderingContext
+from dnd5e.renderers.core.unified_renderer import StandardUnifiedRenderer
 
 from .tag_parser import TagParseError, TagParser
 
@@ -21,24 +22,43 @@ class TagResolver(BaseModel):
     parser: TagParser = Field(
         default_factory=TagParser, description="Tag parser instance"
     )
-    renderer: TagRenderer = Field(description="Tag renderer instance")
+    renderer: StandardUnifiedRenderer = Field(
+        description="Core unified renderer instance"
+    )
+    rendering_context: RenderingContext = Field(
+        description="Rendering context for tag processing"
+    )
     custom_handlers: dict[str, Callable] = Field(
         default_factory=dict, description="Custom handlers for backward compatibility"
     )
 
     def __init__(self, omnidexer: Any = None, **data: Any) -> None:
-        # Create renderer with omnidexer
-        renderer = TagRenderer(omnidexer)
+        # Create renderer with core handlers
+        core_handlers = get_default_core_handlers()
+        renderer = StandardUnifiedRenderer.create_latex_renderer(core_handlers)
+
+        # Create rendering context
+        rendering_context = RenderingContext(
+            output_format="latex",
+            omnidexer=omnidexer,
+            content_tracker=None,  # Will be set if needed
+            debug_mode=False,
+        )
 
         # Call parent constructor with computed fields
-        super().__init__(omnidexer=omnidexer, renderer=renderer, **data)
+        super().__init__(
+            omnidexer=omnidexer,
+            renderer=renderer,
+            rendering_context=rendering_context,
+            **data,
+        )
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def process_text(self, text: str) -> str:
         """Process text with tags and return rendered output.
 
-        This method maintains compatibility with the old TagResolver.process_text API.
+        This method processes text using the modern core architecture.
         """
         if not text:
             return text
@@ -47,8 +67,23 @@ class TagResolver(BaseModel):
             # Parse text to AST
             document = self.parser.parse(text)
 
-            # Render AST to output
-            return self.renderer.render_document(document)
+            # Render each node in the document
+            result_parts = []
+            for node in document.children:
+                # Import here to avoid circular imports
+                from dnd5e.core.text.tag_ast import TagNode, TextNode
+
+                if isinstance(node, TagNode):  # TagNode
+                    rendered = self.renderer.render_tag(node, self.rendering_context)
+                    result_parts.append(rendered)
+                elif isinstance(node, TextNode):  # TextNode - extract and escape text
+                    from dnd5e.core.latex_utils import escape_latex_text
+
+                    result_parts.append(escape_latex_text(node.text))
+                else:  # Other node types
+                    result_parts.append(str(node))
+
+            return "".join(result_parts)
 
         except TagParseError as e:
             logger.warning("Tag parsing failed for text '%s': %s", text[:50], e)
@@ -59,44 +94,24 @@ class TagResolver(BaseModel):
             )
             return text
 
-    def register_handler(self, handler: TagHandler) -> None:
-        """Register a new-style tag handler."""
-        self.renderer.register_handler(handler)
-
-    def get_tracked_content_for_appendix(self) -> list[tuple]:
-        """Get tracked content for appendix generation.
-
-        Returns content in the format: [(type, name, source), ...]
-        """
-        tracked_content = self.renderer.get_tracked_content()
-        return [content.to_tuple() for content in tracked_content]
-
-    def get_tracked_content_detailed(self) -> dict[str, list[dict[str, str | int]]]:
-        """Get detailed tracked content for appendix generation."""
-        return self.renderer.get_tracked_content_for_appendix()
-
-    def clear_tracked_content(self) -> None:
-        """Clear all tracked content."""
-        self.renderer.clear_tracked_content()
-
-    def get_content_statistics(self) -> dict[str, int]:
-        """Get statistics about tracked content."""
-        return self.renderer.get_content_statistics()
-
-    def track_document_content(self, text: str) -> None:
-        """Track content in a document without rendering."""
-        try:
-            document = self.parser.parse(text)
-            self.renderer.track_document_content(document)
-        except TagParseError as e:
-            logger.debug("Tag parsing failed during content tracking: %s", e)
-        except Exception as e:
-            logger.warning("Unexpected error tracking document content: %s", e)
+    def register_handler(self, handler: CoreTagHandler) -> None:
+        """Register a new core tag handler."""
+        # Add to the core handlers list
+        self.renderer.core_handlers.append(handler)
 
     def get_supported_tag_types(self) -> list[str]:
-        """Get all supported tag types."""
-        return self.renderer.get_supported_tag_types()
+        """Get all supported tag types from registered core handlers."""
+        tag_types = []
+        for handler in self.renderer.core_handlers:
+            if hasattr(handler, "supported_tags"):
+                tag_types.extend(handler.supported_tags)
+        return list(set(tag_types))  # Remove duplicates
 
     def has_handler(self, tag_type: str) -> bool:
         """Check if a handler exists for the given tag type."""
-        return self.renderer.has_handler(tag_type)
+        for handler in self.renderer.core_handlers:
+            if hasattr(handler, "handles_tag_type") and handler.handles_tag_type(
+                tag_type
+            ):
+                return True
+        return False

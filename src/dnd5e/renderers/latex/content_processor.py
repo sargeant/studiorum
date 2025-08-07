@@ -12,14 +12,16 @@ from ...core.models.content import BaseContent, ContentType
 from ...core.models.creatures import Creature
 from ...core.models.items import Item
 from ...core.models.spells import Spell
-from ..base import RenderContext
+from ..core.interfaces import RenderingContext
 
 
 class ContentProcessor(ABC):
     """Abstract base class for content processors."""
 
     @abstractmethod
-    def process(self, content: BaseContent, context: RenderContext) -> dict[str, Any]:
+    def process(
+        self, content: BaseContent, context: RenderingContext
+    ) -> dict[str, Any]:
         """Process content and return enhanced data for rendering.
 
         Args:
@@ -51,7 +53,9 @@ class SpellProcessor(ContentProcessor):
         """Check if processor supports spell content."""
         return content_type == ContentType.SPELL
 
-    def process(self, content: BaseContent, context: RenderContext) -> dict[str, Any]:
+    def process(
+        self, content: BaseContent, context: RenderingContext
+    ) -> dict[str, Any]:
         """Process spell content for enhanced rendering.
 
         Args:
@@ -212,7 +216,9 @@ class CreatureProcessor(ContentProcessor):
         """Check if processor supports creature content."""
         return content_type == ContentType.CREATURE
 
-    def process(self, content: BaseContent, context: RenderContext) -> dict[str, Any]:
+    def process(
+        self, content: BaseContent, context: RenderingContext
+    ) -> dict[str, Any]:
         """Process creature content for enhanced rendering.
 
         Args:
@@ -406,7 +412,9 @@ class ItemProcessor(ContentProcessor):
         """Check if processor supports item content."""
         return content_type == ContentType.ITEM
 
-    def process(self, content: BaseContent, context: RenderContext) -> dict[str, Any]:
+    def process(
+        self, content: BaseContent, context: RenderingContext
+    ) -> dict[str, Any]:
         """Process item content for enhanced rendering.
 
         Args:
@@ -565,7 +573,7 @@ class ContentProcessorRegistry:
         return self._processors.get(content_type)
 
     def process_content(
-        self, content: BaseContent, context: RenderContext
+        self, content: BaseContent, context: RenderingContext
     ) -> dict[str, Any]:
         """Process content using appropriate processor.
 

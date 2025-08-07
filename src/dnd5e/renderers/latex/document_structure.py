@@ -9,7 +9,7 @@ from ...core.models.document_metadata import (
     DocumentType,
     SectionLevel,
 )
-from ..base.context import RenderContext
+from ..core.interfaces import RenderingContext
 
 
 class DocumentStructureBuilder:
@@ -25,7 +25,7 @@ class DocumentStructureBuilder:
         self._section_counter = 0
 
     def build_document_structure(
-        self, content_items: list[BaseContent], context: RenderContext
+        self, content_items: list[BaseContent], context: RenderingContext
     ) -> tuple[list[ContentSection], dict[str, Any]]:
         """Build complete document structure from content items.
 
@@ -75,7 +75,7 @@ class DocumentStructureBuilder:
         return organized
 
     def _build_section_hierarchy(
-        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+        self, organized_content: dict[str, list[BaseContent]], context: RenderingContext
     ) -> list[ContentSection]:
         """Build section hierarchy based on document type and content.
 
@@ -105,7 +105,7 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_adventure_structure(
-        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+        self, organized_content: dict[str, list[BaseContent]], context: RenderingContext
     ) -> list[ContentSection]:
         """Build structure for adventure documents.
 
@@ -136,7 +136,7 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_book_structure(
-        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+        self, organized_content: dict[str, list[BaseContent]], context: RenderingContext
     ) -> list[ContentSection]:
         """Build structure for book documents.
 
@@ -167,7 +167,7 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_supplement_structure(
-        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+        self, organized_content: dict[str, list[BaseContent]], context: RenderingContext
     ) -> list[ContentSection]:
         """Build structure for supplement documents.
 
@@ -207,7 +207,7 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_reference_structure(
-        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+        self, organized_content: dict[str, list[BaseContent]], context: RenderingContext
     ) -> list[ContentSection]:
         """Build structure for reference documents.
 
@@ -225,7 +225,7 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_article_structure(
-        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+        self, organized_content: dict[str, list[BaseContent]], context: RenderingContext
     ) -> list[ContentSection]:
         """Build structure for article documents.
 
@@ -243,7 +243,7 @@ class DocumentStructureBuilder:
         return sections
 
     def _build_generic_structure(
-        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+        self, organized_content: dict[str, list[BaseContent]], context: RenderingContext
     ) -> list[ContentSection]:
         """Build generic structure as fallback.
 
@@ -270,7 +270,7 @@ class DocumentStructureBuilder:
         return sections
 
     def _create_chapter_section(
-        self, chapter_data: Any, chapter_num: int, context: RenderContext
+        self, chapter_data: Any, chapter_num: int, context: RenderingContext
     ) -> ContentSection:
         """Create a ContentSection from adventure/book chapter data.
 
@@ -378,7 +378,7 @@ class DocumentStructureBuilder:
         return entry_names
 
     def _create_content_type_chapters(
-        self, organized_content: dict[str, list[BaseContent]], context: RenderContext
+        self, organized_content: dict[str, list[BaseContent]], context: RenderingContext
     ) -> list[ContentSection]:
         """Create chapters for content types (excluding adventures/books).
 
@@ -404,7 +404,7 @@ class DocumentStructureBuilder:
         return chapters
 
     def _create_content_type_chapter(
-        self, content_type: str, items: list[BaseContent], context: RenderContext
+        self, content_type: str, items: list[BaseContent], context: RenderingContext
     ) -> ContentSection:
         """Create a chapter for a specific content type.
 
@@ -433,7 +433,7 @@ class DocumentStructureBuilder:
         return section
 
     def _create_content_type_section(
-        self, content_type: str, items: list[BaseContent], context: RenderContext
+        self, content_type: str, items: list[BaseContent], context: RenderingContext
     ) -> ContentSection:
         """Create a section for a specific content type.
 
@@ -518,7 +518,7 @@ class DocumentStructureBuilder:
         return f"{safe_text}-{self._section_counter}"
 
     def _create_document_context(
-        self, sections: list[ContentSection], context: RenderContext
+        self, sections: list[ContentSection], context: RenderingContext
     ) -> dict[str, Any]:
         """Create document context for template rendering.
 

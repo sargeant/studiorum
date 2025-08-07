@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from dnd5e.core.models.content import ContentType
-from dnd5e.renderers.base.context import RenderContext
+from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex.layout.base import LayoutHint, LayoutStrategy
 from dnd5e.renderers.latex.layout.integration import (
     LayoutAwareContentRenderer,
@@ -146,7 +146,7 @@ class TestLayoutIntegrationMixin:
         renderer = TestRenderer()
 
         # Create mock context with layout preferences
-        context = Mock(spec=RenderContext)
+        context = Mock(spec=RenderingContext)
         context.layout_preferences = {
             "float_position": "top",
             "use_sidebar": True,

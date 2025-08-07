@@ -2,7 +2,7 @@
 
 from unittest.mock import Mock
 
-from dnd5e.renderers.base import RenderContext
+from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
 
 
@@ -12,13 +12,19 @@ class TestRecursiveEntryProcessor:
     def setup_method(self):
         """Set up test fixtures."""
         self.processor = RecursiveEntryProcessor(use_dnd_template=True)
-        self.context = RenderContext()
-        self.context.include_images = True  # Enable image processing
+        self.context = RenderingContext(output_format="latex")
+        self.context = RenderingContext(
+            output_format="latex",
+            metadata={"include_images": True},  # Enable image processing
+        )
 
         # Mock tag resolver to return escaped text
         mock_tag_resolver = Mock()
         mock_tag_resolver.process_text = Mock(side_effect=lambda x: f"processed_{x}")
-        self.context.tag_resolver = mock_tag_resolver
+        self.context = RenderingContext(
+            output_format="latex",
+            metadata={"include_images": True, "tag_resolver": mock_tag_resolver},
+        )
 
     def test_init_default(self):
         """Test processor initialization with defaults."""
@@ -155,8 +161,10 @@ class TestRecursiveEntryProcessor:
     def test_process_entry_dict_image_disabled(self):
         """Test processing image when images are disabled."""
         # Create context with images disabled
-        context = RenderContext()
-        context.include_images = False
+        context = RenderingContext(output_format="latex")
+        context = RenderingContext(
+            output_format="latex", metadata={"include_images": False}
+        )
 
         # Mock tag resolver
         from unittest.mock import Mock
@@ -307,16 +315,18 @@ class TestRecursiveEntryProcessor:
 
     def test_get_section_command_all_depths(self):
         """Test section command generation for all depths."""
-        assert self.processor._get_section_command(0) == "section"
-        assert self.processor._get_section_command(1) == "subsection"
-        assert self.processor._get_section_command(2) == "subsubsection"
-        assert self.processor._get_section_command(3) == "paragraph"
-        assert self.processor._get_section_command(4) == "subparagraph"
-        assert self.processor._get_section_command(10) == "subparagraph"  # Max depth
+        assert self.processor._get_section_command(0, self.context) == "section"
+        assert self.processor._get_section_command(1, self.context) == "subsection"
+        assert self.processor._get_section_command(2, self.context) == "subsubsection"
+        assert self.processor._get_section_command(3, self.context) == "paragraph"
+        assert self.processor._get_section_command(4, self.context) == "subparagraph"
+        assert (
+            self.processor._get_section_command(10, self.context) == "subparagraph"
+        )  # Max depth
 
     def test_process_text_with_tags_no_resolver(self):
         """Test text processing without tag resolver."""
-        context_no_resolver = RenderContext()
+        context_no_resolver = RenderingContext(output_format="latex")
         context_no_resolver.tag_resolver = None
 
         result = self.processor._process_text_with_tags(

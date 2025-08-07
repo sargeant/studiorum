@@ -7,6 +7,7 @@ Detailed implementation guides for each major system component.
 ```{toctree}
 :maxdepth: 2
 
+tag-system-architecture
 entry-types-system
 image-processing
 layout-engine
@@ -28,6 +29,19 @@ The Implementation Guides provide detailed technical explanations of 5e2pdf's ke
 - **Maintainers** making architectural decisions
 
 ## Available Guides
+
+### [Tag System Architecture](tag-system-architecture.md)
+
+Comprehensive guide to the unified tag processing and rendering architecture:
+
+- Unified architecture separating business logic from presentation with CoreTagHandler protocol
+- AST-based parsing with Lark parser and custom 5etools grammar for complex tag syntax
+- Core handler system processing 13+ tag types (creatures, spells, items, formatting, mechanics)
+- Enhancement pipeline with multi-stage presentation formatting (LaTeX, hyperlinks, content tracking)
+- Integration with document rendering, service container, and CLI workflows
+- Extension patterns for custom content types, output formats, and enhancement stages
+- Performance optimization with caching, lazy loading, and efficient pipeline processing
+- Complete migration from legacy dual-system architecture to composition-based design
 
 ### [Entry Types System](entry-types-system.md)
 
@@ -222,18 +236,26 @@ src/dnd5e/
 │   ├── parsers/           # Content parsing logic
 │   ├── resolvers/         # Content resolution (fuzzy matching)
 │   ├── sources/           # Data source management (GitHub, local)
-│   ├── text/              # Tag processing system (AST-based)
+│   ├── text/              # Tag processing system (AST-based parsing)
+│   │   ├── tag_parser.py  # Lark-based parser with 5etools grammar
+│   │   ├── tag_ast.py     # AST node definitions (CreatureTagNode, etc.)
+│   │   ├── tag_grammar.lark # Parser grammar for tag syntax
+│   │   ├── tag_types.py   # Result types (FormattingNode, SpecialTag)
+│   │   └── tag_resolver.py # Text processing integration
 │   ├── validation/        # Validation system and error tracking
 │   ├── container.py       # Service container (dependency injection)
 │   ├── result.py          # Result[T, E] pattern implementation
 │   └── unified_references.py # Generic reference system
 └── renderers/              # Output rendering system
-    ├── base/              # Base renderer abstractions
+    ├── core/              # Core tag handling (business logic)
+    │   ├── handlers.py    # CoreTagHandler implementations
+    │   └── interfaces.py  # Protocols, pipelines, UnifiedTagRenderer
     ├── latex/             # LaTeX-specific rendering
     │   ├── images/        # Image processing pipeline (4 components)
     │   ├── layout/        # Layout engine system (5 managers)
-    │   └── templates/     # Jinja2 LaTeX templates
-    └── tags/              # Tag rendering system
+    │   ├── templates/     # Jinja2 LaTeX templates
+    │   └── tag_renderer.py # LaTeX presentation formatting
+    └── base/              # Base renderer abstractions (deprecated)
 ```
 
 ### Key Concepts

@@ -4,7 +4,7 @@ from typing import Any
 
 from ....core.models.content import ContentType
 from ....core.types import LayoutConfig
-from ...base.context import RenderContext
+from ...core.interfaces import RenderingContext
 from .base import LayoutHint, LayoutStrategy
 from .layout_engine import LayoutEngine
 
@@ -29,7 +29,7 @@ class LayoutIntegrationMixin:
         self,
         content: str,
         content_type: ContentType,
-        context: RenderContext | None = None,
+        context: RenderingContext | None = None,
     ) -> str:
         """Apply layout processing to rendered content."""
         if not self._layout_enabled or not content.strip():
@@ -47,7 +47,7 @@ class LayoutIntegrationMixin:
         )
 
     def _create_layout_hints(
-        self, content_type: ContentType, context: RenderContext | None
+        self, content_type: ContentType, context: RenderingContext | None
     ) -> LayoutHint:
         """Create layout hints based on content type and context."""
         hint = LayoutHint()
@@ -66,7 +66,7 @@ class LayoutIntegrationMixin:
         return hint
 
     def _enhance_hints_from_context(
-        self, hint: LayoutHint, context: RenderContext
+        self, hint: LayoutHint, context: RenderingContext
     ) -> LayoutHint:
         """Enhance layout hints based on rendering context."""
         # Check for layout-related context flags
@@ -86,7 +86,7 @@ class LayoutIntegrationMixin:
         return hint
 
     def _determine_layout_strategy(
-        self, content_type: ContentType, context: RenderContext | None
+        self, content_type: ContentType, context: RenderingContext | None
     ) -> LayoutStrategy | None:
         """Determine layout strategy for this content."""
         # Use configured strategy first
@@ -141,7 +141,7 @@ class LayoutAwareContentRenderer:
         self,
         content: Any,
         content_type: ContentType,
-        context: RenderContext | None = None,
+        context: RenderingContext | None = None,
     ) -> str:
         """Render content and apply layout processing."""
         # First render the content using the specific renderer
@@ -160,13 +160,13 @@ class LayoutAwareContentRenderer:
         self,
         content: Any,
         content_type: ContentType,
-        context: RenderContext | None,
+        context: RenderingContext | None,
     ) -> LayoutHint | None:
         """Get layout hints specific to this content and renderer."""
         # Override in subclasses to provide content-specific hints
         return None
 
-    def render_content(self, content: Any, context: RenderContext | None) -> str:
+    def render_content(self, content: Any, context: RenderingContext | None) -> str:
         """Render content without layout processing. Override in subclasses."""
         raise NotImplementedError("Subclasses must implement render_content")
 

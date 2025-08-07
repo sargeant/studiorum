@@ -4,7 +4,7 @@ from abc import abstractmethod
 from typing import Any
 
 from ...core.models.content import BaseContent, ContentType
-from .context import RenderContext
+from ..core.interfaces import RenderingContext
 from .renderer import BaseRenderer
 
 
@@ -22,7 +22,7 @@ class ContentRenderer(BaseRenderer):
         pass
 
     @abstractmethod
-    def render_content(self, content: BaseContent, context: RenderContext) -> str:
+    def render_content(self, content: BaseContent, context: RenderingContext) -> str:
         """Render individual content item.
 
         Args:
@@ -47,14 +47,16 @@ class ContentRenderer(BaseRenderer):
         content_type = ContentType.from_content(content)
         return content_type in self.supported_content_types
 
-    def render(self, content: BaseContent, context: RenderContext | None = None) -> str:
+    def render(
+        self, content: BaseContent, context: RenderingContext | None = None
+    ) -> str:
         """Render content using the content-specific interface.
 
         Implementation of BaseRenderer.render() that delegates to render_content().
 
         Args:
             content: Content to render
-            context: Optional context dict (will be converted to RenderContext)
+            context: Optional context dict (will be converted to RenderingContext)
 
         Returns:
             Rendered content
@@ -67,11 +69,11 @@ class ContentRenderer(BaseRenderer):
                 f"Renderer {self.__class__.__name__} cannot handle content type {content_type}"
             )
 
-        # Convert dict context to RenderContext if needed
+        # Convert dict context to RenderingContext if needed
         if isinstance(context, dict):
-            render_context = RenderContext(**context)
+            render_context = RenderingContext(**context)
         elif context is None:
-            render_context = RenderContext()
+            render_context = RenderingContext(output_format="unknown")
         else:
             render_context = context
 

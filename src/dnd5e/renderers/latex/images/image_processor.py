@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
 
-from dnd5e.renderers.base.context import RenderContext
+from dnd5e.renderers.core.interfaces import RenderingContext
 
 if TYPE_CHECKING:
     from .format_converter import FormatConverter
@@ -76,7 +76,7 @@ class ImageProcessor:
     def process_image_entry(
         self,
         image_entry: dict[str, Any],
-        context: RenderContext,
+        context: RenderingContext,
     ) -> str:
         """Process an image entry and return LaTeX code.
 
@@ -91,7 +91,8 @@ class ImageProcessor:
             LaTeX code for the processed image
         """
         # If images are disabled, return placeholder
-        if not context.include_images:
+        include_images = context.metadata.get("include_images", True)
+        if not include_images:
             title = image_entry.get("title", "")
             return f"% Image placeholder: {title}" if title else "% Image placeholder"
 
@@ -118,7 +119,7 @@ class ImageProcessor:
         self,
         image_path: str,
         image_entry: dict[str, Any],
-        context: RenderContext,
+        context: RenderingContext,
     ) -> ProcessedImage:
         """Run the complete image processing pipeline.
 
@@ -153,7 +154,7 @@ class ImageProcessor:
             caption=image_entry.get("title"),
         )
 
-    def _resolve_image_path(self, image_path: str, context: RenderContext) -> Path:
+    def _resolve_image_path(self, image_path: str, context: RenderingContext) -> Path:
         """Resolve image path, handling URLs and local paths.
 
         Args:
@@ -171,9 +172,10 @@ class ImageProcessor:
             # For now, return a placeholder path
             return Path("placeholder.png")
 
-        # Local path - resolve relative to assets directory
-        if context.assets_dir:
-            return context.assets_dir / image_path
+        # Local path - resolve relative to assets directory from metadata
+        assets_dir = context.metadata.get("assets_dir")
+        if assets_dir:
+            return Path(assets_dir) / image_path
         else:
             return Path(image_path)
 
@@ -211,7 +213,7 @@ class ImageProcessor:
             # If conversion fails, return original
             return image_path
 
-    def _optimize_image(self, image_path: Path, context: RenderContext) -> Path:
+    def _optimize_image(self, image_path: Path, context: RenderingContext) -> Path:
         """Optimize image size and quality.
 
         Args:
@@ -252,7 +254,7 @@ class ImageProcessor:
         self,
         image_path: Path,
         image_entry: dict[str, Any],
-        context: RenderContext,
+        context: RenderingContext,
     ) -> str:
         """Generate LaTeX command for the processed image.
 

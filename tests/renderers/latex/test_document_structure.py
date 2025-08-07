@@ -14,7 +14,7 @@ from dnd5e.core.models.document_metadata import (  # type: ignore
     DocumentType,
     SectionLevel,
 )
-from dnd5e.renderers.base.context import RenderContext  # type: ignore
+from dnd5e.renderers.core.interfaces import RenderingContext  # type: ignore
 from dnd5e.renderers.latex.document_structure import (
     DocumentStructureBuilder,  # type: ignore
 )
@@ -205,7 +205,7 @@ class TestDocumentStructureBuilder:
             authors=[DocumentAuthor(name="Test Author")],
         )
         self.builder = DocumentStructureBuilder(self.metadata)
-        self.context = RenderContext()
+        self.context = RenderingContext(output_format="latex")
 
     def test_builder_initialization(self) -> None:
         """Test builder initialization."""
@@ -445,7 +445,7 @@ class TestDocumentStructureIntegration:
             MockContent("Magic Sword", "unknown"),
         ]
 
-        context: Any = RenderContext()
+        context: Any = RenderingContext(output_format="latex")
 
         # Use a simple patch to bypass ContentType resolution
         with patch.object(builder, "_organize_content_by_type") as mock_organize:
@@ -475,7 +475,7 @@ class TestDocumentStructureIntegration:
 
         builder: Any = DocumentStructureBuilder(metadata)
         content_items = [MockContent("Magic Missile", "unknown")]
-        context: Any = RenderContext()
+        context: Any = RenderingContext(output_format="latex")
 
         # Use a simple patch to bypass ContentType resolution
         with patch.object(builder, "_organize_content_by_type") as mock_organize:
@@ -507,7 +507,7 @@ class TestDocumentStructureIntegration:
             MockContent("Magic Item", "unknown"),
         ]
 
-        context: Any = RenderContext()
+        context: Any = RenderingContext(output_format="latex")
 
         # Use a simple patch to simulate organized content
         organized_content = {

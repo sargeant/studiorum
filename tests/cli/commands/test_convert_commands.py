@@ -849,6 +849,13 @@ class TestLaTeXDocumentOptions:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for test isolation using service container
+        from dnd5e.core.cache import CacheManager
+        from dnd5e.core.container import reset_all_services
+
+        CacheManager.reset()
+        reset_all_services()
+
         self.runner = CliRunner()
         self.mock_adventure_data = {
             "adventure": [
@@ -939,13 +946,14 @@ class TestLaTeXDocumentOptions:
             context = call_args[0][1]  # Second argument is the context
 
             # Verify latex_config was passed and has correct values
-            assert context.latex_config is not None
-            assert context.latex_config.document.document_class == "dndarticle"
-            assert context.latex_config.document.paper_size == "a4paper"
-            assert context.latex_config.document.font_size == "12pt"
-            assert context.latex_config.document.background == "print"
-            assert context.latex_config.document.two_column is False
-            assert context.latex_config.document.justified_text is False
+            latex_config = context.metadata.get("latex_config")
+            assert latex_config is not None
+            assert latex_config.document.document_class == "dndarticle"
+            assert latex_config.document.paper_size == "a4paper"
+            assert latex_config.document.font_size == "12pt"
+            assert latex_config.document.background == "print"
+            assert latex_config.document.two_column is False
+            assert latex_config.document.justified_text is False
 
         finally:
             Path(file_path).unlink()
@@ -1018,17 +1026,16 @@ class TestLaTeXDocumentOptions:
             call_args = mock_renderer.render_document.call_args
             context = call_args[0][1]  # Second argument is the context
 
-            assert context.latex_config is not None
-            assert context.latex_config.document.document_class == "dndbook"
+            latex_config = context.metadata.get("latex_config")
+            assert latex_config is not None
+            assert latex_config.document.document_class == "dndbook"
             assert (
-                context.latex_config.document.paper_size == "letterpaper"
+                latex_config.document.paper_size == "letterpaper"
             )  # default from settings
-            assert context.latex_config.document.font_size == "11pt"
-            assert (
-                context.latex_config.document.background is None
-            )  # default no background
-            assert context.latex_config.document.two_column is True
-            assert context.latex_config.document.justified_text is False
+            assert latex_config.document.font_size == "11pt"
+            assert latex_config.document.background is None  # default no background
+            assert latex_config.document.two_column is True
+            assert latex_config.document.justified_text is False
 
         finally:
             Path(file_path).unlink()
@@ -1117,8 +1124,9 @@ class TestLaTeXDocumentOptions:
             call_args = mock_renderer.render_document.call_args
             context = call_args[0][1]  # Second argument is the context
 
-            assert context.latex_config is not None
-            assert context.latex_config.document.paper_size == "a5paper"
+            latex_config = context.metadata.get("latex_config")
+            assert latex_config is not None
+            assert latex_config.document.paper_size == "a5paper"
 
         finally:
             Path(file_path).unlink()

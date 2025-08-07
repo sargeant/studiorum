@@ -262,4 +262,178 @@ Use Pydantic for runtime validation with comprehensive type checking.
 - **Sustainability**: Resource requirements, funding needs
 - **Innovation**: New feature development rate, technology adoption
 
+## Current Architecture Status (August 2025)
+
+### Tag Handler Refactoring Project - COMPLETED ✅
+
+**Project Goal**: Migrate from parallel inheritance hierarchies to composition-based tag handler architecture with separation of business logic and presentation concerns.
+
+**Status**: All 5 phases completed successfully with full validation.
+
+#### Phase Completion Summary
+
+| Phase | Description | Status | Key Deliverables |
+|-------|-------------|---------|------------------|
+| **Phase 1** | Architecture analysis and consolidation opportunities | ✅ Complete | Handler analysis, consolidation strategy |
+| **Phase 2** | Core interfaces and protocol definitions | ✅ Complete | CoreTagHandler protocol, ContentReferenceInfo model |
+| **Phase 3** | Business logic extraction and consolidation | ✅ Complete | 10 core handlers with unified business logic |
+| **Phase 4** | Enhancement framework with decorator pattern | ✅ Complete | LaTeX/Hyperlink/Tracking/Validation enhancers |
+| **Phase 5** | LaTeX compatibility verification | ✅ Complete | 16 compatibility tests, identical output validation |
+
+#### Architecture Achievements
+
+**New Composition-Based System**:
+- **Core Handlers**: Extract business logic, return structured ContentReferenceInfo
+- **Enhancement Pipeline**: Apply presentation formatting (LaTeX, hyperlinks, page refs)
+- **Separation of Concerns**: Clean boundaries between business and presentation logic
+- **Type Safety**: Comprehensive Pydantic validation with Field constraints
+- **Backward Compatibility**: Produces identical LaTeX output to legacy system
+
+**Technical Validation**:
+- ✅ All 16 LaTeX compatibility tests pass
+- ✅ 40 integration tests pass (3 appropriately skipped)
+- ✅ LaTeX documents compile successfully with pdflatex
+- ✅ MyPy type checking passes on all modified modules
+- ✅ Performance benchmarks confirm no regressions
+
+**Production Readiness**: The new system is validated and ready to replace the legacy system entirely.
+
+---
+
+## Legacy Code Removal Strategy
+
+### Motivation and Context
+
+With Phase 5 complete and the new tag handler architecture fully validated, the codebase now contains significant duplication between:
+- **Legacy System**: Original parallel inheritance hierarchy (`src/dnd5e/renderers/base/`)
+- **New System**: Composition-based architecture (`src/dnd5e/renderers/core/`)
+- **Compatibility Layer**: Migration utilities, hybrid renderers, compatibility tests
+
+**Goal**: Remove all legacy and compatibility code to:
+- Reduce maintenance burden and code complexity
+- Eliminate potential confusion for contributors
+- Clean up the codebase for long-term maintainability
+- Remove the performance overhead of maintaining dual systems
+
+### Legacy Components Assessment
+
+#### 1. Core Legacy Components (High Priority Removal)
+
+**Legacy Tag Handlers** (`src/dnd5e/renderers/base/tag_handlers.py`):
+- Parallel inheritance hierarchy with duplicated logic
+- 290 lines of code to be removed
+- Contains business logic now consolidated in core handlers
+
+**Base Tag Renderer** (`src/dnd5e/renderers/base/tag_renderer.py`):
+- Original dispatching system (103 lines)
+- Replaced by unified renderer architecture
+- Contains fallback logic now handled by core system
+
+**Legacy Context System** (`src/dnd5e/renderers/base/context.py`):
+- Old context passing patterns (87 lines)
+- Replaced by structured RenderingContext
+
+#### 2. Compatibility and Migration Utilities (Medium Priority)
+
+**Compatibility Layer** (`src/dnd5e/renderers/core/compatibility.py`):
+- HybridTagRenderer for transition period (208 lines)
+- LegacyHandlerAdapter and compatibility managers
+- No longer needed with validated new system
+
+**Migration Utils** (`src/dnd5e/renderers/core/migration_utils.py`):
+- BatchValidator, MigrationOrchestrator, ParallelRenderer (242 lines)
+- Used for validation during development phase
+- Migration complete, utilities no longer needed
+
+#### 3. Configuration and Integration Points (Low Priority)
+
+**Legacy Configuration** in various files:
+- References to old handler system in CLI
+- Hybrid rendering options in config
+- Legacy test configurations
+
+### Phased Removal Strategy
+
+#### Phase 1: Migration Utilities Removal (Week 1)
+**Target**: Remove migration and validation utilities
+- `src/dnd5e/renderers/core/migration_utils.py`
+- `src/dnd5e/renderers/core/performance.py` (if migration-specific)
+- Migration-related tests in `tests/renderers/integration/test_migration_integration.py`
+
+**Validation**:
+- Confirm no production code depends on migration utilities
+- Update any remaining references to use core system directly
+- Run full test suite to ensure no regressions
+
+#### Phase 2: Compatibility Layer Removal (Week 2)
+**Target**: Remove compatibility and hybrid systems
+- `src/dnd5e/renderers/core/compatibility.py`
+- Compatibility tests in `tests/renderers/integration/test_latex_output_compatibility.py`
+- Hybrid renderer references in CLI and config
+
+**Validation**:
+- Update CLI to use only core unified renderer
+- Remove compatibility test framework (no longer needed)
+- Verify all integration points use new system
+
+#### Phase 3: Legacy Handler System Removal (Week 3)
+**Target**: Remove original tag handler system
+- `src/dnd5e/renderers/base/tag_handlers.py`
+- `src/dnd5e/renderers/base/tag_renderer.py`
+- `src/dnd5e/renderers/base/context.py`
+- Legacy handler tests
+
+**Validation**:
+- Comprehensive test suite run
+- Performance benchmarks to confirm improvements
+- Documentation updates to remove legacy references
+
+#### Phase 4: Test and Documentation Cleanup (Week 4)
+**Target**: Clean up remaining references and tests
+- Update all documentation to reference only new system
+- Remove debug scripts and temporary files
+- Clean up any remaining legacy imports or references
+- Final integration testing
+
+**Validation**:
+- Complete codebase scan for legacy references
+- Documentation review and updates
+- Final performance validation
+
+### Success Criteria
+
+**Code Quality Metrics**:
+- Reduce total codebase size by ~1000 lines (estimated)
+- Eliminate code duplication between legacy and new systems
+- Achieve 100% usage of new tag handler architecture
+
+**Performance Improvements**:
+- Remove dual-system overhead
+- Eliminate compatibility layer performance cost
+- Maintain or improve current rendering performance
+
+**Maintainability Goals**:
+- Single source of truth for tag handling logic
+- Clear, unambiguous architecture for contributors
+- Reduced testing matrix (no more compatibility testing)
+
+### Risk Mitigation
+
+**Rollback Strategy**:
+- All legacy removal will be done in separate commits
+- Each phase will be validated before proceeding
+- Legacy system preserved in git history for reference
+
+**Testing Strategy**:
+- Existing Phase 5 compatibility tests demonstrate equivalence
+- Core functionality tests ensure no regressions
+- Integration tests validate end-to-end workflows
+
+**Documentation Updates**:
+- Update developer guides to reflect simplified architecture
+- Remove legacy system references from API documentation
+- Create migration notes for any external integrations
+
+---
+
 This strategic planning framework ensures 5e2pdf evolves systematically while maintaining quality and community engagement.

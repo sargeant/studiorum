@@ -14,7 +14,7 @@ from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.logging.logger import setup_logging
 from dnd5e.core.models.content import BaseContent
 from dnd5e.core.text.tag_resolver import TagResolver
-from dnd5e.renderers.base import RenderContext
+from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
 from dnd5e.renderers.latex.compiler import LaTeXCompiler
@@ -260,12 +260,15 @@ def quick_convert(
                 raise typer.Exit(1)
 
             # Create render context
-            context = RenderContext(
-                title=f"D&D Content from {input_file.name}",
-                include_images=with_images,
-                include_toc=len(content_items) > 5,
+            context = RenderingContext(
+                output_format="latex",
                 omnidexer=omnidexer,
-                tag_resolver=tag_resolver,
+                metadata={
+                    "title": f"D&D Content from {input_file.name}",
+                    "include_images": with_images,
+                    "include_toc": len(content_items) > 5,
+                    "tag_resolver": tag_resolver,
+                },
             )
 
             # Render document

@@ -12,7 +12,7 @@ import aiohttp
 from pydantic import BaseModel, Field
 
 from dnd5e.core.config.unified_config import PathsConfig
-from dnd5e.renderers.base.context import RenderContext
+from dnd5e.renderers.core.interfaces import RenderingContext
 
 
 class ImageSource(BaseModel):
@@ -72,7 +72,7 @@ class ImageManager:
         self._asset_cache: dict[str, ImageAsset] = {}
 
     async def resolve_image(
-        self, image_path: str, context: RenderContext
+        self, image_path: str, context: RenderingContext
     ) -> Path | None:
         """Resolve an image path to a local file.
 
@@ -99,7 +99,7 @@ class ImageManager:
         return await self._download_and_cache(image_path)
 
     async def _resolve_local_path(
-        self, image_path: str, context: RenderContext
+        self, image_path: str, context: RenderingContext
     ) -> Path | None:
         """Resolve a local image path.
 
@@ -113,13 +113,15 @@ class ImageManager:
         # Try various local path resolutions
         search_paths = []
 
-        # Add assets directory from context
-        if context.assets_dir:
-            search_paths.append(context.assets_dir)
+        # Add assets directory from context metadata
+        assets_dir = context.metadata.get("assets_dir")
+        if assets_dir:
+            search_paths.append(Path(assets_dir))
 
-        # Add images directory from context
-        if context.images_dir:
-            search_paths.append(context.images_dir)
+        # Add images directory from context metadata
+        images_dir = context.metadata.get("images_dir")
+        if images_dir:
+            search_paths.append(Path(images_dir))
 
         # Add default assets directory
         if hasattr(self.paths_config, "assets_dir"):

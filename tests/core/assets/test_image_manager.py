@@ -8,7 +8,7 @@ import pytest
 
 from dnd5e.core.assets.image_manager import ImageAsset, ImageManager, ImageSource
 from dnd5e.core.config.unified_config import PathsConfig
-from dnd5e.renderers.base.context import RenderContext
+from dnd5e.renderers.core.interfaces import RenderingContext
 
 
 class TestImageSource:
@@ -87,9 +87,10 @@ class TestImageManager:
     @pytest.mark.asyncio
     async def test_resolve_image_local_path(self):
         """Test resolving local image paths."""
-        context = Mock(spec=RenderContext)
-        context.assets_dir = Path("/assets")
-        context.images_dir = None
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"assets_dir": Path("/assets"), "images_dir": None},
+        )
 
         with patch.object(
             self.manager, "_resolve_local_path", return_value=Path("/assets/test.png")
@@ -102,7 +103,10 @@ class TestImageManager:
     @pytest.mark.asyncio
     async def test_resolve_image_url_cached(self):
         """Test resolving URL with cached result."""
-        context = Mock(spec=RenderContext)
+        context = RenderingContext(
+            output_format="latex",
+            metadata={},
+        )
         image_url = "https://example.com/test.png"
 
         # Add cached asset
@@ -125,7 +129,10 @@ class TestImageManager:
     @pytest.mark.asyncio
     async def test_resolve_image_url_download(self):
         """Test resolving URL with download."""
-        context = Mock(spec=RenderContext)
+        context = RenderingContext(
+            output_format="latex",
+            metadata={},
+        )
         image_url = "https://example.com/test.png"
 
         with patch.object(
@@ -139,9 +146,10 @@ class TestImageManager:
     @pytest.mark.asyncio
     async def test_resolve_local_path_assets_dir(self):
         """Test resolving local path from assets directory."""
-        context = Mock(spec=RenderContext)
-        context.assets_dir = Path("/assets")
-        context.images_dir = None
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"assets_dir": Path("/assets"), "images_dir": None},
+        )
 
         with patch.object(Path, "exists", return_value=True):
             result = await self.manager._resolve_local_path("test.png", context)
@@ -151,9 +159,10 @@ class TestImageManager:
     @pytest.mark.asyncio
     async def test_resolve_local_path_images_dir(self):
         """Test resolving local path from images directory."""
-        context = Mock(spec=RenderContext)
-        context.assets_dir = None
-        context.images_dir = Path("/images")
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"assets_dir": None, "images_dir": Path("/images")},
+        )
 
         with patch.object(Path, "exists", return_value=True):
             result = await self.manager._resolve_local_path("test.png", context)
@@ -163,9 +172,10 @@ class TestImageManager:
     @pytest.mark.asyncio
     async def test_resolve_local_path_not_found(self):
         """Test resolving local path when file not found."""
-        context = Mock(spec=RenderContext)
-        context.assets_dir = Path("/assets")
-        context.images_dir = None
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"assets_dir": Path("/assets"), "images_dir": None},
+        )
 
         with patch.object(Path, "exists", return_value=False):
             result = await self.manager._resolve_local_path("test.png", context)

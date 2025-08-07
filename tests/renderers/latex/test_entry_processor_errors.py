@@ -7,7 +7,7 @@ import pytest
 
 from dnd5e.core.entry_registry import ValidationMode
 from dnd5e.core.exceptions import EntryProcessingError, EntryProcessingWarning
-from dnd5e.renderers.base import RenderContext
+from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
 
 
@@ -17,9 +17,9 @@ class TestRecursiveEntryProcessorEnhanced:
     def setup_method(self):
         """Set up test fixtures."""
         self.processor = RecursiveEntryProcessor(use_dnd_template=False)
-        self.context = Mock(spec=RenderContext)
-        self.context.source_name = "Test Source"
+        self.context = Mock(spec=RenderingContext)
         self.context.tag_resolver = None
+        self.context.metadata = {"source_name": "Test Source"}
 
     def test_initialization_with_validation_mode(self):
         """Test processor initialization with custom validation mode."""
@@ -300,8 +300,9 @@ class TestRecursiveEntryProcessorEnhanced:
 
     def test_context_source_name_handling(self):
         """Test handling when context doesn't have source_name."""
-        context_no_source = Mock(spec=RenderContext)
-        # Don't set source_name attribute
+        context_no_source = Mock(spec=RenderingContext)
+        # Don't set source_name in metadata
+        context_no_source.metadata = {}  # Empty metadata dict
 
         entry = {"type": "unknownType", "data": "test"}
 

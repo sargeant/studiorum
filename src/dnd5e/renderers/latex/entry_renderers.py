@@ -6,7 +6,7 @@ from typing import Any
 from dnd5e.core.models.creatures import Creature
 from dnd5e.core.models.items import Item
 from dnd5e.core.models.spells import Spell
-from dnd5e.renderers.base.context import RenderContext
+from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
 
 
@@ -28,12 +28,12 @@ class BaseEntryRenderer(ABC):
 
     @abstractmethod
     def get_template_context(
-        self, content: Any, context: RenderContext
+        self, content: Any, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context using model formatting methods."""
         pass
 
-    def render(self, content: Any, context: RenderContext) -> str:
+    def render(self, content: Any, context: RenderingContext) -> str:
         """Render content using model formatting and templates."""
         template_name = self.get_template_name()
         template_context = self.get_template_context(content, context)
@@ -48,20 +48,12 @@ class SpellEntryRenderer(BaseEntryRenderer):
         return "spell_entry"
 
     def get_template_context(
-        self, content: Spell, context: RenderContext
+        self, content: Spell, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for spell using model methods."""
-        # Process description text through tag resolver if available
-        if context.tag_resolver:
-            description_text = context.tag_resolver.process_text(
-                content.get_description_text()
-            )
-            higher_level_text = context.tag_resolver.process_text(
-                content.get_higher_level_scaling_text()
-            )
-        else:
-            description_text = content.get_description_text()
-            higher_level_text = content.get_higher_level_scaling_text()
+        # Get raw text content - tag processing happens at a different layer
+        description_text = content.get_description_text()
+        higher_level_text = content.get_higher_level_scaling_text()
 
         return {
             "spell": content,
@@ -83,7 +75,7 @@ class CreatureEntryRenderer(BaseEntryRenderer):
         return "creature_entry"
 
     def get_template_context(
-        self, content: Creature, context: RenderContext
+        self, content: Creature, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for creature using model methods."""
         # Use enhanced creature formatting methods
@@ -114,7 +106,7 @@ class CreatureEntryRenderer(BaseEntryRenderer):
         }
 
     def _format_creature_abilities(
-        self, creature: Creature, context: RenderContext
+        self, creature: Creature, context: RenderingContext
     ) -> dict[str, list[str]]:
         """Format creature abilities by type."""
         abilities = {}
@@ -151,7 +143,7 @@ class CreatureEntryRenderer(BaseEntryRenderer):
 
         return abilities
 
-    def _format_ability_entry(self, ability: Any, context: RenderContext) -> str:
+    def _format_ability_entry(self, ability: Any, context: RenderingContext) -> str:
         """Format a single ability entry."""
         if hasattr(ability, "get_description_text"):
             description = str(ability.get_description_text())
@@ -159,10 +151,7 @@ class CreatureEntryRenderer(BaseEntryRenderer):
             # Fallback for basic ability structures
             description = str(ability)
 
-        if context.tag_resolver:
-            processed = context.tag_resolver.process_text(description)
-            return str(processed)
-
+        # Return raw text - tag processing happens at a different architectural layer
         return description
 
 
@@ -174,13 +163,11 @@ class ItemEntryRenderer(BaseEntryRenderer):
         return "item_entry"
 
     def get_template_context(
-        self, content: Item, context: RenderContext
+        self, content: Item, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for item using model methods."""
-        # Process description text through tag resolver if available
+        # Get raw description text - tag processing happens at a different layer
         description_text = content.get_description_text()
-        if context.tag_resolver:
-            description_text = context.tag_resolver.process_text(description_text)
 
         return {
             "item": content,
@@ -208,7 +195,7 @@ class ClassEntryRenderer(BaseEntryRenderer):
         return "class_entry"
 
     def get_template_context(
-        self, content: Any, context: RenderContext
+        self, content: Any, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for class."""
         return {"class": content}
@@ -222,7 +209,7 @@ class RaceEntryRenderer(BaseEntryRenderer):
         return "race_entry"
 
     def get_template_context(
-        self, content: Any, context: RenderContext
+        self, content: Any, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for race."""
         return {"race": content}
@@ -236,7 +223,7 @@ class BackgroundEntryRenderer(BaseEntryRenderer):
         return "background_entry"
 
     def get_template_context(
-        self, content: Any, context: RenderContext
+        self, content: Any, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for background."""
         return {"background": content}
@@ -250,7 +237,7 @@ class FeatEntryRenderer(BaseEntryRenderer):
         return "feat_entry"
 
     def get_template_context(
-        self, content: Any, context: RenderContext
+        self, content: Any, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for feat."""
         return {"feat": content}

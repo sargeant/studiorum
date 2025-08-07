@@ -9,7 +9,7 @@ from dnd5e.core.models.content import ContentType  # type: ignore
 from dnd5e.core.models.creatures import Creature  # type: ignore
 from dnd5e.core.models.items import Item  # type: ignore
 from dnd5e.core.models.spells import Spell  # type: ignore
-from dnd5e.renderers.base import RenderContext  # type: ignore
+from dnd5e.renderers.core.interfaces import RenderingContext  # type: ignore
 from dnd5e.renderers.latex.content_processor import (  # type: ignore
     ContentProcessor,
     ContentProcessorRegistry,
@@ -25,7 +25,7 @@ class TestSpellProcessor:
     def setup_method(self) -> None:
         """Set up test fixtures."""
         self.processor = SpellProcessor()
-        self.context = Mock(spec=RenderContext)
+        self.context = Mock(spec=RenderingContext)
 
     def test_supports_content_type(self) -> None:
         """Test content type support."""
@@ -207,7 +207,7 @@ class TestCreatureProcessor:
     def setup_method(self) -> None:
         """Set up test fixtures."""
         self.processor = CreatureProcessor()
-        self.context = Mock(spec=RenderContext)
+        self.context = Mock(spec=RenderingContext)
 
     def test_supports_content_type(self) -> None:
         """Test content type support."""
@@ -410,7 +410,7 @@ class TestItemProcessor:
     def setup_method(self) -> None:
         """Set up test fixtures."""
         self.processor = ItemProcessor()
-        self.context = Mock(spec=RenderContext)
+        self.context = Mock(spec=RenderingContext)
 
     def test_supports_content_type(self) -> None:
         """Test content type support."""
@@ -623,7 +623,7 @@ class TestContentProcessorRegistry:
         spell.components.material = None
         spell.duration = []
         spell.classes = {}
-        context: Any = Mock(spec=RenderContext)
+        context: Any = Mock(spec=RenderingContext)
 
         # Mock the content type detection
         with patch(
@@ -640,7 +640,7 @@ class TestContentProcessorRegistry:
         """Test content processing without available processor."""
         registry: Any = ContentProcessorRegistry()
         unknown_content: Any = Mock()
-        context: Any = Mock(spec=RenderContext)
+        context: Any = Mock(spec=RenderingContext)
 
         # Mock the content type detection to return unknown type
         with patch(

@@ -1,7 +1,7 @@
 """Base renderer interfaces and abstract classes."""
 
+from ..core.interfaces import RenderingContext
 from .content import ContentRenderer
-from .context import RenderContext
 from .document import DocumentRenderer
 from .renderer import BaseRenderer, RenderingError
 
@@ -10,5 +10,5 @@ __all__ = [
     "RenderingError",
     "DocumentRenderer",
     "ContentRenderer",
-    "RenderContext",
+    "RenderingContext",
 ]

@@ -7,7 +7,7 @@ from typing import Any
 from ...core.entry_registry import ValidationMode, get_registry
 from ...core.exceptions import EntryProcessingError
 from ...core.types import EntryData, ProcessingContext
-from ..base import RenderContext
+from ..core.interfaces import RenderingContext
 from .images.image_processor import ImageProcessingConfig, ImageProcessor
 from .unicode_mappings import (
     get_latex_special_chars,
@@ -52,7 +52,7 @@ class RecursiveEntryProcessor:
         self._image_processor = image_processor or ImageProcessor()
 
     def process_entries(
-        self, entries: list[str | dict[str, Any]], context: RenderContext
+        self, entries: list[str | dict[str, Any]], context: RenderingContext
     ) -> list[str]:
         """Process a list of entries into LaTeX content.
 
@@ -77,7 +77,9 @@ class RecursiveEntryProcessor:
 
         return processed
 
-    def process_entry_dict(self, entry: dict[str, Any], context: RenderContext) -> str:
+    def process_entry_dict(
+        self, entry: dict[str, Any], context: RenderingContext
+    ) -> str:
         """Process a dictionary entry into LaTeX.
 
         Args:
@@ -106,7 +108,7 @@ class RecursiveEntryProcessor:
 
                 validation_context = ValidationContext(
                     entry_data=entry,
-                    source=getattr(context, "source_name", "unknown"),
+                    source=context.metadata.get("source_name", "unknown"),
                     parent_name=f"depth_{self._depth}",
                     entry_type=entry_type,
                     validation_mode=self._validation_mode,
@@ -181,12 +183,14 @@ class RecursiveEntryProcessor:
             raise EntryProcessingError(
                 message=f"Failed to process LaTeX entry: {str(e)}",
                 entry=entry,
-                source=getattr(context, "source_name", "unknown"),
+                source=context.metadata.get("source_name", "unknown"),
                 parent_name=f"depth_{self._depth}",
                 entry_type=entry_type,
             ) from e
 
-    def _process_section(self, section: dict[str, Any], context: RenderContext) -> str:
+    def _process_section(
+        self, section: dict[str, Any], context: RenderingContext
+    ) -> str:
         """Process a section entry with proper nesting depth.
 
         Args:
@@ -217,7 +221,7 @@ class RecursiveEntryProcessor:
         return "\n\n".join(result)
 
     def _process_entries_block(
-        self, block: dict[str, Any], context: RenderContext
+        self, block: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process an entries block.
 
@@ -248,7 +252,7 @@ class RecursiveEntryProcessor:
         return "\n\n".join(result)
 
     def _process_inset_readaloud(
-        self, inset: dict[str, Any], context: RenderContext
+        self, inset: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process a read-aloud inset using DND template environments.
 
@@ -268,7 +272,7 @@ class RecursiveEntryProcessor:
         else:
             return f"\\begin{{quotation}}\\em\n{content}\n\\end{{quotation}}"
 
-    def _process_inset(self, inset: dict[str, Any], context: RenderContext) -> str:
+    def _process_inset(self, inset: dict[str, Any], context: RenderingContext) -> str:
         """Process a generic inset using DND template environments.
 
         Args:
@@ -295,7 +299,7 @@ class RecursiveEntryProcessor:
             result.append(f"\\begin{{quotation}}\n{content}\n\\end{{quotation}}")
             return "\n\n".join(result)
 
-    def _process_image(self, image: dict[str, Any], context: RenderContext) -> str:
+    def _process_image(self, image: dict[str, Any], context: RenderingContext) -> str:
         """Process an image entry with enhanced image processing pipeline.
 
         Args:
@@ -309,7 +313,7 @@ class RecursiveEntryProcessor:
         return self._image_processor.process_image_entry(image, context)
 
     def _process_image_basic(
-        self, image: dict[str, Any], context: RenderContext
+        self, image: dict[str, Any], context: RenderingContext
     ) -> str:
         """Basic image processing fallback.
 
@@ -341,7 +345,9 @@ class RecursiveEntryProcessor:
 
         return "\n".join(result)
 
-    def _process_list(self, list_entry: dict[str, Any], context: RenderContext) -> str:
+    def _process_list(
+        self, list_entry: dict[str, Any], context: RenderingContext
+    ) -> str:
         """Process a list entry.
 
         Args:
@@ -430,7 +436,7 @@ class RecursiveEntryProcessor:
         result.append(f"\\end{{{env}}}")
         return "\n".join(result)
 
-    def _process_table(self, table: dict[str, Any], context: RenderContext) -> str:
+    def _process_table(self, table: dict[str, Any], context: RenderingContext) -> str:
         """Process a table entry using DND template environments.
 
         Args:
@@ -508,7 +514,7 @@ class RecursiveEntryProcessor:
             return self._process_basic_table(table, context)
 
     def _process_basic_table(
-        self, table: dict[str, Any], context: RenderContext
+        self, table: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process table with basic LaTeX table environment.
 
@@ -626,7 +632,7 @@ class RecursiveEntryProcessor:
 
         return "".join(col_specs)
 
-    def _process_quote(self, quote: dict[str, Any], context: RenderContext) -> str:
+    def _process_quote(self, quote: dict[str, Any], context: RenderingContext) -> str:
         """Process a quote entry.
 
         Args:
@@ -653,7 +659,7 @@ class RecursiveEntryProcessor:
         return "\n".join(result)
 
     def _process_generic_entry(
-        self, entry: dict[str, Any], context: RenderContext
+        self, entry: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process a generic entry with name and entries.
 
@@ -682,7 +688,7 @@ class RecursiveEntryProcessor:
 
         return "\n\n".join(result)
 
-    def _get_section_command(self, depth: int, context: RenderContext) -> str:
+    def _get_section_command(self, depth: int, context: RenderingContext) -> str:
         """Get appropriate sectioning command for the given depth.
 
         Args:
@@ -696,8 +702,8 @@ class RecursiveEntryProcessor:
 
         # Check if we have document type information
         document_type = None
-        if context.metadata and context.metadata.document_type:
-            document_type = context.metadata.document_type
+        if context.metadata and context.metadata.get("document_type"):
+            document_type = context.metadata.get("document_type")
 
         # For books and adventures, entry content should start at section level
         # because the document structure builder already creates \chapter{} commands
@@ -722,7 +728,7 @@ class RecursiveEntryProcessor:
 
         return commands[min(depth, len(commands) - 1)]
 
-    def _process_text_with_tags(self, text: str, context: RenderContext) -> str:
+    def _process_text_with_tags(self, text: str, context: RenderingContext) -> str:
         """Process text containing 5etools tags.
 
         Args:
@@ -732,15 +738,16 @@ class RecursiveEntryProcessor:
         Returns:
             Text with tags processed
         """
-        if not text or not context.tag_resolver:
+        if not text or not context.metadata.get("tag_resolver"):
             return self._escape_latex(text)
 
         # Skip obvious non-tag content to avoid parser warnings
         if not self._is_valid_tag_input(text):
             return self._escape_latex(text)
 
-        # Type cast needed due to forward reference in RenderContext
-        result = context.tag_resolver.process_text(text)
+        # Type cast needed due to forward reference in RenderingContext
+        tag_resolver = context.metadata.get("tag_resolver")
+        result = tag_resolver.process_text(text) if tag_resolver else text
         return str(result)
 
     def _is_valid_tag_input(self, text: str) -> bool:
@@ -818,7 +825,9 @@ class RecursiveEntryProcessor:
 
         return result
 
-    def _process_actions(self, actions: dict[str, Any], context: RenderContext) -> str:
+    def _process_actions(
+        self, actions: dict[str, Any], context: RenderingContext
+    ) -> str:
         """Process an actions entry for creature statblocks.
 
         Args:
@@ -841,7 +850,7 @@ class RecursiveEntryProcessor:
 
         return " ".join(result)
 
-    def _process_attack(self, attack: dict[str, Any], context: RenderContext) -> str:
+    def _process_attack(self, attack: dict[str, Any], context: RenderingContext) -> str:
         """Process an attack entry for creature statblocks.
 
         Args:
@@ -864,7 +873,9 @@ class RecursiveEntryProcessor:
 
         return " ".join(result)
 
-    def _process_options(self, options: dict[str, Any], context: RenderContext) -> str:
+    def _process_options(
+        self, options: dict[str, Any], context: RenderingContext
+    ) -> str:
         """Process an options entry for choice-based content.
 
         Args:
@@ -893,7 +904,9 @@ class RecursiveEntryProcessor:
         result.append("\\end{itemize}")
         return "\n".join(result)
 
-    def _process_variant(self, variant: dict[str, Any], context: RenderContext) -> str:
+    def _process_variant(
+        self, variant: dict[str, Any], context: RenderingContext
+    ) -> str:
         """Process a variant entry for alternative rules.
 
         Args:
@@ -921,7 +934,7 @@ class RecursiveEntryProcessor:
         return "\n\n".join(result)
 
     def _process_variant_sub(
-        self, variant_sub: dict[str, Any], context: RenderContext
+        self, variant_sub: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process a variantSub entry for sub-variants.
 
@@ -947,7 +960,7 @@ class RecursiveEntryProcessor:
         return " ".join(result)
 
     def _process_ability_dc(
-        self, ability_dc: dict[str, Any], context: RenderContext
+        self, ability_dc: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process an abilityDc entry for save DC descriptions.
 
@@ -984,7 +997,7 @@ class RecursiveEntryProcessor:
         return " ".join(result)
 
     def _process_ability_attack_mod(
-        self, ability_mod: dict[str, Any], context: RenderContext
+        self, ability_mod: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process an abilityAttackMod entry for attack modifiers.
 
@@ -1021,7 +1034,7 @@ class RecursiveEntryProcessor:
         return " ".join(result)
 
     def _process_ability_generic(
-        self, ability: dict[str, Any], context: RenderContext
+        self, ability: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process an abilityGeneric entry for generic ability descriptions.
 
@@ -1045,7 +1058,7 @@ class RecursiveEntryProcessor:
         return " ".join(result)
 
     def _process_spellcasting(
-        self, spellcasting: dict[str, Any], context: RenderContext
+        self, spellcasting: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process a spellcasting entry for creature spell abilities.
 
@@ -1100,7 +1113,7 @@ class RecursiveEntryProcessor:
 
         return "\n\n".join(result)
 
-    def _process_bonus(self, bonus: dict[str, Any], context: RenderContext) -> str:
+    def _process_bonus(self, bonus: dict[str, Any], context: RenderingContext) -> str:
         """Process a bonus entry for numerical bonuses.
 
         Args:
@@ -1118,7 +1131,7 @@ class RecursiveEntryProcessor:
             return str(value)
 
     def _process_bonus_speed(
-        self, bonus_speed: dict[str, Any], context: RenderContext
+        self, bonus_speed: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process a bonusSpeed entry for speed bonuses.
 
@@ -1136,7 +1149,7 @@ class RecursiveEntryProcessor:
         else:
             return f"{value} ft."
 
-    def _process_dice(self, dice: dict[str, Any], context: RenderContext) -> str:
+    def _process_dice(self, dice: dict[str, Any], context: RenderingContext) -> str:
         """Process a dice entry for dice roll notation.
 
         Args:
@@ -1167,7 +1180,7 @@ class RecursiveEntryProcessor:
 
         return ", ".join(dice_strings)
 
-    def _process_item(self, item: dict[str, Any], context: RenderContext) -> str:
+    def _process_item(self, item: dict[str, Any], context: RenderingContext) -> str:
         """Process an item entry for list items.
 
         Args:
@@ -1201,7 +1214,7 @@ class RecursiveEntryProcessor:
 
         return " ".join(result)
 
-    def _process_cell(self, cell: dict[str, Any], context: RenderContext) -> str:
+    def _process_cell(self, cell: dict[str, Any], context: RenderingContext) -> str:
         """Process a cell entry with roll data for tables.
 
         Args:
@@ -1244,7 +1257,7 @@ class RecursiveEntryProcessor:
         return roll_text
 
     def _process_statblock(
-        self, statblock: dict[str, Any], context: RenderContext
+        self, statblock: dict[str, Any], context: RenderingContext
     ) -> str:
         """Process a statblock entry by resolving external content references.
 
@@ -1276,7 +1289,7 @@ class RecursiveEntryProcessor:
             return f"\\{section_cmd}{{{self._escape_latex(name)}}}"
 
     def _resolve_statblock_reference(
-        self, tag: str, name: str, source: str, context: RenderContext
+        self, tag: str, name: str, source: str, context: RenderingContext
     ) -> dict[str, Any] | None:
         """Resolve a statblock reference to actual content.
 
@@ -1334,7 +1347,7 @@ class RecursiveEntryProcessor:
         return None
 
     def _render_statblock_content(
-        self, content: dict[str, Any], name: str, context: RenderContext
+        self, content: dict[str, Any], name: str, context: RenderingContext
     ) -> str:
         """Render resolved statblock content with appropriate section header.
 

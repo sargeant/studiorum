@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from dnd5e.core.models.content import BaseContent, Source  # type: ignore
-from dnd5e.renderers.base.context import RenderContext  # type: ignore
+from dnd5e.renderers.core.interfaces import RenderingContext  # type: ignore
 from dnd5e.renderers.latex.compilation_config import (  # type: ignore
     CompilationResult,
     LaTeXEngine,
@@ -198,7 +198,10 @@ class TestLaTeXDocumentRendererIntegration:
             MockContent("Monster 1"),
         ]
 
-        context: Any = RenderContext(title="Test Compendium", include_toc=True)
+        context: Any = RenderingContext(
+            output_format="latex",
+            metadata={"title": "Test Compendium", "include_toc": True},
+        )
 
         mock_result: Any = CompilationResult(
             success=True,
@@ -374,7 +377,7 @@ class TestLaTeXDocumentRendererIntegration:
                 mock_render.assert_called_once()
                 render_args = mock_render.call_args[0]
                 assert render_args[0] == [content]  # content items
-                assert isinstance(render_args[1], RenderContext)  # render context
+                assert isinstance(render_args[1], RenderingContext)  # render context
 
     def test_compiler_config_validation(self) -> None:
         """Test that invalid compiler config raises appropriate error."""
@@ -401,7 +404,9 @@ class TestLaTeXDocumentRendererIntegration:
             include_toc=True,
         )
 
-        context: Any = RenderContext(metadata=metadata)
+        context: Any = RenderingContext(
+            output_format="latex", metadata={"document_metadata": metadata}
+        )
 
         mock_result: Any = CompilationResult(
             success=True,

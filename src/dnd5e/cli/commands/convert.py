@@ -26,7 +26,7 @@ from dnd5e.cli.main import get_omnidexer, get_tag_resolver
 from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
-from dnd5e.renderers.base import RenderContext
+from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
 from dnd5e.renderers.latex.compiler import LaTeXCompiler
@@ -350,16 +350,19 @@ def convert_adventure(
             )
 
             # Create render context
-            context = RenderContext(
-                title=title or f"{content_items[0].name}",
-                include_images=with_images,
-                include_toc=True,
-                include_items=with_items,
-                include_creatures=with_creatures,
+            context = RenderingContext(
+                output_format="latex",
                 omnidexer=omnidexer,
-                tag_resolver=tag_resolver,
-                metadata=metadata,
-                latex_config=latex_config,
+                metadata={
+                    "title": title or f"{content_items[0].name}",
+                    "include_images": with_images,
+                    "include_toc": True,
+                    "include_items": with_items,
+                    "include_creatures": with_creatures,
+                    "tag_resolver": tag_resolver,
+                    "document_metadata": metadata,
+                    "latex_config": latex_config,
+                },
             )
 
             # Render document
@@ -529,15 +532,18 @@ def convert_book(
             )
 
             # Create render context
-            context = RenderContext(
-                title=title or f"Book: {book_title}",
-                include_images=with_images,
-                include_toc=True,
-                include_index=with_index,
+            context = RenderingContext(
+                output_format="latex",
                 omnidexer=omnidexer,
-                tag_resolver=tag_resolver,
-                metadata=metadata,
-                latex_config=latex_config,
+                metadata={
+                    "title": title or f"Book: {book_title}",
+                    "include_images": with_images,
+                    "include_toc": True,
+                    "include_index": with_index,
+                    "tag_resolver": tag_resolver,
+                    "document_metadata": metadata,
+                    "latex_config": latex_config,
+                },
             )
 
             # Render document
@@ -725,14 +731,17 @@ def convert_supplement(
             latex_config = LaTeXConfig(document=latex_doc_config)
 
             # Create render context
-            context = RenderContext(
-                title=title
-                or f"Supplement: {input_file.stem.replace('-', ' ').title()}",
-                include_images=with_images,
-                include_toc=len(content_items) > 10,
+            context = RenderingContext(
+                output_format="latex",
                 omnidexer=omnidexer,
-                tag_resolver=tag_resolver,
-                latex_config=latex_config,
+                metadata={
+                    "title": title
+                    or f"Supplement: {input_file.stem.replace('-', ' ').title()}",
+                    "include_images": with_images,
+                    "include_toc": len(content_items) > 10,
+                    "tag_resolver": tag_resolver,
+                    "latex_config": latex_config,
+                },
             )
 
             # Render document
@@ -892,12 +901,15 @@ def convert_bulk(
                         output_path = output_dir / output_filename
 
                         # Create render context
-                        context = RenderContext(
-                            title=f"{content.name}",
-                            include_images=with_images,
-                            include_toc=True,
+                        context = RenderingContext(
+                            output_format="latex",
                             omnidexer=omnidexer,
-                            tag_resolver=tag_resolver,
+                            metadata={
+                                "title": f"{content.name}",
+                                "include_images": with_images,
+                                "include_toc": True,
+                                "tag_resolver": tag_resolver,
+                            },
                         )
 
                         # Render document

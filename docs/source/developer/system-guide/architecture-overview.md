@@ -135,6 +135,16 @@ For comprehensive implementation details, usage patterns, and migration guide, s
 
 **Purpose**: Transform enhanced models into structured LaTeX content
 
+#### Tag Processing System (`src/dnd5e/core/text/` & `src/dnd5e/renderers/core/`)
+
+- **Unified Tag Architecture**: Composition-based tag handling with separation of business logic from presentation
+- **AST-Based Parsing**: Lark parser with custom grammar for 5etools tag syntax (`{@spell fireball}`, `{@creature goblin}`)
+- **Core Handler System**: Protocol-based handlers for content extraction (creatures, spells, items, formatting)
+- **Enhancement Pipeline**: Multi-stage presentation formatting (LaTeX commands, hyperlinks, content tracking)
+- **Type Safety**: Full Pydantic validation and Python 3.12 generics throughout
+
+#### Content Processing
+
 - **Template Engine**: Jinja2-based LaTeX template processing
 - **Entry Parser**: Structured content parsing and validation
 - **Cross-referencing**: Intelligent linking between content sections

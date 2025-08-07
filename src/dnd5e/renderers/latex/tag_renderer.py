@@ -88,19 +88,29 @@ class LaTeXTagRenderer:
 
     def _render_formatting_node(self, node: FormattingNode) -> str:
         """Render a formatting node with appropriate LaTeX commands."""
-        escaped_content = self._escape_latex(node.content)
+        # Check if content already contains LaTeX commands (from nested processing)
+        # If so, don't escape it to avoid double-escaping
+        if "\\" in node.content and any(
+            cmd in node.content
+            for cmd in ["\\textbf", "\\textit", "\\texttt", "\\emph"]
+        ):
+            # Content already contains LaTeX commands, use as-is
+            content = node.content
+        else:
+            # Regular text content, escape it
+            content = self._escape_latex(node.content)
 
         if node.format_type == FormatType.BOLD:
-            return f"\\textbf{{{escaped_content}}}"
+            return f"\\textbf{{{content}}}"
         elif node.format_type == FormatType.ITALIC:
-            return f"\\textit{{{escaped_content}}}"
+            return f"\\textit{{{content}}}"
         elif node.format_type == FormatType.MONOSPACE:
-            return f"\\texttt{{{escaped_content}}}"
+            return f"\\texttt{{{content}}}"
         elif node.format_type == FormatType.EMPHASIS:
-            return f"\\emph{{{escaped_content}}}"
+            return f"\\emph{{{content}}}"
         else:
             logger.warning(f"Unknown format type: {node.format_type}")
-            return escaped_content
+            return content
 
     def _render_special_tag(self, tag: SpecialTag) -> str:
         """Render special tags with custom LaTeX formatting."""
@@ -122,6 +132,9 @@ class LaTeXTagRenderer:
         elif tag.tag_type == "recharge":
             # Recharge notation
             return f"(Recharge {tag.effective_value})"
+        elif tag.tag_type == "dice":
+            # Dice expression: 1d8 + 2
+            return self._escape_latex(tag.effective_value)
         elif tag.tag_type in ("filter", "loader"):
             # UI elements - typically omitted in print
             return ""
