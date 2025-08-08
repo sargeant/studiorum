@@ -37,6 +37,8 @@ def initialize_content_types() -> None:
         spells,  # Import to trigger @content_type registration
         subclasses,  # Import to trigger @content_type registration
         subraces,  # Import to trigger @content_type registration
+        table,  # Import to trigger @content_type registration
+        variantrule,  # Import to trigger @content_type registration
         vehicles,  # Import to trigger @content_type registration
     )
 
