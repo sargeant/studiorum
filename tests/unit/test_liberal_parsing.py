@@ -18,9 +18,16 @@ from dnd5e.core.models.creatures import Creature  # type: ignore
 from dnd5e.core.models.items import Item  # type: ignore
 from dnd5e.core.models.spells import Spell  # type: ignore
 
+# Import test helpers
+from tests.test_helpers import reset_test_environment
+
 
 class TestLiberalParsing:
     """Test liberal parsing capabilities."""
+
+    def setup_method(self) -> None:
+        """Set up test environment for each test."""
+        reset_test_environment()
 
     def test_foundry_file_detection_and_skip(self) -> None:
         """Test that Foundry VTT files are detected and skipped."""
@@ -33,7 +40,6 @@ class TestLiberalParsing:
                     "activities": [
                         {"type": "utility", "activation": {"type": "reaction"}}
                     ],
-                    "migrationVersion": 3,
                 }
             ]
         }

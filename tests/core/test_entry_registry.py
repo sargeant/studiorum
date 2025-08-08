@@ -211,15 +211,6 @@ class TestEntryTypeRegistry:
         assert len(result.errors) == 1
         assert "must be dict or string" in result.errors[0]
 
-    # Removed deprecated test: test_validate_required_fields
-    # This tested legacy validate_required_fields() method which is replaced by Pydantic validation
-
-    # Removed deprecated test: test_validate_required_fields_missing
-    # This tested legacy validate_required_fields() method which is replaced by Pydantic validation
-
-    # Removed deprecated test: test_get_common_fields
-    # This tested legacy get_common_fields() method which is replaced by Pydantic validation
-
     def test_reset_statistics(self):
         """Test statistics reset functionality."""
         from dnd5e.core.entry_registry import ValidationContext

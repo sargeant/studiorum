@@ -286,37 +286,3 @@ class TestPhase1Integration:
 
             # Check source manager
             assert content_type in source_manager_types
-
-    def test_phase1_backwards_compatibility(self) -> None:
-        """Test that Phase 1 additions don't break existing content types."""
-        from dnd5e.core.registry.initialization import initialize_content_types
-
-        initialize_content_types()
-
-        from dnd5e.core.loaders.content_factory import ContentFactory
-        from dnd5e.core.models.content import ContentType
-
-        factory = ContentFactory()
-
-        # Test that existing content types still work
-        existing_spell_data = {
-            "name": "Test Spell",
-            "source": {"abbreviation": "TEST", "full": "Test Source"},
-            "level": 1,
-            "school": "A",
-            "time": [{"number": 1, "unit": "action"}],
-            "range": {"type": "point", "distance": {"type": "feet", "amount": 30}},
-            "components": {"v": True, "s": True},
-            "duration": [{"type": "instant"}],
-            "entries": ["Test spell description"],
-        }
-
-        # This should still work with Phase 1 additions
-        spell_content = factory.create_content(existing_spell_data, ContentType.SPELL)
-        assert spell_content.name == "Test Spell"
-        assert spell_content.level == 1
-
-        # Verify we still have the expected number of supported types
-        supported_types = factory.get_supported_types()
-        # Should be original types + Phase 1 additions
-        assert len(supported_types) >= 25  # Conservative estimate

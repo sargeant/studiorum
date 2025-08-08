@@ -13,7 +13,7 @@ TEST_DIR := tests
 DOCS_DIR := docs
 SCRIPTS_DIR := scripts
 
-.PHONY: help uv uv-docs test mypy pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full test-perf-baseline test-perf-compare test-perf-compare-legacy test-quality-gate test-quality-strict doctor upgrade
+.PHONY: help uv uv-docs test mypy pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full test-perf-baseline test-perf-compare test-quality-gate test-quality-strict doctor upgrade
 
 # Parallel execution control - only sync targets should be serial
 # This allows make to run independent targets in parallel while ensuring
@@ -53,8 +53,6 @@ help:
 	@echo "  test-perf-compare - Compare against baseline"
 	@echo "  test-perf-track   - Track performance history"
 	@echo "  test-perf-trends  - Show performance trends"
-	@echo "  test-perf         - Run fast performance tests (legacy)"
-	@echo "  test-perf-all     - Run all performance tests (legacy)"
 	@echo "  test-quality      - Analyze test quality metrics"
 	@echo "  test-quality-gate - Check quality gates"
 	@echo "  test-quality-strict - Strict quality validation"
@@ -238,29 +236,6 @@ test-perf-trends: uv
 	@echo "Showing performance trends..."
 	$(UV) python $(SCRIPTS_DIR)/performance_baseline.py --trends
 
-## Run legacy performance monitoring (fast)
-test-perf: uv
-	@echo "Running fast performance tests..."
-	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --test-type=fast || (echo "Performance tests failed"; exit 1)
-	@echo "Fast performance tests completed"
-
-## Run all tests with legacy performance monitoring
-test-perf-all: uv
-	@echo "Running all performance tests..."
-	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --test-type=all || (echo "Performance tests failed"; exit 1)
-	@echo "All performance tests completed"
-
-## Generate performance report
-test-perf-report: uv
-	@echo "Generating performance report..."
-	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --report || (echo "Performance report failed"; exit 1)
-	@echo "Performance report generated"
-
-## Compare performance against legacy baseline
-test-perf-compare-legacy: uv
-	@echo "Comparing performance against legacy baseline..."
-	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --compare --fail-on-regression || (echo "Performance regression detected"; exit 1)
-	@echo "Performance comparison completed"
 
 ## Analyze test quality metrics
 test-quality: uv
