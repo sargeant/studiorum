@@ -23,6 +23,9 @@ from dnd5e.core.text.tag_resolver import TagResolver  # type: ignore
 # Import the test helper for consistent setup
 from tests.test_helpers import reset_test_environment, setup_test_with_registry
 
+# Import the profiler plugin to ensure it's discovered by pytest
+pytest_plugins = ["scripts.test_profiler"]
+
 
 @pytest.fixture
 def event_loop() -> Any:

@@ -13,7 +13,7 @@ TEST_DIR := tests
 DOCS_DIR := docs
 SCRIPTS_DIR := scripts
 
-.PHONY: help uv uv-docs test mypy pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full test-perf-baseline test-perf-compare test-quality-gate test-quality-strict doctor upgrade
+.PHONY: help uv uv-docs test mypy pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full test-perf-baseline test-perf-compare test-perf-compare-legacy test-quality-gate test-quality-strict doctor upgrade
 
 # Parallel execution control - only sync targets should be serial
 # This allows make to run independent targets in parallel while ensuring
@@ -256,9 +256,9 @@ test-perf-report: uv
 	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --report || (echo "Performance report failed"; exit 1)
 	@echo "Performance report generated"
 
-## Compare performance against baseline
-test-perf-compare: uv
-	@echo "Comparing performance against baseline..."
+## Compare performance against legacy baseline
+test-perf-compare-legacy: uv
+	@echo "Comparing performance against legacy baseline..."
 	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --compare --fail-on-regression || (echo "Performance regression detected"; exit 1)
 	@echo "Performance comparison completed"
 

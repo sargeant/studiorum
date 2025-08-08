@@ -222,5 +222,3 @@ markers = [
     "latex_compilation: marks tests that require LaTeX compilation",
 ]
 filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]
-# Register performance profiling plugin
-plugins = ["scripts.test_profiler"]
