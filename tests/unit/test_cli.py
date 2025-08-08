@@ -8,6 +8,7 @@ import pytest
 from typer.testing import CliRunner
 
 from dnd5e.cli.main import app  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 
 class TestCLIMain:
@@ -15,6 +16,9 @@ class TestCLIMain:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.runner = CliRunner()
 
     def test_cli_help(self) -> None:
@@ -52,6 +56,9 @@ class TestCLICommands:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.runner = CliRunner()
 
     def test_convert_help(self) -> None:
@@ -84,6 +91,9 @@ class TestCLIIntegration:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.runner = CliRunner()
 
     @pytest.mark.asyncio
@@ -136,6 +146,9 @@ class TestCLIFileOperations:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.runner = CliRunner()
 
     def test_list_files_no_directories(self) -> None:
@@ -166,6 +179,9 @@ class TestCLIErrorHandling:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.runner = CliRunner()
 
     def test_unknown_command(self) -> None:
@@ -195,6 +211,9 @@ class TestCacheSystem:
 
     def setup_method(self) -> None:
         """Set up test fixtures and clear the cache."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         from dnd5e.core.cache import CacheManager
 
         CacheManager.clear()

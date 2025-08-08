@@ -8,6 +8,7 @@ from typer.testing import CliRunner
 
 from dnd5e.cli.commands.setup import app
 from dnd5e.core.config.sources import ContentConfiguration, ContentSource, SourceType
+from tests.test_helpers import reset_test_environment
 
 
 class TestSetupWizardCommand:
@@ -15,6 +16,9 @@ class TestSetupWizardCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.runner = CliRunner()
         self.temp_dir = Path(tempfile.mkdtemp())
 
@@ -166,6 +170,9 @@ class TestSetupHelperFunctions:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.temp_dir = Path(tempfile.mkdtemp())
 
         # Create mock config
@@ -397,6 +404,9 @@ class TestScanContentFunction:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.temp_dir = Path(tempfile.mkdtemp())
 
         # Create mock config
@@ -473,6 +483,9 @@ class TestCheckSetupCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.runner = CliRunner()
         self.temp_dir = Path(tempfile.mkdtemp())
 
@@ -565,6 +578,9 @@ class TestResetSetupCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.runner = CliRunner()
         self.mock_config_manager = Mock()
 
@@ -601,6 +617,9 @@ class TestSetupEdgeCases:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.temp_dir = Path(tempfile.mkdtemp())
         self.mock_config = ContentConfiguration()
         self.mock_config.content_sources = []

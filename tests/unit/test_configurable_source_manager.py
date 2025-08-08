@@ -8,23 +8,31 @@ import pytest
 from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from dnd5e.core.loaders.source_manager import FileSystemSourceManager
 from dnd5e.core.models.content import ContentType
+from tests.test_helpers import reset_test_environment
 
 
 class TestConfigurableSourceManager:
     """Test configurable source manager functionality."""
 
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
+
     @pytest.fixture
     def manager(self):
         """Create a ConfigurableSourceManager for testing."""
-        with patch("dnd5e.core.loaders.configurable_source_manager.get_content_config"):
-            with patch(
-                "dnd5e.core.loaders.configurable_source_manager.ContentSourceManager"
-            ):
-                manager = ConfigurableSourceManager()
-                # Test behavior using public interface instead of setting private state
-                # We'll use ensure_sources_ready() to trigger proper initialization
-                # Note: This may require making the test async if needed
-                return manager
+        # Ensure registry is initialized before creating the manager
+        from tests.test_helpers import setup_test_with_registry
+
+        setup_test_with_registry()
+
+        # Create manager without mocking to preserve registry-based content_patterns
+        manager = ConfigurableSourceManager()
+        # Mock only the content manager to control file discovery
+        manager.content_manager = Mock()
+        manager.content_manager._index_built = True
+        manager.content_manager.get_all_content_files = Mock(return_value={})
+        return manager
 
     def test_directory_priority_over_filename_for_races(self, manager):
         """Test that directory names have priority over filename patterns for race files."""

@@ -12,6 +12,7 @@ from dnd5e.renderers.latex.images.image_processor import (
     ImageProcessor,
     ProcessedImage,
 )
+from tests.test_helpers import reset_test_environment
 
 
 class TestImageProcessingConfig:
@@ -91,6 +92,9 @@ class TestImageProcessor:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.config = ImageProcessingConfig(
             enable_webp_conversion=True,
             enable_optimization=True,
@@ -237,6 +241,9 @@ class TestImageProcessorIntegration:
 
     def setup_method(self):
         """Set up integration test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = ImageProcessor()
         self.context = RenderingContext(
             output_format="latex",

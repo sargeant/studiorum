@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from ..registry import content_type
 from ..types import (
     AlignmentDict,
     ChallengeRatingDict,
@@ -309,6 +310,12 @@ class Ability(BaseModel):
         return " ".join(text_parts) if text_parts else ""
 
 
+@content_type(
+    enum_value="creature",
+    file_patterns=["bestiary", "monster", "creatures"],
+    statblock_tags=["creature"],
+    loader_type="json",
+)
 class Creature(BaseContent):
     """Represents a D&D creature/monster."""
 

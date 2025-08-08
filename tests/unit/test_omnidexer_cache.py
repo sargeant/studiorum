@@ -3,6 +3,7 @@
 from dnd5e.core.cache import CacheManager, get_cache
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
+from tests.test_helpers import reset_test_environment
 
 
 class TestOmnidexerCache:
@@ -10,6 +11,9 @@ class TestOmnidexerCache:
 
     def setup_method(self) -> None:
         """Clear cache and create test omnidexer."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         CacheManager.clear()
         self.omnidexer = Omnidexer(enable_deep_indexing=False)
 

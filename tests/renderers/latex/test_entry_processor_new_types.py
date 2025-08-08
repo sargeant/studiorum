@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
+from tests.test_helpers import reset_test_environment
 
 
 class TestNewEntryTypes:
@@ -11,6 +12,9 @@ class TestNewEntryTypes:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = RecursiveEntryProcessor(use_dnd_template=True)
         self.context = RenderingContext(output_format="latex")
 

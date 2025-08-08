@@ -94,37 +94,24 @@ class ConfigurableSourceManager(SourceManager):
         # Start with metadata files for adventures and books
         data_paths = self.get_metadata_files()
 
-        # Map content types to file patterns for other content types
-        content_patterns = {
-            ContentType.SPELL: ["spell", "spells"],
-            ContentType.CREATURE: ["bestiary", "monster", "creatures"],
-            ContentType.ITEM: ["item", "items"],
-            ContentType.CLASS: ["class", "classes"],
-            ContentType.BACKGROUND: ["background", "backgrounds"],
-            ContentType.FEAT: ["feat", "feats"],
-            ContentType.RACE: ["race", "races"],
-            ContentType.VEHICLE: ["vehicle", "vehicles"],
-            ContentType.VARIANT_RULE: ["variantrule", "variantrules"],
-            ContentType.ACTION: ["action", "actions"],
-            ContentType.CONDITION: ["condition", "conditions", "conditionsdiseases"],
-            ContentType.SENSE: ["sense", "senses"],
-            ContentType.HAZARD: ["hazard", "hazards", "trapshazards"],
-            ContentType.STATUS: ["status", "statuses", "conditionsdiseases"],
-            # Fluff content patterns - these should be checked first
-            ContentType.SPELL_FLUFF: ["fluff-spell", "spell-fluff"],
-            ContentType.CREATURE_FLUFF: [
-                "fluff-bestiary",
-                "fluff-monster",
-                "bestiary-fluff",
-                "monster-fluff",
-            ],
-            ContentType.ITEM_FLUFF: ["fluff-item", "item-fluff"],
-        }
+        # Get content patterns from registry manager
+        content_patterns = getattr(self.__class__, "content_patterns", {})
+
+        if not content_patterns:
+            raise RuntimeError(
+                "ConfigurableSourceManager content patterns not initialized by registry manager. "
+                "Ensure initialize_content_types() is called before using ConfigurableSourceManager."
+            )
 
         all_files = self.content_manager.get_all_content_files()
 
         # Track files already assigned to avoid conflicts
         assigned_files = set()
+
+        # Start by marking all metadata files as assigned to prevent duplication
+        for content_type, paths in data_paths.items():
+            for path in paths:
+                assigned_files.add(path)
 
         # Files that should be shared between multiple content types
         shared_files = {

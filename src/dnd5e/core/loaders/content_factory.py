@@ -23,45 +23,17 @@ class ContentFactory:
         self._initialized = True
 
     def _initialize_class_map(self) -> None:
-        """Initialize the content class mapping."""
-        # Import all model classes
-        from ..models.adventures import Adventure
-        from ..models.backgrounds import Background
-        from ..models.books import Book
-        from ..models.classes import Class
-        from ..models.creatures import Creature
-        from ..models.feats import Feat
-        from ..models.fluff import CreatureFluff, ItemFluff, SpellFluff
-        from ..models.items import Item
-        from ..models.nested_content import VariantRule
-        from ..models.races import Race
-        from ..models.rule_types import Action, Condition, Hazard, Sense, Status
-        from ..models.spells import Spell
-        from ..models.vehicles import Vehicle
+        """Initialize the content class mapping from registry manager."""
+        # Registry manager should populate class map during initialization
+        if hasattr(self.__class__, "_class_map") and self.__class__._class_map:
+            self._class_map = self.__class__._class_map.copy()
+            return
 
-        # Build class map
-        self._class_map = {
-            ContentType.ADVENTURE: Adventure,
-            ContentType.BACKGROUND: Background,
-            ContentType.BOOK: Book,
-            ContentType.CLASS: Class,
-            ContentType.CREATURE: Creature,
-            ContentType.FEAT: Feat,
-            ContentType.ITEM: Item,
-            ContentType.RACE: Race,
-            ContentType.SPELL: Spell,
-            ContentType.VARIANT_RULE: VariantRule,
-            ContentType.VEHICLE: Vehicle,
-            ContentType.CREATURE_FLUFF: CreatureFluff,
-            ContentType.ITEM_FLUFF: ItemFluff,
-            ContentType.SPELL_FLUFF: SpellFluff,
-            # Rule glossary types
-            ContentType.ACTION: Action,
-            ContentType.CONDITION: Condition,
-            ContentType.SENSE: Sense,
-            ContentType.HAZARD: Hazard,
-            ContentType.STATUS: Status,
-        }
+        # If registry manager hasn't populated class map, something is wrong
+        raise RuntimeError(
+            "ContentFactory class map not initialized by registry manager. "
+            "Ensure initialize_content_types() is called before creating ContentFactory instances."
+        )
 
     def create_content(
         self, data: dict[str, Any], content_type: ContentType
@@ -126,6 +98,13 @@ def reset_content_factory() -> None:
     """Reset the global content factory (for testing).
 
     This recreates the global factory instance to ensure clean state.
+    Also clears any class-level state to prevent contamination between tests.
     """
     global _content_factory
+
+    # Clear class-level state that might have been set by registry manager
+    # or contaminated by tests
+    if hasattr(ContentFactory, "_class_map"):
+        delattr(ContentFactory, "_class_map")
+
     _content_factory = ContentFactory()

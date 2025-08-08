@@ -9,6 +9,7 @@ from dnd5e.renderers.latex.images.format_converter import (
     ConversionResult,
     FormatConverter,
 )
+from tests.test_helpers import reset_test_environment
 
 
 class TestConversionResult:
@@ -42,6 +43,9 @@ class TestFormatConverter:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.converter = FormatConverter()
 
     def test_is_conversion_needed_webp(self):
@@ -208,6 +212,9 @@ class TestFormatConverterSync:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.converter = FormatConverter()
 
     @patch("PIL.Image.open")

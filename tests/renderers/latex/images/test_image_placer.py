@@ -11,6 +11,7 @@ from dnd5e.renderers.latex.images.image_placer import (
     PlacementConfig,
     PlacementResult,
 )
+from tests.test_helpers import reset_test_environment
 
 
 class TestPlacementConfig:
@@ -77,6 +78,9 @@ class TestImagePlacer:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.config = PlacementConfig()
         self.placer = ImagePlacer(self.config)
         self.image_path = Path("test.png")

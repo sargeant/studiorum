@@ -9,6 +9,7 @@ from dnd5e.core.entry_registry import ValidationMode
 from dnd5e.core.exceptions import EntryProcessingError, EntryProcessingWarning
 from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
+from tests.test_helpers import reset_test_environment
 
 
 class TestRecursiveEntryProcessorEnhanced:
@@ -16,6 +17,9 @@ class TestRecursiveEntryProcessorEnhanced:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = RecursiveEntryProcessor(use_dnd_template=False)
         self.context = Mock(spec=RenderingContext)
         self.context.tag_resolver = None

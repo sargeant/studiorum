@@ -18,6 +18,7 @@ from dnd5e.renderers.core.interfaces import RenderingContext  # type: ignore
 from dnd5e.renderers.latex.document_structure import (
     DocumentStructureBuilder,  # type: ignore
 )
+from tests.test_helpers import reset_test_environment
 
 
 class MockContent(BaseContent):
@@ -199,6 +200,9 @@ class TestDocumentStructureBuilder:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.metadata = DocumentMetadata(
             title="Test Adventure",
             document_type=DocumentType.ADVENTURE,

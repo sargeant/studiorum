@@ -20,6 +20,9 @@ from dnd5e.core.models.creatures import Creature  # type: ignore
 from dnd5e.core.models.spells import Spell  # type: ignore
 from dnd5e.core.text.tag_resolver import TagResolver  # type: ignore
 
+# Import the test helper for consistent setup
+from tests.test_helpers import reset_test_environment, setup_test_with_registry
+
 
 @pytest.fixture
 def event_loop() -> Any:
@@ -192,6 +195,9 @@ def loaded_omnidexer(
     import asyncio
     import json
 
+    # Use full reset sequence for complete isolation
+    reset_test_environment()
+
     # Create test data files and ensure they're written to disk
     spell_file = temp_data_dir / "spells" / "test-spells.json"
     spell_file.write_text(json.dumps({"spell": [sample_spell_data]}))
@@ -224,6 +230,9 @@ def make_omnidexer():
 
         if temp_data_dir is None:
             raise ValueError("temp_data_dir is required for factory fixture")
+
+        # Use full reset sequence for complete isolation
+        reset_test_environment()
 
         # Create test data files if provided
         if spell_data:
@@ -267,6 +276,9 @@ def make_tag_resolver():
 def test_data_omnidexer() -> Omnidexer:
     """Omnidexer using test-data and srd-data sources."""
     import asyncio
+
+    # Use full reset sequence for complete isolation
+    reset_test_environment()
 
     # Use the ConfigurableSourceManager which automatically includes test-data
     source_manager = ConfigurableSourceManager()

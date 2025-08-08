@@ -15,6 +15,7 @@ import pytest
 from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.resolvers.content_resolver import ContentResolver
+from tests.test_helpers import reset_test_environment
 
 
 def load_all_data_sync(omnidexer):
@@ -33,6 +34,10 @@ def resolve_adventure_sync(resolver, adventure_id):
 
 class TestAdventureConversion:
     """Test end-to-end adventure conversion functionality."""
+
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
 
     def test_adventure_conversion_produces_content(self):
         """Test that adventure conversion produces LaTeX with actual content."""

@@ -14,6 +14,7 @@ from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.books import Book
 from dnd5e.core.models.content import Source
 from dnd5e.core.text.tag_resolver import TagResolver
+from tests.test_helpers import reset_test_environment
 
 
 class TestConvertAdventureCommand:
@@ -21,6 +22,9 @@ class TestConvertAdventureCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         # Reset global state for test isolation using service container
         from dnd5e.core.cache import CacheManager
         from dnd5e.core.container import reset_all_services
@@ -279,6 +283,9 @@ class TestConvertBookCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         # Reset global state for test isolation using service container
         from dnd5e.core.cache import CacheManager
         from dnd5e.core.container import reset_all_services
@@ -425,6 +432,9 @@ class TestConvertSupplementCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.runner = CliRunner()
         self.mock_supplement_data = {
             "spell": [
@@ -669,6 +679,9 @@ class TestErrorHandlingPaths:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.runner = CliRunner()
 
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
@@ -764,6 +777,9 @@ class TestSpecialCases:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.runner = CliRunner()
 
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
@@ -849,6 +865,9 @@ class TestLaTeXDocumentOptions:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         # Reset global state for test isolation using service container
         from dnd5e.core.cache import CacheManager
         from dnd5e.core.container import reset_all_services

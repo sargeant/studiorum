@@ -6,6 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from ..registry import content_type
 from .content import BaseContent, Source
 
 
@@ -33,6 +34,12 @@ class VehicleSpeed(BaseModel):
     condition: str | None = Field(None, description="Speed condition")
 
 
+@content_type(
+    enum_value="vehicle",
+    file_patterns=["vehicle", "vehicles"],
+    statblock_tags=["vehicle"],
+    loader_type="json",
+)
 class Vehicle(BaseContent):
     """Represents a D&D vehicle (ship, land vehicle, etc.)."""
 

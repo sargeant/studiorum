@@ -35,6 +35,7 @@ from dnd5e.core.text.tag_parser import (  # type: ignore
     TagParseError,
     TagParser,
 )
+from tests.test_helpers import reset_test_environment
 
 
 class TestTagParseError:
@@ -67,6 +68,9 @@ class TestTagASTTransformer:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.original_text = "Test text with {@creature Dragon|MM} tags"
         self.transformer = TagASTTransformer(self.original_text)
 
@@ -214,6 +218,9 @@ class TestTagParser:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.parser = TagParser()
 
     def test_parser_initialization(self) -> None:
@@ -495,6 +502,9 @@ class TestNestedTagParsing:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.parser = TagParser()
 
     def test_simple_nested_tag(self) -> None:

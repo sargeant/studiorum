@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from ..registry import content_type
 from .chapter import Chapter
 from .content import BaseContent
 
@@ -51,6 +52,12 @@ class BookMetadata(BaseModel):
         return self.published
 
 
+@content_type(
+    enum_value="book",
+    file_patterns=["book", "books"],
+    statblock_tags=["book"],
+    loader_type="json",
+)
 class Book(BaseContent):
     """Represents a D&D rulebook or supplement."""
 

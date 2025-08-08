@@ -22,49 +22,14 @@ class RegistryBasedContentTypeResolver:
         self._initialized = True
 
     def _register_all_types(self) -> None:
-        """Register all content types in the registry."""
-        # Import all model classes
-        from .models.adventures import Adventure
-        from .models.backgrounds import Background
-        from .models.books import Book
-        from .models.classes import Class, ClassFeature, SubclassFeature
-        from .models.creatures import Creature
-        from .models.feats import Feat
-        from .models.fluff import CreatureFluff, ItemFluff, SpellFluff
-        from .models.items import Item
-        from .models.nested_content import (
-            Inset,
-            Section,
-            Table,
-            VariantRule,
-        )
-        from .models.races import Race
-        from .models.spells import Spell
+        """Register all content types with the resolver.
 
-        # Register all content types
-        self._registry.register(Adventure, ContentType.ADVENTURE)
-        self._registry.register(Background, ContentType.BACKGROUND)
-        self._registry.register(Book, ContentType.BOOK)
-        self._registry.register(Class, ContentType.CLASS)
-        self._registry.register(ClassFeature, ContentType.CLASS_FEATURE)
-        self._registry.register(SubclassFeature, ContentType.SUBCLASS_FEATURE)
-        self._registry.register(Creature, ContentType.CREATURE)
-        self._registry.register(Feat, ContentType.FEAT)
-        self._registry.register(Item, ContentType.ITEM)
-        self._registry.register(Race, ContentType.RACE)
-        self._registry.register(Spell, ContentType.SPELL)
-        self._registry.register(CreatureFluff, ContentType.CREATURE_FLUFF)
-        self._registry.register(ItemFluff, ContentType.ITEM_FLUFF)
-        self._registry.register(SpellFluff, ContentType.SPELL_FLUFF)
-
-        # Register nested content types
-        self._registry.register(Section, ContentType.ADVENTURE_SECTION)
-        self._registry.register(Table, ContentType.ADVENTURE_TABLE)
-        self._registry.register(Inset, ContentType.ADVENTURE_INSET)
-        self._registry.register(Section, ContentType.BOOK_SECTION)
-        self._registry.register(VariantRule, ContentType.VARIANT_RULE)
-        self._registry.register(Table, ContentType.BOOK_TABLE)
-        self._registry.register(Inset, ContentType.BOOK_INSET)
+        Content types are automatically registered via the @content_type decorator system.
+        This method is now a no-op as registration happens automatically during module import.
+        """
+        # Content types are now registered automatically via decorators during
+        # module import. No manual registration needed.
+        pass
 
     def resolve_type(self, content: BaseContent) -> ContentType:
         """Resolve content type from content instance.

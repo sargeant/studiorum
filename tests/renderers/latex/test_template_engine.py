@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 
 class TestLaTeXTemplateEngine:
@@ -274,6 +275,9 @@ class TestTemplateRendering:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.engine = LaTeXTemplateEngine()
 
     def test_render_simple_template(self) -> None:

@@ -9,6 +9,7 @@ import pytest
 from dnd5e.core.cache import CacheManager, get_cache
 from dnd5e.core.loaders.json_loader import JsonDataLoader
 from dnd5e.core.models.content import ContentType
+from tests.test_helpers import reset_test_environment
 
 
 class TestJsonLoaderCache:
@@ -16,6 +17,9 @@ class TestJsonLoaderCache:
 
     def setup_method(self) -> None:
         """Clear cache before each test."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         CacheManager.reset()
 
     def teardown_method(self) -> None:

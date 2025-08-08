@@ -150,34 +150,19 @@ class Omnidexer:
         # Register default loaders
         self._register_default_loaders()
 
-    # New: Define content types for each loader type
-    _JSON_CONTENT_TYPES = (
-        ContentType.SPELL,
-        ContentType.CREATURE,
-        ContentType.ITEM,
-        ContentType.ADVENTURE,
-        ContentType.BOOK,
-        ContentType.FEAT,
-        ContentType.RACE,
-        ContentType.BACKGROUND,
-        ContentType.CLASS,
-        ContentType.VEHICLE,
-        ContentType.VARIANT_RULE,
-        ContentType.ACTION,
-        ContentType.CONDITION,
-        ContentType.SENSE,
-        ContentType.HAZARD,
-        ContentType.STATUS,
-    )
-
-    _FLUFF_CONTENT_TYPES = (
-        ContentType.SPELL_FLUFF,
-        ContentType.CREATURE_FLUFF,
-        ContentType.ITEM_FLUFF,
-    )
+    # Content types for each loader type - populated by registry manager
+    _JSON_CONTENT_TYPES: tuple[ContentType, ...] = ()
+    _FLUFF_CONTENT_TYPES: tuple[ContentType, ...] = ()
 
     def _register_default_loaders(self) -> None:
         """Register default data loaders for common content types."""
+        # Ensure registry is initialized if class attributes are empty
+        # This handles cases where Omnidexer is created before registry initialization
+        if not self._JSON_CONTENT_TYPES and not self._FLUFF_CONTENT_TYPES:
+            from ..registry import initialize_content_types
+
+            initialize_content_types()
+
         self._register_loaders_for_type(JsonDataLoader, self._JSON_CONTENT_TYPES)
         self._register_loaders_for_type(FluffDataLoader, self._FLUFF_CONTENT_TYPES)
 

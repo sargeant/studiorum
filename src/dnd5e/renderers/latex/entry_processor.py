@@ -1302,15 +1302,14 @@ class RecursiveEntryProcessor:
         Returns:
             Resolved content dictionary or None if not found
         """
-        # Map statblock tags to ContentType enums
-        tag_to_content_type = {
-            "variantrule": "VARIANT_RULE",
-            "action": "ACTION",
-            "condition": "CONDITION",
-            "sense": "SENSE",
-            "hazard": "HAZARD",
-            "status": "STATUS",
-        }
+        # Get statblock tags mapping from registry manager
+        tag_to_content_type = getattr(self.__class__, "_statblock_tags", {})
+
+        if not tag_to_content_type:
+            logger.debug(
+                f"Statblock tags not initialized by registry manager, skipping tag: {tag}"
+            )
+            return None
 
         content_type_name = tag_to_content_type.get(tag)
         if not content_type_name:

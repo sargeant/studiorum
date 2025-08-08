@@ -4,9 +4,16 @@ from typing import Any
 
 from pydantic import Field
 
+from ..registry import content_type
 from .content import BaseContent
 
 
+@content_type(
+    enum_value="action",
+    file_patterns=["action", "actions", "conditionsdiseases"],
+    statblock_tags=["action"],
+    loader_type="json",
+)
 class Action(BaseContent):
     """Represents an action rule from the rules glossary."""
 
@@ -25,6 +32,12 @@ class Action(BaseContent):
         return f"action:{self.name}:{self.source.abbreviation}"
 
 
+@content_type(
+    enum_value="condition",
+    file_patterns=["condition", "conditions", "conditionsdiseases"],
+    statblock_tags=["condition"],
+    loader_type="json",
+)
 class Condition(BaseContent):
     """Represents a condition rule from the rules glossary."""
 
@@ -45,6 +58,12 @@ class Condition(BaseContent):
         return f"condition:{self.name}:{self.source.abbreviation}"
 
 
+@content_type(
+    enum_value="sense",
+    file_patterns=["sense", "senses", "conditionsdiseases"],
+    statblock_tags=["sense"],
+    loader_type="json",
+)
 class Sense(BaseContent):
     """Represents a sense rule from the rules glossary."""
 
@@ -63,6 +82,12 @@ class Sense(BaseContent):
         return f"sense:{self.name}:{self.source.abbreviation}"
 
 
+@content_type(
+    enum_value="hazard",
+    file_patterns=["hazard", "hazards", "conditionsdiseases"],
+    statblock_tags=["hazard"],
+    loader_type="json",
+)
 class Hazard(BaseContent):
     """Represents a hazard rule from the rules glossary."""
 
@@ -77,6 +102,12 @@ class Hazard(BaseContent):
         return f"hazard:{self.name}:{self.source.abbreviation}"
 
 
+@content_type(
+    enum_value="status",
+    file_patterns=["status", "statuses", "conditionsdiseases"],
+    statblock_tags=["status"],
+    loader_type="json",
+)
 class Status(BaseContent):
     """Represents a status rule from the rules glossary."""
 

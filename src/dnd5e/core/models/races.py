@@ -6,6 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from ..registry import content_type
 from .content import BaseContent
 
 
@@ -31,6 +32,12 @@ class AdditionalSpell(BaseModel):
     ability: str | dict[str, Any] | None = None
 
 
+@content_type(
+    enum_value="race",
+    file_patterns=["race", "races"],
+    statblock_tags=["race"],
+    loader_type="json",
+)
 class Race(BaseContent):
     """A playable race."""
 

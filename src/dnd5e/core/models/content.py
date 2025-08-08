@@ -47,6 +47,9 @@ class ContentType(str, Enum):
     HAZARD = "hazard"
     STATUS = "status"
 
+    # Reward types
+    REWARD = "reward"
+
     @classmethod
     def from_content(cls, content: BaseContent) -> ContentType:
         """Determine content type from content object.

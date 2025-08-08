@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, model_validator
 
+from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
@@ -113,6 +114,12 @@ class Multiclassing(BaseModel):
     )
 
 
+@content_type(
+    enum_value="classFeature",
+    file_patterns=["classFeature", "classfeature"],
+    statblock_tags=["classFeature"],
+    loader_type="json",
+)
 class ClassFeature(BaseContent):
     """A feature for a character class."""
 
@@ -129,6 +136,12 @@ class ClassFeature(BaseContent):
     basic_rules: bool | None = Field(default=None, alias="basicRules")
 
 
+@content_type(
+    enum_value="subclassFeature",
+    file_patterns=["subclassFeature", "subclassfeature"],
+    statblock_tags=["subclassFeature"],
+    loader_type="json",
+)
 class SubclassFeature(BaseContent):
     """A feature for a character subclass."""
 
@@ -158,6 +171,12 @@ class Subclass(BaseModel):
     subclass_features: list[str] = Field(..., alias="subclassFeatures")
 
 
+@content_type(
+    enum_value="class",
+    file_patterns=["class", "classes"],
+    statblock_tags=["class"],
+    loader_type="json",
+)
 class Class(BaseContent):
     """A character class."""
 

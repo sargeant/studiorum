@@ -16,6 +16,7 @@ from dnd5e.renderers.latex.document_structure import (
     DocumentStructureBuilder,
     SectionLevel,
 )
+from tests.test_helpers import reset_test_environment
 
 
 class TestContentPlaceholderRegression:
@@ -23,6 +24,9 @@ class TestContentPlaceholderRegression:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.renderer = LaTeXDocumentRenderer()
         metadata = DocumentMetadata(
             title="Test Book",

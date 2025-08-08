@@ -9,6 +9,7 @@ import pytest
 from dnd5e.core.assets.image_manager import ImageAsset, ImageManager, ImageSource
 from dnd5e.core.config.unified_config import PathsConfig
 from dnd5e.renderers.core.interfaces import RenderingContext
+from tests.test_helpers import reset_test_environment
 
 
 class TestImageSource:
@@ -66,6 +67,9 @@ class TestImageManager:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.paths_config = Mock(spec=PathsConfig)
         self.paths_config.build_path = Path("/tmp/build")
         with patch("pathlib.Path.mkdir"):

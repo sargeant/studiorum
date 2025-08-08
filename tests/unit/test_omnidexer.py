@@ -14,6 +14,7 @@ from dnd5e.core.models.classes import (  # type: ignore
     SubclassFeature,
 )
 from dnd5e.core.models.content import ContentType  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 
 def load_all_data_sync(omnidexer: Omnidexer) -> dict[str, int]:
@@ -30,6 +31,10 @@ def load_all_data_sync(omnidexer: Omnidexer) -> dict[str, int]:
 class TestIndexEntry:
     """Tests for IndexEntry class."""
 
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
+
     def test_index_entry_creation(self, sample_spell: Any) -> None:
         """Test IndexEntry creation."""
         entry = IndexEntry.create(sample_spell, ContentType.SPELL)
@@ -43,6 +48,10 @@ class TestIndexEntry:
 
 class TestOmnidexer:
     """Tests for Omnidexer class."""
+
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
 
     def test_omnidexer_creation(self) -> None:
         """Test basic omnidexer creation."""
@@ -193,33 +202,11 @@ class TestDeepIndexing:
 
     def setup_method(self) -> None:
         """Reset global state for complete isolation using service container."""
-        from dnd5e.cli.main import reset_cli_globals
-        from dnd5e.core.cache import CacheManager
-        from dnd5e.core.container import reset_global_container
-
-        # Reset the service container (handles most singletons now)
-        reset_global_container()
-
-        # Reset remaining legacy global state
-        CacheManager.reset()
-        reset_cli_globals()
-
-        import gc
-
-        gc.collect()  # Force cleanup of any lingering objects
+        reset_test_environment()
 
     def teardown_method(self) -> None:
         """Clear cache after each test using service container."""
-        from dnd5e.cli.main import reset_cli_globals
-        from dnd5e.core.cache import CacheManager
-        from dnd5e.core.container import reset_global_container
-
-        # Reset the service container (handles most singletons now)
-        reset_global_container()
-
-        # Reset remaining legacy global state
-        CacheManager.reset()
-        reset_cli_globals()
+        reset_test_environment()
 
         # Force garbage collection to clean up any file handles
         import gc
@@ -607,7 +594,17 @@ class TestOmnidexerMetadataOnlyLoading:
         ]
 
         with patch.object(ConfigurableSourceManager, "__init__", return_value=None):
+            # Mock content patterns to prevent initialization requirement
+            from dnd5e.core.models.content import ContentType
+
+            mock_content_patterns = {
+                ContentType.ADVENTURE: ["adventures", "adventure-"],
+                ContentType.BOOK: ["books", "book-"],
+                ContentType.SPELL: ["spells"],
+            }
+
             source_manager = ConfigurableSourceManager()
+            source_manager.__class__.content_patterns = mock_content_patterns
             source_manager.content_manager = Mock()
             source_manager.content_manager._index_built = True
             source_manager.content_manager.get_all_content_files = Mock(

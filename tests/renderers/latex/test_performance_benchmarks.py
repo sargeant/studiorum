@@ -13,6 +13,7 @@ from dnd5e.core.models.content import Source  # type: ignore
 from dnd5e.core.models.spells import Spell  # type: ignore
 from dnd5e.renderers.core.interfaces import RenderingContext  # type: ignore
 from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 
 def compile_document_to_pdf_sync(renderer, documents, context):
@@ -27,6 +28,9 @@ class TestRenderingPerformance:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         config = {"show_progress": False, "compilation_timeout": 30, "max_passes": 2}
         self.renderer = LaTeXDocumentRenderer(config)
 

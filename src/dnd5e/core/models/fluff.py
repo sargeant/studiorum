@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from dnd5e.core.logging import get_logger
 
+from ..registry import content_type
 from .content import BaseContent
 
 logger = get_logger(__name__)
@@ -183,18 +184,36 @@ class BaseFluff(BaseContent):
         return paths
 
 
+@content_type(
+    enum_value="spellFluff",
+    file_patterns=["spellFluff", "spell-fluff", "spells", "fluff-spell"],
+    statblock_tags=["spellFluff"],
+    loader_type="fluff",
+)
 class SpellFluff(BaseFluff):
     """Fluff content specific to spells."""
 
     pass
 
 
+@content_type(
+    enum_value="creatureFluff",
+    file_patterns=["creatureFluff", "creature-fluff", "bestiary", "fluff"],
+    statblock_tags=["creatureFluff"],
+    loader_type="fluff",
+)
 class CreatureFluff(BaseFluff):
     """Fluff content specific to creatures/monsters."""
 
     pass
 
 
+@content_type(
+    enum_value="itemFluff",
+    file_patterns=["itemFluff", "item-fluff", "items", "fluff"],
+    statblock_tags=["itemFluff"],
+    loader_type="fluff",
+)
 class ItemFluff(BaseFluff):
     """Fluff content specific to items."""
 

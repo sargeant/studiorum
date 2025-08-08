@@ -21,6 +21,7 @@ from dnd5e.core.text.tag_ast import TagNode
 from dnd5e.renderers.core.handlers import get_default_core_handlers
 from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.core.unified_renderer import StandardUnifiedRenderer
+from tests.test_helpers import reset_test_environment
 
 
 class TestRealDataIntegration:
@@ -29,6 +30,9 @@ class TestRealDataIntegration:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         """Set up test environment with real data."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         # Set up paths to real data
         self.data_root = Path("/Users/sam/Code/5etools-src/data")
 
@@ -346,6 +350,9 @@ class TestRealDataPerformance:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         """Set up performance testing environment."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.data_root = Path("/Users/sam/Code/5etools-src/data")
         if not self.data_root.exists():
             pytest.skip("5etools data not available")

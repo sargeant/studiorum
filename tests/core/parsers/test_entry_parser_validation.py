@@ -9,6 +9,7 @@ from dnd5e.core.entry_registry import ValidationMode
 from dnd5e.core.exceptions import EntryProcessingError, EntryProcessingWarning
 from dnd5e.core.models.content import Source
 from dnd5e.core.parsers.entry_parser import EntryParser
+from tests.test_helpers import reset_test_environment
 
 
 class TestEntryParserEnhanced:
@@ -16,6 +17,9 @@ class TestEntryParserEnhanced:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.source = Source(
             name="Test Source",
             abbreviation="TST",

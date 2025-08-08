@@ -4,6 +4,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from ..registry import content_type
 from .content import BaseContent
 
 
@@ -23,6 +24,12 @@ class AdditionalSpell(BaseModel):
     known: dict[str, Any] | None = None
 
 
+@content_type(
+    enum_value="feat",
+    file_patterns=["feat", "feats"],
+    statblock_tags=["feat"],
+    loader_type="json",
+)
 class Feat(BaseContent):
     """A feat."""
 

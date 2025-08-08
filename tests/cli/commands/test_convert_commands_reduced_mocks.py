@@ -8,6 +8,7 @@ import pytest
 from typer.testing import CliRunner
 
 from dnd5e.cli.commands.convert import app
+from tests.test_helpers import reset_test_environment
 
 
 class TestConvertCommandsWithReducedMocking:
@@ -15,6 +16,9 @@ class TestConvertCommandsWithReducedMocking:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         # Reset global state for test isolation using service container
         from dnd5e.core.cache import CacheManager
         from dnd5e.core.container import reset_all_services

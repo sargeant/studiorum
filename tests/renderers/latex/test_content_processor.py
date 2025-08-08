@@ -17,6 +17,7 @@ from dnd5e.renderers.latex.content_processor import (  # type: ignore
     ItemProcessor,
     SpellProcessor,
 )
+from tests.test_helpers import reset_test_environment
 
 
 class TestSpellProcessor:
@@ -24,6 +25,9 @@ class TestSpellProcessor:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = SpellProcessor()
         self.context = Mock(spec=RenderingContext)
 
@@ -206,6 +210,9 @@ class TestCreatureProcessor:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = CreatureProcessor()
         self.context = Mock(spec=RenderingContext)
 
@@ -409,6 +416,9 @@ class TestItemProcessor:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = ItemProcessor()
         self.context = Mock(spec=RenderingContext)
 

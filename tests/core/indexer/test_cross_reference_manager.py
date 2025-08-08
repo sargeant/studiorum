@@ -8,6 +8,7 @@ from dnd5e.core.indexer.cross_reference_manager import (  # type: ignore
     CrossReference,
     CrossReferenceManager,
 )
+from tests.test_helpers import reset_test_environment
 
 
 class TestCrossReference:
@@ -52,6 +53,9 @@ class TestCrossReferenceManager:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.manager = CrossReferenceManager()
 
     def test_manager_initialization(self) -> None:
@@ -324,6 +328,9 @@ class TestCrossReferenceManagerEdgeCases:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.manager = CrossReferenceManager()
 
     def test_empty_name_handling(self) -> None:

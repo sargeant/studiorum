@@ -9,6 +9,7 @@ from dnd5e.renderers.latex.layout.base import (  # type: ignore
     LayoutStrategy,
 )
 from dnd5e.renderers.latex.layout.multi_column import MultiColumnManager  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 
 class TestMultiColumnManager:
@@ -16,6 +17,9 @@ class TestMultiColumnManager:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.manager = MultiColumnManager()
 
     def test_init_default_config(self) -> None:

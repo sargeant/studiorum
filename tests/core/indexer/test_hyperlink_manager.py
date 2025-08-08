@@ -8,6 +8,7 @@ from dnd5e.core.indexer.hyperlink_manager import (  # type: ignore
     HyperlinkManager,
     HyperlinkStyle,
 )
+from tests.test_helpers import reset_test_environment
 
 
 class TestHyperlinkStyle:
@@ -42,6 +43,9 @@ class TestHyperlinkManager:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.manager = HyperlinkManager()
 
     def test_manager_initialization(self) -> None:
@@ -331,6 +335,9 @@ class TestHyperlinkManagerEdgeCases:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.manager = HyperlinkManager()
 
     def test_empty_text(self) -> None:

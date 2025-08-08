@@ -13,6 +13,7 @@ from dnd5e.core.loaders.base import SourceManager
 from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from tests.test_helpers import reset_test_environment
 
 # Test uses sync methods only
 
@@ -90,6 +91,8 @@ class TestAdventureResolution:
 
     def setup_method(self):
         """Set up test environment with temporary data files."""
+        # Reset global state for complete isolation using service container
+        reset_test_environment()
         # Create temporary directory for test data
         self.temp_dir = tempfile.TemporaryDirectory()
         self.temp_path = Path(self.temp_dir.name)

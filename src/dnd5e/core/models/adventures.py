@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from ..registry import content_type
 from .chapter import Chapter
 from .content import BaseContent
 
@@ -51,6 +52,12 @@ class AdventureMetadata(BaseModel):
         return str(self.level)
 
 
+@content_type(
+    enum_value="adventure",
+    file_patterns=["adventure", "adventures"],
+    statblock_tags=["adventure"],
+    loader_type="json",
+)
 class Adventure(BaseContent):
     """Represents a D&D adventure with unified metadata and content structure.
 

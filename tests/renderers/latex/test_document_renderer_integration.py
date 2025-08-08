@@ -13,6 +13,7 @@ from dnd5e.renderers.latex.compilation_config import (  # type: ignore
     LaTeXEngine,
 )
 from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 # Apply async mark to the entire module
 pytestmark = pytest.mark.asyncio
@@ -30,6 +31,9 @@ class TestLaTeXDocumentRendererIntegration:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         config = {"show_progress": False, "compilation_timeout": 10, "max_passes": 2}
         self.renderer = LaTeXDocumentRenderer(config)
 

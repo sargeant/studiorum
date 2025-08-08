@@ -18,6 +18,7 @@ from dnd5e.cli.config_factory import (
     get_with_items_default,
 )
 from dnd5e.core.config.unified_config import get_app_config, reset_app_config
+from tests.test_helpers import reset_test_environment
 
 
 class TestCliConfigInheritance:
@@ -25,6 +26,9 @@ class TestCliConfigInheritance:
 
     def setup_method(self) -> None:
         """Reset config before each test."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         reset_app_config()
 
     def test_cli_defaults_match_config(self) -> None:

@@ -9,6 +9,7 @@ from hypothesis import given, strategies as st
 
 from dnd5e.core.latex_utils import escape_latex_text
 from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
+from tests.test_helpers import reset_test_environment
 
 
 class TestLaTeXEscaping:
@@ -120,6 +121,9 @@ class TestTemplateInjectionVulnerabilities:
 
     def setup_method(self):
         """Set up test template engine."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.engine = LaTeXTemplateEngine()
 
     def test_template_variable_injection(self):
@@ -220,6 +224,9 @@ class TestSecureTemplatePatterns:
 
     def setup_method(self):
         """Set up test template engine."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.engine = LaTeXTemplateEngine()
 
     def test_secure_variable_usage(self):

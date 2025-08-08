@@ -9,6 +9,7 @@ from dnd5e.core.models.document_metadata import (  # type: ignore
     SectionLevel,
 )
 from dnd5e.renderers.latex.content_organizer import ContentOrganizer  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 
 class MockSpell(BaseContent):
@@ -52,6 +53,9 @@ class TestContentOrganizer:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.organizer = ContentOrganizer(DocumentType.BOOK)
 
     def test_organizer_initialization(self) -> None:

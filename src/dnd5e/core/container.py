@@ -165,6 +165,9 @@ class DefaultServiceContainer:
             logger.debug("Creating content type registry instance")
             from dnd5e.core.interfaces import ContentTypeRegistry
 
+            # Create a basic interface-based registry
+            # Content type mappings will be populated by the registry manager
+            # when initialize_content_types() is called from elsewhere
             self._content_type_registry = ContentTypeRegistry()
 
         return self._content_type_registry

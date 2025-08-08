@@ -18,6 +18,7 @@ from dnd5e.core.exceptions import (
     MalformedEntryError,
     UnknownEntryTypeError,
 )
+from tests.test_helpers import reset_test_environment
 
 
 class TestValidationMode:
@@ -52,6 +53,9 @@ class TestEntryTypeRegistry:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.registry = EntryTypeRegistry(ValidationMode.PERMISSIVE)
 
     def test_initialization(self):

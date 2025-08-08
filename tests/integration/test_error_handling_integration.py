@@ -30,6 +30,7 @@ from dnd5e.core.logging_strategy import (
 from dnd5e.core.result import Error, Result, Success, collect_results, try_result
 from dnd5e.core.standardized_validation import StandardizedEntryValidator
 from dnd5e.core.validation_result import validate_model, validate_required_field
+from tests.test_helpers import reset_test_environment
 
 
 class TestModel(BaseModel):
@@ -45,6 +46,9 @@ class TestErrorHandlingIntegration:
 
     def setup_method(self) -> None:
         """Set up test environment."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         # Configure logging to capture output
         self.log_stream = StringIO()
         handler = logging.StreamHandler(self.log_stream)

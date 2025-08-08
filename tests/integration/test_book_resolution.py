@@ -5,12 +5,17 @@ import pytest
 from dnd5e.cli.main import get_omnidexer
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from tests.test_helpers import reset_test_environment
 
 # Tests converted to sync after async removal migration
 
 
 class TestBookResolution:
     """Test book resolution with dual-file architecture using real data."""
+
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
 
     def test_omnidexer_loads_only_book_metadata(self):
         """Test that omnidexer loads only metadata files for books."""

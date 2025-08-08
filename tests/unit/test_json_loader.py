@@ -7,10 +7,15 @@ import pytest
 
 from dnd5e.core.loaders.json_loader import JsonDataLoader
 from dnd5e.core.models.content import ContentType, Source
+from tests.test_helpers import reset_test_environment
 
 
 class TestJsonDataLoaderBook:
     """Tests for JsonDataLoader book data extraction."""
+
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
 
     @pytest.fixture
     def sample_source(self) -> Any:
@@ -146,6 +151,10 @@ class TestJsonDataLoaderBook:
 class TestJsonDataLoaderBookIntegration:
     """Integration tests for JsonDataLoader with Book model validation."""
 
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
+
     @pytest.fixture
     def sample_source(self) -> Any:
         """Sample source for testing."""
@@ -235,6 +244,10 @@ class TestJsonDataLoaderBookIntegration:
 class TestJsonDataLoaderSpell:
     """Tests for JsonDataLoader spell handling with missing required fields."""
 
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
+
     @pytest.fixture
     def sample_path(self) -> Path:
         """Sample path for testing."""
@@ -259,6 +272,10 @@ class TestJsonDataLoaderContentTypeValidation:
     This test class addresses issue #54 where class definitions were being validated
     against the Spell schema instead of the Class schema due to permissive fallback logic.
     """
+
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
 
     @pytest.fixture
     def sample_class_data(self) -> dict[str, Any]:

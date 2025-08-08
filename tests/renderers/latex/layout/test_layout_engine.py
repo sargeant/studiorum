@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 from dnd5e.core.models.content import ContentType  # type: ignore
 from dnd5e.renderers.latex.layout.base import LayoutHint, LayoutStrategy  # type: ignore
 from dnd5e.renderers.latex.layout.layout_engine import LayoutEngine  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 
 class TestLayoutEngine:
@@ -13,6 +14,9 @@ class TestLayoutEngine:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.engine = LayoutEngine()
 
     def test_init_default_config(self) -> None:
