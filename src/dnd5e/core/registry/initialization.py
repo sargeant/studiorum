@@ -27,6 +27,9 @@ def initialize_content_types() -> None:
         feats,  # Import to trigger @content_type registration
         fluff,  # Import to trigger @content_type registration
         items,  # Import to trigger @content_type registration
+        legendarygroup,  # Import to trigger @content_type registration
+        magicvariant,  # Import to trigger @content_type registration
+        optfeature,  # Import to trigger @content_type registration
         optional_features,  # Import to trigger @content_type registration
         races,  # Import to trigger @content_type registration
         rewards,  # Import to trigger @content_type registration
