@@ -133,6 +133,47 @@ test: uv
 	@echo "Running all tests..."
 	$(UV) pytest
 
+# Speed-based test targets for development workflow
+## Run fast tests only (<1s per test)
+test-fast: uv
+	@echo "Running fast tests only..."
+	$(UV) pytest -m "fast"
+
+## Run unit tests (excludes integration and slow tests)
+test-unit: uv
+	@echo "Running unit tests..."
+	$(UV) pytest -m "not integration and not slow"
+
+## Run core functionality tests
+test-core: uv
+	@echo "Running core functionality tests..."
+	$(UV) pytest -m "core"
+
+## Run rendering system tests
+test-rendering: uv
+	@echo "Running rendering system tests..."
+	$(UV) pytest -m "rendering"
+
+## Run CLI interface tests
+test-cli: uv
+	@echo "Running CLI interface tests..."
+	$(UV) pytest -m "cli"
+
+## Run integration tests only
+test-integration: uv
+	@echo "Running integration tests..."
+	$(UV) pytest -m "integration"
+
+## Run slow tests only (>10s per test)
+test-slow: uv
+	@echo "Running slow tests..."
+	$(UV) pytest -m "slow"
+
+## Run tests requiring external data
+test-data: uv
+	@echo "Running tests requiring external data..."
+	$(UV) pytest -m "requires_data"
+
 # Test Performance and Quality Monitoring
 ## Run tests with performance monitoring (fast)
 test-perf: uv
