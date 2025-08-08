@@ -74,6 +74,16 @@ class RegistryManager:
         ExtendedContentType.__module__ = ContentType.__module__
         ExtendedContentType.__qualname__ = ContentType.__qualname__
 
+        # Preserve class methods and other attributes from the original enum
+        # Copy from the original class's __dict__ to avoid including inherited methods
+        for attr_name, attr in ContentType.__dict__.items():
+            if not attr_name.startswith("_") and not hasattr(
+                ExtendedContentType, attr_name
+            ):
+                # Skip enum members (they're already handled)
+                if not isinstance(attr, ContentType):
+                    setattr(ExtendedContentType, attr_name, attr)
+
         # Replace ContentType in the models module
         content_module = sys.modules[ContentType.__module__]
         # mypy: Dynamic module attribute assignment needed for enum extension
