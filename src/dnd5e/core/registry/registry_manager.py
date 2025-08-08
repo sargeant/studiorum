@@ -42,14 +42,48 @@ class RegistryManager:
     def _update_content_type_enum(
         self, metadata: dict[str, ContentTypeMetadata]
     ) -> None:
-        """Dynamically add new enum values to ContentType."""
+        """Create extended ContentType enum with new values."""
+        import sys
+        from enum import Enum
+        from typing import cast
+
+        global ContentType
+
+        # Get existing enum members
+        existing_types = {member.name: member.value for member in ContentType}
+
+        # Add new types (convert keys to uppercase names)
+        new_types = {}
         for enum_value, meta in metadata.items():
-            # Check if enum value already exists (case-insensitive)
             enum_name = enum_value.upper()
-            if not hasattr(ContentType, enum_name):
-                # Add new enum value dynamically
-                setattr(ContentType, enum_name, enum_value)
-                logger.debug(f"Added ContentType.{enum_name}")
+            if enum_name not in existing_types:
+                new_types[enum_name] = enum_value
+                logger.debug(f"Adding ContentType.{enum_name} = '{enum_value}'")
+
+        # If no new types, nothing to do
+        if not new_types:
+            logger.debug("No new ContentType enum values to add")
+            return
+
+        # Create extended enum with all types (existing + new)
+        all_types = {**existing_types, **new_types}
+
+        # Create new enum class with same name and attributes
+        # mypy: Cannot analyze dynamic enum creation, but this is the correct pattern
+        ExtendedContentType = Enum("ContentType", all_types, type=str)  # type: ignore[misc]
+        ExtendedContentType.__module__ = ContentType.__module__
+        ExtendedContentType.__qualname__ = ContentType.__qualname__
+
+        # Replace ContentType in the models module
+        content_module = sys.modules[ContentType.__module__]
+        # mypy: Dynamic module attribute assignment needed for enum extension
+        content_module.ContentType = ExtendedContentType  # type: ignore[attr-defined]
+
+        # Update global reference in this module
+        # mypy: Dynamic enum replacement is type-safe at runtime but not statically analyzable
+        ContentType = cast(type[ContentType], ExtendedContentType)  # type: ignore[misc]
+
+        logger.info(f"Extended ContentType enum with {len(new_types)} new values")
 
     def _update_source_manager(self, metadata: dict[str, ContentTypeMetadata]) -> None:
         """Replace source manager patterns with registry-based patterns."""
@@ -59,18 +93,16 @@ class RegistryManager:
             # Replace the entire content_patterns dict
             new_patterns: dict[ContentType, list[str]] = {}
             for enum_value, meta in metadata.items():
-                # Try to find existing enum by value first (most reliable)
-                content_type = None
+                # Try to create enum instance from value
                 try:
                     content_type = ContentType(enum_value)
+                    new_patterns[content_type] = meta.file_patterns
                 except ValueError:
-                    # If enum doesn't exist by value, skip this entry
+                    # Should not happen after enum extension, but be defensive
                     logger.warning(
                         f"Cannot create ContentType for {enum_value}, skipping"
                     )
                     continue
-
-                new_patterns[content_type] = meta.file_patterns
 
             # Replace the class attribute completely
             ConfigurableSourceManager.content_patterns = new_patterns  # type: ignore[attr-defined]

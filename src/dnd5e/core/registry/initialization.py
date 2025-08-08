@@ -20,13 +20,17 @@ def initialize_content_types() -> None:
         books,  # Import to trigger @content_type registration
         classes,  # Import to trigger @content_type registration
         creatures,  # Import to trigger @content_type registration
+        deities,  # Import to trigger @content_type registration
         feats,  # Import to trigger @content_type registration
         fluff,  # Import to trigger @content_type registration
         items,  # Import to trigger @content_type registration
+        optional_features,  # Import to trigger @content_type registration
         races,  # Import to trigger @content_type registration
         rewards,  # Import to trigger @content_type registration
         rule_types,  # Import to trigger @content_type registration
         spells,  # Import to trigger @content_type registration
+        subclasses,  # Import to trigger @content_type registration
+        subraces,  # Import to trigger @content_type registration
         vehicles,  # Import to trigger @content_type registration
     )
 

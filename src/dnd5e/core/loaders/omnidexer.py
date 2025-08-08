@@ -477,6 +477,14 @@ class Omnidexer:
         """Check if a content type has been loaded."""
         return content_type in self._loaded_types
 
+    def get_supported_types(self) -> list[ContentType]:
+        """Get list of supported content types.
+
+        Returns:
+            List of content types supported by registered loaders
+        """
+        return list(self._JSON_CONTENT_TYPES) + list(self._FLUFF_CONTENT_TYPES)
+
     def _log_index_stats(self) -> None:
         """Log statistics about the loaded index."""
         stats = self.get_statistics()
