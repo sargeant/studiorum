@@ -182,7 +182,7 @@ class TestContentOrganizer:
         from unittest.mock import patch
 
         with patch(
-            "dnd5e.core.models.content.ContentType.from_content"
+            "dnd5e.renderers.latex.content_organizer.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
@@ -234,7 +234,7 @@ class TestContentOrganizer:
         ]
 
         with patch(
-            "dnd5e.core.models.content.ContentType.from_content"
+            "dnd5e.renderers.latex.content_organizer.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
@@ -474,7 +474,7 @@ class TestContentOrganizerIntegration:
         ]
 
         with patch(
-            "dnd5e.core.models.content.ContentType.from_content"
+            "dnd5e.renderers.latex.content_organizer.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
@@ -522,7 +522,7 @@ class TestContentOrganizerIntegration:
         )
 
         with patch(
-            "dnd5e.core.models.content.ContentType.from_content"
+            "dnd5e.renderers.latex.content_organizer.ContentType.from_content"
         ) as mock_from_content:
             from dnd5e.core.models.content import ContentType  # type: ignore
 
