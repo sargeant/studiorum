@@ -41,11 +41,20 @@ help:
 	@echo "  pip-audit    - Security vulnerability scan"
 	@echo "  bandit       - Static security analysis"
 	@echo ""
+	@echo "Smart test selection:"
+	@echo "  test-quick        - Quick feedback (changed files + fast tests)"
+	@echo "  test-impacted     - Run only tests impacted by changes"
+	@echo "  test-focused      - Run tests for current feature branch"
+	@echo "  test-impact-analyze - Analyze which tests are impacted"
+	@echo ""
 	@echo "Test performance and quality:"
-	@echo "  test-perf         - Run fast performance tests"
-	@echo "  test-perf-all     - Run all performance tests"
+	@echo "  test-profile      - Run tests with performance profiling"
 	@echo "  test-perf-baseline - Create performance baseline"
 	@echo "  test-perf-compare - Compare against baseline"
+	@echo "  test-perf-track   - Track performance history"
+	@echo "  test-perf-trends  - Show performance trends"
+	@echo "  test-perf         - Run fast performance tests (legacy)"
+	@echo "  test-perf-all     - Run all performance tests (legacy)"
 	@echo "  test-quality      - Analyze test quality metrics"
 	@echo "  test-quality-gate - Check quality gates"
 	@echo "  test-quality-strict - Strict quality validation"
@@ -174,24 +183,72 @@ test-data: uv
 	@echo "Running tests requiring external data..."
 	$(UV) pytest -m "requires_data"
 
-# Test Performance and Quality Monitoring
-## Run tests with performance monitoring (fast)
+# Smart Test Selection (Phase 4.1)
+## Run only tests impacted by current changes
+test-impacted: uv
+	@echo "Analyzing test impact for current changes..."
+	@$(SCRIPTS_DIR)/run_impacted_tests.sh
+
+## Analyze which tests are impacted by changes
+test-impact-analyze: uv
+	@echo "Analyzing test impact..."
+	@git diff --name-only main...HEAD | xargs $(UV) python $(SCRIPTS_DIR)/test_impact_analyzer.py
+
+## Run tests for current feature branch
+test-focused: uv
+	@echo "Running tests for current feature branch..."
+	@$(SCRIPTS_DIR)/run_impacted_tests.sh origin/main
+
+## Quick feedback loop - changed files + fast tests
+test-quick: uv
+	@echo "Running quick test suite (changed files + fast tests)..."
+	@if [ -n "$$(git diff --name-only HEAD 2>/dev/null)" ]; then \
+		$(SCRIPTS_DIR)/run_impacted_tests.sh HEAD; \
+	else \
+		$(UV) pytest -m "fast" --tb=short; \
+	fi
+
+# Test Performance and Quality Monitoring (Phase 4.2)
+## Run tests with performance profiling
+test-profile: uv
+	@echo "Running tests with performance profiling..."
+	$(UV) pytest --profile -m "not slow" || true
+	@echo "Performance report saved to .test-performance-report.json"
+
+## Create performance baseline
+test-perf-baseline: uv
+	@echo "Creating performance baseline..."
+	$(UV) python $(SCRIPTS_DIR)/performance_baseline.py --create-baseline
+	@echo "Performance baseline created"
+
+## Compare performance against baseline
+test-perf-compare: uv
+	@echo "Comparing performance against baseline..."
+	$(UV) pytest --profile -m "not slow" || true
+	$(UV) python $(SCRIPTS_DIR)/performance_baseline.py --compare
+
+## Track performance history
+test-perf-track: uv
+	@echo "Tracking performance history..."
+	$(UV) pytest --profile -m "not slow" || true
+	$(UV) python $(SCRIPTS_DIR)/performance_baseline.py --track
+
+## Show performance trends
+test-perf-trends: uv
+	@echo "Showing performance trends..."
+	$(UV) python $(SCRIPTS_DIR)/performance_baseline.py --trends
+
+## Run legacy performance monitoring (fast)
 test-perf: uv
 	@echo "Running fast performance tests..."
 	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --test-type=fast || (echo "Performance tests failed"; exit 1)
 	@echo "Fast performance tests completed"
 
-## Run all tests with performance monitoring
+## Run all tests with legacy performance monitoring
 test-perf-all: uv
 	@echo "Running all performance tests..."
 	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --test-type=all || (echo "Performance tests failed"; exit 1)
 	@echo "All performance tests completed"
-
-## Create performance baseline
-test-perf-baseline: uv
-	@echo "Creating performance baseline..."
-	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --baseline || (echo "Baseline creation failed"; exit 1)
-	@echo "Performance baseline created"
 
 ## Generate performance report
 test-perf-report: uv

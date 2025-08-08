@@ -188,6 +188,7 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
+    "--tb=short",
     # Note: Parallel execution disabled due to global state issues with decorator-based registration
     # To run tests in parallel manually, use: pytest -n auto
 ]
@@ -221,3 +222,5 @@ markers = [
     "latex_compilation: marks tests that require LaTeX compilation",
 ]
 filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]
+# Register performance profiling plugin
+plugins = ["scripts.test_profiler"]

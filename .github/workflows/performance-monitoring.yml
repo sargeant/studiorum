@@ -1,0 +1,208 @@
+name: Performance Monitoring
+
+on:
+  schedule:
+    # Run performance monitoring daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual triggering
+    inputs:
+      baseline_update:
+        description: 'Update performance baseline'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  performance-trends:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: main
+        fetch-depth: 0
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+
+    - name: Set up Python
+      run: uv python install 3.12
+
+    - name: Install dependencies
+      run: make ci-install
+
+    - name: Restore performance history
+      uses: actions/cache/restore@v4
+      id: cache-history
+      with:
+        path: .test-performance-history.json
+        key: performance-history-${{ github.repository }}
+        restore-keys: |
+          performance-history-${{ github.repository }}
+
+    - name: Restore performance baseline
+      uses: actions/cache/restore@v4
+      id: cache-baseline
+      with:
+        path: .test-performance-baseline.json
+        key: performance-baseline-${{ github.repository }}-main
+
+    - name: Create baseline if missing or requested
+      if: steps.cache-baseline.outputs.cache-hit != 'true' || github.event.inputs.baseline_update == 'true'
+      run: |
+        echo "=== Creating/updating performance baseline ==="
+        make test-perf-baseline
+
+    - name: Run performance monitoring
+      run: |
+        echo "=== Running daily performance monitoring ==="
+        make test-profile
+        make test-perf-track
+
+    - name: Generate performance trends report
+      run: |
+        echo "=== Generating performance trends ==="
+        make test-perf-trends
+
+    - name: Check performance regressions
+      run: |
+        # Create performance regression checker
+        cat > check_performance.py << 'EOF'
+        import json
+        import os
+        from datetime import datetime
+
+        try:
+            with open('.test-performance-history.json') as f:
+                history = json.load(f)
+
+            entries = history.get('entries', [])
+            if len(entries) >= 2:
+                current = entries[-1]
+                previous = entries[-2]
+
+                current_duration = current['total_duration']
+                previous_duration = previous['total_duration']
+                change_pct = ((current_duration / previous_duration) - 1) * 100
+
+                print(f'### Performance Trends Report')
+                print(f'Date: {datetime.now().strftime("%Y-%m-%d")}')
+                print(f'Total tests: {current["total_tests"]}')
+                print(f'Current duration: {current_duration:.2f}s')
+                print(f'Previous duration: {previous_duration:.2f}s')
+                print(f'Change: {change_pct:+.1f}%')
+
+                if abs(change_pct) > 5:
+                    trend = 'slower' if change_pct > 0 else 'faster'
+                    print(f'⚠️ Significant change detected: Tests are {abs(change_pct):.1f}% {trend}')
+
+                    # Create issue if performance degraded significantly
+                    if change_pct > 10:
+                        alert_content = f"""# Performance Alert: Tests {change_pct:.1f}% Slower
+
+        ## Summary
+        The test suite performance has degraded significantly.
+        - Current duration: {current_duration:.2f}s
+        - Previous duration: {previous_duration:.2f}s
+        - Performance regression: {change_pct:.1f}%
+
+        ## Details
+        - Total tests: {current["total_tests"]}
+        - Slow tests: {current["slow_test_count"]}
+        - Memory intensive tests: {current["memory_intensive_count"]}
+
+        ## Recommended Actions
+        1. Review recent changes to identify performance bottlenecks
+        2. Run `make test-profile` locally to identify slow tests
+        3. Consider optimizing test setup/teardown patterns
+        4. Review test parallelization settings
+
+        This alert was generated automatically by the performance monitoring workflow.
+        """
+                        with open('performance-alert.md', 'w') as f:
+                            f.write(alert_content)
+                        print('Created performance alert file')
+
+                        # Set GitHub Actions output for creating issue
+                        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                            f.write(f'alert_needed=true\n')
+                            f.write(f'regression_percent={change_pct:.1f}\n')
+                    else:
+                        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                            f.write(f'alert_needed=false\n')
+                else:
+                    print('✅ Performance within acceptable range')
+                    with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                        f.write(f'alert_needed=false\n')
+            else:
+                print('Not enough history for comparison')
+                with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                    f.write(f'alert_needed=false\n')
+        except Exception as e:
+            print(f'Error checking performance: {e}')
+            with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                f.write(f'alert_needed=false\n')
+        EOF
+
+        python check_performance.py
+
+    - name: Create performance issue
+      if: steps.check-performance.outputs.alert_needed == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+
+          try {
+            const alertContent = fs.readFileSync('performance-alert.md', 'utf8');
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'performance,automated',
+              state: 'open'
+            });
+
+            // Close existing performance issues first
+            for (const issue of issues) {
+              if (issue.title.includes('Performance Alert')) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: 'closed'
+                });
+                console.log(`Closed existing performance issue #${issue.number}`);
+              }
+            }
+
+            // Create new performance issue
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Performance Alert: Tests ${{ steps.check-performance.outputs.regression_percent }}% Slower`,
+              body: alertContent,
+              labels: ['performance', 'automated', 'priority-high']
+            });
+
+            console.log(`Created performance issue #${issue.data.number}`);
+          } catch (error) {
+            console.error('Failed to create performance issue:', error);
+          }
+
+    - name: Save performance history
+      uses: actions/cache/save@v4
+      if: always()
+      with:
+        path: .test-performance-history.json
+        key: performance-history-${{ github.repository }}-${{ github.run_id }}
+
+    - name: Save performance baseline
+      uses: actions/cache/save@v4
+      if: steps.cache-baseline.outputs.cache-hit != 'true' || github.event.inputs.baseline_update == 'true'
+      with:
+        path: .test-performance-baseline.json
+        key: performance-baseline-${{ github.repository }}-main-${{ github.run_id }}
