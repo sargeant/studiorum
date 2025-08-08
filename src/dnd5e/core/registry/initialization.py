@@ -18,8 +18,11 @@ def initialize_content_types() -> None:
         adventures,  # Import to trigger @content_type registration
         backgrounds,  # Import to trigger @content_type registration
         books,  # Import to trigger @content_type registration
+        charoption,  # Import to trigger @content_type registration
+        charoptiontype,  # Import to trigger @content_type registration
         classes,  # Import to trigger @content_type registration
         creatures,  # Import to trigger @content_type registration
+        cult,  # Import to trigger @content_type registration
         deities,  # Import to trigger @content_type registration
         feats,  # Import to trigger @content_type registration
         fluff,  # Import to trigger @content_type registration
