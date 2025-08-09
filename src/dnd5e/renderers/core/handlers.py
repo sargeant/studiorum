@@ -579,6 +579,44 @@ class CoreDiceTagHandler:
         pass
 
 
+class CoreCardTagHandler:
+    """Core handler for card (@card) tags.
+
+    This handler processes card tags and returns the card name
+    for simple text rendering.
+    """
+
+    def __init__(self) -> None:
+        """Initialize the card handler."""
+        self.tag_type = "card"
+        self.supported_tags = ["card"]
+
+    def handles_tag_type(self, tag_type: str) -> bool:
+        """Check if this handler processes the given tag type."""
+        return tag_type == "card"
+
+    def process_tag(self, node: TagNode, context: RenderingContext) -> str:
+        """Process a card tag node and return the card name.
+
+        Args:
+            node: The parsed card tag AST node
+            context: Rendering context
+
+        Returns:
+            String containing the card name
+        """
+        # Card tags have format {@card CardName|DeckName|Source}
+        # We extract the card name (first parameter)
+        card_name = getattr(node, "name", "")
+        if not card_name:
+            return "[Card]"
+
+        # Escape LaTeX special characters in the card name
+        from dnd5e.core.latex_utils import escape_latex_text
+
+        return escape_latex_text(card_name)
+
+
 class CoreFormattingTagHandler:
     """Core handler for formatting tags like @i (italic) and @b (bold).
 
@@ -636,18 +674,44 @@ class CoreFormattingTagHandler:
                         dc_value = getattr(child, "dc", "")
                         content_parts.append(f"DC {dc_value}")
                     else:
-                        # For other nested tags, try to render them through the context's tag resolver
-                        # Fall back to string representation if no resolver available
-                        tag_resolver = context.metadata.get("tag_resolver")
-                        if tag_resolver:
+                        # For other nested tags, try to render them through the unified renderer
+                        # Fall back to extracting meaningful content if no rendering available
+                        rendered_content = None
+
+                        # Try to render using unified renderer in context
+                        if hasattr(context, "renderer") and hasattr(
+                            context.renderer, "render_tag"
+                        ):
                             try:
-                                rendered = tag_resolver.process_single_tag(child)
-                                content_parts.append(rendered)
+                                rendered_content = context.renderer.render_tag(
+                                    child, context
+                                )
                             except Exception:
-                                # If rendering fails, fall back to string representation
-                                content_parts.append(str(child))
-                        else:
-                            content_parts.append(str(child))
+                                pass
+
+                        # Try using tag resolver if renderer unavailable
+                        if rendered_content is None:
+                            tag_resolver = context.metadata.get("tag_resolver")
+                            if tag_resolver and hasattr(tag_resolver, "renderer"):
+                                try:
+                                    rendered_content = tag_resolver.renderer.render_tag(
+                                        child, tag_resolver.rendering_context
+                                    )
+                                except Exception:
+                                    pass
+
+                        # Fall back to extracting name or meaningful content
+                        if rendered_content is None:
+                            if hasattr(child, "name") and child.name:
+                                rendered_content = str(child.name)
+                            elif hasattr(child, "tag_type"):
+                                rendered_content = (
+                                    f"[{child.tag_type.replace('_', ' ').title()}]"
+                                )
+                            else:
+                                rendered_content = "[Unknown Tag]"
+
+                        content_parts.append(rendered_content)
                 else:
                     content_parts.append(str(child))
 
@@ -732,5 +796,6 @@ def get_default_core_handlers() -> list[CoreTagHandler]:
         CoreConditionTagHandler(),
         CoreDCTagHandler(),
         CoreDiceTagHandler(),
+        CoreCardTagHandler(),
         CoreFormattingTagHandler(),
     ]

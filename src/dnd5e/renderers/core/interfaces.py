@@ -419,9 +419,17 @@ class UnifiedTagRenderer:
 
     def _render_unknown_tag(self, node: TagNode, context: RenderingContext) -> str:
         """Fallback rendering for unknown tag types."""
-        # Simple fallback - just return the tag name or first attribute
-        fallback_text = getattr(node, "name", str(node))
-        return str(fallback_text)
+        # For unknown tags, try to extract meaningful content instead of showing TagNode(...)
+        if hasattr(node, "name") and node.name:
+            # Use the name attribute if available (most common case)
+            return str(node.name)
+        elif hasattr(node, "tag_type") and node.tag_type:
+            # For tags without names, show the tag type in a readable format
+            tag_type = node.tag_type.replace("_", " ").title()
+            return f"[{tag_type}]"
+        else:
+            # Last resort fallback
+            return "[Unknown Tag]"
 
     def _render_error_fallback(self, node: TagNode, error: Exception) -> str:
         """Safe fallback when rendering fails."""
