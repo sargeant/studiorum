@@ -4,7 +4,7 @@ import hashlib
 from collections import defaultdict
 from datetime import timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -24,13 +24,45 @@ class IndexEntry(BaseModel):
     """Represents an indexed content entry with validation."""
 
     content: BaseContent = Field(description="The content being indexed")
-    content_type: ContentType = Field(description="Type of the content")
+    content_type: ContentType | Any = Field(description="Type of the content")
     hash_id: str = Field(
         min_length=8, max_length=8, description="8-character unique hash identifier"
     )
     lookup_key: str = Field(
         min_length=1, description="Lowercase lookup key for searches"
     )
+
+    @field_validator("content_type", mode="before")
+    @classmethod
+    def validate_content_type(cls, v: Any) -> ContentType:
+        """Validate content type, handling dynamically extended enums."""
+        # Check if it's a ContentType enum instance (including dynamically extended ones)
+        # Use duck typing instead of isinstance due to dynamic enum replacement
+        if hasattr(v, "value") and hasattr(v, "name") and hasattr(v, "__class__"):
+            # Check if it's from a ContentType enum class (original or extended)
+            if v.__class__.__name__ == "ContentType":
+                return v
+
+        # Handle string values (for dynamically added enum values)
+        if isinstance(v, str):
+            try:
+                return ContentType(v)
+            except ValueError as e:
+                # If the enum value doesn't exist, this might be a dynamically added type
+                # that hasn't been properly registered. Try to get it by attribute name.
+                try:
+                    attr_name = v.upper()
+                    if hasattr(ContentType, attr_name):
+                        return getattr(ContentType, attr_name)
+                except Exception:
+                    pass
+                raise ValueError(f"Invalid ContentType: {v}") from e
+
+        # Fallback for isinstance check (original enum instances)
+        if isinstance(v, ContentType):
+            return v
+
+        raise ValueError(f"ContentType must be ContentType enum, got {type(v)}: {v}")
 
     @field_validator("hash_id")
     @classmethod
