@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field, field_validator
 
-from .logging import get_logger
+from ..logging import get_logger
 
 if TYPE_CHECKING:
-    from .loaders.omnidexer import Omnidexer
-    from .models.content import BaseContent
+    from ..loaders.omnidexer import Omnidexer
+    from ..models.content import BaseContent
 
 logger = get_logger(__name__)
 
@@ -95,14 +95,12 @@ class SpellReferenceParser:
             # Format: "spell name"
             name = parts[0]
             return SpellReference(name=name, original_tag=f"{{@spell {tag_content}}}")
-
         elif len(parts) == 2:
             # Format: "spell name|source"
             name, source = parts
             return SpellReference(
                 name=name, source=source, original_tag=f"{{@spell {tag_content}}}"
             )
-
         elif len(parts) == 3:
             # Format: "spell name|source|display text"
             name, source, display_text = parts
@@ -112,7 +110,6 @@ class SpellReferenceParser:
                 display_text=display_text,
                 original_tag=f"{{@spell {tag_content}}}",
             )
-
         else:
             logger.warning(
                 f"Unexpected spell reference format with {len(parts)} parts: {tag_content}"
@@ -121,6 +118,7 @@ class SpellReferenceParser:
             spell_name = parts[0]
             spell_source = parts[1] if len(parts) > 1 else None
             spell_display_text = parts[2] if len(parts) > 2 else None
+
             return SpellReference(
                 name=spell_name,
                 source=spell_source,
@@ -146,7 +144,7 @@ class SpellReferenceResolver:
         Returns:
             List of resolved spell objects (may be empty if not found)
         """
-        from .models.content import ContentType
+        from ..models.content import ContentType
 
         resolved_spells = []
 

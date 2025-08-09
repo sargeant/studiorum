@@ -604,7 +604,7 @@ class CoreDiceTagHandler:
         pass
 
 
-class CoreCardTagHandler:
+class CoreCardTagHandler(BaseCoreTagHandler):
     """Core handler for card (@card) tags.
 
     This handler processes card tags and returns the card name
@@ -616,9 +616,23 @@ class CoreCardTagHandler:
         self.tag_type = "card"
         self.supported_tags = ["card"]
 
-    def handles_tag_type(self, tag_type: str) -> bool:
-        """Check if this handler processes the given tag type."""
-        return tag_type == "card"
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info from card tag - returns card name for display."""
+        # Card tags have format {@card CardName|DeckName|Source}
+        # We extract the card name (first parameter)
+        card_name = getattr(node, "name", "")
+        if not card_name:
+            card_name = "[Card]"
+
+        return ContentReferenceInfo(
+            name=card_name,
+            display_text=card_name,
+            content_type=None,  # Cards don't have specific content types
+            source=getattr(node, "source", ""),
+            page_reference=None,
+        )
 
     def process_tag(self, node: TagNode, context: RenderingContext) -> str:
         """Process a card tag node and return the card name.
@@ -642,7 +656,7 @@ class CoreCardTagHandler:
         return escape_latex_text(card_name)
 
 
-class CoreFormattingTagHandler:
+class CoreFormattingTagHandler(BaseCoreTagHandler):
     """Core handler for formatting tags like @i (italic) and @b (bold).
 
     This handler processes pure formatting tags that don't reference content,

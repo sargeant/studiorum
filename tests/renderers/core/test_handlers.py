@@ -475,6 +475,7 @@ class TestDefaultCoreHandlers:
             "condition",
             "dc",
             "dice",
+            "card",
             "formatting",
         ]
 
