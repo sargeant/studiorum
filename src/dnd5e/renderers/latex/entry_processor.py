@@ -207,7 +207,8 @@ class RecursiveEntryProcessor:
         if name:
             # Determine sectioning command based on depth
             section_cmd = self._get_section_command(self._depth, context)
-            result.append(f"\\{section_cmd}{{{self._escape_latex(name)}}}")
+            processed_name = self._process_text_with_tags(name, context)
+            result.append(f"\\{section_cmd}{{{processed_name}}}")
 
         if entries:
             # Increase depth for nested entries
@@ -239,7 +240,8 @@ class RecursiveEntryProcessor:
         if name:
             # Use subsection for named entries blocks
             section_cmd = self._get_section_command(self._depth + 1, context)
-            result.append(f"\\{section_cmd}{{{self._escape_latex(name)}}}")
+            processed_name = self._process_text_with_tags(name, context)
+            result.append(f"\\{section_cmd}{{{processed_name}}}")
 
         if entries:
             self._depth += 1
@@ -676,7 +678,8 @@ class RecursiveEntryProcessor:
         result = []
         if name:
             section_cmd = self._get_section_command(self._depth + 1, context)
-            result.append(f"\\{section_cmd}{{{self._escape_latex(name)}}}")
+            processed_name = self._process_text_with_tags(name, context)
+            result.append(f"\\{section_cmd}{{{processed_name}}}")
 
         if entries:
             self._depth += 1
@@ -1286,7 +1289,8 @@ class RecursiveEntryProcessor:
                 f"Could not resolve statblock reference: {tag} '{name}' from {source}"
             )
             section_cmd = self._get_section_command(self._depth, context)
-            return f"\\{section_cmd}{{{self._escape_latex(name)}}}"
+            processed_name = self._process_text_with_tags(name, context)
+            return f"\\{section_cmd}{{{processed_name}}}"
 
     def _resolve_statblock_reference(
         self, tag: str, name: str, source: str, context: RenderingContext
@@ -1363,11 +1367,13 @@ class RecursiveEntryProcessor:
         if not entries:
             # No entries found, render just the name
             section_cmd = self._get_section_command(self._depth, context)
-            return f"\\{section_cmd}{{{self._escape_latex(name)}}}"
+            processed_name = self._process_text_with_tags(name, context)
+            return f"\\{section_cmd}{{{processed_name}}}"
 
         # Add section header for the statblock
         section_cmd = self._get_section_command(self._depth, context)
-        header = f"\\{section_cmd}{{{self._escape_latex(name)}}}"
+        processed_name = self._process_text_with_tags(name, context)
+        header = f"\\{section_cmd}{{{processed_name}}}"
 
         # Process the entries after the header
         processed_entries = self.process_entries(entries, context)

@@ -422,7 +422,13 @@ class UnifiedTagRenderer:
         # For unknown tags, try to extract meaningful content instead of showing TagNode(...)
         if hasattr(node, "name") and node.name:
             # Use the name attribute if available (most common case)
-            return str(node.name)
+            # Escape LaTeX special characters since this content will be included in LaTeX output
+            name = str(node.name)
+            if context.output_format.lower() == "latex":
+                from dnd5e.core.latex_utils import escape_latex_text
+
+                name = escape_latex_text(name)
+            return name
         elif hasattr(node, "tag_type") and node.tag_type:
             # For tags without names, show the tag type in a readable format
             tag_type = node.tag_type.replace("_", " ").title()
