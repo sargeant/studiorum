@@ -17,7 +17,7 @@ from dnd5e.cli.config_factory import (
     get_fonts_default,
     get_justified_default,
     get_no_outline_default,
-    get_paper_size_default,
+    get_paper_default,
     get_two_column_default,
     get_with_creatures_default,
     get_with_images_default,
@@ -244,8 +244,8 @@ def convert_adventure(
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
     ),
-    paper_size: str | None = typer.Option(
-        None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
+    paper: str | None = typer.Option(
+        None, "--paper", help="Paper size (letter, a4, a5)"
     ),
     fonts: str | None = typer.Option(
         get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)"
@@ -317,9 +317,7 @@ def convert_adventure(
 
             # Create LaTeX configuration from unified config
             app_config = get_app_config()
-            actual_paper_size = (
-                paper_size or app_config.rendering.latex.document.paper_size
-            )
+            actual_paper_size = paper or app_config.rendering.latex.document.paper_size
             actual_fonts = fonts or app_config.rendering.latex.document.fonts
             actual_no_outline = no_outline  # Boolean option uses direct value
 
@@ -439,8 +437,8 @@ def convert_book(
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
     ),
-    paper_size: str | None = typer.Option(
-        None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
+    paper: str | None = typer.Option(
+        None, "--paper", help="Paper size (letter, a4, a5)"
     ),
     fonts: str | None = typer.Option(
         get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)"
@@ -512,9 +510,7 @@ def convert_book(
 
             # Create LaTeX configuration from unified config
             app_config = get_app_config()
-            actual_paper_size = (
-                paper_size or app_config.rendering.latex.document.paper_size
-            )
+            actual_paper_size = paper or app_config.rendering.latex.document.paper_size
             actual_fonts = fonts or app_config.rendering.latex.document.fonts
             actual_no_outline = no_outline  # Boolean option uses direct value
 
@@ -628,8 +624,8 @@ def convert_supplement(
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
     ),
-    paper_size: str | None = typer.Option(
-        None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
+    paper: str | None = typer.Option(
+        None, "--paper", help="Paper size (letter, a4, a5)"
     ),
     fonts: str | None = typer.Option(
         get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)"
@@ -742,9 +738,7 @@ def convert_supplement(
 
             # Create LaTeX configuration from unified config
             app_config = get_app_config()
-            actual_paper_size = (
-                paper_size or app_config.rendering.latex.document.paper_size
-            )
+            actual_paper_size = paper or app_config.rendering.latex.document.paper_size
             actual_fonts = fonts or app_config.rendering.latex.document.fonts
             actual_no_outline = no_outline  # Boolean option uses direct value
 

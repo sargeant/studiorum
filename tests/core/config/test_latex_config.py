@@ -15,7 +15,7 @@ class TestLaTeXDocumentConfig:
         assert config.document_class == "dndbook"
         assert config.class_options == ["twocolumn"]
         assert config.font_scheme == "dmsguild"
-        assert config.paper_size == "letterpaper"
+        assert config.paper_size == "letter"
         assert config.font_size == "11pt"
         assert config.background is None
         assert config.high_contrast is False
@@ -61,7 +61,7 @@ class TestLaTeXDocumentConfig:
 
     def test_paper_size_validation_valid(self) -> None:
         """Test valid paper size values."""
-        valid_sizes = ["letterpaper", "a4paper", "a5paper"]
+        valid_sizes = ["letter", "a4", "a5"]
 
         for size in valid_sizes:
             config = LaTeXDocumentConfig(paper_size=size)

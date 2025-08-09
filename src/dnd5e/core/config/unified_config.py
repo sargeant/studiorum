@@ -142,8 +142,8 @@ class LaTeXDocumentConfig(BaseModel):
         default_factory=lambda: ["justified", "twocolumn"],
         description="Document class options",
     )
-    paper_size: Literal["letterpaper", "a4paper", "a5paper"] = Field(
-        default="letterpaper", description="Paper size"
+    paper_size: Literal["letter", "a4", "a5"] = Field(
+        default="letter", description="Paper size"
     )
     font_size: Literal["10pt", "11pt", "12pt"] = Field(
         default="11pt", description="Base font size"

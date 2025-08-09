@@ -27,9 +27,7 @@ class LaTeXDocumentConfig(BaseModel):
     )
 
     # Paper and layout
-    paper_size: str = Field(
-        default="letterpaper", description="Paper size (letterpaper, a4paper, a5paper)"
-    )
+    paper_size: str = Field(default="letter", description="Paper size (letter, a4, a5)")
 
     font_size: str = Field(
         default="11pt", description="Base font size (10pt, 11pt, 12pt)"
@@ -95,7 +93,7 @@ class LaTeXDocumentConfig(BaseModel):
     @classmethod
     def validate_paper_size(cls, v: str) -> str:
         """Validate paper size selection."""
-        valid_sizes = ["letterpaper", "a4paper", "a5paper"]
+        valid_sizes = ["letter", "a4", "a5"]
         if v not in valid_sizes:
             raise ValueError(f"Paper size must be one of: {valid_sizes}")
         return v
@@ -142,8 +140,8 @@ class LaTeXDocumentConfig(BaseModel):
         # Add configured class options
         options.extend(self.class_options)
 
-        # Add paper size and font size
-        options.extend([self.paper_size, self.font_size])
+        # Add paper size and font size (append "paper" suffix to paper size for LaTeX)
+        options.extend([f"{self.paper_size}paper", self.font_size])
 
         # Add conditional options based on settings
         if self.background:
