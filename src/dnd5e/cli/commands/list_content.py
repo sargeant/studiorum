@@ -207,7 +207,7 @@ def list_adventures() -> None:
             omnidexer = get_omnidexer()
 
             # Get all adventures
-            adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
+            adventures = omnidexer.get_all_by_type(ContentType("adventure"))
 
             if not adventures:
                 rprint("[yellow]No adventures found in the system[/yellow]")
@@ -253,7 +253,7 @@ def list_books() -> None:
             omnidexer = get_omnidexer()
 
             # Get all books
-            books = omnidexer.get_all_by_type(ContentType.BOOK)
+            books = omnidexer.get_all_by_type(ContentType("book"))
 
             if not books:
                 rprint("[yellow]No books found in the system[/yellow]")

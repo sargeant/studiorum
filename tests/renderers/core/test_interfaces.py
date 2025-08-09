@@ -41,7 +41,7 @@ class TestContentReferenceInfo:
             display_text="adult red dragon",
             source="MM",
             page="98",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             format_style=FormatStyle.BOLD,
         )
 
@@ -49,7 +49,7 @@ class TestContentReferenceInfo:
         assert info.display_text == "adult red dragon"
         assert info.source == "MM"
         assert info.page == "98"
-        assert info.content_type == ContentType.CREATURE
+        assert info.content_type == ContentType("creature")
         assert info.format_style == FormatStyle.BOLD
 
     def test_content_reference_info_validation_empty_name(self):

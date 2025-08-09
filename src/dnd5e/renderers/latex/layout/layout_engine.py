@@ -3,6 +3,7 @@
 from typing import Any
 
 from ....core.models.content import ContentType
+from ....core.registry import get_content_type_registry
 from .base import LayoutContext, LayoutHint, LayoutManager, LayoutStrategy
 from .float_manager import FloatManager
 from .multi_column import MultiColumnManager
@@ -30,21 +31,73 @@ class LayoutEngine:
         # Sort managers by priority (higher priority first)
         self.managers.sort(key=lambda m: m.get_priority(), reverse=True)
 
-        # Layout strategy preferences
-        self.strategy_preferences = {
-            ContentType.ADVENTURE: LayoutStrategy.ADVENTURE,
-            ContentType.CLASS: LayoutStrategy.SUPPLEMENT,
-            ContentType.RACE: LayoutStrategy.SUPPLEMENT,
-            ContentType.SPELL: LayoutStrategy.REFERENCE,
-            ContentType.ITEM: LayoutStrategy.REFERENCE,
-            ContentType.CREATURE: LayoutStrategy.REFERENCE,
-            ContentType.BACKGROUND: LayoutStrategy.SUPPLEMENT,
-            ContentType.FEAT: LayoutStrategy.REFERENCE,
-        }
+        # Layout strategy preferences (Phase 3 migration: registry-based)
+        self.strategy_preferences = self._build_strategy_preferences()
 
         # Global layout options
         self.default_column_count = self.config.get("default_columns", 2)
         self.enable_optimization = self.config.get("enable_optimization", True)
+
+    def _build_strategy_preferences(self) -> dict[ContentType, LayoutStrategy]:
+        """Build content type to layout strategy mapping using registry.
+
+        Returns dynamic mapping based on available content types,
+        following Phase 3 migration pattern.
+
+        Returns:
+            Dictionary mapping content types to preferred layout strategies
+        """
+        # Base strategy preferences
+        strategy_map = {
+            "adventure": LayoutStrategy.ADVENTURE,
+            "class": LayoutStrategy.SUPPLEMENT,
+            "subclass": LayoutStrategy.SUPPLEMENT,
+            "race": LayoutStrategy.SUPPLEMENT,
+            "subrace": LayoutStrategy.SUPPLEMENT,
+            "background": LayoutStrategy.SUPPLEMENT,
+            "spell": LayoutStrategy.REFERENCE,
+            "item": LayoutStrategy.REFERENCE,
+            "magicvariant": LayoutStrategy.REFERENCE,
+            "creature": LayoutStrategy.REFERENCE,
+            "feat": LayoutStrategy.REFERENCE,
+            "action": LayoutStrategy.REFERENCE,
+            "condition": LayoutStrategy.REFERENCE,
+            "sense": LayoutStrategy.REFERENCE,
+            "hazard": LayoutStrategy.REFERENCE,
+            "status": LayoutStrategy.REFERENCE,
+            "deity": LayoutStrategy.REFERENCE,
+            "cult": LayoutStrategy.SUPPLEMENT,
+            "boon": LayoutStrategy.REFERENCE,
+            "table": LayoutStrategy.REFERENCE,
+            "variantrule": LayoutStrategy.SUPPLEMENT,
+            "reward": LayoutStrategy.REFERENCE,
+            "charoption": LayoutStrategy.SUPPLEMENT,
+            "optionalfeature": LayoutStrategy.REFERENCE,
+            "disease": LayoutStrategy.REFERENCE,
+            "trap": LayoutStrategy.REFERENCE,
+            "vehicle": LayoutStrategy.REFERENCE,
+            "object": LayoutStrategy.REFERENCE,
+            "book": LayoutStrategy.ADVENTURE,
+        }
+
+        # Build preferences from registry
+        registry = get_content_type_registry()
+        preferences = {}
+
+        for content_type_str, metadata in registry.get_all().items():
+            try:
+                content_type = ContentType(content_type_str)
+            except ValueError:
+                # Skip content types that don't exist as enum members (like fluff types)
+                continue
+
+            if content_type_str in strategy_map:
+                preferences[content_type] = strategy_map[content_type_str]
+            else:
+                # Default strategy for unknown content types
+                preferences[content_type] = LayoutStrategy.REFERENCE
+
+        return preferences
 
     def process_content(
         self,
@@ -207,7 +260,7 @@ class LayoutEngine:
 
         # First block considerations
         if block_index == 0:
-            hint.use_drop_cap = content_type == ContentType.ADVENTURE
+            hint.use_drop_cap = content_type.value == "adventure"
             hint.space_before = None
 
         # Last block considerations
@@ -221,11 +274,11 @@ class LayoutEngine:
                 hint.force_column_break = True
 
         # Content-specific hints
-        if content_type == ContentType.CREATURE:
+        if content_type.value == "creature":
             hint.span_columns = True
             hint.float_position = None  # Use default float behavior
 
-        elif content_type in {ContentType.SPELL, ContentType.FEAT}:
+        elif content_type.value in {"spell", "feat"}:
             hint.group_with_next = block_index < len(content_blocks) - 1
 
         return hint
@@ -308,23 +361,43 @@ class LayoutEngine:
     def optimize_for_document_type(self, document_type: str) -> None:
         """Optimize layout engine for specific document types."""
         if document_type == "adventure":
-            self.strategy_preferences.update(
-                {
-                    ContentType.ADVENTURE: LayoutStrategy.ADVENTURE,
-                    ContentType.CREATURE: LayoutStrategy.ADVENTURE,
-                    ContentType.SPELL: LayoutStrategy.ADVENTURE,
-                }
-            )
+            # Update preferences for adventure-style content types
+            registry = get_content_type_registry()
+            adventure_types = {"adventure", "creature", "spell"}
+            for content_type_str, metadata in registry.get_all().items():
+                if content_type_str in adventure_types:
+                    try:
+                        content_type = ContentType(content_type_str)
+                        self.strategy_preferences[content_type] = (
+                            LayoutStrategy.ADVENTURE
+                        )
+                    except ValueError:
+                        # Skip content types that don't exist as enum members
+                        continue
             self.default_column_count = 1
 
         elif document_type == "reference":
-            for content_type in ContentType:
-                self.strategy_preferences[content_type] = LayoutStrategy.REFERENCE
+            # Set all registered content types to reference strategy
+            registry = get_content_type_registry()
+            for content_type_str, metadata in registry.get_all().items():
+                try:
+                    content_type = ContentType(content_type_str)
+                    self.strategy_preferences[content_type] = LayoutStrategy.REFERENCE
+                except ValueError:
+                    # Skip content types that don't exist as enum members (like fluff types)
+                    continue
             self.default_column_count = 2
 
         elif document_type == "supplement":
-            for content_type in ContentType:
-                self.strategy_preferences[content_type] = LayoutStrategy.SUPPLEMENT
+            # Set all registered content types to supplement strategy
+            registry = get_content_type_registry()
+            for content_type_str, metadata in registry.get_all().items():
+                try:
+                    content_type = ContentType(content_type_str)
+                    self.strategy_preferences[content_type] = LayoutStrategy.SUPPLEMENT
+                except ValueError:
+                    # Skip content types that don't exist as enum members (like fluff types)
+                    continue
             self.default_column_count = 2
 
     def get_layout_statistics(self, processed_blocks: list[str]) -> dict[str, int]:

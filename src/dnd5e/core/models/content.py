@@ -10,55 +10,17 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 class ContentType(str, Enum):
     """Enumeration of supported D&D content types.
 
-    NOTE: This enum is in transition. Content types are being migrated
-    to use @content_type decorators on model classes, which provide
-    richer metadata (file patterns, statblock tags, loader types).
-
-    Many values below are duplicated in decorator registrations.
-    New content types are added dynamically at runtime via
-    RegistryManager._update_content_type_enum(). Eventually, only
-    structural/nested types will remain in this static enum.
+    This enum contains core static types and is dynamically extended by the
+    registry system. Additional content types are registered via @content_type
+    decorators and added to this enum at runtime.
     """
 
-    # Core content types (duplicated in @content_type decorators)
+    # Core content types needed for bootstrapping
     ADVENTURE = "adventure"
     BOOK = "book"
     SPELL = "spell"
     CREATURE = "creature"
     ITEM = "item"
-    CLASS = "class"
-    CLASS_FEATURE = "classFeature"
-    SUBCLASS_FEATURE = "subclassFeature"
-    BACKGROUND = "background"
-    FEAT = "feat"
-    RACE = "race"
-    VEHICLE = "vehicle"
-    SPELL_FLUFF = "spellFluff"
-    CREATURE_FLUFF = "creatureFluff"
-    ITEM_FLUFF = "itemFluff"
-    ACTION = "action"
-    CONDITION = "condition"
-    SENSE = "sense"
-    HAZARD = "hazard"
-    STATUS = "status"
-    REWARD = "reward"
-    DECK = "deck"
-
-    # General purpose type for custom supplements
-    SUPPLEMENT = "supplement"
-
-    # Adventure nested content types (structural, not top-level models)
-    ADVENTURE_SECTION = "adventureSection"
-    ADVENTURE_TABLE = "adventureTable"
-    ADVENTURE_NPC = "adventureNpc"
-    ADVENTURE_LOCATION = "adventureLocation"
-    ADVENTURE_INSET = "adventureInset"
-
-    # Book nested content types (structural, not top-level models)
-    BOOK_SECTION = "bookSection"
-    VARIANT_RULE = "variantRule"  # Note: decorator uses "variantrule" (lowercase)
-    BOOK_TABLE = "bookTable"
-    BOOK_INSET = "bookInset"
 
     @classmethod
     def from_content(cls, content: BaseContent) -> ContentType:

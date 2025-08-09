@@ -3,6 +3,7 @@
 from typing import Any
 
 from ....core.models.content import ContentType
+from ....core.registry import get_content_type_registry
 from .base import (
     ContentLayoutManager,
     LayoutContext,
@@ -28,15 +29,8 @@ class TableFormatter(ContentLayoutManager):
             r"^\d+\s*lbs?\.?$",  # Weight
         ]
 
-        # Table width preferences by content type
-        self.table_widths = {
-            ContentType.SPELL: "\\textwidth",
-            ContentType.ITEM: "\\textwidth",
-            ContentType.CLASS: "\\textwidth",
-            ContentType.RACE: "0.8\\textwidth",
-            ContentType.CREATURE: "\\textwidth",
-            ContentType.BACKGROUND: "0.9\\textwidth",
-        }
+        # Table width preferences by content type (Phase 3 migration)
+        self.table_widths = self._build_table_width_preferences()
 
         # Column specifications by content pattern
         self.content_column_specs = {
@@ -48,9 +42,78 @@ class TableFormatter(ContentLayoutManager):
             "equipment": "l l r r",  # Item, Type, Weight, Cost
         }
 
+    def _build_table_width_preferences(self) -> dict[ContentType, str]:
+        """Build content type to table width mapping using registry.
+
+        Returns dynamic mapping based on available content types,
+        following Phase 3 migration pattern.
+
+        Returns:
+            Dictionary mapping content types to preferred table widths
+        """
+        # Base table width preferences
+        width_map = {
+            "spell": "\\textwidth",
+            "item": "\\textwidth",
+            "magicvariant": "\\textwidth",
+            "class": "\\textwidth",
+            "subclass": "\\textwidth",
+            "race": "0.8\\textwidth",
+            "subrace": "0.8\\textwidth",
+            "creature": "\\textwidth",
+            "background": "0.9\\textwidth",
+            "feat": "0.9\\textwidth",
+            "action": "0.9\\textwidth",
+            "condition": "0.8\\textwidth",
+            "sense": "0.8\\textwidth",
+            "hazard": "\\textwidth",
+            "status": "0.8\\textwidth",
+            "adventure": "\\textwidth",
+            "book": "\\textwidth",
+            "deity": "0.9\\textwidth",
+            "cult": "\\textwidth",
+            "boon": "0.8\\textwidth",
+            "table": "\\textwidth",
+            "variantrule": "\\textwidth",
+            "reward": "0.8\\textwidth",
+            "charoption": "0.9\\textwidth",
+            "optionalfeature": "0.9\\textwidth",
+            "disease": "0.8\\textwidth",
+            "trap": "\\textwidth",
+            "vehicle": "\\textwidth",
+            "object": "0.8\\textwidth",
+        }
+
+        # Build preferences from registry
+        registry = get_content_type_registry()
+        preferences = {}
+
+        for content_type_str, metadata in registry.get_all().items():
+            try:
+                content_type = ContentType(content_type_str)
+            except ValueError:
+                # Skip content types that don't exist as enum members (like fluff types)
+                continue
+
+            if content_type_str in width_map:
+                preferences[content_type] = width_map[content_type_str]
+            else:
+                # Default to full width for unknown content types
+                preferences[content_type] = "\\textwidth"
+
+        return preferences
+
     def get_supported_content_types(self) -> set[ContentType]:
-        """Support all content types that use tables."""
-        return set(ContentType)
+        """Support all registered content types that use tables."""
+        registry = get_content_type_registry()
+        content_types = set()
+        for content_type_str in registry.get_all():
+            try:
+                content_types.add(ContentType(content_type_str))
+            except ValueError:
+                # Skip content types that don't exist as enum members (like fluff types)
+                continue
+        return content_types
 
     def can_handle(self, context: LayoutContext) -> bool:
         """Handle table formatting when table content is detected."""
@@ -82,13 +145,9 @@ class TableFormatter(ContentLayoutManager):
             return True
 
         # Content types that commonly use tables
-        table_heavy_types = {
-            ContentType.CLASS,
-            ContentType.SPELL,
-            ContentType.ITEM,
-        }
+        table_heavy_types = {"class", "spell", "item"}
 
-        return context.content_type in table_heavy_types
+        return context.content_type.value in table_heavy_types
 
     def _is_dnd_table(self, content: str) -> bool:
         """Check if content contains DndTable environments."""
@@ -191,13 +250,13 @@ class TableFormatter(ContentLayoutManager):
         content_type = context.content_type
 
         # Use predefined specs
-        if content_type == ContentType.SPELL:
+        if content_type.value == "spell":
             return "l X c"  # Name, Description, Level
-        elif content_type == ContentType.ITEM:
+        elif content_type.value == "item":
             return "l X r"  # Name, Description, Cost/Rarity
-        elif content_type == ContentType.CLASS:
+        elif content_type.value == "class":
             return "c l X"  # Level, Feature, Description
-        elif content_type == ContentType.FEAT:
+        elif content_type.value == "feat":
             return "l X"  # Name, Description
         else:
             return "l X"  # Generic: Name, Description
@@ -398,11 +457,11 @@ class TableFormatter(ContentLayoutManager):
         hint.table_width = self.table_widths.get(content_type)
 
         # Generate appropriate column specification
-        if content_type == ContentType.CLASS:
+        if content_type.value == "class":
             hint.table_columns = "c l X"
-        elif content_type == ContentType.SPELL:
+        elif content_type.value == "spell":
             hint.table_columns = "l X c"
-        elif content_type == ContentType.ITEM:
+        elif content_type.value == "item":
             hint.table_columns = "l X r"
         else:
             hint.table_columns = "l X"

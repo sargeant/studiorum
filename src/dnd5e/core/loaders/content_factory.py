@@ -29,6 +29,19 @@ class ContentFactory:
             self._class_map = self.__class__._class_map.copy()
             return
 
+        # For test environments, try initializing the registry if not already done
+        try:
+            from ..registry import initialize_content_types
+
+            initialize_content_types()
+
+            # Check again after initialization
+            if hasattr(self.__class__, "_class_map") and self.__class__._class_map:
+                self._class_map = self.__class__._class_map.copy()
+                return
+        except ImportError:
+            pass
+
         # If registry manager hasn't populated class map, something is wrong
         raise RuntimeError(
             "ContentFactory class map not initialized by registry manager. "

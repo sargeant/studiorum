@@ -9,6 +9,7 @@ from ...core.models.document_metadata import (
     DocumentType,
     SectionLevel,
 )
+from ...core.registry import get_content_type_registry
 from ..core.interfaces import RenderingContext
 
 
@@ -117,8 +118,9 @@ class DocumentStructureBuilder:
         sections = []
 
         # Handle adventure content specifically
-        if ContentType.ADVENTURE.value in organized_content:
-            for adventure in organized_content[ContentType.ADVENTURE.value]:
+        adventure_type = "adventure"
+        if adventure_type in organized_content:
+            for adventure in organized_content[adventure_type]:
                 if hasattr(adventure, "contents") and adventure.contents:
                     # Process adventure chapters
                     for i, chapter in enumerate(adventure.contents):
@@ -148,8 +150,9 @@ class DocumentStructureBuilder:
         sections = []
 
         # Handle book content specifically
-        if ContentType.BOOK.value in organized_content:
-            for book in organized_content[ContentType.BOOK.value]:
+        book_type = "book"
+        if book_type in organized_content:
+            for book in organized_content[book_type]:
                 if hasattr(book, "contents") and book.contents:
                     # Process book chapters
                     for i, chapter in enumerate(book.contents):
@@ -177,16 +180,8 @@ class DocumentStructureBuilder:
         """
         sections = []
 
-        # Content type priority for organization
-        content_type_order = [
-            ContentType.CLASS.value,
-            ContentType.RACE.value,
-            ContentType.BACKGROUND.value,
-            ContentType.FEAT.value,
-            ContentType.SPELL.value,
-            ContentType.CREATURE.value,
-            ContentType.ITEM.value,
-        ]
+        # Content type priority for organization (Phase 3 migration)
+        content_type_order = self._get_content_type_order()
 
         # Add chapters in preferred order
         for content_type in content_type_order:
@@ -205,6 +200,69 @@ class DocumentStructureBuilder:
                 sections.append(chapter)
 
         return sections
+
+    def _get_content_type_order(self) -> list[str]:
+        """Get ordered list of content types for document organization.
+
+        Uses registry-based approach for Phase 3 migration.
+        Provides sensible default ordering for document structure.
+
+        Returns:
+            List of content type strings in preferred display order
+        """
+        registry = get_content_type_registry()
+
+        # Preferred ordering for most document types
+        # High-level/narrative content first, then reference content
+        preferred_order = [
+            "adventure",
+            "book",
+            "background",
+            "class",
+            "subclass",
+            "race",
+            "subrace",
+            "feat",
+            "spell",
+            "item",
+            "magicvariant",
+            "creature",
+            "action",
+            "condition",
+            "sense",
+            "hazard",
+            "status",
+            "deity",
+            "cult",
+            "boon",
+            "table",
+            "variantrule",
+            "reward",
+            "charoption",
+            "optionalfeature",
+            "disease",
+            "trap",
+            "vehicle",
+            "object",
+        ]
+
+        # Filter to only include content types that exist in registry
+        available_types = []
+        for content_type_str in preferred_order:
+            try:
+                ContentType(content_type_str)  # Validate content type exists
+                if content_type_str in registry.get_all():
+                    available_types.append(content_type_str)
+            except ValueError:
+                # Skip invalid content types
+                continue
+
+        # Add any remaining registered types not in preferred order
+        for content_type_str, metadata in registry.get_all().items():
+            if content_type_str not in available_types:
+                available_types.append(content_type_str)
+
+        return available_types
 
     def _build_reference_structure(
         self, organized_content: dict[str, list[BaseContent]], context: RenderingContext
@@ -392,7 +450,7 @@ class DocumentStructureBuilder:
         chapters = []
 
         # Skip adventure and book content as they're handled separately
-        skip_types = {ContentType.ADVENTURE.value, ContentType.BOOK.value}
+        skip_types = {"adventure", "book"}
 
         for content_type, items in organized_content.items():
             if content_type not in skip_types:

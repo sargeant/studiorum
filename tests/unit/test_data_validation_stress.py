@@ -88,9 +88,9 @@ class TestDataValidationStress:
     def test_load_all_spells_no_validation_errors(self) -> None:
         """Test loading all spell data without validation errors."""
         source_manager: Any = FileSystemSourceManager()
-        spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
+        spell_loader = JsonDataLoader.create_for_type(ContentType("spell"))
         data_paths = source_manager.get_data_paths()
-        spell_files = data_paths.get(ContentType.SPELL, [])
+        spell_files = data_paths.get(ContentType("spell"), [])
 
         if not spell_files:
             pytest.skip("No spell data files found")
@@ -122,9 +122,9 @@ class TestDataValidationStress:
     def test_load_all_creatures_no_validation_errors(self) -> None:
         """Test loading all creature data without validation errors."""
         source_manager: Any = FileSystemSourceManager()
-        creature_loader = JsonDataLoader.create_for_type(ContentType.CREATURE)
+        creature_loader = JsonDataLoader.create_for_type(ContentType("creature"))
         data_paths = source_manager.get_data_paths()
-        creature_files = data_paths.get(ContentType.CREATURE, [])
+        creature_files = data_paths.get(ContentType("creature"), [])
 
         if not creature_files:
             pytest.skip("No creature data files found")
@@ -156,9 +156,9 @@ class TestDataValidationStress:
     def test_load_all_items_no_validation_errors(self) -> None:
         """Test loading all item data without validation errors."""
         source_manager: Any = FileSystemSourceManager()
-        item_loader = JsonDataLoader.create_for_type(ContentType.ITEM)
+        item_loader = JsonDataLoader.create_for_type(ContentType("item"))
         data_paths = source_manager.get_data_paths()
-        item_files = data_paths.get(ContentType.ITEM, [])
+        item_files = data_paths.get(ContentType("item"), [])
 
         if not item_files:
             pytest.skip("No item data files found")
@@ -323,7 +323,7 @@ class TestDataValidationStress:
     def test_file_format_detection_accuracy(self) -> None:
         """Test that file format detection correctly identifies different file types."""
         source_manager: Any = FileSystemSourceManager()
-        spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
+        spell_loader = JsonDataLoader.create_for_type(ContentType("spell"))
 
         # Get all data files
         data_paths = source_manager.get_data_paths()

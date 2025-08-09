@@ -90,9 +90,9 @@ def resolve_content_or_file(
     omnidexer = get_omnidexer()
     resolver = ContentResolver(omnidexer)
 
-    if content_type == ContentType.ADVENTURE:
+    if content_type.value == "adventure":
         result = resolver.resolve_adventure(content_source)
-    elif content_type == ContentType.BOOK:
+    elif content_type.value == "book":
         result = resolver.resolve_book(content_source)
     else:
         result = resolver.resolve_any(content_source, content_type)
@@ -111,7 +111,7 @@ def _load_from_file(
         content = f.read()
         data = json.loads(content)
 
-    if content_type == ContentType.ADVENTURE:
+    if content_type.value == "adventure":
         from dnd5e.core.models.adventures import Adventure
 
         # Get adventure data (could be nested)
@@ -131,7 +131,7 @@ def _load_from_file(
 
         return content_items, f"file: {file_path}"
 
-    elif content_type == ContentType.BOOK:
+    elif content_type.value == "book":
         from dnd5e.core.models.books import Book
         from dnd5e.core.models.chapter import Chapter
         from dnd5e.core.models.content import Source
@@ -295,7 +295,7 @@ def convert_adventure(
         try:
             # Resolve content source (file or abbreviation)
             content_items, source_desc = resolve_content_or_file(
-                content_source, ContentType.ADVENTURE
+                content_source, ContentType("adventure")
             )
 
             # Determine output file
@@ -492,7 +492,7 @@ def convert_book(
         try:
             # Resolve content source (file or abbreviation)
             content_items, source_desc = resolve_content_or_file(
-                content_source, ContentType.BOOK
+                content_source, ContentType("book")
             )
 
             # Determine output file
@@ -894,9 +894,9 @@ def convert_bulk(
                             "vgtm",
                             "mtof",
                         ]:
-                            mixed_requests.append((abbrev, ContentType.BOOK))
+                            mixed_requests.append((abbrev, ContentType("book")))
                         else:
-                            mixed_requests.append((abbrev, ContentType.ADVENTURE))
+                            mixed_requests.append((abbrev, ContentType("adventure")))
                     results = resolver.resolve_multiple(mixed_requests)
                 else:
                     rprint(f"[red]Error:[/red] Invalid content type: {content_type}")

@@ -62,7 +62,7 @@ class TestLayoutIntegrationMixin:
 
         renderer = TestRenderer()
         content = "Test content"
-        result = renderer.apply_layout(content, ContentType.SPELL)
+        result = renderer.apply_layout(content, ContentType("spell"))
         assert result == content
 
     def test_apply_layout_empty_content(self) -> None:
@@ -74,10 +74,10 @@ class TestLayoutIntegrationMixin:
                 super().__init__()
 
         renderer = TestRenderer()
-        result = renderer.apply_layout("", ContentType.SPELL)
+        result = renderer.apply_layout("", ContentType("spell"))
         assert result == ""
 
-        result = renderer.apply_layout("   ", ContentType.SPELL)
+        result = renderer.apply_layout("   ", ContentType("spell"))
         assert result == "   "
 
     @patch("dnd5e.renderers.latex.layout.integration.LayoutEngine")
@@ -94,13 +94,13 @@ class TestLayoutIntegrationMixin:
 
         renderer = TestRenderer()
         content = "Test content"
-        result = renderer.apply_layout(content, ContentType.SPELL)
+        result = renderer.apply_layout(content, ContentType("spell"))
 
         assert result == "Processed content"
         mock_engine.process_content.assert_called_once()
         call_args = mock_engine.process_content.call_args
         assert call_args[1]["content"] == content
-        assert call_args[1]["content_type"] == ContentType.SPELL
+        assert call_args[1]["content_type"] == ContentType("spell")
 
     def test_create_layout_hints_basic(self) -> None:
         """Test layout hints creation."""
@@ -111,7 +111,7 @@ class TestLayoutIntegrationMixin:
                 super().__init__()
 
         renderer = TestRenderer()
-        hints = renderer._create_layout_hints(ContentType.SPELL, None)
+        hints = renderer._create_layout_hints(ContentType("spell"), None)
         assert isinstance(hints, LayoutHint)
 
     def test_create_layout_hints_with_config(self) -> None:
@@ -132,7 +132,7 @@ class TestLayoutIntegrationMixin:
                 super().__init__()
 
         renderer = TestRenderer()
-        hints = renderer._create_layout_hints(ContentType.SPELL, None)
+        hints = renderer._create_layout_hints(ContentType("spell"), None)
         assert hints.use_drop_cap is True
         assert hints.allow_float is False
 
@@ -155,7 +155,7 @@ class TestLayoutIntegrationMixin:
             "span_columns": True,
         }
 
-        hints = renderer._create_layout_hints(ContentType.SPELL, context)
+        hints = renderer._create_layout_hints(ContentType("spell"), context)
         assert hints.float_position == "top"
         assert hints.sidebar_type == "DndComment"
         assert hints.span_columns is True
@@ -169,7 +169,7 @@ class TestLayoutIntegrationMixin:
                 super().__init__()
 
         renderer = TestRenderer()
-        strategy = renderer._determine_layout_strategy(ContentType.SPELL, None)
+        strategy = renderer._determine_layout_strategy(ContentType("spell"), None)
         assert strategy == LayoutStrategy.REFERENCE
 
     def test_determine_layout_strategy_from_context(self) -> None:
@@ -185,7 +185,7 @@ class TestLayoutIntegrationMixin:
         context = Mock()
         context.layout_strategy = LayoutStrategy.ADVENTURE
 
-        strategy = renderer._determine_layout_strategy(ContentType.SPELL, context)
+        strategy = renderer._determine_layout_strategy(ContentType("spell"), context)
         assert strategy == LayoutStrategy.ADVENTURE
 
     def test_determine_layout_strategy_default(self) -> None:
@@ -197,7 +197,7 @@ class TestLayoutIntegrationMixin:
                 super().__init__()
 
         renderer = TestRenderer()
-        strategy = renderer._determine_layout_strategy(ContentType.SPELL, None)
+        strategy = renderer._determine_layout_strategy(ContentType("spell"), None)
         assert strategy is None
 
     def test_set_layout_strategy(self) -> None:
@@ -222,7 +222,7 @@ class TestLayoutIntegrationMixin:
 
         renderer = TestRenderer()
         hints = {"use_drop_cap": True, "allow_float": False}
-        renderer.set_layout_hints(ContentType.SPELL, hints)
+        renderer.set_layout_hints(ContentType("spell"), hints)
 
         assert "spell" in renderer._layout_hints
         assert renderer._layout_hints["spell"]["use_drop_cap"] is True
@@ -238,7 +238,7 @@ class TestLayoutIntegrationMixin:
 
         renderer = TestRenderer()
         new_hints = {"use_drop_cap": True}
-        renderer.set_layout_hints(ContentType.SPELL, new_hints)
+        renderer.set_layout_hints(ContentType("spell"), new_hints)
 
         assert renderer._layout_hints["spell"]["existing"] is True
         assert renderer._layout_hints["spell"]["use_drop_cap"] is True
@@ -307,7 +307,7 @@ class TestLayoutAwareContentRenderer:
                 return f"Rendered: {content}"
 
         renderer = TestRenderer()
-        result = renderer.render_with_layout("test", ContentType.SPELL)
+        result = renderer.render_with_layout("test", ContentType("spell"))
 
         assert result == "Layout processed content"
         mock_engine.process_content.assert_called_once()
@@ -321,7 +321,7 @@ class TestLayoutAwareContentRenderer:
 
         config = {"layout": {"enabled": False}}
         renderer = TestRenderer(config)
-        result = renderer.render_with_layout("test", ContentType.SPELL)
+        result = renderer.render_with_layout("test", ContentType("spell"))
 
         assert result == "Rendered: test"
 
@@ -333,14 +333,16 @@ class TestLayoutAwareContentRenderer:
                 return ""
 
         renderer = TestRenderer()
-        result = renderer.render_with_layout("test", ContentType.SPELL)
+        result = renderer.render_with_layout("test", ContentType("spell"))
 
         assert result == ""
 
     def test_get_content_layout_hints_default(self) -> None:
         """Test default content layout hints."""
         renderer = LayoutAwareContentRenderer()
-        hints = renderer._get_content_layout_hints("content", ContentType.SPELL, None)
+        hints = renderer._get_content_layout_hints(
+            "content", ContentType("spell"), None
+        )
         assert hints is None
 
     def test_render_content_not_implemented(self) -> None:

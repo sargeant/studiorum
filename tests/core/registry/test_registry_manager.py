@@ -97,9 +97,10 @@ class TestRegistryManager:
         ):
             manager._update_source_manager(metadata)
 
-            # Check that patterns were replaced using existing enum value
-            assert ContentType.SPELL in mock_source_manager_class.content_patterns
-            assert mock_source_manager_class.content_patterns[ContentType.SPELL] == [
+            # Check that patterns were replaced using dynamic ContentType
+            spell_content_type = ContentType("spell")
+            assert spell_content_type in mock_source_manager_class.content_patterns
+            assert mock_source_manager_class.content_patterns[spell_content_type] == [
                 "test",
                 "tests",
             ]
@@ -117,7 +118,7 @@ class TestRegistryManager:
             manager._update_source_manager({})
 
     def test_update_omnidexer(self):
-        """Test updating omnidexer JSON types."""
+        """Test updating omnidexer - dynamic system requires no static updates."""
         manager = RegistryManager()
 
         # Use existing enum values
@@ -136,19 +137,14 @@ class TestRegistryManager:
             ),
         }
 
-        # Create mock class with the required attributes
-        mock_omnidexer_class = Mock()
-        mock_omnidexer_class._JSON_CONTENT_TYPES = ()
-        mock_omnidexer_class._FLUFF_CONTENT_TYPES = ()
-
-        with patch("dnd5e.core.loaders.omnidexer.Omnidexer", mock_omnidexer_class):
+        # In the dynamic system, omnidexer update should complete without errors
+        # and not modify any static attributes (since dynamic resolution is used)
+        with patch("dnd5e.core.loaders.omnidexer.Omnidexer") as mock_omnidexer_class:
             manager._update_omnidexer(metadata)
 
-            # Check that JSON and fluff types were set correctly
-            assert len(mock_omnidexer_class._JSON_CONTENT_TYPES) == 1
-            assert ContentType.SPELL in mock_omnidexer_class._JSON_CONTENT_TYPES
-            assert len(mock_omnidexer_class._FLUFF_CONTENT_TYPES) == 1
-            assert ContentType.SPELL_FLUFF in mock_omnidexer_class._FLUFF_CONTENT_TYPES
+            # The update should complete successfully - no static updates needed
+            # because dynamic resolution happens automatically
+            mock_omnidexer_class.assert_not_called()
 
     def test_update_omnidexer_import_error(self):
         """Test handling of import error in omnidexer update."""
@@ -181,10 +177,11 @@ class TestRegistryManager:
         ):
             manager._update_content_factory(metadata)
 
-            # Check that class map was replaced
-            assert ContentType.CREATURE in mock_factory_class._class_map
+            # Check that class map was replaced using dynamic ContentType
+            creature_content_type = ContentType("creature")
+            assert creature_content_type in mock_factory_class._class_map
             assert (
-                mock_factory_class._class_map[ContentType.CREATURE] == MockBaseContent
+                mock_factory_class._class_map[creature_content_type] == MockBaseContent
             )
 
     def test_update_content_factory_import_error(self):
@@ -223,18 +220,19 @@ class TestRegistryManager:
             manager._update_content_type_resolver(metadata)
 
             # Check that the interface registry was called with the correct parameters
+            item_content_type = ContentType("item")
             mock_interface_registry.register.assert_called_once_with(
-                MockBaseContent, ContentType.ITEM
+                MockBaseContent, item_content_type
             )
 
     def test_update_content_type_resolver_successful_registration(self):
         """Test successful resolver registration with valid metadata."""
         manager = RegistryManager()
 
-        # Use existing enum value
+        # Use existing static enum value instead of dynamic one
         metadata = {
-            "race": ContentTypeMetadata(
-                enum_value="race",
+            "spell": ContentTypeMetadata(
+                enum_value="spell",
                 model_class=MockBaseContent,
                 file_patterns=["test"],
             )
@@ -251,8 +249,9 @@ class TestRegistryManager:
             manager._update_content_type_resolver(metadata)
 
             # Check that register was called with correct parameters
+            spell_content_type = ContentType("spell")
             mock_interface_registry.register.assert_called_once_with(
-                MockBaseContent, ContentType.RACE
+                MockBaseContent, spell_content_type
             )
 
     def test_update_content_type_resolver_import_error(self):

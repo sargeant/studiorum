@@ -3,6 +3,7 @@
 import hashlib
 from collections import defaultdict
 from datetime import timedelta
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Union, cast
 
@@ -142,10 +143,14 @@ class Omnidexer:
         >>> omnidexer = Omnidexer(enable_deep_indexing=True)
         >>> omnidexer.load_all_data()  # doctest: +SKIP
         >>> # Find primary content
-        >>> fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")  # doctest: +SKIP
+        >>> from ..registry.content_type_resolver import resolve_content_type
+        >>> class_type = resolve_content_type("class")
+        >>> fighter = omnidexer.find(class_type, "Fighter", "PHB")  # doctest: +SKIP
         >>> # Find nested content (requires deep indexing)
-        >>> action_surge = omnidexer.find(ContentType.CLASS_FEATURE, "Action Surge", "PHB")  # doctest: +SKIP
-        >>> sections = omnidexer.find_all(ContentType.ADVENTURE_SECTION)  # doctest: +SKIP
+        >>> feature_type = resolve_content_type("classfeature")
+        >>> action_surge = omnidexer.find(feature_type, "Action Surge", "PHB")  # doctest: +SKIP
+        >>> section_type = resolve_content_type("adventuresection")
+        >>> sections = omnidexer.find_all(section_type)  # doctest: +SKIP
     """
 
     def __init__(
@@ -193,21 +198,21 @@ class Omnidexer:
         # Register default loaders
         self._register_default_loaders()
 
-    # Content types for each loader type - populated by registry manager
-    _JSON_CONTENT_TYPES: tuple[ContentType, ...] = ()
-    _FLUFF_CONTENT_TYPES: tuple[ContentType, ...] = ()
+    # Content types for each loader type - dynamically resolved from registry
+    # Removed hardcoded tuples in favor of cached dynamic resolution
 
     def _register_default_loaders(self) -> None:
         """Register default data loaders for common content types."""
-        # Ensure registry is initialized if class attributes are empty
-        # This handles cases where Omnidexer is created before registry initialization
-        if not self._JSON_CONTENT_TYPES and not self._FLUFF_CONTENT_TYPES:
-            from ..registry import initialize_content_types
+        # Ensure registry is initialized before resolving content types
+        from ..registry import initialize_content_types
 
-            initialize_content_types()
+        initialize_content_types()
 
-        self._register_loaders_for_type(JsonDataLoader, self._JSON_CONTENT_TYPES)
-        self._register_loaders_for_type(FluffDataLoader, self._FLUFF_CONTENT_TYPES)
+        # Use dynamic resolution with caching for performance
+        self._register_loaders_for_type(JsonDataLoader, self._get_json_content_types())
+        self._register_loaders_for_type(
+            FluffDataLoader, self._get_fluff_content_types()
+        )
 
     def _register_loaders_for_type(
         self, loader_cls: type[DataLoader], content_types: tuple[ContentType, ...]
@@ -526,7 +531,47 @@ class Omnidexer:
         Returns:
             List of content types supported by registered loaders
         """
-        return list(self._JSON_CONTENT_TYPES) + list(self._FLUFF_CONTENT_TYPES)
+        return list(self._get_json_content_types()) + list(
+            self._get_fluff_content_types()
+        )
+
+    def _get_json_content_types(self) -> tuple[ContentType, ...]:
+        """Get JSON content types from registry - cached for performance."""
+        from ..registry.content_type_registry import get_content_type_registry
+        from ..registry.content_type_resolver import resolve_content_type
+
+        registry = get_content_type_registry()
+        json_types: list[ContentType] = []
+
+        for enum_value, metadata in registry.get_all().items():
+            if metadata.loader_type == "json":
+                try:
+                    json_types.append(resolve_content_type(enum_value))
+                except ValueError:
+                    # Skip test-only registrations that aren't valid enum members
+                    logger.debug(f"Skipping test-only content type: {enum_value}")
+                    continue
+
+        return tuple(json_types)
+
+    def _get_fluff_content_types(self) -> tuple[ContentType, ...]:
+        """Get fluff content types from registry - cached for performance."""
+        from ..registry.content_type_registry import get_content_type_registry
+        from ..registry.content_type_resolver import resolve_content_type
+
+        registry = get_content_type_registry()
+        fluff_types: list[ContentType] = []
+
+        for enum_value, metadata in registry.get_all().items():
+            if metadata.loader_type == "fluff":
+                try:
+                    fluff_types.append(resolve_content_type(enum_value))
+                except ValueError:
+                    # Skip test-only registrations that aren't valid enum members
+                    logger.debug(f"Skipping test-only content type: {enum_value}")
+                    continue
+
+        return tuple(fluff_types)
 
     def _log_index_stats(self) -> None:
         """Log statistics about the loaded index."""

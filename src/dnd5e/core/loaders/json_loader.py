@@ -120,9 +120,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     continue
 
                 # Skip sections when parsing inappropriate content types
-                if item.get("type") == "section" and self._content_type not in [
-                    ContentType.BOOK,
-                    ContentType.ADVENTURE,
+                if item.get("type") == "section" and self._content_type.value not in [
+                    "book",
+                    "adventure",
                 ]:
                     logger.debug(
                         f"Skipping section item when parsing {self._content_type.value}"
@@ -191,23 +191,23 @@ class JsonDataLoader(DataLoader[BaseContent]):
             logger.debug(f"Skipping metadata/sources file: {path}")
             return []
 
-        # Direct content arrays
-        if self._content_type == ContentType.SPELL and "spell" in data:
+        # Direct content arrays using string-based comparisons
+        if self._content_type.value == "spell" and "spell" in data:
             spell_data = data["spell"]
             if isinstance(spell_data, list):
                 return spell_data
             return []
-        elif self._content_type == ContentType.CREATURE and "monster" in data:
+        elif self._content_type.value == "creature" and "monster" in data:
             monster_data = data["monster"]
             if isinstance(monster_data, list):
                 return monster_data
             return []
-        elif self._content_type == ContentType.ITEM and "item" in data:
+        elif self._content_type.value == "item" and "item" in data:
             item_data = data["item"]
             if isinstance(item_data, list):
                 return item_data
             return []
-        elif self._content_type == ContentType.ADVENTURE:
+        elif self._content_type.value == "adventure":
             # Handle both metadata files (adventures.json) and content files (adventure-*.json)
 
             # Check if this is a metadata file (adventures.json) and process it
@@ -244,7 +244,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     return adventure_data
 
             return []
-        elif self._content_type == ContentType.BOOK:
+        elif self._content_type.value == "book":
             # Handle both metadata files (books.json) and content files (book-*.json)
 
             # Check if this is a metadata file (books.json) and process it
@@ -281,52 +281,52 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 return [data]
 
             return []
-        elif self._content_type == ContentType.FEAT and "feat" in data:
+        elif self._content_type.value == "feat" and "feat" in data:
             feat_data = data["feat"]
             if isinstance(feat_data, list):
                 return feat_data
             return []
-        elif self._content_type == ContentType.RACE and "race" in data:
+        elif self._content_type.value == "race" and "race" in data:
             race_data = data["race"]
             if isinstance(race_data, list):
                 return race_data
             return []
-        elif self._content_type == ContentType.BACKGROUND and "background" in data:
+        elif self._content_type.value == "background" and "background" in data:
             background_data = data["background"]
             if isinstance(background_data, list):
                 return background_data
             return []
-        elif self._content_type == ContentType.CLASS and "class" in data:
+        elif self._content_type.value == "class" and "class" in data:
             class_data = data["class"]
             if isinstance(class_data, list):
                 return class_data
             return []
-        elif self._content_type == ContentType.VARIANT_RULE and "variantrule" in data:
+        elif self._content_type.value == "variantrule" and "variantrule" in data:
             variant_rule_data = data["variantrule"]
             if isinstance(variant_rule_data, list):
                 return variant_rule_data
             return []
-        elif self._content_type == ContentType.ACTION and "action" in data:
+        elif self._content_type.value == "action" and "action" in data:
             action_data = data["action"]
             if isinstance(action_data, list):
                 return action_data
             return []
-        elif self._content_type == ContentType.CONDITION and "condition" in data:
+        elif self._content_type.value == "condition" and "condition" in data:
             condition_data = data["condition"]
             if isinstance(condition_data, list):
                 return condition_data
             return []
-        elif self._content_type == ContentType.SENSE and "sense" in data:
+        elif self._content_type.value == "sense" and "sense" in data:
             sense_data = data["sense"]
             if isinstance(sense_data, list):
                 return sense_data
             return []
-        elif self._content_type == ContentType.HAZARD and "hazard" in data:
+        elif self._content_type.value == "hazard" and "hazard" in data:
             hazard_data = data["hazard"]
             if isinstance(hazard_data, list):
                 return hazard_data
             return []
-        elif self._content_type == ContentType.STATUS and "status" in data:
+        elif self._content_type.value == "status" and "status" in data:
             status_data = data["status"]
             if isinstance(status_data, list):
                 return status_data
@@ -381,17 +381,17 @@ class JsonDataLoader(DataLoader[BaseContent]):
         Returns:
             Set of allowed JSON keys for this content type
         """
-        # Map content types to their allowed JSON keys
+        # Map content types to their allowed JSON keys using string-based mapping
         content_type_keys = {
-            ContentType.SPELL: {"spell", "spells"},
-            ContentType.CREATURE: {
+            "spell": {"spell", "spells"},
+            "creature": {
                 "creature",
                 "creatures",
                 "monster",
                 "monsters",
                 "bestiary",
             },
-            ContentType.ITEM: {
+            "item": {
                 "item",
                 "items",
                 "baseitem",
@@ -399,34 +399,34 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 "magicvariant",
                 "magicVariant",
             },
-            ContentType.CLASS: {"class", "classes"},
-            ContentType.RACE: {"race", "races"},
-            ContentType.BACKGROUND: {"background", "backgrounds"},
-            ContentType.FEAT: {"feat", "feats"},
-            ContentType.ADVENTURE: {"adventure", "adventures"},
-            ContentType.BOOK: {
+            "class": {"class", "classes"},
+            "race": {"race", "races"},
+            "background": {"background", "backgrounds"},
+            "feat": {"feat", "feats"},
+            "adventure": {"adventure", "adventures"},
+            "book": {
                 "book",
                 "books",
                 "bookData",
                 "data",
             },  # Books have multiple formats
-            ContentType.SPELL_FLUFF: {"spellFluff", "spell_fluff"},
-            ContentType.CREATURE_FLUFF: {
+            "spellFluff": {"spellFluff", "spell_fluff"},
+            "creatureFluff": {
                 "creatureFluff",
                 "creature_fluff",
                 "monsterFluff",
                 "monster_fluff",
             },
-            ContentType.ITEM_FLUFF: {"itemFluff", "item_fluff"},
-            ContentType.VARIANT_RULE: {"variantrule", "variantrules"},
-            ContentType.ACTION: {"action", "actions"},
-            ContentType.CONDITION: {"condition", "conditions"},
-            ContentType.SENSE: {"sense", "senses"},
-            ContentType.HAZARD: {"hazard", "hazards"},
-            ContentType.STATUS: {"status", "statuses"},
+            "itemFluff": {"itemFluff", "item_fluff"},
+            "variantrule": {"variantrule", "variantrules"},
+            "action": {"action", "actions"},
+            "condition": {"condition", "conditions"},
+            "sense": {"sense", "senses"},
+            "hazard": {"hazard", "hazards"},
+            "status": {"status", "statuses"},
         }
 
-        return content_type_keys.get(self._content_type, set())
+        return content_type_keys.get(self._content_type.value, set())
 
     def _ensure_source_info(self, item: dict[str, Any], path: Path) -> dict[str, Any]:
         """Ensure item has source information."""
@@ -1091,9 +1091,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     continue
 
                 # Skip sections when parsing inappropriate content types
-                if item.get("type") == "section" and self._content_type not in [
-                    ContentType.BOOK,
-                    ContentType.ADVENTURE,
+                if item.get("type") == "section" and self._content_type.value not in [
+                    "book",
+                    "adventure",
                 ]:
                     logger.debug(
                         f"Skipping section item when parsing {self._content_type.value}"

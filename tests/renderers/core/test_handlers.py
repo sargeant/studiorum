@@ -32,14 +32,14 @@ class TestBaseCoreTagHandler:
 
     def test_base_handler_initialization(self):
         """Test creating a base handler."""
-        handler = BaseCoreTagHandler("test", ContentType.CREATURE)
+        handler = BaseCoreTagHandler("test", ContentType("creature"))
 
         assert handler.tag_type == "test"
-        assert handler.content_type == ContentType.CREATURE
+        assert handler.content_type == ContentType("creature")
 
     def test_handles_tag_type(self):
         """Test tag type checking."""
-        handler = BaseCoreTagHandler("creature", ContentType.CREATURE)
+        handler = BaseCoreTagHandler("creature", ContentType("creature"))
 
         assert handler.handles_tag_type("creature") is True
         assert handler.handles_tag_type("spell") is False
@@ -105,7 +105,7 @@ class TestBaseCoreTagHandler:
 
     def test_validate_content_reference_success(self):
         """Test successful content validation."""
-        handler = BaseCoreTagHandler("creature", ContentType.CREATURE)
+        handler = BaseCoreTagHandler("creature", ContentType("creature"))
 
         # Create mock context with omnidexer
         mock_content = Mock()
@@ -124,12 +124,12 @@ class TestBaseCoreTagHandler:
 
         assert errors == []
         mock_omnidexer.find.assert_called_once_with(
-            ContentType.CREATURE, "Goblin", "MM"
+            ContentType("creature"), "Goblin", "MM"
         )
 
     def test_validate_content_reference_not_found(self):
         """Test validation when content is not found."""
-        handler = BaseCoreTagHandler("creature", ContentType.CREATURE)
+        handler = BaseCoreTagHandler("creature", ContentType("creature"))
 
         # Create mock context with omnidexer that returns None
         mock_omnidexer = Mock()
@@ -156,7 +156,7 @@ class TestBaseCoreTagHandler:
 
     def test_validate_content_reference_no_omnidexer(self):
         """Test validation when no omnidexer is available."""
-        handler = BaseCoreTagHandler("creature", ContentType.CREATURE)
+        handler = BaseCoreTagHandler("creature", ContentType("creature"))
 
         context = RenderingContext(output_format="latex")  # No omnidexer
         mock_node = Mock()
@@ -168,7 +168,7 @@ class TestBaseCoreTagHandler:
 
     def test_track_content_for_appendix(self):
         """Test content tracking for appendix generation."""
-        handler = BaseCoreTagHandler("creature", ContentType.CREATURE)
+        handler = BaseCoreTagHandler("creature", ContentType("creature"))
 
         # Create mock content tracker
         mock_tracker = Mock()
@@ -189,7 +189,7 @@ class TestBaseCoreTagHandler:
 
     def test_track_content_no_tracker(self):
         """Test content tracking when no tracker is available."""
-        handler = BaseCoreTagHandler("creature", ContentType.CREATURE)
+        handler = BaseCoreTagHandler("creature", ContentType("creature"))
 
         context = RenderingContext(output_format="latex")  # No content_tracker
         mock_node = Mock()
@@ -207,7 +207,7 @@ class TestCreatureTagHandler:
         handler = CoreCreatureTagHandler()
 
         assert handler.tag_type == "creature"
-        assert handler.content_type == ContentType.CREATURE
+        assert handler.content_type == ContentType("creature")
         assert handler.handles_tag_type("creature") is True
         assert handler.handles_tag_type("spell") is False
 
@@ -230,7 +230,7 @@ class TestCreatureTagHandler:
         assert info.display_text == "Adult Red Dragon"
         assert info.source == "MM"
         assert info.page == "98"
-        assert info.content_type == ContentType.CREATURE
+        assert info.content_type == ContentType("creature")
         assert info.format_style == FormatStyle.BOLD  # Creatures are bold
 
 
@@ -243,7 +243,7 @@ class TestSpellTagHandler:
         handler = CoreSpellTagHandler()
 
         assert handler.tag_type == "spell"
-        assert handler.content_type == ContentType.SPELL
+        assert handler.content_type == ContentType("spell")
 
     def test_extract_content_info(self):
         """Test extracting spell content information."""
@@ -264,7 +264,7 @@ class TestSpellTagHandler:
         assert info.display_text == "Fireball"
         assert info.source == "PHB"
         assert info.page == "241"
-        assert info.content_type == ContentType.SPELL
+        assert info.content_type == ContentType("spell")
         assert info.format_style == FormatStyle.ITALIC  # Spells are italic
 
 
@@ -277,7 +277,7 @@ class TestItemTagHandler:
         handler = CoreItemTagHandler()
 
         assert handler.tag_type == "item"
-        assert handler.content_type == ContentType.ITEM
+        assert handler.content_type == ContentType("item")
 
     def test_extract_content_info(self):
         """Test extracting item content information."""
@@ -308,7 +308,7 @@ class TestAdventureTagHandler:
         handler = CoreAdventureTagHandler()
 
         assert handler.tag_type == "adventure"
-        assert handler.content_type == ContentType.ADVENTURE
+        assert handler.content_type == ContentType("adventure")
 
     def test_extract_content_info_with_page(self):
         """Test adventure content extraction with page reference."""
@@ -360,7 +360,7 @@ class TestBookTagHandler:
         handler = CoreBookTagHandler()
 
         assert handler.tag_type == "book"
-        assert handler.content_type == ContentType.BOOK
+        assert handler.content_type == ContentType("book")
 
     def test_extract_content_info_with_page(self):
         """Test book content extraction with page reference."""

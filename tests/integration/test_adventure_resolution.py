@@ -26,17 +26,25 @@ class TestSourceManager(SourceManager):
 
     def get_data_paths(self) -> dict[ContentType, list[Path]]:
         """Return paths to metadata files only."""
+        # Ensure registry is initialized before using ContentType
+        from dnd5e.core.registry import initialize_content_types
+
+        initialize_content_types()
+
         paths = {}
+
+        adventure_type = ContentType("adventure")
+        book_type = ContentType("book")
 
         # Check for adventures metadata
         adventures_file = self.data_dir / "adventures.json"
         if adventures_file.exists():
-            paths[ContentType.ADVENTURE] = [adventures_file]
+            paths[adventure_type] = [adventures_file]
 
         # Check for books metadata
         books_file = self.data_dir / "books.json"
         if books_file.exists():
-            paths[ContentType.BOOK] = [books_file]
+            paths[book_type] = [books_file]
 
         return paths
 
@@ -48,19 +56,22 @@ class TestSourceManager(SourceManager):
         """Return content files."""
         paths = {}
 
+        adventure_type = ContentType("adventure")
+        book_type = ContentType("book")
+
         # Check for adventure content files
         adventure_dir = self.data_dir / "adventure"
         if adventure_dir.exists():
             adventure_files = list(adventure_dir.glob("adventure-*.json"))
             if adventure_files:
-                paths[ContentType.ADVENTURE] = adventure_files
+                paths[adventure_type] = adventure_files
 
         # Check for book content files
         book_dir = self.data_dir / "book"
         if book_dir.exists():
             book_files = list(book_dir.glob("book-*.json"))
             if book_files:
-                paths[ContentType.BOOK] = book_files
+                paths[book_type] = book_files
 
         return paths
 
@@ -192,13 +203,15 @@ class TestAdventureResolution:
         print(f"Data paths found: {data_paths}")
 
         # Also verify the file exists and can be read
-        adv_file = data_paths[ContentType.ADVENTURE][0]
+        adventure_type = ContentType("adventure")
+        adv_file = data_paths[adventure_type][0]
         with open(adv_file) as f:
             metadata = json.load(f)
             print(f"Metadata file has {len(metadata.get('adventure', []))} adventures")
 
         # Verify omnidexer only loaded metadata
-        adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
+        adventure_type = ContentType("adventure")
+        adventures = omnidexer.get_all_by_type(adventure_type)
         print(f"Adventures loaded: {len(adventures)}")
         for adv in adventures:
             print(f"  - {adv.name} (id: {adv.id})")
@@ -320,7 +333,8 @@ class TestAdventureResolution:
         omnidexer.load_all_data()
 
         # Get all adventures from omnidexer
-        adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
+        adventure_type = ContentType("adventure")
+        adventures = omnidexer.get_all_by_type(adventure_type)
 
         # Should only have 1 adventure (from metadata), not 2 (metadata + content)
         assert len(adventures) == 1

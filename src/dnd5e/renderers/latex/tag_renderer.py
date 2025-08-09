@@ -62,14 +62,11 @@ class LaTeXTagRenderer:
 
         # For backward compatibility: only format if content was actually resolved
         if ref.is_resolved:
-            # Apply content-type specific formatting
-            if ref.content_type in (
-                ContentType.CREATURE,
-                ContentType.CLASS,
-                ContentType.FEAT,
-            ):
+            # Apply content-type specific formatting using string comparison (Phase 3 migration)
+            content_type_str = ref.content_type.value if ref.content_type else "unknown"
+            if content_type_str in ("creature", "class", "feat"):
                 formatted = f"\\textbf{{{self._escape_latex(display_text)}}}"
-            elif ref.content_type in (ContentType.SPELL, ContentType.ITEM):
+            elif content_type_str in ("spell", "item"):
                 formatted = f"\\textit{{{self._escape_latex(display_text)}}}"
             else:
                 formatted = self._escape_latex(display_text)
@@ -77,11 +74,12 @@ class LaTeXTagRenderer:
             # Unresolved content: just return plain text (original behavior)
             formatted = self._escape_latex(display_text)
 
-        # Add page reference if available
+        # Add page reference if available (string-based comparison)
         if ref.page:
-            if ref.content_type == ContentType.ADVENTURE:
+            content_type_str = ref.content_type.value if ref.content_type else "unknown"
+            if content_type_str == "adventure":
                 formatted += f" (p. {ref.page})"
-            elif ref.content_type == ContentType.BOOK:
+            elif content_type_str == "book":
                 formatted += f", p. {ref.page}"
 
         return formatted
@@ -155,17 +153,56 @@ class ContentTypeStyleConfig:
     """
 
     def __init__(self) -> None:
-        self.styles = {
-            ContentType.CREATURE: "bold",
-            ContentType.CLASS: "bold",
-            ContentType.FEAT: "bold",
-            ContentType.SPELL: "italic",
-            ContentType.ITEM: "italic",
-            ContentType.BACKGROUND: "plain",
-            ContentType.RACE: "plain",
-            ContentType.ADVENTURE: "plain",
-            ContentType.BOOK: "plain",
+        self.styles = self._build_dynamic_styles()
+
+    def _build_dynamic_styles(self) -> dict[ContentType, str]:
+        """Build style mappings from registry metadata (Phase 3 migration).
+
+        Returns:
+            Dictionary mapping ContentType enum instances to style strings
+        """
+        from ...core.models.content import ContentType
+        from ...core.registry.content_type_registry import get_content_type_registry
+
+        # Default styles for known content types
+        default_styles = {
+            "creature": "bold",
+            "class": "bold",
+            "feat": "bold",
+            "spell": "italic",
+            "item": "italic",
+            "background": "plain",
+            "race": "plain",
+            "adventure": "plain",
+            "book": "plain",
         }
+
+        # Build style mapping with ContentType keys
+        styles: dict[ContentType, str] = {}
+
+        try:
+            registry = get_content_type_registry()
+            for enum_value, metadata in registry.get_all().items():
+                try:
+                    # Use ContentType constructor for safe validation (Phase 3 pattern)
+                    content_type = ContentType(enum_value)
+                    style = default_styles.get(enum_value, "plain")
+                    styles[content_type] = style
+
+                except ValueError:
+                    # Skip test-only registrations that aren't valid enum members
+                    continue
+
+        except ImportError:
+            # Registry not available, use defaults with enum conversion
+            for content_type_str, style in default_styles.items():
+                try:
+                    content_type = ContentType(content_type_str)
+                    styles[content_type] = style
+                except ValueError:
+                    continue
+
+        return styles
 
     def get_style(self, content_type: ContentType) -> str:
         """Get the style for a content type."""
@@ -198,11 +235,12 @@ class ConfigurableLaTeXTagRenderer(LaTeXTagRenderer):
         else:  # plain
             formatted = self._escape_latex(display_text)
 
-        # Add page reference if available, and not 1
+        # Add page reference if available, and not 1 (string-based comparison)
         if ref.page and ref.page != "1":
-            if ref.content_type == ContentType.ADVENTURE:
+            content_type_str = ref.content_type.value if ref.content_type else "unknown"
+            if content_type_str == "adventure":
                 formatted += f" (p. {ref.page})"
-            elif ref.content_type == ContentType.BOOK:
+            elif content_type_str == "book":
                 formatted += f", p. {ref.page}"
 
         return formatted

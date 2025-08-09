@@ -21,8 +21,8 @@ class TestContentMerger:
         """Create mock source manager."""
         mock_sm = Mock()
         mock_sm.get_content_files.return_value = {
-            ContentType.ADVENTURE: [],
-            ContentType.BOOK: [],
+            ContentType("adventure"): [],
+            ContentType("book"): [],
         }
         return mock_sm
 
@@ -40,16 +40,16 @@ class TestContentMerger:
     def test_normalize_id_to_filename_adventure(self, content_merger):
         """Test ID normalization for adventures."""
         assert (
-            content_merger._normalize_id_to_filename(ContentType.ADVENTURE, "CoS")
+            content_merger._normalize_id_to_filename(ContentType("adventure"), "CoS")
             == "adventure-cos.json"
         )
         assert (
-            content_merger._normalize_id_to_filename(ContentType.ADVENTURE, "LMoP")
+            content_merger._normalize_id_to_filename(ContentType("adventure"), "LMoP")
             == "adventure-lmop.json"
         )
         assert (
             content_merger._normalize_id_to_filename(
-                ContentType.ADVENTURE, "DrDe-ACfaS"
+                ContentType("adventure"), "DrDe-ACfaS"
             )
             == "adventure-drde-acfas.json"
         )
@@ -57,38 +57,40 @@ class TestContentMerger:
     def test_normalize_id_to_filename_book(self, content_merger):
         """Test ID normalization for books."""
         assert (
-            content_merger._normalize_id_to_filename(ContentType.BOOK, "PHB")
+            content_merger._normalize_id_to_filename(ContentType("book"), "PHB")
             == "book-phb.json"
         )
         assert (
-            content_merger._normalize_id_to_filename(ContentType.BOOK, "MM")
+            content_merger._normalize_id_to_filename(ContentType("book"), "MM")
             == "book-mm.json"
         )
         assert (
-            content_merger._normalize_id_to_filename(ContentType.BOOK, "DMG")
+            content_merger._normalize_id_to_filename(ContentType("book"), "DMG")
             == "book-dmg.json"
         )
 
     def test_normalize_id_to_filename_unsupported_type(self, content_merger):
         """Test normalization with unsupported content type."""
         with pytest.raises(ValueError, match="Unsupported content type"):
-            content_merger._normalize_id_to_filename(ContentType.SPELL, "test")
+            content_merger._normalize_id_to_filename(ContentType("spell"), "test")
 
     def test_load_content_file_unsupported_type(self, content_merger):
         """Test loading content file with unsupported type."""
         with pytest.raises(
             ValueError, match="Content type.*not supported for dual-file loading"
         ):
-            content_merger.load_content_file(ContentType.SPELL, "test")
+            content_merger.load_content_file(ContentType("spell"), "test")
 
     def test_load_content_file_not_found(self, content_merger, mock_source_manager):
         """Test loading content file that doesn't exist."""
         mock_source_manager.get_content_files.return_value = {
-            ContentType.ADVENTURE: [],
-            ContentType.BOOK: [],
+            ContentType("adventure"): [],
+            ContentType("book"): [],
         }
 
-        result = content_merger.load_content_file(ContentType.ADVENTURE, "nonexistent")
+        result = content_merger.load_content_file(
+            ContentType("adventure"), "nonexistent"
+        )
         assert result is None
 
     def test_load_content_file_success(self, content_merger, mock_source_manager):
@@ -116,15 +118,15 @@ class TestContentMerger:
 
             # Mock source manager to return our test file
             mock_source_manager.get_content_files.return_value = {
-                ContentType.ADVENTURE: [expected_path],
-                ContentType.BOOK: [],
+                ContentType("adventure"): [expected_path],
+                ContentType("book"): [],
             }
 
-            result = content_merger.load_content_file(ContentType.ADVENTURE, "CoS")
+            result = content_merger.load_content_file(ContentType("adventure"), "CoS")
             assert result == test_content
 
             # Test caching - second call should return cached result
-            result2 = content_merger.load_content_file(ContentType.ADVENTURE, "CoS")
+            result2 = content_merger.load_content_file(ContentType("adventure"), "CoS")
             assert result2 == test_content
 
         finally:
@@ -150,11 +152,11 @@ class TestContentMerger:
 
             # Mock source manager to return our test file
             mock_source_manager.get_content_files.return_value = {
-                ContentType.ADVENTURE: [expected_path],
-                ContentType.BOOK: [],
+                ContentType("adventure"): [expected_path],
+                ContentType("book"): [],
             }
 
-            result = content_merger.load_content_file(ContentType.ADVENTURE, "CoS")
+            result = content_merger.load_content_file(ContentType("adventure"), "CoS")
             assert result is None
 
         finally:
@@ -205,12 +207,12 @@ class TestContentMerger:
 
             # Mock source manager to return our test file
             mock_source_manager.get_content_files.return_value = {
-                ContentType.ADVENTURE: [expected_path],
-                ContentType.BOOK: [],
+                ContentType("adventure"): [expected_path],
+                ContentType("book"): [],
             }
 
             # Should find file despite case mismatch
-            result = content_merger.load_content_file(ContentType.ADVENTURE, "CoS")
+            result = content_merger.load_content_file(ContentType("adventure"), "CoS")
             assert result == test_content
 
         finally:

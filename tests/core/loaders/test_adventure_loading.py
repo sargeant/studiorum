@@ -66,7 +66,7 @@ class TestAdventureLoading:
 
         try:
             # Load using JsonDataLoader
-            loader = JsonDataLoader(ContentType.ADVENTURE)
+            loader = JsonDataLoader(ContentType("adventure"))
             adventures = loader.load(temp_path)
 
             # Verify adventure was loaded
@@ -136,7 +136,7 @@ class TestAdventureLoading:
             temp_path = Path(f.name)
 
         try:
-            loader = JsonDataLoader(ContentType.ADVENTURE)
+            loader = JsonDataLoader(ContentType("adventure"))
             adventures = loader.load(temp_path)
 
             assert len(adventures) == 1

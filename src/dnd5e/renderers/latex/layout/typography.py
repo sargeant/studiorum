@@ -3,6 +3,7 @@
 from typing import Any
 
 from ....core.models.content import ContentType
+from ....core.registry import get_content_type_registry
 from .base import (
     ContentLayoutManager,
     LayoutContext,
@@ -17,29 +18,8 @@ class TypographyManager(ContentLayoutManager):
         """Initialize the typography manager."""
         super().__init__(config)
 
-        # Typography preferences by content type
-        self.content_typography = {
-            ContentType.ADVENTURE: {
-                "use_drop_caps": True,
-                "emphasis_style": "strong",
-                "quote_style": "fancy",
-            },
-            ContentType.CLASS: {
-                "use_drop_caps": False,
-                "emphasis_style": "medium",
-                "section_spacing": "loose",
-            },
-            ContentType.RACE: {
-                "use_drop_caps": False,
-                "emphasis_style": "medium",
-                "section_spacing": "normal",
-            },
-            ContentType.SPELL: {
-                "use_drop_caps": False,
-                "emphasis_style": "subtle",
-                "compact_spacing": True,
-            },
-        }
+        # Typography preferences by content type (Phase 3 migration)
+        self.content_typography = self._build_typography_preferences()
 
         # Font styles for different emphasis levels
         self.emphasis_styles = {
@@ -58,9 +38,108 @@ class TypographyManager(ContentLayoutManager):
             "creature_name": "\\textbf",
         }
 
+    def _build_typography_preferences(self) -> dict[ContentType, dict[str, Any]]:
+        """Build content type to typography preferences mapping using registry.
+
+        Returns dynamic mapping based on available content types,
+        following Phase 3 migration pattern.
+
+        Returns:
+            Dictionary mapping content types to typography preferences
+        """
+        # Base typography preferences
+        typography_map = {
+            "adventure": {
+                "use_drop_caps": True,
+                "emphasis_style": "strong",
+                "quote_style": "fancy",
+            },
+            "book": {
+                "use_drop_caps": True,
+                "emphasis_style": "strong",
+                "quote_style": "fancy",
+            },
+            "class": {
+                "use_drop_caps": False,
+                "emphasis_style": "medium",
+                "section_spacing": "loose",
+            },
+            "subclass": {
+                "use_drop_caps": False,
+                "emphasis_style": "medium",
+                "section_spacing": "normal",
+            },
+            "race": {
+                "use_drop_caps": False,
+                "emphasis_style": "medium",
+                "section_spacing": "normal",
+            },
+            "subrace": {
+                "use_drop_caps": False,
+                "emphasis_style": "subtle",
+                "section_spacing": "normal",
+            },
+            "background": {
+                "use_drop_caps": False,
+                "emphasis_style": "medium",
+                "section_spacing": "loose",
+            },
+            "spell": {
+                "use_drop_caps": False,
+                "emphasis_style": "subtle",
+                "compact_spacing": True,
+            },
+            "item": {
+                "use_drop_caps": False,
+                "emphasis_style": "subtle",
+                "compact_spacing": True,
+            },
+            "creature": {
+                "use_drop_caps": False,
+                "emphasis_style": "medium",
+                "section_spacing": "compact",
+            },
+            "feat": {
+                "use_drop_caps": False,
+                "emphasis_style": "subtle",
+                "compact_spacing": True,
+            },
+        }
+
+        # Build preferences from registry
+        registry = get_content_type_registry()
+        preferences = {}
+
+        for content_type_str, metadata in registry.get_all().items():
+            try:
+                content_type = ContentType(content_type_str)
+            except ValueError:
+                # Skip content types that don't exist as enum members (like fluff types)
+                continue
+
+            if content_type_str in typography_map:
+                preferences[content_type] = typography_map[content_type_str]
+            else:
+                # Default typography for unknown content types
+                preferences[content_type] = {
+                    "use_drop_caps": False,
+                    "emphasis_style": "subtle",
+                    "compact_spacing": True,
+                }
+
+        return preferences
+
     def get_supported_content_types(self) -> set[ContentType]:
-        """Support all content types for typography enhancement."""
-        return set(ContentType)
+        """Support all registered content types for typography enhancement."""
+        registry = get_content_type_registry()
+        content_types = set()
+        for content_type_str in registry.get_all():
+            try:
+                content_types.add(ContentType(content_type_str))
+            except ValueError:
+                # Skip content types that don't exist as enum members (like fluff types)
+                continue
+        return content_types
 
     def can_handle(self, context: LayoutContext) -> bool:
         """Handle typography for content that benefits from enhancement."""
@@ -108,12 +187,12 @@ class TypographyManager(ContentLayoutManager):
         content_type = context.content_type
 
         # Adventure content always benefits from typography
-        if content_type == ContentType.ADVENTURE:
+        if content_type.value == "adventure":
             return True
 
         # Long-form content benefits from typography
-        long_form_types = {ContentType.CLASS, ContentType.RACE, ContentType.BACKGROUND}
-        return content_type in long_form_types
+        long_form_types = {"class", "race", "background"}
+        return content_type.value in long_form_types
 
     def _should_use_drop_cap(self, context: LayoutContext) -> bool:
         """Determine if drop caps should be used."""
@@ -121,7 +200,7 @@ class TypographyManager(ContentLayoutManager):
             return True
 
         # Use drop caps for adventure content and chapter beginnings
-        if context.content_type == ContentType.ADVENTURE:
+        if context.content_type.value == "adventure":
             return True
 
         return False
@@ -229,15 +308,15 @@ class TypographyManager(ContentLayoutManager):
         enhanced = content
 
         # Add proper spacing after sections
-        if content_type in {ContentType.CLASS, ContentType.RACE}:
+        if content_type.value in {"class", "race"}:
             enhanced = enhanced.replace("\n\n", "\n\n\\medskip\n")
 
         # Tighter spacing for compact content
-        elif content_type in {ContentType.SPELL, ContentType.FEAT}:
+        elif content_type.value in {"spell", "feat"}:
             enhanced = enhanced.replace("\n\n\n", "\n\n")
 
         # Adventure content gets loose spacing
-        elif content_type == ContentType.ADVENTURE:
+        elif content_type.value == "adventure":
             enhanced = enhanced.replace("\n\n", "\n\n\\bigskip\n")
 
         return enhanced
@@ -337,16 +416,16 @@ class TypographyManager(ContentLayoutManager):
         hint = LayoutHint()
 
         # Set typography preferences based on content type
-        if content_type == ContentType.ADVENTURE:
+        if content_type.value == "adventure":
             hint.use_drop_cap = True
             hint.emphasis_level = 2
             hint.space_before = "\\bigskip"
             hint.space_after = "\\medskip"
-        elif content_type in {ContentType.CLASS, ContentType.RACE}:
+        elif content_type.value in {"class", "race"}:
             hint.emphasis_level = 1
             hint.space_before = "\\medskip"
             hint.space_after = "\\smallskip"
-        elif content_type in {ContentType.SPELL, ContentType.FEAT}:
+        elif content_type.value in {"spell", "feat"}:
             hint.emphasis_level = 1
             hint.space_before = "\\smallskip"
 

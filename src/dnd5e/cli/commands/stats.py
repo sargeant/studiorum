@@ -143,11 +143,11 @@ def show_content_stats(
             )
 
             # Type-specific analysis
-            if ct == ContentType.SPELL:
+            if ct.value == "spell":
                 _analyze_spells(content_items)
-            elif ct == ContentType.CREATURE:
+            elif ct.value == "creature":
                 _analyze_creatures(content_items)
-            elif ct == ContentType.ITEM:
+            elif ct.value == "item":
                 _analyze_items(content_items)
 
             # Source breakdown

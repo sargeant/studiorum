@@ -50,6 +50,21 @@ class BaseCoreTagHandler:
         """Business rule: Don't show page '1' in references."""
         return page is not None and page != "1"
 
+    def _resolve_content_type(self, content_type_name: str) -> ContentType | None:
+        """Resolve content type using registry (Phase 3 migration).
+
+        Args:
+            content_type_name: Content type name to resolve
+
+        Returns:
+            ContentType enum instance or None if not found
+        """
+        try:
+            return ContentType(content_type_name)
+        except ValueError:
+            logger.debug(f"Content type '{content_type_name}' not found in registry")
+            return None
+
     def _extract_display_text(self, node: TagNode, context: RenderingContext) -> str:
         """Extract display text using the standard priority order.
 
@@ -154,7 +169,8 @@ class CoreCreatureTagHandler(BaseCoreTagHandler):
     """Core handler for creature reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("creature", ContentType.CREATURE)
+        content_type = self._resolve_content_type("creature")
+        super().__init__("creature", content_type)
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -179,7 +195,8 @@ class CoreSpellTagHandler(BaseCoreTagHandler):
     """Core handler for spell reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("spell", ContentType.SPELL)
+        content_type = self._resolve_content_type("spell")
+        super().__init__("spell", content_type)
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -204,7 +221,8 @@ class CoreItemTagHandler(BaseCoreTagHandler):
     """Core handler for item reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("item", ContentType.ITEM)
+        content_type = self._resolve_content_type("item")
+        super().__init__("item", content_type)
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -229,7 +247,8 @@ class CoreClassTagHandler(BaseCoreTagHandler):
     """Core handler for class reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("class", ContentType.CLASS)
+        content_type = self._resolve_content_type("class")
+        super().__init__("class", content_type)
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -254,7 +273,8 @@ class CoreFeatTagHandler(BaseCoreTagHandler):
     """Core handler for feat reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("feat", ContentType.FEAT)
+        content_type = self._resolve_content_type("feat")
+        super().__init__("feat", content_type)
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -279,7 +299,8 @@ class CoreRaceTagHandler(BaseCoreTagHandler):
     """Core handler for race reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("race", ContentType.RACE)
+        content_type = self._resolve_content_type("race")
+        super().__init__("race", content_type)
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -304,7 +325,8 @@ class CoreBackgroundTagHandler(BaseCoreTagHandler):
     """Core handler for background reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("background", ContentType.BACKGROUND)
+        content_type = self._resolve_content_type("background")
+        super().__init__("background", content_type)
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -329,7 +351,8 @@ class CoreAdventureTagHandler(BaseCoreTagHandler):
     """Core handler for adventure reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("adventure", ContentType.ADVENTURE)
+        content_type = self._resolve_content_type("adventure")
+        super().__init__("adventure", content_type)
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -355,7 +378,8 @@ class CoreBookTagHandler(BaseCoreTagHandler):
     """Core handler for book reference tags."""
 
     def __init__(self) -> None:
-        super().__init__("book", ContentType.BOOK)
+        content_type = self._resolve_content_type("book")
+        super().__init__("book", content_type)
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -381,8 +405,9 @@ class CoreConditionTagHandler(BaseCoreTagHandler):
     """Core handler for condition tags."""
 
     def __init__(self) -> None:
-        # Conditions don't have a dedicated content type yet in some cases
-        super().__init__("condition", None)
+        # Use registry to resolve condition content type (Phase 3 migration)
+        content_type = self._resolve_content_type("condition")
+        super().__init__("condition", content_type)
 
     def _extract_display_text(self, node: TagNode, context: RenderingContext) -> str:
         """Extract display text for conditions with special attribute handling.

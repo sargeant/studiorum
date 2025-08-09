@@ -3,6 +3,7 @@
 from typing import Any
 
 from ....core.models.content import ContentType
+from ....core.registry import get_content_type_registry
 from .base import (
     ContentLayoutManager,
     EnvironmentWrapper,
@@ -24,21 +25,81 @@ class MultiColumnManager(ContentLayoutManager):
         self.column_sep = self.config.get("column_sep", "1cm")
         self.balance_columns = self.config.get("balance_columns", True)
 
-        # Content type specific column preferences
-        self.content_columns = {
-            ContentType.SPELL: 2,
-            ContentType.ITEM: 2,
-            ContentType.FEAT: 2,
-            ContentType.BACKGROUND: 1,  # Backgrounds often need full width
-            ContentType.CLASS: 1,  # Class descriptions need space
-            ContentType.RACE: 2,
-            ContentType.CREATURE: 1,  # Creature stat blocks are wide
-            ContentType.ADVENTURE: 1,  # Adventures have complex layouts
+        # Content type specific column preferences (Phase 3 migration)
+        self.content_columns = self._build_column_preferences()
+
+    def _build_column_preferences(self) -> dict[ContentType, int]:
+        """Build content type to column count mapping using registry.
+
+        Returns dynamic mapping based on available content types,
+        following Phase 3 migration pattern.
+
+        Returns:
+            Dictionary mapping content types to preferred column counts
+        """
+        # Base column preferences
+        column_map = {
+            "spell": 2,
+            "item": 2,
+            "magicvariant": 2,
+            "feat": 2,
+            "action": 2,
+            "condition": 2,
+            "sense": 2,
+            "hazard": 2,
+            "status": 2,
+            "background": 1,  # Backgrounds often need full width
+            "class": 1,  # Class descriptions need space
+            "subclass": 1,
+            "race": 2,
+            "subrace": 2,
+            "creature": 1,  # Creature stat blocks are wide
+            "adventure": 1,  # Adventures have complex layouts
+            "book": 1,  # Books have complex layouts
+            "deity": 2,
+            "cult": 1,
+            "boon": 2,
+            "table": 1,  # Tables need full width
+            "variantrule": 1,
+            "reward": 2,
+            "charoption": 1,
+            "optionalfeature": 2,
+            "disease": 2,
+            "trap": 1,
+            "vehicle": 1,
+            "object": 2,
         }
 
+        # Build preferences from registry
+        registry = get_content_type_registry()
+        preferences = {}
+
+        for content_type_str, metadata in registry.get_all().items():
+            try:
+                content_type = ContentType(content_type_str)
+            except ValueError:
+                # Skip content types that don't exist as enum members (like fluff types)
+                continue
+
+            if content_type_str in column_map:
+                preferences[content_type] = column_map[content_type_str]
+            else:
+                # Default to 2 columns for unknown content types
+                preferences[content_type] = 2
+
+        return preferences
+
     def get_supported_content_types(self) -> set[ContentType]:
-        """Support all content types with different column strategies."""
-        return set(ContentType)
+        """Support all registered content types with different column strategies."""
+        registry = get_content_type_registry()
+        content_types = set()
+        for content_type_str in registry.get_all():
+            try:
+                content_types.add(ContentType(content_type_str))
+            except ValueError:
+                # Skip content types that don't exist as enum members (like fluff types)
+                continue
+        return content_types
 
     def can_handle(self, context: LayoutContext) -> bool:
         """Handle multi-column strategies."""
@@ -89,12 +150,9 @@ class MultiColumnManager(ContentLayoutManager):
             return False
 
         # Some content types work better in single column
-        single_column_types = {
-            ContentType.CREATURE,  # Stat blocks are wide
-            ContentType.ADVENTURE,  # Complex adventure layouts
-        }
+        single_column_types = {"creature", "adventure"}
 
-        return context.content_type not in single_column_types
+        return context.content_type.value not in single_column_types
 
     def _process_column_breaks(self, content: str, context: LayoutContext) -> str:
         """Process and optimize column breaks in the content."""
@@ -185,16 +243,16 @@ class MultiColumnManager(ContentLayoutManager):
         """Get layout hints optimized for multi-column display."""
         hint = LayoutHint()
 
-        if content_type == ContentType.SPELL:
+        if content_type.value == "spell":
             hint.allow_float = True
             hint.avoid_column_break = True  # Keep spells together
-        elif content_type == ContentType.CREATURE:
+        elif content_type.value == "creature":
             hint.span_columns = True  # Stat blocks need full width
             hint.allow_float = True
-        elif content_type == ContentType.ITEM:
+        elif content_type.value == "item":
             hint.allow_float = True
             hint.group_with_next = True  # Group similar items
-        elif content_type == ContentType.BACKGROUND:
+        elif content_type.value == "background":
             hint.span_columns = True  # Backgrounds need detail space
 
         return hint

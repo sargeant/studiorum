@@ -294,8 +294,8 @@ class TestRendererIntegration:
         omnidexer = loaded_omnidexer
 
         # Get some content
-        spell = omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
-        creature = omnidexer.find(ContentType.CREATURE, "Ancient Red Dragon", "MM")
+        spell = omnidexer.find(ContentType("spell"), "Fireball", "PHB")
+        creature = omnidexer.find(ContentType("creature"), "Ancient Red Dragon", "MM")
 
         assert spell is not None
         assert creature is not None

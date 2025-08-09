@@ -192,15 +192,15 @@ class TestContentOrganizer:
                 if isinstance(content, MockSpell):
                     from dnd5e.core.models.content import ContentType  # type: ignore
 
-                    return ContentType.SPELL
+                    return ContentType("spell")
                 elif isinstance(content, MockCreature):
                     from dnd5e.core.models.content import ContentType  # type: ignore
 
-                    return ContentType.CREATURE
+                    return ContentType("creature")
                 elif isinstance(content, MockItem):
                     from dnd5e.core.models.content import ContentType  # type: ignore
 
-                    return ContentType.ITEM
+                    return ContentType("item")
                 else:
                     raise ValueError("Unknown type")
 
@@ -485,13 +485,13 @@ class TestContentOrganizerIntegration:
                 from dnd5e.core.models.content import ContentType  # type: ignore
 
                 if isinstance(content, MockSpell):
-                    return ContentType.SPELL
+                    return ContentType("spell")
                 elif isinstance(content, MockCreature):
-                    return ContentType.CREATURE
+                    return ContentType("creature")
                 elif isinstance(content, MockItem):
-                    return ContentType.ITEM
+                    return ContentType("item")
                 else:
-                    return ContentType.FEAT
+                    return ContentType("feat")
 
             mock_from_content.side_effect = side_effect
 
@@ -530,7 +530,7 @@ class TestContentOrganizerIntegration:
         ) as mock_from_content:
             from dnd5e.core.models.content import ContentType  # type: ignore
 
-            mock_from_content.return_value = ContentType.SPELL
+            mock_from_content.return_value = ContentType("spell")
 
             organized = organizer.organize_content(spells)
             sections = organizer.create_hierarchical_sections(organized)

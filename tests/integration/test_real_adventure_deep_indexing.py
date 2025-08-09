@@ -27,7 +27,8 @@ class TestRealAdventureDeepIndexing:
             pytest.skip("Adventure data not available or failed to load")
 
         # Check that adventures are loaded
-        adventures = omnidexer.find_all(ContentType.ADVENTURE)
+        adventure_type = ContentType("adventure")
+        adventures = omnidexer.find_all(adventure_type)
         if not adventures:
             pytest.skip("No adventures found in data sources")
 
@@ -70,7 +71,8 @@ class TestRealAdventureDeepIndexing:
             pytest.skip("Adventure data not available")
 
         # Check for adventure sections
-        sections = omnidexer.find_all(ContentType.ADVENTURE_SECTION)
+        adventure_section_type = ContentType("adventure_section")
+        sections = omnidexer.find_all(adventure_section_type)
         if sections:
             section = sections[0]
             assert isinstance(section, Section)
@@ -78,7 +80,8 @@ class TestRealAdventureDeepIndexing:
             assert section.parent_name is not None
 
         # Check for adventure tables
-        tables = omnidexer.find_all(ContentType.ADVENTURE_TABLE)
+        adventure_table_type = ContentType("adventure_table")
+        tables = omnidexer.find_all(adventure_table_type)
         if tables:
             table = tables[0]
             assert isinstance(table, Table)
@@ -86,7 +89,8 @@ class TestRealAdventureDeepIndexing:
             assert table.parent_name is not None
 
         # Check for adventure insets
-        insets = omnidexer.find_all(ContentType.ADVENTURE_INSET)
+        adventure_inset_type = ContentType("adventure_inset")
+        insets = omnidexer.find_all(adventure_inset_type)
         if insets:
             inset = insets[0]
             assert isinstance(inset, Inset)
@@ -104,15 +108,15 @@ class TestRealAdventureDeepIndexing:
             pytest.skip("Adventure data not available")
 
         # Get all adventure sections
-        sections = omnidexer.find_all(ContentType.ADVENTURE_SECTION)
+        adventure_section_type = ContentType("adventure_section")
+        sections = omnidexer.find_all(adventure_section_type)
         if not sections:
             pytest.skip("No adventure sections found")
 
         # Try to find a section by name
         first_section = sections[0]
-        found_section = omnidexer.find(
-            ContentType.ADVENTURE_SECTION, first_section.name
-        )
+        adventure_section_type = ContentType("adventure_section")
+        found_section = omnidexer.find(adventure_section_type, first_section.name)
 
         assert found_section is not None
         assert found_section.name == first_section.name

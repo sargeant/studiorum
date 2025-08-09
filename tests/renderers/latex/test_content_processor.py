@@ -34,9 +34,9 @@ class TestSpellProcessor:
 
     def test_supports_content_type(self) -> None:
         """Test content type support."""
-        assert self.processor.supports_content_type(ContentType.SPELL)
-        assert not self.processor.supports_content_type(ContentType.CREATURE)
-        assert not self.processor.supports_content_type(ContentType.ITEM)
+        assert self.processor.supports_content_type(ContentType("spell"))
+        assert not self.processor.supports_content_type(ContentType("creature"))
+        assert not self.processor.supports_content_type(ContentType("item"))
 
     def test_process_invalid_content_type(self) -> None:
         """Test processing with invalid content type."""
@@ -220,9 +220,9 @@ class TestCreatureProcessor:
 
     def test_supports_content_type(self) -> None:
         """Test content type support."""
-        assert self.processor.supports_content_type(ContentType.CREATURE)
-        assert not self.processor.supports_content_type(ContentType.SPELL)
-        assert not self.processor.supports_content_type(ContentType.ITEM)
+        assert self.processor.supports_content_type(ContentType("creature"))
+        assert not self.processor.supports_content_type(ContentType("spell"))
+        assert not self.processor.supports_content_type(ContentType("item"))
 
     def test_process_invalid_content_type(self) -> None:
         """Test processing with invalid content type."""
@@ -427,9 +427,9 @@ class TestItemProcessor:
 
     def test_supports_content_type(self) -> None:
         """Test content type support."""
-        assert self.processor.supports_content_type(ContentType.ITEM)
-        assert not self.processor.supports_content_type(ContentType.SPELL)
-        assert not self.processor.supports_content_type(ContentType.CREATURE)
+        assert self.processor.supports_content_type(ContentType("item"))
+        assert not self.processor.supports_content_type(ContentType("spell"))
+        assert not self.processor.supports_content_type(ContentType("creature"))
 
     def test_process_invalid_content_type(self) -> None:
         """Test processing with invalid content type."""
@@ -586,13 +586,15 @@ class TestContentProcessorRegistry:
         """Test that initialization registers default processors."""
         registry: Any = ContentProcessorRegistry()
 
-        assert ContentType.SPELL in registry._processors
-        assert ContentType.CREATURE in registry._processors
-        assert ContentType.ITEM in registry._processors
+        assert ContentType("spell") in registry._processors
+        assert ContentType("creature") in registry._processors
+        assert ContentType("item") in registry._processors
 
-        assert isinstance(registry._processors[ContentType.SPELL], SpellProcessor)
-        assert isinstance(registry._processors[ContentType.CREATURE], CreatureProcessor)
-        assert isinstance(registry._processors[ContentType.ITEM], ItemProcessor)
+        assert isinstance(registry._processors[ContentType("spell")], SpellProcessor)
+        assert isinstance(
+            registry._processors[ContentType("creature")], CreatureProcessor
+        )
+        assert isinstance(registry._processors[ContentType("item")], ItemProcessor)
 
     def test_register_processor(self) -> None:
         """Test processor registration."""
@@ -611,7 +613,7 @@ class TestContentProcessorRegistry:
         """Test getting existing processor."""
         registry: Any = ContentProcessorRegistry()
 
-        processor = registry.get_processor(ContentType.SPELL)
+        processor = registry.get_processor(ContentType("spell"))
         assert processor is not None
         assert isinstance(processor, SpellProcessor)
 
@@ -643,7 +645,7 @@ class TestContentProcessorRegistry:
         with patch(
             "dnd5e.renderers.latex.content_processor.ContentType.from_content"
         ) as mock_from_content:
-            mock_from_content.return_value = ContentType.SPELL
+            mock_from_content.return_value = ContentType("spell")
 
             result = registry.process_content(spell, context)
 
