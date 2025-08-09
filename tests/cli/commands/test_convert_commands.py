@@ -1107,6 +1107,8 @@ class TestLaTeXDocumentOptions:
         # Mock app config with custom paper size
         mock_config = Mock()
         mock_config.rendering.latex.document.paper_size = "a5paper"
+        mock_config.rendering.latex.document.fonts = None
+        mock_config.rendering.latex.document.no_outline = False
         mock_get_app_config.return_value = mock_config
 
         # Mock file operations
