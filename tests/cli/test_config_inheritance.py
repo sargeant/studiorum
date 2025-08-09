@@ -122,7 +122,7 @@ class TestCliConfigInheritance:
         # Document structure - these are the standard defaults
         assert cli_defaults["document_class"] == "dndbook"
         assert cli_defaults["font_size"] == "11pt"
-        assert cli_defaults["background"] is None
+        assert cli_defaults["background"] == "full"
         assert cli_defaults["two_column"] is True
         assert cli_defaults["justified"] is False  # Aligned to CLI preference
 
@@ -172,7 +172,7 @@ class TestCliConfigInheritance:
         # All functions should return values without error
         assert isinstance(get_document_class_default(), str)
         assert isinstance(get_font_size_default(), str)
-        assert get_background_default() is None  # Can be None
+        assert get_background_default() == "full"  # Default background
         assert isinstance(get_two_column_default(), bool)
         assert isinstance(get_justified_default(), bool)
         assert isinstance(get_with_images_default(), bool)
