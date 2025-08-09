@@ -26,6 +26,7 @@ def mock_context() -> Mock:
     return context
 
 
+@pytest.mark.rendering
 class TestBaseEntryRenderer:
     """Test base entry renderer functionality."""
 
@@ -47,6 +48,7 @@ class TestBaseEntryRenderer:
         assert callable(renderer.get_template_context)
 
 
+@pytest.mark.rendering
 class TestSpellEntryRenderer:
     """Test SpellEntryRenderer functionality."""
 
@@ -214,6 +216,7 @@ class TestSpellEntryRenderer:
             renderer.get_template_context(invalid_content, mock_context)
 
 
+@pytest.mark.rendering
 class TestCreatureEntryRenderer:
     """Test CreatureEntryRenderer functionality."""
 
@@ -291,6 +294,7 @@ class TestCreatureEntryRenderer:
         assert "formatted_abilities" in context
 
 
+@pytest.mark.rendering
 class TestItemEntryRenderer:
     """Test ItemEntryRenderer functionality."""
 
@@ -341,6 +345,7 @@ class TestItemEntryRenderer:
         assert "value_text" in context
 
 
+@pytest.mark.rendering
 class TestEntryRendererRegistry:
     """Test entry renderer registry functionality."""
 
@@ -393,6 +398,7 @@ class TestEntryRendererRegistry:
         assert custom_renderer is custom_instance
 
 
+@pytest.mark.rendering
 class TestRendererPerformance:
     """Test renderer performance and resource usage."""
 

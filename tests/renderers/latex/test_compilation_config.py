@@ -3,6 +3,8 @@
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from dnd5e.renderers.latex.compilation_config import (  # type: ignore
     CompilationConfig,
     CompilationMode,
@@ -11,6 +13,7 @@ from dnd5e.renderers.latex.compilation_config import (  # type: ignore
 )
 
 
+@pytest.mark.rendering
 class TestLaTeXEngine:
     """Tests for LaTeX engine enum."""
 
@@ -21,6 +24,7 @@ class TestLaTeXEngine:
         assert LaTeXEngine.PDFLATEX.value == "pdflatex"
 
 
+@pytest.mark.rendering
 class TestCompilationMode:
     """Tests for compilation mode enum."""
 
@@ -31,6 +35,7 @@ class TestCompilationMode:
         assert CompilationMode.FINAL.value == "final"
 
 
+@pytest.mark.rendering
 class TestCompilationConfig:
     """Tests for compilation configuration."""
 
@@ -218,6 +223,7 @@ class TestCompilationConfig:
         assert len(errors) == 0
 
 
+@pytest.mark.rendering
 class TestCompilationResult:
     """Tests for compilation result."""
 

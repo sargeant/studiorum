@@ -49,6 +49,7 @@ class MockCoreHandler:
         pass  # No-op for testing
 
 
+@pytest.mark.rendering
 class TestUnifiedTagRenderer:
     """Tests for the base unified tag renderer."""
 
@@ -163,6 +164,7 @@ class TestUnifiedTagRenderer:
         assert enhanced_context.metadata["existing"] == "value"
 
 
+@pytest.mark.rendering
 class TestStandardUnifiedRenderer:
     """Tests for the standard unified renderer implementations."""
 
@@ -223,6 +225,7 @@ class TestStandardUnifiedRenderer:
         assert renderer.config.enable_latex_formatting is False
 
 
+@pytest.mark.rendering
 class TestAdaptiveRenderer:
     """Tests for the adaptive multi-format renderer."""
 
@@ -308,6 +311,7 @@ class TestAdaptiveRenderer:
         mock_latex_renderer.render_tag.assert_called_once_with(mock_node, context)
 
 
+@pytest.mark.rendering
 class TestEnhancementPipelineBuilder:
     """Tests for the enhancement pipeline builder."""
 
@@ -402,6 +406,7 @@ class TestEnhancementPipelineBuilder:
         assert composite.get_enhancement_priority() == 100  # Lowest priority
 
 
+@pytest.mark.rendering
 class TestConvenienceFunctions:
     """Tests for convenience renderer creation functions."""
 

@@ -3,6 +3,8 @@
 from typing import Any
 from unittest.mock import patch
 
+import pytest
+
 from dnd5e.core.models.content import BaseContent, Source  # type: ignore
 from dnd5e.core.models.document_metadata import (  # type: ignore
     DocumentType,
@@ -48,6 +50,7 @@ class MockContent(BaseContent):
         self._content_type = content_type
 
 
+@pytest.mark.rendering
 class TestContentOrganizer:
     """Tests for ContentOrganizer class."""
 
@@ -457,6 +460,7 @@ class TestContentOrganizer:
         assert toc_data[2]["level"] == 1
 
 
+@pytest.mark.rendering
 class TestContentOrganizerIntegration:
     """Integration tests for content organizer."""
 

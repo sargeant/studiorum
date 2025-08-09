@@ -20,6 +20,7 @@ from tests.test_helpers import reset_test_environment
 pytestmark = pytest.mark.asyncio
 
 
+@pytest.mark.rendering
 class TestLaTeXCompiler:
     """Tests for LaTeX compiler."""
 
@@ -382,6 +383,7 @@ Hello World
         assert ErrorCategory.TIMEOUT_ERROR in error_categories
 
 
+@pytest.mark.rendering
 class TestLaTeXCompilerIntegration:
     """Integration tests for LaTeX compiler."""
 

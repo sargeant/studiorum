@@ -2,6 +2,8 @@
 
 from typing import Any
 
+import pytest
+
 from dnd5e.core.models.content import ContentType  # type: ignore
 from dnd5e.renderers.latex.layout.base import (  # type: ignore
     LayoutContext,
@@ -12,6 +14,7 @@ from dnd5e.renderers.latex.layout.multi_column import MultiColumnManager  # type
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestMultiColumnManager:
     """Test cases for multi-column layout manager."""
 

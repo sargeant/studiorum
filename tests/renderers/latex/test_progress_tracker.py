@@ -22,6 +22,7 @@ except ImportError:
     RICH_AVAILABLE = False
 
 
+@pytest.mark.rendering
 class TestCompilationProgress:
     """Tests for compilation progress tracking."""
 
@@ -81,6 +82,7 @@ class TestCompilationProgress:
         assert progress2.overall_progress == 1.0
 
 
+@pytest.mark.rendering
 class TestNoProgressReporter:
     """Tests for no-op progress reporter."""
 
@@ -100,6 +102,7 @@ class TestNoProgressReporter:
         assert True
 
 
+@pytest.mark.rendering
 class TestSimpleProgressReporter:
     """Tests for simple progress reporter."""
 
@@ -161,6 +164,7 @@ class TestSimpleProgressReporter:
 
 
 @pytest.mark.skipif(not RICH_AVAILABLE, reason="Rich library not available")
+@pytest.mark.rendering
 class TestRichProgressReporter:
     """Tests for rich progress reporter."""
 
@@ -277,6 +281,7 @@ class TestRichProgressReporter:
                 RichProgressReporter()
 
 
+@pytest.mark.rendering
 class TestProgressTracker:
     """Tests for progress tracker."""
 

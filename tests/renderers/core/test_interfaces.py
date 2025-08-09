@@ -14,6 +14,7 @@ from dnd5e.renderers.core.interfaces import (
 )
 
 
+@pytest.mark.rendering
 class TestContentReferenceInfo:
     """Test ContentReferenceInfo model."""
 
@@ -62,6 +63,7 @@ class TestContentReferenceInfo:
         assert info.display_text == "Some text"
 
 
+@pytest.mark.rendering
 class TestTagValidationError:
     """Test TagValidationError model."""
 
@@ -96,6 +98,7 @@ class TestTagValidationError:
         assert error.source is None
 
 
+@pytest.mark.rendering
 class TestRenderingContext:
     """Test RenderingContext model."""
 
@@ -129,6 +132,7 @@ class TestRenderingContext:
         assert context.metadata == {"custom": "value"}
 
 
+@pytest.mark.rendering
 class TestEnhancementPipeline:
     """Test EnhancementPipeline functionality."""
 
@@ -220,6 +224,7 @@ class TestEnhancementPipeline:
         assert result == "success"
 
 
+@pytest.mark.rendering
 class TestUnifiedTagRenderer:
     """Test UnifiedTagRenderer integration."""
 

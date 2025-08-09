@@ -2,10 +2,13 @@
 
 from unittest.mock import Mock
 
+import pytest
+
 from dnd5e.renderers.latex.reference_resolver import ReferenceContext, ReferenceResolver
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestReferenceContext:
     """Test reference context dataclass."""
 
@@ -39,6 +42,7 @@ class TestReferenceContext:
         assert context.hyperlinks_enabled is False
 
 
+@pytest.mark.rendering
 class TestReferenceResolver:
     """Test reference resolver functionality."""
 
@@ -597,6 +601,7 @@ class TestReferenceResolver:
         assert result["cross_references"] == {}
 
 
+@pytest.mark.rendering
 class TestReferenceResolverEdgeCases:
     """Test edge cases and error conditions."""
 

@@ -113,3 +113,5 @@ private/
 private
 5etools-src
 docs/_build/
+# Performance monitoring files
+.test-performance-*.json

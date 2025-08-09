@@ -24,6 +24,7 @@ from dnd5e.renderers.core.interfaces import (
 )
 
 
+@pytest.mark.rendering
 class TestLaTeXFormatEnhancer:
     """Tests for LaTeX format enhancement."""
 
@@ -237,6 +238,7 @@ class TestLaTeXFormatEnhancer:
         assert result == "Ancient Red Dragon"
 
 
+@pytest.mark.rendering
 class TestHyperlinkEnhancer:
     """Tests for hyperlink enhancement."""
 
@@ -415,6 +417,7 @@ class TestHyperlinkEnhancer:
         assert result == "Ancient Red Dragon"
 
 
+@pytest.mark.rendering
 class TestContentTrackerEnhancer:
     """Tests for content tracking enhancement."""
 
@@ -535,6 +538,7 @@ class TestContentTrackerEnhancer:
         assert result == "Ancient Red Dragon"
 
 
+@pytest.mark.rendering
 class TestValidationEnhancer:
     """Tests for validation enhancement."""
 
@@ -630,6 +634,7 @@ class TestValidationEnhancer:
         assert result == "Ancient Red Dragon"
 
 
+@pytest.mark.rendering
 class TestCompositeEnhancer:
     """Tests for composite enhancer functionality."""
 
@@ -713,6 +718,7 @@ class TestCompositeEnhancer:
         assert result == "Success"
 
 
+@pytest.mark.rendering
 class TestPipelineFactories:
     """Tests for enhancement pipeline factory functions."""
 

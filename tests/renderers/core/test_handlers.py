@@ -26,6 +26,7 @@ from dnd5e.renderers.core.interfaces import (
 )
 
 
+@pytest.mark.rendering
 class TestBaseCoreTagHandler:
     """Test the base core tag handler functionality."""
 
@@ -197,6 +198,7 @@ class TestBaseCoreTagHandler:
         handler.track_content_for_appendix(mock_node, context)
 
 
+@pytest.mark.rendering
 class TestCreatureTagHandler:
     """Test the creature tag handler."""
 
@@ -232,6 +234,7 @@ class TestCreatureTagHandler:
         assert info.format_style == FormatStyle.BOLD  # Creatures are bold
 
 
+@pytest.mark.rendering
 class TestSpellTagHandler:
     """Test the spell tag handler."""
 
@@ -265,6 +268,7 @@ class TestSpellTagHandler:
         assert info.format_style == FormatStyle.ITALIC  # Spells are italic
 
 
+@pytest.mark.rendering
 class TestItemTagHandler:
     """Test the item tag handler."""
 
@@ -295,6 +299,7 @@ class TestItemTagHandler:
         assert info.format_style == FormatStyle.ITALIC  # Items are italic
 
 
+@pytest.mark.rendering
 class TestAdventureTagHandler:
     """Test the adventure tag handler with special page handling."""
 
@@ -346,6 +351,7 @@ class TestAdventureTagHandler:
         assert info.page == "1"
 
 
+@pytest.mark.rendering
 class TestBookTagHandler:
     """Test the book tag handler with different page handling."""
 
@@ -396,6 +402,7 @@ class TestBookTagHandler:
         assert info.page == "1"
 
 
+@pytest.mark.rendering
 class TestConditionTagHandler:
     """Test the condition tag handler."""
 
@@ -445,6 +452,7 @@ class TestConditionTagHandler:
         assert info.display_text == "poisoned"
 
 
+@pytest.mark.rendering
 class TestDefaultCoreHandlers:
     """Test the default handler registry."""
 

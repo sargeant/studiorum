@@ -14,6 +14,7 @@ from dnd5e.renderers.latex.images.image_placer import (
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestPlacementConfig:
     """Test the placement configuration."""
 
@@ -42,6 +43,7 @@ class TestPlacementConfig:
         assert config.wrap_lines == 15
 
 
+@pytest.mark.rendering
 class TestPlacementResult:
     """Test the placement result model."""
 
@@ -73,6 +75,7 @@ class TestPlacementResult:
         assert result.caption == "Test Caption"
 
 
+@pytest.mark.rendering
 class TestImagePlacer:
     """Test the main image placement functionality."""
 

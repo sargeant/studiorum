@@ -2,11 +2,14 @@
 
 from unittest.mock import Mock
 
+import pytest
+
 from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestRecursiveEntryProcessor:
     """Test recursive entry processor functionality."""
 

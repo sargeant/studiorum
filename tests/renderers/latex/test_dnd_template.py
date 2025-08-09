@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 
+import pytest
+
 from dnd5e.renderers.latex.dnd_template import (  # type: ignore
     DNDTemplateManager,
     check_dnd_template_status,
@@ -13,6 +15,7 @@ from dnd5e.renderers.latex.dnd_template import (  # type: ignore
 )
 
 
+@pytest.mark.rendering
 class TestDNDTemplateManager:
     """Tests for DNDTemplateManager class."""
 
@@ -237,6 +240,7 @@ class TestDNDTemplateManager:
         manager.print_status_report()
 
 
+@pytest.mark.rendering
 class TestUtilityFunctions:
     """Tests for utility functions."""
 
@@ -327,6 +331,7 @@ class TestUtilityFunctions:
         assert "justified" not in unknown_options  # justified_text is False by default
 
 
+@pytest.mark.rendering
 class TestIntegration:
     """Integration tests for DND template system."""
 

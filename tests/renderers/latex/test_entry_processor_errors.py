@@ -12,6 +12,7 @@ from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestRecursiveEntryProcessorEnhanced:
     """Test enhanced RecursiveEntryProcessor with validation and error handling."""
 

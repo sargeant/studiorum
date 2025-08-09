@@ -15,6 +15,7 @@ from dnd5e.renderers.latex.layout.integration import (
 )
 
 
+@pytest.mark.rendering
 class TestLayoutIntegrationMixin:
     """Test cases for LayoutIntegrationMixin."""
 
@@ -271,6 +272,7 @@ class TestLayoutIntegrationMixin:
         assert engine is renderer._layout_engine
 
 
+@pytest.mark.rendering
 class TestLayoutAwareContentRenderer:
     """Test cases for LayoutAwareContentRenderer."""
 
@@ -348,6 +350,7 @@ class TestLayoutAwareContentRenderer:
             renderer.render_content("content", None)
 
 
+@pytest.mark.rendering
 class TestLayoutConfigurationHelper:
     """Test cases for LayoutConfigurationHelper."""
 

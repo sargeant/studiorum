@@ -10,6 +10,7 @@ from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine  # type: i
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestLaTeXTemplateEngine:
     """Test cases for LaTeX template engine."""
 
@@ -270,6 +271,7 @@ class TestLaTeXTemplateEngine:
         assert engine.env.comment_end_string == "--#>"
 
 
+@pytest.mark.rendering
 class TestTemplateRendering:
     """Test cases for template rendering with real templates."""
 

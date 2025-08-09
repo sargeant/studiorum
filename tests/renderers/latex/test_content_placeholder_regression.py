@@ -19,6 +19,7 @@ from dnd5e.renderers.latex.document_structure import (
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestContentPlaceholderRegression:
     """Test that content placeholder replacement doesn't cause duplication."""
 

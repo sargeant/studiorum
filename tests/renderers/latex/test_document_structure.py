@@ -29,6 +29,7 @@ class MockContent(BaseContent):
         self._content_type = content_type
 
 
+@pytest.mark.rendering
 class TestDocumentMetadata:
     """Tests for DocumentMetadata model."""
 
@@ -109,6 +110,7 @@ class TestDocumentMetadata:
         assert part_metadata.get_max_section_level() == SectionLevel.PART
 
 
+@pytest.mark.rendering
 class TestContentSection:
     """Tests for ContentSection model."""
 
@@ -195,6 +197,7 @@ class TestContentSection:
         assert item3 in all_items
 
 
+@pytest.mark.rendering
 class TestDocumentStructureBuilder:
     """Tests for DocumentStructureBuilder class."""
 
@@ -428,6 +431,7 @@ class TestDocumentStructureBuilder:
             assert document_context["total_content_items"] == 2
 
 
+@pytest.mark.rendering
 class TestDocumentStructureIntegration:
     """Integration tests for document structure system."""
 

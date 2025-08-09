@@ -26,6 +26,7 @@ class MockContent(BaseContent):
         super().__init__(name=name, source=Source(abbreviation=source_abbr))
 
 
+@pytest.mark.rendering
 class TestLaTeXDocumentRendererIntegration:
     """Integration tests for LaTeX document renderer with compiler."""
 

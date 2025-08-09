@@ -21,6 +21,7 @@ def compile_document_to_pdf_sync(renderer, books, context):
     return asyncio.run(renderer.compile_document_to_pdf(books, context=context))
 
 
+@pytest.mark.rendering
 class TestBookRenderingIntegration:
     """Integration tests for book rendering through the EntryRenderer system."""
 
@@ -473,6 +474,7 @@ class TestBookRenderingIntegration:
         assert object_growth < 1000  # Reasonable threshold for memory usage
 
 
+@pytest.mark.rendering
 class TestBookRenderingEntryProcessing:
     """Tests for book entry processing through EntryRenderer system."""
 

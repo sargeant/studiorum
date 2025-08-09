@@ -24,6 +24,7 @@ from dnd5e.renderers.core.unified_renderer import StandardUnifiedRenderer
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestRealDataIntegration:
     """Integration tests with real 5etools data."""
 
@@ -344,6 +345,7 @@ class TestRealDataIntegration:
             pytest.skip(f"Omnidexer integration failed: {e}")
 
 
+@pytest.mark.rendering
 class TestRealDataPerformance:
     """Performance-focused integration tests with real data."""
 

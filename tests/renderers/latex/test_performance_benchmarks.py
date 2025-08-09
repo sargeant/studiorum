@@ -23,6 +23,7 @@ def compile_document_to_pdf_sync(renderer, documents, context):
     return asyncio.run(renderer.compile_document_to_pdf(documents, context=context))
 
 
+@pytest.mark.rendering
 class TestRenderingPerformance:
     """Performance benchmarks for the EntryRenderer system."""
 

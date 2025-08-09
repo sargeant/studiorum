@@ -314,6 +314,12 @@ class TestProfilerPlugin:
         if not reporter:
             return
 
+        # Check if we have any metrics to avoid division by zero
+        if not self.metrics:
+            reporter.write_sep("=", "Performance Summary")
+            reporter.write_line("No tests were profiled.")
+            return
+
         reporter.write_sep("=", "Performance Summary")
 
         # Overall statistics

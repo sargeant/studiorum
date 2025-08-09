@@ -15,6 +15,7 @@ from dnd5e.renderers.latex.images.image_processor import (
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestImageProcessingConfig:
     """Test the image processing configuration."""
 
@@ -53,6 +54,7 @@ class TestImageProcessingConfig:
             ImageProcessingConfig(png_compression=15)  # Should be 0-9
 
 
+@pytest.mark.rendering
 class TestProcessedImage:
     """Test the processed image result model."""
 
@@ -87,6 +89,7 @@ class TestProcessedImage:
         assert result.caption == "Test Image"
 
 
+@pytest.mark.rendering
 class TestImageProcessor:
     """Test the main image processor functionality."""
 
@@ -236,6 +239,7 @@ class TestImageProcessor:
 
 
 @pytest.mark.integration
+@pytest.mark.rendering
 class TestImageProcessorIntegration:
     """Integration tests for image processor with real components."""
 

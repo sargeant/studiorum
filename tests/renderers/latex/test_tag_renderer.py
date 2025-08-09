@@ -20,6 +20,7 @@ from dnd5e.renderers.latex.tag_renderer import (
 )
 
 
+@pytest.mark.rendering
 class TestLaTeXTagRenderer:
     """Tests for LaTeX tag rendering without semantic resolution concerns."""
 
@@ -278,6 +279,7 @@ class TestLaTeXTagRenderer:
         assert result == expected
 
 
+@pytest.mark.rendering
 class TestContentTypeStyleConfig:
     """Tests for content type styling configuration."""
 
@@ -306,6 +308,7 @@ class TestContentTypeStyleConfig:
             config.set_style(ContentType.SPELL, "invalid")
 
 
+@pytest.mark.rendering
 class TestConfigurableLaTeXTagRenderer:
     """Tests for configurable LaTeX tag renderer."""
 

@@ -12,6 +12,7 @@ from dnd5e.renderers.latex.images.format_converter import (
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestConversionResult:
     """Test the conversion result model."""
 
@@ -38,6 +39,7 @@ class TestConversionResult:
     not pytest.importorskip("PIL", None),
     reason="Pillow not available for image processing tests",
 )
+@pytest.mark.rendering
 class TestFormatConverter:
     """Test the format converter functionality."""
 
@@ -207,6 +209,7 @@ class TestFormatConverter:
     pytest.importorskip("PIL", None) is None,
     reason="Pillow not available for image processing tests",
 )
+@pytest.mark.rendering
 class TestFormatConverterSync:
     """Test synchronous conversion methods."""
 
@@ -284,6 +287,7 @@ class TestFormatConverterSync:
         mock_img.save.assert_called_once_with(output_path, "PNG", optimize=True)
 
 
+@pytest.mark.rendering
 class TestFormatConverterWithoutPIL:
     """Test format converter behavior when PIL is not available."""
 

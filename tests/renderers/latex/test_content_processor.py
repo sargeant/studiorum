@@ -20,6 +20,7 @@ from dnd5e.renderers.latex.content_processor import (  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestSpellProcessor:
     """Test cases for spell content processor."""
 
@@ -205,6 +206,7 @@ class TestSpellProcessor:
         assert "Wizard" in result
 
 
+@pytest.mark.rendering
 class TestCreatureProcessor:
     """Test cases for creature content processor."""
 
@@ -411,6 +413,7 @@ class TestCreatureProcessor:
         assert "legendary" in result
 
 
+@pytest.mark.rendering
 class TestItemProcessor:
     """Test cases for item content processor."""
 
@@ -575,6 +578,7 @@ class TestItemProcessor:
         assert self.processor._get_value_tier(item) == "Expensive"
 
 
+@pytest.mark.rendering
 class TestContentProcessorRegistry:
     """Test cases for content processor registry."""
 
