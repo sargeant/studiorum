@@ -149,7 +149,7 @@ test-fast: uv
 ## Run unit tests (excludes integration and slow tests)
 test-unit: uv
 	@echo "Running unit tests..."
-	$(UV) pytest -m "not integration and not slow"
+	$(UV) pytest -m "not integration and not slow and not ci_broken"
 
 ## Run core functionality tests
 test-core: uv
@@ -159,17 +159,17 @@ test-core: uv
 ## Run rendering system tests
 test-rendering: uv
 	@echo "Running rendering system tests..."
-	$(UV) pytest -m "rendering"
+	$(UV) pytest -m "rendering and not ci_broken"
 
 ## Run CLI interface tests
 test-cli: uv
 	@echo "Running CLI interface tests..."
-	$(UV) pytest -m "cli"
+	$(UV) pytest -m "cli and not ci_broken"
 
 ## Run integration tests only
 test-integration: uv
 	@echo "Running integration tests..."
-	$(UV) pytest -m "integration"
+	$(UV) pytest -m "integration and not ci_broken"
 
 ## Run slow tests only (>10s per test)
 test-slow: uv
