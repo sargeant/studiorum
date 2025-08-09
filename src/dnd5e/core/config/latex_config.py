@@ -58,6 +58,16 @@ class LaTeXDocumentConfig(BaseModel):
 
     include_index: bool = Field(default=False, description="Include index")
 
+    # Font options
+    fonts: str | None = Field(
+        default=None, description="Font package to use (wotc, dmsguild)"
+    )
+
+    # Outline options
+    no_outline: bool = Field(
+        default=False, description="Disable document outline generation"
+    )
+
     # Custom options
     custom_class_options: list[str] = Field(
         default_factory=list, description="Additional custom class options"
@@ -110,6 +120,17 @@ class LaTeXDocumentConfig(BaseModel):
             raise ValueError(f"Background must be one of: {valid_backgrounds}")
         return v
 
+    @field_validator("fonts")
+    @classmethod
+    def validate_fonts(cls, v: str | None) -> str | None:
+        """Validate fonts option."""
+        if v is None:
+            return v
+        valid_fonts = ["wotc", "dmsguild"]
+        if v not in valid_fonts:
+            raise ValueError(f"Fonts must be one of: {valid_fonts}")
+        return v
+
     def get_class_options_list(self) -> list[str]:
         """Get complete list of class options for document class.
 
@@ -155,6 +176,14 @@ class LaTeXDocumentConfig(BaseModel):
             options.append("twocolumn")
         else:
             options.append("onecolumn")
+
+        # Add fonts option
+        if self.fonts:
+            options.append(f"fonts={self.fonts}")
+
+        # Add no outline option
+        if self.no_outline:
+            options.append("nooutline")
 
         # Add custom options
         options.extend(self.custom_class_options)

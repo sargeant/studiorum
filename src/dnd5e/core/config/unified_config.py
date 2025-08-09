@@ -162,6 +162,12 @@ class LaTeXDocumentConfig(BaseModel):
     two_column: bool = Field(default=True, description="Use two-column layout")
     show_toc: bool = Field(default=True, description="Include table of contents")
     show_index: bool = Field(default=True, description="Include alphabetical index")
+    fonts: Literal["wotc", "dmsguild"] | None = Field(
+        default=None, description="Font package to use (wotc, dmsguild)"
+    )
+    no_outline: bool = Field(
+        default=False, description="Disable document outline generation"
+    )
 
 
 class LaTeXRenderingConfig(BaseModel):
@@ -336,6 +342,8 @@ def create_legacy_latex_config_from_unified(config: ApplicationConfig) -> Any:
         two_column=config.rendering.latex.document.two_column,
         include_toc=config.rendering.latex.document.show_toc,
         include_index=config.rendering.latex.document.show_index,
+        fonts=config.rendering.latex.document.fonts,
+        no_outline=config.rendering.latex.document.no_outline,
     )
 
     return LaTeXConfig(document=doc_config)

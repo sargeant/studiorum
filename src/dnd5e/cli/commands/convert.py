@@ -14,7 +14,10 @@ from dnd5e.cli.config_factory import (
     get_concurrent_limit_default,
     get_document_class_default,
     get_font_size_default,
+    get_fonts_default,
     get_justified_default,
+    get_no_outline_default,
+    get_paper_size_default,
     get_two_column_default,
     get_with_creatures_default,
     get_with_images_default,
@@ -244,6 +247,12 @@ def convert_adventure(
     paper_size: str | None = typer.Option(
         None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
     ),
+    fonts: str | None = typer.Option(
+        get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)"
+    ),
+    no_outline: bool = typer.Option(
+        get_no_outline_default(), "--no-outline", help="Disable document outline"
+    ),
     font_size: str = typer.Option(
         get_font_size_default(), "--font-size", help="Base font size (10pt, 11pt, 12pt)"
     ),
@@ -311,6 +320,8 @@ def convert_adventure(
             actual_paper_size = (
                 paper_size or app_config.rendering.latex.document.paper_size
             )
+            actual_fonts = fonts or app_config.rendering.latex.document.fonts
+            actual_no_outline = no_outline  # Boolean option uses direct value
 
             # Import legacy config classes for backward compatibility
             from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
@@ -322,6 +333,8 @@ def convert_adventure(
                 background=background,
                 two_column=two_column,
                 justified_text=justified,
+                fonts=actual_fonts,
+                no_outline=actual_no_outline,
             )
             latex_config = LaTeXConfig(document=latex_doc_config)
 
@@ -429,6 +442,12 @@ def convert_book(
     paper_size: str | None = typer.Option(
         None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
     ),
+    fonts: str | None = typer.Option(
+        get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)"
+    ),
+    no_outline: bool = typer.Option(
+        get_no_outline_default(), "--no-outline", help="Disable document outline"
+    ),
     font_size: str = typer.Option(
         get_font_size_default(), "--font-size", help="Base font size (10pt, 11pt, 12pt)"
     ),
@@ -496,6 +515,8 @@ def convert_book(
             actual_paper_size = (
                 paper_size or app_config.rendering.latex.document.paper_size
             )
+            actual_fonts = fonts or app_config.rendering.latex.document.fonts
+            actual_no_outline = no_outline  # Boolean option uses direct value
 
             # Import legacy config classes for backward compatibility
             from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
@@ -507,6 +528,8 @@ def convert_book(
                 background=background,
                 two_column=two_column,
                 justified_text=justified,
+                fonts=actual_fonts,
+                no_outline=actual_no_outline,
             )
             latex_config = LaTeXConfig(document=latex_doc_config)
 
@@ -607,6 +630,12 @@ def convert_supplement(
     ),
     paper_size: str | None = typer.Option(
         None, "--paper-size", help="Paper size (letterpaper, a4paper, a5paper)"
+    ),
+    fonts: str | None = typer.Option(
+        get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)"
+    ),
+    no_outline: bool = typer.Option(
+        get_no_outline_default(), "--no-outline", help="Disable document outline"
     ),
     font_size: str = typer.Option(
         get_font_size_default(), "--font-size", help="Base font size (10pt, 11pt, 12pt)"
@@ -716,6 +745,8 @@ def convert_supplement(
             actual_paper_size = (
                 paper_size or app_config.rendering.latex.document.paper_size
             )
+            actual_fonts = fonts or app_config.rendering.latex.document.fonts
+            actual_no_outline = no_outline  # Boolean option uses direct value
 
             # Import legacy config classes for backward compatibility
             from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
@@ -727,6 +758,8 @@ def convert_supplement(
                 background=background,
                 two_column=two_column,
                 justified_text=justified,
+                fonts=actual_fonts,
+                no_outline=actual_no_outline,
             )
             latex_config = LaTeXConfig(document=latex_doc_config)
 

@@ -20,6 +20,9 @@ def get_cli_defaults() -> dict[str, Any]:
         "with_items": config.rendering.content.include_items,
         "with_creatures": config.rendering.content.include_creatures,
         "with_index": config.rendering.latex.document.show_index,
+        # Font and outline options
+        "fonts": config.rendering.latex.document.fonts,
+        "no_outline": config.rendering.latex.document.no_outline,
         # Compilation
         "compile_pdf": config.rendering.compilation.auto_compile_pdf,
         # Processing
@@ -87,3 +90,18 @@ def get_compile_pdf_default() -> bool:
 def get_concurrent_limit_default() -> int:
     """Get default concurrent limit from config."""
     return get_app_config().processing.max_workers
+
+
+def get_fonts_default() -> str | None:
+    """Get default fonts setting from config."""
+    return get_app_config().rendering.latex.document.fonts
+
+
+def get_no_outline_default() -> bool:
+    """Get default no outline setting from config."""
+    return get_app_config().rendering.latex.document.no_outline
+
+
+def get_paper_size_default() -> str:
+    """Get default paper size from config."""
+    return get_app_config().rendering.latex.document.paper_size
