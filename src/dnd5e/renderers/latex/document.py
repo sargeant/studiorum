@@ -133,8 +133,9 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         )
 
         # Update template engine with LaTeX config from context if available
-        if hasattr(context, "latex_config") and context.latex_config:
-            self.template_engine.update_latex_config(context.latex_config)
+        latex_config = context.metadata.get("latex_config")
+        if latex_config:
+            self.template_engine.update_latex_config(latex_config)
 
         # Create template context
         template_context = self.template_engine.create_dnd_template_context(
@@ -239,13 +240,26 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             LaTeX document header
         """
+        # Extract LaTeX config from context
+        latex_config = context.metadata.get("latex_config")
+        if latex_config and hasattr(latex_config, "document"):
+            # Use LaTeX config for document class and options
+            document_class = latex_config.document.document_class
+            class_options = latex_config.document.get_class_options_list()
+        else:
+            # Fallback to hardcoded defaults
+            document_class = "dndbook"
+            page_size = context.metadata.get("page_size", "letterpaper")
+            font_size = context.metadata.get("font_size", "11pt")
+            class_options = [page_size, font_size, "twocolumn"]
+
         template_vars = {
             "title": context.metadata.get("title", "D&D 5e Content"),
             "subtitle": context.metadata.get("subtitle", ""),
             "author": context.metadata.get("author", ""),
             "date": context.metadata.get("date", r"\today"),
-            "page_size": context.metadata.get("page_size", "a4paper"),
-            "font_size": context.metadata.get("font_size", "10pt"),
+            "document_class": document_class,
+            "class_options": class_options,
             "include_images": context.metadata.get("include_images", True),
             "fonts_dir": str(context.metadata.get("fonts_dir"))
             if context.metadata.get("fonts_dir")
