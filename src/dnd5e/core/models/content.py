@@ -8,47 +8,32 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ContentType(str, Enum):
-    """Enumeration of supported D&D content types."""
+    """Enumeration of supported D&D content types.
 
-    ADVENTURE = "adventure"
-    BOOK = "book"
-    SPELL = "spell"
-    CREATURE = "creature"
-    ITEM = "item"
-    CLASS = "class"
-    CLASS_FEATURE = "classFeature"
-    SUBCLASS_FEATURE = "subclassFeature"
-    BACKGROUND = "background"
-    FEAT = "feat"
-    RACE = "race"
-    VEHICLE = "vehicle"
+    Core content types are now registered via @content_type decorators
+    on their respective model classes. This enum contains only:
+
+    1. Structural/nested content types that don't map to top-level models
+    2. Special-purpose types used by the rendering system
+
+    All other content types are dynamically added at runtime from
+    decorator registrations via the RegistryManager.
+    """
+
+    # General purpose type for custom supplements
     SUPPLEMENT = "supplement"
-    SPELL_FLUFF = "spellFluff"
-    CREATURE_FLUFF = "creatureFluff"
-    ITEM_FLUFF = "itemFluff"
 
-    # Adventure nested content types
+    # Adventure nested content types (structural, not top-level models)
     ADVENTURE_SECTION = "adventureSection"
     ADVENTURE_TABLE = "adventureTable"
     ADVENTURE_NPC = "adventureNpc"
     ADVENTURE_LOCATION = "adventureLocation"
     ADVENTURE_INSET = "adventureInset"
 
-    # Book nested content types
+    # Book nested content types (structural, not top-level models)
     BOOK_SECTION = "bookSection"
-    VARIANT_RULE = "variantRule"
     BOOK_TABLE = "bookTable"
     BOOK_INSET = "bookInset"
-
-    # Rule glossary types
-    ACTION = "action"
-    CONDITION = "condition"
-    SENSE = "sense"
-    HAZARD = "hazard"
-    STATUS = "status"
-
-    # Reward types
-    REWARD = "reward"
 
     @classmethod
     def from_content(cls, content: BaseContent) -> ContentType:

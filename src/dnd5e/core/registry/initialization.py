@@ -22,6 +22,7 @@ def initialize_content_types() -> None:
         classes,
         creatures,
         cult,
+        decks,
         deities,
         feats,
         fluff,
