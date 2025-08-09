@@ -3,7 +3,7 @@
 # Import the new tag system components
 from typing import Any
 
-from dnd5e.core.indexer.content_tracker import (  # type: ignore
+from dnd5e.core.references.content_tracker import (  # type: ignore
     ContentTracker,
     TrackedContent,
 )

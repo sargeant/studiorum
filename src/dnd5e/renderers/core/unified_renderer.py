@@ -25,8 +25,8 @@ from .interfaces import (
 )
 
 if TYPE_CHECKING:
-    from dnd5e.core.indexer.content_tracker import ContentTracker
-    from dnd5e.core.indexer.hyperlink_manager import HyperlinkManager
+    from dnd5e.core.references.content_tracker import ContentTracker
+    from dnd5e.core.references.hyperlink_manager import HyperlinkManager
     from dnd5e.core.text.tag_ast import TagNode
 
 logger = get_logger(__name__)

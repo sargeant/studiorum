@@ -883,7 +883,7 @@ Returns True if suggestions are available for failed matches.
 
 ### Tag Processing Models
 
-**Location**: `src/dnd5e/core/indexer/tag_types.py`
+**Location**: `src/dnd5e/core/references/tag_types.py`
 
 Models for tag resolution and processing with immutable structures.
 
@@ -938,7 +938,7 @@ class SpecialTag(BaseModel):
 
 #### TextSpan
 
-**Location**: `src/dnd5e/core/indexer/tag_ast.py`
+**Location**: `src/dnd5e/core/references/tag_ast.py`
 
 ```python
 class TextSpan(BaseModel):

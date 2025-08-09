@@ -16,8 +16,8 @@ if TYPE_CHECKING:
     from dnd5e.core.text.tag_ast import TagNode
 
 # Import these directly to avoid forward reference issues
-from dnd5e.core.indexer.content_tracker import ContentTracker
 from dnd5e.core.models.content import ContentType
+from dnd5e.core.references.content_tracker import ContentTracker
 
 
 class FormatStyle(str, Enum):

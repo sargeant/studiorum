@@ -9,7 +9,7 @@ The tag system uses a unified architecture with clear separation of concerns:
 - **Text Processing** (`src/dnd5e/core/text/`) - Parse 5etools tags into AST
 - **Core Handlers** (`src/dnd5e/renderers/core/`) - Extract structured information
 - **Enhancement Pipeline** - Apply format-specific presentation
-- **Content Indexing** (`src/dnd5e/core/indexer/`) - Cross-references and content tracking
+- **Content References** (`src/dnd5e/core/references/`) - Cross-references and content tracking
 
 For comprehensive architecture details, see the [Tag System Architecture Guide](../developer/system-guide/component-deep-dives/tag-system-architecture.md).
 
@@ -83,7 +83,7 @@ Business logic handlers for different tag types.
 ## Reference Index
 
 ```{eval-rst}
-.. automodule:: dnd5e.core.indexer.reference_index
+.. automodule:: dnd5e.core.references.reference_index
    :members:
    :undoc-members:
    :show-inheritance:
