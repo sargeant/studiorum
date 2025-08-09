@@ -20,7 +20,9 @@ class TestLaTeXTemplateEngine:
 
         assert engine.config == {}
         assert engine.debug is False
-        assert engine.templates_dir == Path("src/dnd5e/renderers/latex/templates")
+        # Path should now be absolute and point to the templates directory
+        assert engine.templates_dir.name == "templates"
+        assert str(engine.templates_dir).endswith("src/dnd5e/renderers/latex/templates")
         assert engine.env is not None
 
     def test_init_custom_config(self) -> None:

@@ -142,8 +142,8 @@ class LaTeXDocumentConfig(BaseModel):
         default_factory=lambda: ["justified", "twocolumn"],
         description="Document class options",
     )
-    paper_size: Literal["letterpaper", "a4paper", "a5paper"] = Field(
-        default="letterpaper", description="Paper size"
+    paper_size: Literal["letter", "a4", "a5"] = Field(
+        default="letter", description="Paper size"
     )
     font_size: Literal["10pt", "11pt", "12pt"] = Field(
         default="11pt", description="Base font size"
@@ -151,8 +151,8 @@ class LaTeXDocumentConfig(BaseModel):
     font_scheme: Literal["dmsguild", "commercial", "system"] = Field(
         default="dmsguild", description="Font scheme to use"
     )
-    background: str | None = Field(
-        default=None, description="Background style (print, none, etc.)"
+    background: Literal["full", "none", "print"] = Field(
+        default="full", description="Background style (full, none, print)"
     )
     high_contrast: bool = Field(
         default=False, description="Use high contrast mode for printing"

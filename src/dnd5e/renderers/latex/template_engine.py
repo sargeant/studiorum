@@ -45,9 +45,13 @@ class LaTeXTemplateEngine:
             config: Configuration options
         """
         self.config = config or {}
-        self.templates_dir = Path(
-            str(self.config.get("templates_dir", "src/dnd5e/renderers/latex/templates"))
-        )
+        # Get templates directory from config or use default relative to this module
+        templates_dir = self.config.get("templates_dir")
+        if templates_dir:
+            self.templates_dir = Path(str(templates_dir))
+        else:
+            # Use absolute path relative to this module's location
+            self.templates_dir = Path(__file__).parent / "templates"
         self.debug = self.config.get("debug", False)
 
         # Initialize LaTeX configuration

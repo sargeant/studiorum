@@ -951,12 +951,13 @@ class TestLaTeXDocumentOptions:
                     file_path,
                     "--document-class",
                     "dndarticle",
-                    "--paper-size",
-                    "a4paper",
+                    "--paper",
+                    "a4",
                     "--font-size",
                     "12pt",
                     "--background",
                     "print",
+                    "--high-contrast",
                     "--one-column",
                     "--not-justified",
                 ],
@@ -975,9 +976,10 @@ class TestLaTeXDocumentOptions:
             latex_config = context.metadata.get("latex_config")
             assert latex_config is not None
             assert latex_config.document.document_class == "dndarticle"
-            assert latex_config.document.paper_size == "a4paper"
+            assert latex_config.document.paper_size == "a4"
             assert latex_config.document.font_size == "12pt"
             assert latex_config.document.background == "print"
+            assert latex_config.document.high_contrast is True
             assert latex_config.document.two_column is False
             assert latex_config.document.justified_text is False
 
@@ -1055,11 +1057,9 @@ class TestLaTeXDocumentOptions:
             latex_config = context.metadata.get("latex_config")
             assert latex_config is not None
             assert latex_config.document.document_class == "dndbook"
-            assert (
-                latex_config.document.paper_size == "letterpaper"
-            )  # default from settings
+            assert latex_config.document.paper_size == "letter"  # default from settings
             assert latex_config.document.font_size == "11pt"
-            assert latex_config.document.background is None  # default no background
+            assert latex_config.document.background == "full"  # new default background
             assert latex_config.document.two_column is True
             assert latex_config.document.justified_text is False
 
@@ -1106,9 +1106,11 @@ class TestLaTeXDocumentOptions:
 
         # Mock app config with custom paper size
         mock_config = Mock()
-        mock_config.rendering.latex.document.paper_size = "a5paper"
+        mock_config.rendering.latex.document.paper_size = "a5"
         mock_config.rendering.latex.document.fonts = None
         mock_config.rendering.latex.document.no_outline = False
+        mock_config.rendering.latex.document.background = "full"
+        mock_config.rendering.latex.document.high_contrast = False
         mock_get_app_config.return_value = mock_config
 
         # Mock file operations
@@ -1140,7 +1142,7 @@ class TestLaTeXDocumentOptions:
             file_path = f.name
 
         try:
-            # Test command without --paper-size flag
+            # Test command without --paper flag
             result = self.runner.invoke(app, ["supplement", file_path])
 
             # Verify success
@@ -1154,7 +1156,7 @@ class TestLaTeXDocumentOptions:
 
             latex_config = context.metadata.get("latex_config")
             assert latex_config is not None
-            assert latex_config.document.paper_size == "a5paper"
+            assert latex_config.document.paper_size == "a5"
 
         finally:
             Path(file_path).unlink()
