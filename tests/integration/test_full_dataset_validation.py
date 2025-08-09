@@ -97,6 +97,7 @@ class ValidationReport:
         return "\n".join(summary)
 
 
+@pytest.mark.integration
 class TestFullDatasetValidation:
     """Integration tests for full dataset validation."""
 

@@ -86,6 +86,7 @@ class TestSourceManager(SourceManager):
         return 100
 
 
+@pytest.mark.integration
 class TestAdventureResolution:
     """End-to-end integration tests for adventure resolution."""
 

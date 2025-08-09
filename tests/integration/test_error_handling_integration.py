@@ -41,6 +41,7 @@ class TestModel(BaseModel):
     optional_field: str | None = Field(default=None, description="Optional field")
 
 
+@pytest.mark.integration
 class TestErrorHandlingIntegration:
     """Integration tests for error handling components."""
 

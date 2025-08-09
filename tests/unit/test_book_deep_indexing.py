@@ -1,5 +1,7 @@
 """Tests for book deep indexing functionality."""
 
+import pytest
+
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.books import Book
 from dnd5e.core.models.chapter import Chapter

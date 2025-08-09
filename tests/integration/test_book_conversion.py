@@ -32,6 +32,7 @@ def resolve_book_sync(resolver, book_id):
     return resolver.resolve_book(book_id)
 
 
+@pytest.mark.integration
 class TestBookConversion:
     """Test book conversion functionality for regression."""
 

@@ -20,6 +20,7 @@ from dnd5e.core.resolvers.content_resolver import (
 )
 
 
+@pytest.mark.cli
 class TestHybridParameterDetection:
     """Test hybrid parameter detection functionality."""
 
@@ -215,6 +216,7 @@ class TestHybridParameterDetection:
             _handle_resolution_result(result, "xyz", ContentType.ADVENTURE)
 
 
+@pytest.mark.cli
 class TestFileVsAbbreviationDetection:
     """Test detection logic for file vs abbreviation inputs."""
 
@@ -253,6 +255,7 @@ class TestFileVsAbbreviationDetection:
             assert not file_path.is_file()
 
 
+@pytest.mark.cli
 class TestErrorHandling:
     """Test error handling in hybrid parameter detection."""
 

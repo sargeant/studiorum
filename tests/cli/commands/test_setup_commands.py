@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
 from typer.testing import CliRunner
 
 from dnd5e.cli.commands.setup import app
@@ -11,6 +12,7 @@ from dnd5e.core.config.sources import ContentConfiguration, ContentSource, Sourc
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.cli
 class TestSetupWizardCommand:
     """Test setup wizard command functionality."""
 
@@ -165,6 +167,7 @@ class TestSetupWizardCommand:
         self.mock_config_manager.reset_to_defaults.assert_called_once()
 
 
+@pytest.mark.cli
 class TestSetupHelperFunctions:
     """Test setup helper functions."""
 
@@ -399,6 +402,7 @@ class TestSetupHelperFunctions:
         )
 
 
+@pytest.mark.cli
 class TestScanContentFunction:
     """Test _scan_content function."""
 
@@ -478,6 +482,7 @@ class TestScanContentFunction:
         )
 
 
+@pytest.mark.cli
 class TestCheckSetupCommand:
     """Test check setup command."""
 
@@ -573,6 +578,7 @@ class TestCheckSetupCommand:
         assert "5e2pdf setup wizard" in result.stdout
 
 
+@pytest.mark.cli
 class TestResetSetupCommand:
     """Test reset setup command."""
 
@@ -612,6 +618,7 @@ class TestResetSetupCommand:
         self.mock_config_manager.reset_to_defaults.assert_not_called()
 
 
+@pytest.mark.cli
 class TestSetupEdgeCases:
     """Test edge cases and error conditions."""
 

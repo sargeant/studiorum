@@ -17,6 +17,7 @@ from dnd5e.core.text.tag_resolver import TagResolver
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.cli
 class TestConvertAdventureCommand:
     """Test adventure conversion command."""
 
@@ -278,6 +279,7 @@ class TestConvertAdventureCommand:
             Path(file_path).unlink()
 
 
+@pytest.mark.cli
 class TestConvertBookCommand:
     """Test book conversion command."""
 
@@ -427,6 +429,7 @@ class TestConvertBookCommand:
             Path(file_path).unlink()
 
 
+@pytest.mark.cli
 class TestConvertSupplementCommand:
     """Test supplement conversion command."""
 
@@ -563,6 +566,7 @@ class TestConvertSupplementCommand:
             Path(file_path).unlink()
 
 
+@pytest.mark.cli
 class TestPDFCompilation:
     """Test PDF compilation functionality."""
 
@@ -674,6 +678,7 @@ class TestPDFCompilation:
         mock_compiler.compile_document.assert_called_once()
 
 
+@pytest.mark.cli
 class TestErrorHandlingPaths:
     """Test error handling in various scenarios."""
 
@@ -772,6 +777,7 @@ class TestErrorHandlingPaths:
             Path(file_path).unlink()
 
 
+@pytest.mark.cli
 class TestSpecialCases:
     """Test special cases and edge conditions."""
 
@@ -860,6 +866,7 @@ class TestSpecialCases:
         assert result.exit_code == 0
 
 
+@pytest.mark.cli
 class TestLaTeXDocumentOptions:
     """Test LaTeX document class options in CLI commands."""
 

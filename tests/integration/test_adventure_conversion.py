@@ -32,6 +32,7 @@ def resolve_adventure_sync(resolver, adventure_id):
     return resolver.resolve_adventure(adventure_id)
 
 
+@pytest.mark.integration
 class TestAdventureConversion:
     """Test end-to-end adventure conversion functionality."""
 

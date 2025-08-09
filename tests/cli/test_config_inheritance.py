@@ -21,6 +21,7 @@ from dnd5e.core.config.unified_config import get_app_config, reset_app_config
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.cli
 class TestCliConfigInheritance:
     """Test CLI configuration inheritance from unified config."""
 

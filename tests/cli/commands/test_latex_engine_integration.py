@@ -13,6 +13,7 @@ from dnd5e.renderers.latex.compiler import LaTeXCompiler
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.cli
 class TestLaTeXEngineIntegration:
     """Test LaTeX engine configuration is properly used in CLI commands."""
 

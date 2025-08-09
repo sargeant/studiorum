@@ -11,6 +11,7 @@ from dnd5e.cli.commands.convert import app
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.cli
 class TestConvertCommandsWithReducedMocking:
     """Test convert commands with minimal mocking and real test data."""
 

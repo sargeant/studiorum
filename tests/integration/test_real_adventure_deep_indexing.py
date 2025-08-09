@@ -11,6 +11,7 @@ from dnd5e.core.models.nested_content import (
 )
 
 
+@pytest.mark.integration
 class TestRealAdventureDeepIndexing:
     """Integration tests with real adventure data."""
 

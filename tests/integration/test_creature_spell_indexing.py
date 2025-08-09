@@ -8,6 +8,7 @@ from dnd5e.core.models.creatures import Creature
 from dnd5e.core.references import SpellReferenceParser
 
 
+@pytest.mark.integration
 class TestCreatureSpellIndexing:
     """Test creature spell indexing functionality."""
 
@@ -220,6 +221,7 @@ class TestCreatureSpellIndexing:
 
 
 @pytest.mark.asyncio
+@pytest.mark.integration
 class TestCreatureDeepIndexingIntegration:
     """Test full deep indexing integration with mock omnidexer."""
 

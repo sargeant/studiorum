@@ -13,6 +13,7 @@ from dnd5e.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.integration
 class TestSourceDiscovery:
     """Test comprehensive source discovery and file separation."""
 

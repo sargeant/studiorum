@@ -13,6 +13,7 @@ from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
 
+@pytest.mark.integration
 class TestAdventureResolutionNoDuplicates:
     """Test that adventure resolution returns no duplicates after implementing metadata/content separation."""
 

@@ -10,6 +10,7 @@ from tests.test_helpers import reset_test_environment
 # Tests converted to sync after async removal migration
 
 
+@pytest.mark.integration
 class TestBookResolution:
     """Test book resolution with dual-file architecture using real data."""
 
