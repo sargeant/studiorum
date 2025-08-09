@@ -31,11 +31,11 @@ class TestOmnidexerCache:
         # But we can verify that the same call twice uses cache
 
         # First call - cache miss
-        result1 = self.omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
+        result1 = self.omnidexer.find(ContentType("spell"), "Fireball", "PHB")
         assert result1 is None
 
         # Second call - should be cache hit (same result)
-        result2 = self.omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
+        result2 = self.omnidexer.find(ContentType("spell"), "Fireball", "PHB")
         assert result2 is None
         assert result1 == result2
 
@@ -50,10 +50,10 @@ class TestOmnidexerCache:
         cache.clear()
 
         # Make different calls
-        self.omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
-        self.omnidexer.find(ContentType.SPELL, "Fireball", "XGE")
-        self.omnidexer.find(ContentType.SPELL, "Fireball", None)
-        self.omnidexer.find(ContentType.CREATURE, "Dragon", "MM")
+        self.omnidexer.find(ContentType("spell"), "Fireball", "PHB")
+        self.omnidexer.find(ContentType("spell"), "Fireball", "XGE")
+        self.omnidexer.find(ContentType("spell"), "Fireball", None)
+        self.omnidexer.find(ContentType("creature"), "Dragon", "MM")
 
         # Verify different cache keys exist
         key1 = "omnidexer:find:spell:Fireball:PHB:deep=False"
@@ -72,11 +72,11 @@ class TestOmnidexerCache:
         cache.clear()
 
         # First call - cache miss
-        result1 = self.omnidexer.search("Fire", ContentType.SPELL, limit=10)
+        result1 = self.omnidexer.search("Fire", ContentType("spell"), limit=10)
         assert result1 == []  # Empty omnidexer returns empty list
 
         # Second call - should be cache hit
-        result2 = self.omnidexer.search("Fire", ContentType.SPELL, limit=10)
+        result2 = self.omnidexer.search("Fire", ContentType("spell"), limit=10)
         assert result2 == []
         assert result1 == result2
 
@@ -90,10 +90,10 @@ class TestOmnidexerCache:
         cache.clear()
 
         # Make different calls
-        self.omnidexer.search("Fire", ContentType.SPELL, limit=10)
-        self.omnidexer.search("Fire", ContentType.SPELL, limit=20)
+        self.omnidexer.search("Fire", ContentType("spell"), limit=10)
+        self.omnidexer.search("Fire", ContentType("spell"), limit=20)
         self.omnidexer.search("Fire", None, limit=10)
-        self.omnidexer.search("Dragon", ContentType.CREATURE, limit=10)
+        self.omnidexer.search("Dragon", ContentType("creature"), limit=10)
 
         # Verify different cache keys exist
         key1 = "omnidexer:search:Fire:spell:10:deep=False"
@@ -121,8 +121,8 @@ class TestOmnidexerCache:
         cache.clear()
 
         # Make some calls to populate cache
-        self.omnidexer.find(ContentType.SPELL, "Test", "TEST")
-        self.omnidexer.search("Test", ContentType.SPELL, limit=5)
+        self.omnidexer.find(ContentType("spell"), "Test", "TEST")
+        self.omnidexer.search("Test", ContentType("spell"), limit=5)
 
         # Verify entries exist
         find_key = "omnidexer:find:spell:Test:TEST:deep=False"

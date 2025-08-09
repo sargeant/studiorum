@@ -182,7 +182,7 @@ spell = omnidexer.find(ContentType.SPELL, "Fireball", "PHB")
 ```python
 from dnd5e.core.result import Success, Error
 from dnd5e.core.error_types import create_validation_error
-from dnd5e.core.validation_result import validate_model
+from dnd5e.core.model_validation import validate_model
 
 # Validate content with Result pattern
 result = validate_model(Spell, spell_data, source="phb.json")

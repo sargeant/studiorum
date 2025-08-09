@@ -21,7 +21,8 @@ class TestBookResolution:
     def test_omnidexer_loads_only_book_metadata(self):
         """Test that omnidexer loads only metadata files for books."""
         omnidexer = get_omnidexer()
-        books = omnidexer.get_all_by_type(ContentType.BOOK)
+        book_type = ContentType("book")
+        books = omnidexer.get_all_by_type(book_type)
 
         # Should have books (metadata only)
         assert len(books) > 0
@@ -148,7 +149,8 @@ class TestBookResolution:
         omnidexer = get_omnidexer()
 
         # Try to find a book that has metadata but might not have content
-        books = omnidexer.get_all_by_type(ContentType.BOOK)
+        book_type = ContentType("book")
+        books = omnidexer.get_all_by_type(book_type)
         assert len(books) > 0
 
         # All books from metadata should be present

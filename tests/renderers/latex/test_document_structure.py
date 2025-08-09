@@ -239,15 +239,15 @@ class TestDocumentStructureBuilder:
                 if content._content_type == "spell":
                     from dnd5e.core.models.content import ContentType  # type: ignore
 
-                    return ContentType.SPELL
+                    return ContentType("spell")
                 elif content._content_type == "creature":
                     from dnd5e.core.models.content import ContentType  # type: ignore
 
-                    return ContentType.CREATURE
+                    return ContentType("creature")
                 elif content._content_type == "item":
                     from dnd5e.core.models.content import ContentType  # type: ignore
 
-                    return ContentType.ITEM
+                    return ContentType("item")
                 else:
                     raise ValueError("Unknown type")
 
@@ -308,15 +308,15 @@ class TestDocumentStructureBuilder:
                 if content._content_type == "spell":
                     from dnd5e.core.models.content import ContentType  # type: ignore
 
-                    return ContentType.SPELL
+                    return ContentType("spell")
                 elif content._content_type == "creature":
                     from dnd5e.core.models.content import ContentType  # type: ignore
 
-                    return ContentType.CREATURE
+                    return ContentType("creature")
                 elif content._content_type == "item":
                     from dnd5e.core.models.content import ContentType  # type: ignore
 
-                    return ContentType.ITEM
+                    return ContentType("item")
                 else:
                     raise ValueError("Unknown type")
 

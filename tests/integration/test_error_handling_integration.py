@@ -12,6 +12,7 @@ from typing import Any
 import pytest
 from pydantic import BaseModel, Field
 
+from dnd5e.core.entry_validation import StandardizedEntryValidator
 from dnd5e.core.error_types import (
     ErrorCategory,
     ErrorSeverity,
@@ -27,9 +28,8 @@ from dnd5e.core.logging_strategy import (
     error_logging_context,
     get_standardized_logger,
 )
+from dnd5e.core.model_validation import validate_model, validate_required_field
 from dnd5e.core.result import Error, Result, Success, collect_results, try_result
-from dnd5e.core.standardized_validation import StandardizedEntryValidator
-from dnd5e.core.validation_result import validate_model, validate_required_field
 from tests.test_helpers import reset_test_environment
 
 

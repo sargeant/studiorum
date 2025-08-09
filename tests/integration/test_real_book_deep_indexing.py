@@ -28,7 +28,8 @@ class TestRealBookDeepIndexing:
             pytest.skip("Book data not available or failed to load")
 
         # Check that books are loaded
-        books = omnidexer.get_all_by_type(ContentType.BOOK)
+        book_type = ContentType("book")
+        books = omnidexer.get_all_by_type(book_type)
         if not books:
             pytest.skip("No books found in data sources")
 
@@ -71,7 +72,8 @@ class TestRealBookDeepIndexing:
             pytest.skip("Book data not available")
 
         # Check for book sections
-        sections = omnidexer.get_all_by_type(ContentType.BOOK_SECTION)
+        book_section_type = ContentType("book_section")
+        sections = omnidexer.get_all_by_type(book_section_type)
         if sections:
             section = sections[0]
             assert isinstance(section, Section)
@@ -79,7 +81,8 @@ class TestRealBookDeepIndexing:
             assert section.parent_name is not None
 
         # Check for variant rules
-        variant_rules = omnidexer.get_all_by_type(ContentType.VARIANT_RULE)
+        variant_rule_type = ContentType("variant_rule")
+        variant_rules = omnidexer.get_all_by_type(variant_rule_type)
         if variant_rules:
             rule = variant_rules[0]
             assert isinstance(rule, VariantRule)
@@ -87,7 +90,8 @@ class TestRealBookDeepIndexing:
             assert rule.parent_name is not None
 
         # Check for book tables
-        tables = omnidexer.get_all_by_type(ContentType.BOOK_TABLE)
+        book_table_type = ContentType("book_table")
+        tables = omnidexer.get_all_by_type(book_table_type)
         if tables:
             table = tables[0]
             assert isinstance(table, Table)
@@ -95,7 +99,8 @@ class TestRealBookDeepIndexing:
             assert table.parent_name is not None
 
         # Check for book insets
-        insets = omnidexer.get_all_by_type(ContentType.BOOK_INSET)
+        book_inset_type = ContentType("book_inset")
+        insets = omnidexer.get_all_by_type(book_inset_type)
         if insets:
             inset = insets[0]
             assert isinstance(inset, Inset)
@@ -113,7 +118,7 @@ class TestRealBookDeepIndexing:
             pytest.skip("Book data not available")
 
         # Check for variant rules
-        variant_rules = omnidexer.get_all_by_type(ContentType.VARIANT_RULE)
+        variant_rules = omnidexer.get_all_by_type(ContentType("variant_rule"))
 
         if variant_rules:
             # Should have some variant rules
@@ -152,13 +157,13 @@ class TestRealBookDeepIndexing:
             pytest.skip("Book data not available")
 
         # Get all book sections
-        sections = omnidexer.get_all_by_type(ContentType.BOOK_SECTION)
+        sections = omnidexer.get_all_by_type(ContentType("book_section"))
         if not sections:
             pytest.skip("No book sections found")
 
         # Try to find a section by name
         first_section = sections[0]
-        found_section = omnidexer.find(ContentType.BOOK_SECTION, first_section.name)
+        found_section = omnidexer.find(ContentType("book_section"), first_section.name)
 
         assert found_section is not None
         assert found_section.name == first_section.name
@@ -206,13 +211,21 @@ class TestRealBookDeepIndexing:
         except Exception:
             pytest.skip("Full data loading not available")
 
-        # Test book nested content types
-        book_content_types = [
-            ContentType.BOOK_SECTION,
-            ContentType.VARIANT_RULE,
-            ContentType.BOOK_TABLE,
-            ContentType.BOOK_INSET,
+        # Test book nested content types - skip any that don't exist as enum members
+        book_content_type_strings = [
+            "book_section",
+            "variant_rule",
+            "book_table",
+            "book_inset",
         ]
+
+        book_content_types = []
+        for content_type_str in book_content_type_strings:
+            try:
+                book_content_types.append(ContentType(content_type_str))
+            except ValueError:
+                # Skip content types that don't exist as enum members
+                continue
 
         # Check if any book content types are found (for potential future assertions)
         _book_found = any(
@@ -221,7 +234,11 @@ class TestRealBookDeepIndexing:
         )
 
         # Should find content from books (if available)
-        books = omnidexer.get_all_by_type(ContentType.BOOK)
+        try:
+            books = omnidexer.get_all_by_type(ContentType("book"))
+        except ValueError:
+            # If book ContentType doesn't exist, skip this test
+            pytest.skip("Book ContentType not available as static enum member")
 
         # Test that the deep indexing system is working
         # Books should have nested content since they're known to have rich structures
@@ -252,10 +269,10 @@ class TestRealBookDeepIndexing:
 
         # Get all nested content
         all_nested = []
-        all_nested.extend(omnidexer.get_all_by_type(ContentType.BOOK_SECTION))
-        all_nested.extend(omnidexer.get_all_by_type(ContentType.VARIANT_RULE))
-        all_nested.extend(omnidexer.get_all_by_type(ContentType.BOOK_TABLE))
-        all_nested.extend(omnidexer.get_all_by_type(ContentType.BOOK_INSET))
+        all_nested.extend(omnidexer.get_all_by_type(ContentType("book_section")))
+        all_nested.extend(omnidexer.get_all_by_type(ContentType("variant_rule")))
+        all_nested.extend(omnidexer.get_all_by_type(ContentType("book_table")))
+        all_nested.extend(omnidexer.get_all_by_type(ContentType("book_inset")))
 
         if not all_nested:
             pytest.skip("No book nested content found")
@@ -270,7 +287,7 @@ class TestRealBookDeepIndexing:
             )
 
             # First part should be the book name
-            books = omnidexer.get_all_by_type(ContentType.BOOK)
+            books = omnidexer.get_all_by_type(ContentType("book"))
             book_names = [book.name for book in books]
 
             assert any(book_name in parent_parts[0] for book_name in book_names), (

@@ -268,9 +268,10 @@ class TestCreatureDeepIndexingIntegration:
 
         # Create mock omnidexer
         mock_omnidexer = MagicMock()
+        spell_type = ContentType("spell")
         mock_omnidexer.find.side_effect = lambda content_type, name, source=None: {
-            (ContentType.SPELL, "fireball", "phb"): mock_fireball,
-            (ContentType.SPELL, "shield", "phb"): mock_shield,
+            (spell_type, "fireball", "phb"): mock_fireball,
+            (spell_type, "shield", "phb"): mock_shield,
         }.get((content_type, name.lower(), source.lower() if source else None))
 
         # Create creature with spell references

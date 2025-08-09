@@ -3,6 +3,7 @@
 from typing import Any
 
 from ....core.models.content import ContentType
+from ....core.registry.content_type_registry import get_content_type_registry
 from .base import (
     ContentLayoutManager,
     EnvironmentWrapper,
@@ -20,16 +21,8 @@ class SidebarManager(ContentLayoutManager):
         """Initialize the sidebar manager."""
         super().__init__(config)
 
-        # Sidebar type preferences by content type
-        self.content_sidebar_types = {
-            ContentType.ADVENTURE: SidebarType.READ_ALOUD,
-            ContentType.BACKGROUND: SidebarType.SIDEBAR,
-            ContentType.CLASS: SidebarType.SIDEBAR,
-            ContentType.RACE: SidebarType.SIDEBAR,
-            ContentType.FEAT: SidebarType.COMMENT,
-            ContentType.SPELL: SidebarType.COMMENT,
-            ContentType.ITEM: SidebarType.COMMENT,
-        }
+        # Sidebar type preferences by content type using dynamic resolution
+        self.content_sidebar_types = self._build_sidebar_type_preferences()
 
         # Default positioning for sidebar types
         self.sidebar_positions = {
@@ -51,17 +44,53 @@ class SidebarManager(ContentLayoutManager):
             "full": "\\textwidth",
         }
 
+    def _build_sidebar_type_preferences(self) -> dict[ContentType, SidebarType]:
+        """Build content type to sidebar type mapping using registry."""
+        # Base sidebar type preferences
+        type_map = {
+            "adventure": SidebarType.READ_ALOUD,
+            "background": SidebarType.SIDEBAR,
+            "class": SidebarType.SIDEBAR,
+            "race": SidebarType.SIDEBAR,
+            "feat": SidebarType.COMMENT,
+            "spell": SidebarType.COMMENT,
+            "item": SidebarType.COMMENT,
+        }
+
+        # Build preferences dynamically
+        preferences = {}
+        for content_type_str, sidebar_type in type_map.items():
+            try:
+                content_type = ContentType(content_type_str)
+                preferences[content_type] = sidebar_type
+            except ValueError:
+                # Skip content types that don't exist as enum members
+                continue
+
+        return preferences
+
     def get_supported_content_types(self) -> set[ContentType]:
         """Support content types that benefit from sidebars."""
-        return {
-            ContentType.ADVENTURE,
-            ContentType.BACKGROUND,
-            ContentType.CLASS,
-            ContentType.RACE,
-            ContentType.FEAT,
-            ContentType.SPELL,
-            ContentType.ITEM,
-        }
+        content_types = set()
+        # Use the same type list from _build_sidebar_type_preferences
+        supported_types = [
+            "adventure",
+            "background",
+            "class",
+            "race",
+            "feat",
+            "spell",
+            "item",
+        ]
+
+        for content_type_str in supported_types:
+            try:
+                content_types.add(ContentType(content_type_str))
+            except ValueError:
+                # Skip content types that don't exist as enum members
+                continue
+
+        return content_types
 
     def can_handle(self, context: LayoutContext) -> bool:
         """Handle sidebar management when explicitly requested or beneficial."""
@@ -313,12 +342,12 @@ class SidebarManager(ContentLayoutManager):
             hint.sidebar_type = self.content_sidebar_types.get(content_type)
             hint.sidebar_position = FloatPosition.HERE
         elif content_length < 300:  # Medium content
-            if content_type in {ContentType.FEAT, ContentType.SPELL}:
+            if content_type.value in {"feat", "spell"}:
                 hint.sidebar_type = SidebarType.COMMENT
                 hint.sidebar_position = FloatPosition.BOTTOM
 
         # Adventure content gets special treatment
-        if content_type == ContentType.ADVENTURE:
+        if content_type.value == "adventure":
             # Check for read-aloud indicators
             hint.sidebar_type = SidebarType.READ_ALOUD
             hint.sidebar_position = FloatPosition.HERE

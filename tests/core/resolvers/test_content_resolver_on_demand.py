@@ -79,7 +79,7 @@ class TestContentResolverOnDemand:
         spell = Mock()
         spell.name = "Fireball"
 
-        result = content_resolver._enrich_content_if_needed(spell, ContentType.SPELL)
+        result = content_resolver._enrich_content_if_needed(spell, ContentType("spell"))
         assert result is spell  # Should return the same object
 
     def test_enrich_content_adventure_no_id(self, content_resolver):
@@ -89,7 +89,7 @@ class TestContentResolverOnDemand:
         adventure.id = None
 
         result = content_resolver._enrich_content_if_needed(
-            adventure, ContentType.ADVENTURE
+            adventure, ContentType("adventure")
         )
         assert result is adventure  # Should return original if no ID
 
@@ -124,12 +124,12 @@ class TestContentResolverOnDemand:
         )
 
         content_resolver._enrich_content_if_needed(
-            mock_adventure_metadata, ContentType.ADVENTURE
+            mock_adventure_metadata, ContentType("adventure")
         )
 
         # Verify content merger was called
         content_resolver.content_merger.load_content_file.assert_called_once_with(
-            ContentType.ADVENTURE, "TestAdv"
+            ContentType("adventure"), "TestAdv"
         )
         content_resolver.content_merger.merge_metadata_content.assert_called_once()
 
@@ -147,7 +147,7 @@ class TestContentResolverOnDemand:
         )
 
         result = content_resolver._enrich_content_if_needed(
-            mock_adventure_metadata, ContentType.ADVENTURE
+            mock_adventure_metadata, ContentType("adventure")
         )
 
         # Should return original content on failure
@@ -180,7 +180,7 @@ class TestContentResolverOnDemand:
 
         # Verify enrichment was called
         content_resolver._enrich_content_if_needed.assert_called_once_with(
-            mock_adventure_metadata, ContentType.ADVENTURE
+            mock_adventure_metadata, ContentType("adventure")
         )
 
     def test_resolve_book_with_enrichment(self, content_resolver):
@@ -210,7 +210,7 @@ class TestContentResolverOnDemand:
 
         # Verify enrichment was called
         content_resolver._enrich_content_if_needed.assert_called_once_with(
-            book, ContentType.BOOK
+            book, ContentType("book")
         )
 
     def test_resolve_multiple_matches_not_enriched(self, content_resolver):
@@ -280,5 +280,5 @@ class TestContentResolverOnDemand:
 
         # Verify enrichment was called with preferred match
         content_resolver._enrich_content_if_needed.assert_called_once_with(
-            adventure2, ContentType.ADVENTURE
+            adventure2, ContentType("adventure")
         )

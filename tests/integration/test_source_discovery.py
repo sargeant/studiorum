@@ -100,7 +100,7 @@ class TestSourceDiscovery:
             mock_source_manager = Mock(spec=ConfigurableSourceManager)
             # Only books.json should be loaded, content files should be filtered out
             mock_source_manager.get_data_paths.return_value = {
-                ContentType.BOOK: [books_file]  # Content files filtered out
+                ContentType("book"): [books_file]  # Content files filtered out
             }
             mock_source_manager.ensure_sources_ready.return_value = None
 
@@ -116,7 +116,7 @@ class TestSourceDiscovery:
             )
 
             # Verify we can get books
-            all_books = omnidexer.get_all_by_type(ContentType.BOOK)
+            all_books = omnidexer.get_all_by_type(ContentType("book"))
             assert len(all_books) == 2
 
             # Verify the books have correct names
@@ -216,8 +216,8 @@ class TestSourceDiscovery:
             assert load_stats.get("book", 0) == 0
 
             # Verify no content in omnidexer
-            all_adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
-            all_books = omnidexer.get_all_by_type(ContentType.BOOK)
+            all_adventures = omnidexer.get_all_by_type(ContentType("adventure"))
+            all_books = omnidexer.get_all_by_type(ContentType("book"))
 
             assert len(all_adventures) == 0
             assert len(all_books) == 0
@@ -246,7 +246,7 @@ class TestSourceDiscovery:
             # Create mock source manager
             mock_source_manager = Mock(spec=ConfigurableSourceManager)
             mock_source_manager.get_data_paths.return_value = {
-                ContentType.ADVENTURE: [adventures_file]
+                ContentType("adventure"): [adventures_file]
             }
             mock_source_manager.ensure_sources_ready.return_value = None
 
@@ -286,8 +286,8 @@ class TestSourceDiscovery:
                 metadata_files = source_manager.get_metadata_files()
 
                 # Should contain adventures and books metadata
-                assert ContentType.ADVENTURE in metadata_files
-                assert ContentType.BOOK in metadata_files
+                assert ContentType("adventure") in metadata_files
+                assert ContentType("book") in metadata_files
 
                 # Count metadata files
                 total_metadata = sum(len(paths) for paths in metadata_files.values())
@@ -297,8 +297,8 @@ class TestSourceDiscovery:
                 content_files = source_manager.get_content_files()
 
                 # Should contain adventures and books content
-                assert ContentType.ADVENTURE in content_files
-                assert ContentType.BOOK in content_files
+                assert ContentType("adventure") in content_files
+                assert ContentType("book") in content_files
 
                 # Count content files
                 total_content = sum(len(paths) for paths in content_files.values())
@@ -308,16 +308,16 @@ class TestSourceDiscovery:
                 data_paths = source_manager.get_data_paths()
 
                 # For adventures and books, should match metadata files
-                if ContentType.ADVENTURE in data_paths:
-                    adventure_data_paths = set(data_paths[ContentType.ADVENTURE])
+                if ContentType("adventure") in data_paths:
+                    adventure_data_paths = set(data_paths[ContentType("adventure")])
                     adventure_metadata_paths = set(
-                        metadata_files[ContentType.ADVENTURE]
+                        metadata_files[ContentType("adventure")]
                     )
                     assert adventure_data_paths == adventure_metadata_paths
 
-                if ContentType.BOOK in data_paths:
-                    book_data_paths = set(data_paths[ContentType.BOOK])
-                    book_metadata_paths = set(metadata_files[ContentType.BOOK])
+                if ContentType("book") in data_paths:
+                    book_data_paths = set(data_paths[ContentType("book")])
+                    book_metadata_paths = set(metadata_files[ContentType("book")])
                     assert book_data_paths == book_metadata_paths
 
     def test_file_pattern_edge_cases(self) -> None:

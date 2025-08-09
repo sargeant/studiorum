@@ -44,18 +44,30 @@ class PathConfig(BaseModel):
         if srd_data.exists():
             data_dirs.append(srd_data)
 
-        # Map content types to subdirectories and file patterns
-        content_mappings = {
-            ContentType.SPELL: ["spells", "spell"],
-            ContentType.CREATURE: ["bestiary", "monster", "creatures"],
-            ContentType.ITEM: ["items", "item"],
-            ContentType.ADVENTURE: ["adventure", "adventures"],
-            ContentType.BOOK: ["book", "books"],
-            ContentType.CLASS: ["class", "classes"],
-            ContentType.BACKGROUND: ["background", "backgrounds"],
-            ContentType.FEAT: ["feat", "feats"],
-            ContentType.RACE: ["race", "races"],
+        # Use string-based mappings and only convert to ContentType if they exist
+        # This avoids the chicken-and-egg problem with dynamic ContentTypes
+        string_mappings = {
+            "spell": ["spells", "spell"],
+            "creature": ["bestiary", "monster", "creatures"],
+            "item": ["items", "item"],
+            "adventure": ["adventure", "adventures"],
+            "book": ["book", "books"],
+            "class": ["class", "classes"],
+            "background": ["background", "backgrounds"],
+            "feat": ["feat", "feats"],
+            "race": ["race", "races"],
         }
+
+        # Convert to ContentType only if the enum member exists
+        content_mappings = {}
+        for type_str, subdirs in string_mappings.items():
+            try:
+                content_type = ContentType(type_str)
+                content_mappings[content_type] = subdirs
+            except ValueError:
+                # Skip content types that don't exist as enum members yet
+                # They will be handled by ConfigurableSourceManager after registry initialization
+                continue
 
         for content_type, subdirs in content_mappings.items():
             type_paths = []
@@ -69,21 +81,21 @@ class PathConfig(BaseModel):
                         json_files = list(subdir_path.glob("*.json"))
                         type_paths.extend(json_files)
 
-                # Also check for files in root data directory
-                if content_type == ContentType.SPELL:
+                # Also check for files in root data directory using string comparisons
+                if content_type.value == "spell":
                     type_paths.extend(data_dir.glob("spells*.json"))
-                elif content_type == ContentType.CREATURE:
+                elif content_type.value == "creature":
                     type_paths.extend(data_dir.glob("bestiary*.json"))
                     type_paths.extend(data_dir.glob("*monster*.json"))
-                elif content_type == ContentType.ITEM:
+                elif content_type.value == "item":
                     type_paths.extend(data_dir.glob("items*.json"))
-                elif content_type == ContentType.BACKGROUND:
+                elif content_type.value == "background":
                     type_paths.extend(data_dir.glob("background*.json"))
-                elif content_type == ContentType.FEAT:
+                elif content_type.value == "feat":
                     type_paths.extend(data_dir.glob("feat*.json"))
-                elif content_type == ContentType.RACE:
+                elif content_type.value == "race":
                     type_paths.extend(data_dir.glob("race*.json"))
-                elif content_type == ContentType.CLASS:
+                elif content_type.value == "class":
                     # Classes have a directory structure, already handled above
                     pass
 

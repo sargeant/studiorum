@@ -27,22 +27,22 @@ class FluffDataLoader(DataLoader[BaseFluff]):
     def __init__(self, content_type: ContentType):
         self._content_type = content_type
         self._fluff_model_map = {
-            ContentType.SPELL: SpellFluff,
-            ContentType.CREATURE: CreatureFluff,
-            ContentType.ITEM: ItemFluff,
-            ContentType.RACE: RaceFluff,
-            ContentType.FEAT: FeatFluff,
-            ContentType.CLASS: ClassFluff,
-            ContentType.BACKGROUND: BackgroundFluff,
+            "spell": SpellFluff,
+            "creature": CreatureFluff,
+            "item": ItemFluff,
+            "race": RaceFluff,
+            "feat": FeatFluff,
+            "class": ClassFluff,
+            "background": BackgroundFluff,
         }
         self._fluff_key_map = {
-            ContentType.SPELL: ["spellFluff", "spell_fluff"],
-            ContentType.CREATURE: ["monsterFluff", "monster_fluff", "creatureFluff"],
-            ContentType.ITEM: ["itemFluff", "item_fluff"],
-            ContentType.RACE: ["raceFluff", "race_fluff"],
-            ContentType.FEAT: ["featFluff", "feat_fluff"],
-            ContentType.CLASS: ["classFluff", "class_fluff"],
-            ContentType.BACKGROUND: ["backgroundFluff", "background_fluff"],
+            "spell": ["spellFluff", "spell_fluff"],
+            "creature": ["monsterFluff", "monster_fluff", "creatureFluff"],
+            "item": ["itemFluff", "item_fluff"],
+            "race": ["raceFluff", "race_fluff"],
+            "feat": ["featFluff", "feat_fluff"],
+            "class": ["classFluff", "class_fluff"],
+            "background": ["backgroundFluff", "background_fluff"],
         }
 
     def load(self, path: Path) -> list[BaseFluff]:
@@ -59,7 +59,7 @@ class FluffDataLoader(DataLoader[BaseFluff]):
             fluff_list = self._extract_fluff_content(data, path)
 
             # Parse each fluff item liberally
-            model_class = self._fluff_model_map.get(self._content_type, BaseFluff)
+            model_class = self._fluff_model_map.get(self._content_type.value, BaseFluff)
             parsed_fluff = []
 
             for item in fluff_list:
@@ -92,14 +92,14 @@ class FluffDataLoader(DataLoader[BaseFluff]):
         return self._content_type
 
     def get_model_class(self) -> type[BaseFluff]:
-        return self._fluff_model_map.get(self._content_type, BaseFluff)
+        return self._fluff_model_map.get(self._content_type.value, BaseFluff)
 
     def _extract_fluff_content(
         self, data: dict[str, Any], path: Path
     ) -> list[dict[str, Any]]:
         """Extract fluff content from various JSON structures."""
         # Try specific fluff keys first
-        fluff_keys = self._fluff_key_map.get(self._content_type, [])
+        fluff_keys = self._fluff_key_map.get(self._content_type.value, [])
         for fluff_key in fluff_keys:
             if fluff_key in data:
                 content = data[fluff_key]

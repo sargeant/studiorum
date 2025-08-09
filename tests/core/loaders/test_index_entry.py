@@ -62,13 +62,13 @@ class TestIndexEntry:
         """Test creating IndexEntry directly with all fields."""
         entry = IndexEntry(
             content=sample_spell,
-            content_type=ContentType.SPELL,
+            content_type=ContentType("spell"),
             hash_id="12345678",
             lookup_key="fireball|phb",
         )
 
         assert entry.content == sample_spell
-        assert entry.content_type == ContentType.SPELL
+        assert entry.content_type == ContentType("spell")
         assert entry.hash_id == "12345678"
         assert entry.lookup_key == "fireball|phb"
 
@@ -77,7 +77,7 @@ class TestIndexEntry:
         # Valid 8-character alphanumeric hash
         entry = IndexEntry(
             content=sample_spell,
-            content_type=ContentType.SPELL,
+            content_type=ContentType("spell"),
             hash_id="abc12345",
             lookup_key="fireball|phb",
         )
@@ -86,7 +86,7 @@ class TestIndexEntry:
         # Hash ID gets normalized to lowercase
         entry = IndexEntry(
             content=sample_spell,
-            content_type=ContentType.SPELL,
+            content_type=ContentType("spell"),
             hash_id="ABC12345",
             lookup_key="fireball|phb",
         )
@@ -96,7 +96,7 @@ class TestIndexEntry:
         with pytest.raises(ValidationError) as exc_info:
             IndexEntry(
                 content=sample_spell,
-                content_type=ContentType.SPELL,
+                content_type=ContentType("spell"),
                 hash_id="1234567",  # 7 characters
                 lookup_key="fireball|phb",
             )
@@ -106,7 +106,7 @@ class TestIndexEntry:
         with pytest.raises(ValidationError) as exc_info:
             IndexEntry(
                 content=sample_spell,
-                content_type=ContentType.SPELL,
+                content_type=ContentType("spell"),
                 hash_id="123456789",  # 9 characters
                 lookup_key="fireball|phb",
             )
@@ -116,7 +116,7 @@ class TestIndexEntry:
         with pytest.raises(ValidationError) as exc_info:
             IndexEntry(
                 content=sample_spell,
-                content_type=ContentType.SPELL,
+                content_type=ContentType("spell"),
                 hash_id="abc123-@",  # Contains special characters
                 lookup_key="fireball|phb",
             )
@@ -129,7 +129,7 @@ class TestIndexEntry:
         # Valid lookup key with pipe separator
         entry = IndexEntry(
             content=sample_spell,
-            content_type=ContentType.SPELL,
+            content_type=ContentType("spell"),
             hash_id="12345678",
             lookup_key="fireball|phb",
         )
@@ -138,7 +138,7 @@ class TestIndexEntry:
         # Lookup key gets normalized to lowercase
         entry = IndexEntry(
             content=sample_spell,
-            content_type=ContentType.SPELL,
+            content_type=ContentType("spell"),
             hash_id="12345678",
             lookup_key="Fireball|PHB",
         )
@@ -147,7 +147,7 @@ class TestIndexEntry:
         # Lookup key with whitespace gets stripped and normalized
         entry = IndexEntry(
             content=sample_spell,
-            content_type=ContentType.SPELL,
+            content_type=ContentType("spell"),
             hash_id="12345678",
             lookup_key="  Fireball|PHB  ",
         )
@@ -157,7 +157,7 @@ class TestIndexEntry:
         with pytest.raises(ValidationError) as exc_info:
             IndexEntry(
                 content=sample_spell,
-                content_type=ContentType.SPELL,
+                content_type=ContentType("spell"),
                 hash_id="12345678",
                 lookup_key="fireball_phb",  # No pipe separator
             )
@@ -167,7 +167,7 @@ class TestIndexEntry:
         with pytest.raises(ValidationError) as exc_info:
             IndexEntry(
                 content=sample_spell,
-                content_type=ContentType.SPELL,
+                content_type=ContentType("spell"),
                 hash_id="12345678",
                 lookup_key="",
             )
@@ -175,16 +175,16 @@ class TestIndexEntry:
 
     def test_index_entry_create_classmethod_spell(self, sample_spell: Spell) -> None:
         """Test IndexEntry.create() classmethod with spell."""
-        entry = IndexEntry.create(sample_spell, ContentType.SPELL)
+        entry = IndexEntry.create(sample_spell, ContentType("spell"))
 
         assert entry.content == sample_spell
-        assert entry.content_type == ContentType.SPELL
+        assert entry.content_type == ContentType("spell")
         assert len(entry.hash_id) == 8
         assert entry.hash_id.isalnum()
         assert entry.lookup_key == "fireball|phb"
 
         # Hash should be deterministic
-        entry2 = IndexEntry.create(sample_spell, ContentType.SPELL)
+        entry2 = IndexEntry.create(sample_spell, ContentType("spell"))
         assert entry.hash_id == entry2.hash_id
         assert entry.lookup_key == entry2.lookup_key
 
@@ -192,10 +192,10 @@ class TestIndexEntry:
         self, sample_creature: Creature
     ) -> None:
         """Test IndexEntry.create() classmethod with creature."""
-        entry = IndexEntry.create(sample_creature, ContentType.CREATURE)
+        entry = IndexEntry.create(sample_creature, ContentType("creature"))
 
         assert entry.content == sample_creature
-        assert entry.content_type == ContentType.CREATURE
+        assert entry.content_type == ContentType("creature")
         assert len(entry.hash_id) == 8
         assert entry.hash_id.isalnum()
         assert entry.lookup_key == "ancient red dragon|phb"
@@ -207,10 +207,10 @@ class TestIndexEntry:
         mock_content.name = "Test Content"
         mock_content.source = {"abbreviation": "TEST", "name": "Test Source"}
 
-        entry = IndexEntry.create(mock_content, ContentType.SPELL)
+        entry = IndexEntry.create(mock_content, ContentType("spell"))
 
         assert entry.content == mock_content
-        assert entry.content_type == ContentType.SPELL
+        assert entry.content_type == ContentType("spell")
         assert entry.lookup_key == "test content|test"
 
     def test_index_entry_create_with_string_source(self) -> None:
@@ -220,10 +220,10 @@ class TestIndexEntry:
         mock_content.name = "Test Content"
         mock_content.source = "TEST_SOURCE"
 
-        entry = IndexEntry.create(mock_content, ContentType.SPELL)
+        entry = IndexEntry.create(mock_content, ContentType("spell"))
 
         assert entry.content == mock_content
-        assert entry.content_type == ContentType.SPELL
+        assert entry.content_type == ContentType("spell")
         assert entry.lookup_key == "test content|test_source"
 
     def test_index_entry_create_with_object_source_no_abbreviation(self) -> None:
@@ -237,10 +237,10 @@ class TestIndexEntry:
         mock_content.name = "Test Content"
         mock_content.source = mock_source
 
-        entry = IndexEntry.create(mock_content, ContentType.SPELL)
+        entry = IndexEntry.create(mock_content, ContentType("spell"))
 
         assert entry.content == mock_content
-        assert entry.content_type == ContentType.SPELL
+        assert entry.content_type == ContentType("spell")
         # Should use string representation of source
         assert entry.lookup_key.startswith("test content|")
 
@@ -249,19 +249,19 @@ class TestIndexEntry:
     ) -> None:
         """Test that hash generation is consistent and unique."""
         # Same content should produce same hash
-        entry1 = IndexEntry.create(sample_spell, ContentType.SPELL)
-        entry2 = IndexEntry.create(sample_spell, ContentType.SPELL)
+        entry1 = IndexEntry.create(sample_spell, ContentType("spell"))
+        entry2 = IndexEntry.create(sample_spell, ContentType("spell"))
         assert entry1.hash_id == entry2.hash_id
 
         # Different content should produce different hashes
-        spell_entry = IndexEntry.create(sample_spell, ContentType.SPELL)
-        creature_entry = IndexEntry.create(sample_creature, ContentType.CREATURE)
+        spell_entry = IndexEntry.create(sample_spell, ContentType("spell"))
+        creature_entry = IndexEntry.create(sample_creature, ContentType("creature"))
         assert spell_entry.hash_id != creature_entry.hash_id
 
         # Same content with different type should produce different hashes
         # (This is a bit artificial but tests the hash generation logic)
-        spell_as_spell = IndexEntry.create(sample_spell, ContentType.SPELL)
-        spell_as_item = IndexEntry.create(sample_spell, ContentType.ITEM)
+        spell_as_spell = IndexEntry.create(sample_spell, ContentType("spell"))
+        spell_as_item = IndexEntry.create(sample_spell, ContentType("item"))
         assert spell_as_spell.hash_id != spell_as_item.hash_id
 
     def test_index_entry_lookup_key_generation(self) -> None:
@@ -280,13 +280,13 @@ class TestIndexEntry:
             mock_content.source = Mock()
             mock_content.source.abbreviation = source_abbrev
 
-            entry = IndexEntry.create(mock_content, ContentType.SPELL)
+            entry = IndexEntry.create(mock_content, ContentType("spell"))
             assert entry.lookup_key == expected_key
 
     def test_index_entry_arbitrary_types_allowed(self, sample_spell: Spell) -> None:
         """Test that IndexEntry allows arbitrary types for content."""
         # Should accept any BaseContent subclass
-        entry = IndexEntry.create(sample_spell, ContentType.SPELL)
+        entry = IndexEntry.create(sample_spell, ContentType("spell"))
         assert entry.content == sample_spell
 
         # Should also work with mock objects
@@ -297,7 +297,7 @@ class TestIndexEntry:
 
         entry = IndexEntry(
             content=mock_content,
-            content_type=ContentType.SPELL,
+            content_type=ContentType("spell"),
             hash_id="12345678",
             lookup_key="mock|mock",
         )
@@ -306,8 +306,8 @@ class TestIndexEntry:
     def test_index_entry_content_type_validation(self, sample_spell: Spell) -> None:
         """Test that content_type must be a valid ContentType."""
         # Valid ContentType
-        entry = IndexEntry.create(sample_spell, ContentType.SPELL)
-        assert entry.content_type == ContentType.SPELL
+        entry = IndexEntry.create(sample_spell, ContentType("spell"))
+        assert entry.content_type == ContentType("spell")
 
         # Should work with all ContentType values
         for content_type in ContentType:
@@ -321,7 +321,7 @@ class TestIndexEntry:
         mock_content.source = Mock()
         mock_content.source.abbreviation = "PHß"  # Unicode in source
 
-        entry = IndexEntry.create(mock_content, ContentType.SPELL)
+        entry = IndexEntry.create(mock_content, ContentType("spell"))
 
         assert entry.content == mock_content
         assert entry.lookup_key == "fíréball|phß"  # Unicode preserved in lowercase
@@ -336,7 +336,7 @@ class TestIndexEntry:
         mock_content.source = Mock()
         mock_content.source.abbreviation = long_source
 
-        entry = IndexEntry.create(mock_content, ContentType.SPELL)
+        entry = IndexEntry.create(mock_content, ContentType("spell"))
 
         assert entry.content == mock_content
         assert entry.lookup_key == f"{long_name.lower()}|{long_source.lower()}"
@@ -349,7 +349,7 @@ class TestIndexEntry:
         mock_content.source = Mock()
         mock_content.source.abbreviation = ""
 
-        entry = IndexEntry.create(mock_content, ContentType.SPELL)
+        entry = IndexEntry.create(mock_content, ContentType("spell"))
 
         assert entry.content == mock_content
         assert entry.lookup_key == "test spell|"  # Empty source part
@@ -370,7 +370,7 @@ class TestIndexEntry:
             mock_content.source = Mock()
             mock_content.source.abbreviation = "DMG"
 
-            entry = IndexEntry.create(mock_content, ContentType.ITEM)
+            entry = IndexEntry.create(mock_content, ContentType("item"))
             assert entry.lookup_key == f"{expected_lower}|dmg"
 
     def test_index_entry_none_handling(self) -> None:
@@ -380,7 +380,7 @@ class TestIndexEntry:
         mock_content.name = "Test Content"
         mock_content.source = None
 
-        entry = IndexEntry.create(mock_content, ContentType.SPELL)
+        entry = IndexEntry.create(mock_content, ContentType("spell"))
 
         assert entry.content == mock_content
         assert entry.lookup_key == "test content|none"  # str(None) = "None"
@@ -390,7 +390,7 @@ class TestIndexEntry:
         # Test minimum valid values
         entry = IndexEntry(
             content=sample_spell,
-            content_type=ContentType.SPELL,
+            content_type=ContentType("spell"),
             hash_id="a" * 8,  # Minimum 8 chars
             lookup_key="a|b",  # Minimum with separator
         )
@@ -401,7 +401,7 @@ class TestIndexEntry:
         very_long_key = "a" * 1000 + "|" + "b" * 1000
         entry = IndexEntry(
             content=sample_spell,
-            content_type=ContentType.SPELL,
+            content_type=ContentType("spell"),
             hash_id="z" * 8,  # Maximum 8 chars
             lookup_key=very_long_key,
         )
@@ -410,7 +410,7 @@ class TestIndexEntry:
 
     def test_index_entry_immutability(self, sample_spell: Spell) -> None:
         """Test that IndexEntry instances are immutable if frozen config is used."""
-        entry = IndexEntry.create(sample_spell, ContentType.SPELL)
+        entry = IndexEntry.create(sample_spell, ContentType("spell"))
 
         # Note: IndexEntry doesn't have frozen=True in its Config, so this test
         # documents the current behavior. If immutability is desired, the Config
@@ -421,7 +421,7 @@ class TestIndexEntry:
         assert entry.hash_id == "newvalue"
 
         # Reset for next test
-        entry = IndexEntry.create(sample_spell, ContentType.SPELL)
+        entry = IndexEntry.create(sample_spell, ContentType("spell"))
         original_hash = entry.hash_id
 
         # Verify the hash is what we expect
@@ -442,8 +442,8 @@ class TestIndexEntry:
         content2.source = source
 
         # Create entries
-        entry1 = IndexEntry.create(content1, ContentType.SPELL)
-        entry2 = IndexEntry.create(content2, ContentType.SPELL)
+        entry1 = IndexEntry.create(content1, ContentType("spell"))
+        entry2 = IndexEntry.create(content2, ContentType("spell"))
 
         # Should have identical hashes and lookup keys
         assert entry1.hash_id == entry2.hash_id

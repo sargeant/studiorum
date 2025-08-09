@@ -3,6 +3,7 @@
 from typing import Any
 
 from ....core.models.content import ContentType
+from ....core.registry.content_type_registry import get_content_type_registry
 from .base import (
     ContentLayoutManager,
     FloatPosition,
@@ -18,17 +19,8 @@ class FloatManager(ContentLayoutManager):
         """Initialize the float manager."""
         super().__init__(config)
 
-        # Float positioning preferences by content type
-        self.content_float_preferences = {
-            ContentType.CREATURE: FloatPosition.FULL_WIDTH_BOTTOM,
-            ContentType.SPELL: FloatPosition.HERE,
-            ContentType.ITEM: FloatPosition.HERE,
-            ContentType.CLASS: FloatPosition.TOP,
-            ContentType.RACE: FloatPosition.HERE,
-            ContentType.BACKGROUND: FloatPosition.HERE,
-            ContentType.FEAT: FloatPosition.HERE,
-            ContentType.ADVENTURE: FloatPosition.HERE,
-        }
+        # Float positioning preferences by content type (Phase 3 migration)
+        self.content_float_preferences = self._build_float_preferences()
 
         # Maximum floats per page
         self.max_floats_per_page = self.config.get("max_floats_per_page", 3)
@@ -37,9 +29,51 @@ class FloatManager(ContentLayoutManager):
         self.small_float_threshold = self.config.get("small_float_threshold", 10)
         self.large_float_threshold = self.config.get("large_float_threshold", 30)
 
+    def _build_float_preferences(self) -> dict[ContentType, FloatPosition]:
+        """Build content type to float position mapping using registry."""
+        # Base float position preferences
+        position_map = {
+            "creature": FloatPosition.FULL_WIDTH_BOTTOM,
+            "spell": FloatPosition.HERE,
+            "item": FloatPosition.HERE,
+            "magicvariant": FloatPosition.HERE,
+            "class": FloatPosition.TOP,
+            "race": FloatPosition.HERE,
+            "background": FloatPosition.HERE,
+            "feat": FloatPosition.HERE,
+            "adventure": FloatPosition.HERE,
+            "book": FloatPosition.HERE,
+        }
+
+        # Build preferences from registry
+        registry = get_content_type_registry()
+        preferences = {}
+
+        for content_type_str, metadata in registry.get_all().items():
+            try:
+                content_type = ContentType(content_type_str)
+            except ValueError:
+                # Skip content types that don't exist as enum members (like fluff types)
+                continue
+
+            if content_type_str in position_map:
+                preferences[content_type] = position_map[content_type_str]
+            else:
+                preferences[content_type] = FloatPosition.HERE
+
+        return preferences
+
     def get_supported_content_types(self) -> set[ContentType]:
-        """Support all content types that can be floated."""
-        return set(ContentType)
+        """Support all registered content types that can be floated."""
+        registry = get_content_type_registry()
+        content_types = set()
+        for content_type_str in registry.get_all():
+            try:
+                content_types.add(ContentType(content_type_str))
+            except ValueError:
+                # Skip content types that don't exist as enum members (like fluff types)
+                continue
+        return content_types
 
     def can_handle(self, context: LayoutContext) -> bool:
         """Handle float management for appropriate content."""
@@ -74,8 +108,8 @@ class FloatManager(ContentLayoutManager):
             return False
 
         # Some content types always float
-        always_float_types = {ContentType.CREATURE}
-        if context.content_type in always_float_types:
+        always_float_types = {"creature"}
+        if context.content_type.value in always_float_types:
             return True
 
         # Float based on content size and position
@@ -138,7 +172,7 @@ class FloatManager(ContentLayoutManager):
         content_type = context.content_type
 
         # Special handling for creature stat blocks (already use DndMonster)
-        if content_type == ContentType.CREATURE:
+        if content_type.value == "creature":
             return self._apply_creature_float(content, position)
 
         # Table content
@@ -266,10 +300,10 @@ class FloatManager(ContentLayoutManager):
         hint.float_position = self.content_float_preferences.get(content_type)
 
         # Special preferences by content type
-        if content_type == ContentType.CREATURE:
+        if content_type.value == "creature":
             hint.span_columns = True
             hint.avoid_column_break = True
-        elif content_type in {ContentType.SPELL, ContentType.FEAT}:
+        elif content_type.value in {"spell", "feat"}:
             hint.group_with_next = True
 
         return hint

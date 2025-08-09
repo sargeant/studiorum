@@ -17,10 +17,13 @@ The JSON data uses the same format as 5e.tools – which means you can still loa
 ## Features
 
 - **High-Quality PDF Output**: Generates clean, readable PDFs using LaTeX.
-- **5e.tools Compatibility**: Works with the widely-used 5e.tools JSON format.
-- **Deep Content Indexing**: Comprehensive discovery of nested content including class features, adventure sections, spell references, and more.
+- **5e.tools Compatibility**: Works with the 5e.tools JSON data format.
 - **Content Management**: Easily manage multiple content sources.
 - **Modern CLI**: A powerful and easy-to-use command-line interface.
+
+## Acknowledgements
+
+This project wouldn't have been possible without the excellent LaTeX templates from [rpgtex](https://github.com/rpgtex/DND-5e-LaTeX-Template) and [ashonit](https://github.com/ashonit/DND-5e-LaTeX-Template).
 
 ## Quick Start
 
@@ -50,7 +53,7 @@ uv sync
 
 ### 3. Configure Content Sources
 
-Run the interactive setup wizard to download and configure the default content sources from 5e.tools:
+Run the interactive setup wizard to configure the default content sources:
 
 ```bash
 uv run 5e2pdf setup wizard
@@ -64,78 +67,6 @@ Now you can convert a JSON file to a PDF. For example, to convert a file of spel
 # This command assumes a 'spells.json' file exists in your directory
 uv run 5e2pdf quick spells.json --pdf
 ```
-
-## Usage
-
-The `5e2pdf` CLI is powerful and easy to use. Here are some common commands.
-
-### Quick Convert
-
-The fastest way to convert a single file.
-
-```bash
-# Convert a JSON file to a PDF
-uv run 5e2pdf quick path/to/your/file.json --pdf
-
-# Add a custom title and include images
-uv run 5e2pdf quick adventure.json --title "My Grand Adventure" --images --pdf
-```
-
-### Manage Content Sources
-
-Manage your local and remote content sources.
-
-```bash
-# List all configured sources
-uv run 5e2pdf sources list
-
-# Update all sources to the latest version
-uv run 5e2pdf sources update
-
-# Add a new source from a local directory
-uv run 5e2pdf sources add my-content --type directory --path ~/my-dnd-json
-```
-
-For more detailed usage and advanced commands, please see our [Usage Guide](docs/user-guide/README.md).
-
-### Deep Content Indexing
-
-The Omnidexer system provides comprehensive content discovery and indexing capabilities. Learn more about using deep indexing features:
-
-```bash
-# See all available content types including nested content
-python docs/examples/deep-indexing.py
-
-# For detailed implementation information
-cat docs/omnidexer-deep-indexing.md
-```
-
-## Contributing
-
-Contributions are welcome! Whether you're fixing a bug, adding a feature, or improving documentation, we appreciate your help.
-
-1. **Fork the repository** and clone it locally.
-2. **Install development dependencies**: `uv sync --extra dev`
-3. **Create a feature branch**: `git checkout -b feature/my-new-feature`
-4. **Make your changes** and add tests.
-5. **Run tests and quality checks**:
-
-    ```bash
-    # Quick development workflow
-    make check          # Run all code quality checks
-    make test           # Run fast tests
-    make security       # Run security scans
-
-    # Or run everything at once
-    make all            # Run all checks, security, and tests
-
-    # For CI-ready validation
-    make ci-fast        # Quick CI feedback loop
-    ```
-
-6. **Submit a pull request** with a clear description of your changes.
-
-For comprehensive development workflows, see `make help` for all available commands or check our [Developer Documentation](docs/source/developer/contributing.md).
 
 ## License
 

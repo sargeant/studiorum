@@ -313,7 +313,7 @@ class TestRealDataIntegration:
             assert stats is not None
 
             # Test with creatures if available
-            creatures = self.omnidexer.get_all_by_type(ContentType.CREATURE)
+            creatures = self.omnidexer.get_all_by_type(ContentType("creature"))
             if creatures:
                 sample_creature = creatures[0]
 

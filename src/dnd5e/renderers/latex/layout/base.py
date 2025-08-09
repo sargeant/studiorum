@@ -152,7 +152,7 @@ class LayoutContext(DocumentContext):
             return ContentType(self.document_type)
         except ValueError:
             # Fallback to a default if document_type doesn't map to ContentType
-            return ContentType.SUPPLEMENT  # Use SUPPLEMENT as a reasonable default
+            return ContentType("supplement")  # Use supplement as a reasonable default
 
     @field_validator("page_position")
     @classmethod

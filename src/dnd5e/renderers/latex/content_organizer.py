@@ -18,15 +18,51 @@ class ContentOrganizer:
             document_type: Type of document being organized
         """
         self.document_type = document_type
-        self._sorters: dict[str, Callable] = {
-            ContentType.SPELL.value: self._sort_spells,
-            ContentType.CREATURE.value: self._sort_creatures,
-            ContentType.ITEM.value: self._sort_items,
-            ContentType.CLASS.value: self._sort_alphabetically,
-            ContentType.RACE.value: self._sort_alphabetically,
-            ContentType.BACKGROUND.value: self._sort_alphabetically,
-            ContentType.FEAT.value: self._sort_alphabetically,
+        self._sorters = self._build_dynamic_sorters()
+
+    def _build_dynamic_sorters(self) -> dict[str, Callable]:
+        """Build sorter mappings from registry metadata (Phase 3 migration).
+
+        Returns:
+            Dictionary mapping content type strings to sorter functions
+        """
+        from ...core.registry.content_type_registry import get_content_type_registry
+
+        # Default sorters for known content types
+        default_sorters = {
+            "spell": self._sort_spells,
+            "creature": self._sort_creatures,
+            "item": self._sort_items,
+            "class": self._sort_alphabetically,
+            "race": self._sort_alphabetically,
+            "background": self._sort_alphabetically,
+            "feat": self._sort_alphabetically,
         }
+
+        # Start with defaults, then add registry-based entries
+        sorters = default_sorters.copy()
+
+        try:
+            registry = get_content_type_registry()
+            for enum_value, metadata in registry.get_all().items():
+                try:
+                    # Use ContentType constructor for safe validation (Phase 3 pattern)
+                    content_type = ContentType(enum_value)
+                    content_type_str = content_type.value
+
+                    # Add registry-based sorters (defaulting to alphabetical)
+                    if content_type_str not in sorters:
+                        sorters[content_type_str] = self._sort_alphabetically
+
+                except ValueError:
+                    # Skip test-only registrations that aren't valid enum members
+                    continue
+
+        except ImportError:
+            # Registry not available, use defaults only
+            pass
+
+        return sorters
 
     def organize_content(
         self, content_items: Sequence[BaseContent]
@@ -496,21 +532,60 @@ class ContentOrganizer:
         Returns:
             Formatted title
         """
-        title_mapping = {
-            ContentType.SPELL.value: "Spells",
-            ContentType.CREATURE.value: "Creatures and NPCs",
-            ContentType.ITEM.value: "Magic Items and Equipment",
-            ContentType.CLASS.value: "Classes",
-            ContentType.RACE.value: "Races",
-            ContentType.BACKGROUND.value: "Backgrounds",
-            ContentType.FEAT.value: "Feats",
-            ContentType.ADVENTURE.value: "Adventures",
-            ContentType.BOOK.value: "Books",
-            ContentType.SUPPLEMENT.value: "Supplemental Material",
+        # Use registry-based dynamic titles (Phase 3 migration)
+        title_mapping = self._get_content_type_titles()
+        return title_mapping.get(content_type, content_type.replace("_", " ").title())
+
+    def _get_content_type_titles(self) -> dict[str, str]:
+        """Get content type titles from registry metadata (Phase 3 migration).
+
+        Returns:
+            Dictionary mapping content type strings to human-readable titles
+        """
+        from ...core.registry.content_type_registry import get_content_type_registry
+
+        # Default titles for known content types
+        default_titles = {
+            "spell": "Spells",
+            "creature": "Creatures and NPCs",
+            "item": "Magic Items and Equipment",
+            "class": "Classes",
+            "race": "Races",
+            "background": "Backgrounds",
+            "feat": "Feats",
+            "adventure": "Adventures",
+            "book": "Books",
+            "supplement": "Supplemental Material",
             "unknown": "Additional Content",
         }
 
-        return title_mapping.get(content_type, content_type.replace("_", " ").title())
+        # Start with defaults, then add registry-based entries
+        titles = default_titles.copy()
+
+        try:
+            registry = get_content_type_registry()
+            for enum_value, metadata in registry.get_all().items():
+                try:
+                    # Use ContentType constructor for safe validation (Phase 3 pattern)
+                    content_type = ContentType(enum_value)
+                    content_type_str = content_type.value
+
+                    # Add registry-based titles (using enum name as fallback)
+                    if content_type_str not in titles:
+                        # Convert enum value to human-readable title
+                        titles[content_type_str] = content_type_str.replace(
+                            "_", " "
+                        ).title()
+
+                except ValueError:
+                    # Skip test-only registrations that aren't valid enum members
+                    continue
+
+        except ImportError:
+            # Registry not available, use defaults only
+            pass
+
+        return titles
 
     def _extract_toc_entries(
         self, section: ContentSection, level: int = 1

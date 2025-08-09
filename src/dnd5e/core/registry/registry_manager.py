@@ -51,6 +51,7 @@ class RegistryManager:
 
         # Get existing enum members
         existing_types = {member.name: member.value for member in ContentType}
+        logger.debug(f"Existing types: {existing_types}")
 
         # Add new types (convert keys to uppercase names)
         new_types = {}
@@ -60,13 +61,20 @@ class RegistryManager:
                 new_types[enum_name] = enum_value
                 logger.debug(f"Adding ContentType.{enum_name} = '{enum_value}'")
 
-        # If no new types, nothing to do
-        if not new_types:
+        logger.debug(f"New types to add: {new_types}")
+
+        # If no new types and we have existing types, nothing to do
+        if not new_types and existing_types:
             logger.debug("No new ContentType enum values to add")
             return
 
         # Create extended enum with all types (existing + new)
         all_types = {**existing_types, **new_types}
+
+        # If we have no types at all, something is wrong
+        if not all_types:
+            logger.warning("No ContentType values found in registry or existing enum")
+            return
 
         # Create new enum class with same name and attributes
         # mypy: Cannot analyze dynamic enum creation, but this is the correct pattern
@@ -125,38 +133,18 @@ class RegistryManager:
             )
 
     def _update_omnidexer(self, metadata: dict[str, ContentTypeMetadata]) -> None:
-        """Replace omnidexer content type tuples with registry-based types."""
+        """Update omnidexer to use registry-based content type resolution."""
         try:
             from ..loaders.omnidexer import Omnidexer
 
-            json_types = []
-            fluff_types = []
-            for enum_value, meta in metadata.items():
-                # Try to find existing enum by value first (most reliable)
-                content_type = None
-                try:
-                    content_type = ContentType(enum_value)
-                except ValueError:
-                    # If enum doesn't exist by value, skip this entry
-                    logger.warning(
-                        f"Cannot create ContentType for {enum_value}, skipping"
-                    )
-                    continue
+            # The Omnidexer now uses dynamic resolution through _get_json_content_types()
+            # and _get_fluff_content_types() methods, so no static updates needed.
+            # The registry integration happens automatically when loaders are registered.
 
-                if meta.loader_type == "json":
-                    json_types.append(content_type)
-                elif meta.loader_type == "fluff":
-                    fluff_types.append(content_type)
+            logger.debug(
+                "Omnidexer uses dynamic registry-based content type resolution"
+            )
 
-            # Replace both tuples
-            Omnidexer._JSON_CONTENT_TYPES = tuple(json_types)
-            Omnidexer._FLUFF_CONTENT_TYPES = tuple(fluff_types)
-            logger.debug(
-                f"Replaced _JSON_CONTENT_TYPES with {len(json_types)} registry-based types"
-            )
-            logger.debug(
-                f"Replaced _FLUFF_CONTENT_TYPES with {len(fluff_types)} registry-based types"
-            )
         except ImportError:
             logger.warning("Omnidexer not available for content types replacement")
 
@@ -244,17 +232,13 @@ class RegistryManager:
             new_statblock_tags: dict[str, str] = {}
             for enum_value, meta in metadata.items():
                 if meta.statblock_tags:
-                    # Try to find existing enum first, then create ContentType from string value
-                    content_type = getattr(ContentType, enum_value.upper(), None)
-                    if content_type is None:
-                        # If enum doesn't exist, try to create one from the string value
-                        try:
-                            content_type = ContentType(enum_value)
-                        except ValueError:
-                            logger.warning(
-                                f"Cannot create ContentType for {enum_value}, skipping entry processor"
-                            )
-                            continue
+                    # ✅ Always use ContentType constructor for validation (Phase 3 pattern)
+                    try:
+                        ContentType(enum_value)
+                    except ValueError:
+                        # Skip test-only registrations that aren't valid enum members
+                        logger.debug(f"Skipping test-only content type: {enum_value}")
+                        continue
 
                     enum_name = enum_value.upper()  # Convert to enum name string
                     for tag in meta.statblock_tags:

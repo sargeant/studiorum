@@ -79,7 +79,7 @@ class TestUnifiedTagRenderer:
         content_info = ContentReferenceInfo(
             name="Dragon",
             display_text="Ancient Red Dragon",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             format_style=FormatStyle.BOLD,
         )
 

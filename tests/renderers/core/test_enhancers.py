@@ -150,7 +150,7 @@ class TestLaTeXFormatEnhancer:
             name="Lost Mine of Phandelver",
             display_text="Lost Mine of Phandelver",
             page="5",
-            content_type=ContentType.ADVENTURE,
+            content_type=ContentType("adventure"),
             format_style=FormatStyle.ITALIC,
         )
 
@@ -169,7 +169,7 @@ class TestLaTeXFormatEnhancer:
             name="Player's Handbook",
             display_text="Player's Handbook",
             page="15",
-            content_type=ContentType.BOOK,
+            content_type=ContentType("book"),
             format_style=FormatStyle.ITALIC,
         )
 
@@ -266,7 +266,7 @@ class TestHyperlinkEnhancer:
         content_info = ContentReferenceInfo(
             name="Dragon",
             display_text="Ancient Red Dragon",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         context = RenderingContext(
@@ -298,7 +298,7 @@ class TestHyperlinkEnhancer:
         content_info = ContentReferenceInfo(
             name="Dragon",
             display_text="Ancient Red Dragon",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         context = RenderingContext(
@@ -319,7 +319,7 @@ class TestHyperlinkEnhancer:
         content_info = ContentReferenceInfo(
             name="Dragon",
             display_text="Ancient Red Dragon",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         context = RenderingContext(
@@ -372,7 +372,7 @@ class TestHyperlinkEnhancer:
             name="Dragon Wyrmling",
             display_text="Red Dragon Wyrmling",
             source="MM",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         ref_id = enhancer._generate_ref_id(content_info)
@@ -382,7 +382,7 @@ class TestHyperlinkEnhancer:
         content_info_no_source = ContentReferenceInfo(
             name="Fireball",
             display_text="fireball",
-            content_type=ContentType.SPELL,
+            content_type=ContentType("spell"),
         )
 
         ref_id_no_source = enhancer._generate_ref_id(content_info_no_source)
@@ -401,7 +401,7 @@ class TestHyperlinkEnhancer:
         content_info = ContentReferenceInfo(
             name="Dragon",
             display_text="Ancient Red Dragon",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         context = RenderingContext(
@@ -442,7 +442,7 @@ class TestContentTrackerEnhancer:
             display_text="Ancient Red Dragon",
             source="MM",
             page="5",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         context = RenderingContext(
@@ -475,7 +475,7 @@ class TestContentTrackerEnhancer:
         content_info = ContentReferenceInfo(
             name="Dragon",
             display_text="Ancient Red Dragon",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         context = RenderingContext(
@@ -498,7 +498,7 @@ class TestContentTrackerEnhancer:
         content_info = ContentReferenceInfo(
             name="Dragon",
             display_text="Ancient Red Dragon",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         context = RenderingContext(
@@ -522,7 +522,7 @@ class TestContentTrackerEnhancer:
         content_info = ContentReferenceInfo(
             name="Dragon",
             display_text="Ancient Red Dragon",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         context = RenderingContext(
@@ -577,7 +577,7 @@ class TestValidationEnhancer:
         content_info = ContentReferenceInfo(
             name="Dragon",
             display_text="Ancient Red Dragon",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         context = RenderingContext(
@@ -596,7 +596,7 @@ class TestValidationEnhancer:
         content_info = ContentReferenceInfo(
             name="   ",  # Whitespace only name (passes min_length but suspicious)
             display_text="Some display text",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         context = RenderingContext(
@@ -620,7 +620,7 @@ class TestValidationEnhancer:
         content_info = ContentReferenceInfo(
             name="Dragon",
             display_text="Ancient Red Dragon",
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
         )
 
         context = RenderingContext(

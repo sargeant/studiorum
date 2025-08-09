@@ -26,13 +26,6 @@ class TestConvertAdventureCommand:
         # Reset global state for complete isolation
         reset_test_environment()
 
-        # Reset global state for test isolation using service container
-        from dnd5e.core.cache import CacheManager
-        from dnd5e.core.container import reset_all_services
-
-        CacheManager.reset()
-        reset_all_services()
-
         self.runner = CliRunner()
         self.mock_adventure_data = {
             "adventure": [
@@ -287,13 +280,6 @@ class TestConvertBookCommand:
         """Set up test fixtures."""
         # Reset global state for complete isolation
         reset_test_environment()
-
-        # Reset global state for test isolation using service container
-        from dnd5e.core.cache import CacheManager
-        from dnd5e.core.container import reset_all_services
-
-        CacheManager.reset()
-        reset_all_services()
 
         self.runner = CliRunner()
         self.mock_book_data = {
@@ -874,13 +860,6 @@ class TestLaTeXDocumentOptions:
         """Set up test fixtures."""
         # Reset global state for complete isolation
         reset_test_environment()
-
-        # Reset global state for test isolation using service container
-        from dnd5e.core.cache import CacheManager
-        from dnd5e.core.container import reset_all_services
-
-        CacheManager.reset()
-        reset_all_services()
 
         self.runner = CliRunner()
         self.mock_adventure_data = {

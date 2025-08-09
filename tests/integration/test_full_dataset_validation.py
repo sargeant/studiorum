@@ -171,12 +171,12 @@ class TestFullDatasetValidation:
 
         source_manager: Any = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
-        spell_files = data_paths.get(ContentType.SPELL, [])
+        spell_files = data_paths.get(ContentType("spell"), [])
 
         if not spell_files:
             pytest.skip("No spell data files found")
 
-        spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
+        spell_loader = JsonDataLoader.create_for_type(ContentType("spell"))
 
         for spell_file in spell_files:
             if not spell_file.exists():
@@ -218,12 +218,12 @@ class TestFullDatasetValidation:
 
         source_manager: Any = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
-        creature_files = data_paths.get(ContentType.CREATURE, [])
+        creature_files = data_paths.get(ContentType("creature"), [])
 
         if not creature_files:
             pytest.skip("No creature data files found")
 
-        creature_loader = JsonDataLoader.create_for_type(ContentType.CREATURE)
+        creature_loader = JsonDataLoader.create_for_type(ContentType("creature"))
 
         for creature_file in creature_files:
             if not creature_file.exists():
@@ -267,12 +267,12 @@ class TestFullDatasetValidation:
 
         source_manager: Any = FileSystemSourceManager()
         data_paths = source_manager.get_data_paths()
-        item_files = data_paths.get(ContentType.ITEM, [])
+        item_files = data_paths.get(ContentType("item"), [])
 
         if not item_files:
             pytest.skip("No item data files found")
 
-        item_loader = JsonDataLoader.create_for_type(ContentType.ITEM)
+        item_loader = JsonDataLoader.create_for_type(ContentType("item"))
 
         for item_file in item_files:
             if not item_file.exists():
@@ -396,9 +396,9 @@ class TestFullDatasetValidation:
         data_paths = source_manager.get_data_paths()
 
         # Test spell consistency
-        spell_files = data_paths.get(ContentType.SPELL, [])[:5]  # Test subset
+        spell_files = data_paths.get(ContentType("spell"), [])[:5]  # Test subset
         if spell_files:
-            spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
+            spell_loader = JsonDataLoader.create_for_type(ContentType("spell"))
 
             loads: list[Any] = []
             for _ in range(3):  # Load same files 3 times
@@ -477,11 +477,11 @@ class TestFullDatasetValidation:
             Omnidexer(source_manager)
             # Load just spells for faster concurrent test
             data_paths = source_manager.get_data_paths()
-            spell_files = data_paths.get(ContentType.SPELL, [])[
+            spell_files = data_paths.get(ContentType("spell"), [])[
                 :3
             ]  # Just first 3 files
 
-            spell_loader = JsonDataLoader.create_for_type(ContentType.SPELL)
+            spell_loader = JsonDataLoader.create_for_type(ContentType("spell"))
             total_spells = 0
             for spell_file in spell_files:
                 if spell_file.exists():

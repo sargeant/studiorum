@@ -1,8 +1,9 @@
 """
-Standardized validation using Result pattern.
+Pydantic model validation using Result pattern.
 
-This module provides consistent validation patterns that use Result[T, E]
-instead of mixed exception/None return patterns.
+This module provides consistent validation patterns for Pydantic BaseModel
+instances using Result[T, E] instead of mixed exception/None return patterns.
+Handles field validation, model validation, and error formatting.
 """
 
 from __future__ import annotations

@@ -109,15 +109,15 @@ class OmnidexerStateMachine(RuleBasedStateMachine):
 
         # Content types should be valid
         valid_content_types = {
-            ContentType.SPELL.value,
-            ContentType.MONSTER.value,
-            ContentType.ITEM.value,
-            ContentType.CLASS.value,
-            ContentType.RACE.value,
-            ContentType.BACKGROUND.value,
-            ContentType.FEAT.value,
-            ContentType.ADVENTURE.value,
-            ContentType.BOOK.value,
+            ContentType("spell").value,
+            ContentType("monster").value,
+            ContentType("item").value,
+            ContentType("class").value,
+            ContentType("race").value,
+            ContentType("background").value,
+            ContentType("feat").value,
+            ContentType("adventure").value,
+            ContentType("book").value,
         }
 
         for content_type in stats.keys():

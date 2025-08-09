@@ -51,7 +51,7 @@ class SpellProcessor(ContentProcessor):
 
     def supports_content_type(self, content_type: ContentType) -> bool:
         """Check if processor supports spell content."""
-        return content_type == ContentType.SPELL
+        return content_type.value == "spell"
 
     def process(
         self, content: BaseContent, context: RenderingContext
@@ -214,7 +214,7 @@ class CreatureProcessor(ContentProcessor):
 
     def supports_content_type(self, content_type: ContentType) -> bool:
         """Check if processor supports creature content."""
-        return content_type == ContentType.CREATURE
+        return content_type.value == "creature"
 
     def process(
         self, content: BaseContent, context: RenderingContext
@@ -410,7 +410,7 @@ class ItemProcessor(ContentProcessor):
 
     def supports_content_type(self, content_type: ContentType) -> bool:
         """Check if processor supports item content."""
-        return content_type == ContentType.ITEM
+        return content_type.value == "item"
 
     def process(
         self, content: BaseContent, context: RenderingContext

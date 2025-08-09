@@ -1,11 +1,14 @@
 """Configurable source manager that integrates with the new content source system."""
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Any
 
 from ..config.sources import get_content_config
 from ..logging import get_logger
 from ..models.content import ContentType
+from ..registry.content_type_resolver import resolve_content_type
 from ..sources import ContentSourceManager
 from .base import SourceManager
 
@@ -114,10 +117,20 @@ class ConfigurableSourceManager(SourceManager):
                 assigned_files.add(path)
 
         # Files that should be shared between multiple content types
-        shared_files = {
-            "conditionsdiseases.json": [ContentType.CONDITION, ContentType.STATUS],
-            # Add other shared files as needed
-        }
+        # Using dynamic resolution to support decorator-registered types
+        try:
+            condition_type = resolve_content_type("condition")
+            status_type = resolve_content_type("status")
+            shared_files = {
+                "conditionsdiseases.json": [condition_type, status_type],
+                # Add other shared files as needed
+            }
+        except ValueError:
+            # Fallback if types not registered
+            shared_files = {}
+            logger.warning(
+                "Condition or status content types not registered, skipping shared file mapping"
+            )
 
         # Organize content types by priority
         fluff_content_types = [
@@ -157,8 +170,9 @@ class ConfigurableSourceManager(SourceManager):
                     # Check parent directory names
                     if any(pattern in parent_name for pattern in patterns):
                         # Special case: exclude monsterfeatures from feat matching
+                        # Use string comparison for safety with dynamic types
                         if (
-                            content_type == ContentType.FEAT
+                            content_type.value == "feat"
                             and "monsterfeature" in file_name
                         ):
                             continue
@@ -200,8 +214,9 @@ class ConfigurableSourceManager(SourceManager):
                     # Check filename patterns
                     if any(pattern in file_name for pattern in patterns):
                         # Special case: exclude monsterfeatures from feat matching
+                        # Use string comparison for safety with dynamic types
                         if (
-                            content_type == ContentType.FEAT
+                            content_type.value == "feat"
                             and "monsterfeature" in file_name
                         ):
                             continue
@@ -486,15 +501,27 @@ class ConfigurableSourceManager(SourceManager):
                 if self._is_metadata_file(file_path):
                     filename = file_path.name.lower()
 
-                    # Map metadata files to content types
+                    # Map metadata files to content types using dynamic resolution
                     if filename == "adventures.json":
-                        if ContentType.ADVENTURE not in metadata_paths:
-                            metadata_paths[ContentType.ADVENTURE] = []
-                        metadata_paths[ContentType.ADVENTURE].append(file_path)
+                        try:
+                            adventure_type = resolve_content_type("adventure")
+                            if adventure_type not in metadata_paths:
+                                metadata_paths[adventure_type] = []
+                            metadata_paths[adventure_type].append(file_path)
+                        except ValueError:
+                            logger.warning(
+                                "Adventure content type not registered, skipping adventures.json"
+                            )
                     elif filename == "books.json":
-                        if ContentType.BOOK not in metadata_paths:
-                            metadata_paths[ContentType.BOOK] = []
-                        metadata_paths[ContentType.BOOK].append(file_path)
+                        try:
+                            book_type = resolve_content_type("book")
+                            if book_type not in metadata_paths:
+                                metadata_paths[book_type] = []
+                            metadata_paths[book_type].append(file_path)
+                        except ValueError:
+                            logger.warning(
+                                "Book content type not registered, skipping books.json"
+                            )
 
         logger.info("Discovered metadata files:")
         for content_type, paths in metadata_paths.items():
@@ -524,15 +551,27 @@ class ConfigurableSourceManager(SourceManager):
                 if self._is_content_file(file_path):
                     filename = file_path.name.lower()
 
-                    # Map content files to content types
+                    # Map content files to content types using dynamic resolution
                     if filename.startswith("adventure-"):
-                        if ContentType.ADVENTURE not in content_paths:
-                            content_paths[ContentType.ADVENTURE] = []
-                        content_paths[ContentType.ADVENTURE].append(file_path)
+                        try:
+                            adventure_type = resolve_content_type("adventure")
+                            if adventure_type not in content_paths:
+                                content_paths[adventure_type] = []
+                            content_paths[adventure_type].append(file_path)
+                        except ValueError:
+                            logger.warning(
+                                "Adventure content type not registered, skipping adventure files"
+                            )
                     elif filename.startswith("book-"):
-                        if ContentType.BOOK not in content_paths:
-                            content_paths[ContentType.BOOK] = []
-                        content_paths[ContentType.BOOK].append(file_path)
+                        try:
+                            book_type = resolve_content_type("book")
+                            if book_type not in content_paths:
+                                content_paths[book_type] = []
+                            content_paths[book_type].append(file_path)
+                        except ValueError:
+                            logger.warning(
+                                "Book content type not registered, skipping book files"
+                            )
 
         logger.info("Discovered content files:")
         for content_type, paths in content_paths.items():
