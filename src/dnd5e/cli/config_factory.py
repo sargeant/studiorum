@@ -47,9 +47,14 @@ def get_font_size_default() -> str:
     return get_app_config().rendering.latex.document.font_size
 
 
-def get_background_default() -> str | None:
+def get_background_default() -> str:
     """Get default background from config."""
     return get_app_config().rendering.latex.document.background
+
+
+def get_high_contrast_default() -> bool:
+    """Get default high contrast setting from config."""
+    return get_app_config().rendering.latex.document.high_contrast
 
 
 def get_two_column_default() -> bool:

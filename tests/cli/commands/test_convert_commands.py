@@ -957,6 +957,7 @@ class TestLaTeXDocumentOptions:
                     "12pt",
                     "--background",
                     "print",
+                    "--high-contrast",
                     "--one-column",
                     "--not-justified",
                 ],
@@ -978,6 +979,7 @@ class TestLaTeXDocumentOptions:
             assert latex_config.document.paper_size == "a4"
             assert latex_config.document.font_size == "12pt"
             assert latex_config.document.background == "print"
+            assert latex_config.document.high_contrast is True
             assert latex_config.document.two_column is False
             assert latex_config.document.justified_text is False
 
@@ -1057,7 +1059,7 @@ class TestLaTeXDocumentOptions:
             assert latex_config.document.document_class == "dndbook"
             assert latex_config.document.paper_size == "letter"  # default from settings
             assert latex_config.document.font_size == "11pt"
-            assert latex_config.document.background is None  # default no background
+            assert latex_config.document.background == "full"  # new default background
             assert latex_config.document.two_column is True
             assert latex_config.document.justified_text is False
 
@@ -1107,6 +1109,8 @@ class TestLaTeXDocumentOptions:
         mock_config.rendering.latex.document.paper_size = "a5"
         mock_config.rendering.latex.document.fonts = None
         mock_config.rendering.latex.document.no_outline = False
+        mock_config.rendering.latex.document.background = "full"
+        mock_config.rendering.latex.document.high_contrast = False
         mock_get_app_config.return_value = mock_config
 
         # Mock file operations

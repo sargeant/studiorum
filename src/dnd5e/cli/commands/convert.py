@@ -15,6 +15,7 @@ from dnd5e.cli.config_factory import (
     get_document_class_default,
     get_font_size_default,
     get_fonts_default,
+    get_high_contrast_default,
     get_justified_default,
     get_no_outline_default,
     get_paper_default,
@@ -256,11 +257,14 @@ def convert_adventure(
     font_size: str = typer.Option(
         get_font_size_default(), "--font-size", help="Base font size (10pt, 11pt, 12pt)"
     ),
-    background: str | None = typer.Option(
+    background: str = typer.Option(
         get_background_default(),
         "--background",
         "--bg",
-        help="Background style (print, none, full)",
+        help="Background style (full, none, print)",
+    ),
+    high_contrast: bool = typer.Option(
+        get_high_contrast_default(), "--high-contrast", help="Use high contrast mode"
     ),
     two_column: bool = typer.Option(
         get_two_column_default(),
@@ -329,6 +333,7 @@ def convert_adventure(
                 paper_size=actual_paper_size,
                 font_size=font_size,
                 background=background,
+                high_contrast=high_contrast,
                 two_column=two_column,
                 justified_text=justified,
                 fonts=actual_fonts,
@@ -449,11 +454,14 @@ def convert_book(
     font_size: str = typer.Option(
         get_font_size_default(), "--font-size", help="Base font size (10pt, 11pt, 12pt)"
     ),
-    background: str | None = typer.Option(
+    background: str = typer.Option(
         get_background_default(),
         "--background",
         "--bg",
-        help="Background style (print, none, full)",
+        help="Background style (full, none, print)",
+    ),
+    high_contrast: bool = typer.Option(
+        get_high_contrast_default(), "--high-contrast", help="Use high contrast mode"
     ),
     two_column: bool = typer.Option(
         get_two_column_default(),
@@ -522,6 +530,7 @@ def convert_book(
                 paper_size=actual_paper_size,
                 font_size=font_size,
                 background=background,
+                high_contrast=high_contrast,
                 two_column=two_column,
                 justified_text=justified,
                 fonts=actual_fonts,
@@ -636,11 +645,14 @@ def convert_supplement(
     font_size: str = typer.Option(
         get_font_size_default(), "--font-size", help="Base font size (10pt, 11pt, 12pt)"
     ),
-    background: str | None = typer.Option(
+    background: str = typer.Option(
         get_background_default(),
         "--background",
         "--bg",
-        help="Background style (print, none, full)",
+        help="Background style (full, none, print)",
+    ),
+    high_contrast: bool = typer.Option(
+        get_high_contrast_default(), "--high-contrast", help="Use high contrast mode"
     ),
     two_column: bool = typer.Option(
         get_two_column_default(),
@@ -750,6 +762,7 @@ def convert_supplement(
                 paper_size=actual_paper_size,
                 font_size=font_size,
                 background=background,
+                high_contrast=high_contrast,
                 two_column=two_column,
                 justified_text=justified,
                 fonts=actual_fonts,

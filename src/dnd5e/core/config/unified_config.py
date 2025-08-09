@@ -151,8 +151,8 @@ class LaTeXDocumentConfig(BaseModel):
     font_scheme: Literal["dmsguild", "commercial", "system"] = Field(
         default="dmsguild", description="Font scheme to use"
     )
-    background: str | None = Field(
-        default=None, description="Background style (print, none, etc.)"
+    background: Literal["full", "none", "print"] = Field(
+        default="full", description="Background style (full, none, print)"
     )
     high_contrast: bool = Field(
         default=False, description="Use high contrast mode for printing"
