@@ -107,12 +107,10 @@ class TestConvertAdventureCommand:
     @patch("dnd5e.cli.commands.convert.ContentResolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
-    @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_adventure_with_abbreviation(
         self,
         mock_mkdir,
-        mock_builtin_open,
         mock_display,
         mock_renderer_class,
         mock_resolver_class,
@@ -120,10 +118,6 @@ class TestConvertAdventureCommand:
         mock_omnidexer,
     ):
         """Test converting adventure from abbreviation."""
-        # Mock file operations
-        mock_file = Mock()
-        mock_builtin_open.return_value.__enter__.return_value = mock_file
-
         # Mock dependencies
         mock_omnidexer.return_value = Omnidexer()
         mock_tag_resolver_instance = Mock(spec=TagResolver)

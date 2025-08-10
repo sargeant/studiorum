@@ -61,7 +61,13 @@ def reset_test_environment() -> None:
 
         reset_cli_globals()
 
-        # 7. Force garbage collection to clean up any lingering objects
+        # 7. Reset content configuration manager to use temporary config
+        from dnd5e.core.config.sources import reset_config_manager
+
+        reset_config_manager()
+        logger.debug("Configuration manager reset to use temporary config")
+
+        # 8. Force garbage collection to clean up any lingering objects
         gc.collect()
 
         logger.debug("Test environment reset completed")
