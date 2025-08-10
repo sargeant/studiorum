@@ -83,7 +83,7 @@ For complete architecture details, see the [Tag System Architecture Guide](../sy
 #### `src/dnd5e/renderers/core/compatibility.py` (208 lines)
 **Purpose**: Bridge between legacy and new systems during migration
 **Components**:
-- `LegacyHandlerAdapter`: Wraps CoreTagHandler for legacy interface
+- `LegacyHandlerAdapter`: Wraps TagHandler for legacy interface
 - `HybridTagRenderer`: Allows mixing legacy and new handlers
 - `LegacyCompatibilityManager`: Migration configuration management
 

@@ -16,10 +16,10 @@ from .enhancers import (
     create_plain_text_enhancement_pipeline,
 )
 from .interfaces import (
-    CoreTagHandler,
     EnhancementConfiguration,
     EnhancementPipeline,
     RenderingContext,
+    TagHandler,
     TagHandlerEnhancer,
     UnifiedTagRenderer,
 )
@@ -38,7 +38,7 @@ class StandardUnifiedRenderer(UnifiedTagRenderer):
     @classmethod
     def create_latex_renderer(
         cls,
-        core_handlers: list[CoreTagHandler],
+        core_handlers: list[TagHandler],
         hyperlink_manager: HyperlinkManager | None = None,
         content_tracker: ContentTracker | None = None,
         enable_hyperlinks: bool = True,
@@ -75,7 +75,7 @@ class StandardUnifiedRenderer(UnifiedTagRenderer):
     @classmethod
     def create_html_renderer(
         cls,
-        core_handlers: list[CoreTagHandler],
+        core_handlers: list[TagHandler],
         hyperlink_manager: HyperlinkManager | None = None,
         content_tracker: ContentTracker | None = None,
     ) -> StandardUnifiedRenderer:
@@ -108,7 +108,7 @@ class StandardUnifiedRenderer(UnifiedTagRenderer):
     @classmethod
     def create_markdown_renderer(
         cls,
-        core_handlers: list[CoreTagHandler],
+        core_handlers: list[TagHandler],
         content_tracker: ContentTracker | None = None,
     ) -> StandardUnifiedRenderer:
         """Create a renderer configured for Markdown output.
@@ -140,7 +140,7 @@ class AdaptiveRenderer:
 
     def __init__(
         self,
-        core_handlers: list[CoreTagHandler],
+        core_handlers: list[TagHandler],
         hyperlink_manager: HyperlinkManager | None = None,
         content_tracker: ContentTracker | None = None,
     ) -> None:
@@ -326,7 +326,7 @@ class EnhancementPipelineBuilder:
 
 
 def create_simple_latex_renderer(
-    core_handlers: list[CoreTagHandler],
+    core_handlers: list[TagHandler],
 ) -> StandardUnifiedRenderer:
     """Create a simple LaTeX renderer with minimal configuration.
 
@@ -344,7 +344,7 @@ def create_simple_latex_renderer(
 
 
 def create_full_latex_renderer(
-    core_handlers: list[CoreTagHandler],
+    core_handlers: list[TagHandler],
     hyperlink_manager: HyperlinkManager,
     content_tracker: ContentTracker,
 ) -> StandardUnifiedRenderer:
@@ -368,7 +368,7 @@ def create_full_latex_renderer(
 
 
 def create_debug_renderer(
-    core_handlers: list[CoreTagHandler],
+    core_handlers: list[TagHandler],
     output_format: str = "latex",
 ) -> StandardUnifiedRenderer:
     """Create a renderer optimized for debugging with enhanced validation.

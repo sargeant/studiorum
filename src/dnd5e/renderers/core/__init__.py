@@ -10,29 +10,29 @@ Architecture Overview:
 """
 
 from .handlers import (
-    CoreAdventureTagHandler,
-    CoreBookTagHandler,
-    CoreCreatureTagHandler,
-    CoreItemTagHandler,
-    CoreSpellTagHandler,
+    AdventureTagHandler,
+    BookTagHandler,
+    CreatureTagHandler,
+    ItemTagHandler,
+    SpellTagHandler,
 )
 from .interfaces import (
-    CoreTagHandler,
     EnhancementPipeline,
     RenderingContext,
+    TagHandler,
     TagHandlerEnhancer,
 )
 
 __all__ = [
     # Interfaces
-    "CoreTagHandler",
+    "TagHandler",
     "TagHandlerEnhancer",
     "EnhancementPipeline",
     "RenderingContext",
     # Core Handlers
-    "CoreCreatureTagHandler",
-    "CoreSpellTagHandler",
-    "CoreItemTagHandler",
-    "CoreAdventureTagHandler",
-    "CoreBookTagHandler",
+    "CreatureTagHandler",
+    "SpellTagHandler",
+    "ItemTagHandler",
+    "AdventureTagHandler",
+    "BookTagHandler",
 ]

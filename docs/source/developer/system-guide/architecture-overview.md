@@ -96,7 +96,7 @@ For comprehensive implementation details, usage patterns, and migration guide, s
 
 #### Context System (`src/dnd5e/core/base_context.py`)
 
-- **Hierarchical design**: `BaseContext` → `CoreContext` → specialized contexts
+- **Hierarchical design**: `BaseContext` → `Context` → specialized contexts
 - **Type safety**: Generic `ProcessingContext[T]` for compile-time guarantees
 - **Service injection**: `ServiceContext` for standardized dependency access
 - **Pydantic integration**: Full validation and serialization support

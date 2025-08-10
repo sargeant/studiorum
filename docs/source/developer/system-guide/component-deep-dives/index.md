@@ -34,7 +34,7 @@ The Implementation Guides provide detailed technical explanations of 5e2pdf's ke
 
 Comprehensive guide to the unified tag processing and rendering architecture:
 
-- Unified architecture separating business logic from presentation with CoreTagHandler protocol
+- Unified architecture separating business logic from presentation with TagHandler protocol
 - AST-based parsing with Lark parser and custom 5etools grammar for complex tag syntax
 - Core handler system processing 13+ tag types (creatures, spells, items, formatting, mechanics)
 - Enhancement pipeline with multi-stage presentation formatting (LaTeX, hyperlinks, content tracking)
@@ -248,7 +248,7 @@ src/dnd5e/
 │   └── unified_references.py # Generic reference system
 └── renderers/              # Output rendering system
     ├── core/              # Core tag handling (business logic)
-    │   ├── handlers.py    # CoreTagHandler implementations
+    │   ├── handlers.py    # TagHandler implementations
     │   └── interfaces.py  # Protocols, pipelines, UnifiedTagRenderer
     ├── latex/             # LaTeX-specific rendering
     │   ├── images/        # Image processing pipeline (4 components)

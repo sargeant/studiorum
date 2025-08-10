@@ -362,15 +362,15 @@ class Settings(BaseSettings):
 5e2pdf implements a hierarchical context system for consistent state management across different operations:
 
 ```python
-from dnd5e.core.base_context import BaseContext, CoreContext, ServiceContext
+from dnd5e.core.base_context import BaseContext, Context, ServiceContext
 
-class ProcessingContext[T](CoreContext):
+class ProcessingContext[T](Context):
     """Generic context for type-safe processing operations."""
     content: T = Field(description="Content being processed")
     content_type_name: str = Field(description="Type identifier")
     processing_options: dict[str, Any] = Field(default_factory=dict)
 
-class ServiceContext(CoreContext):
+class ServiceContext(Context):
     """Context with dependency injection support."""
     omnidexer: Omnidexer | None = Field(default=None)
     config: ApplicationConfig | LaTeXConfig | None = Field(default=None)
@@ -379,7 +379,7 @@ class ServiceContext(CoreContext):
 **Key Features:**
 - **Type Safety**: Generic `ProcessingContext[T]` ensures type consistency
 - **Service Injection**: `ServiceContext` provides standardized dependency access
-- **Inheritance Hierarchy**: `BaseContext` → `CoreContext` → specialized contexts
+- **Inheritance Hierarchy**: `BaseContext` → `Context` → specialized contexts
 - **Pydantic Integration**: Full validation and serialization support
 
 **Usage Pattern:**

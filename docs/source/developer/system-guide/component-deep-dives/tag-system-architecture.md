@@ -31,7 +31,7 @@ graph TD
     B --> C[AST Nodes]
     C --> D[UnifiedTagRenderer]
 
-    D --> E[CoreTagHandler]
+    D --> E[TagHandler]
     E --> F[ContentReferenceInfo]
 
     F --> G[EnhancementPipeline]
@@ -71,10 +71,10 @@ ast = parser.parse("{@creature goblin|MM|Goblin Warrior}")
 
 **Purpose**: Extract structured information from tags using business logic
 
-#### CoreTagHandler Protocol
+#### TagHandler Protocol
 ```python
 @runtime_checkable
-class CoreTagHandler(Protocol):
+class TagHandler(Protocol):
     def handles_tag_type(self, tag_type: str) -> bool: ...
     def extract_content_info(self, node: TagNode, context: RenderingContext) -> ContentReferenceInfo: ...
     def should_include_page_reference(self, page: str | None) -> bool: ...
@@ -142,7 +142,7 @@ class UnifiedTagRenderer:
 ### Complete Tag Processing Flow
 
 1. **Text Parsing**: Raw 5etools text → AST nodes
-2. **Handler Selection**: Tag type → appropriate CoreTagHandler
+2. **Handler Selection**: Tag type → appropriate TagHandler
 3. **Information Extraction**: AST node → ContentReferenceInfo
 4. **Enhancement Processing**: ContentReferenceInfo → formatted output
 5. **Integration**: Formatted tags embedded in final document
@@ -183,14 +183,14 @@ content_info = ContentReferenceInfo(
 
 Handle references to D&D content with omnidexer integration:
 
-- **CoreCreatureTagHandler**: Creatures (bold formatting)
-- **CoreSpellTagHandler**: Spells (italic formatting)
-- **CoreItemTagHandler**: Items (italic formatting)
-- **CoreClassTagHandler**: Classes (bold formatting)
-- **CoreFeatTagHandler**: Feats (bold formatting)
-- **CoreRaceTagHandler**: Races (plain formatting)
-- **CoreBackgroundTagHandler**: Backgrounds (plain formatting)
-- **CoreConditionTagHandler**: Conditions (italic formatting)
+- **CreatureTagHandler**: Creatures (bold formatting)
+- **SpellTagHandler**: Spells (italic formatting)
+- **ItemTagHandler**: Items (italic formatting)
+- **ClassTagHandler**: Classes (bold formatting)
+- **FeatTagHandler**: Feats (bold formatting)
+- **RaceTagHandler**: Races (plain formatting)
+- **BackgroundTagHandler**: Backgrounds (plain formatting)
+- **ConditionTagHandler**: Conditions (italic formatting)
 
 **Common Features**:
 - Content validation via omnidexer lookups
@@ -202,7 +202,7 @@ Handle references to D&D content with omnidexer integration:
 
 Handle text formatting with nested tag support:
 
-- **CoreFormattingTagHandler**: Processes `@i`, `@b`, `@code`, `@tt`
+- **FormattingTagHandler**: Processes `@i`, `@b`, `@code`, `@tt`
 - **Returns FormattingNode objects** for presentation layer
 - **Nested processing**: `{@i {@b text}}` → `\textit{\textbf{text}}`
 
@@ -210,29 +210,29 @@ Handle text formatting with nested tag support:
 
 Handle game mechanics and special tags:
 
-- **CoreDCTagHandler**: Difficulty Class references
-- **CoreDiceTagHandler**: Dice roll expressions
+- **DCTagHandler**: Difficulty Class references
+- **DiceTagHandler**: Dice roll expressions
 - **Adventure/Book handlers**: Special page reference handling
 
 ### Handler Registration
 
 ```python
-def get_default_core_handlers() -> list[CoreTagHandler]:
+def get_default_core_handlers() -> list[TagHandler]:
     """Get all default core handlers."""
     return [
-        CoreCreatureTagHandler(),
-        CoreSpellTagHandler(),
-        CoreItemTagHandler(),
-        CoreClassTagHandler(),
-        CoreFeatTagHandler(),
-        CoreRaceTagHandler(),
-        CoreBackgroundTagHandler(),
-        CoreAdventureTagHandler(),
-        CoreBookTagHandler(),
-        CoreConditionTagHandler(),
-        CoreDCTagHandler(),
-        CoreDiceTagHandler(),
-        CoreFormattingTagHandler(),
+        CreatureTagHandler(),
+        SpellTagHandler(),
+        ItemTagHandler(),
+        ClassTagHandler(),
+        FeatTagHandler(),
+        RaceTagHandler(),
+        BackgroundTagHandler(),
+        AdventureTagHandler(),
+        BookTagHandler(),
+        ConditionTagHandler(),
+        DCTagHandler(),
+        DiceTagHandler(),
+        FormattingTagHandler(),
     ]
 ```
 
@@ -344,7 +344,7 @@ elif tag_type == "deity":
 
 3. **Create Handler**:
 ```python
-class CoreDeityTagHandler:
+class DeityTagHandler:
     def handles_tag_type(self, tag_type: str) -> bool:
         return tag_type == "deity"
 
@@ -362,7 +362,7 @@ class CoreDeityTagHandler:
 def get_default_core_handlers():
     return [
         # ... existing handlers
-        CoreDeityTagHandler(),
+        DeityTagHandler(),
     ]
 ```
 

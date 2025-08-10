@@ -46,14 +46,14 @@ class BaseContext(Protocol):
         ...
 ```
 
-### Class: CoreContext
+### Class: Context
 
 Base implementation providing common fields for all contexts.
 
 ```python
 from pydantic import BaseModel, Field
 
-class CoreContext(BaseModel):
+class Context(BaseModel):
     """Core context with standardized source tracking and content fields."""
 
     # Content and processing
@@ -78,7 +78,7 @@ class CoreContext(BaseModel):
 Generic context for type-safe processing operations.
 
 ```python
-class ProcessingContext[T](CoreContext):
+class ProcessingContext[T](Context):
     """Generic context for type-safe processing operations."""
 
     content: T = Field(description="Content being processed")
@@ -104,7 +104,7 @@ spell_context = ProcessingContext[Spell](
 Context with dependency injection and service access.
 
 ```python
-class ServiceContext(CoreContext):
+class ServiceContext(Context):
     """Context with standardized service access."""
 
     config: Any = Field(default=None)

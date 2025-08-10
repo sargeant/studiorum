@@ -9,11 +9,11 @@ import pytest
 from dnd5e.core.models.content import ContentType
 from dnd5e.renderers.core.interfaces import (
     ContentReferenceInfo,
-    CoreTagHandler,
     EnhancementConfiguration,
     EnhancementPipeline,
     FormatStyle,
     RenderingContext,
+    TagHandler,
     UnifiedTagRenderer,
 )
 from dnd5e.renderers.core.unified_renderer import (
@@ -117,7 +117,7 @@ class TestUnifiedTagRenderer:
 
     def test_render_tag_handler_error(self):
         """Test tag rendering when handler raises error."""
-        core_handler = Mock(spec=CoreTagHandler)
+        core_handler = Mock(spec=TagHandler)
         core_handler.handles_tag_type.return_value = True
         core_handler.extract_content_info.side_effect = Exception("Handler error")
 

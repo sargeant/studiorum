@@ -6,17 +6,17 @@ import pytest
 
 from dnd5e.core.models.content import ContentType
 from dnd5e.renderers.core.handlers import (
-    BaseCoreTagHandler,
-    CoreAdventureTagHandler,
-    CoreBackgroundTagHandler,
-    CoreBookTagHandler,
-    CoreClassTagHandler,
-    CoreConditionTagHandler,
-    CoreCreatureTagHandler,
-    CoreFeatTagHandler,
-    CoreItemTagHandler,
-    CoreRaceTagHandler,
-    CoreSpellTagHandler,
+    AdventureTagHandler,
+    BackgroundTagHandler,
+    BaseTagHandler,
+    BookTagHandler,
+    ClassTagHandler,
+    ConditionTagHandler,
+    CreatureTagHandler,
+    FeatTagHandler,
+    ItemTagHandler,
+    RaceTagHandler,
+    SpellTagHandler,
     get_default_core_handlers,
 )
 from dnd5e.renderers.core.interfaces import (
@@ -27,26 +27,26 @@ from dnd5e.renderers.core.interfaces import (
 
 
 @pytest.mark.rendering
-class TestBaseCoreTagHandler:
+class TestBaseTagHandler:
     """Test the base core tag handler functionality."""
 
     def test_base_handler_initialization(self):
         """Test creating a base handler."""
-        handler = BaseCoreTagHandler("test", ContentType("creature"))
+        handler = BaseTagHandler("test", ContentType("creature"))
 
         assert handler.tag_type == "test"
         assert handler.content_type == ContentType("creature")
 
     def test_handles_tag_type(self):
         """Test tag type checking."""
-        handler = BaseCoreTagHandler("creature", ContentType("creature"))
+        handler = BaseTagHandler("creature", ContentType("creature"))
 
         assert handler.handles_tag_type("creature") is True
         assert handler.handles_tag_type("spell") is False
 
     def test_should_include_page_reference(self):
         """Test page reference business rule."""
-        handler = BaseCoreTagHandler("test", None)
+        handler = BaseTagHandler("test", None)
 
         # Page "1" should not be included
         assert handler.should_include_page_reference("1") is False
@@ -60,7 +60,7 @@ class TestBaseCoreTagHandler:
 
     def test_extract_display_text_with_display_text_nodes(self):
         """Test display text extraction with display_text_nodes."""
-        handler = BaseCoreTagHandler("test", None)
+        handler = BaseTagHandler("test", None)
         context = RenderingContext(output_format="latex")
 
         # Create mock node with display_text_nodes
@@ -78,7 +78,7 @@ class TestBaseCoreTagHandler:
 
     def test_extract_display_text_fallback_to_name(self):
         """Test display text extraction falling back to name."""
-        handler = BaseCoreTagHandler("test", None)
+        handler = BaseTagHandler("test", None)
         context = RenderingContext(output_format="latex")
 
         # Create mock node without display_text_nodes but with name
@@ -91,7 +91,7 @@ class TestBaseCoreTagHandler:
 
     def test_extract_display_text_final_fallback(self):
         """Test display text extraction final fallback to str(node)."""
-        handler = BaseCoreTagHandler("test", None)
+        handler = BaseTagHandler("test", None)
         context = RenderingContext(output_format="latex")
 
         # Create mock node without display_text_nodes or name
@@ -105,7 +105,7 @@ class TestBaseCoreTagHandler:
 
     def test_validate_content_reference_success(self):
         """Test successful content validation."""
-        handler = BaseCoreTagHandler("creature", ContentType("creature"))
+        handler = BaseTagHandler("creature", ContentType("creature"))
 
         # Create mock context with omnidexer
         mock_content = Mock()
@@ -129,7 +129,7 @@ class TestBaseCoreTagHandler:
 
     def test_validate_content_reference_not_found(self):
         """Test validation when content is not found."""
-        handler = BaseCoreTagHandler("creature", ContentType("creature"))
+        handler = BaseTagHandler("creature", ContentType("creature"))
 
         # Create mock context with omnidexer that returns None
         mock_omnidexer = Mock()
@@ -156,7 +156,7 @@ class TestBaseCoreTagHandler:
 
     def test_validate_content_reference_no_omnidexer(self):
         """Test validation when no omnidexer is available."""
-        handler = BaseCoreTagHandler("creature", ContentType("creature"))
+        handler = BaseTagHandler("creature", ContentType("creature"))
 
         context = RenderingContext(output_format="latex")  # No omnidexer
         mock_node = Mock()
@@ -168,7 +168,7 @@ class TestBaseCoreTagHandler:
 
     def test_track_content_for_appendix(self):
         """Test content tracking for appendix generation."""
-        handler = BaseCoreTagHandler("creature", ContentType("creature"))
+        handler = BaseTagHandler("creature", ContentType("creature"))
 
         # Create mock content tracker
         mock_tracker = Mock()
@@ -189,7 +189,7 @@ class TestBaseCoreTagHandler:
 
     def test_track_content_no_tracker(self):
         """Test content tracking when no tracker is available."""
-        handler = BaseCoreTagHandler("creature", ContentType("creature"))
+        handler = BaseTagHandler("creature", ContentType("creature"))
 
         context = RenderingContext(output_format="latex")  # No content_tracker
         mock_node = Mock()
@@ -204,7 +204,7 @@ class TestCreatureTagHandler:
 
     def test_creature_handler_initialization(self):
         """Test creature handler setup."""
-        handler = CoreCreatureTagHandler()
+        handler = CreatureTagHandler()
 
         assert handler.tag_type == "creature"
         assert handler.content_type == ContentType("creature")
@@ -213,7 +213,7 @@ class TestCreatureTagHandler:
 
     def test_extract_content_info(self):
         """Test extracting creature content information."""
-        handler = CoreCreatureTagHandler()
+        handler = CreatureTagHandler()
         context = RenderingContext(output_format="latex")
 
         # Create mock node
@@ -240,14 +240,14 @@ class TestSpellTagHandler:
 
     def test_spell_handler_initialization(self):
         """Test spell handler setup."""
-        handler = CoreSpellTagHandler()
+        handler = SpellTagHandler()
 
         assert handler.tag_type == "spell"
         assert handler.content_type == ContentType("spell")
 
     def test_extract_content_info(self):
         """Test extracting spell content information."""
-        handler = CoreSpellTagHandler()
+        handler = SpellTagHandler()
         context = RenderingContext(output_format="latex")
 
         # Create mock node
@@ -274,14 +274,14 @@ class TestItemTagHandler:
 
     def test_item_handler_initialization(self):
         """Test item handler setup."""
-        handler = CoreItemTagHandler()
+        handler = ItemTagHandler()
 
         assert handler.tag_type == "item"
         assert handler.content_type == ContentType("item")
 
     def test_extract_content_info(self):
         """Test extracting item content information."""
-        handler = CoreItemTagHandler()
+        handler = ItemTagHandler()
         context = RenderingContext(output_format="latex")
 
         # Create mock node
@@ -305,14 +305,14 @@ class TestAdventureTagHandler:
 
     def test_adventure_handler_initialization(self):
         """Test adventure handler setup."""
-        handler = CoreAdventureTagHandler()
+        handler = AdventureTagHandler()
 
         assert handler.tag_type == "adventure"
         assert handler.content_type == ContentType("adventure")
 
     def test_extract_content_info_with_page(self):
         """Test adventure content extraction with page reference."""
-        handler = CoreAdventureTagHandler()
+        handler = AdventureTagHandler()
         context = RenderingContext(output_format="latex")
 
         # Create mock node
@@ -333,7 +333,7 @@ class TestAdventureTagHandler:
 
     def test_extract_content_info_page_one(self):
         """Test adventure content extraction with page '1' (should be excluded)."""
-        handler = CoreAdventureTagHandler()
+        handler = AdventureTagHandler()
         context = RenderingContext(output_format="latex")
 
         # Create mock node with page "1"
@@ -357,14 +357,14 @@ class TestBookTagHandler:
 
     def test_book_handler_initialization(self):
         """Test book handler setup."""
-        handler = CoreBookTagHandler()
+        handler = BookTagHandler()
 
         assert handler.tag_type == "book"
         assert handler.content_type == ContentType("book")
 
     def test_extract_content_info_with_page(self):
         """Test book content extraction with page reference."""
-        handler = CoreBookTagHandler()
+        handler = BookTagHandler()
         context = RenderingContext(output_format="latex")
 
         # Create mock node
@@ -384,7 +384,7 @@ class TestBookTagHandler:
 
     def test_extract_content_info_page_one(self):
         """Test book content extraction with page '1' (should be included for books)."""
-        handler = CoreBookTagHandler()
+        handler = BookTagHandler()
         context = RenderingContext(output_format="latex")
 
         # Create mock node with page "1"
@@ -408,7 +408,7 @@ class TestConditionTagHandler:
 
     def test_condition_handler_initialization(self):
         """Test condition handler setup."""
-        handler = CoreConditionTagHandler()
+        handler = ConditionTagHandler()
 
         assert handler.tag_type == "condition"
         assert (
@@ -417,7 +417,7 @@ class TestConditionTagHandler:
 
     def test_extract_content_info_with_condition_attribute(self):
         """Test condition extraction using 'condition' attribute."""
-        handler = CoreConditionTagHandler()
+        handler = ConditionTagHandler()
         context = RenderingContext(output_format="latex")
 
         # Create mock node with condition attribute
@@ -436,7 +436,7 @@ class TestConditionTagHandler:
 
     def test_extract_content_info_fallback_to_name(self):
         """Test condition extraction falling back to 'name' attribute."""
-        handler = CoreConditionTagHandler()
+        handler = ConditionTagHandler()
         context = RenderingContext(output_format="latex")
 
         # Create mock node without condition but with name

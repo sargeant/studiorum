@@ -62,7 +62,7 @@ class ContextualError(Exception):
         return f"{base_msg} (content_type: {self.context.content_type})"
 
 
-class CoreContext(BaseModel, ABC):
+class Context(BaseModel, ABC):
     """Abstract base implementation for context objects.
 
     This provides common functionality that most context objects need,
@@ -118,7 +118,7 @@ class CoreContext(BaseModel, ABC):
         return self.model_copy(update=update_dict)
 
 
-class DocumentContext(CoreContext):
+class DocumentContext(Context):
     """Context for document-level operations.
 
     This context provides document-wide state and configuration,
@@ -146,7 +146,7 @@ class DocumentContext(CoreContext):
         return self.document_type
 
 
-class ProcessingContext[T](CoreContext):
+class ProcessingContext[T](Context):
     """Generic context for content processing operations.
 
     This context wraps content being processed and provides
@@ -177,7 +177,7 @@ class ProcessingContext[T](CoreContext):
         return self.model_copy(update={"processing_options": new_options})
 
 
-class ServiceContext(CoreContext):
+class ServiceContext(Context):
     """Context that provides access to application services.
 
     This context is used when operations need access to multiple

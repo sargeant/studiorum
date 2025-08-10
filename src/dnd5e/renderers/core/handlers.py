@@ -14,9 +14,9 @@ from dnd5e.core.models.content import ContentType
 
 from .interfaces import (
     ContentReferenceInfo,
-    CoreTagHandler,
     FormatStyle,
     RenderingContext,
+    TagHandler,
     TagValidationError,
 )
 
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class BaseCoreTagHandler:
+class BaseTagHandler:
     """Base implementation for core tag handlers with common business logic."""
 
     def __init__(self, tag_type: str, content_type: ContentType | None = None) -> None:
@@ -165,7 +165,7 @@ class BaseCoreTagHandler:
             context.content_tracker.add_content(self.tag_type, name, source, page)
 
 
-class CoreCreatureTagHandler(BaseCoreTagHandler):
+class CreatureTagHandler(BaseTagHandler):
     """Core handler for creature reference tags."""
 
     def __init__(self) -> None:
@@ -191,7 +191,7 @@ class CoreCreatureTagHandler(BaseCoreTagHandler):
         )
 
 
-class CoreSpellTagHandler(BaseCoreTagHandler):
+class SpellTagHandler(BaseTagHandler):
     """Core handler for spell reference tags."""
 
     def __init__(self) -> None:
@@ -217,7 +217,7 @@ class CoreSpellTagHandler(BaseCoreTagHandler):
         )
 
 
-class CoreItemTagHandler(BaseCoreTagHandler):
+class ItemTagHandler(BaseTagHandler):
     """Core handler for item reference tags."""
 
     def __init__(self) -> None:
@@ -243,7 +243,7 @@ class CoreItemTagHandler(BaseCoreTagHandler):
         )
 
 
-class CoreClassTagHandler(BaseCoreTagHandler):
+class ClassTagHandler(BaseTagHandler):
     """Core handler for class reference tags."""
 
     def __init__(self) -> None:
@@ -269,7 +269,7 @@ class CoreClassTagHandler(BaseCoreTagHandler):
         )
 
 
-class CoreFeatTagHandler(BaseCoreTagHandler):
+class FeatTagHandler(BaseTagHandler):
     """Core handler for feat reference tags."""
 
     def __init__(self) -> None:
@@ -295,7 +295,7 @@ class CoreFeatTagHandler(BaseCoreTagHandler):
         )
 
 
-class CoreRaceTagHandler(BaseCoreTagHandler):
+class RaceTagHandler(BaseTagHandler):
     """Core handler for race reference tags."""
 
     def __init__(self) -> None:
@@ -321,7 +321,7 @@ class CoreRaceTagHandler(BaseCoreTagHandler):
         )
 
 
-class CoreBackgroundTagHandler(BaseCoreTagHandler):
+class BackgroundTagHandler(BaseTagHandler):
     """Core handler for background reference tags."""
 
     def __init__(self) -> None:
@@ -347,7 +347,7 @@ class CoreBackgroundTagHandler(BaseCoreTagHandler):
         )
 
 
-class CoreAdventureTagHandler(BaseCoreTagHandler):
+class AdventureTagHandler(BaseTagHandler):
     """Core handler for adventure reference tags."""
 
     def __init__(self) -> None:
@@ -374,7 +374,7 @@ class CoreAdventureTagHandler(BaseCoreTagHandler):
         )
 
 
-class CoreBookTagHandler(BaseCoreTagHandler):
+class BookTagHandler(BaseTagHandler):
     """Core handler for book reference tags."""
 
     def __init__(self) -> None:
@@ -401,7 +401,7 @@ class CoreBookTagHandler(BaseCoreTagHandler):
         )
 
 
-class CoreConditionTagHandler(BaseCoreTagHandler):
+class ConditionTagHandler(BaseTagHandler):
     """Core handler for condition tags."""
 
     def __init__(self) -> None:
@@ -470,7 +470,7 @@ class CoreConditionTagHandler(BaseCoreTagHandler):
         )
 
 
-class CoreDCTagHandler:
+class DCTagHandler:
     """Core handler for difficulty class (@dc) tags.
 
     This handler processes DC tags that specify difficulty classes,
@@ -537,7 +537,7 @@ class CoreDCTagHandler:
         pass
 
 
-class CoreDiceTagHandler:
+class DiceTagHandler:
     """Core handler for dice (@dice) tags.
 
     This handler processes dice tags that specify dice expressions,
@@ -604,7 +604,7 @@ class CoreDiceTagHandler:
         pass
 
 
-class CoreCardTagHandler(BaseCoreTagHandler):
+class CardTagHandler(BaseTagHandler):
     """Core handler for card (@card) tags.
 
     This handler processes card tags and returns the card name
@@ -656,7 +656,7 @@ class CoreCardTagHandler(BaseCoreTagHandler):
         return escape_latex_text(card_name)
 
 
-class CoreFormattingTagHandler(BaseCoreTagHandler):
+class FormattingTagHandler(BaseTagHandler):
     """Core handler for formatting tags like @i (italic) and @b (bold).
 
     This handler processes pure formatting tags that don't reference content,
@@ -820,21 +820,21 @@ class CoreFormattingTagHandler(BaseCoreTagHandler):
 
 
 # Registry of core handlers for easy access
-def get_default_core_handlers() -> list[CoreTagHandler]:
+def get_default_core_handlers() -> list[TagHandler]:
     """Get the list of default core tag handlers."""
     return [
-        CoreCreatureTagHandler(),
-        CoreSpellTagHandler(),
-        CoreItemTagHandler(),
-        CoreClassTagHandler(),
-        CoreFeatTagHandler(),
-        CoreRaceTagHandler(),
-        CoreBackgroundTagHandler(),
-        CoreAdventureTagHandler(),
-        CoreBookTagHandler(),
-        CoreConditionTagHandler(),
-        CoreDCTagHandler(),
-        CoreDiceTagHandler(),
-        CoreCardTagHandler(),
-        CoreFormattingTagHandler(),
+        CreatureTagHandler(),
+        SpellTagHandler(),
+        ItemTagHandler(),
+        ClassTagHandler(),
+        FeatTagHandler(),
+        RaceTagHandler(),
+        BackgroundTagHandler(),
+        AdventureTagHandler(),
+        BookTagHandler(),
+        ConditionTagHandler(),
+        DCTagHandler(),
+        DiceTagHandler(),
+        CardTagHandler(),
+        FormattingTagHandler(),
     ]

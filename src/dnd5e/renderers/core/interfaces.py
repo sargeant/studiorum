@@ -84,7 +84,7 @@ class RenderingContext(BaseModel):
 
 
 @runtime_checkable
-class CoreTagHandler(Protocol):
+class TagHandler(Protocol):
     """Protocol defining the core tag handler interface.
 
     Core handlers contain only business logic - no presentation-specific formatting.
@@ -301,7 +301,7 @@ class UnifiedTagRenderer:
 
     def __init__(
         self,
-        core_handlers: list[CoreTagHandler],
+        core_handlers: list[TagHandler],
         enhancement_pipeline: EnhancementPipeline,
         config: EnhancementConfiguration | None = None,
     ) -> None:

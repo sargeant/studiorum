@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from dnd5e.core.logging import get_logger
 from dnd5e.renderers.core.handlers import get_default_core_handlers
-from dnd5e.renderers.core.interfaces import CoreTagHandler, RenderingContext
+from dnd5e.renderers.core.interfaces import RenderingContext, TagHandler
 from dnd5e.renderers.core.unified_renderer import StandardUnifiedRenderer
 
 from .tag_parser import TagParseError, TagParser
@@ -94,7 +94,7 @@ class TagResolver(BaseModel):
             )
             return text
 
-    def register_handler(self, handler: CoreTagHandler) -> None:
+    def register_handler(self, handler: TagHandler) -> None:
         """Register a new core tag handler."""
         # Add to the core handlers list
         self.renderer.core_handlers.append(handler)

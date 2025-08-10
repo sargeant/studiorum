@@ -162,7 +162,7 @@ Tags are validated against the omnidexer content database:
 #### Processing Pipeline
 
 1. **Parsing**: Text with tags → AST nodes
-2. **Handler Selection**: Tag type → CoreTagHandler
+2. **Handler Selection**: Tag type → TagHandler
 3. **Information Extraction**: AST → ContentReferenceInfo
 4. **Enhancement**: Multi-stage presentation formatting
 5. **Output**: Final formatted text (LaTeX, HTML, etc.)
