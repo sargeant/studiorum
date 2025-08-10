@@ -221,12 +221,10 @@ class TestOmnidexer:
         assert omnidexer.is_loaded(self._get_content_type("spell"))
         assert omnidexer.is_loaded(self._get_content_type("creature"))
 
-        # Note: "spellFluff" falls back to SPELL in our helper function since it's not a static enum member
-        # The original test expected spellFluff to not be loaded, but our fallback makes it equivalent to SPELL
-        # For now, we test that the fallback behavior works correctly
-        assert omnidexer.is_loaded(
+        # SPELL_FLUFF is a real content type but not loaded in this test fixture
+        assert not omnidexer.is_loaded(
             self._get_content_type("spellFluff")
-        )  # Falls back to SPELL
+        )  # SPELL_FLUFF not loaded in test fixture
 
     def test_statistics(self, loaded_omnidexer: Any) -> None:
         """Test statistics generation."""
