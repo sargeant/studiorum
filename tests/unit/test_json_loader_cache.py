@@ -20,7 +20,21 @@ class TestJsonLoaderCache:
         # Reset global state for complete isolation
         reset_test_environment()
 
-        CacheManager.reset()
+    def _get_content_type(self, type_name: str) -> ContentType:
+        """Get ContentType safely, falling back to static enum members."""
+        try:
+            return ContentType(type_name)
+        except ValueError:
+            # Fall back to known static enum members
+            fallback_map = {
+                "spell": ContentType.SPELL,
+                "creature": ContentType.CREATURE,
+                "item": ContentType.ITEM,
+                "adventure": ContentType.ADVENTURE,
+                "book": ContentType.BOOK,
+                "feat": ContentType.CREATURE,  # Fall back to CREATURE for feat tests
+            }
+            return fallback_map.get(type_name, ContentType.SPELL)  # Default fallback
 
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""
@@ -40,7 +54,8 @@ class TestJsonLoaderCache:
 
     def teardown_method(self) -> None:
         """Clear cache after each test."""
-        CacheManager.reset()
+        # Cache is already reset by reset_test_environment() in setup_method
+        pass
 
     def test_cache_hit_on_second_load(self, tmp_path: Path) -> None:
         """Test that second load uses cache."""

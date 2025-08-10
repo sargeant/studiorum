@@ -6,7 +6,6 @@ import pytest
 
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.registry.content_type_resolver import (
-    _CompatibilityConstants,
     content_type_exists,
     get_all_content_types,
     get_content_type_names,
@@ -137,65 +136,6 @@ class TestContentTypeResolver:
         # All items should be strings
         for name in names:
             assert isinstance(name, str)
-
-    def test_compatibility_constants_valid(self) -> None:
-        """Test compatibility constants with valid content types."""
-        constants = _CompatibilityConstants()
-
-        # Test uppercase access
-        adventure = constants.ADVENTURE
-        assert adventure == ContentType.ADVENTURE
-        assert isinstance(adventure, ContentType)
-
-        book = constants.BOOK
-        assert book == ContentType.BOOK
-        assert isinstance(book, ContentType)
-
-    def test_compatibility_constants_invalid(self) -> None:
-        """Test compatibility constants with invalid content types."""
-        constants = _CompatibilityConstants()
-
-        with pytest.raises(AttributeError, match="ContentType 'INVALID' not found"):
-            _ = constants.INVALID
-
-        with pytest.raises(AttributeError, match="ContentType 'NONEXISTENT' not found"):
-            _ = constants.NONEXISTENT
-
-    def test_module_level_dynamic_access(self) -> None:
-        """Test module-level dynamic attribute access."""
-        from dnd5e.core.registry import content_type_resolver
-
-        # Test accessing known content types
-        adventure = content_type_resolver.ADVENTURE
-        assert adventure == ContentType.ADVENTURE
-        assert isinstance(adventure, ContentType)
-
-        book = content_type_resolver.BOOK
-        assert book == ContentType.BOOK
-        assert isinstance(book, ContentType)
-
-    def test_module_level_dynamic_access_invalid(self) -> None:
-        """Test module-level dynamic access with invalid types."""
-        from dnd5e.core.registry import content_type_resolver
-
-        with pytest.raises(AttributeError, match="ContentType 'INVALID' not found"):
-            _ = content_type_resolver.INVALID
-
-    def test_case_sensitivity(self) -> None:
-        """Test that content type resolution is case-insensitive via constants."""
-        constants = _CompatibilityConstants()
-
-        # Uppercase should work
-        adventure_upper = constants.ADVENTURE
-        assert adventure_upper == ContentType.ADVENTURE
-
-        # But direct resolution is case-sensitive
-        adventure_lower = resolve_content_type("adventure")
-        assert adventure_lower == ContentType.ADVENTURE
-
-        # Mixed case in constants should normalize to lowercase for resolution
-        book_mixed = constants.BOOK
-        assert book_mixed == ContentType.BOOK
 
     def test_error_chaining(self) -> None:
         """Test that ValueError is properly chained in resolve_content_type."""

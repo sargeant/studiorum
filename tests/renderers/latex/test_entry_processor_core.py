@@ -70,7 +70,7 @@ class TestRecursiveEntryProcessor:
 
         assert len(result) == 3
         assert result[0] == "processed_Plain text"
-        assert "\\section{Test Section}" in result[1]
+        assert "\\section{processed_Test Section}" in result[1]
         assert result[2] == "123"
 
     def test_process_entry_dict_section(self):
@@ -78,7 +78,7 @@ class TestRecursiveEntryProcessor:
         entry = {"type": "section", "name": "Test Section", "entries": ["Content here"]}
         result = self.processor.process_entry_dict(entry, self.context)
 
-        assert "\\section{Test Section}" in result
+        assert "\\section{processed_Test Section}" in result
         assert "processed_Content here" in result
 
     def test_process_entry_dict_entries_block(self):
@@ -90,7 +90,7 @@ class TestRecursiveEntryProcessor:
         }
         result = self.processor.process_entry_dict(entry, self.context)
 
-        assert "\\subsection{Entries Block}" in result
+        assert "\\subsection{processed_Entries Block}" in result
         assert "processed_Some content" in result
 
     def test_process_entry_dict_inset_readaloud(self):
@@ -233,7 +233,7 @@ class TestRecursiveEntryProcessor:
 
         assert "\\begin{itemize}" in result
         assert "\\item processed_String item" in result
-        assert "\\item \\subsection{Nested}" in result
+        assert "\\item \\subsection{processed_Nested}" in result
         assert "\\item 123" in result
 
     def test_process_entry_dict_table_with_dnd_template(self):
@@ -298,7 +298,7 @@ class TestRecursiveEntryProcessor:
         entry = {"name": "Generic Entry", "entries": ["Some content"]}
         result = self.processor.process_entry_dict(entry, self.context)
 
-        assert "\\subsection{Generic Entry}" in result
+        assert "\\subsection{processed_Generic Entry}" in result
         assert "processed_Some content" in result
 
     def test_process_section_depth_tracking(self):
@@ -316,8 +316,8 @@ class TestRecursiveEntryProcessor:
         }
         result = self.processor.process_entry_dict(section, self.context)
 
-        assert "\\section{Main Section}" in result
-        assert "\\subsection{Nested Section}" in result
+        assert "\\section{processed_Main Section}" in result
+        assert "\\subsection{processed_Nested Section}" in result
         assert "processed_Deep content" in result
 
     def test_get_section_command_all_depths(self):

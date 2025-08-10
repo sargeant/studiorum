@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.indexer.cross_reference_manager import (  # type: ignore
+from dnd5e.core.references.cross_reference_manager import (  # type: ignore
     CrossReference,
     CrossReferenceManager,
 )

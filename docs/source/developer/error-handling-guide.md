@@ -152,7 +152,7 @@ def process_entries(entries: list) -> Result[list[Entry], list[ValidationError]]
 ### Basic Validation
 
 ```python
-from dnd5e.core.validation_result import validate_model
+from dnd5e.core.model_validation import validate_model
 from dnd5e.core.models.spells import Spell
 
 result = validate_model(Spell, spell_data, source="phb.json")
@@ -280,7 +280,7 @@ logger.log_error(
 The system maintains compatibility with existing validation patterns:
 
 ```python
-from dnd5e.core.standardized_validation import migrate_validation_result
+from dnd5e.core.entry_validation import migrate_validation_result
 
 # Convert legacy ValidationResult to Result pattern
 legacy_result = entry_registry.validate_entry_structure(context)
@@ -297,7 +297,7 @@ entry = standardized_result.unwrap_or_else(
 Use compatibility wrappers for gradual migration:
 
 ```python
-from dnd5e.core.standardized_validation import create_compatibility_wrapper
+from dnd5e.core.entry_validation import create_compatibility_wrapper
 
 # Wrap new validator with legacy interface
 new_validator = StandardizedEntryValidator()

@@ -471,7 +471,7 @@ tests/
 
 The tag system has completed a major architectural refactoring:
 
-- **✅ COMPLETE**: Moved from `core/indexer/` to proper locations
+- **✅ COMPLETE**: Cross-reference system organized in `core/references/`
 - **✅ COMPLETE**: Separated business logic from presentation
 - **✅ COMPLETE**: Implemented composition-based handler architecture
 - **✅ COMPLETE**: Unified rendering pipeline with enhancement stages

@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Any, Protocol
 if TYPE_CHECKING:
     from dnd5e.cli.display_manager import DisplayManager
     from dnd5e.core.config.unified_config import ApplicationConfig
-    from dnd5e.core.content_type_resolver import RegistryBasedContentTypeResolver
     from dnd5e.core.entry_registry import EntryTypeRegistry
     from dnd5e.core.interfaces import ContentTypeRegistry
     from dnd5e.core.loaders.content_factory import ContentFactory
@@ -49,10 +48,6 @@ class ServiceContainer(Protocol):
 
     def get_content_factory(self) -> ContentFactory:
         """Get or create the content factory instance."""
-        ...
-
-    def get_content_type_resolver(self) -> RegistryBasedContentTypeResolver:
-        """Get or create the content type resolver instance."""
         ...
 
     def get_entry_registry(self) -> EntryTypeRegistry:
@@ -89,7 +84,6 @@ class DefaultServiceContainer:
         self._content_type_registry: ContentTypeRegistry | None = None
         self._display_manager: DisplayManager | None = None
         self._content_factory: ContentFactory | None = None
-        self._content_type_resolver: RegistryBasedContentTypeResolver | None = None
         self._entry_registry: EntryTypeRegistry | None = None
         self._app_config: ApplicationConfig | None = None
         self._reference_manager: ReferenceManager | None = None
@@ -210,27 +204,6 @@ class DefaultServiceContainer:
 
         return self._content_factory
 
-    def get_content_type_resolver(self) -> RegistryBasedContentTypeResolver:
-        """Get or create the content type resolver instance.
-
-        Returns:
-            The content type resolver instance
-
-        Raises:
-            RuntimeError: If container has been closed
-        """
-        self._check_not_closed()
-
-        if self._content_type_resolver is None:
-            logger.debug("Creating content type resolver instance")
-            from dnd5e.core.content_type_resolver import (
-                RegistryBasedContentTypeResolver,
-            )
-
-            self._content_type_resolver = RegistryBasedContentTypeResolver()
-
-        return self._content_type_resolver
-
     def get_entry_registry(self) -> EntryTypeRegistry:
         """Get or create the entry registry instance.
 
@@ -310,9 +283,9 @@ class DefaultServiceContainer:
         self._content_type_registry = None
         self._display_manager = None
         self._content_factory = None
-        self._content_type_resolver = None
         self._entry_registry = None
         self._app_config = None
+        self._reference_manager = None
 
         self._closed = True
 
@@ -341,8 +314,6 @@ class DefaultServiceContainer:
                 services.append("display_manager")
             if self._content_factory is not None:
                 services.append("content_factory")
-            if self._content_type_resolver is not None:
-                services.append("content_type_resolver")
             if self._entry_registry is not None:
                 services.append("entry_registry")
             if self._app_config is not None:

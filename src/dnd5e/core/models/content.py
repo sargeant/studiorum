@@ -35,11 +35,11 @@ class ContentType(str, Enum):
         Raises:
             ValueError: If content type cannot be determined
         """
-        # Use the registry-based resolver to avoid circular imports
-        from ..content_type_resolver import get_content_type_resolver
+        # Use the registry directly to avoid circular imports
+        from ..interfaces import get_content_type_registry
 
-        resolver = get_content_type_resolver()
-        return resolver.resolve_type(content)
+        registry = get_content_type_registry()
+        return registry.get_type(content)
 
 
 class Source(BaseModel):

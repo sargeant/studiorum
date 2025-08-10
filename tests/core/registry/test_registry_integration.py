@@ -4,6 +4,7 @@ import pytest
 
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.registry import initialize_content_types
+from tests.test_helpers import reset_test_environment
 
 
 class TestRegistryIntegration:
@@ -13,17 +14,7 @@ class TestRegistryIntegration:
         """Setup for each test."""
         # For integration tests, we need proper initialization
         # Use the standardized test environment reset
-        from tests.test_helpers import reset_test_environment
-
-        try:
-            reset_test_environment()
-        except Exception:
-            # Fallback to basic setup if test_helpers not available
-            from dnd5e.core.container import reset_global_container
-            from dnd5e.core.registry import initialize_content_types
-
-            initialize_content_types()
-            reset_global_container()
+        reset_test_environment()
 
     def test_full_system_initialization(self):
         """Test that the full registry initialization process works."""

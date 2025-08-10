@@ -35,7 +35,7 @@ models
 loaders
 renderers
 config
-indexer
+references
 protocols
 ```
 

@@ -765,7 +765,7 @@ class Creature(BaseContent):
 
     def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
         """Extract spell references from creature traits and actions."""
-        from ..references import SpellReferenceParser, SpellReferenceResolver
+        from dnd5e.core.references import SpellReferenceParser, SpellReferenceResolver
 
         spell_references = []
 

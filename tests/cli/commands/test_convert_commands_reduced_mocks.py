@@ -20,13 +20,6 @@ class TestConvertCommandsWithReducedMocking:
         # Reset global state for complete isolation
         reset_test_environment()
 
-        # Reset global state for test isolation using service container
-        from dnd5e.core.cache import CacheManager
-        from dnd5e.core.container import reset_all_services
-
-        CacheManager.reset()
-        reset_all_services()
-
         self.runner = CliRunner()
         self.test_data_dir = Path(__file__).parent.parent.parent.parent / "test-data"
 

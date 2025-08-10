@@ -90,8 +90,8 @@ class TestNewEntryTypes:
         result = self.processor.process_entry_dict(entry, self.context)
 
         assert "\\begin{itemize}" in result
-        assert "\\item \\subsection{Option 1}" in result
-        assert "\\item \\subsection{Option 2}" in result
+        assert "\\item \\subsection{processed_Option 1}" in result
+        assert "\\item \\subsection{processed_Option 2}" in result
         assert "processed_First choice description" in result
         assert "processed_Second choice description" in result
         assert "\\end{itemize}" in result

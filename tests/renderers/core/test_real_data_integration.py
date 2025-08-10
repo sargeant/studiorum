@@ -14,9 +14,9 @@ from unittest.mock import Mock, create_autospec
 
 import pytest
 
-from dnd5e.core.indexer.content_tracker import ContentTracker
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
+from dnd5e.core.references.content_tracker import ContentTracker
 from dnd5e.core.text.tag_ast import TagNode
 from dnd5e.renderers.core.handlers import get_default_core_handlers
 from dnd5e.renderers.core.interfaces import RenderingContext

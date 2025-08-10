@@ -30,13 +30,7 @@ def reset_test_environment() -> None:
         reset_global_container()
         logger.debug("Service container reset")
 
-        # 2. Reset the content type resolver (holds onto old registry instance)
-        from dnd5e.core.content_type_resolver import reset_content_type_resolver
-
-        reset_content_type_resolver()
-        logger.debug("Content type resolver reset")
-
-        # 3. Reset the content type registry instance (preserves decorator registrations)
+        # 2. Reset the content type registry instance (preserves decorator registrations)
         from dnd5e.core.registry.content_type_registry import (
             reset_content_type_registry,
         )
@@ -44,28 +38,34 @@ def reset_test_environment() -> None:
         reset_content_type_registry()
         logger.debug("Content type registry reset (preserving decorator registrations)")
 
-        # 4. Reset ContentFactory (clears both global instance and class state)
+        # 3. Reset ContentFactory (clears both global instance and class state)
         # Do this before initialize_content_types() to ensure clean state
         from dnd5e.core.loaders.content_factory import reset_content_factory
 
         reset_content_factory()
 
-        # 5. Initialize the content type registry (critical for all systems)
+        # 4. Initialize the content type registry (critical for all systems)
         # This must happen after service container reset to populate the fresh registry
         from dnd5e.core.registry import initialize_content_types
 
         initialize_content_types()
         logger.debug("Content type registry initialized")
 
-        # 6. Reset disk-based cache
+        # 5. Reset disk-based cache
         from dnd5e.core.cache import CacheManager
 
         CacheManager.reset()
 
-        # 7. Reset CLI-specific globals
+        # 6. Reset CLI-specific globals
         from dnd5e.cli.main import reset_cli_globals
 
         reset_cli_globals()
+
+        # 7. Reset content configuration manager to use temporary config
+        from dnd5e.core.config.sources import reset_config_manager
+
+        reset_config_manager()
+        logger.debug("Configuration manager reset to use temporary config")
 
         # 8. Force garbage collection to clean up any lingering objects
         gc.collect()

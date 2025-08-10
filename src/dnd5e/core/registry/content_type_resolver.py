@@ -95,32 +95,3 @@ def get_content_type_names() -> list[str]:
         True
     """
     return sorted(ct.value for ct in get_all_content_types())
-
-
-# Cached compatibility constants - populated dynamically
-class _CompatibilityConstants:
-    """Dynamic compatibility constants for common content types."""
-
-    def __getattr__(self, name: str) -> ContentType:
-        """Dynamic attribute access for content types."""
-        try:
-            # Convert UPPER_CASE to lowercase for enum lookup
-            enum_value = name.lower()
-            return resolve_content_type(enum_value)
-        except ValueError:
-            raise AttributeError(f"ContentType '{name}' not found")
-
-
-# Module-level compatibility instance
-_constants = _CompatibilityConstants()
-
-
-# Common content types - these will be resolved dynamically
-def __getattr__(name: str) -> ContentType:
-    """Module-level dynamic attribute access for content types."""
-    # Explicitly type cast to satisfy mypy - the _CompatibilityConstants.__getattr__
-    # method returns ContentType, but mypy needs explicit confirmation
-    from typing import cast
-
-    result = getattr(_constants, name)
-    return cast(ContentType, result)

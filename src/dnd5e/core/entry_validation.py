@@ -1,9 +1,9 @@
 """
-Standardized validation using Result pattern.
+Entry registry validation using Result pattern.
 
-This module demonstrates how to integrate the Result[T, E] pattern with
-the existing validation infrastructure, providing a migration path from
-the current ValidationResult pattern to the standardized Result pattern.
+This module provides validation for entry data structures using the Result[T, E]
+pattern. It handles validation of entries in the entry registry system with
+standardized error reporting and type safety.
 """
 
 from __future__ import annotations
@@ -27,8 +27,8 @@ from dnd5e.core.error_types import (
     create_unknown_type_error,
     create_validation_error,
 )
+from dnd5e.core.model_validation import validate_model, validate_required_field
 from dnd5e.core.result import Error, Result, Success, collect_results
-from dnd5e.core.validation_result import validate_model, validate_required_field
 
 logger = logging.getLogger(__name__)
 
