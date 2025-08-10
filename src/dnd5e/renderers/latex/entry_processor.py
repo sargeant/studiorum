@@ -374,14 +374,31 @@ class RecursiveEntryProcessor:
         else:
             env = "itemize"
 
-        result = [f"\\begin{{{env}}}"]
+        # Check for Credits-style structure: first item is a list, rest are entries
+        is_credits_style = (
+            env == "description"
+            and len(items) > 1
+            and items[0].get("type") == "list"
+            and all(
+                isinstance(item, dict) and item.get("type") == "entries"
+                for item in items[1:]
+            )
+        )
 
-        for item in items:
+        if is_credits_style:
+            # For Credits-style structure, don't wrap the first list in an outer list
+            result = []
+            list_is_open = False
+        else:
+            result = [f"\\begin{{{env}}}"]
+            list_is_open = True
+
+        for i, item in enumerate(items):
             if isinstance(item, str):
                 if env == "description":
-                    # For description lists, use empty label
+                    # For description lists, use mbox for consistent spacing
                     result.append(
-                        f"\\item[] {self._process_text_with_tags(item, context)}"
+                        f"\\item[\\mbox{{}}] {self._process_text_with_tags(item, context)}"
                     )
                 else:
                     result.append(
@@ -390,60 +407,15 @@ class RecursiveEntryProcessor:
             elif isinstance(item, dict):
                 # Handle nested entries in list items
                 if item.get("type") == "list":
-                    # Check if this is a credits-style nested description list that should be flattened
-                    nested_list_type = item.get("style", "unordered")
-                    nested_items = item.get("items", [])
-
-                    if (
-                        env == "description"
-                        and nested_list_type in ["list-hang-notitle", "list-hang"]
-                        and all(
-                            isinstance(nested_item, dict) and nested_item.get("name")
-                            for nested_item in nested_items[:5]
-                        )
-                    ):  # Check first 5 items
-                        # Flatten: process nested description items directly into parent list
-                        for nested_item in nested_items:
-                            if isinstance(nested_item, dict):
-                                nested_name = nested_item.get("name", "")
-                                if nested_name:
-                                    # Process the nested item's content, excluding the name since we use it as label
-                                    if (
-                                        nested_item.get("type") == "item"
-                                        and "entries" in nested_item
-                                    ):
-                                        # For "item" type, process only the entries, not the name
-                                        nested_content = "\n".join(
-                                            self.process_entries(
-                                                nested_item.get("entries", []), context
-                                            )
-                                        )
-                                    elif nested_item.get("type") == "entries":
-                                        nested_content = "\n".join(
-                                            self.process_entries(
-                                                nested_item.get("entries", []), context
-                                            )
-                                        )
-                                    else:
-                                        nested_content = self.process_entry_dict(
-                                            nested_item, context
-                                        )
-
-                                    # Clean up the label - remove trailing period if present
-                                    clean_name = nested_name.rstrip(".")
-                                    escaped_name = self._process_text_with_tags(
-                                        clean_name, context
-                                    )
-                                    result.append(
-                                        f"\\item[{escaped_name}.] {nested_content}"
-                                    )
+                    processed_item = self.process_entry_dict(item, context)
+                    if is_credits_style and i == 0:
+                        # For Credits-style first list, include directly without wrapping
+                        result.append(processed_item)
+                    elif env == "description":
+                        # Use \item[\mbox{}] for better spacing in nested description lists
+                        result.append(f"\\item[\\mbox{{}}] {processed_item}")
                     else:
-                        # Normal nested list handling
-                        processed_item = self.process_entry_dict(item, context)
-                        if env == "description":
-                            result.append(f"\\item[] {processed_item}")
-                        else:
-                            result.append(f"\\item {processed_item}")
+                        result.append(f"\\item {processed_item}")
                 elif env == "description":
                     # For description lists, try to extract name as label
                     item_name = item.get("name", "")
@@ -476,18 +448,38 @@ class RecursiveEntryProcessor:
                             label = f"{processed_name}."
                         result.append(f"\\item[{label}] {processed_content}")
                     else:
-                        processed_item = self.process_entry_dict(item, context)
-                        result.append(f"\\item[] {processed_item}")
+                        # Check if this is an entries block that should break out of the list
+                        if item.get("type") == "entries":
+                            # End the current list, process the entries block
+                            if list_is_open:
+                                result.append(f"\\end{{{env}}}")
+                                list_is_open = False
+                            processed_item = self.process_entry_dict(item, context)
+                            result.append(processed_item)
+                            # Check if we need to restart the list (if there are more non-entries items)
+                            remaining_items = items[i + 1 :]
+                            if any(
+                                isinstance(it, str | dict)
+                                and it.get("type") != "entries"
+                                for it in remaining_items
+                            ):
+                                result.append(f"\\begin{{{env}}}")
+                                list_is_open = True
+                        else:
+                            processed_item = self.process_entry_dict(item, context)
+                            result.append(f"\\item[\\mbox{{}}] {processed_item}")
                 else:
                     processed_item = self.process_entry_dict(item, context)
                     result.append(f"\\item {processed_item}")
             else:
                 if env == "description":
-                    result.append(f"\\item[] {str(item)}")
+                    result.append(f"\\item[\\mbox{{}}] {str(item)}")
                 else:
                     result.append(f"\\item {str(item)}")
 
-        result.append(f"\\end{{{env}}}")
+        # Only close the list if it's still open
+        if list_is_open:
+            result.append(f"\\end{{{env}}}")
         return "\n".join(result)
 
     def _process_table(self, table: dict[str, Any], context: RenderingContext) -> str:
