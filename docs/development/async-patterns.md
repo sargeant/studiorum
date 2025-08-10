@@ -157,13 +157,13 @@ async def update_repositories():
 ### LaTeX Template Rendering
 
 ```python
-from dnd5e.renderers.latex.templates import LaTeXTemplateEngine
+from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
 
 async def render_templates():
     engine = LaTeXTemplateEngine()
 
     # Async template loading and rendering
-    result = await engine.render_template("spell_entry", {
+    result = engine.render_template("spell_entry", {
         "name": "Fireball",
         "level": 3,
         "description": "A bright streak flashes..."

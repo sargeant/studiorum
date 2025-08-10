@@ -187,13 +187,13 @@ async def load_large_content_file():
 ### Template Rendering and Compilation
 
 ```python
-from dnd5e.renderers.latex.templates import LaTeXTemplateEngine
+from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
 from dnd5e.renderers.latex.compiler import LaTeXCompiler
 
 async def render_and_compile():
     # Template rendering
     engine = LaTeXTemplateEngine()
-    template_result = await engine.render_template("spell_entry", {
+    template_result = engine.render_template("spell_entry", {
         "name": "Fireball",
         "level": 3,
         "description": "A bright streak flashes from your pointing finger..."
