@@ -53,9 +53,11 @@
 \setcounter{secnumdepth}{-1}
 
 <@ if not justified_text @>
-% Disable text justification
+% Disable text justification but preserve paragraph indentation
 \raggedright
 \raggedbottom
+% Restore paragraph indentation after \raggedright resets it
+\setlength{\parindent}{0.8em}
 <@ endif @>
 
 % Hyperlink configuration
