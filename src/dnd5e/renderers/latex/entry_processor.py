@@ -459,8 +459,10 @@ class RecursiveEntryProcessor:
                             # Check if we need to restart the list (if there are more non-entries items)
                             remaining_items = items[i + 1 :]
                             if any(
-                                isinstance(it, str | dict)
-                                and it.get("type") != "entries"
+                                isinstance(it, str)
+                                or (
+                                    isinstance(it, dict) and it.get("type") != "entries"
+                                )
                                 for it in remaining_items
                             ):
                                 result.append(f"\\begin{{{env}}}")
