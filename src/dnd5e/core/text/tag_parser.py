@@ -87,6 +87,10 @@ class TagASTTransformer(Transformer):
         "damage": (1, 1),
         "hit": (1, 1),
         "dc": (1, 1),
+        # Ability score tags
+        "ability": (1, 2),  # ability_score|modifier
+        "savingThrow": (1, 1),  # modifier_value
+        "skillCheck": (1, 1),  # skill_modifier_value
         # Formatting tags
         "bold": (1, 1),
         "italic": (1, 1),
@@ -326,6 +330,33 @@ class TagASTTransformer(Transformer):
                 self._nodes_to_text(display_text_nodes) if display_text_nodes else None
             )
             return AreaTagNode(name, area_id, flags)
+
+        # Ability score tags (preserve display text for modifiers)
+        elif tag_type == "ability":
+            # Ability tags have format: ability_score|modifier
+            # We want to preserve the display text (modifier) for rendering
+            node = TagNode(tag_type)
+            node.name = name  # "con 10" - contains ability and score
+            node.display_text_nodes = (
+                final_display_text_nodes  # "+0" - the modifier to display
+            )
+            return node
+
+        elif tag_type == "savingThrow":
+            # Saving throw tags have format: ability_modifier
+            # The name contains the modifier value that should be displayed
+            node = TagNode(tag_type)
+            node.name = name  # "con 3" - contains ability and modifier
+            node.display_text_nodes = final_display_text_nodes or [TextNode(name)]
+            return node
+
+        elif tag_type == "skillCheck":
+            # Skill check tags have format: skill_modifier
+            # The name contains the skill and modifier value that should be displayed
+            node = TagNode(tag_type)
+            node.name = name  # "athletics 4" - contains skill and modifier
+            node.display_text_nodes = final_display_text_nodes or [TextNode(name)]
+            return node
 
         # Generic fallback - create node with name/display text for automatic passthrough
         else:

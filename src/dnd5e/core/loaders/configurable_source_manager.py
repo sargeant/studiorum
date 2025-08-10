@@ -118,19 +118,65 @@ class ConfigurableSourceManager(SourceManager):
 
         # Files that should be shared between multiple content types
         # Using dynamic resolution to support decorator-registered types
+        shared_files = {}
+
         try:
             condition_type = resolve_content_type("condition")
             status_type = resolve_content_type("status")
-            shared_files = {
-                "conditionsdiseases.json": [condition_type, status_type],
-                # Add other shared files as needed
-            }
+            shared_files["conditionsdiseases.json"] = [condition_type, status_type]
         except ValueError:
-            # Fallback if types not registered
-            shared_files = {}
             logger.warning(
-                "Condition or status content types not registered, skipping shared file mapping"
+                "Condition or status content types not registered, skipping conditionsdiseases file mapping"
             )
+
+        # Add bestiary file sharing between creature and creatureFluff
+        try:
+            from ..models.content import ContentType
+
+            # Find creature and creatureFluff types from content_patterns
+            creature_type = None
+            creature_fluff_type = None
+
+            for ct in content_patterns.keys():
+                if ct.value == "creature":
+                    creature_type = ct
+                elif ct.value == "creatureFluff":
+                    creature_fluff_type = ct
+
+            if creature_type and creature_fluff_type:
+                # Mark all bestiary files as shared between creature and creatureFluff
+                # This allows both content types to access the same bestiary files
+                for source_name, files in all_files.items():
+                    for file_path in files:
+                        file_name = file_path.name.lower()
+                        parent_name = file_path.parent.name.lower()
+
+                        # If file is in bestiary directory or has bestiary in name
+                        if (
+                            "bestiary" in parent_name
+                            and not file_name.startswith("fluff-")
+                        ) or (
+                            file_name.startswith("bestiary-")
+                            and not file_name.startswith("fluff-")
+                        ):
+                            shared_files[file_name] = [
+                                creature_type,
+                                creature_fluff_type,
+                            ]
+                        elif file_name.startswith("fluff-bestiary-"):
+                            # Fluff bestiary files go only to creatureFluff
+                            shared_files[file_name] = [creature_fluff_type]
+
+                logger.info(
+                    f"Configured bestiary file sharing between {len([f for f in shared_files.values() if creature_type in f])} files"
+                )
+            else:
+                logger.warning(
+                    f"Could not find creature types for bestiary sharing: creature={creature_type is not None}, creatureFluff={creature_fluff_type is not None}"
+                )
+
+        except Exception as e:
+            logger.warning(f"Error setting up bestiary file sharing: {e}")
 
         # Organize content types by priority
         fluff_content_types = [

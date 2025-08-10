@@ -656,6 +656,228 @@ class CardTagHandler(BaseTagHandler):
         return escape_latex_text(card_name)
 
 
+class AbilityTagHandler:
+    """Core handler for ability score (@ability) tags.
+
+    This handler processes ability tags that specify ability scores with modifiers,
+    returning the modifier value for display.
+
+    Format: {@ability con 10|+0} displays "+0" (the modifier after |)
+    """
+
+    def __init__(self) -> None:
+        """Initialize the ability handler."""
+        self.tag_type = "ability"
+        self.supported_tags = ["ability"]
+
+    def handles_tag_type(self, tag_type: str) -> bool:
+        """Check if this handler processes the given tag type."""
+        return tag_type == "ability"
+
+    def process_tag(self, node: TagNode, context: RenderingContext) -> str:
+        """Process an ability tag node and return the modifier.
+
+        Args:
+            node: The parsed ability tag AST node
+            context: Rendering context (unused for ability tags)
+
+        Returns:
+            String containing the ability modifier (e.g., "+2", "-1")
+        """
+        # Ability tags have format {@ability con 10|+0}
+        # We want to return the modifier part after the | if present
+
+        # First, try to get the modifier from display_text_nodes (the part after |)
+        if hasattr(node, "display_text_nodes") and node.display_text_nodes:
+            # Extract text content from display_text_nodes
+            display_text = ""
+            for child in node.display_text_nodes:
+                if hasattr(child, "text"):
+                    display_text += str(child.text)
+                else:
+                    display_text += str(child)
+
+            display_text = display_text.strip()
+            if display_text:
+                # If it's already a properly formatted modifier like "+2", "-1"
+                if display_text.startswith(("+", "-")):
+                    return display_text
+                # If it's just a number, add proper sign
+                try:
+                    modifier = int(display_text)
+                    return f"+{modifier}" if modifier >= 0 else str(modifier)
+                except ValueError:
+                    # If it's not a pure number, return as-is
+                    return display_text
+
+        # Fallback: calculate modifier from ability score in the name field
+        # This handles cases where no display text is provided: {@ability con 10}
+        if hasattr(node, "name") and node.name:
+            name = str(node.name).strip()
+            # Expected format: "con 10" where 10 is the ability score
+            parts = name.split()
+            if len(parts) >= 2:
+                try:
+                    # Last part should be the ability score
+                    ability_score = int(parts[-1])
+                    # Calculate modifier from ability score using D&D formula
+                    modifier = (ability_score - 10) // 2
+                    return f"+{modifier}" if modifier >= 0 else str(modifier)
+                except (ValueError, IndexError):
+                    pass
+
+        logger.warning(f"Could not extract ability modifier from tag: {node}")
+        return "+0"
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for ability tags, use process_tag instead."""
+        raise NotImplementedError("Use process_tag for ability tags")
+
+    def validate_content_reference(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Ability tags don't need content validation."""
+        pass
+
+    def track_content_for_appendix(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Ability tags don't need appendix tracking."""
+        pass
+
+
+class SavingThrowTagHandler:
+    """Core handler for saving throw (@savingThrow) tags.
+
+    This handler processes saving throw tags that specify ability scores,
+    converting them to modifiers for display.
+
+    Format: {@savingThrow con 3} displays "+3" (calculated from ability score)
+    """
+
+    def __init__(self) -> None:
+        """Initialize the saving throw handler."""
+        self.tag_type = "savingThrow"
+        self.supported_tags = ["savingThrow"]
+
+    def handles_tag_type(self, tag_type: str) -> bool:
+        """Check if this handler processes the given tag type."""
+        return tag_type == "savingThrow"
+
+    def process_tag(self, node: TagNode, context: RenderingContext) -> str:
+        """Process a saving throw tag node and return the modifier.
+
+        Args:
+            node: The parsed saving throw tag AST node
+            context: Rendering context (unused for saving throw tags)
+
+        Returns:
+            String containing the saving throw modifier (e.g., "+3", "-1")
+        """
+        # Saving throw tags have format {@savingThrow con 3} where 3 is already the modifier
+        # Extract the modifier from the name field
+
+        if hasattr(node, "name") and node.name:
+            name = str(node.name).strip()
+            # Expected format: "con 3" where 3 is the modifier value (not ability score)
+            parts = name.split()
+            if len(parts) >= 2:
+                try:
+                    # Last part should be the modifier
+                    modifier = int(parts[-1])
+                    return f"+{modifier}" if modifier >= 0 else str(modifier)
+                except (ValueError, IndexError):
+                    pass
+
+        logger.warning(f"Could not extract saving throw modifier from tag: {node}")
+        return "+0"
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for saving throw tags, use process_tag instead."""
+        raise NotImplementedError("Use process_tag for saving throw tags")
+
+    def validate_content_reference(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Saving throw tags don't need content validation."""
+        pass
+
+    def track_content_for_appendix(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Saving throw tags don't need appendix tracking."""
+        pass
+
+
+class SkillCheckTagHandler:
+    """Core handler for skill check (@skillCheck) tags.
+
+    This handler processes skill check tags that specify skill modifiers,
+    formatting them with proper signs for display.
+
+    Format: {@skillCheck athletics 4} displays "+4"
+    """
+
+    def __init__(self) -> None:
+        """Initialize the skill check handler."""
+        self.tag_type = "skillCheck"
+        self.supported_tags = ["skillCheck"]
+
+    def handles_tag_type(self, tag_type: str) -> bool:
+        """Check if this handler processes the given tag type."""
+        return tag_type == "skillCheck"
+
+    def process_tag(self, node: TagNode, context: RenderingContext) -> str:
+        """Process a skill check tag node and return the modifier.
+
+        Args:
+            node: The parsed skill check tag AST node
+            context: Rendering context (unused for skill check tags)
+
+        Returns:
+            String containing the skill check modifier (e.g., "+4", "-1")
+        """
+        # Skill check tags have format {@skillCheck athletics 4} where 4 is already the modifier
+        # Extract the modifier from the name field
+
+        if hasattr(node, "name") and node.name:
+            name = str(node.name).strip()
+            # Expected format: "athletics 4" where 4 is the modifier value
+            parts = name.split()
+            if len(parts) >= 2:
+                try:
+                    # Last part should be the modifier
+                    modifier = int(parts[-1])
+                    return f"+{modifier}" if modifier >= 0 else str(modifier)
+                except (ValueError, IndexError):
+                    pass
+
+        logger.warning(f"Could not extract skill check modifier from tag: {node}")
+        return "+0"
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for skill check tags, use process_tag instead."""
+        raise NotImplementedError("Use process_tag for skill check tags")
+
+    def validate_content_reference(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Skill check tags don't need content validation."""
+        pass
+
+    def track_content_for_appendix(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Skill check tags don't need appendix tracking."""
+        pass
+
+
 class FormattingTagHandler(BaseTagHandler):
     """Core handler for formatting tags like @i (italic) and @b (bold).
 
@@ -836,5 +1058,8 @@ def get_default_core_handlers() -> list[TagHandler]:
         DCTagHandler(),
         DiceTagHandler(),
         CardTagHandler(),
+        AbilityTagHandler(),
+        SavingThrowTagHandler(),
+        SkillCheckTagHandler(),
         FormattingTagHandler(),
     ]
