@@ -100,7 +100,7 @@ class Recipe(BaseContent):
 
     def is_cuisine(self) -> bool:
         """Check if this is a cooking recipe."""
-        return self.type and "cuisine" in self.type.lower()
+        return bool(self.type and "cuisine" in self.type.lower())
 
     def is_crafting(self) -> bool:
         """Check if this is a crafting recipe."""

@@ -10,6 +10,7 @@ from pydantic import Field
 
 from ..registry import content_type
 from .content import BaseContent
+from .entry_types import Entry
 
 
 @content_type(
@@ -52,6 +53,11 @@ class ItemProperty(BaseContent):
     # Display and reference
     display_name: str | None = Field(
         None, alias="displayName", description="Full display name of the property"
+    )
+
+    # Content entries for detailed descriptions
+    entries: list[Entry] = Field(
+        default_factory=list, description="Detailed description entries"
     )
 
     def get_display_name(self) -> str:

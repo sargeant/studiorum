@@ -10,6 +10,7 @@ from pydantic import Field
 
 from ..registry import content_type
 from .content import BaseContent
+from .entry_types import Entry
 
 
 @content_type(
@@ -43,6 +44,11 @@ class ItemMastery(BaseContent):
 
     # Mastery category
     category: str | None = Field(None, description="Category of mastery")
+
+    # Content entries for detailed descriptions
+    entries: list[Entry] = Field(
+        default_factory=list, description="Detailed description entries"
+    )
 
     def get_display_name(self) -> str:
         """Get display name for the mastery."""
