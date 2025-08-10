@@ -1,16 +1,178 @@
-# Omnidexer API Documentation
+# Core APIs Documentation
 
 ## Table of Contents
 
-This page covers the Omnidexer API documentation with the following sections:
+This page covers the core system APIs with the following sections:
 
-- Overview
+- Registry System
+- Omnidexer API
 - Class: Omnidexer
 - Class: IndexEntry
 - Protocol: DeepIndexable
 - Functions and Utilities
 - Configuration
 - Performance Monitoring
+
+## Registry System
+
+The registry system provides dynamic content type registration and system integration via decorator-based patterns.
+
+### Content Type Registration
+
+#### `@content_type` Decorator
+
+**Location**: `src/dnd5e/core/registry/decorator.py`
+
+Decorator for registering new content types with automatic system integration.
+
+```python
+@content_type(
+    enum_value: str,
+    file_patterns: list[str],
+    loader_type: str = "json",
+    statblock_tags: list[str] | None = None
+)
+```
+
+**Parameters:**
+- `enum_value` (str): Unique identifier for the content type (becomes ContentType.VALUE)
+- `file_patterns` (list[str]): File name patterns for automatic source detection
+- `loader_type` (str): Data loader type ("json", "yaml"). Defaults to "json"
+- `statblock_tags` (list[str] | None): LaTeX statblock tags for rendering
+
+**Example:**
+```python
+from dnd5e.core.registry import content_type
+from dnd5e.core.models.content import BaseContent
+
+@content_type(
+    enum_value="disease",
+    file_patterns=["disease", "diseases", "conditionsdiseases"],
+    loader_type="json",
+    statblock_tags=["disease"]
+)
+class Disease(BaseContent):
+    """Disease content model with automatic registration."""
+
+    symptoms: list[str] = Field(default_factory=list)
+    transmission: str = Field(..., description="How disease spreads")
+```
+
+### Registry Functions
+
+#### `initialize_content_types()`
+
+**Location**: `src/dnd5e/core/registry/initialization.py`
+
+Initializes all registered content types and integrates them with system components.
+
+```python
+def initialize_content_types() -> None
+```
+
+**Effects:**
+- Loads all content type models to trigger decorators
+- Updates ContentType enum with dynamic values
+- Registers types with ContentFactory
+- Configures source manager file patterns
+- Updates omnidexer with new content types
+
+**Usage:**
+```python
+from dnd5e.core.registry import initialize_content_types
+
+# Must be called before using dynamic content types
+initialize_content_types()
+
+# Dynamic types now available
+from dnd5e.core.models.content import ContentType
+assert hasattr(ContentType, 'DISEASE')
+```
+
+#### `get_content_type_registry()`
+
+**Location**: `src/dnd5e/core/interfaces/registry.py`
+
+Returns the singleton content type registry instance.
+
+```python
+def get_content_type_registry() -> ContentTypeRegistry
+```
+
+**Returns:**
+- `ContentTypeRegistry`: The global registry instance
+
+**Usage:**
+```python
+from dnd5e.core.interfaces import get_content_type_registry
+
+registry = get_content_type_registry()
+registrations = registry.get_all()
+```
+
+### ContentTypeRegistry Class
+
+#### Core Methods
+
+##### `register()`
+
+```python
+def register(
+    self,
+    enum_value: str,
+    model_class: type[BaseContent],
+    file_patterns: list[str],
+    loader_type: str = "json",
+    statblock_tags: list[str] | None = None
+) -> None
+```
+
+Registers a content type with metadata.
+
+##### `get_all_types()`
+
+```python
+def get_all_types(self) -> list[ContentType]
+```
+
+Returns all registered content types.
+
+##### `get_type()`
+
+```python
+def get_type(self, content: BaseContent) -> ContentType
+```
+
+Get content type for a content instance.
+
+### System Integration
+
+The registry system automatically integrates with:
+
+1. **ContentType Enum**: Dynamic enum value addition
+2. **ContentFactory**: Model class registration
+3. **SourceManager**: File pattern configuration
+4. **Omnidexer**: Content type recognition
+5. **LaTeX Renderer**: Statblock tag mapping
+
+**Integration Flow:**
+```python
+# 1. Model definition triggers registration
+@content_type(enum_value="disease", ...)
+class Disease(BaseContent): ...
+
+# 2. Registry stores metadata
+registry.register("disease", Disease, ["disease"], ...)
+
+# 3. Initialization applies to all systems
+initialize_content_types()
+
+# 4. Systems updated automatically
+assert ContentType.DISEASE == "disease"  # Enum updated
+factory.create_content("disease", data)  # Factory updated
+```
+
+## Omnidexer API
 
 ## Overview
 

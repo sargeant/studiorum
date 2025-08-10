@@ -119,45 +119,72 @@ def parse_source(cls, v: str | dict[str, str] | Source) -> dict[str, str] | Sour
 
 **Location**: `src/dnd5e/core/models/content.py`
 
-Enumeration of supported D&D content types.
+Dynamic enumeration of D&D content types with decorator-based registration.
+
+### Core Architecture
+
+The ContentType enum uses a hybrid approach:
+- **Bootstrap Types**: 5 core types (adventure, book, spell, creature, item) defined statically
+- **Dynamic Types**: Additional types registered via @content_type decorators at runtime
+- **System Integration**: Registry manager automatically updates all dependent systems
 
 ### Enum Definition
 
 ```python
 class ContentType(str, Enum):
-    """Enumeration of supported D&D content types."""
+    """Dynamic enumeration of D&D content types.
 
-    # Core content types
+    This enum contains core static types and is dynamically extended by the
+    registry system. Additional content types are registered via @content_type
+    decorators and added to this enum at runtime.
+    """
+
+    # Core bootstrap types (static)
     ADVENTURE = "adventure"
     BOOK = "book"
     SPELL = "spell"
     CREATURE = "creature"
     ITEM = "item"
-    CLASS = "class"
-    CLASS_FEATURE = "classFeature"
-    SUBCLASS_FEATURE = "subclassFeature"
-    BACKGROUND = "background"
-    FEAT = "feat"
-    RACE = "race"
-    SUPPLEMENT = "supplement"
 
-    # Fluff content types
-    SPELL_FLUFF = "spellFluff"
-    CREATURE_FLUFF = "creatureFluff"
-    ITEM_FLUFF = "itemFluff"
+    # Dynamic types added at runtime via @content_type decorators:
+    # CLASS, SUBCLASS, FEAT, RACE, ACTION, CONDITION, DISEASE, etc.
+```
 
-    # Adventure nested content types
-    ADVENTURE_SECTION = "adventureSection"
-    ADVENTURE_TABLE = "adventureTable"
-    ADVENTURE_NPC = "adventureNpc"
-    ADVENTURE_LOCATION = "adventureLocation"
-    ADVENTURE_INSET = "adventureInset"
+### Content Type Registration
 
-    # Book nested content types
-    BOOK_SECTION = "bookSection"
-    VARIANT_RULE = "variantRule"
-    BOOK_TABLE = "bookTable"
-    BOOK_INSET = "bookInset"
+New content types are registered using the @content_type decorator:
+
+```python
+from ..registry import content_type
+from .content import BaseContent
+
+@content_type(
+    enum_value="disease",
+    file_patterns=["disease", "diseases", "conditionsdiseases"],
+    loader_type="json",
+    statblock_tags=["disease"]  # optional
+)
+class Disease(BaseContent):
+    """Disease content model."""
+
+    entries: list[str] = Field(..., description="Disease description")
+    symptoms: list[str] = Field(default_factory=list, description="Symptoms")
+```
+
+### System Initialization
+
+Content types must be initialized before use:
+
+```python
+from dnd5e.core.registry import initialize_content_types
+
+# Initialize all registered content types
+initialize_content_types()
+
+# Now dynamic types are available
+from dnd5e.core.models.content import ContentType
+assert hasattr(ContentType, 'DISEASE')
+assert ContentType.DISEASE == "disease"
 ```
 
 ### Class Methods

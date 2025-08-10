@@ -147,6 +147,158 @@ def test_loader_with_network_failure(mock_requests):
         loader.fetch_remote_content()
 ```
 
+### Test Isolation and Global State Management
+
+**CRITICAL**: The #1 cause of test instability is global state contamination. ALL new tests MUST follow this pattern:
+
+#### Mandatory Test Setup
+
+```python
+from tests.test_helpers import reset_test_environment  # Import LAST
+
+class TestYourFeature:
+    def setup_method(self) -> None:
+        reset_test_environment()  # Only this call needed
+        # Your test-specific setup here
+```
+
+**Why This Matters:**
+- **Test Contamination**: Tests pass individually but fail in `make test`
+- **Global State Issues**: Services from previous tests affect new tests
+- **Flaky Tests**: "Works first time, fails second time" problems
+- **Registry Pollution**: ContentType registrations persist between tests
+
+#### What `reset_test_environment()` Handles
+
+The single function replaces complex manual resets:
+
+```python
+def reset_test_environment():
+    """Comprehensive test environment reset."""
+    # Service container reset (all singletons)
+    reset_global_container()
+
+    # Content type registry reset (preserves decorators)
+    reset_content_type_registry()
+
+    # ContentFactory reset (clears class-level state)
+    ContentFactory._class_map = {}
+
+    # Cache reset (disk cache cleared)
+    CacheManager.reset()
+
+    # CLI globals reset
+    reset_cli_globals()
+
+    # Garbage collection
+    gc.collect()
+```
+
+#### Legacy vs. Modern Patterns
+
+**❌ Legacy Pattern (NEVER use):**
+```python
+from dnd5e.core.container import reset_global_container
+from dnd5e.core.cache import CacheManager
+# ... 8+ more imports
+
+class BadTestPattern:
+    def setup_method(self) -> None:
+        # Complex manual reset - easy to forget something
+        reset_global_container()
+        CacheManager.reset()
+        reset_content_type_registry()
+        reset_reference_manager()  # Deprecated
+        reset_all_services()       # Deprecated
+        # ... easy to miss one and cause contamination
+```
+
+**✅ Modern Pattern (ALWAYS use):**
+```python
+from tests.test_helpers import reset_test_environment
+
+class TestYourFeature:
+    def setup_method(self) -> None:
+        reset_test_environment()  # Handles everything
+        # Optional: test-specific setup
+```
+
+#### Test Failure Patterns
+
+Common test failures indicating global state issues:
+
+**ContentFactory Errors:**
+```python
+# Error: assert None is not None
+# Cause: ContentFactory._class_map not reset
+# Fix: Use reset_test_environment()
+```
+
+**ContentType Missing:**
+```python
+# Error: AttributeError: type object 'ContentType' has no attribute 'DISEASE'
+# Cause: Registry not properly reset/initialized
+# Fix: reset_test_environment() + initialize_content_types() in test
+```
+
+**Deep Indexing Failures:**
+```python
+# Error: AssertionError: Expected 5 items, got 12
+# Cause: Omnidexer retaining data from previous test
+# Fix: reset_test_environment() ensures fresh omnidexer
+```
+
+#### Testing Dynamic Content Types
+
+When testing new content types with `@content_type` decorator:
+
+```python
+from tests.test_helpers import reset_test_environment
+from dnd5e.core.registry import initialize_content_types
+
+class TestNewContentType:
+    def setup_method(self) -> None:
+        reset_test_environment()  # Critical for registry reset
+
+    def test_content_type_registration(self) -> None:
+        # Import triggers @content_type decorator registration
+        from dnd5e.core.models.my_content import MyContent
+
+        # Initialize to apply registrations
+        initialize_content_types()
+
+        # Now can test dynamic content type
+        from dnd5e.core.models.content import ContentType
+        assert hasattr(ContentType, 'MY_CONTENT')
+        assert ContentType.MY_CONTENT == "my_content"
+```
+
+#### Performance Impact
+
+**Test Setup Time:**
+- `reset_test_environment()`: ~10-15ms per test
+- Manual resets: ~25-40ms per test (when done correctly)
+- **Recommendation**: Minimal performance impact for reliability benefit
+
+#### Import Order Requirements
+
+**CRITICAL**: Test helpers must be imported LAST to prevent contamination:
+
+```python
+# ✅ Correct import order
+import pytest
+from unittest.mock import Mock
+from dnd5e.core.models.content import ContentType
+from dnd5e.core.loaders.omnidexer import Omnidexer
+
+from tests.test_helpers import reset_test_environment  # LAST
+
+# ❌ Wrong import order - can cause contamination
+from tests.test_helpers import reset_test_environment  # TOO EARLY
+import pytest
+from dnd5e.core.models.content import ContentType
+```
+
 ## Red-Green-Refactor Cycle
 
 ### Red Phase (Failing Test)

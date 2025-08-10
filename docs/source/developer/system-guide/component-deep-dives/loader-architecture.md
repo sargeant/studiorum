@@ -19,6 +19,46 @@ with intelligent caching and runtime merging.
 
 ## Architecture Components
 
+### Registry-Based Content Type Detection
+
+**Location**: `src/dnd5e/core/loaders/configurable_source_manager.py`
+
+The loader architecture uses a dynamic registry system for content type detection:
+
+#### File Pattern Matching
+
+```python
+from dnd5e.core.registry import initialize_content_types
+from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
+
+# Initialize content types to load file patterns
+initialize_content_types()
+
+# Source manager automatically detects content types by file patterns
+manager = ConfigurableSourceManager()
+file_paths = manager.get_data_paths()
+
+# Each content type registered with @content_type decorator
+# contributes its file patterns automatically
+for content_type, paths in file_paths.items():
+    print(f"{content_type}: {len(paths)} files")
+```
+
+#### Dynamic Content Loading
+
+```python
+from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.models.content import ContentType
+
+# Omnidexer uses registry to load all registered content types
+omnidexer = Omnidexer()
+stats = omnidexer.load_all_data()
+
+# Registry provides available content types dynamically
+available_types = omnidexer.get_all_content_types()
+print(f"Loaded types: {[ct.value for ct in available_types]}")
+```
+
 ### ContentMerger
 
 **Location**: `src/dnd5e/core/loaders/content_merger.py`
@@ -81,18 +121,24 @@ The Omnidexer provides comprehensive content indexing with deep search capabilit
 
 ```python
 from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.models.content import ContentType
+from dnd5e.core.registry import initialize_content_types
+
+# Initialize content types before using
+initialize_content_types()
 
 # Initialize omnidexer
-indexer = Omnidexer(
-    enable_deep_indexing=True,
-    hash_content=True
-)
+indexer = Omnidexer(enable_deep_indexing=True)
 
-# Load and index content
-adventures = indexer.load_adventures("adventures.json")
+# Load all data with registry-driven content type detection
+stats = indexer.load_all_data()
 
-# Perform deep indexing
-deep_index = indexer.build_deep_index(adventures)
+# Query specific content types
+adventures = indexer.get_all_by_type(ContentType.ADVENTURE)
+spells = indexer.get_all_by_type(ContentType.SPELL)
+
+# Find specific content
+fireball = indexer.find(ContentType.SPELL, "Fireball", "PHB")
 ```
 
 #### Key Capabilities
@@ -284,13 +330,15 @@ def test_end_to_end_loading():
     indexer = Omnidexer()
     resolver = ContentResolver(merger)
 
-    # Load adventures
-    adventures = indexer.load_adventures(
-        test_data_dir / "adventures.json"
-    )
+    # Initialize content types
+    from dnd5e.core.registry import initialize_content_types
+    initialize_content_types()
 
-    # Resolve specific adventure
-    cos = resolver.resolve_adventure("cos")
+    # Load all content with automatic type detection
+    stats = indexer.load_all_data()
+
+    # Find specific adventure using content type system
+    cos = indexer.find(ContentType.ADVENTURE, "Curse of Strahd", "CoS")
 
     # Verify content is merged
     assert cos.has_content()

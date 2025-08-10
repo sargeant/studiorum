@@ -19,32 +19,39 @@ The content parsing pipeline implements a multi-stage transformation process tha
 ```mermaid
 graph TD
     A[5etools JSON Data] --> B[JSONLoader]
-    B --> C[ContentTypeResolver]
-    C --> D{Content Type}
+    B --> C[ContentTypeRegistry]
+    C --> D[ContentFactory]
 
-    D -->|Spell| E[SpellModel]
-    D -->|Creature| F[CreatureModel]
-    D -->|Item| G[ItemModel]
-    D -->|Adventure| H[AdventureModel]
-    D -->|Book| I[BookModel]
-    D -->|Class| J[ClassModel]
+    D -->|@content_type| E[SpellModel]
+    D -->|@content_type| F[CreatureModel]
+    D -->|@content_type| G[ItemModel]
+    D -->|@content_type| H[AdventureModel]
+    D -->|@content_type| I[BookModel]
+    D -->|@content_type| J[ClassModel]
+    D -->|@content_type| K[DiseaseModel]
+    D -->|@content_type| L[RewardModel]
 
-    E --> K[ValidationEngine]
-    F --> K
-    G --> K
-    H --> K
-    I --> K
-    J --> K
+    E --> M[ValidationEngine]
+    F --> M
+    G --> M
+    H --> M
+    I --> M
+    J --> M
+    K --> M
+    L --> M
 
-    K --> L[EntryParser]
-    L --> M[NestedContentExtractor]
-    M --> N[TypedContentObjects]
+    M --> N[EntryParser]
+    N --> O[NestedContentExtractor]
+    O --> P[TypedContentObjects]
 
-    O[FluffLoader] --> P[FluffModel]
-    P --> K
+    Q[FluffLoader] --> R[FluffModel]
+    R --> M
 
-    Q[SourceManager] --> R[SourceValidation]
-    R --> K
+    S[ConfigurableSourceManager] --> T[FilePatternDetection]
+    T --> C
+
+    U[initialize_content_types] --> V[DynamicEnumUpdate]
+    V --> W[SystemIntegration]
 ```
 
 ## Core Components
@@ -121,32 +128,68 @@ class Source(BaseModel):
         return self.abbreviation
 ```
 
-### Content Type Resolver
+### Registry-Based Content Type Resolution
 
-**Location**: `src/dnd5e/core/content_type_resolver.py`
+**Location**: `src/dnd5e/core/registry/` and `src/dnd5e/core/interfaces/registry.py`
 
-Intelligently determines content types from JSON data:
+Content type resolution now uses the registry system for dynamic type detection:
 
-#### Implementation Pattern
+#### Registry-Based Resolution
 
 ```python
-from dnd5e.core.content_type_resolver import get_content_type_resolver
+from dnd5e.core.models.content import ContentType
+from dnd5e.core.registry import initialize_content_types
+from dnd5e.core.interfaces import get_content_type_registry
 
-resolver = get_content_type_resolver()
+# Initialize all registered content types
+initialize_content_types()
 
-# Resolve from JSON data
-content_type = resolver.resolve_from_json(json_data)
+# Registry provides content type resolution
+registry = get_content_type_registry()
 
-# Resolve from content object
-content_type = resolver.resolve_type(content_object)
+# Get content type from model class
+content_type = registry.get_type(content_object)
 
-# Register custom resolver
-def custom_content_resolver(data: dict) -> ContentType | None:
-    if data.get("customType") == "homebrew":
-        return ContentType.from_string("homebrew")
-    return None
+# Use ContentType with proper registration workflow
+# Content types are available through the registry and factory
+from dnd5e.core.loaders.content_factory import ContentFactory
+factory = ContentFactory()
+supported_types = factory.get_supported_types()
+print(f"Factory supports: {[ct.value for ct in supported_types[:5]]}")
 
-resolver.register_resolver(custom_content_resolver)
+# Get all available content types
+all_types = registry.get_all_types()
+print(f"Registered: {[ct.value for ct in all_types]}")
+```
+
+#### ContentFactory Integration
+
+```python
+from dnd5e.core.loaders.content_factory import ContentFactory
+
+# Factory uses registry for content creation
+factory = ContentFactory()
+
+# Create content based on registered type
+disease_data = {"name": "Plague", "symptoms": ["fever"]}
+disease = factory.create_content("disease", disease_data)
+
+# List all supported types (from registry)
+supported_types = factory.get_supported_types()
+```
+
+#### Automatic File Pattern Detection
+
+```python
+from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
+
+# Source manager uses registry file patterns
+manager = ConfigurableSourceManager()
+file_paths = manager.get_data_paths()
+
+# File patterns from @content_type decorators are automatically included
+for content_type, paths in file_paths.items():
+    print(f"{content_type}: {len(paths)} files detected")
 ```
 
 ### Specialized Content Models

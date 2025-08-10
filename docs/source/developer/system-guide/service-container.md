@@ -23,24 +23,27 @@ graph TD
     C --> G[get_reference_manager()]
     C --> H[get_display_manager()]
     C --> I[get_content_factory()]
+    C --> J[get_content_type_registry()]
 
-    D --> J[Omnidexer Instance]
-    E --> K[TagResolver Instance]
-    F --> L[EntryTypeRegistry Instance]
-    G --> M[ReferenceManager Instance]
-    H --> N[DisplayManager Instance]
-    I --> O[ContentFactory Instance]
+    D --> K[Omnidexer Instance]
+    E --> L[TagResolver Instance]
+    F --> M[EntryTypeRegistry Instance]
+    G --> N[ReferenceManager Instance]
+    H --> O[DisplayManager Instance]
+    I --> P[ContentFactory Instance]
+    J --> Q[ContentTypeRegistry Instance]
 
-    J -.-> P[Dependencies]
-    K -.-> P
-    L -.-> P
-    M -.-> P
-    N -.-> P
-    O -.-> P
+    K -.-> R[Dependencies]
+    L -.-> R
+    M -.-> R
+    N -.-> R
+    O -.-> R
+    P -.-> R
+    Q -.-> R
 
-    Q[Service Lifecycle] --> R[Lazy Loading]
-    R --> S[Caching]
-    S --> T[Cleanup]
+    S[Service Lifecycle] --> T[Lazy Loading]
+    T --> U[Caching]
+    U --> V[Cleanup]
 ```
 
 ## Core Architecture
@@ -58,6 +61,7 @@ from dnd5e.core.unified_references import ReferenceManager
 from dnd5e.cli.display_manager import DisplayManager
 from dnd5e.core.models.content_factory import ContentFactory
 from dnd5e.core.config.unified_config import ApplicationConfig
+from dnd5e.core.registry.content_type_registry import ContentTypeRegistry
 
 class ServiceContainer(Protocol):
     """Protocol defining the service container interface."""
@@ -86,6 +90,10 @@ class ServiceContainer(Protocol):
         """Get the content factory service for dynamic content creation."""
         ...
 
+    def get_content_type_registry(self) -> ContentTypeRegistry:
+        """Get the content type registry service for dynamic content type management."""
+        ...
+
     def get_app_config(self) -> ApplicationConfig:
         """Get the application configuration service."""
         ...
@@ -110,6 +118,7 @@ class DefaultServiceContainer:
         self._reference_manager: ReferenceManager | None = None
         self._display_manager: DisplayManager | None = None
         self._content_factory: ContentFactory | None = None
+        self._content_type_registry: ContentTypeRegistry | None = None
         self._app_config: ApplicationConfig | None = None
         self._closed = False
 
@@ -236,6 +245,43 @@ def process_multiple_books(book_ids: list[str]) -> None:
 
 ## Service Dependencies and Initialization
 
+### ContentTypeRegistry Integration
+
+The registry service is crucial for the dynamic content type system:
+
+```python
+def get_content_type_registry(self) -> ContentTypeRegistry:
+    """Get content type registry with initialization dependency."""
+    if self._closed:
+        raise RuntimeError("Container has been closed")
+
+    if self._content_type_registry is None:
+        # Registry must be initialized before other content services
+        from dnd5e.core.registry import initialize_content_types
+        initialize_content_types()
+
+        from dnd5e.core.interfaces import get_content_type_registry
+        self._content_type_registry = get_content_type_registry()
+
+    return self._content_type_registry
+
+def get_content_factory(self) -> ContentFactory:
+    """Get content factory with registry dependency."""
+    if self._content_factory is None:
+        # Ensure registry is initialized first
+        registry = self.get_content_type_registry()
+        self._content_factory = ContentFactory()
+        # Factory automatically uses registered content types
+
+    return self._content_factory
+```
+
+**Registry Service Dependencies:**
+- **ContentFactory**: Uses registry for dynamic content creation
+- **Omnidexer**: Uses registry for available content types
+- **SourceManager**: Uses registry file patterns for source detection
+- **System Integration**: Must be initialized before other services
+
 ### Dependency Graph
 
 The container manages complex service dependencies automatically:
@@ -244,21 +290,22 @@ The container manages complex service dependencies automatically:
 graph TD
     A[ApplicationConfig] --> B[DisplayManager]
     A --> C[Omnidexer]
-    A --> D[ContentFactory]
+
+    H[ContentTypeRegistry] --> D[ContentFactory]
+    H --> C
+    H --> G[EntryTypeRegistry]
 
     B --> C
     C --> E[TagResolver]
     C --> F[ReferenceManager]
 
-    D --> G[EntryTypeRegistry]
-    G --> H[ContentTypeRegistry]
-
-    I[Service Access] --> J{Service Exists?}
-    J -->|No| K[Initialize Dependencies]
-    J -->|Yes| L[Return Cached Service]
-    K --> M[Create Service]
-    M --> N[Cache Service]
-    N --> L
+    I[initialize_content_types] --> H
+    J[Service Access] --> K{Service Exists?}
+    K -->|No| L[Initialize Dependencies]
+    K -->|Yes| M[Return Cached Service]
+    L --> N[Create Service]
+    N --> O[Cache Service]
+    O --> M
 ```
 
 ### Lazy Initialization Benefits

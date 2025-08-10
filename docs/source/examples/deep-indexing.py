@@ -14,11 +14,16 @@ from collections import defaultdict
 
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.models.content import ContentType
+from dnd5e.core.registry import initialize_content_types
 
 
 def basic_deep_indexing_example():
     """Basic example of loading and querying deep indexed content."""
     print("=== Basic Deep Indexing Example ===")
+
+    # Initialize content types first
+    print("Initializing dynamic content types...")
+    initialize_content_types()
 
     # Initialize omnidexer with deep indexing enabled (default)
     omnidexer = Omnidexer(enable_deep_indexing=True)
@@ -69,6 +74,9 @@ def content_type_exploration():
     """Explore all available content types in the deep indexed system."""
     print("\n=== Content Type Exploration ===")
 
+    # Initialize content types for dynamic type availability
+    initialize_content_types()
+
     omnidexer = Omnidexer(enable_deep_indexing=True)
     omnidexer.load_all_data()
 
@@ -111,6 +119,9 @@ def content_type_exploration():
 def search_and_discovery_examples():
     """Examples of different search and discovery patterns."""
     print("\n=== Search and Discovery Examples ===")
+
+    # Ensure content types are initialized
+    initialize_content_types()
 
     omnidexer = Omnidexer(enable_deep_indexing=True)
     omnidexer.load_all_data()
@@ -163,6 +174,9 @@ def performance_comparison():
     """Compare performance with and without deep indexing."""
     print("\n=== Performance Comparison ===")
 
+    # Initialize content types once for both tests
+    initialize_content_types()
+
     # Test without deep indexing
     print("Testing without deep indexing...")
     start_time = time.time()
@@ -208,6 +222,9 @@ def performance_comparison():
 def advanced_usage_examples():
     """Advanced usage patterns and techniques."""
     print("\n=== Advanced Usage Examples ===")
+
+    # Initialize content types for advanced querying
+    initialize_content_types()
 
     omnidexer = Omnidexer(enable_deep_indexing=True)
     omnidexer.load_all_data()
@@ -366,6 +383,9 @@ def custom_content_example():
 def troubleshooting_examples():
     """Examples of troubleshooting and debugging deep indexing."""
     print("\n=== Troubleshooting Examples ===")
+
+    # Initialize content types for troubleshooting
+    initialize_content_types()
 
     omnidexer = Omnidexer(enable_deep_indexing=True)
     omnidexer.load_all_data()

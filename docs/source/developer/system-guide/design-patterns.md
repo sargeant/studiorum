@@ -100,6 +100,95 @@ def cached_operation(key: str) -> Any:
 - Configurable cache sizes
 - Automatic eviction
 
+### Registry Pattern
+
+Dynamic registration and management of content types with automatic system integration:
+
+```python
+from dnd5e.core.registry import content_type, get_content_type_registry
+from dnd5e.core.models.content import BaseContent
+
+# Content types registered via decorator
+@content_type(
+    enum_value="disease",
+    file_patterns=["disease", "diseases", "conditionsdiseases"],
+    loader_type="json",
+    statblock_tags=["disease"]
+)
+class Disease(BaseContent):
+    """Disease content automatically registered with system."""
+    symptoms: list[str] = Field(default_factory=list)
+
+# Registry provides centralized access
+registry = get_content_type_registry()
+all_registrations = registry.get_all()
+print(f"Registered types: {len(all_registrations)}")
+```
+
+**Registry Benefits:**
+- Dynamic system extension without code modification
+- Centralized metadata management for file patterns and loading
+- Automatic integration with all system components
+- Type-safe registration with validation
+- Simplified content type addition workflow
+
+**System Integration:**
+The registry automatically integrates new content types with:
+- ContentType enum (dynamic value addition)
+- ContentFactory (model class registration)
+- SourceManager (file pattern configuration)
+- Omnidexer (content type recognition)
+- LaTeX Renderer (statblock tag mapping)
+
+### Decorator Pattern
+
+Metadata-driven registration using Python decorators:
+
+```python
+from dnd5e.core.registry.decorator import content_type
+
+@content_type(
+    enum_value="reward",
+    file_patterns=["reward", "rewards"],
+    loader_type="json",
+    statblock_tags=["reward", "treasure"]
+)
+class Reward(BaseContent):
+    """Reward content with decorator-based metadata."""
+
+    rarity: str = Field(..., description="Reward rarity")
+    value: int = Field(ge=0, description="Gold piece value")
+
+# Decorator automatically:
+# 1. Registers the class with ContentTypeRegistry
+# 2. Stores metadata for system integration
+# 3. Enables automatic ContentType.REWARD creation
+```
+
+**Decorator Benefits:**
+- Declarative configuration at class definition
+- Metadata co-located with implementation
+- Automatic registration during import
+- Type safety with runtime validation
+- Consistent parameter patterns
+
+**Implementation Flow:**
+```python
+# 1. Decorator captures metadata during class definition
+@content_type(enum_value="reward", file_patterns=["reward"])
+class Reward(BaseContent): ...
+
+# 2. Registry stores registration for later integration
+registry.register("reward", Reward, ["reward"], "json")
+
+# 3. System initialization applies registrations
+initialize_content_types()
+
+# 4. All systems updated automatically
+assert ContentType.REWARD == "reward"
+factory.create_content("reward", data)  # Works immediately
+```
+
 ### Service Container Pattern
 
 Dependency injection through a centralized service container for managing component lifecycles:

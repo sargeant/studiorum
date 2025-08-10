@@ -70,6 +70,218 @@ registry = get_registry()  # Uses container internally
 3. **Implementation** (35% of effort): Core development work
 4. **Testing & Documentation** (20% of effort): Quality assurance and docs
 
+## Adding New Content Types
+
+With the decorator-based registry system, adding new content types is streamlined and significantly faster than previous approaches.
+
+### Quick Start Workflow
+
+**Estimated effort**: 2-4 hours (down from 8-12 hours with legacy system)
+
+#### 1. Create Model with Decorator
+
+Create your content model with the `@content_type` decorator:
+
+```python
+# src/dnd5e/core/models/new_content.py
+from pydantic import Field
+from ..registry import content_type
+from .content import BaseContent
+
+@content_type(
+    enum_value="reward",
+    file_patterns=["reward", "rewards", "treasure"],
+    loader_type="json",
+    statblock_tags=["reward"]  # Optional: for LaTeX rendering
+)
+class Reward(BaseContent):
+    """Reward/treasure content with automatic system integration."""
+
+    rarity: str = Field(..., description="Item rarity")
+    value: int = Field(ge=0, description="Value in gold pieces")
+    description: str = Field(..., description="Reward description")
+
+    # Optional: Custom methods for your content type
+    @property
+    def display_value(self) -> str:
+        """Human-readable value display."""
+        if self.value >= 1000:
+            return f"{self.value // 1000}k gp"
+        return f"{self.value} gp"
+```
+
+#### 2. Register Import
+
+Add your model import to the initialization system:
+
+```python
+# src/dnd5e/core/registry/initialization.py
+def initialize_content_types():
+    # Existing imports...
+    import dnd5e.core.models.spells
+    import dnd5e.core.models.creatures
+    import dnd5e.core.models.items
+    import dnd5e.core.models.new_content  # Add this line
+```
+
+#### 3. Automatic Integration
+
+The registry system automatically handles:
+
+- **ContentType.REWARD** enum value creation
+- **File pattern detection** for `reward.json`, `rewards.json`, `treasure.json`
+- **ContentFactory registration** for dynamic content creation
+- **Omnidexer integration** for indexing and search
+- **LaTeX rendering** with `reward` statblock tag support
+
+#### 4. Verification
+
+Test that your content type works:
+
+```python
+from dnd5e.core.registry import initialize_content_types
+from dnd5e.core.models.content import ContentType
+from dnd5e.core.loaders.omnidexer import Omnidexer
+
+# Initialize system
+initialize_content_types()
+
+# Verify enum value exists
+assert hasattr(ContentType, 'REWARD')
+assert ContentType.REWARD == "reward"
+
+# Test content creation
+omnidexer = Omnidexer()
+omnidexer.load_all_data()
+
+# Should find reward content if data files exist
+rewards = omnidexer.get_all_by_type(ContentType.REWARD)
+print(f"Found {len(rewards)} rewards")
+```
+
+### Advanced Configuration
+
+#### Custom Validation
+
+Add Pydantic validators for complex validation:
+
+```python
+@content_type(enum_value="spell_variant", file_patterns=["variant"])
+class SpellVariant(BaseContent):
+    base_spell: str = Field(..., description="Base spell name")
+    modifications: list[str] = Field(default_factory=list)
+
+    @field_validator("base_spell")
+    @classmethod
+    def validate_base_spell(cls, v: str) -> str:
+        """Ensure base spell exists in system."""
+        # Custom validation logic
+        if not v.strip():
+            raise ValueError("Base spell name required")
+        return v.strip().title()
+```
+
+#### Multiple File Patterns
+
+Support multiple file naming conventions:
+
+```python
+@content_type(
+    enum_value="background",
+    file_patterns=[
+        "background", "backgrounds",
+        "char-background", "character-backgrounds",
+        "bg", "bgs"  # Short forms
+    ],
+    loader_type="json"
+)
+class Background(BaseContent):
+    """Character background with flexible file pattern support."""
+    pass
+```
+
+#### LaTeX Integration
+
+Configure custom statblock rendering:
+
+```python
+@content_type(
+    enum_value="trap",
+    file_patterns=["trap", "traps", "hazard"],
+    statblock_tags=["trap", "hazard", "obstacle"]
+)
+class Trap(BaseContent):
+    """Trap/hazard with multiple LaTeX rendering options."""
+
+    trigger: str = Field(..., description="Trigger condition")
+    damage: str = Field(default="", description="Damage dealt")
+    detection_dc: int = Field(ge=0, description="Detection DC")
+```
+
+### Migration from Legacy System
+
+#### Before (Legacy System)
+Required manual changes to 8+ files:
+- ContentType enum (manual enum value addition)
+- ContentFactory (manual class registration)
+- SourceManager (manual file pattern configuration)
+- Omnidexer (manual content type recognition)
+- LaTeX renderer (manual statblock configuration)
+- Multiple test files requiring updates
+- Documentation updates across several files
+
+#### After (Registry System)
+Single file creation with automatic integration:
+- One model file with `@content_type` decorator
+- One line addition to initialization imports
+- All system integration handled automatically
+- Tests work without modification
+- Documentation references work immediately
+
+### Troubleshooting
+
+#### Common Issues
+
+**ContentType not found after adding model:**
+```python
+# Problem: Forgot to initialize content types
+ContentType.REWARD  # AttributeError
+
+# Solution: Initialize first
+from dnd5e.core.registry import initialize_content_types
+initialize_content_types()
+ContentType.REWARD  # Works now
+```
+
+**Content not loading from files:**
+```python
+# Check file pattern matching
+from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
+
+manager = ConfigurableSourceManager()
+paths = manager.get_data_paths()
+print(f"Reward patterns found: {paths.get(ContentType.REWARD, [])}")
+```
+
+**Factory creation errors:**
+```python
+# Problem: Registry not initialized before factory use
+factory = ContentFactory()
+factory.create_content("reward", data)  # KeyError
+
+# Solution: Initialize first
+initialize_content_types()
+factory = ContentFactory()
+factory.create_content("reward", data)  # Works
+```
+
+#### Performance Considerations
+
+- **Initialization Impact**: Each new content type adds ~5-10ms to startup
+- **Memory Usage**: Minimal impact (~1KB per content type registration)
+- **File Detection**: More file patterns increase source scanning time slightly
+- **Recommendation**: Use specific file patterns, avoid overly broad matches
+
 ### Refactoring vs. Extension Decision Framework
 
 When faced with adding functionality to existing systems:
