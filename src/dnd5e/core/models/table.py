@@ -239,3 +239,41 @@ class Table(BaseContent):
         if not self.table_include:
             return None
         return self.table_include.get("name")
+
+
+@content_type(
+    enum_value="tableGroup",
+    file_patterns=["tableGroup", "tablegroups", "tables"],
+    loader_type="json",
+    statblock_tags=["tableGroup"],
+)
+class TableGroup(BaseContent):
+    """A collection of related tables grouped together.
+
+    Used to organize multiple tables that work together or
+    represent variations on a theme.
+    """
+
+    tables: list[dict[str, Any]] = Field(
+        default_factory=list, description="List of tables in this group"
+    )
+
+    def get_display_name(self) -> str:
+        """Get display name for the table group."""
+        return self.name
+
+    def get_table_count(self) -> int:
+        """Get number of tables in this group."""
+        return len(self.tables)
+
+    def get_table_names(self) -> list[str]:
+        """Get names of all tables in this group."""
+        names = []
+        for table_data in self.tables:
+            if isinstance(table_data, dict) and "name" in table_data:
+                names.append(table_data["name"])
+        return names
+
+    def has_tables(self) -> bool:
+        """Check if this group contains any tables."""
+        return len(self.tables) > 0
