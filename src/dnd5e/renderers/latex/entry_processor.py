@@ -389,10 +389,61 @@ class RecursiveEntryProcessor:
                     )
             elif isinstance(item, dict):
                 # Handle nested entries in list items
-                # Special case: if this item is itself a list, don't wrap with \item
                 if item.get("type") == "list":
-                    processed_item = self.process_entry_dict(item, context)
-                    result.append(processed_item)  # No \item wrapper for nested lists
+                    # Check if this is a credits-style nested description list that should be flattened
+                    nested_list_type = item.get("style", "unordered")
+                    nested_items = item.get("items", [])
+
+                    if (
+                        env == "description"
+                        and nested_list_type in ["list-hang-notitle", "list-hang"]
+                        and all(
+                            isinstance(nested_item, dict) and nested_item.get("name")
+                            for nested_item in nested_items[:5]
+                        )
+                    ):  # Check first 5 items
+                        # Flatten: process nested description items directly into parent list
+                        for nested_item in nested_items:
+                            if isinstance(nested_item, dict):
+                                nested_name = nested_item.get("name", "")
+                                if nested_name:
+                                    # Process the nested item's content, excluding the name since we use it as label
+                                    if (
+                                        nested_item.get("type") == "item"
+                                        and "entries" in nested_item
+                                    ):
+                                        # For "item" type, process only the entries, not the name
+                                        nested_content = "\n".join(
+                                            self.process_entries(
+                                                nested_item.get("entries", []), context
+                                            )
+                                        )
+                                    elif nested_item.get("type") == "entries":
+                                        nested_content = "\n".join(
+                                            self.process_entries(
+                                                nested_item.get("entries", []), context
+                                            )
+                                        )
+                                    else:
+                                        nested_content = self.process_entry_dict(
+                                            nested_item, context
+                                        )
+
+                                    # Clean up the label - remove trailing period if present
+                                    clean_name = nested_name.rstrip(".")
+                                    escaped_name = self._process_text_with_tags(
+                                        clean_name, context
+                                    )
+                                    result.append(
+                                        f"\\item[{escaped_name}.] {nested_content}"
+                                    )
+                    else:
+                        # Normal nested list handling
+                        processed_item = self.process_entry_dict(item, context)
+                        if env == "description":
+                            result.append(f"\\item[] {processed_item}")
+                        else:
+                            result.append(f"\\item {processed_item}")
                 elif env == "description":
                     # For description lists, try to extract name as label
                     item_name = item.get("name", "")

@@ -1,5 +1,6 @@
 """LaTeX document renderer implementation."""
 
+import logging
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,8 @@ from .content_organizer import ContentOrganizer
 from .document_structure import DocumentStructureBuilder
 from .entry_renderers import EntryRendererRegistry
 from .template_engine import LaTeXTemplateEngine
+
+logger = logging.getLogger(__name__)
 
 
 class LaTeXDocumentRenderer(DocumentRenderer):
@@ -187,10 +190,12 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Document with content rendered in sections
         """
-        for section in sections:
+        # Process sections in reverse order to handle duplicate placeholders correctly
+        # This ensures that placeholders at the end of the document (like Credits) get replaced first
+        for section in reversed(sections):
             if isinstance(section, ContentSection) and section.content_items:
-                # Render each content item and replace individual placeholders
-                for item in section.content_items:
+                # Process items in reverse order too
+                for item in reversed(section.content_items):
                     rendered_item = self.render_content_item(item, context)
                     if rendered_item:
                         # Create placeholder pattern that matches section template output
@@ -198,11 +203,9 @@ class LaTeXDocumentRenderer(DocumentRenderer):
                             placeholder_pattern = "% Content: String Entry (str)"
                         elif isinstance(item, dict):
                             item_name = item.get("name", "Unknown")
-                            # Apply LaTeX escaping to match template output
                             escaped_name = self._escape_latex(item_name)
                             placeholder_pattern = f"% Content: {escaped_name} (dict)"
                         else:
-                            # For actual model objects
                             item_name = getattr(item, "name", "Unknown")
                             escaped_name = self._escape_latex(item_name)
                             item_class = item.__class__.__name__
@@ -210,24 +213,28 @@ class LaTeXDocumentRenderer(DocumentRenderer):
                                 f"% Content: {escaped_name} ({item_class})"
                             )
 
-                        # Replace the specific placeholder with rendered content
-                        # Use replace with count=1 to only replace the first occurrence
+                        # For duplicate placeholders, replace from the end of the document
+                        # Find the last occurrence and replace it
                         if placeholder_pattern in document:
-                            document = document.replace(
-                                placeholder_pattern, rendered_item, 1
+                            # Find the last occurrence of this placeholder
+                            last_index = document.rfind(placeholder_pattern)
+                            if last_index != -1:
+                                logger.debug(
+                                    f"Replacing placeholder from end: '{placeholder_pattern}' at position {last_index} with {len(rendered_item)} chars"
+                                )
+                                document = (
+                                    document[:last_index]
+                                    + rendered_item
+                                    + document[last_index + len(placeholder_pattern) :]
+                                )
+                            else:
+                                logger.debug(
+                                    f"Placeholder not found in document: '{placeholder_pattern}'"
+                                )
+                        else:
+                            logger.debug(
+                                f"Placeholder not found in document: '{placeholder_pattern}'"
                             )
-
-                # Also try the generic content placeholder for compatibility
-                content_placeholder = f"% Content for {section.title}"
-                if content_placeholder in document:
-                    rendered_items = []
-                    for item in section.content_items:
-                        rendered_item = self.render_content_item(item, context)
-                        if rendered_item:
-                            rendered_items.append(rendered_item)
-                    document = document.replace(
-                        content_placeholder, "\n".join(rendered_items)
-                    )
 
         return document
 
@@ -363,10 +370,14 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         Returns:
             Rendered content
         """
+        logger.debug(
+            f"Rendering content item: {type(content).__name__}, content: {content if isinstance(content, str) else getattr(content, 'name', 'unnamed')}"
+        )
         try:
             content_type = ContentType.from_content(content)
         except ValueError:
             # If content type is unknown, use basic rendering as a fallback
+            logger.debug("Using basic content rendering for unknown content type")
             return self._render_basic_content(content, context)
 
         # Check if content should be included
@@ -502,7 +513,13 @@ This content type is not yet fully supported by the rendering system.
             return True  # Raw text entries from adventure chapters
         elif isinstance(content, dict):
             # Dict entries with typical adventure entry structure
-            return any(key in content for key in ["type", "entries", "name"])
+            has_adventure_keys = any(
+                key in content for key in ["type", "entries", "name"]
+            )
+            logger.debug(
+                f"Adventure entry detection for {content.get('name', 'unnamed')}: {has_adventure_keys}, keys: {list(content.keys())}"
+            )
+            return has_adventure_keys
 
         return False
 
@@ -532,7 +549,24 @@ This content type is not yet fully supported by the rendering system.
                 return self._escape_latex(content)
         elif isinstance(content, dict):
             # Process dict entry - use same approach as book rendering
-            return processor.process_entry_dict(content, context)
+            try:
+                logger.debug(
+                    f"Processing adventure dict entry: {content.get('type', 'no-type')} named '{content.get('name', 'unnamed')}'"
+                )
+                result = processor.process_entry_dict(content, context)
+                logger.debug(
+                    f"Adventure entry result: {result[:100] if result else 'None/empty'}"
+                )
+                return result if result else ""
+            except Exception as e:
+                logger.error(
+                    f"Failed to render adventure entry {content.get('name', 'unnamed')}: {e}"
+                )
+                logger.debug(f"Entry content: {content}")
+                import traceback
+
+                logger.debug(f"Traceback: {traceback.format_exc()}")
+                return ""
         else:
             return ""
 
