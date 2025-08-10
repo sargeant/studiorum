@@ -765,7 +765,19 @@ class Creature(BaseContent):
 
     def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
         """Extract spell references from creature traits and actions."""
+        from dnd5e.core.models.content import ContentType
         from dnd5e.core.references import SpellReferenceParser, SpellReferenceResolver
+
+        # Check if spells are available in the omnidexer before attempting resolution
+        # During loading, spell references may be processed before spells are loaded
+        try:
+            spell_count = len(omnidexer.get_all_by_type(ContentType.SPELL))
+            if spell_count == 0:
+                # Spells not loaded yet, skip resolution to avoid warnings
+                return []
+        except Exception:
+            # Error accessing spell data, skip resolution
+            return []
 
         spell_references = []
 

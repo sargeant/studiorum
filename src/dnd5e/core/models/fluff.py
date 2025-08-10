@@ -186,7 +186,7 @@ class BaseFluff(BaseContent):
 
 @content_type(
     enum_value="spellFluff",
-    file_patterns=["spellFluff", "spell-fluff", "spells", "fluff-spell"],
+    file_patterns=["spellFluff", "spell-fluff", "fluff-spell"],
     statblock_tags=["spellFluff"],
     loader_type="fluff",
 )
