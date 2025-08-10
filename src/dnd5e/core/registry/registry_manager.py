@@ -21,87 +21,20 @@ class RegistryManager:
         """Apply all content type registrations to existing systems."""
         logger.info("Applying content type registrations")
 
-        # 1. Update ContentType enum
-        self._update_content_type_enum(metadata)
-
-        # 2. Update configurable source manager
+        # 1. Update configurable source manager
         self._update_source_manager(metadata)
 
-        # 3. Update omnidexer
+        # 2. Update omnidexer
         self._update_omnidexer(metadata)
 
-        # 4. Update content factory
+        # 3. Update content factory
         self._update_content_factory(metadata)
 
-        # 5. Update content type resolver
+        # 4. Update content type resolver
         self._update_content_type_resolver(metadata)
 
-        # 6. Update entry processor (for statblock tags)
+        # 5. Update entry processor (for statblock tags)
         self._update_entry_processor(metadata)
-
-    def _update_content_type_enum(
-        self, metadata: dict[str, ContentTypeMetadata]
-    ) -> None:
-        """Create extended ContentType enum with new values."""
-        import sys
-        from enum import Enum
-        from typing import cast
-
-        global ContentType
-
-        # Get existing enum members
-        existing_types = {member.name: member.value for member in ContentType}
-        logger.debug(f"Existing types: {existing_types}")
-
-        # Add new types (convert keys to uppercase names)
-        new_types = {}
-        for enum_value, meta in metadata.items():
-            enum_name = enum_value.upper()
-            if enum_name not in existing_types:
-                new_types[enum_name] = enum_value
-                logger.debug(f"Adding ContentType.{enum_name} = '{enum_value}'")
-
-        logger.debug(f"New types to add: {new_types}")
-
-        # If no new types and we have existing types, nothing to do
-        if not new_types and existing_types:
-            logger.debug("No new ContentType enum values to add")
-            return
-
-        # Create extended enum with all types (existing + new)
-        all_types = {**existing_types, **new_types}
-
-        # If we have no types at all, something is wrong
-        if not all_types:
-            logger.warning("No ContentType values found in registry or existing enum")
-            return
-
-        # Create new enum class with same name and attributes
-        # mypy: Cannot analyze dynamic enum creation, but this is the correct pattern
-        ExtendedContentType = Enum("ContentType", all_types, type=str)  # type: ignore[misc]
-        ExtendedContentType.__module__ = ContentType.__module__
-        ExtendedContentType.__qualname__ = ContentType.__qualname__
-
-        # Preserve class methods and other attributes from the original enum
-        # Copy from the original class's __dict__ to avoid including inherited methods
-        for attr_name, attr in ContentType.__dict__.items():
-            if not attr_name.startswith("_") and not hasattr(
-                ExtendedContentType, attr_name
-            ):
-                # Skip enum members (they're already handled)
-                if not isinstance(attr, ContentType):
-                    setattr(ExtendedContentType, attr_name, attr)
-
-        # Replace ContentType in the models module
-        content_module = sys.modules[ContentType.__module__]
-        # mypy: Dynamic module attribute assignment needed for enum extension
-        content_module.ContentType = ExtendedContentType  # type: ignore[attr-defined]
-
-        # Update global reference in this module
-        # mypy: Dynamic enum replacement is type-safe at runtime but not statically analyzable
-        ContentType = cast(type[ContentType], ExtendedContentType)  # type: ignore[misc]
-
-        logger.info(f"Extended ContentType enum with {len(new_types)} new values")
 
     def _update_source_manager(self, metadata: dict[str, ContentTypeMetadata]) -> None:
         """Replace source manager patterns with registry-based patterns."""

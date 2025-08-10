@@ -9,7 +9,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from dnd5e.core.loaders.content_merger import ContentMerger
 from dnd5e.core.models.content import BaseContent, ContentType
-from dnd5e.core.registry.content_type_resolver import resolve_content_type
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +97,7 @@ class ContentResolver:
         Returns:
             ContentResolutionResult with resolution details
         """
-        adventure_type = resolve_content_type("adventure")
+        adventure_type = ContentType("adventure")
         return self._resolve_content(adventure_type, abbreviation)
 
     def resolve_book(self, abbreviation: str) -> ContentResolutionResult:
@@ -110,7 +109,7 @@ class ContentResolver:
         Returns:
             ContentResolutionResult with resolution details
         """
-        book_type = resolve_content_type("book")
+        book_type = ContentType("book")
         return self._resolve_content(book_type, abbreviation)
 
     def resolve_any(
@@ -129,8 +128,8 @@ class ContentResolver:
             return self._resolve_content(content_type, abbreviation)
 
         # Try all content types if not specified
-        adventure_type = resolve_content_type("adventure")
-        book_type = resolve_content_type("book")
+        adventure_type = ContentType("adventure")
+        book_type = ContentType("book")
         for ct in [adventure_type, book_type]:
             result = self._resolve_content(ct, abbreviation)
             if result.is_success:
@@ -190,7 +189,7 @@ class ContentResolver:
         Returns:
             List of ContentResolutionResult objects
         """
-        adventure_type = resolve_content_type("adventure")
+        adventure_type = ContentType("adventure")
         requests = [(abbrev, adventure_type) for abbrev in abbreviations]
         return self.resolve_multiple(requests)
 
@@ -205,7 +204,7 @@ class ContentResolver:
         Returns:
             List of ContentResolutionResult objects
         """
-        book_type = resolve_content_type("book")
+        book_type = ContentType("book")
         requests = [(abbrev, book_type) for abbrev in abbreviations]
         return self.resolve_multiple(requests)
 
@@ -437,8 +436,8 @@ class ContentResolver:
             Enriched content object with merged metadata+content data
         """
         # Only enrich adventures and books (dual-file types)
-        adventure_type = resolve_content_type("adventure")
-        book_type = resolve_content_type("book")
+        adventure_type = ContentType("adventure")
+        book_type = ContentType("book")
         if content_type not in [adventure_type, book_type]:
             return content
 

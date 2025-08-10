@@ -12,6 +12,11 @@ from dnd5e.core.references import SpellReferenceParser
 class TestCreatureSpellIndexing:
     """Test creature spell indexing functionality."""
 
+    def setup_method(self) -> None:
+        from tests.test_helpers import reset_test_environment
+
+        reset_test_environment()
+
     def test_creature_implements_deep_indexable(self):
         """Test that Creature implements DeepIndexable protocol."""
         # Create a minimal creature
@@ -225,6 +230,11 @@ class TestCreatureSpellIndexing:
 class TestCreatureDeepIndexingIntegration:
     """Test full deep indexing integration with mock omnidexer."""
 
+    def setup_method(self) -> None:
+        from tests.test_helpers import reset_test_environment
+
+        reset_test_environment()
+
     def test_creature_deep_indexing_with_mock_omnidexer(self):
         """Test that creature deep indexing works with a mock omnidexer."""
         from unittest.mock import MagicMock
@@ -269,6 +279,10 @@ class TestCreatureDeepIndexingIntegration:
         # Create mock omnidexer
         mock_omnidexer = MagicMock()
         spell_type = ContentType("spell")
+
+        # Mock get_all_by_type to return non-empty list so it doesn't exit early
+        mock_omnidexer.get_all_by_type.return_value = [mock_fireball, mock_shield]
+
         mock_omnidexer.find.side_effect = lambda content_type, name, source=None: {
             (spell_type, "fireball", "phb"): mock_fireball,
             (spell_type, "shield", "phb"): mock_shield,

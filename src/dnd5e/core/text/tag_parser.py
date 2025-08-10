@@ -338,7 +338,7 @@ class TagASTTransformer(Transformer):
             node = TagNode(tag_type)
             node.name = name  # "con 10" - contains ability and score
             node.display_text_nodes = (
-                final_display_text_nodes  # "+0" - the modifier to display
+                final_display_text_nodes or []  # "+0" - the modifier to display
             )
             return node
 

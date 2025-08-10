@@ -151,7 +151,9 @@ def content_type(
     loader_type: Literal["json", "fluff"] = "json",
 ) -> Callable[[type[T]], type[T]]:
     """
-    Decorator to register a content type.
+    Register content type metadata.
+
+    Note: enum_value must match a ContentType enum value.
 
     Args:
         enum_value: String value for ContentType enum
@@ -164,7 +166,7 @@ def content_type(
 
     Raises:
         TypeError: If decorated class doesn't inherit from BaseContent
-        ValueError: If parameters are invalid
+        ValueError: If parameters are invalid or enum_value doesn't match ContentType
     """
     # Validate inputs before creating decorator
     if not enum_value.strip():
@@ -174,12 +176,21 @@ def content_type(
 
     def decorator(cls: type[T]) -> type[T]:
         # Import here to avoid circular imports
-        from ..models.content import BaseContent
+        from ..models.content import BaseContent, ContentType
 
         if not issubclass(cls, BaseContent):
             raise TypeError(f"Class {cls.__name__} must inherit from BaseContent")
 
+        # Validate that enum_value exists in ContentType
         try:
+            ContentType(enum_value)
+        except ValueError:
+            raise ValueError(
+                f"Invalid enum_value '{enum_value}' - must match ContentType enum"
+            )
+
+        try:
+            # Register metadata only (no enum extension)
             metadata = ContentTypeMetadata(
                 enum_value=enum_value,
                 model_class=cls,

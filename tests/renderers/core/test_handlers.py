@@ -411,9 +411,9 @@ class TestConditionTagHandler:
         handler = ConditionTagHandler()
 
         assert handler.tag_type == "condition"
-        assert (
-            handler.content_type is None
-        )  # Conditions don't have content type validation yet
+        assert handler.content_type == ContentType(
+            "condition"
+        )  # Conditions now have content type validation
 
     def test_extract_content_info_with_condition_attribute(self):
         """Test condition extraction using 'condition' attribute."""
@@ -476,6 +476,9 @@ class TestDefaultCoreHandlers:
             "dc",
             "dice",
             "card",
+            "ability",
+            "savingThrow",
+            "skillCheck",
             "formatting",
         ]
 

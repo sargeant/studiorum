@@ -32,7 +32,6 @@ class TestRegistryManager:
 
         with patch.multiple(
             manager,
-            _update_content_type_enum=Mock(),
             _update_source_manager=Mock(),
             _update_omnidexer=Mock(),
             _update_content_factory=Mock(),
@@ -41,38 +40,11 @@ class TestRegistryManager:
         ):
             manager.apply_registrations(metadata)
 
-            manager._update_content_type_enum.assert_called_once_with(metadata)
             manager._update_source_manager.assert_called_once_with(metadata)
             manager._update_omnidexer.assert_called_once_with(metadata)
             manager._update_content_factory.assert_called_once_with(metadata)
             manager._update_content_type_resolver.assert_called_once_with(metadata)
             manager._update_entry_processor.assert_called_once_with(metadata)
-
-    def test_update_content_type_enum(self):
-        """Test that _update_content_type_enum executes without error."""
-        manager = RegistryManager()
-
-        metadata = {
-            "new_type": ContentTypeMetadata(
-                enum_value="new_type",
-                model_class=MockBaseContent,
-                file_patterns=["new"],
-            )
-        }
-
-        # The enum extension mechanism is complex and tested via integration tests
-        # Here we just verify the method executes without throwing exceptions
-        try:
-            manager._update_content_type_enum(metadata)
-        except Exception as e:
-            pytest.fail(f"_update_content_type_enum should not raise exceptions: {e}")
-
-        # Test with empty metadata (should not add anything)
-        empty_metadata: dict[str, ContentTypeMetadata] = {}
-        try:
-            manager._update_content_type_enum(empty_metadata)
-        except Exception as e:
-            pytest.fail(f"_update_content_type_enum should handle empty metadata: {e}")
 
     def test_update_source_manager(self):
         """Test updating source manager patterns."""
@@ -97,7 +69,7 @@ class TestRegistryManager:
         ):
             manager._update_source_manager(metadata)
 
-            # Check that patterns were replaced using dynamic ContentType
+            # Check that patterns were replaced using ContentType constructor
             spell_content_type = ContentType("spell")
             assert spell_content_type in mock_source_manager_class.content_patterns
             assert mock_source_manager_class.content_patterns[spell_content_type] == [
@@ -177,7 +149,7 @@ class TestRegistryManager:
         ):
             manager._update_content_factory(metadata)
 
-            # Check that class map was replaced using dynamic ContentType
+            # Check that class map was replaced using ContentType constructor
             creature_content_type = ContentType("creature")
             assert creature_content_type in mock_factory_class._class_map
             assert (
@@ -229,7 +201,7 @@ class TestRegistryManager:
         """Test successful resolver registration with valid metadata."""
         manager = RegistryManager()
 
-        # Use existing static enum value instead of dynamic one
+        # Use existing static enum value
         metadata = {
             "spell": ContentTypeMetadata(
                 enum_value="spell",

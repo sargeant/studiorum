@@ -168,6 +168,12 @@ class Omnidexer:
                                 Defaults to True. Disable for performance-critical
                                 applications where nested content discovery is not needed.
         """
+        # Ensure content types are initialized before creating source manager
+        # This prevents warnings about missing content types during initialization
+        from ..registry import initialize_content_types
+
+        initialize_content_types()
+
         self.source_manager = source_manager or ConfigurableSourceManager()
         self.enable_deep_indexing = enable_deep_indexing
 
@@ -203,10 +209,7 @@ class Omnidexer:
 
     def _register_default_loaders(self) -> None:
         """Register default data loaders for common content types."""
-        # Ensure registry is initialized before resolving content types
-        from ..registry import initialize_content_types
-
-        initialize_content_types()
+        # Content types are already initialized in __init__ before source manager creation
 
         # Use dynamic resolution with caching for performance
         self._register_loaders_for_type(JsonDataLoader, self._get_json_content_types())
@@ -538,7 +541,6 @@ class Omnidexer:
     def _get_json_content_types(self) -> tuple[ContentType, ...]:
         """Get JSON content types from registry - cached for performance."""
         from ..registry.content_type_registry import get_content_type_registry
-        from ..registry.content_type_resolver import resolve_content_type
 
         registry = get_content_type_registry()
         json_types: list[ContentType] = []
@@ -546,7 +548,7 @@ class Omnidexer:
         for enum_value, metadata in registry.get_all().items():
             if metadata.loader_type == "json":
                 try:
-                    json_types.append(resolve_content_type(enum_value))
+                    json_types.append(ContentType(enum_value))
                 except ValueError:
                     # Skip test-only registrations that aren't valid enum members
                     logger.debug(f"Skipping test-only content type: {enum_value}")
@@ -557,7 +559,6 @@ class Omnidexer:
     def _get_fluff_content_types(self) -> tuple[ContentType, ...]:
         """Get fluff content types from registry - cached for performance."""
         from ..registry.content_type_registry import get_content_type_registry
-        from ..registry.content_type_resolver import resolve_content_type
 
         registry = get_content_type_registry()
         fluff_types: list[ContentType] = []
@@ -565,7 +566,7 @@ class Omnidexer:
         for enum_value, metadata in registry.get_all().items():
             if metadata.loader_type == "fluff":
                 try:
-                    fluff_types.append(resolve_content_type(enum_value))
+                    fluff_types.append(ContentType(enum_value))
                 except ValueError:
                     # Skip test-only registrations that aren't valid enum members
                     logger.debug(f"Skipping test-only content type: {enum_value}")

@@ -8,7 +8,6 @@ from typing import Any
 from ..config.sources import get_content_config
 from ..logging import get_logger
 from ..models.content import ContentType
-from ..registry.content_type_resolver import resolve_content_type
 from ..sources import ContentSourceManager
 from .base import SourceManager
 
@@ -121,18 +120,16 @@ class ConfigurableSourceManager(SourceManager):
         shared_files = {}
 
         try:
-            condition_type = resolve_content_type("condition")
-            status_type = resolve_content_type("status")
+            condition_type = ContentType("condition")
+            status_type = ContentType("status")
             shared_files["conditionsdiseases.json"] = [condition_type, status_type]
         except ValueError:
             logger.warning(
-                "Condition or status content types not registered, skipping conditionsdiseases file mapping"
+                "Condition or status content types not found, skipping conditionsdiseases file mapping"
             )
 
         # Add bestiary file sharing between creature and creatureFluff
         try:
-            from ..models.content import ContentType
-
             # Find creature and creatureFluff types from content_patterns
             creature_type = None
             creature_fluff_type = None
@@ -550,23 +547,23 @@ class ConfigurableSourceManager(SourceManager):
                     # Map metadata files to content types using dynamic resolution
                     if filename == "adventures.json":
                         try:
-                            adventure_type = resolve_content_type("adventure")
+                            adventure_type = ContentType("adventure")
                             if adventure_type not in metadata_paths:
                                 metadata_paths[adventure_type] = []
                             metadata_paths[adventure_type].append(file_path)
                         except ValueError:
                             logger.warning(
-                                "Adventure content type not registered, skipping adventures.json"
+                                "Adventure content type not found, skipping adventures.json"
                             )
                     elif filename == "books.json":
                         try:
-                            book_type = resolve_content_type("book")
+                            book_type = ContentType("book")
                             if book_type not in metadata_paths:
                                 metadata_paths[book_type] = []
                             metadata_paths[book_type].append(file_path)
                         except ValueError:
                             logger.warning(
-                                "Book content type not registered, skipping books.json"
+                                "Book content type not found, skipping books.json"
                             )
 
         logger.info("Discovered metadata files:")
@@ -600,23 +597,23 @@ class ConfigurableSourceManager(SourceManager):
                     # Map content files to content types using dynamic resolution
                     if filename.startswith("adventure-"):
                         try:
-                            adventure_type = resolve_content_type("adventure")
+                            adventure_type = ContentType("adventure")
                             if adventure_type not in content_paths:
                                 content_paths[adventure_type] = []
                             content_paths[adventure_type].append(file_path)
                         except ValueError:
                             logger.warning(
-                                "Adventure content type not registered, skipping adventure files"
+                                "Adventure content type not found, skipping adventure files"
                             )
                     elif filename.startswith("book-"):
                         try:
-                            book_type = resolve_content_type("book")
+                            book_type = ContentType("book")
                             if book_type not in content_paths:
                                 content_paths[book_type] = []
                             content_paths[book_type].append(file_path)
                         except ValueError:
                             logger.warning(
-                                "Book content type not registered, skipping book files"
+                                "Book content type not found, skipping book files"
                             )
 
         logger.info("Discovered content files:")

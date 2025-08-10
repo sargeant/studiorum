@@ -25,21 +25,6 @@ class TestMultiColumnManager:
 
         self.manager = MultiColumnManager()
 
-    def _get_content_type(self, type_name: str) -> ContentType:
-        """Get ContentType safely, falling back to static enum members."""
-        try:
-            return ContentType(type_name)
-        except ValueError:
-            # Fall back to known static enum members
-            fallback_map = {
-                "spell": ContentType.SPELL,
-                "creature": ContentType.CREATURE,
-                "item": ContentType.ITEM,
-                "adventure": ContentType.ADVENTURE,
-                "book": ContentType.BOOK,
-            }
-            return fallback_map.get(type_name, ContentType.SPELL)  # Default fallback
-
     def test_init_default_config(self) -> None:
         """Test initialization with default configuration."""
         assert self.manager.default_columns == 2
@@ -68,7 +53,7 @@ class TestMultiColumnManager:
         """Test handling of multi-column strategies."""
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
         )
         assert self.manager.can_handle(context) is True
 
@@ -76,7 +61,7 @@ class TestMultiColumnManager:
         """Test handling of magazine strategy."""
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MAGAZINE,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
         )
         assert self.manager.can_handle(context) is True
 
@@ -84,7 +69,7 @@ class TestMultiColumnManager:
         """Test rejection of single column strategy."""
         context: Any = LayoutContext(
             strategy=LayoutStrategy.SINGLE_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
         )
         assert self.manager.can_handle(context) is False
 
@@ -96,7 +81,7 @@ class TestMultiColumnManager:
         """Test column count determination for spells."""
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
         )
         count = self.manager._determine_column_count(context)
         assert count == 2
@@ -105,7 +90,7 @@ class TestMultiColumnManager:
         """Test column count determination for creatures."""
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("creature"),
+            content_type=ContentType.CREATURE,
         )
         count = self.manager._determine_column_count(context)
         assert count == 1
@@ -117,7 +102,7 @@ class TestMultiColumnManager:
 
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
             hints=hints,
         )
         count = self.manager._determine_column_count(context)
@@ -127,7 +112,7 @@ class TestMultiColumnManager:
         """Test column usage for normal content."""
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
         )
         assert self.manager._should_use_columns(context) is True
 
@@ -138,7 +123,7 @@ class TestMultiColumnManager:
 
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
             hints=hints,
         )
         assert self.manager._should_use_columns(context) is False
@@ -147,7 +132,7 @@ class TestMultiColumnManager:
         """Test column avoidance for creature content."""
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("creature"),
+            content_type=ContentType.CREATURE,
         )
         assert self.manager._should_use_columns(context) is False
 
@@ -155,7 +140,7 @@ class TestMultiColumnManager:
         """Test layout application with empty content."""
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
         )
         result = self.manager.apply_layout("", context)
         assert result == ""
@@ -165,7 +150,7 @@ class TestMultiColumnManager:
         content = "Test content"
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("creature"),  # Forces single column
+            content_type=ContentType.CREATURE,  # Forces single column
         )
         result = self.manager.apply_layout(content, context)
         assert result == content  # Should be unchanged
@@ -175,7 +160,7 @@ class TestMultiColumnManager:
         content = "Test spell content"
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
         )
         result = self.manager.apply_layout(content, context)
 
@@ -189,7 +174,7 @@ class TestMultiColumnManager:
         content = "Test content"
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
         )
         result = manager.apply_layout(content, context)
 
@@ -200,7 +185,7 @@ class TestMultiColumnManager:
         content = "Test content"
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
         )
         result = self.manager.apply_layout(content, context)
 
@@ -214,7 +199,7 @@ class TestMultiColumnManager:
 
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
             hints=hints,
         )
 
@@ -231,7 +216,7 @@ class TestMultiColumnManager:
 
         context: Any = LayoutContext(
             strategy=LayoutStrategy.MULTI_COLUMN,
-            content_type=self._get_content_type("spell"),
+            content_type=ContentType.SPELL,
             hints=hints,
         )
 
@@ -316,32 +301,32 @@ class TestMultiColumnManager:
 
     def test_get_column_layout_hints_spell(self) -> None:
         """Test layout hints for spell content."""
-        hint = self.manager.get_column_layout_hints(self._get_content_type("spell"))
+        hint = self.manager.get_column_layout_hints(ContentType.SPELL)
 
         assert hint.allow_float is True
         assert hint.avoid_column_break is True
 
     def test_get_column_layout_hints_creature(self) -> None:
         """Test layout hints for creature content."""
-        hint = self.manager.get_column_layout_hints(self._get_content_type("creature"))
+        hint = self.manager.get_column_layout_hints(ContentType.CREATURE)
 
         assert hint.span_columns is True
         assert hint.allow_float is True
 
     def test_get_column_layout_hints_item(self) -> None:
         """Test layout hints for item content."""
-        hint = self.manager.get_column_layout_hints(self._get_content_type("item"))
+        hint = self.manager.get_column_layout_hints(ContentType.ITEM)
 
         assert hint.allow_float is True
         assert hint.group_with_next is True
 
     def test_get_column_layout_hints_background(self) -> None:
         """Test layout hints for background content."""
-        # Since "background" doesn't exist as a static enum member, we fall back to SPELL
-        # The test should check what actually happens rather than what we want to happen
-        background_type = self._get_content_type("background")
+        # Background is a valid ContentType enum member (ContentType.BACKGROUND)
+        # The MultiColumnManager has specific logic for background content
+        background_type = ContentType.BACKGROUND
         hint = self.manager.get_column_layout_hints(background_type)
 
-        # With our fallback to SPELL ContentType, span_columns should be False
-        # This test validates that our fallback behavior is working correctly
-        assert hint.span_columns is False
+        # Background content spans columns because it needs detail space
+        # This matches the logic in MultiColumnManager.get_column_layout_hints
+        assert hint.span_columns is True

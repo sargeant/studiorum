@@ -8,19 +8,75 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ContentType(str, Enum):
-    """Enumeration of supported D&D content types.
+    """Content type enumeration for all 5e.tools data types."""
 
-    This enum contains core static types and is dynamically extended by the
-    registry system. Additional content types are registered via @content_type
-    decorators and added to this enum at runtime.
-    """
-
-    # Core content types needed for bootstrapping
+    # Core content types
     ADVENTURE = "adventure"
     BOOK = "book"
-    SPELL = "spell"
     CREATURE = "creature"
     ITEM = "item"
+    SPELL = "spell"
+
+    # Character options
+    BACKGROUND = "background"
+    CLASS = "class"
+    SUBCLASS = "subclass"
+    RACE = "race"
+    SUBRACE = "subrace"
+    FEAT = "feat"
+    CHAROPTION = "charoption"
+    CHAROPTIONTYPE = "charoptiontype"
+    CLASS_FEATURE = "classFeature"
+    SUBCLASS_FEATURE = "subclassFeature"
+    OPTIONALFEATURE = "optionalfeature"
+
+    # Game mechanics
+    ACTION = "action"
+    CONDITION = "condition"
+    STATUS = "status"
+    SENSE = "sense"
+    HAZARD = "hazard"
+    DECK = "deck"
+    DEITY = "deity"
+    DISEASE = "disease"
+    CULT = "cult"
+    BOON = "boon"
+    TRAP = "trap"
+    TABLE = "table"
+    TABLE_GROUP = "tableGroup"
+    VARIANTRULE = "variantrule"
+    VEHICLE = "vehicle"
+    LEGENDARYGROUP = "legendarygroup"
+    PSIONIC = "psionic"
+
+    # Items and objects
+    BASEITEM = "baseitem"
+    ITEM_MASTERY = "itemMastery"
+    ITEM_PROPERTY = "itemProperty"
+    MAGICVARIANT = "magicvariant"
+    OBJECT = "object"
+    FACILITY = "facility"
+    RECIPE = "recipe"
+    REWARD = "reward"
+
+    # Fluff content
+    SPELL_FLUFF = "spellFluff"
+    CREATURE_FLUFF = "creatureFluff"
+    ITEM_FLUFF = "itemFluff"
+    RACE_FLUFF = "raceFluff"
+    FEAT_FLUFF = "featFluff"
+    CLASS_FLUFF = "classFluff"
+    BACKGROUND_FLUFF = "backgroundFluff"
+    OPTIONALFEATURE_FLUFF = "optionalfeatureFluff"
+    VEHICLE_FLUFF = "vehicleFluff"
+    OBJECT_FLUFF = "objectFluff"
+    LANGUAGE_FLUFF = "languageFluff"
+    REWARD_FLUFF = "rewardFluff"
+    CONDITIONDISEASE_FLUFF = "conditionDiseaseFluff"
+    TRAPHAZARD_FLUFF = "trapHazardFluff"
+    BASTION_FLUFF = "bastionFluff"
+    RECIPE_FLUFF = "recipeFluff"
+    CHAROPTION_FLUFF = "charoptionFluff"
 
     @classmethod
     def from_content(cls, content: BaseContent) -> ContentType:

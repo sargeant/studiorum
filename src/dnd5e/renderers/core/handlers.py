@@ -50,21 +50,6 @@ class BaseTagHandler:
         """Business rule: Don't show page '1' in references."""
         return page is not None and page != "1"
 
-    def _resolve_content_type(self, content_type_name: str) -> ContentType | None:
-        """Resolve content type using registry (Phase 3 migration).
-
-        Args:
-            content_type_name: Content type name to resolve
-
-        Returns:
-            ContentType enum instance or None if not found
-        """
-        try:
-            return ContentType(content_type_name)
-        except ValueError:
-            logger.debug(f"Content type '{content_type_name}' not found in registry")
-            return None
-
     def _extract_display_text(self, node: TagNode, context: RenderingContext) -> str:
         """Extract display text using the standard priority order.
 
@@ -169,7 +154,11 @@ class CreatureTagHandler(BaseTagHandler):
     """Core handler for creature reference tags."""
 
     def __init__(self) -> None:
-        content_type = self._resolve_content_type("creature")
+        try:
+            content_type = ContentType("creature")
+        except ValueError:
+            logger.debug("Content type 'creature' not found in registry")
+            content_type = None
         super().__init__("creature", content_type)
 
     def extract_content_info(
@@ -195,7 +184,11 @@ class SpellTagHandler(BaseTagHandler):
     """Core handler for spell reference tags."""
 
     def __init__(self) -> None:
-        content_type = self._resolve_content_type("spell")
+        try:
+            content_type = ContentType("spell")
+        except ValueError:
+            logger.debug("Content type 'spell' not found in registry")
+            content_type = None
         super().__init__("spell", content_type)
 
     def extract_content_info(
@@ -221,7 +214,11 @@ class ItemTagHandler(BaseTagHandler):
     """Core handler for item reference tags."""
 
     def __init__(self) -> None:
-        content_type = self._resolve_content_type("item")
+        try:
+            content_type = ContentType("item")
+        except ValueError:
+            logger.debug("Content type 'item' not found in registry")
+            content_type = None
         super().__init__("item", content_type)
 
     def extract_content_info(
@@ -247,7 +244,11 @@ class ClassTagHandler(BaseTagHandler):
     """Core handler for class reference tags."""
 
     def __init__(self) -> None:
-        content_type = self._resolve_content_type("class")
+        try:
+            content_type = ContentType("class")
+        except ValueError:
+            logger.debug("Content type 'class' not found in registry")
+            content_type = None
         super().__init__("class", content_type)
 
     def extract_content_info(
@@ -273,7 +274,11 @@ class FeatTagHandler(BaseTagHandler):
     """Core handler for feat reference tags."""
 
     def __init__(self) -> None:
-        content_type = self._resolve_content_type("feat")
+        try:
+            content_type = ContentType("feat")
+        except ValueError:
+            logger.debug("Content type 'feat' not found in registry")
+            content_type = None
         super().__init__("feat", content_type)
 
     def extract_content_info(
@@ -299,7 +304,11 @@ class RaceTagHandler(BaseTagHandler):
     """Core handler for race reference tags."""
 
     def __init__(self) -> None:
-        content_type = self._resolve_content_type("race")
+        try:
+            content_type = ContentType("race")
+        except ValueError:
+            logger.debug("Content type 'race' not found in registry")
+            content_type = None
         super().__init__("race", content_type)
 
     def extract_content_info(
@@ -325,7 +334,11 @@ class BackgroundTagHandler(BaseTagHandler):
     """Core handler for background reference tags."""
 
     def __init__(self) -> None:
-        content_type = self._resolve_content_type("background")
+        try:
+            content_type = ContentType("background")
+        except ValueError:
+            logger.debug("Content type 'background' not found in registry")
+            content_type = None
         super().__init__("background", content_type)
 
     def extract_content_info(
@@ -351,7 +364,11 @@ class AdventureTagHandler(BaseTagHandler):
     """Core handler for adventure reference tags."""
 
     def __init__(self) -> None:
-        content_type = self._resolve_content_type("adventure")
+        try:
+            content_type = ContentType("adventure")
+        except ValueError:
+            logger.debug("Content type 'adventure' not found in registry")
+            content_type = None
         super().__init__("adventure", content_type)
 
     def extract_content_info(
@@ -378,7 +395,11 @@ class BookTagHandler(BaseTagHandler):
     """Core handler for book reference tags."""
 
     def __init__(self) -> None:
-        content_type = self._resolve_content_type("book")
+        try:
+            content_type = ContentType("book")
+        except ValueError:
+            logger.debug("Content type 'book' not found in registry")
+            content_type = None
         super().__init__("book", content_type)
 
     def extract_content_info(
@@ -405,8 +426,11 @@ class ConditionTagHandler(BaseTagHandler):
     """Core handler for condition tags."""
 
     def __init__(self) -> None:
-        # Use registry to resolve condition content type (Phase 3 migration)
-        content_type = self._resolve_content_type("condition")
+        try:
+            content_type = ContentType("condition")
+        except ValueError:
+            logger.debug("Content type 'condition' not found in registry")
+            content_type = None
         super().__init__("condition", content_type)
 
     def _extract_display_text(self, node: TagNode, context: RenderingContext) -> str:
@@ -735,11 +759,15 @@ class AbilityTagHandler:
         """Extract content info - not used for ability tags, use process_tag instead."""
         raise NotImplementedError("Use process_tag for ability tags")
 
+    def should_include_page_reference(self, page: str | None) -> bool:
+        """Ability tags don't have page references."""
+        return False
+
     def validate_content_reference(
         self, node: TagNode, context: RenderingContext
-    ) -> None:
+    ) -> list[TagValidationError]:
         """Ability tags don't need content validation."""
-        pass
+        return []
 
     def track_content_for_appendix(
         self, node: TagNode, context: RenderingContext
@@ -800,11 +828,15 @@ class SavingThrowTagHandler:
         """Extract content info - not used for saving throw tags, use process_tag instead."""
         raise NotImplementedError("Use process_tag for saving throw tags")
 
+    def should_include_page_reference(self, page: str | None) -> bool:
+        """Saving throw tags don't have page references."""
+        return False
+
     def validate_content_reference(
         self, node: TagNode, context: RenderingContext
-    ) -> None:
+    ) -> list[TagValidationError]:
         """Saving throw tags don't need content validation."""
-        pass
+        return []
 
     def track_content_for_appendix(
         self, node: TagNode, context: RenderingContext
@@ -865,11 +897,15 @@ class SkillCheckTagHandler:
         """Extract content info - not used for skill check tags, use process_tag instead."""
         raise NotImplementedError("Use process_tag for skill check tags")
 
+    def should_include_page_reference(self, page: str | None) -> bool:
+        """Skill check tags don't have page references."""
+        return False
+
     def validate_content_reference(
         self, node: TagNode, context: RenderingContext
-    ) -> None:
+    ) -> list[TagValidationError]:
         """Skill check tags don't need content validation."""
-        pass
+        return []
 
     def track_content_for_appendix(
         self, node: TagNode, context: RenderingContext

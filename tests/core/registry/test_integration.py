@@ -34,7 +34,7 @@ class TestRegistryIntegration:
         ):
 
             @content_type(
-                enum_value="test_integration",
+                enum_value="cult",
                 file_patterns=["test", "integration"],
                 statblock_tags=["testTag"],
                 loader_type="json",
@@ -48,7 +48,7 @@ class TestRegistryIntegration:
         metadata = call_args[0]
 
         assert isinstance(metadata, ContentTypeMetadata)
-        assert metadata.enum_value == "test_integration"
+        assert metadata.enum_value == "cult"
         assert metadata.model_class == DecoratedContent
         assert metadata.file_patterns == ["test", "integration"]
         assert metadata.statblock_tags == ["testTag"]

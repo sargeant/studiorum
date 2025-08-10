@@ -25,14 +25,14 @@ class TestContentTypeMetadata:
             name: str
 
         metadata = ContentTypeMetadata(
-            enum_value="test_type",
+            enum_value="trap",
             model_class=TestModel,
             file_patterns=["test", "tests"],
             statblock_tags=["testTag"],
             loader_type="json",
         )
 
-        assert metadata.enum_value == "test_type"
+        assert metadata.enum_value == "trap"
         assert metadata.model_class == TestModel
         assert metadata.file_patterns == ["test", "tests"]
         assert metadata.statblock_tags == ["testTag"]
@@ -68,7 +68,7 @@ class TestContentTypeMetadata:
 
         with pytest.raises(ValueError, match="file_patterns cannot be empty"):
             ContentTypeMetadata(
-                enum_value="test_type", model_class=TestModel, file_patterns=[]
+                enum_value="trap", model_class=TestModel, file_patterns=[]
             )
 
 
@@ -100,11 +100,11 @@ class TestContentTypeRegistry:
 
         registry = ContentTypeRegistry()
         metadata = ContentTypeMetadata(
-            enum_value="test_type", model_class=TestModel, file_patterns=["test"]
+            enum_value="trap", model_class=TestModel, file_patterns=["test"]
         )
 
         registry.register(metadata)
-        retrieved = registry.get("test_type")
+        retrieved = registry.get("trap")
 
         assert retrieved == metadata
         assert retrieved.model_class == TestModel
@@ -122,11 +122,11 @@ class TestContentTypeRegistry:
         registry = ContentTypeRegistry()
 
         metadata1 = ContentTypeMetadata(
-            enum_value="type1", model_class=TestModel1, file_patterns=["test1"]
+            enum_value="trap", model_class=TestModel1, file_patterns=["test1"]
         )
 
         metadata2 = ContentTypeMetadata(
-            enum_value="type2", model_class=TestModel2, file_patterns=["test2"]
+            enum_value="hazard", model_class=TestModel2, file_patterns=["test2"]
         )
 
         registry.register(metadata1)
@@ -134,8 +134,8 @@ class TestContentTypeRegistry:
 
         all_metadata = registry.get_all()
         assert len(all_metadata) == 2
-        assert all_metadata["type1"] == metadata1
-        assert all_metadata["type2"] == metadata2
+        assert all_metadata["trap"] == metadata1
+        assert all_metadata["hazard"] == metadata2
 
     def test_duplicate_registration_same_class(self):
         """Test that duplicate registration with same class is allowed."""
@@ -147,18 +147,18 @@ class TestContentTypeRegistry:
         registry = ContentTypeRegistry()
 
         metadata1 = ContentTypeMetadata(
-            enum_value="test_type", model_class=TestModel, file_patterns=["test1"]
+            enum_value="trap", model_class=TestModel, file_patterns=["test1"]
         )
 
         metadata2 = ContentTypeMetadata(
-            enum_value="test_type", model_class=TestModel, file_patterns=["test2"]
+            enum_value="trap", model_class=TestModel, file_patterns=["test2"]
         )
 
         registry.register(metadata1)
         registry.register(metadata2)  # Should not raise
 
         # Should keep the latest registration
-        retrieved = registry.get("test_type")
+        retrieved = registry.get("trap")
         assert retrieved.file_patterns == ["test2"]
 
     def test_duplicate_registration_different_class(self):
@@ -174,11 +174,11 @@ class TestContentTypeRegistry:
         registry = ContentTypeRegistry()
 
         metadata1 = ContentTypeMetadata(
-            enum_value="test_type", model_class=TestModel1, file_patterns=["test"]
+            enum_value="trap", model_class=TestModel1, file_patterns=["test"]
         )
 
         metadata2 = ContentTypeMetadata(
-            enum_value="test_type", model_class=TestModel2, file_patterns=["test"]
+            enum_value="trap", model_class=TestModel2, file_patterns=["test"]
         )
 
         registry.register(metadata1)
@@ -219,7 +219,7 @@ class TestContentTypeRegistry:
         registry._finalized = True
 
         metadata = ContentTypeMetadata(
-            enum_value="test_type", model_class=TestModel, file_patterns=["test"]
+            enum_value="trap", model_class=TestModel, file_patterns=["test"]
         )
 
         with pytest.raises(RuntimeError, match="Registry already finalized"):
@@ -235,7 +235,7 @@ class TestContentTypeRegistry:
         registry = ContentTypeRegistry()
 
         metadata = ContentTypeMetadata(
-            enum_value="test_type", model_class=TestModel, file_patterns=["test"]
+            enum_value="trap", model_class=TestModel, file_patterns=["test"]
         )
 
         registry.register(metadata)
@@ -279,23 +279,27 @@ class TestContentTypeDecorator:
 
     def test_decorator_registration(self):
         """Test that decorator properly registers content types."""
+        # Mock the registry registration to avoid conflicts with system registrations
+        with patch(
+            "dnd5e.core.registry.content_type_registry.get_content_type_registry"
+        ) as mock_get_registry:
+            mock_registry = MagicMock()
+            mock_get_registry.return_value = mock_registry
 
-        # Test the decorator without mocking - avoid global state contamination
-        # The decorator should work correctly and not raise exceptions
-        @content_type(
-            enum_value="test_decorator",
-            file_patterns=["test"],
-            statblock_tags=["testTag"],
-        )
-        class TestContent(BaseContent):
-            pass
+            @content_type(
+                enum_value="trap",
+                file_patterns=["test"],
+                statblock_tags=["testTag"],
+            )
+            class TestContent(BaseContent):
+                pass
 
-        # Verify the class is returned unchanged
-        assert TestContent.__name__ == "TestContent"
-        assert issubclass(TestContent, BaseContent)
+            # Verify the class is returned unchanged
+            assert TestContent.__name__ == "TestContent"
+            assert issubclass(TestContent, BaseContent)
 
-        # The actual registration verification is tested in integration tests
-        # to avoid the global state contamination that mocking causes
+            # Verify that registration was attempted
+            mock_registry.register.assert_called_once()
 
     def test_decorator_validation_empty_enum_value(self):
         """Test that decorator validates empty enum_value."""
@@ -309,7 +313,7 @@ class TestContentTypeDecorator:
         """Test that decorator validates empty file_patterns."""
         with pytest.raises(ValueError, match="file_patterns cannot be empty"):
 
-            @content_type(enum_value="test", file_patterns=[])
+            @content_type(enum_value="trap", file_patterns=[])
             class BadContent(BaseContent):
                 pass
 
@@ -319,58 +323,73 @@ class TestContentTypeDecorator:
 
         with pytest.raises(TypeError, match="must inherit from BaseContent"):
 
-            @content_type(enum_value="test", file_patterns=["test"])
+            @content_type(enum_value="trap", file_patterns=["test"])
             class BadContent(BaseModel):
                 pass
 
     def test_decorator_returns_class_unchanged(self):
         """Test that decorator returns the original class."""
+        # Mock the registry registration to avoid conflicts with system registrations
+        with patch(
+            "dnd5e.core.registry.content_type_registry.get_content_type_registry"
+        ) as mock_get_registry:
+            mock_registry = MagicMock()
+            mock_get_registry.return_value = mock_registry
 
-        # Test without mocking to avoid global state contamination
-        @content_type(enum_value="decorator_unchanged_type", file_patterns=["test"])
-        class TestContentUnchanged(BaseContent):
-            pass
+            @content_type(enum_value="hazard", file_patterns=["test"])
+            class TestContentUnchanged(BaseContent):
+                pass
 
-        # Test that we can add a method to the class after decoration
-        def test_method(self):
-            return "test_value"
+            # Test that we can add a method to the class after decoration
+            def test_method(self):
+                return "test_value"
 
-        TestContentUnchanged.test_method = test_method
+            TestContentUnchanged.test_method = test_method
 
-        assert hasattr(TestContentUnchanged, "test_method")
-        instance = TestContentUnchanged(name="test", source="PHB")
-        assert instance.test_method() == "test_value"
+            assert hasattr(TestContentUnchanged, "test_method")
+            instance = TestContentUnchanged(name="test", source="PHB")
+            assert instance.test_method() == "test_value"
 
     def test_decorator_with_optional_params(self):
         """Test decorator with optional parameters."""
+        # Mock the registry registration to avoid conflicts with system registrations
+        with patch(
+            "dnd5e.core.registry.content_type_registry.get_content_type_registry"
+        ) as mock_get_registry:
+            mock_registry = MagicMock()
+            mock_get_registry.return_value = mock_registry
 
-        # Test without mocking to avoid global state contamination
-        @content_type(
-            enum_value="decorator_optional_type",
-            file_patterns=["test"],
-            loader_type="fluff",
-        )
-        class TestContentOptional(BaseContent):
-            pass
+            @content_type(
+                enum_value="deck",
+                file_patterns=["test"],
+                loader_type="fluff",
+            )
+            class TestContentOptional(BaseContent):
+                pass
 
-        # Verify the class is created successfully with optional parameters
-        assert TestContentOptional.__name__ == "TestContentOptional"
-        assert issubclass(TestContentOptional, BaseContent)
+            # Verify the class is created successfully with optional parameters
+            assert TestContentOptional.__name__ == "TestContentOptional"
+            assert issubclass(TestContentOptional, BaseContent)
 
-        # The actual metadata verification is tested in integration tests
-        # to avoid the global state contamination that mocking causes
+            # Verify that registration was called with correct metadata
+            mock_registry.register.assert_called_once()
 
     def test_decorator_error_handling(self):
         """Test decorator error handling during registration."""
+        # Test that decorator handles registration errors gracefully
+        with patch(
+            "dnd5e.core.registry.content_type_registry.get_content_type_registry"
+        ) as mock_get_registry:
+            mock_registry = MagicMock()
+            mock_registry.register.side_effect = ValueError("Test registration error")
+            mock_get_registry.return_value = mock_registry
 
-        # This test would require mocking which causes contamination.
-        # Error handling during registration is better tested in integration tests.
-        # For now, just test that the decorator doesn't fail on normal usage.
-        @content_type(enum_value="test_error_handling", file_patterns=["test"])
-        class TestContent(BaseContent):
-            pass
+            # Should raise the registration error
+            with pytest.raises(ValueError, match="Test registration error"):
 
-        assert TestContent.__name__ == "TestContent"
+                @content_type(enum_value="boon", file_patterns=["test"])
+                class TestContent(BaseContent):
+                    pass
 
 
 class TestGetContentTypeRegistry:
