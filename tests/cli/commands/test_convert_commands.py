@@ -174,6 +174,21 @@ class TestConvertAdventureCommand:
         # Test command
         result = self.runner.invoke(app, ["adventure", "test"])
 
+        # Debug output for CI debugging
+        if result.exit_code != 0:
+            print(f"DEBUG: Exit code: {result.exit_code}")
+            print(f"DEBUG: stdout: {result.stdout}")
+            if result.exception:
+                print(f"DEBUG: Exception: {result.exception}")
+                import traceback
+
+                print("DEBUG: Traceback:")
+                traceback.print_exception(
+                    type(result.exception),
+                    result.exception,
+                    result.exception.__traceback__,
+                )
+
         # Verify success
         assert result.exit_code == 0
         assert "Adventure converted" in result.stdout
