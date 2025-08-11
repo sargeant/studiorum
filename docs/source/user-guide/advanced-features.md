@@ -10,7 +10,7 @@ This page is under construction. Please check back later for detailed advanced f
 
 - Custom LaTeX templates
 - Theme selection
-- Layout customization
+- Output customization
 
 ### Content Filtering
 

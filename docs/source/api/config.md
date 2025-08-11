@@ -226,7 +226,7 @@ custom_settings = load_profile("custom", {
 
 ## LaTeX-Specific Configuration
 
-### Paper and Layout
+### Paper and Output
 
 ```python
 from dnd5e.core.config.latex import LaTeXConfig

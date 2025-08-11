@@ -997,75 +997,7 @@ class TextSpan(BaseModel):
         frozen = True
 ```
 
-### Layout System Models
 
-**Location**: `src/dnd5e/renderers/latex/layout/base.py`
-
-Models for LaTeX layout management with comprehensive validation.
-
-#### LayoutHint
-
-```python
-class LayoutHint(BaseModel):
-    """Layout hints that content renderers can provide to guide layout decisions."""
-
-    # Column preferences
-    column_count: int | None = Field(None, ge=1, le=4, description="Override for number of columns")
-    force_column_break: bool = Field(False, description="Force a column break before content")
-    avoid_column_break: bool = Field(False, description="Avoid column breaks within content")
-    span_columns: bool = Field(False, description="Whether content should span multiple columns")
-
-    # Typography preferences
-    emphasis_level: int = Field(0, ge=0, le=2, description="Emphasis level (0=normal, 1=emphasized, 2=strong)")
-    use_drop_cap: bool = Field(False, description="Use drop cap for first letter")
-
-    # Table preferences
-    table_width: str | None = Field(None, description="Preferred table width specification")
-    allow_table_split: bool = Field(True, description="Allow table to split across pages")
-
-    @field_validator("table_width", "table_columns", "space_before", "space_after")
-    @classmethod
-    def validate_latex_lengths(cls, v: str | None) -> str | None:
-        """Validate LaTeX length specifications."""
-        if v is None:
-            return v
-        cleaned = v.strip()
-        return cleaned if cleaned else None
-```
-
-#### LayoutContext
-
-```python
-class LayoutContext(BaseModel):
-    """Context information for layout decisions with validation."""
-
-    strategy: LayoutStrategy = Field(description="Layout strategy to use")
-    content_type: ContentType = Field(description="Type of content being laid out")
-    column_count: int = Field(2, ge=1, le=4, description="Number of columns in layout")
-    column_position: int | None = Field(None, ge=0, description="Current column position (0-based)")
-    available_space: float | None = Field(None, ge=0, description="Available space in points")
-
-    @field_validator("page_position")
-    @classmethod
-    def validate_page_position(cls, v: str | None) -> str | None:
-        """Validate page position values (top/middle/bottom)."""
-        if v is None:
-            return v
-        valid_positions = {"top", "middle", "bottom"}
-        cleaned = v.strip().lower()
-        if cleaned and cleaned not in valid_positions:
-            raise ValueError(f"Page position must be one of {valid_positions}")
-        return cleaned if cleaned else None
-
-    @field_validator("column_position")
-    @classmethod
-    def validate_column_position(cls, v: int | None, info: Any) -> int | None:
-        """Validate column position is within column count."""
-        if v is None:
-            return v
-        if "column_count" in info.data and v >= info.data["column_count"]:
-            raise ValueError("Column position must be less than column count")
-        return v
 ```
 
 ### Reference Resolution Models

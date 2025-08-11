@@ -138,7 +138,7 @@ class LaTeXDocumentConfig(BaseModel):
     # Font configuration
     font_scheme: str = Field(default="dmsguild")
 
-    # Paper and layout
+    # Paper and output
     paper_size: str = Field(default="letterpaper")
     font_size: str = Field(default="11pt")
 

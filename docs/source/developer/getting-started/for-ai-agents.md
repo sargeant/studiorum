@@ -185,7 +185,7 @@ Use this framework to categorize requests and select the appropriate systematic 
 
 ### Detailed Knowledge (Learn as Needed)
 1. **Tag System and Content Organization**
-2. **Layout Engine and Rendering Optimization**
+2. **Rendering and Output Optimization**
 3. **Caching Mechanisms and Performance Tuning**
 4. **Error Handling and Logging Patterns**
 

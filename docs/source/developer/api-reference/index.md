@@ -113,7 +113,7 @@ Base classes and data structures for representing D&D content with comprehensive
 - `BaseContent`: Base class for all content types with Pydantic validation
 - `ContentType`: Enumeration of supported content types
 - Specialized models for spells, creatures, items, adventures, books
-- Infrastructure models for indexing, resolution, and layout
+- Infrastructure models for indexing and resolution
 - Nested content support for complex structures
 - Source metadata and validation
 
@@ -125,7 +125,6 @@ Base classes and data structures for representing D&D content with comprehensive
 **Infrastructure Models (Tier 3 Migration):**
 - `IndexEntry`: Content indexing with hash and lookup key validation
 - `ContentResolutionResult`: Search result validation and normalization
-- `LayoutHint`, `LayoutContext`: Layout system with column count constraints
 - `ContentReference`, `SpecialTag`: Tag processing with content type validation
 
 ### [Core Utilities](utilities.md)

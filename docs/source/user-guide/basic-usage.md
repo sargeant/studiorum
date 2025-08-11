@@ -130,10 +130,10 @@ The `5e2pdf` command-line tool provides several commands for different tasks:
 5e2pdf convert --source PHB --content-type spell --format both --output spells
 ```
 
-### Layout Options
+### Output Options
 
 ```bash
-# Single column layout
+# Single column output
 5e2pdf convert --source PHB --content-type spell --columns 1 --output single-column.pdf
 
 # A4 paper size

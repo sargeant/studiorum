@@ -49,15 +49,6 @@ class LaTeXConfig(TypedDict, total=False):
     output_dir: str
 
 
-class LayoutConfig(TypedDict, total=False):
-    """Layout configuration for rendering."""
-
-    columns: int
-    spacing: str
-    margins: dict[str, str]
-    float_placement: str
-
-
 # Content Processing Types
 class ProcessingContext(TypedDict, total=False):
     """Context information for content processing."""

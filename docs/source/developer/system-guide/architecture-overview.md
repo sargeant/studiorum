@@ -270,7 +270,6 @@ sequenceDiagram
 ```python
 hash_id: str = Field(min_length=8, max_length=8, description="8-character unique hash")
 lookup_key: str = Field(min_length=1, description="Normalized search key")
-column_count: int | None = Field(None, ge=1, le=4, description="Layout columns")
 ```
 
 **Custom Validators**:

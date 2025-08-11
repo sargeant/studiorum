@@ -10,7 +10,6 @@ Detailed implementation guides for each major system component.
 tag-system-architecture
 entry-types-system
 image-processing
-layout-engine
 unified-configuration
 error-handling-system
 deep-indexing
@@ -66,19 +65,6 @@ Comprehensive guide to the image processing system for LaTeX documents:
 - Integration with RecursiveEntryProcessor and RenderContext
 - Performance optimization with lazy loading and caching support
 - Extensibility patterns for new formats, sources, and placement strategies
-
-### [Layout Engine System](layout-engine.md)
-
-Comprehensive guide to the sophisticated multi-component layout system:
-
-- Central LayoutEngine coordinating 5 specialized managers: MultiColumn, Float, Sidebar, Table, and Typography
-- 6 layout strategies optimized for different document types (Adventure, Reference, Supplement, etc.)
-- Advanced float positioning with content-aware placement and collision avoidance
-- Intelligent table formatting with automatic column specification and width optimization
-- Comprehensive LayoutContext and LayoutHint systems for fine-grained control
-- Batch processing capabilities with global optimization and content coordination
-- Document type optimization and performance statistics
-- Extension patterns for custom managers, strategies, and layout environments
 
 ### [Unified Configuration System](unified-configuration.md)
 
@@ -252,7 +238,6 @@ src/dnd5e/
     │   └── interfaces.py  # Protocols, pipelines, UnifiedTagRenderer
     ├── latex/             # LaTeX-specific rendering
     │   ├── images/        # Image processing pipeline (4 components)
-    │   ├── layout/        # Layout engine system (5 managers)
     │   ├── templates/     # Jinja2 LaTeX templates
     │   └── tag_renderer.py # LaTeX presentation formatting
     └── base/              # Base renderer abstractions (deprecated)

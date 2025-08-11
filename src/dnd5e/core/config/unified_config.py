@@ -206,23 +206,6 @@ class LaTeXConfig(BaseModel):
     )
 
 
-class LayoutConfig(BaseModel):
-    """Configuration for content layout."""
-
-    columns: int = Field(default=2, ge=1, le=4, description="Number of columns")
-    spacing: str = Field(default="normal", description="Line spacing")
-    margins: dict[str, str] = Field(
-        default_factory=lambda: {
-            "top": "1in",
-            "bottom": "1in",
-            "left": "1in",
-            "right": "1in",
-        },
-        description="Page margins",
-    )
-    float_placement: str = Field(default="htbp", description="Float placement options")
-
-
 class RenderingConfig(BaseModel):
     """Configuration for content rendering."""
 
@@ -242,9 +225,6 @@ class RenderingConfig(BaseModel):
     )
     latex: LaTeXConfig = Field(
         default_factory=LaTeXConfig, description="LaTeX-specific configuration"
-    )
-    layout: LayoutConfig = Field(
-        default_factory=LayoutConfig, description="Layout configuration"
     )
 
 

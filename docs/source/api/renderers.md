@@ -57,15 +57,6 @@ pdf_output = renderer.render_to_pdf(spells, output_path="spells.pdf")
    :show-inheritance:
 ```
 
-### Layout Engine
-
-```{eval-rst}
-.. automodule:: dnd5e.renderers.latex.layout
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
 ## Rendering Workflow
 
 The rendering process follows this workflow:
@@ -74,8 +65,7 @@ The rendering process follows this workflow:
 graph TB
     Content[Content Data] --> Preprocessor[Content Preprocessor]
     Preprocessor --> Template[Template Engine]
-    Template --> Layout[Layout Engine]
-    Layout --> PostProcessor[Post Processor]
+    Template --> PostProcessor[Post Processor]
     PostProcessor --> Output[LaTeX Output]
     Output --> Compiler[LaTeX Compiler]
     Compiler --> PDF[PDF Document]
@@ -172,15 +162,6 @@ items_output = renderer.render_items(items, **item_config)
 ```
 
 ## Advanced Features
-
-### Multi-Column Layout
-
-```python
-from dnd5e.renderers.latex.layout import MultiColumnManager
-
-layout = MultiColumnManager(columns=3)
-renderer = LaTeXDocumentRenderer(layout_manager=layout)
-```
 
 ### Custom Styling
 
