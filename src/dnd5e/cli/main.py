@@ -150,11 +150,7 @@ except ImportError as e:
 
 
 @app.command("serve")
-def serve_api(
-    host: str = typer.Option("localhost", "--host", help="Host to bind to"),
-    port: int = typer.Option(8000, "--port", help="Port to bind to"),
-    reload: bool = typer.Option(False, "--reload", help="Enable auto-reload"),
-) -> None:
+def serve_api() -> None:
     """
     🚀 **API Server** - Start REST API server (Future Feature)
 

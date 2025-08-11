@@ -9,7 +9,7 @@ import logging
 import warnings
 from collections import defaultdict
 from enum import Enum
-from typing import Any, Union, overload
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 

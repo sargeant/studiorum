@@ -3,9 +3,8 @@
 import hashlib
 from collections import defaultdict
 from datetime import timedelta
-from functools import lru_cache
 from pathlib import Path
-from typing import Any, Union, cast
+from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 

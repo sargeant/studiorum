@@ -20,14 +20,12 @@ from dnd5e.core.entry_registry import (
 )
 from dnd5e.core.error_types import (
     ErrorSeverity,
-    MalformedDataError,
     UnknownTypeError,
     ValidationError,
-    create_processing_error,
     create_unknown_type_error,
     create_validation_error,
 )
-from dnd5e.core.model_validation import validate_model, validate_required_field
+from dnd5e.core.model_validation import validate_required_field
 from dnd5e.core.result import Error, Result, Success, collect_results
 
 logger = logging.getLogger(__name__)
