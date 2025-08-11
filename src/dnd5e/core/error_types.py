@@ -159,47 +159,6 @@ class MalformedDataError(ProcessingError):
         )
 
 
-@dataclass(frozen=True)
-class IOOperationError(BaseError):
-    """Error for I/O operations."""
-
-    file_path: str | None = None
-    operation: str | None = None  # "read", "write", "delete", etc.
-
-    def __post_init__(self) -> None:
-        """Ensure category is set to I/O."""
-        if self.category != ErrorCategory.IO:
-            object.__setattr__(self, "category", ErrorCategory.IO)
-
-
-@dataclass(frozen=True)
-class ConfigurationError(BaseError):
-    """Error for configuration issues."""
-
-    config_key: str | None = None
-    expected_value: str | None = None
-    actual_value: str | None = None
-
-    def __post_init__(self) -> None:
-        """Ensure category is set to configuration."""
-        if self.category != ErrorCategory.CONFIGURATION:
-            object.__setattr__(self, "category", ErrorCategory.CONFIGURATION)
-
-
-@dataclass(frozen=True)
-class RenderError(BaseError):
-    """Error for rendering failures."""
-
-    renderer_type: str | None = None
-    template: str | None = None
-    stage: str | None = None  # "parsing", "rendering", "compilation", etc.
-
-    def __post_init__(self) -> None:
-        """Ensure category is set to render."""
-        if self.category != ErrorCategory.RENDER:
-            object.__setattr__(self, "category", ErrorCategory.RENDER)
-
-
 class ErrorContext(BaseModel):
     """
     Context information for error reporting.
