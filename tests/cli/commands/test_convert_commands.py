@@ -104,6 +104,7 @@ class TestConvertAdventureCommand:
 
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.get_app_config")
     @patch("dnd5e.cli.commands.convert.ContentResolver")
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
@@ -114,14 +115,22 @@ class TestConvertAdventureCommand:
         mock_display,
         mock_renderer_class,
         mock_resolver_class,
+        mock_app_config,
         mock_tag_resolver,
         mock_omnidexer,
     ):
         """Test converting adventure from abbreviation."""
         # Mock dependencies
-        mock_omnidexer.return_value = Omnidexer()
+        mock_omnidexer_instance = Mock(spec=Omnidexer)
+        mock_omnidexer.return_value = mock_omnidexer_instance
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
+
+        # Mock app config
+        mock_config = Mock()
+        mock_config.rendering.latex.document.paper_size = "letter"
+        mock_config.rendering.latex.document.fonts = None
+        mock_app_config.return_value = mock_config
 
         # Mock resolver
         mock_resolver = Mock()
