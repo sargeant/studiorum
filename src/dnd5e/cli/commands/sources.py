@@ -1,5 +1,6 @@
 """CLI commands for managing content sources."""
 
+import asyncio
 from pathlib import Path
 
 import typer
@@ -176,8 +177,6 @@ def remove_source(
         console.print(f"Removing cached data for '{name}'...")
         source_manager = ContentSourceManager(config)
         try:
-            import asyncio
-
             asyncio.run(source_manager.remove_source_data(name))
             console.print("[green]✅ Cached data removed[/green]")
         except Exception as e:
@@ -206,8 +205,6 @@ def update_sources(
         if name:
             # Update specific source
             console.print(f"Updating source '{name}'...")
-            import asyncio
-
             success = asyncio.run(source_manager.update_source(name))
             if success:
                 console.print(f"[green]✅ Successfully updated '{name}'[/green]")
@@ -241,8 +238,6 @@ def source_info(
 
     # Build content index if needed
     def _get_info() -> dict | None:
-        import asyncio
-
         asyncio.run(source_manager.build_content_index())
         return source_manager.get_source_info(name)
 
@@ -294,8 +289,6 @@ def scan_content() -> None:
     source_manager = ContentSourceManager(config)
 
     def _scan() -> None:
-        import asyncio
-
         console.print("Ensuring all sources are available...")
         asyncio.run(source_manager.ensure_all_sources())
 
