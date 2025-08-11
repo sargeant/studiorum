@@ -8,11 +8,12 @@ The `5e2pdf` command-line tool provides several commands for different tasks:
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `convert` | Convert content to PDF | `5e2pdf convert --source PHB --content-type spell` |
+| `convert` | Convert content to PDF | `5e2pdf convert adventure cos` |
 | `list` | List available content | `5e2pdf list sources` |
-| `info` | Show content information | `5e2pdf info --name "Fireball"` |
-| `stats` | Display content statistics | `5e2pdf stats --source PHB` |
-| `setup` | Initialize configuration | `5e2pdf setup --interactive` |
+| `info` | Show content information | `5e2pdf info content cos` |
+| `stats` | Display content statistics | `5e2pdf stats overview` |
+| `setup` | Initialize configuration | `5e2pdf setup wizard` |
+| `sources` | Manage content sources | `5e2pdf sources list` |
 
 ### Getting Help
 
@@ -25,64 +26,61 @@ The `5e2pdf` command-line tool provides several commands for different tasks:
 5e2pdf list --help
 ```
 
-## Basic Conversion Workflows
+## Content Conversion
 
-### Converting Spells
+### Converting Adventures
 
 ```bash
-# All spells from Player's Handbook
-5e2pdf convert --source PHB --content-type spell --output phb-spells.pdf
+# Convert adventure by abbreviation
+5e2pdf convert adventure cos
 
-# Spells by level
-5e2pdf convert --source PHB --content-type spell --level 3 --output level-3-spells.pdf
+# Convert adventure from local file
+5e2pdf convert adventure /path/to/adventure.json
 
-# Spells by school
-5e2pdf convert --source PHB --content-type spell --school evocation --output evocation-spells.pdf
+# Convert with PDF compilation
+5e2pdf convert adventure lmop --pdf
 
-# Specific spells
-5e2pdf convert --source PHB --content-type spell --names "Fireball,Magic Missile,Cure Wounds" --output selected-spells.pdf
+# Specify output file
+5e2pdf convert adventure hotdq --output my-adventure.tex
 ```
 
-### Converting Creatures
+### Converting Books
 
 ```bash
-# All creatures from Monster Manual
-5e2pdf convert --source MM --content-type monster --output mm-monsters.pdf
+# Convert sourcebook by abbreviation
+5e2pdf convert book phb
 
-# Creatures by challenge rating
-5e2pdf convert --source MM --content-type monster --cr "1-5" --output low-cr-monsters.pdf
+# Convert book from local file
+5e2pdf convert book /path/to/book.json
 
-# Creatures by type
-5e2pdf convert --source MM --content-type monster --type "humanoid,beast" --output npc-animals.pdf
-
-# Specific creatures
-5e2pdf convert --source MM --content-type monster --names "Ancient Red Dragon,Troll" --output boss-monsters.pdf
+# Convert with custom title
+5e2pdf convert book mm --title "Monster Manual Custom"
 ```
 
-### Converting Items
+### Converting Supplements
 
 ```bash
-# All magic items
-5e2pdf convert --source DMG --content-type item --rarity "uncommon,rare" --output magic-items.pdf
+# Convert mixed content from JSON file
+5e2pdf convert supplement my-homebrew.json
 
-# Weapons and armor
-5e2pdf convert --source PHB --content-type item --type "weapon,armor" --output equipment.pdf
+# Include only specific content types
+5e2pdf convert supplement supplements.json --type spell --type creature
 
-# Consumables
-5e2pdf convert --source DMG --content-type item --type "potion,scroll" --output consumables.pdf
+# Compile to PDF
+5e2pdf convert supplement content.json --pdf
 ```
 
-### Converting Classes and Races
+### Bulk Conversion
 
 ```bash
-# Player classes
-5e2pdf convert --source PHB --content-type class --output phb-classes.pdf
+# Convert multiple adventures
+5e2pdf convert bulk cos lmop hotdq --type adventure
 
-# Player races
-5e2pdf convert --source PHB --content-type race --output phb-races.pdf
+# Convert multiple books
+5e2pdf convert bulk phb mm dmg --type book
 
-# Specific class with subclasses
-5e2pdf convert --source PHB --content-type class --names "Wizard" --include-subclasses --output wizard-guide.pdf
+# Mixed content with custom output directory
+5e2pdf convert bulk cos phb --type mixed --output-dir ./converted
 ```
 
 ## Content Discovery
@@ -90,276 +88,222 @@ The `5e2pdf` command-line tool provides several commands for different tasks:
 ### Listing Available Content
 
 ```bash
-# List all sources
+# List all configured sources
 5e2pdf list sources
 
-# List content types in a source
-5e2pdf list content-types --source PHB
+# List available adventures
+5e2pdf list adventures
 
-# List specific content
-5e2pdf list spells --source PHB --limit 10
-5e2pdf list monsters --source MM --cr "5+"
+# List available books
+5e2pdf list books
+
+# List content in loaded data
+5e2pdf list content --type spell --limit 10
+
+# List files in directories
+5e2pdf list files --dir ./data
 ```
 
 ### Getting Content Information
 
 ```bash
-# Basic content info
-5e2pdf info --source PHB --name "Fireball"
+# Get adventure info
+5e2pdf info content cos
 
-# Detailed content info
-5e2pdf info --source MM --name "Ancient Red Dragon" --verbose
+# Get book info
+5e2pdf info content phb
 
-# Content statistics
-5e2pdf stats --source PHB
-5e2pdf stats --content-type spell --all-sources
+# Get file information
+5e2pdf info file /path/to/content.json
+
+# Search for content by name
+5e2pdf info content "Curse of Strahd"
 ```
 
-## Output Customization
-
-### File Formats
+### Content Statistics
 
 ```bash
-# PDF output (default)
-5e2pdf convert --source PHB --content-type spell --output spells.pdf
+# Overview of all content
+5e2pdf stats overview
 
-# LaTeX source
-5e2pdf convert --source PHB --content-type spell --format latex --output spells.tex
+# Statistics for specific content type
+5e2pdf stats content spell
 
-# Both PDF and LaTeX
-5e2pdf convert --source PHB --content-type spell --format both --output spells
+# Statistics by source
+5e2pdf stats sources
 ```
 
-### Output Options
+## Source Management
+
+### Managing Content Sources
 
 ```bash
-# Single column output
-5e2pdf convert --source PHB --content-type spell --columns 1 --output single-column.pdf
+# List configured sources
+5e2pdf sources list
 
-# A4 paper size
-5e2pdf convert --source PHB --content-type spell --paper-size A4 --output a4-spells.pdf
+# Add new source
+5e2pdf sources add
 
-# Custom margins
-5e2pdf convert --source PHB --content-type spell --margins "2cm,2cm,1.5cm,1.5cm" --output custom-margins.pdf
+# Remove source
+5e2pdf sources remove source-name
+
+# Update sources
+5e2pdf sources update
 ```
 
-### Content Organization
+## Output Options
+
+### LaTeX Customization
 
 ```bash
-# Group by level/type
-5e2pdf convert --source PHB --content-type spell --group-by level --output spells-by-level.pdf
+# Two-column layout
+5e2pdf convert adventure cos --two-column
 
-# Include table of contents
-5e2pdf convert --source PHB --content-type spell --include-toc --output spells-with-toc.pdf
+# Single column layout
+5e2pdf convert adventure cos --one-column
 
-# Include alphabetical index
-5e2pdf convert --source PHB --content-type spell --include-index --output spells-with-index.pdf
+# Custom document class
+5e2pdf convert book phb --document-class dndbook
+
+# Paper size
+5e2pdf convert adventure cos --paper a4
+
+# Font options
+5e2pdf convert book mm --fonts wotc
+
+# Background style
+5e2pdf convert adventure lmop --background print
 ```
 
-## Working with Multiple Sources
-
-### Combining Sources
+### Content Options
 
 ```bash
-# Multiple sources
-5e2pdf convert --source "PHB,XGE,TCE" --content-type spell --output all-spells.pdf
+# Include images
+5e2pdf convert adventure cos --images
 
-# All official sources
-5e2pdf convert --source official --content-type spell --output official-spells.pdf
+# Exclude images
+5e2pdf convert adventure cos --no-images
 
-# Include homebrew
-5e2pdf convert --source "PHB,homebrew" --content-type spell --output extended-spells.pdf
+# Include items and creatures in adventures
+5e2pdf convert adventure cos --items --creatures
+
+# Custom title
+5e2pdf convert book phb --title "My Custom PHB"
 ```
 
-### Source Priority
+## Configuration
+
+### Setup Wizard
 
 ```bash
-# Prefer newer sources for duplicates
-5e2pdf convert --source "PHB,XGE,TCE" --content-type spell --source-priority newest --output latest-spells.pdf
+# Interactive setup
+5e2pdf setup wizard
 
-# Use specific source for conflicts
-5e2pdf convert --source "PHB,XGE" --content-type spell --prefer-source TCE --output tce-preferred.pdf
+# Check current setup
+5e2pdf setup check
+
+# Reset to defaults
+5e2pdf setup reset
 ```
 
-## Filtering and Selection
-
-### Basic Filters
+### Quick Operations
 
 ```bash
-# Level-based filtering
-5e2pdf convert --content-type spell --level "1-3" --output low-level-spells.pdf
-5e2pdf convert --content-type spell --level "7+" --output high-level-spells.pdf
+# Quick convert single file
+5e2pdf quick input.json --pdf
 
-# CR-based filtering (monsters)
-5e2pdf convert --content-type monster --cr "0.5-2" --output weak-monsters.pdf
-
-# Rarity-based filtering (items)
-5e2pdf convert --content-type item --rarity "common,uncommon" --output basic-magic-items.pdf
-```
-
-### Advanced Filters
-
-```bash
-# Text-based filtering
-5e2pdf convert --content-type spell --description-contains "fire" --output fire-spells.pdf
-
-# School/type combinations
-5e2pdf convert --content-type spell --school "evocation,destruction" --level "3+" --output combat-spells.pdf
-
-# Custom filter expressions
-5e2pdf convert --content-type monster --filter "type=='humanoid' and cr >= 1" --output humanoid-npcs.pdf
-```
-
-## Configuration and Preferences
-
-### Setting Defaults
-
-```bash
-# Set default source
-5e2pdf config set default_source PHB
-
-# Set default output directory
-5e2pdf config set output_dir ./pdfs
-
-# Set LaTeX engine preference
-5e2pdf config set latex.engine lualatex
-```
-
-### Using Configuration Files
-
-Create `~/.5e2pdf/config.yaml`:
-
-```yaml
-# Default settings
-default_source: "PHB"
-output_dir: "~/Documents/D&D/PDFs"
-
-# LaTeX preferences
-latex:
-  engine: "lualatex"
-  paper_size: "letter"
-  columns: 2
-  font_family: "Times"
-
-# Content preferences
-content:
-  include_toc: true
-  include_index: true
-  group_by_default: true
-```
-
-### Environment Variables
-
-```bash
-# Override settings with environment variables
-export DND5E_DEFAULT_SOURCE="PHB,MM,DMG"
-export DND5E_OUTPUT_DIR="./output"
-export DND5E_LATEX_ENGINE="lualatex"
-
-# Run with environment settings
-5e2pdf convert --content-type spell
+# Test LaTeX compilation
+5e2pdf quick test.json --type auto --output test.tex
 ```
 
 ## Common Workflows
 
-### DM Preparation
+### DM Session Preparation
 
 ```bash
-# Session prep: relevant monsters for level 5 party
-5e2pdf convert --content-type monster --cr "3-7" --type "humanoid,beast,monstrosity" --output session-monsters.pdf
+# Convert adventure for session
+5e2pdf convert adventure lmop --pdf --images
 
-# NPC stat blocks
-5e2pdf convert --content-type monster --source "MM,VGM" --type humanoid --cr "0-2" --output npcs.pdf
+# Get adventure information
+5e2pdf info content lmop
 
-# Magic items for treasure
-5e2pdf convert --content-type item --rarity "uncommon,rare" --type "weapon,armor,wondrous" --output treasure.pdf
+# Check what content is available
+5e2pdf list adventures
 ```
 
-### Player Reference
+### Homebrew Content
 
 ```bash
-# Spell reference for wizard
-5e2pdf convert --content-type spell --class wizard --level "1-5" --output wizard-spells.pdf
+# Convert custom content file
+5e2pdf convert supplement my-spells.json --pdf
 
-# Class features
-5e2pdf convert --content-type class --names "Wizard" --include-subclasses --output wizard-reference.pdf
-
-# Equipment guide
-5e2pdf convert --content-type item --source PHB --type "weapon,armor,adventuring-gear" --output equipment-guide.pdf
+# Bulk convert homebrew files
+find ./homebrew -name "*.json" -exec 5e2pdf convert supplement {} --pdf \;
 ```
 
-### Campaign Preparation
+### Content Management
 
 ```bash
-# Adventure content
-5e2pdf convert --content-type adventure --names "Lost Mine of Phandelver" --output lmop.pdf
+# Check system status
+5e2pdf setup check
 
-# Regional monsters
-5e2pdf convert --content-type monster --environment "forest,mountain" --cr "1-8" --output regional-monsters.pdf
-
-# Setting-specific content
-5e2pdf convert --source "SCAG,SKT" --content-type "background,spell,monster" --output sword-coast.pdf
-```
-
-## Troubleshooting Common Issues
-
-### Performance Issues
-
-```bash
-# Limit content for testing
-5e2pdf convert --content-type spell --limit 10 --output test.pdf
-
-# Use faster compilation
-5e2pdf convert --content-type spell --latex-engine lualatex --fast-compile --output quick-test.pdf
-
-# Enable caching
-5e2pdf config set enable_cache true
-```
-
-### Output Issues
-
-```bash
-# Validate content before conversion
-5e2pdf convert --content-type spell --validate --output validated-spells.pdf
-
-# Debug mode for detailed logs
-5e2pdf --log-level DEBUG convert --content-type spell --output debug-spells.pdf
-
-# Check LaTeX compilation
-5e2pdf convert --content-type spell --keep-tex --output spells-with-source.pdf
-```
-
-### Content Issues
-
-```bash
 # Update content sources
-5e2pdf setup --update-sources
+5e2pdf sources update
 
-# Verify data integrity
-5e2pdf stats --validate
-
-# Reset configuration
-5e2pdf setup --reset
+# View content statistics
+5e2pdf stats overview
 ```
 
 ## Performance Tips
 
-### Optimizing Builds
+- **Use caching**: Configuration caching is enabled by default
+- **PDF compilation**: LuaLaTeX is the default engine for best results
+- **Bulk operations**: Use `convert bulk` for multiple items
+- **Local files**: Direct file conversion is faster than source lookup
 
-- **Use caching**: Enable content and compilation caching
-- **Choose fast LaTeX engine**: LuaLaTeX is typically faster than PDFLaTeX
-- **Limit content**: Use filters to reduce content size
-- **Parallel processing**: Enable parallel compilation for large documents
+## Troubleshooting Common Issues
 
-### Memory Management
+### Content Not Found
 
-- **Stream processing**: For very large datasets, use streaming mode
-- **Chunk processing**: Break large conversions into smaller chunks
-- **Clear cache**: Periodically clear cache files to free disk space
+```bash
+# Check available adventures
+5e2pdf list adventures
+
+# Check available books
+5e2pdf list books
+
+# Verify sources are configured
+5e2pdf sources list
+```
+
+### LaTeX Compilation Issues
+
+```bash
+# Test without PDF compilation first
+5e2pdf convert adventure cos --no-pdf
+
+# Check LaTeX installation
+5e2pdf setup check
+
+# Use debug mode for more information
+5e2pdf --debug convert adventure cos
+```
+
+### Source Issues
+
+```bash
+# Reset sources to defaults
+5e2pdf setup reset
+
+# Run setup wizard again
+5e2pdf setup wizard
+
+# Check source status
+5e2pdf sources list
+```
 
 ## Next Steps
 
-- **Advanced Features**: Learn about [custom templates and advanced filtering](advanced-features.md)
-- **Troubleshooting**: Get help with [common issues and solutions](troubleshooting.md)
-- **API Usage**: Explore the [Python API](../api/index.md) for programmatic access
-- **Examples**: See [practical examples](../examples/index.md) for specific use cases
+- **Source Management**: Learn about [content sources and configuration](../developer/index.md)
+- **LaTeX Customization**: Explore document styling options in the developer guide
+- **Troubleshooting**: Get help with [common issues](troubleshooting.md)

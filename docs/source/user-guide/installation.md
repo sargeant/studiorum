@@ -7,7 +7,7 @@ This guide covers installing 5e2pdf and all required dependencies for PDF genera
 Before installing 5e2pdf, ensure you have:
 
 - **Python 3.12 or later**
-- **uv package manager** (recommended) or pip
+- **uv package manager**
 - **LaTeX distribution** for PDF generation
 - **Git** (for development installation)
 
@@ -50,7 +50,7 @@ choco install python --version=3.12.0
 
 ### UV Package Manager Installation
 
-UV is the recommended package manager for 5e2pdf:
+UV is the required package manager for 5e2pdf:
 
 ```bash
 # Install uv
@@ -110,19 +110,9 @@ lualatex --version
 
 ## 5e2pdf Installation
 
-### Option 1: PyPI Installation (Stable)
+### Development Installation
 
-```bash
-# Install from PyPI
-pip install 5e2pdf
-
-# Or with uv (recommended)
-uv tool install 5e2pdf
-```
-
-### Option 2: Development Installation
-
-For the latest features or to contribute:
+Currently, 5e2pdf is only available through development installation:
 
 ```bash
 # Clone repository
@@ -132,107 +122,101 @@ cd 5e2pdf
 # Install with uv (recommended)
 uv sync --group dev --extra docs
 
-# Or with pip
-pip install -e ".[dev,docs]"
+# Activate the environment
+source .venv/bin/activate
+
+# Or on Windows
+.venv\Scripts\activate
 ```
 
-### Option 3: Container Installation
-
-Using Docker for isolated environment:
-
-```bash
-# Pull container
-docker pull ghcr.io/sargeant/5e2pdf:latest
-
-# Run with volume mounting
-docker run -v $(pwd):/workspace ghcr.io/sargeant/5e2pdf:latest
-```
-
-## Configuration
-
-### Initial Setup
-
-Run the setup command to configure 5e2pdf:
-
-```bash
-5e2pdf setup --interactive
-```
-
-This will:
-- Create configuration directory (`~/.5e2pdf/`)
-- Download content sources from 5e.tools
-- Verify LaTeX installation
-- Set up default templates
-
-### Configuration Locations
-
-5e2pdf uses these configuration files in order of priority:
-
-1. **Command-line arguments** (highest priority)
-2. **Environment variables** (`DND5E_*`)
-3. **Project config**: `./5e2pdf.yaml`
-4. **User config**: `~/.5e2pdf/config.yaml`
-5. **System config**: `/etc/5e2pdf/config.yaml`
-6. **Defaults** (lowest priority)
-
-### Sample Configuration
-
-Create `~/.5e2pdf/config.yaml`:
-
-```yaml
-# Data and caching
-data_dir: "~/.5e2pdf/data"
-cache_dir: "~/.5e2pdf/cache"
-enable_cache: true
-
-# LaTeX settings
-latex:
-  engine: "lualatex"
-  paper_size: "letter"
-  columns: 2
-  font_family: "Times"
-
-# Logging
-log_level: "INFO"
-log_file: "~/.5e2pdf/logs/app.log"
-```
-
-## Verify Installation
-
-### Basic Verification
+### Verify Installation
 
 ```bash
 # Check installation
+uv run 5e2pdf --version
+
+# Or if environment is activated
 5e2pdf --version
 
 # List available commands
-5e2pdf --help
-
-# Test data loading
-5e2pdf list sources
+uv run 5e2pdf --help
 ```
 
-### Full System Test
+## Initial Setup
+
+### Configuration Wizard
+
+Run the setup wizard to configure content sources:
 
 ```bash
-# Generate a test PDF
-5e2pdf convert --source PHB --content-type spell --limit 5 --output test.pdf
-
-# Check if PDF was created
-ls -la test.pdf
+uv run 5e2pdf setup wizard
 ```
 
-### Performance Test
+This will:
+- Guide you through content source configuration
+- Set up default directories
+- Verify LaTeX installation
+- Download initial content data
+
+### Manual Setup Options
 
 ```bash
-# Run performance benchmarks
-5e2pdf stats --benchmark
+# Check current setup status
+uv run 5e2pdf setup check
 
-# Test with different LaTeX engines
-5e2pdf convert --latex-engine lualatex --source PHB --content-type spell --limit 1
+# Reset to defaults
+uv run 5e2pdf setup reset
 ```
 
-## Troubleshooting
+## Content Sources
+
+5e2pdf requires D&D content data from sources like 5e.tools. The setup wizard will help configure this.
+
+### Default Sources
+
+The setup wizard can configure default sources including:
+- System Reference Document (SRD) data
+- Local directories with JSON files
+- GitHub repositories with content
+
+### Source Management
+
+```bash
+# List configured sources
+uv run 5e2pdf sources list
+
+# Add new source
+uv run 5e2pdf sources add
+
+# Update sources
+uv run 5e2pdf sources update
+```
+
+## Test Installation
+
+### Basic Test
+
+```bash
+# Test basic functionality
+uv run 5e2pdf list sources
+
+# Test content loading
+uv run 5e2pdf stats overview
+```
+
+### Full Conversion Test
+
+After setting up sources:
+
+```bash
+# Test adventure conversion
+uv run 5e2pdf convert adventure cos --output test.tex
+
+# Test with PDF compilation
+uv run 5e2pdf convert adventure lmop --pdf --output test-pdf.tex
+```
+
+## Troubleshooting Installation
 
 ### Common Issues
 
@@ -242,8 +226,17 @@ ls -la test.pdf
 python --version
 python3 --version
 
-# Use specific Python version
-python3.12 -m pip install 5e2pdf
+# Use specific Python version if needed
+python3.12 -m pip install uv
+```
+
+#### UV Not Found
+```bash
+# Ensure uv is in PATH
+echo $PATH
+
+# Reload shell configuration
+source ~/.bashrc  # or ~/.zshrc
 ```
 
 #### LaTeX Not Found
@@ -262,75 +255,60 @@ export PATH="/usr/local/texlive/2024/bin/x86_64-linux:$PATH"
 chmod +x ~/.local/bin/5e2pdf
 
 # Use user installation
-pip install --user 5e2pdf
-```
-
-#### Network Issues
-```bash
-# Use offline mode if needed
-5e2pdf --offline convert --source-dir ./local-data
+pip install --user uv
 ```
 
 ### Getting Help
 
 If you encounter issues:
 
-1. **Check logs**: `~/.5e2pdf/logs/app.log`
-2. **Run diagnostics**: `5e2pdf setup --validate`
-3. **Enable debug mode**: `5e2pdf --log-level DEBUG`
+1. **Check setup**: `uv run 5e2pdf setup check`
+2. **Run diagnostics**: `uv run 5e2pdf setup wizard`
+3. **Enable debug mode**: `uv run 5e2pdf --debug`
 4. **Report bugs**: [GitHub Issues](https://github.com/sargeant/5e2pdf/issues)
 
-### Performance Optimization
+## System Requirements
 
-#### System Requirements
+### Minimum Requirements
 
-- **Minimum**: 4GB RAM, 2GB free disk space
-- **Recommended**: 8GB RAM, 5GB free disk space
-- **For large datasets**: 16GB RAM, 10GB+ free disk space
+- **RAM**: 4GB
+- **Disk Space**: 2GB free (LaTeX installation + content)
+- **Python**: 3.12+
+- **LaTeX**: Any modern distribution
 
-#### Optimization Tips
+### Recommended
 
-```bash
-# Enable caching
-5e2pdf config set enable_cache true
-
-# Use faster LaTeX engine
-5e2pdf config set latex.engine lualatex
-
-# Parallel processing
-5e2pdf config set parallel_workers 4
-```
+- **RAM**: 8GB
+- **Disk Space**: 5GB free
+- **LaTeX**: Full TeX Live or MacTeX installation
 
 ## Next Steps
 
-After installation:
+After successful installation:
 
-1. **Read the [Quickstart Guide](../quickstart.md)** for your first conversion
-2. **Explore [Basic Usage](basic-usage.md)** for common workflows
-3. **Check [Advanced Features](advanced-features.md)** for customization
-4. **Review [Troubleshooting](troubleshooting.md)** for common issues
+1. **Run setup wizard**: `uv run 5e2pdf setup wizard`
+2. **Explore commands**: `uv run 5e2pdf --help`
+3. **Read basic usage**: [Basic Usage](basic-usage.md)
+4. **Convert your first content**: `uv run 5e2pdf convert adventure cos`
 
 ## Platform-Specific Notes
 
 ### macOS
-
 - Use Homebrew for package management
-- LuaLaTeX is recommended over PDFLaTeX
-- Ensure Xcode Command Line Tools are installed
+- LuaLaTeX works best on Apple Silicon
+- Ensure Xcode Command Line Tools are installed: `xcode-select --install`
 
 ### Linux
-
 - Install development headers for compiled dependencies
-- Consider using system package manager for LaTeX
-- Set appropriate file permissions for ~/.5e2pdf/
+- Use system package manager for LaTeX when possible
+- Ensure Python development packages are installed
 
 ### Windows
-
 - Use PowerShell or Command Prompt
-- Consider WSL for Linux-like experience
-- Ensure PATH includes Python and LaTeX binaries
+- Consider WSL2 for better compatibility
+- Ensure PATH includes Python, uv, and LaTeX binaries
 - Some LaTeX packages may require manual installation
 
 ---
 
-**Need help?** Join our community discussions or report issues on [GitHub](https://github.com/sargeant/5e2pdf/issues).
+**Need help?** Visit our [GitHub Issues](https://github.com/sargeant/5e2pdf/issues) to report problems or ask questions.
