@@ -15,6 +15,13 @@ from dnd5e.core.resolvers import ContentResolver
 app: typer.Typer = typer.Typer(help="Show detailed information about content")
 console = display_manager.console
 
+# Constants for D&D calculations and formatting
+DND_ABILITY_BASE = 10  # Base value for ability score modifier calculation
+DND_MODIFIER_DIVISOR = 2  # Divisor for ability score modifier calculation
+BYTES_PER_KB = 1024
+BYTES_PER_MB = 1024 * 1024
+TASK_COMPLETION_PERCENT = 100
+
 
 @app.command("content")
 def show_content_info(
@@ -51,7 +58,9 @@ def show_content_info(
                     "[cyan]Loading content data...", total=None
                 )
                 omnidexer = get_omnidexer()
-                display_manager.update_task(load_task, completed=100)
+                display_manager.update_task(
+                    load_task, completed=TASK_COMPLETION_PERCENT
+                )
 
             # Create resolver for abbreviation lookup
             resolver = ContentResolver(omnidexer)
@@ -266,12 +275,12 @@ def _display_creature_details(creature: Creature) -> None:
 
     # Ability scores
     abilities = f"""
-[cyan]STR:[/cyan] {creature.strength} ({(creature.strength - 10) // 2:+d})
-[cyan]DEX:[/cyan] {creature.dexterity} ({(creature.dexterity - 10) // 2:+d})
-[cyan]CON:[/cyan] {creature.constitution} ({(creature.constitution - 10) // 2:+d})
-[cyan]INT:[/cyan] {creature.intelligence} ({(creature.intelligence - 10) // 2:+d})
-[cyan]WIS:[/cyan] {creature.wisdom} ({(creature.wisdom - 10) // 2:+d})
-[cyan]CHA:[/cyan] {creature.charisma} ({(creature.charisma - 10) // 2:+d})
+[cyan]STR:[/cyan] {creature.strength} ({(creature.strength - DND_ABILITY_BASE) // DND_MODIFIER_DIVISOR:+d})
+[cyan]DEX:[/cyan] {creature.dexterity} ({(creature.dexterity - DND_ABILITY_BASE) // DND_MODIFIER_DIVISOR:+d})
+[cyan]CON:[/cyan] {creature.constitution} ({(creature.constitution - DND_ABILITY_BASE) // DND_MODIFIER_DIVISOR:+d})
+[cyan]INT:[/cyan] {creature.intelligence} ({(creature.intelligence - DND_ABILITY_BASE) // DND_MODIFIER_DIVISOR:+d})
+[cyan]WIS:[/cyan] {creature.wisdom} ({(creature.wisdom - DND_ABILITY_BASE) // DND_MODIFIER_DIVISOR:+d})
+[cyan]CHA:[/cyan] {creature.charisma} ({(creature.charisma - DND_ABILITY_BASE) // DND_MODIFIER_DIVISOR:+d})
 """
 
     console.print(
@@ -300,9 +309,9 @@ def _display_item_details(item: Item) -> None:
 
 def _format_file_size(size_bytes: int) -> str:
     """Format file size in human readable format."""
-    if size_bytes < 1024:
+    if size_bytes < BYTES_PER_KB:
         return f"{size_bytes} B"
-    elif size_bytes < 1024 * 1024:
-        return f"{size_bytes / 1024:.1f} KB"
+    elif size_bytes < BYTES_PER_MB:
+        return f"{size_bytes / BYTES_PER_KB:.1f} KB"
     else:
-        return f"{size_bytes / (1024 * 1024):.1f} MB"
+        return f"{size_bytes / BYTES_PER_MB:.1f} MB"

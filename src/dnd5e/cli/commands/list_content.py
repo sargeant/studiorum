@@ -14,6 +14,10 @@ from dnd5e.core.models.content import ContentType
 app: typer.Typer = typer.Typer(help="List available D&D content")
 console = display_manager.console
 
+# Constants for formatting
+BYTES_PER_KB = 1024
+BYTES_PER_MB = 1024 * 1024
+
 
 @app.command("files")
 def list_files(
@@ -284,12 +288,12 @@ def list_books() -> None:
 
 def _format_file_size(size_bytes: int) -> str:
     """Format file size in human readable format."""
-    if size_bytes < 1024:
+    if size_bytes < BYTES_PER_KB:
         return f"{size_bytes} B"
-    elif size_bytes < 1024 * 1024:
-        return f"{size_bytes / 1024:.1f} KB"
+    elif size_bytes < BYTES_PER_MB:
+        return f"{size_bytes / BYTES_PER_KB:.1f} KB"
     else:
-        return f"{size_bytes / (1024 * 1024):.1f} MB"
+        return f"{size_bytes / BYTES_PER_MB:.1f} MB"
 
 
 def _get_content_details(item: Any) -> str:
