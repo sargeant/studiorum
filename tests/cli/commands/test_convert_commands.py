@@ -171,27 +171,27 @@ class TestConvertAdventureCommand:
         mock_display.add_task.return_value = "task_id"
         mock_display.update_task = Mock()
 
+        # Configure mkdir mock to actually create the directory structure
+        def create_dir_side_effect(*args, **kwargs):
+            # Create the actual directory structure when mkdir is called
+            import os
+
+            os.makedirs("output/adventures", exist_ok=True)
+
+        mock_mkdir.side_effect = create_dir_side_effect
+
         # Test command
         result = self.runner.invoke(app, ["adventure", "test"])
-
-        # Debug output for CI debugging
-        if result.exit_code != 0:
-            print(f"DEBUG: Exit code: {result.exit_code}")
-            print(f"DEBUG: stdout: {result.stdout}")
-            if result.exception:
-                print(f"DEBUG: Exception: {result.exception}")
-                import traceback
-
-                print("DEBUG: Traceback:")
-                traceback.print_exception(
-                    type(result.exception),
-                    result.exception,
-                    result.exception.__traceback__,
-                )
 
         # Verify success
         assert result.exit_code == 0
         assert "Adventure converted" in result.stdout
+
+        # Cleanup created directories
+        import shutil
+
+        if Path("output").exists():
+            shutil.rmtree("output")
 
     def test_convert_adventure_nonexistent_file(self):
         """Test error handling for nonexistent file."""
