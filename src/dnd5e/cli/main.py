@@ -19,6 +19,8 @@ from dnd5e.renderers.latex import LaTeXDocumentRenderer
 from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
 from dnd5e.renderers.latex.compiler import LaTeXCompiler
 
+logger = logging.getLogger(__name__)
+
 # Create the main Typer app
 app: typer.Typer = typer.Typer(
     name="5e2pdf",
@@ -140,32 +142,11 @@ try:
     app.add_typer(setup_app, name="setup")
     app.add_typer(sources_app, name="sources")
     app.add_typer(stats_app, name="stats")
-except ImportError:
-    # Fallback placeholder commands if imports fail
-    @app.command("convert")
-    def convert_command() -> None:
-        """Convert content to LaTeX/PDF (placeholder)."""
-        rprint("[yellow]Convert command not yet implemented[/yellow]")
-
-    @app.command("list")
-    def list_command() -> None:
-        """List available content (placeholder)."""
-        rprint("[yellow]List command not yet implemented[/yellow]")
-
-    @app.command("info")
-    def info_command() -> None:
-        """Show content information (placeholder)."""
-        rprint("[yellow]Info command not yet implemented[/yellow]")
-
-    @app.command("setup")
-    def setup_command() -> None:
-        """Setup wizard (placeholder)."""
-        rprint("[yellow]Setup command not yet implemented[/yellow]")
-
-    @app.command("stats")
-    def stats_command() -> None:
-        """Show content statistics (placeholder)."""
-        rprint("[yellow]Stats command not yet implemented[/yellow]")
+except ImportError as e:
+    # If command imports fail, the CLI will not have these commands available
+    # This is acceptable as it indicates a serious installation issue
+    logger.error(f"Failed to import CLI commands: {e}")
+    logger.error("CLI functionality will be limited")
 
 
 @app.command("serve")
