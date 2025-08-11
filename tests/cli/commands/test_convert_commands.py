@@ -131,8 +131,10 @@ class TestConvertAdventureCommand:
         from dnd5e.core.models.content import Source
 
         mock_adventure = Adventure(
-            name="Curse of Strahd",
-            source=Source(abbreviation="CoS", name="Curse of Strahd"),
+            name="Test Adventure",
+            source=Source(abbreviation="TEST", name="Test Source"),
+            id="test-adventure",
+            contents=[],
         )
 
         from dnd5e.core.resolvers.content_resolver import (
@@ -141,7 +143,7 @@ class TestConvertAdventureCommand:
         )
 
         mock_result = ContentResolutionResult(
-            status=ResolutionStatus.EXACT_MATCH, content=mock_adventure, query="cos"
+            status=ResolutionStatus.EXACT_MATCH, content=mock_adventure, query="test"
         )
         # Make the mock async
         mock_resolver.resolve_adventure = Mock(return_value=mock_result)
@@ -161,7 +163,7 @@ class TestConvertAdventureCommand:
         mock_display.update_task = Mock()
 
         # Test command
-        result = self.runner.invoke(app, ["adventure", "cos"])
+        result = self.runner.invoke(app, ["adventure", "test"])
 
         # Verify success
         assert result.exit_code == 0
