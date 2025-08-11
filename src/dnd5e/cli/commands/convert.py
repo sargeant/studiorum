@@ -18,7 +18,6 @@ from dnd5e.cli.config_factory import (
     get_high_contrast_default,
     get_justified_default,
     get_no_outline_default,
-    get_paper_default,
     get_two_column_default,
     get_with_creatures_default,
     get_with_images_default,

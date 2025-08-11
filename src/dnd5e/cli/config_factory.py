@@ -105,8 +105,3 @@ def get_fonts_default() -> str | None:
 def get_no_outline_default() -> bool:
     """Get default no outline setting from config."""
     return get_app_config().rendering.latex.document.no_outline
-
-
-def get_paper_default() -> str:
-    """Get default paper size from config."""
-    return get_app_config().rendering.latex.document.paper_size

@@ -315,8 +315,6 @@ class LaTeXTemplateConfig(BaseModel):
         default=True, description="Enable template caching"
     )
 
-    template_debug: bool = Field(default=False, description="Enable template debugging")
-
     # Content type mappings
     content_type_templates: dict[str, str] = Field(
         default_factory=lambda: {

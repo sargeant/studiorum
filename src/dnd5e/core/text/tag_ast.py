@@ -44,10 +44,6 @@ class ASTNode:
         """Add a child node."""
         self.children.append(child)
 
-    def accept(self, visitor: "ASTVisitor") -> Any:
-        """Accept a visitor for processing this node."""
-        return visitor.visit(self)
-
 
 class DocumentNode(ASTNode):
     """Root node containing the entire document."""
@@ -581,35 +577,3 @@ class HazardTagNode(TagNode):
 
     def __repr__(self) -> str:
         return f"HazardTagNode(name={self.name!r})"
-
-
-# Visitor Pattern
-
-
-class ASTVisitor:
-    """Base visitor class for processing AST nodes."""
-
-    def visit(self, node: ASTNode) -> Any:
-        """Visit a node and dispatch to the appropriate method."""
-        method_name = f"visit_{type(node).__name__}"
-        method = getattr(self, method_name, self.generic_visit)
-        return method(node)
-
-    def generic_visit(self, node: ASTNode) -> Any:
-        """Default visit method for unhandled node types."""
-        results = []
-        for child in node.children:
-            result = self.visit(child)
-            if result is not None:
-                results.append(result)
-        return results
-
-    # Default implementations for common node types
-    def visit_DocumentNode(self, node: DocumentNode) -> Any:
-        return self.generic_visit(node)
-
-    def visit_TextNode(self, node: TextNode) -> Any:
-        return node.text
-
-    def visit_TagNode(self, node: TagNode) -> Any:
-        return self.generic_visit(node)
