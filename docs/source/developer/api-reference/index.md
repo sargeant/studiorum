@@ -72,7 +72,7 @@ Standardized error handling using Result[T, E] pattern with structured error typ
 - `Result[T, E]`: Abstract base class for Success/Error results
 - `Success[T, E]`, `Error[T, E]`: Concrete result implementations
 - `BaseError`, `ValidationError`, `ProcessingError`: Structured error types
-- `StandardizedLogger`: Consistent error logging interface
+- Simple logging functions: `get_logger()`, `setup_logging()`
 - `ErrorContext`: Rich context information for errors
 
 ### [Context and Reference Systems](context-and-references.md)

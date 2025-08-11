@@ -61,13 +61,18 @@ error = create_processing_error(
 Consistent logging patterns ensure uniform error reporting:
 
 ```python
-from dnd5e.core.logging_strategy import get_standardized_logger, error_logging_context
+from dnd5e.core.logging import get_logger
 
-logger = get_standardized_logger(__name__)
+logger = get_logger(__name__)
 
-with error_logging_context(logger, "spell_validation", content_name="Fireball") as context:
-    result = validate_spell(spell_data)
-    logger.log_result(result, "spell_validation", context=context)
+# Log validation process
+logger.info("Starting spell_validation for Fireball")
+result = validate_spell(spell_data)
+if result.is_success():
+    logger.info("spell_validation completed successfully")
+else:
+    error = result.error
+    logger.error(f"spell_validation failed: {error.message}")
 ```
 
 ## Migration Guide
@@ -201,20 +206,19 @@ processed_spell = result.unwrap_or_else(lambda error: create_default_spell())
 ### Context-Aware Error Handling
 
 ```python
-from dnd5e.core.error_types import ErrorContext
-
 def validate_with_context(data: dict, source: str) -> Result[Content, ValidationError]:
-    context = ErrorContext(
-        operation="content_validation",
-        content_type="spell",
-        file_path=source,
-        additional_info={"data_keys": list(data.keys())}
-    )
+    logger.info(f"Starting content_validation for spell from {source}")
+    logger.debug(f"Data keys: {list(data.keys())}")
 
-    with error_logging_context(logger, "validation", file_path=source) as log_context:
-        result = validate_model(Content, data, source=source)
-        logger.log_result(result, "validation", context=log_context)
-        return result
+    result = validate_model(Content, data, source=source)
+
+    if result.is_success():
+        logger.info(f"content_validation completed successfully for {source}")
+    else:
+        error = result.error
+        logger.error(f"content_validation failed for {source}: {error.message}")
+
+    return result
 ```
 
 ## Error Severity Levels

@@ -309,21 +309,24 @@ else:
 Consistent error logging with rich context:
 
 ```python
-from dnd5e.core.logging_strategy import get_standardized_logger, error_logging_context
+from dnd5e.core.logging import get_logger
 
-logger = get_standardized_logger(__name__)
+logger = get_logger(__name__)
 
 def process_content(content_data: dict, source: str) -> Result[ProcessedContent, ValidationError]:
-    """Process content with structured logging."""
-    with error_logging_context(
-        logger,
-        "content_processing",
-        content_name=content_data.get("name", "unknown"),
-        file_path=source
-    ) as context:
-        result = validate_and_process(content_data)
-        logger.log_result(result, "content_processing", context=context)
-        return result
+    """Process content with simple logging."""
+    content_name = content_data.get("name", "unknown")
+    logger.info(f"Starting content_processing for {content_name} from {source}")
+
+    result = validate_and_process(content_data)
+
+    if result.is_success():
+        logger.info(f"content_processing completed successfully for {content_name}")
+    else:
+        error = result.error
+        logger.error(f"content_processing failed for {content_name}: {error.message}")
+
+    return result
 ```
 
 ### Graceful Degradation with Results

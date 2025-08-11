@@ -387,26 +387,29 @@ logger.info(f"Processed {len(processed_content)} items, {len(errors)} failed")
 
 ## Standardized Logging Integration
 
-The error handling system integrates with standardized logging for consistent error reporting:
+The error handling system integrates with simple logging for consistent error reporting:
 
-### Standardized Logger
+### Simple Logging Pattern
 
 ```python
-class StandardizedLogger:
-    """Logger with structured error handling support."""
+from dnd5e.core.logging import get_logger
 
-    def log_result[T, E](
-        self,
-        result: Result[T, E],
-        operation: str,
-        context: ErrorContext | None = None
-    ) -> None:
-        """Log a Result with structured formatting."""
-        if result.is_success():
-            self.info(f"Operation {operation} completed successfully")
-        else:
-            error = result.error
-            self.log_error(error, context)
+logger = get_logger(__name__)
+
+def log_result_pattern[T, E](
+    result: Result[T, E],
+    operation: str,
+    content_name: str | None = None
+) -> None:
+    """Log a Result with simple formatting."""
+    if result.is_success():
+        logger.info(f"{operation} completed successfully" +
+                   (f" for {content_name}" if content_name else ""))
+    else:
+        error = result.error
+        logger.error(f"{operation} failed" +
+                    (f" for {content_name}" if content_name else "") +
+                    f": {error.message}")
 
     def log_error(self, error: BaseError, context: ErrorContext | None = None) -> None:
         """Log a structured error with full context."""
@@ -437,27 +440,24 @@ class StandardizedLogger:
 ### Error Logging Context
 
 ```python
-class ErrorContext(BaseModel):
-    """Context information for error logging."""
+### Simple Context Pattern
 
-    operation: str = Field(description="Operation being performed")
-    content_name: str | None = Field(None, description="Name of content being processed")
-    file_path: str | None = Field(None, description="File path involved")
-    additional_info: dict[str, Any] = Field(default_factory=dict)
-
-@contextmanager
-def error_logging_context(
-    logger: StandardizedLogger,
+```python
+def log_with_context(
+    logger: Logger,
     operation: str,
     content_name: str | None = None,
-    file_path: str | None = None,
-    **additional_info: Any
-) -> Iterator[ErrorContext]:
-    """Context manager for structured error logging."""
-    context = ErrorContext(
-        operation=operation,
-        content_name=content_name,
-        file_path=file_path,
+    file_path: str | None = None
+) -> None:
+    """Log with context information included in message."""
+    context_parts = []
+    if content_name:
+        context_parts.append(f"content={content_name}")
+    if file_path:
+        context_parts.append(f"file={file_path}")
+
+    context_str = f" ({', '.join(context_parts)})" if context_parts else ""
+    logger.info(f"Starting {operation}{context_str}")
         additional_info=additional_info
     )
 
@@ -476,21 +476,24 @@ def error_logging_context(
 ### Usage Example
 
 ```python
-from dnd5e.core.logging_strategy import get_standardized_logger, error_logging_context
+from dnd5e.core.logging import get_logger
 
-logger = get_standardized_logger(__name__)
+logger = get_logger(__name__)
 
 def process_spell_with_logging(spell_data: dict, source: str) -> Result[Spell, ValidationError]:
-    """Process spell with comprehensive error logging."""
-    with error_logging_context(
-        logger,
-        "spell_processing",
-        content_name=spell_data.get("name", "unknown"),
-        file_path=source
-    ) as context:
-        result = validate_spell_data(spell_data)
-        logger.log_result(result, "spell_processing", context)
-        return result
+    """Process spell with error logging."""
+    spell_name = spell_data.get("name", "unknown")
+    logger.info(f"Starting spell_processing for {spell_name} from {source}")
+
+    result = validate_spell_data(spell_data)
+
+    if result.is_success():
+        logger.info(f"spell_processing completed successfully for {spell_name}")
+    else:
+        error = result.error
+        logger.error(f"spell_processing failed for {spell_name}: {error.message}")
+
+    return result
 ```
 
 ## Advanced Error Handling Patterns
@@ -733,15 +736,17 @@ def test_batch_error_collection():
 ```python
 def test_error_logging(caplog):
     """Test error logging integration."""
-    logger = get_standardized_logger("test")
+    logger = get_logger("test")
     error = create_validation_error(
         message="Test error",
         field_name="test_field",
         suggestions=["Fix the test"]
     )
 
-    with error_logging_context(logger, "test_operation") as context:
-        logger.log_error(error, context)
+    # Log error with context
+    logger.error(f"test_operation failed: {error.message}")
+    if error.suggestions:
+        logger.error(f"Suggestions: {'; '.join(error.suggestions)}")
 
     assert "Test error" in caplog.text
     assert "validation" in caplog.text

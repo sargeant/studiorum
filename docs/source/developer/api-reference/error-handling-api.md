@@ -100,20 +100,12 @@ The error handling API provides standardized Result[T, E] patterns and structure
 
 ## Logging
 
-### StandardizedLogger
+### Logger Functions
 
 ```{eval-rst}
-.. autoclass:: dnd5e.core.logging_strategy.StandardizedLogger
-   :members:
-   :show-inheritance:
-```
+.. autofunction:: dnd5e.core.logging.get_logger
 
-### ErrorLogFormatter
-
-```{eval-rst}
-.. autoclass:: dnd5e.core.logging_strategy.ErrorLogFormatter
-   :members:
-   :show-inheritance:
+.. autofunction:: dnd5e.core.logging.setup_logging
 ```
 
 ## Validation
@@ -154,19 +146,6 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autofunction:: dnd5e.core.error_types.create_unknown_type_error
 ```
 
-### Logger Factory
-
-```{eval-rst}
-.. autofunction:: dnd5e.core.logging_strategy.get_standardized_logger
-
-.. autofunction:: dnd5e.core.logging_strategy.configure_error_logging
-```
-
-### Context Manager
-
-```{eval-rst}
-.. autofunction:: dnd5e.core.logging_strategy.error_logging_context
-```
 
 ## Migration Utilities
 
@@ -236,17 +215,18 @@ else:
 ### Logging Integration
 
 ```python
-from dnd5e.core.logging_strategy import get_standardized_logger, error_logging_context
+from dnd5e.core.logging import get_logger
 
-logger = get_standardized_logger(__name__)
+logger = get_logger(__name__)
 
-with error_logging_context(
-    logger,
-    "spell_validation",
-    content_name="Fireball"
-) as context:
-    result = validate_spell_data(spell_data)
-    logger.log_result(result, "spell_validation", context=context)
+# Log validation process for Fireball
+logger.info("Starting spell_validation for Fireball")
+result = validate_spell_data(spell_data)
+if result.is_success():
+    logger.info("spell_validation completed successfully for Fireball")
+else:
+    error = result.error
+    logger.error(f"spell_validation failed for Fireball: {error.message}")
 ```
 
 ## Type Safety
