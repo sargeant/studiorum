@@ -79,6 +79,10 @@ def main(
     Convert structured JSON data from 5e.tools into professional LaTeX documents
     that match the style of official D&D 5th edition books.
     """
+    # Reset global state to ensure clean execution for each command
+    # This prevents validation contamination between CLI runs
+    reset_cli_globals()
+
     config = get_app_config()
 
     # Validate configuration at startup
