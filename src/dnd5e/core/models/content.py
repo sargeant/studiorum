@@ -78,6 +78,9 @@ class ContentType(str, Enum):
     RECIPE_FLUFF = "recipeFluff"
     CHAROPTION_FLUFF = "charoptionFluff"
 
+    # Generic fluff fallback
+    FLUFF = "fluff"
+
     @classmethod
     def from_content(cls, content: BaseContent) -> ContentType:
         """Determine content type from content object.

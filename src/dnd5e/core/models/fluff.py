@@ -94,6 +94,12 @@ class FluffEntry(BaseModel):
         return " ".join(text_parts)
 
 
+@content_type(
+    enum_value="fluff",
+    file_patterns=["fluff"],
+    statblock_tags=["fluff"],
+    loader_type="fluff",
+)
 class BaseFluff(BaseContent):
     """Base fluff content with liberal parsing."""
 
