@@ -21,6 +21,19 @@ The JSON data uses the same format as 5e.tools – which means you can still loa
 - **Content Management**: Easily manage multiple content sources.
 - **Modern CLI**: A powerful and easy-to-use command-line interface.
 
+## Status
+
+This tool is ready to produce print ready PDFs, but has a few rough edges and challenges
+
+| Status | Feature.       | Notes |
+| :----: | :------------- | :----------------------- |
+| ✅     | Adventures     | Some tables might require hand tuning. |
+| ✅     | Books          | Some tables might require hand tuning  |
+| ✅     | Spellbooks     | Feature complete.         |
+| ❌     | Images         | Not implemented yet. Likely to require hand tuning after. |
+| ❌     | DropCaseLine   | The big letter you get at the start of chapters. Proved to be more complicated with this architecture than expected. |
+| ❌     | LaTeX compiler | Some support, but realisticly you probably want to edit the .tex output to tweak, then build with `xelatex $texFile` |
+
 ## Acknowledgements
 
 This project wouldn't have been possible without the excellent LaTeX templates from [rpgtex](https://github.com/rpgtex/DND-5e-LaTeX-Template) and [ashonit](https://github.com/ashonit/DND-5e-LaTeX-Template).
