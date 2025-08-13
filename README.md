@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/sargeant/5e2pdf/graph/badge.svg?token=2BXDX48UO8)](https://codecov.io/gh/sargeant/5e2pdf)
 
 > [!CAUTION]
-> This project is under development and not yet in a working state.
+> This project is under development. Some features are buggy; some don't work at at all. Check back for v1.0 soon.
 
 ## What is this?
 
