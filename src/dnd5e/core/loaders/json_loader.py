@@ -23,7 +23,10 @@ logger = get_logger(__name__)
 
 
 class JsonDataLoader(DataLoader[BaseContent]):
-    """Loads and validates JSON data using Pydantic models with dependency injection."""
+    """Loads and validated JSON data using Pydantic models with dependency injection."""
+
+    # Class-level shared registry for base items metadata
+    _shared_base_items_registry: dict[str, dict[str, Any]] | None = None
 
     def __init__(
         self,
@@ -34,6 +37,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
         self._content_factory = content_factory or get_content_factory()
         self._error_tracker = ValidationErrorTracker()
         self._settings = get_settings()
+        self._base_items_registry: dict[str, dict[str, Any]] | None = None
+
+        # Class-level registry is already declared above
 
     def _get_cache_key(self, path: Path) -> str:
         """Generate cache key for a file path."""
@@ -112,7 +118,14 @@ class JsonDataLoader(DataLoader[BaseContent]):
         validated_content = []
         for item in content_list:
             try:
-                # Skip copy-template items that reference other content
+                # Resolve _copy references for items
+                if "_copy" in item:
+                    item = self._process_copy_inheritance(item)
+
+                # Also check if item type references a base item that needs inheritance
+                item = self._resolve_base_type_inheritance(item)
+
+                # Skip other copy-template items (NPCs with missing stats)
                 if self._is_copy_template(item):
                     logger.debug(
                         f"Skipping copy-template item {item.get('name', 'unknown')} in {path}"
@@ -659,11 +672,199 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return False
 
+    def _get_base_items_registry(self) -> dict[str, dict[str, Any]]:
+        """Get or create the base items registry for _copy resolution."""
+        # Use shared registry to ensure all loader instances use the same data
+        if JsonDataLoader._shared_base_items_registry is None:
+            JsonDataLoader._shared_base_items_registry = self._load_base_items()
+        return JsonDataLoader._shared_base_items_registry
+
+    def _load_base_items(self) -> dict[str, dict[str, Any]]:
+        """Load all base item definitions for _copy resolution from items-base.json."""
+        registry = {}
+
+        # Find items-base.json in data paths
+        from ..config.paths import get_path_config
+
+        path_config = get_path_config()
+
+        # Check multiple possible locations for items-base.json
+        possible_paths = []
+
+        # Check configured data paths
+        if path_config.data_path and path_config.data_path.exists():
+            possible_paths.append(path_config.data_path / "items-base.json")
+
+        # Check 5etools-src directory
+        fivetools_src = (
+            Path.home() / "Code" / "5etools-src" / "data" / "items-base.json"
+        )
+        if fivetools_src.exists():
+            possible_paths.append(fivetools_src)
+
+        # Check srd-data directory
+        srd_data = path_config.root_path / "srd-data" / "items-base.json"
+        if srd_data.exists():
+            possible_paths.append(srd_data)
+
+        # Try to load from the first available path
+        for base_path in possible_paths:
+            if base_path.exists():
+                try:
+                    with open(base_path, encoding="utf-8") as f:
+                        base_data = json.loads(f.read())
+
+                    # Extract both baseitem and itemType arrays
+                    items_loaded = 0
+
+                    if "baseitem" in base_data and isinstance(
+                        base_data["baseitem"], list
+                    ):
+                        for item in base_data["baseitem"]:
+                            if "abbreviation" in item and "source" in item:
+                                key = f"{item['abbreviation']}|{item['source']}"
+                                registry[key] = item
+                                items_loaded += 1
+
+                    if "itemType" in base_data and isinstance(
+                        base_data["itemType"], list
+                    ):
+                        for item in base_data["itemType"]:
+                            if "abbreviation" in item and "source" in item:
+                                key = f"{item['abbreviation']}|{item['source']}"
+                                registry[key] = item
+                                items_loaded += 1
+
+                    if items_loaded > 0:
+                        logger.debug(
+                            f"Loaded {items_loaded} base items from {base_path}"
+                        )
+                        break
+                    else:
+                        logger.warning(
+                            f"No baseitem or itemType arrays found in {base_path}"
+                        )
+
+                except Exception as e:
+                    logger.warning(f"Failed to load base items from {base_path}: {e}")
+                    continue
+
+        if not registry:
+            logger.warning(
+                "No base items registry loaded - _copy resolution will be unavailable"
+            )
+
+        return registry
+
+    def get_type_metadata(self, type_id: str) -> dict[str, Any] | None:
+        """Get type metadata for a type ID like '$G|DMG'."""
+        base_items = self._get_base_items_registry()
+        return base_items.get(type_id)
+
+    @classmethod
+    def get_shared_type_metadata(cls, type_id: str) -> dict[str, Any] | None:
+        """Get type metadata using shared registry (static access)."""
+        if cls._shared_base_items_registry is None:
+            # Initialize with empty loader if needed
+            temp_loader = cls(ContentType("item"))
+            temp_loader._get_base_items_registry()  # This will populate the shared registry
+
+        return (
+            cls._shared_base_items_registry.get(type_id)
+            if cls._shared_base_items_registry
+            else None
+        )
+
+    def _process_copy_inheritance(self, item: dict[str, Any]) -> dict[str, Any]:
+        """Resolve _copy references during JSON loading."""
+        if "_copy" not in item:
+            return item
+
+        copy_ref = item["_copy"]
+        if (
+            not isinstance(copy_ref, dict)
+            or "abbreviation" not in copy_ref
+            or "source" not in copy_ref
+        ):
+            logger.warning(
+                f"Invalid _copy reference format in item {item.get('name', 'unknown')}"
+            )
+            return item
+
+        source_key = f"{copy_ref['abbreviation']}|{copy_ref['source']}"
+        base_items = self._get_base_items_registry()
+        source_item = base_items.get(source_key)
+
+        if not source_item:
+            logger.warning(
+                f"Could not resolve _copy reference: {source_key} for item {item.get('name', 'unknown')}"
+            )
+            return item
+
+        # Merge properties (source properties as base, item properties override)
+        resolved_item = {**source_item, **item}
+
+        # Apply _mod if present (future enhancement)
+        if "_mod" in copy_ref:
+            logger.debug(
+                f"_mod transformations not yet implemented for {item.get('name', 'unknown')}"
+            )
+
+        # Cleanup and mark as copy
+        if "_copy" in resolved_item:
+            del resolved_item["_copy"]
+        resolved_item["_isCopy"] = True
+
+        logger.debug(
+            f"Resolved _copy inheritance for {item.get('name', 'unknown')} from {source_key}"
+        )
+        return resolved_item
+
+    def _resolve_base_type_inheritance(self, item: dict[str, Any]) -> dict[str, Any]:
+        """Resolve inheritance from base types for items that reference base items by type."""
+        # Only handle items without entries that might need base type inheritance
+        if "entries" in item and item["entries"]:
+            return item
+
+        # Check if item has a type that references a base item
+        item_type = item.get("type")
+        if not item_type or not isinstance(item_type, str):
+            return item
+
+        # Parse type format: "ABBREVIATION|SOURCE" (e.g., "AIR|DMG")
+        if "|" not in item_type:
+            return item
+
+        base_items = self._get_base_items_registry()
+        base_item = base_items.get(item_type)
+
+        if not base_item:
+            logger.debug(
+                f"No base item found for type {item_type} in item {item.get('name', 'unknown')}"
+            )
+            return item
+
+        # Resolve the base item's _copy chain if it has one
+        resolved_base = base_item
+        if "_copy" in base_item:
+            resolved_base = self._process_copy_inheritance(base_item.copy())
+
+        # Inherit entries from resolved base item if the item lacks them
+        if (
+            "entries" in resolved_base
+            and resolved_base["entries"]
+            and not item.get("entries")
+        ):
+            item["entries"] = resolved_base["entries"]
+            logger.debug(
+                f"Inherited entries for {item.get('name', 'unknown')} from base type {item_type}"
+            )
+
+        return item
+
     def _is_copy_template(self, item: dict[str, Any]) -> bool:
         """Check if this item is a copy-template that references other content."""
-        # Check for 5etools copy mechanism
-        if "_copy" in item:
-            return True
+        # _copy items are now resolved, so this only checks for other template types
 
         # Check for NPC/template markers that indicate incomplete data
         if item.get("isNpc"):
@@ -1083,7 +1284,14 @@ class JsonDataLoader(DataLoader[BaseContent]):
         validated_content = []
         for item in content_list:
             try:
-                # Skip copy-template items that reference other content
+                # Resolve _copy references for items
+                if "_copy" in item:
+                    item = self._process_copy_inheritance(item)
+
+                # Also check if item type references a base item that needs inheritance
+                item = self._resolve_base_type_inheritance(item)
+
+                # Skip other copy-template items (NPCs with missing stats)
                 if self._is_copy_template(item):
                     logger.debug(
                         f"Skipping copy-template item {item.get('name', 'unknown')} in {path}"

@@ -490,7 +490,7 @@ class ConditionTagHandler(BaseTagHandler):
             source=None,  # Conditions typically don't have source references
             page=None,  # Conditions typically don't have page references
             content_type=self.content_type,
-            format_style=FormatStyle.ITALIC,  # Conditions are formatted in italic
+            format_style=FormatStyle.PLAIN,  # Conditions use plain text, not italic
         )
 
 
@@ -807,7 +807,7 @@ class VariantRuleTagHandler(BaseTagHandler):
             source=source,
             page=page,
             content_type=self.content_type,
-            format_style=FormatStyle.ITALIC,  # Variant rules are formatted in italics
+            format_style=FormatStyle.PLAIN,  # Variant rules use plain text, not italic
         )
 
 

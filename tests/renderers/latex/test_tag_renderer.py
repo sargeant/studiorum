@@ -245,15 +245,22 @@ class TestLaTeXTagRenderer:
         result = renderer.render(dc_tag)
         assert result == "DC difficult save"
 
+    def test_filter_tag_rendering(self) -> None:
+        """Test rendering filter tags."""
+        renderer = LaTeXTagRenderer()
+
+        # Filter tag with display text
+        filter_tag = SpecialTag(
+            tag_type="filter", value="creature", display_text="monsters"
+        )
+        result = renderer.render(filter_tag)
+        assert result == "monsters"
+
     def test_ui_tag_omission(self) -> None:
         """Test that UI-specific tags are omitted from output."""
         renderer = LaTeXTagRenderer()
 
-        # Filter and loader tags should produce empty strings
-        filter_tag = SpecialTag(tag_type="filter", value="creatures")
-        result = renderer.render(filter_tag)
-        assert result == ""
-
+        # Loader tags should produce empty strings
         loader_tag = SpecialTag(tag_type="loader", value="spells")
         result = renderer.render(loader_tag)
         assert result == ""

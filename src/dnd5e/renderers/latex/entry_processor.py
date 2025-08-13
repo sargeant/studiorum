@@ -378,6 +378,7 @@ class RecursiveEntryProcessor:
         is_credits_style = (
             env == "description"
             and len(items) > 1
+            and isinstance(items[0], dict)
             and items[0].get("type") == "list"
             and all(
                 isinstance(item, dict) and item.get("type") == "entries"
@@ -422,8 +423,10 @@ class RecursiveEntryProcessor:
                     if item_name:
                         # For description lists, process only the content part (not the name)
                         if item.get("type") == "item":
-                            # Special handling for "item" type - extract just entry/entries
-                            entry_content = item.get("entry", "")
+                            # Special handling for "item" type - extract just entry/entries/text
+                            entry_content = item.get("entry", "") or item.get(
+                                "text", ""
+                            )  # Support both "entry" and "text" fields
                             entries_content = item.get("entries", [])
                             if entry_content:
                                 processed_content = self._process_text_with_tags(
@@ -522,10 +525,14 @@ class RecursiveEntryProcessor:
             col_spec = self._build_column_spec(col_styles, col_count)
 
             # Use correct DndTable syntax: \begin{DndTable}[header=Name]{column_spec}
-            header_text = self._escape_latex(caption) if caption else "Table"
-            result.append(
-                f"\\begin{{DndTable}}[header={{{header_text}}}]{{{col_spec}}}"
-            )
+            # Only include header parameter if caption exists
+            if caption:
+                header_text = self._escape_latex(caption)
+                result.append(
+                    f"\\begin{{DndTable}}[header={{{header_text}}}]{{{col_spec}}}"
+                )
+            else:
+                result.append(f"\\begin{{DndTable}}{{{col_spec}}}")
 
             # Header row (only if we have col_labels)
             if col_labels:
@@ -754,8 +761,9 @@ class RecursiveEntryProcessor:
         if context.metadata and context.metadata.get("document_type"):
             document_type = context.metadata.get("document_type")
 
-        # Check if this is spell content that should use deeper sectioning
+        # Check if this is spell or item content that should use deeper sectioning
         is_spell_content = context.metadata.get("content_type") == "spell"
+        is_item_content = context.metadata.get("content_type") == "item"
 
         # For books and adventures, entry content should start at section level
         # because the document structure builder already creates \chapter{} commands
@@ -773,6 +781,13 @@ class RecursiveEntryProcessor:
             commands = [
                 "subsubsection",  # depth 0 - rarely used in spells
                 "paragraph",  # depth 1 - "At Higher Levels" entries
+                "subparagraph",  # depth 2+ - deeper nested content
+            ]
+        elif is_item_content:
+            # For items, use deeper sectioning so "Spells", "Regaining Charges" become \subparagraph for indentation
+            commands = [
+                "subsubsection",  # depth 0 - rarely used in items
+                "subparagraph",  # depth 1 - "Spells", "Regaining Charges" entries with indentation
                 "subparagraph",  # depth 2+ - deeper nested content
             ]
         else:
@@ -1250,8 +1265,12 @@ class RecursiveEntryProcessor:
             LaTeX string
         """
         name = item.get("name", "")
-        entry = item.get("entry", "")
+        entry = item.get("entry", "") or item.get(
+            "text", ""
+        )  # Support both "entry" and "text" fields
         entries = item.get("entries", [])
+
+        # Handle both "entry" and "text" fields for content
 
         result = []
 

@@ -216,7 +216,7 @@ class CreatureFluff(BaseFluff):
 
 @content_type(
     enum_value="itemFluff",
-    file_patterns=["itemFluff", "item-fluff", "items", "fluff"],
+    file_patterns=["itemFluff", "item-fluff", "fluff-items", "fluff"],
     statblock_tags=["itemFluff"],
     loader_type="fluff",
 )

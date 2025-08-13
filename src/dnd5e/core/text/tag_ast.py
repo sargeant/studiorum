@@ -432,6 +432,7 @@ class FilterTagNode(TagNode):
     def __init__(self, content: str, original_text_span: TextSpan | None = None):
         super().__init__("filter", original_text_span)
         self.content = content
+        self.name = content  # Set name for _nodes_to_text compatibility
 
     def __repr__(self) -> str:
         return f"FilterTagNode(content={self.content!r})"

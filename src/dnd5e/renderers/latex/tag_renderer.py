@@ -68,6 +68,9 @@ class LaTeXTagRenderer:
                 formatted = f"\\textbf{{{self._escape_latex(display_text)}}}"
             elif content_type_str in ("spell", "item"):
                 formatted = f"\\textit{{{self._escape_latex(display_text)}}}"
+            elif content_type_str in ("variantrule", "condition"):
+                # Use plain text for variantrule and condition - no italics
+                formatted = self._escape_latex(display_text)
             else:
                 formatted = self._escape_latex(display_text)
         else:
@@ -133,8 +136,11 @@ class LaTeXTagRenderer:
         elif tag.tag_type == "dice":
             # Dice expression: 1d8 + 2
             return self._escape_latex(tag.effective_value)
-        elif tag.tag_type in ("filter", "loader"):
-            # UI elements - typically omitted in print
+        elif tag.tag_type == "filter":
+            # Filter tags should render their display text in print documents
+            return self._escape_latex(tag.effective_value)
+        elif tag.tag_type == "loader":
+            # Loader tags are UI elements - omitted in print
             return ""
         else:
             logger.debug(f"Unknown special tag type: {tag.tag_type}")

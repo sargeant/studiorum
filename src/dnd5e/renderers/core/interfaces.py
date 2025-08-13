@@ -272,11 +272,12 @@ class EnhancementConfiguration(BaseModel):
     format_style_mapping: dict[str, FormatStyle] = Field(
         default_factory=lambda: {
             "creature": FormatStyle.BOLD,
-            "class": FormatStyle.BOLD,
-            "feat": FormatStyle.BOLD,
+            "class": FormatStyle.PLAIN,
+            "feat": FormatStyle.PLAIN,
             "spell": FormatStyle.ITALIC,
             "item": FormatStyle.ITALIC,
-            "condition": FormatStyle.ITALIC,
+            "condition": FormatStyle.PLAIN,
+            "variantrule": FormatStyle.PLAIN,
             "race": FormatStyle.PLAIN,
             "background": FormatStyle.PLAIN,
             "adventure": FormatStyle.ITALIC,

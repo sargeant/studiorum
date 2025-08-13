@@ -11,6 +11,7 @@ from dnd5e.core.loaders.content_merger import ContentMerger
 from dnd5e.core.models.content import BaseContent, ContentType
 
 if TYPE_CHECKING:
+    from dnd5e.core.models.item_filters import ItemFilterCriteria
     from dnd5e.core.models.spell_filters import SpellFilterCriteria
 
 logger = logging.getLogger(__name__)
@@ -590,5 +591,94 @@ class ContentResolver:
 
         # Use difflib for fuzzy matching
         suggestions = difflib.get_close_matches(name, spell_names, n=5, cutoff=0.4)
+
+        return suggestions
+
+    def resolve_items_by_names(self, names: list[str]) -> list[ContentResolutionResult]:
+        """Resolve multiple items by name with fuzzy matching.
+
+        Args:
+            names: List of item names to resolve
+
+        Returns:
+            List of ContentResolutionResult with found items and unresolved names
+        """
+        results = []
+        item_type = ContentType("item")
+
+        for name in names:
+            # Try exact match first
+            matches = self.omnidexer.find_all(item_type, name)
+
+            if matches and len(matches) == 1:
+                results.append(
+                    ContentResolutionResult(
+                        status=ResolutionStatus.EXACT_MATCH,
+                        content=matches[0],
+                        query=name,
+                    )
+                )
+            elif len(matches) > 1:
+                results.append(
+                    ContentResolutionResult(
+                        status=ResolutionStatus.MULTIPLE_MATCHES,
+                        matches=matches,
+                        query=name,
+                    )
+                )
+            else:
+                # No exact match, find suggestions
+                suggestions = self._find_item_suggestions(name)
+                results.append(
+                    ContentResolutionResult(
+                        status=ResolutionStatus.NO_MATCH,
+                        suggestions=suggestions,
+                        query=name,
+                    )
+                )
+
+        return results
+
+    def resolve_items_by_criteria(
+        self, criteria: "ItemFilterCriteria"
+    ) -> list[BaseContent]:
+        """Resolve items matching filter criteria.
+
+        Args:
+            criteria: ItemFilterCriteria object with filtering parameters
+
+        Returns:
+            List of matching item objects
+        """
+        # Import here to avoid circular imports
+        from ..services.item_collector import ItemCollector
+
+        collector = ItemCollector(self.omnidexer)
+        result = collector.collect_items(criteria)
+
+        return result.items
+
+    def _find_item_suggestions(self, name: str) -> list[str]:
+        """Find suggestions for a misspelled item name.
+
+        Args:
+            name: The item name to find suggestions for
+
+        Returns:
+            List of suggested item names
+        """
+        item_type = ContentType("item")
+        all_items = self.omnidexer.get_all_by_type(item_type)
+
+        if not all_items:
+            return []
+
+        # Get all item names
+        item_names = []
+        for item in all_items:
+            item_names.append(item.name)
+
+        # Use difflib for fuzzy matching
+        suggestions = difflib.get_close_matches(name, item_names, n=5, cutoff=0.4)
 
         return suggestions

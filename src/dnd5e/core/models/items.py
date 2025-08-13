@@ -142,6 +142,21 @@ class Item(BaseContent):
     stealth: bool | None = Field(None, description="Stealth disadvantage")
     armor_type: str | None = Field(None, alias="armorType", description="Armor type")
 
+    # Special item categories
+    staff: bool | None = Field(None, description="Is a staff")
+    wand: bool | None = Field(None, description="Is a wand")
+    rod: bool | None = Field(None, description="Is a rod")
+    weapon: bool | None = Field(None, description="Is a weapon")
+    potion: bool | None = Field(None, description="Is a potion")
+    scroll: bool | None = Field(None, description="Is a scroll")
+    wondrous: bool | None = Field(None, description="Is a wondrous item")
+    tattoo: bool | None = Field(None, description="Is a tattoo")
+
+    # Spell-related data
+    attached_spells: dict[str, Any] | None = Field(
+        None, alias="attachedSpells", description="Attached spells with charges"
+    )
+
     @field_validator("value", mode="before")
     @classmethod
     def parse_value(cls, v: Any) -> Any:
@@ -160,6 +175,14 @@ class Item(BaseContent):
             # Convert structured charge dict to ChargeDetails
             return ChargeDetails.model_validate(v)
         # Keep as-is for simple numbers/strings and legacy dicts
+        return v
+
+    @field_validator("rarity", mode="before")
+    @classmethod
+    def parse_rarity(cls, v: Any) -> Any:
+        """Parse rarity field, converting 'none' string to None."""
+        if v == "none":
+            return None
         return v
 
     def model_post_init(self, __context: Any) -> None:
@@ -218,24 +241,114 @@ class Item(BaseContent):
         """Get formatted item type text."""
         if isinstance(self.type, ItemType):
             return self.type.value
-        return str(self.type)
+
+        # Handle abbreviated type formats
+        type_str = str(self.type)
+
+        # First try to resolve using the 5etools metadata system for $G|DMG format
+        if "|" in type_str or type_str.startswith("$"):
+            type_metadata = self._get_type_metadata(type_str)
+            if type_metadata and "name" in type_metadata:
+                return str(type_metadata["name"])
+
+        # Map common abbreviations to full names based on 5etools data
+        type_mappings = {
+            "M": "melee weapon",
+            "R": "ranged weapon",
+            "P": "potion",
+            "A": "armor",
+            "S": "shield",
+            "LA": "light armor",
+            "MA": "medium armor",
+            "HA": "heavy armor",
+            "G": "adventuring gear",
+            "RG": "ring",
+            "WD": "wand",
+            "RD": "rod",
+            "SC": "scroll",
+            "MNT": "mount",
+            "VEH": "vehicle",
+            "SHP": "ship",
+            "TAH": "tack and harness",
+            "TG": "trade good",
+            "T": "tool",
+            "AT": "artisan's tools",
+            "GS": "gaming set",
+            "INS": "instrument",
+            "SCF": "spellcasting focus",
+            "EXP": "explosive",
+            "FD": "food",
+            "GV": "generic variant",
+            "TB": "trinket",
+            "AIR": "vehicle (air)",
+            "IDG": "magic item",
+            "SPC": "specific variant",
+            "OTH": "other",
+        }
+
+        if "|" in type_str:
+            # Handle "M|XPHB" format
+            abbreviation = type_str.split("|")[0]
+            return type_mappings.get(abbreviation, type_str)
+        else:
+            # Handle simple "M" or "INS" format
+            return type_mappings.get(type_str, type_str)
+
+    def get_category_text(self) -> str:
+        """Get item category text (Staff, Wand, etc.)."""
+        if getattr(self, "staff", None):
+            return "Staff"
+        elif getattr(self, "wand", None):
+            return "Wand"
+        elif getattr(self, "rod", None):
+            return "Rod"
+        elif getattr(self, "potion", None):
+            return "Potion"
+        elif getattr(self, "scroll", None):
+            return "Scroll"
+        elif getattr(self, "wondrous", None):
+            return "Wondrous item"
+        elif getattr(self, "tattoo", None):
+            return "Tattoo"
+        return ""
+
+    def get_spell_table_data(self) -> list[dict[str, Any]]:
+        """Get spell table data for items with attached spells."""
+        if (
+            not hasattr(self, "attached_spells")
+            or not self.attached_spells
+            or "charges" not in self.attached_spells
+        ):
+            return []
+
+        spell_data = []
+        charges_data = self.attached_spells["charges"]
+
+        for charge_cost, spells in charges_data.items():
+            for spell_name in spells:
+                spell_data.append({"name": spell_name, "charges": int(charge_cost)})
+
+        # Sort by charge cost, then by name
+        spell_data.sort(key=lambda x: (x["charges"], x["name"]))
+        return spell_data
+
+    def has_spell_table(self) -> bool:
+        """Check if item has attached spells for table display."""
+        return bool(
+            hasattr(self, "attached_spells")
+            and self.attached_spells
+            and "charges" in self.attached_spells
+        )
 
     def get_rarity_text(self) -> str:
-        """Get formatted rarity text."""
-        if not self.rarity:
+        """Get formatted rarity text without attunement info."""
+        if not self.rarity or self.rarity == "none":
             return ""
 
         if isinstance(self.rarity, ItemRarity):
             rarity_text = self.rarity.value
         else:
             rarity_text = str(self.rarity)
-
-        # Add attunement requirement
-        if self.requires_attunement:
-            if isinstance(self.requires_attunement, bool):
-                return f"{rarity_text} (requires attunement)"
-            else:
-                return f"{rarity_text} (requires attunement {self.requires_attunement})"
 
         return rarity_text
 
@@ -289,82 +402,91 @@ class Item(BaseContent):
         return str(self.value)
 
     def get_description_text(self) -> str:
-        """Extract text from complex entry structures."""
+        """Extract text from complex entry structures using proper entry processing."""
+        # Start with item's own entries
+        all_entries = []
+
+        if self.entries:
+            all_entries.extend(self.entries)
+
+        # Add type-based entries (like standard gemstone description) if item has no entries
         if not self.entries:
+            type_entries = self.get_type_entries()
+            if type_entries:
+                # Convert string entries to proper entry format for processing
+                for entry_text in type_entries:
+                    # Add as a plain string entry since Entry is a union type that includes str
+                    all_entries.append(entry_text)
+
+        if not all_entries:
             return ""
-        return self._extract_text_from_entries(self.entries)
 
-    def _extract_text_from_entries(self, entries: Any) -> str:
-        """Recursively extract text from complex entry structures."""
-        text_parts = []
+        from ...cli.main import get_tag_resolver
+        from ...renderers.core.interfaces import RenderingContext
+        from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
-        if isinstance(entries, list):
-            for entry in entries:
-                result = self._extract_text_from_entries(entry)
-                if result:
-                    text_parts.append(result)
-        elif hasattr(entries, "type"):
-            # Handle structured entry objects (new Entry types)
-            if hasattr(entries, "name") and entries.name:
-                text_parts.append(f"**{entries.name}**")
-            if hasattr(entries, "entries") and entries.entries:
-                result = self._extract_text_from_entries(entries.entries)
-                if result:
-                    text_parts.append(result)
-            # Handle items if present (for ListEntry)
-            if hasattr(entries, "items") and entries.items:
-                items = entries.items
-                if isinstance(items, list):
-                    for item in items:
-                        if isinstance(item, str):
-                            text_parts.append(f"• {item}")
-                        elif isinstance(item, dict):
-                            item_text_parts = []
-                            if "name" in item:
-                                item_text_parts.append(f"**{item['name']}**")
-                            if "text" in item:
-                                item_text_parts.append(item["text"])
-                            if item_text_parts:
-                                text_parts.append(f"• {' '.join(item_text_parts)}")
-            # Handle text if present in the extra fields
-            if hasattr(entries, "text") and entries.text:
-                text_parts.append(entries.text)
-        elif isinstance(entries, dict):
-            # Handle structured dict entries (current 5etools format)
-            if "entries" in entries:
-                result = self._extract_text_from_entries(entries["entries"])
-                if result:
-                    text_parts.append(result)
-            elif "text" in entries:
-                text_parts.append(entries["text"])
-            # Add name if present (for structured sections)
-            if "name" in entries:
-                text_parts.append(f"**{entries['name']}**")
-            # Handle lists within entries
-            if "items" in entries and isinstance(entries["items"], list):
-                for item in entries["items"]:
-                    if isinstance(item, str):
-                        text_parts.append(f"• {item}")
-                    elif isinstance(item, dict):
-                        item_text_parts = []
-                        if "name" in item:
-                            item_text_parts.append(f"**{item['name']}**")
-                        if "text" in item:
-                            item_text_parts.append(item["text"])
-                        if item_text_parts:
-                            text_parts.append(f"• {' '.join(item_text_parts)}")
-        elif isinstance(entries, str):
-            text_parts.append(entries)
+        # Get the tag resolver for proper tag processing
+        tag_resolver = get_tag_resolver()
 
-        return " ".join(text_parts) if text_parts else ""
+        # Create a proper rendering context for entry processing
+        context = RenderingContext(
+            output_format="latex",
+            debug_mode=False,
+            tag_resolver=tag_resolver,
+            metadata={
+                "source_name": self.source or "unknown",
+                "tag_resolver": tag_resolver,
+                "content_type": "item",
+            },
+        )
+
+        from ...core.entry_registry import ValidationMode
+
+        processor = RecursiveEntryProcessor(
+            use_dnd_template=True, validation_mode=ValidationMode.SILENT
+        )
+
+        # Convert Pydantic models to dicts for entry processor
+        entries_data = []
+        for entry in all_entries:
+            if hasattr(entry, "model_dump"):
+                entry_data = entry.model_dump()
+            else:
+                entry_data = entry
+
+            entries_data.append(entry_data)
+
+        # Process entries to get proper LaTeX with tag resolution
+        processed_entries = processor.process_entries(entries_data, context)
+
+        if not processed_entries:
+            return ""
+
+        # Format the first paragraph with \noindent and subsequent paragraphs with proper indentation
+        formatted_paragraphs = []
+        for i, entry in enumerate(processed_entries):
+            if i == 0:
+                # First paragraph should not be indented
+                formatted_paragraphs.append(f"\\noindent {entry}")
+            else:
+                # Subsequent paragraphs should use default paragraph indentation
+                formatted_paragraphs.append(entry)
+
+        # Join with double newlines to create proper paragraph breaks for LaTeX
+        return "\n\n".join(formatted_paragraphs)
 
     def get_item_metadata_line(self) -> str:
-        """Get formatted metadata line (type, rarity, attunement)."""
+        """Get formatted metadata line (category, type, rarity, attunement)."""
         parts = []
 
-        # Add type
+        # Add category (Staff, Wand, etc.)
+        category_text = self.get_category_text()
+        if category_text:
+            parts.append(category_text.lower())
+
+        # Add type (but avoid duplication with category)
         type_text = self.get_type_text()
-        if type_text:
+        if type_text and type_text.lower() != category_text.lower():
             parts.append(type_text)
 
         # Add rarity with attunement
@@ -372,7 +494,9 @@ class Item(BaseContent):
         if rarity_text:
             parts.append(rarity_text)
 
-        return ", ".join(parts) if parts else ""
+        result = ", ".join(parts) if parts else ""
+        # Capitalize the first letter
+        return result[0].upper() + result[1:] if result else ""
 
     def get_enhanced_rarity_text(self) -> str:
         """Get enhanced rarity text with attunement."""
@@ -519,3 +643,22 @@ class Item(BaseContent):
                 return f"{sp} sp, {remainder} cp"
         else:
             return f"{copper_value} cp"
+
+    def _get_type_metadata(self, type_str: str) -> dict[str, Any] | None:
+        """Get type metadata for item type resolution."""
+        try:
+            from ..loaders.json_loader import JsonDataLoader
+
+            return JsonDataLoader.get_shared_type_metadata(type_str)
+        except Exception:
+            # Silently fall back if metadata not available
+            return None
+
+    def get_type_entries(self) -> list[str]:
+        """Get entries from the item type definition for standard descriptions."""
+        type_str = str(self.type)
+        type_metadata = self._get_type_metadata(type_str)
+
+        if type_metadata and "entries" in type_metadata and type_metadata["entries"]:
+            return [str(entry) for entry in type_metadata["entries"]]
+        return []

@@ -106,7 +106,7 @@ class TagASTTransformer(Transformer):
         "note": (1, 1),
         "quickref": (1, 5),
         "loader": (1, 1),
-        "filter": (1, 1),
+        "filter": (1, 3),
     }
 
     def __init__(self, original_text: str):
@@ -337,6 +337,8 @@ class TagASTTransformer(Transformer):
             flags = self._nodes_to_text(source_nodes) if source_nodes else None
             return RechargeTagNode(name, flags)
         elif tag_type == "filter":
+            # Filter tags can have format: display_text|content_type|filter_criteria
+            # We use the first parameter (display_text) as the rendered content
             return FilterTagNode(name)
         elif tag_type == "loader":
             return LoaderTagNode(name)

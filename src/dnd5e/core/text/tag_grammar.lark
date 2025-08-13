@@ -26,7 +26,7 @@ escaped_char: ESCAPED_PIPE | ESCAPED_BRACE
 // Terminals
 ESCAPED_PIPE: "\\|"
 ESCAPED_BRACE: "\\}"
-TEXT: /(?:[^{}|\\]|{[^@]|\\[{}|])+/
+TEXT: /(?:[^{}|\\]|{(?![@#}])[^}]*}|{#[^}]*}|\\[{}|])+/
 WORD: /\w+/
 
 %import common.WS

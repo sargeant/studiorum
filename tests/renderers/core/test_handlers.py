@@ -433,7 +433,7 @@ class TestConditionTagHandler:
         assert info.display_text == "charmed"
         assert info.source is None
         assert info.page is None
-        assert info.format_style == FormatStyle.ITALIC  # Conditions are italic
+        assert info.format_style == FormatStyle.PLAIN
 
     def test_extract_content_info_fallback_to_name(self):
         """Test condition extraction falling back to 'name' attribute."""

@@ -242,6 +242,32 @@ class LaTeXTemplateEngine:
 
             return value
 
+        def clean_jinja_comments(value: str) -> str:
+            """Remove Jinja2 comment syntax and clean up unwanted formatting from source data."""
+            if not isinstance(value, str):
+                value = str(value)
+
+            # Remove {#itemEntry ...} patterns that appear in 5e.tools data
+            value = re.sub(r"\{#itemEntry[^}]*\}", "", value)
+
+            # Remove any other stray Jinja2 comment patterns
+            value = re.sub(r"\{#[^}]*\}", "", value)
+
+            # Clean up markdown formatting that shouldn't be in descriptions
+            # Remove **Spells** headers since we handle spells with tables
+            value = re.sub(r"\*\*Spells\*\*\s*", "", value)
+            value = re.sub(r"\*\*Regaining Charges\*\*\s*", "", value)
+
+            # Clean up extra whitespace left behind, preserving paragraph breaks
+            value = re.sub(r"\n\s*\n\s*\n", "\n\n", value)
+            # Normalize horizontal whitespace but preserve newlines
+            value = re.sub(
+                r"[ \t]+", " ", value
+            )  # Only collapse spaces and tabs, not newlines
+            value = value.strip()
+
+            return value
+
         # Register filters
         self.env.filters["latex_escape"] = latex_escape
         self.env.filters["latex_newlines"] = latex_newlines
@@ -254,6 +280,7 @@ class LaTeXTemplateEngine:
         self.env.filters["dnd_challenge_rating"] = dnd_challenge_rating
         self.env.filters["dnd_spell_level"] = dnd_spell_level
         self.env.filters["markdown_to_latex"] = markdown_to_latex
+        self.env.filters["clean_jinja_comments"] = clean_jinja_comments
 
     def render_template(self, template_name: str, context: dict[str, Any]) -> str:
         """Render a template with the given context.
