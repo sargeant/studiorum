@@ -268,6 +268,46 @@ class LaTeXTemplateEngine:
 
             return value
 
+        def dnd_smallcaps(value: str) -> str:
+            """Convert 'Dungeons & Dragons' text to LaTeX small-caps, replacing \textbf{} commands from {@b} tags."""
+            if not isinstance(value, str):
+                value = str(value)
+
+            # Replace LaTeX bold commands around D&D text with small-caps
+            # Note: This runs after tag processing, so {@b} tags are already converted to \textbf{}
+            patterns = [
+                # Handle \textbf{Dungeons \& Dragons} -> \textsc{Dungeons \& Dragons}
+                (
+                    r"\\textbf\{Dungeons\s*\\&\s*Dragons\}",
+                    r"\\textsc{Dungeons \\& Dragons}",
+                ),
+                # Handle \textbf{D\&D} -> \textsc{d\&d}
+                (r"\\textbf\{D\\&D\}", r"\\textsc{d\\&d}"),
+                # Handle cases where ampersand might not be escaped yet
+                (
+                    r"\\textbf\{Dungeons\s*&\s*Dragons\}",
+                    r"\\textsc{Dungeons \\& Dragons}",
+                ),
+                (r"\\textbf\{D&D\}", r"\\textsc{d\\&d}"),
+                # Fallback for untagged instances (preserve existing behavior)
+                (
+                    r"(?<!\\textbf\{)Dungeons\s*\\&\s*Dragons(?!\})",
+                    r"\\textsc{Dungeons \\& Dragons}",
+                ),
+                (r"(?<!\\textbf\{)D\\&D(?!\})", r"\\textsc{d\\&d}"),
+                # Handle unescaped fallbacks too
+                (
+                    r"(?<!\\textbf\{)Dungeons\s*&\s*Dragons(?!\})",
+                    r"\\textsc{Dungeons \\& Dragons}",
+                ),
+                (r"(?<!\\textbf\{)D&D(?!\})", r"\\textsc{d\\&d}"),
+            ]
+
+            for pattern, replacement in patterns:
+                value = re.sub(pattern, replacement, value, flags=re.IGNORECASE)
+
+            return value
+
         # Register filters
         self.env.filters["latex_escape"] = latex_escape
         self.env.filters["latex_newlines"] = latex_newlines
@@ -281,6 +321,7 @@ class LaTeXTemplateEngine:
         self.env.filters["dnd_spell_level"] = dnd_spell_level
         self.env.filters["markdown_to_latex"] = markdown_to_latex
         self.env.filters["clean_jinja_comments"] = clean_jinja_comments
+        self.env.filters["dnd_smallcaps"] = dnd_smallcaps
 
     def render_template(self, template_name: str, context: dict[str, Any]) -> str:
         """Render a template with the given context.

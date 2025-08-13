@@ -89,6 +89,14 @@ class LaTeXTagRenderer:
 
     def _render_formatting_node(self, node: FormattingNode) -> str:
         """Render a formatting node with appropriate LaTeX commands."""
+        # Special handling for bold D&D text - use small-caps instead
+        if node.format_type == FormatType.BOLD and self._is_dnd_text(node.content):
+            # Format D&D text for small-caps and escape manually without auto-transformation
+            formatted_text = self._format_dnd_text(node.content)
+            # Use basic LaTeX escaping without the D&D small-caps transformation
+            escaped_text = self._escape_latex_basic(formatted_text)
+            return f"\\textsc{{{escaped_text}}}"
+
         # Check if content already contains LaTeX commands (from nested processing)
         # If so, don't escape it to avoid double-escaping
         if "\\" in node.content and any(
@@ -149,6 +157,85 @@ class LaTeXTagRenderer:
     def _escape_latex(self, text: str) -> str:
         """Escape special LaTeX characters and Unicode characters in text."""
         return escape_latex_text(text)
+
+    def _escape_latex_basic(self, text: str) -> str:
+        """Escape LaTeX special characters without D&D small-caps transformation."""
+        if not text:
+            return ""
+
+        # LaTeX special characters (same as in latex_utils.py but without D&D transformation)
+        latex_chars = {
+            "{": "\\{",
+            "}": "\\}",
+            "$": "\\$",
+            "&": "\\&",
+            "%": "\\%",
+            "#": "\\#",
+            "^": "\\textasciicircum{}",
+            "_": "\\_",
+            "~": "\\textasciitilde{}",
+        }
+
+        result = text
+        for char, escape in latex_chars.items():
+            result = result.replace(char, escape)
+
+        # Unicode characters that need special handling in LaTeX
+        unicode_replacements = {
+            "—": "---",  # Em dash
+            "–": "--",  # En dash
+            """: "``",   # Left double quote
+            """: "''",  # Right double quote
+            "…": "\\ldots{}",  # Ellipsis
+            "°": "\\textdegree{}",  # Degree symbol
+            "©": "\\copyright{}",  # Copyright symbol
+            "®": "\\textregistered{}",  # Registered trademark
+            "™": "\\texttrademark{}",  # Trademark symbol
+        }
+
+        # Apply Unicode character replacements
+        for char, replacement in unicode_replacements.items():
+            result = result.replace(char, replacement)
+
+        return result
+
+    def _is_dnd_text(self, text: str) -> bool:
+        """Check if text is ONLY D&D references that should use small-caps."""
+        import re
+
+        # Strip and normalize whitespace
+        text = text.strip()
+
+        # Check if the ENTIRE text is just D&D references (case insensitive)
+        # Handle both escaped and unescaped ampersands
+        exact_patterns = [
+            r"^Dungeons\s*\\?&\s*Dragons$",  # Exactly "Dungeons & Dragons" or "Dungeons \& Dragons"
+            r"^D\\?&D$",  # Exactly "D&D" or "D\&D"
+        ]
+
+        for pattern in exact_patterns:
+            if re.search(pattern, text, flags=re.IGNORECASE):
+                return True
+
+        return False
+
+    def _format_dnd_text(self, text: str) -> str:
+        """Format D&D text for small-caps, ensuring proper case."""
+        import re
+
+        # Replace "Dungeons & Dragons" variants with proper case for small-caps
+        # Don't escape the ampersand here - let _escape_latex_basic handle it
+        text = re.sub(
+            r"^Dungeons\s*\\?&\s*Dragons$",
+            "Dungeons & Dragons",
+            text,
+            flags=re.IGNORECASE,
+        )
+
+        # Replace "D&D" variants with lowercase for better small-caps appearance
+        text = re.sub(r"^D\\?&D$", "d&d", text, flags=re.IGNORECASE)
+
+        return text
 
 
 class ContentTypeStyleConfig:

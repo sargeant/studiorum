@@ -271,8 +271,8 @@ def convert_adventure(
     fonts: str | None = typer.Option(
         get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)"
     ),
-    no_outline: bool = typer.Option(
-        get_no_outline_default(), "--no-outline", help="Disable document outline"
+    no_outline: bool | None = typer.Option(
+        None, "--no-outline", help="Disable document outline"
     ),
     font_size: str | None = typer.Option(
         None, "--font-size", help="Base font size (10pt, 11pt, 12pt)"
@@ -518,8 +518,8 @@ def convert_book(
     fonts: str | None = typer.Option(
         get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)"
     ),
-    no_outline: bool = typer.Option(
-        get_no_outline_default(), "--no-outline", help="Disable document outline"
+    no_outline: bool | None = typer.Option(
+        None, "--no-outline", help="Disable document outline"
     ),
     font_size: str | None = typer.Option(
         None, "--font-size", help="Base font size (10pt, 11pt, 12pt)"
@@ -759,8 +759,8 @@ def convert_supplement(
     fonts: str | None = typer.Option(
         get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)"
     ),
-    no_outline: bool = typer.Option(
-        get_no_outline_default(), "--no-outline", help="Disable document outline"
+    no_outline: bool | None = typer.Option(
+        None, "--no-outline", help="Disable document outline"
     ),
     font_size: str | None = typer.Option(
         None, "--font-size", help="Base font size (10pt, 11pt, 12pt)"

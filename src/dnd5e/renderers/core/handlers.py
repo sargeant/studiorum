@@ -1144,7 +1144,13 @@ class FormattingTagHandler(BaseTagHandler):
                     if child_tag_type == "bold":
                         # Extract text from nested bold tag
                         child_content = self._extract_nested_content(child, context)
-                        content_parts.append(f"\\textbf{{{child_content}}}")
+                        # Check if this is D&D text that should use small-caps instead of bold
+                        if self._is_dnd_text(child_content):
+                            content_parts.append(
+                                f"\\textsc{{{self._format_dnd_text(child_content)}}}"
+                            )
+                        else:
+                            content_parts.append(f"\\textbf{{{child_content}}}")
                     elif child_tag_type == "italic":
                         # Extract text from nested italic tag
                         child_content = self._extract_nested_content(child, context)
@@ -1243,6 +1249,33 @@ class FormattingTagHandler(BaseTagHandler):
     ) -> None:
         """Formatting tags don't need appendix tracking."""
         pass
+
+    def _is_dnd_text(self, text: str) -> bool:
+        """Check if text contains D&D references that should use small-caps."""
+        import re
+
+        # Check for "Dungeons & Dragons" or "D&D" (case insensitive)
+        dnd_patterns = [r"Dungeons\s*&\s*Dragons", r"D&D"]
+
+        for pattern in dnd_patterns:
+            if re.search(pattern, text, flags=re.IGNORECASE):
+                return True
+
+        return False
+
+    def _format_dnd_text(self, text: str) -> str:
+        """Format D&D text for small-caps, ensuring proper case."""
+        import re
+
+        # Replace "Dungeons & Dragons" with proper case for small-caps
+        text = re.sub(
+            r"Dungeons\s*&\s*Dragons", "Dungeons & Dragons", text, flags=re.IGNORECASE
+        )
+
+        # Replace "D&D" with lowercase for better small-caps appearance
+        text = re.sub(r"D&D", "d&d", text, flags=re.IGNORECASE)
+
+        return text
 
     def _extract_nested_content(self, node: TagNode, context: RenderingContext) -> str:
         """Extract text content from a nested tag node."""

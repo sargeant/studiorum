@@ -21,22 +21,27 @@ def escape_latex_text(text: str) -> str:
     Backslash escaping has been intentionally removed as D&D content rarely
     contains literal backslashes that need to be displayed as backslashes.
 
+    Additionally applies small-caps transformation for "Dungeons & Dragons" text,
+    converting both bold commands and plain text to small-caps formatting.
+
     Args:
         text: Text to escape for LaTeX output
 
     Returns:
-        LaTeX-safe text with proper character escaping
+        LaTeX-safe text with proper character escaping and D&D small-caps
 
     Note:
         - ASCII apostrophes (') remain unchanged for natural text like "Player's"
         - Unicode left single quote (') gets converted to LaTeX backtick
         - Backslashes (\\) are NOT escaped to avoid double-escaping issues
         - All other LaTeX special characters are properly escaped
+        - "Dungeons & Dragons" text is converted to small-caps formatting
     """
     if not text:
         return ""
 
-    # Direct replacement approach (placeholders not needed without backslash escaping)
+    # Apply small-caps transformation BEFORE LaTeX escaping to handle \textbf{} commands
+    result = _apply_dnd_smallcaps_pre_escape(text)
 
     # LaTeX special characters (backslash escaping removed - see issue #58)
     latex_chars = {
@@ -51,7 +56,6 @@ def escape_latex_text(text: str) -> str:
         "~": "\\textasciitilde{}",
     }
 
-    result = text
     for char, escape in latex_chars.items():
         result = result.replace(char, escape)
 
@@ -73,6 +77,122 @@ def escape_latex_text(text: str) -> str:
     # Apply Unicode character replacements
     for char, replacement in unicode_replacements.items():
         result = result.replace(char, replacement)
+
+    # Apply small-caps transformation for any remaining plain text D&D references
+    result = _apply_dnd_smallcaps_post_escape(result)
+
+    return result
+
+
+def _apply_dnd_smallcaps_pre_escape(text: str) -> str:
+    """Apply small-caps transformation to D&D text before LaTeX escaping.
+
+    Handles \textbf{} commands that contain D&D references, converting them
+    to \textsc{} commands before the braces get escaped.
+
+    Args:
+        text: Text to transform (before LaTeX escaping)
+
+    Returns:
+        Text with \textbf{D&D} converted to \textsc{D&D}
+    """
+    if not text:
+        return ""
+
+    # Handle \textbf{} commands before LaTeX escaping (braces not yet escaped)
+    patterns = [
+        # Handle \textbf{Dungeons & Dragons} -> \textsc{Dungeons & Dragons}
+        (r"\\textbf\{Dungeons\s*&\s*Dragons\}", r"\\textsc{Dungeons & Dragons}"),
+        # Handle \textbf{D&D} -> \textsc{d&d}
+        (r"\\textbf\{D&D\}", r"\\textsc{d&d}"),
+    ]
+
+    result = text
+    for pattern, replacement in patterns:
+        result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
+
+    return result
+
+
+def _apply_dnd_smallcaps_post_escape(text: str) -> str:
+    """Apply small-caps transformation to D&D text after LaTeX escaping.
+
+    Handles plain text instances of D&D references that weren't wrapped
+    in \textbf{} commands and aren't already in \textsc{} commands.
+
+    Args:
+        text: Text to transform (after LaTeX escaping)
+
+    Returns:
+        Text with plain D&D references converted to \textsc{D&D}
+    """
+    if not text:
+        return ""
+
+    # Handle plain text instances (ampersands are now escaped, braces are escaped)
+    # After LaTeX escaping, \textsc{ becomes \textsc\{ and \textbf{ becomes \textbf\{
+    patterns = [
+        # Handle plain "Dungeons & Dragons" -> \textsc{Dungeons \& Dragons}
+        # Negative lookbehind: not preceded by \textsc\{ or \textbf\{
+        # Negative lookahead: not followed by \} (indicating it's inside another command)
+        (
+            r"(?<!\\textsc\\{)(?<!\\textbf\\{)Dungeons\s*\\&\s*Dragons(?!\\})",
+            r"\\textsc{Dungeons \\& Dragons}",
+        ),
+        # Handle plain "D&D" -> \textsc{d\&d}
+        (r"(?<!\\textsc\\{)(?<!\\textbf\\{)D\\&D(?!\\})", r"\\textsc{d\\&d}"),
+    ]
+
+    result = text
+    for pattern, replacement in patterns:
+        result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
+
+    return result
+
+
+def _apply_dnd_smallcaps(text: str) -> str:
+    """Apply small-caps transformation to Dungeons & Dragons text.
+
+    Legacy function for backward compatibility with the template filter.
+    Converts both \textbf{} commands and plain text instances of D&D references
+    to use small-caps formatting.
+
+    Args:
+        text: Text to transform
+
+    Returns:
+        Text with D&D references converted to small-caps
+    """
+    if not text:
+        return ""
+
+    # Handle both pre-escaped and post-escaped patterns
+    patterns = [
+        # Handle \textbf{Dungeons \& Dragons} -> \textsc{Dungeons \& Dragons} (post-escape)
+        (r"\\textbf\{Dungeons\s*\\&\s*Dragons\}", r"\\textsc{Dungeons \\& Dragons}"),
+        # Handle \textbf{D\&D} -> \textsc{d\&d} (post-escape)
+        (r"\\textbf\{D\\&D\}", r"\\textsc{d\\&d}"),
+        # Handle \textbf{Dungeons & Dragons} -> \textsc{Dungeons & Dragons} (pre-escape)
+        (r"\\textbf\{Dungeons\s*&\s*Dragons\}", r"\\textsc{Dungeons & Dragons}"),
+        # Handle \textbf{D&D} -> \textsc{d&d} (pre-escape)
+        (r"\\textbf\{D&D\}", r"\\textsc{d&d}"),
+        # Handle plain instances with escaped ampersands
+        (
+            r"(?<!\\textsc\{)Dungeons\s*\\&\s*Dragons(?!\})",
+            r"\\textsc{Dungeons \\& Dragons}",
+        ),
+        (r"(?<!\\textsc\{)D\\&D(?!\})", r"\\textsc{d\\&d}"),
+        # Handle plain instances with unescaped ampersands
+        (
+            r"(?<!\\textsc\{)Dungeons\s*&\s*Dragons(?!\})",
+            r"\\textsc{Dungeons & Dragons}",
+        ),
+        (r"(?<!\\textsc\{)D&D(?!\})", r"\\textsc{d&d}"),
+    ]
+
+    result = text
+    for pattern, replacement in patterns:
+        result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
 
     return result
 
