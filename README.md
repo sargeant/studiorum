@@ -14,6 +14,8 @@
 
 The JSON data uses the same format as 5e.tools – which means you can still load your homebrew and use their dynamic website with the interactive features.
 
+For full usage, check out the [documentation](http://5e2pdf.sargeant.net.nz/).
+
 ## Features
 
 - **High-Quality PDF Output**: Generates clean, readable PDFs using LaTeX.
@@ -91,4 +93,4 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 ## More Information
 
-For more detailed technical information about the project's architecture, directory structure, and development workflow, please see our [**Developer Documentation**](docs/developer/index.html).
+For more detailed technical information about the project's architecture, directory structure, and development workflow, please see our [**Developer Documentation**](http://5e2pdf.sargeant.net.nz/developer/index.html).
