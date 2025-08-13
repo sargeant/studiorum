@@ -196,10 +196,11 @@ class DamageDict(TypedDict, total=False):
     type: str
     note: str
     preNote: str
-    resist: list[str]
-    immune: list[str]
-    vulnerable: list[str]
+    resist: list[str | dict[str, Any]]
+    immune: list[str | dict[str, Any]]
+    vulnerable: list[str | dict[str, Any]]
     special: str
+    cond: bool
 
 
 class CreatureTypeDict(TypedDict, total=False):

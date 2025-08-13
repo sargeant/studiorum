@@ -622,7 +622,12 @@ class Creature(BaseContent):
                 if "resist" in resistance:
                     resist_types = resistance["resist"]
                     if isinstance(resist_types, list):
-                        resistance_parts.extend(resist_types)
+                        # Filter to only string types to satisfy mypy
+                        string_types = [
+                            str(r) if not isinstance(r, str) else r
+                            for r in resist_types
+                        ]
+                        resistance_parts.extend(string_types)
                     else:
                         resistance_parts.append(str(resist_types))
                 elif "special" in resistance:
@@ -648,7 +653,12 @@ class Creature(BaseContent):
                 if "immune" in immunity:
                     immune_types = immunity["immune"]
                     if isinstance(immune_types, list):
-                        immunity_parts.extend(immune_types)
+                        # Filter to only string types to satisfy mypy
+                        string_types = [
+                            str(i) if not isinstance(i, str) else i
+                            for i in immune_types
+                        ]
+                        immunity_parts.extend(string_types)
                     else:
                         immunity_parts.append(str(immune_types))
                 elif "special" in immunity:
@@ -674,7 +684,11 @@ class Creature(BaseContent):
                 if "vulnerable" in vulnerability:
                     vuln_types = vulnerability["vulnerable"]
                     if isinstance(vuln_types, list):
-                        vulnerability_parts.extend(vuln_types)
+                        # Filter to only string types to satisfy mypy
+                        string_types = [
+                            str(v) if not isinstance(v, str) else v for v in vuln_types
+                        ]
+                        vulnerability_parts.extend(string_types)
                     else:
                         vulnerability_parts.append(str(vuln_types))
                 elif "special" in vulnerability:

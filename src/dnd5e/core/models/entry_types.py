@@ -6,9 +6,9 @@ that appear in D&D content, replacing the generic dict[str, Any] pattern
 with type-safe, validated structures.
 """
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal, Union
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Discriminator, Field, field_validator
 
 
 class BaseEntry(BaseModel):
@@ -41,7 +41,9 @@ class TableEntry(BaseEntry):
     caption: str | None = Field(None, description="Table caption")
     colLabels: list[str] | None = Field(None, description="Column headers")
     colStyles: list[str] | None = Field(None, description="Column styles")
-    rows: list[list[str]] = Field(default_factory=list, description="Table rows")
+    rows: list[list[str | dict[str, Any]]] = Field(
+        default_factory=list, description="Table rows"
+    )
 
 
 class ListEntry(BaseEntry):
@@ -61,6 +63,8 @@ class InsetEntry(BaseEntry):
 
     type: Literal["inset"] = "inset"
     name: str | None = Field(None, description="Inset title")
+    source: str | None = Field(None, description="Source book reference")
+    page: int | None = Field(None, description="Page number reference")
     entries: list[str | dict[str, Any]] = Field(
         default_factory=list, description="Inset content"
     )
@@ -71,6 +75,7 @@ class EntriesEntry(BaseEntry):
 
     type: Literal["entries"] = "entries"
     name: str | None = Field(None, description="Section name")
+    page: int | None = Field(None, description="Page number reference")
     entries: list[str | dict[str, Any]] = Field(
         default_factory=list, description="Nested entries"
     )
@@ -172,12 +177,11 @@ class GenericEntry(BaseEntry):
         return v
 
 
-# Union type for all possible entry types
+# Union type for all possible entry types (ordered from most to least specific)
 Entry = (
     str
-    | TextEntry
+    | TableEntry  # Put TableEntry early to avoid conflicts
     | ActionEntry
-    | TableEntry
     | ListEntry
     | InsetEntry
     | EntriesEntry
@@ -188,6 +192,7 @@ Entry = (
     | ItemEntry
     | SpellEntry
     | CreatureEntry
+    | TextEntry  # More generic
     | GenericEntry  # Fallback for unknown types
 )
 

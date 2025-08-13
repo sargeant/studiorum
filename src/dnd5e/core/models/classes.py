@@ -15,14 +15,19 @@ if TYPE_CHECKING:
 class SkillChoice(BaseModel):
     """Skill choice selection for starting proficiencies."""
 
-    choose: dict[str, Any] = Field(..., description="Choice structure")
+    choose: dict[str, Any] | None = Field(None, description="Choice structure")
+    any: int | None = Field(None, description="Number of any skills to choose")
 
 
 class StartingProficiencies(BaseModel):
     """Starting proficiencies for a character class."""
 
-    armor: list[str] | None = Field(None, description="Armor proficiencies")
-    weapons: list[str] | None = Field(None, description="Weapon proficiencies")
+    armor: list[str | dict[str, Any]] | None = Field(
+        None, description="Armor proficiencies"
+    )
+    weapons: list[str | dict[str, Any]] | None = Field(
+        None, description="Weapon proficiencies"
+    )
     tools: list[str] | None = Field(None, description="Tool proficiencies")
     skills: list[str | SkillChoice] | None = Field(
         None, description="Skill proficiencies or choices"
@@ -85,10 +90,16 @@ class MulticlassingRequirements(BaseModel):
 class MulticlassingProficiencies(BaseModel):
     """Proficiencies gained from multiclassing."""
 
-    armor: list[str] | None = Field(None, description="Armor proficiencies gained")
-    weapons: list[str] | None = Field(None, description="Weapon proficiencies gained")
+    armor: list[str | dict[str, Any]] | None = Field(
+        None, description="Armor proficiencies gained"
+    )
+    weapons: list[str | dict[str, Any]] | None = Field(
+        None, description="Weapon proficiencies gained"
+    )
     tools: list[str] | None = Field(None, description="Tool proficiencies gained")
-    skills: list[str] | None = Field(None, description="Skill proficiencies gained")
+    skills: list[str | SkillChoice] | None = Field(
+        None, description="Skill proficiencies gained"
+    )
 
 
 class Multiclassing(BaseModel):

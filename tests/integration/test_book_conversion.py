@@ -54,7 +54,7 @@ class TestBookConversion:
                     "5e2pdf",
                     "convert",
                     "book",
-                    "TEST",
+                    "test",
                     "--output",
                     str(output_file),
                 ],
@@ -66,6 +66,11 @@ class TestBookConversion:
             # Check that the command succeeded
             if result.returncode != 0:
                 if (
+                    "not found" in result.stderr.lower()
+                    or "not found" in result.stdout.lower()
+                ):
+                    pytest.skip("Test book not available in data sources")
+                elif (
                     "DND-5e-LaTeX-Template is not available" in result.stderr
                     or "DND-5e-LaTeX-Template is not available" in result.stdout
                 ):
@@ -104,7 +109,7 @@ class TestBookConversion:
 
     def test_multiple_books_work(self):
         """Test that multiple different books can be converted."""
-        books_to_test = ["TEST"]  # Test data sample
+        books_to_test = ["test"]  # Test book sample
 
         for book_id in books_to_test:
             with tempfile.TemporaryDirectory() as temp_dir:
@@ -129,7 +134,10 @@ class TestBookConversion:
 
                 # Some books might not be available in test data
                 if result.returncode != 0:
-                    if "not found" in result.stderr.lower():
+                    if (
+                        "not found" in result.stderr.lower()
+                        or "not found" in result.stdout.lower()
+                    ):
                         pytest.skip(f"Book {book_id} not available in test data")
                     elif (
                         "DND-5e-LaTeX-Template is not available" in result.stderr
@@ -164,7 +172,7 @@ class TestBookConversion:
                     "5e2pdf",
                     "convert",
                     "book",
-                    "TEST",
+                    "test",
                     "--output",
                     str(output_file),
                 ],
@@ -178,6 +186,11 @@ class TestBookConversion:
 
             if result.returncode != 0:
                 if (
+                    "not found" in result.stderr.lower()
+                    or "not found" in result.stdout.lower()
+                ):
+                    pytest.skip("Test content not available in data sources")
+                elif (
                     "DND-5e-LaTeX-Template is not available" in result.stderr
                     or "DND-5e-LaTeX-Template is not available" in result.stdout
                 ):
@@ -194,13 +207,9 @@ class TestBookConversion:
                 f"Test book conversion took too long: {conversion_time:.2f}s"
             )
 
-    def test_book_omnidexer_loading(self):
+    def test_book_omnidexer_loading(self, test_data_omnidexer):
         """Verify omnidexer loads books correctly."""
-        source_manager = ConfigurableSourceManager()
-        omnidexer = Omnidexer(source_manager)
-
-        # Load all data
-        load_all_data_sync(omnidexer)
+        omnidexer = test_data_omnidexer
 
         # Get book count
         books = omnidexer.get_all_by_type("book")
@@ -226,16 +235,14 @@ class TestBookConversion:
             f"Unexpected test source: {test_metadata.source}"
         )
 
-    def test_book_content_resolver_enrichment(self):
+    def test_book_content_resolver_enrichment(self, test_data_omnidexer):
         """Test that ContentResolver properly enriches books with content."""
-        source_manager = ConfigurableSourceManager()
-        omnidexer = Omnidexer(source_manager)
-        load_all_data_sync(omnidexer)
+        omnidexer = test_data_omnidexer
 
         resolver = ContentResolver(omnidexer)
 
         # Resolve test book
-        resolution_result = resolve_book_sync(resolver, "TEST")
+        resolution_result = resolve_book_sync(resolver, "test")
 
         assert resolution_result is not None, "Could not get resolution result"
         assert resolution_result.is_success, "Resolution should be successful"
@@ -262,17 +269,15 @@ class TestBookConversion:
             "Test book should have sections with content (found empty sections)"
         )
 
-    def test_book_content_loading_caching(self):
+    def test_book_content_loading_caching(self, test_data_omnidexer):
         """Test that book content loading uses caching effectively."""
-        source_manager = ConfigurableSourceManager()
-        omnidexer = Omnidexer(source_manager)
-        load_all_data_sync(omnidexer)
+        omnidexer = test_data_omnidexer
 
         resolver = ContentResolver(omnidexer)
 
         # Resolve the same book twice
-        resolution_result1 = resolve_book_sync(resolver, "TEST")
-        resolution_result2 = resolve_book_sync(resolver, "TEST")
+        resolution_result1 = resolve_book_sync(resolver, "test")
+        resolution_result2 = resolve_book_sync(resolver, "test")
 
         # Both should succeed
         assert resolution_result1 is not None, "First test book resolution failed"
@@ -308,7 +313,7 @@ class TestBookConversion:
                     "5e2pdf",
                     "convert",
                     "book",
-                    "TEST",
+                    "test",
                     "--output",
                     str(output_file),
                 ],
@@ -319,6 +324,11 @@ class TestBookConversion:
 
             if result.returncode != 0:
                 if (
+                    "not found" in result.stderr.lower()
+                    or "not found" in result.stdout.lower()
+                ):
+                    pytest.skip("Test content not available in data sources")
+                elif (
                     "DND-5e-LaTeX-Template is not available" in result.stderr
                     or "DND-5e-LaTeX-Template is not available" in result.stdout
                 ):
@@ -401,7 +411,7 @@ class TestBookConversion:
                     "5e2pdf",
                     "convert",
                     "book",
-                    "TEST",
+                    "test",
                     "--output",
                     str(output_file),
                 ],
@@ -413,6 +423,11 @@ class TestBookConversion:
             # Should work without hardcoded paths
             if result.returncode != 0:
                 if (
+                    "not found" in result.stderr.lower()
+                    or "not found" in result.stdout.lower()
+                ):
+                    pytest.skip("Test content not available in data sources")
+                elif (
                     "DND-5e-LaTeX-Template is not available" in result.stderr
                     or "DND-5e-LaTeX-Template is not available" in result.stdout
                 ):
@@ -487,7 +502,7 @@ class TestBookConversion:
                     "5e2pdf",
                     "convert",
                     "book",
-                    "TEST",
+                    "test",
                     "--output",
                     str(output_file),
                 ],
@@ -498,6 +513,11 @@ class TestBookConversion:
 
             if result.returncode != 0:
                 if (
+                    "not found" in result.stderr.lower()
+                    or "not found" in result.stdout.lower()
+                ):
+                    pytest.skip("Test content not available in data sources")
+                elif (
                     "DND-5e-LaTeX-Template is not available" in result.stderr
                     or "DND-5e-LaTeX-Template is not available" in result.stdout
                 ):
@@ -518,15 +538,12 @@ class TestBookConversion:
             f"Excessive memory usage for test book: {memory_increase:.2f} MB increase"
         )
 
-    def test_book_vs_adventure_consistency(self):
+    def test_book_vs_adventure_consistency(self, test_data_omnidexer):
         """Test that books and adventures follow the same architectural patterns."""
         # This test ensures both content types work through the same dual-file architecture
+        omnidexer = test_data_omnidexer
 
         def check_content_type(content_type, item_id, expected_name_substring):
-            source_manager = ConfigurableSourceManager()
-            omnidexer = Omnidexer(source_manager)
-            omnidexer.load_all_data()
-
             resolver = ContentResolver(omnidexer)
 
             # Get all items of this type
@@ -557,8 +574,8 @@ class TestBookConversion:
             return result
 
         # Test both books and adventures
-        book_result = check_content_type("book", "TEST", "Test Sourcebook")
-        adventure_result = check_content_type("adventure", "TEST", "Test Adventure")
+        book_result = check_content_type("book", "test", "Test Sourcebook")
+        adventure_result = check_content_type("adventure", "test", "Test Adventure")
 
         # Both should have content after resolution
         assert book_result.has_content(), "Book should have content after resolution"

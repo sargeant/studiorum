@@ -46,15 +46,17 @@ class Vehicle(BaseContent):
     vehicle_type: str | None = Field(
         None, alias="vehicleType", description="Type of vehicle"
     )
-    size: list[str] = Field(default_factory=list, description="Vehicle size")
+    size: list[str] | str = Field(default_factory=list, description="Vehicle size")
     dimensions: list[str] = Field(
         default_factory=list, description="Vehicle dimensions"
     )
     weight: int | None = Field(None, description="Vehicle weight in pounds")
     cost: int | None = Field(None, description="Vehicle cost in copper pieces")
-    ac: list[int] = Field(default_factory=list, description="Base armor class")
-    hp: int | None = Field(None, description="Base hit points")
-    speed: int | None = Field(None, description="Base speed")
+    ac: list[int | VehicleArmor] | int = Field(
+        default_factory=list, description="Base armor class"
+    )
+    hp: int | VehicleHitPoints | None = Field(None, description="Base hit points")
+    speed: int | dict[str, Any] | None = Field(None, description="Base speed")
     carrying_capacity: int | None = Field(
         None, alias="carryingCapacity", description="Carrying capacity in pounds"
     )

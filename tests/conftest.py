@@ -283,9 +283,31 @@ def test_data_omnidexer() -> Omnidexer:
     # Use full reset sequence for complete isolation
     reset_test_environment()
 
-    # Use the ConfigurableSourceManager which automatically includes test-data
+    # Create a temporary config that forces test-data inclusion
+    import tempfile
+    from pathlib import Path
+
+    import yaml
+
+    # Create test configuration with test-data
+    config = ContentConfiguration()
+    config.add_source(
+        ContentSource(
+            name="test-data",
+            type=SourceType.DIRECTORY,
+            path=Path("test-data"),
+            enabled=True,
+            priority=0,  # Highest priority
+        )
+    )
+
+    # Create ConfigurableSourceManager with custom config
     source_manager = ConfigurableSourceManager()
-    asyncio.run(source_manager.ensure_sources_ready())
+
+    # Override the config temporarily
+    source_manager._config = config
+    source_manager._manager = None  # Force rebuild
+    source_manager.ensure_sources_ready()
 
     omnidexer = Omnidexer(source_manager)
     omnidexer.load_all_data()
