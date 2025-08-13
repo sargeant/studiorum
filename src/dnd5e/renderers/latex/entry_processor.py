@@ -102,8 +102,8 @@ class RecursiveEntryProcessor:
                 f"Processing LaTeX entry type '{entry_type}' at depth {self._depth}"
             )
 
-            # Validate entry type if not empty
-            if entry_type:
+            # Validate entry type if not empty and not in SILENT mode
+            if entry_type and self._validation_mode != ValidationMode.SILENT:
                 # Create ValidationContext for modern interface
                 from ...core.entry_registry import ValidationContext
 
@@ -754,6 +754,9 @@ class RecursiveEntryProcessor:
         if context.metadata and context.metadata.get("document_type"):
             document_type = context.metadata.get("document_type")
 
+        # Check if this is spell content that should use deeper sectioning
+        is_spell_content = context.metadata.get("content_type") == "spell"
+
         # For books and adventures, entry content should start at section level
         # because the document structure builder already creates \chapter{} commands
         # Map JSON depths to LaTeX sectioning to match expected hierarchy
@@ -764,6 +767,13 @@ class RecursiveEntryProcessor:
                 "subsection",  # depth 2 - "Lair Locations"
                 "subsubsection",  # depth 3 - "N1: East Entrance", etc.
                 "paragraph",  # depth 4+ - deeper nested content
+            ]
+        elif is_spell_content:
+            # For spells, use deeper sectioning so "At Higher Levels" becomes \paragraph
+            commands = [
+                "subsubsection",  # depth 0 - rarely used in spells
+                "paragraph",  # depth 1 - "At Higher Levels" entries
+                "subparagraph",  # depth 2+ - deeper nested content
             ]
         else:
             # For articles, supplements, etc. - no chapters, start with sections

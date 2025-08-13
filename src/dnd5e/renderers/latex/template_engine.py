@@ -197,6 +197,51 @@ class LaTeXTemplateEngine:
             except (ValueError, TypeError):
                 return str(value)
 
+        def markdown_to_latex(value: str) -> str:
+            """Convert basic Markdown formatting to LaTeX equivalents."""
+            if not isinstance(value, str):
+                value = str(value)
+
+            # Convert **bold** to \textbf{}
+            value = re.sub(r"\*\*(.*?)\*\*", r"\\textbf{\1}", value)
+
+            # Convert *italic* to \textit{}
+            value = re.sub(r"\*(.*?)\*", r"\\textit{\1}", value)
+
+            # Convert `code` to \texttt{}
+            value = re.sub(r"`(.*?)`", r"\\texttt{\1}", value)
+
+            # Convert bullet points to itemize
+            if "•" in value or value.strip().startswith("- "):
+                lines = value.split("\n")
+                processed_lines = []
+                in_list = False
+
+                for line in lines:
+                    line = line.strip()
+                    if line.startswith("•") or line.startswith("-"):
+                        if not in_list:
+                            processed_lines.append("\\begin{itemize}")
+                            in_list = True
+                        # Remove bullet and add item
+                        item_text = (
+                            line[1:].strip() if line.startswith(("•", "-")) else line
+                        )
+                        processed_lines.append(f"\\item {item_text}")
+                    else:
+                        if in_list:
+                            processed_lines.append("\\end{itemize}")
+                            in_list = False
+                        if line:  # Don't add empty lines
+                            processed_lines.append(line)
+
+                if in_list:
+                    processed_lines.append("\\end{itemize}")
+
+                value = "\n".join(processed_lines)
+
+            return value
+
         # Register filters
         self.env.filters["latex_escape"] = latex_escape
         self.env.filters["latex_newlines"] = latex_newlines
@@ -208,6 +253,7 @@ class LaTeXTemplateEngine:
         self.env.filters["dnd_ability_modifier"] = dnd_ability_modifier
         self.env.filters["dnd_challenge_rating"] = dnd_challenge_rating
         self.env.filters["dnd_spell_level"] = dnd_spell_level
+        self.env.filters["markdown_to_latex"] = markdown_to_latex
 
     def render_template(self, template_name: str, context: dict[str, Any]) -> str:
         """Render a template with the given context.
@@ -413,7 +459,6 @@ class LaTeXTemplateEngine:
                 "class_options": content_config["class_options"],
                 "content_type": content_type,
                 "use_dnd_template": True,
-                "use_dnd_template_styling": True,
                 "dnd_template_available": self.check_dnd_template_availability(),
             }
         )

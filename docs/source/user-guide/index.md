@@ -23,6 +23,7 @@ If you're new to 5e2pdf, start with the [Installation Guide](installation.md) to
 
 - **Adventures**: Convert D&D adventures (Curse of Strahd, Lost Mine of Phandelver, etc.) to professionally formatted PDFs
 - **Books**: Transform sourcebooks (Player's Handbook, Monster Manual, etc.) into customizable documents
+- **Spells**: Create custom spell books with advanced filtering, sorting, and class-based selection
 - **Supplements**: Process homebrew content and mixed JSON files with spells, creatures, and items
 - **Bulk Operations**: Convert multiple files efficiently with concurrent processing
 
@@ -46,6 +47,7 @@ If you're new to 5e2pdf, start with the [Installation Guide](installation.md) to
 # Content conversion
 5e2pdf convert adventure cos        # Convert adventure by abbreviation
 5e2pdf convert book phb             # Convert book by abbreviation
+5e2pdf convert spells --class wizard # Create custom spell books
 5e2pdf convert supplement file.json # Convert mixed content from file
 5e2pdf convert bulk cos lmop hotdq  # Bulk convert multiple items
 
@@ -106,7 +108,13 @@ If you're new to 5e2pdf, start with the [Installation Guide](installation.md) to
 ### Player References
 
 ```bash
-# Create custom spell reference
+# Create custom spell book for wizard
+5e2pdf convert spells --class wizard --level 1-5 --pdf
+
+# Create specific spell collection
+5e2pdf convert spells "fireball" "magic missile" "counterspell" --pdf
+
+# Create custom spell reference from file
 5e2pdf convert supplement my-spells.json --pdf
 
 # Convert sourcebook sections

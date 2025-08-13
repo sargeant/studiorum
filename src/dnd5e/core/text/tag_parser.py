@@ -38,6 +38,7 @@ from .tag_ast import (
     StatusTagNode,
     TagNode,
     TextNode,
+    VariantRuleTagNode,
 )
 
 logger = get_logger(__name__)
@@ -82,7 +83,10 @@ class TagASTTransformer(Transformer):
         "deity": (1, 4),  # name|pantheon|source|display
         # Simple value tags
         "recharge": (1, 2),  # value|flags
-        "chance": (1, 1),
+        "chance": (
+            1,
+            5,
+        ),  # percentage|display text|rollbox name|success text|failure text
         "dice": (1, 1),
         "damage": (1, 1),
         "hit": (1, 1),
@@ -295,6 +299,15 @@ class TagASTTransformer(Transformer):
             return SenseTagNode(name, source, final_display_text_nodes, page)
         elif tag_type == "hazard":
             return HazardTagNode(name, source, final_display_text_nodes, page)
+        elif tag_type == "variantrule":
+            # Variantrule tags follow _TagPipedDisplayTextThird pattern:
+            # Use third parameter as clean display text if available, otherwise first parameter
+            clean_display_text = (
+                self._nodes_to_text(display_text_nodes) if display_text_nodes else name
+            )
+            return VariantRuleTagNode(
+                name, source, final_display_text_nodes, page, clean_display_text
+            )
 
         # Formatting tags (use display text if available, otherwise first part)
         elif tag_type in ("bold", "b"):
@@ -314,7 +327,11 @@ class TagASTTransformer(Transformer):
         elif tag_type == "dc":
             return DCTagNode(name)
         elif tag_type == "chance":
-            return ChanceTagNode(name)
+            # Chance tags can have format: percentage|display text|rollbox name|success text|failure text
+            chance_display_text: str | None = (
+                self._nodes_to_text(source_nodes) if source_nodes else None
+            )
+            return ChanceTagNode(name, chance_display_text)
         elif tag_type == "recharge":
             # Recharge tags can have format: recharge_value|flags
             flags = self._nodes_to_text(source_nodes) if source_nodes else None

@@ -561,6 +561,75 @@ class DCTagHandler:
         pass
 
 
+class ChanceTagHandler:
+    """Core handler for chance (@chance) tags.
+
+    This handler processes chance tags that specify probability percentages,
+    returning appropriate display text for LaTeX rendering.
+    """
+
+    def __init__(self) -> None:
+        """Initialize the chance handler."""
+        self.tag_type = "chance"
+        self.supported_tags = ["chance"]
+
+    def handles_tag_type(self, tag_type: str) -> bool:
+        """Check if this handler processes the given tag type."""
+        return tag_type == "chance"
+
+    def process_tag(self, node: TagNode, context: RenderingContext) -> str | SpecialTag:
+        """Process a chance tag node and return appropriate display text.
+
+        Args:
+            node: The parsed chance tag AST node
+            context: Rendering context (unused for chance tags)
+
+        Returns:
+            Display text for the chance percentage
+        """
+        percentage: str = getattr(node, "percentage", "")
+        display_text: str | None = getattr(node, "display_text", None)
+
+        if not percentage:
+            logger.warning("Empty percentage value in chance tag")
+            return "[Chance]"
+
+        # Use display text if provided, otherwise format percentage
+        if display_text:
+            return display_text
+        else:
+            return f"{percentage} percent"
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for chance tags, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Chance",
+            display_text="Chance",
+            source=None,
+            page=None,
+            content_type=None,
+            format_style=FormatStyle.PLAIN,
+        )
+
+    def should_include_page_reference(self, page: str | None) -> bool:
+        """Chance tags don't have page references."""
+        return False
+
+    def validate_content_reference(
+        self, node: TagNode, context: RenderingContext
+    ) -> list[TagValidationError]:
+        """Chance tags don't need content validation."""
+        return []
+
+    def track_content_for_appendix(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Chance tags don't need appendix tracking."""
+        pass
+
+
 class DiceTagHandler:
     """Core handler for dice (@dice) tags.
 
@@ -626,6 +695,120 @@ class DiceTagHandler:
     ) -> None:
         """Dice tags don't need appendix tracking."""
         pass
+
+
+class DamageTagHandler:
+    """Core handler for damage (@damage) tags.
+
+    This handler processes damage tags that specify damage expressions,
+    returning SpecialTag objects for LaTeX rendering.
+
+    Format: {@damage 1d4 + 1} displays "1d4+1" (damage expression)
+    """
+
+    def __init__(self) -> None:
+        """Initialize the damage handler."""
+        self.tag_type = "damage"
+        self.supported_tags = ["damage"]
+
+    def handles_tag_type(self, tag_type: str) -> bool:
+        """Check if this handler processes the given tag type."""
+        return tag_type == "damage"
+
+    def process_tag(self, node: TagNode, context: RenderingContext) -> str | SpecialTag:
+        """Process a damage tag node and return a SpecialTag.
+
+        Args:
+            node: The parsed damage tag AST node
+            context: Rendering context (unused for damage tags)
+
+        Returns:
+            SpecialTag object for LaTeX rendering
+        """
+        # Import here to avoid circular import
+        from dnd5e.core.text.tag_types import SpecialTag
+
+        damage_expression = getattr(node, "damage_type", "")
+        if not damage_expression:
+            logger.warning("Empty damage expression in tag")
+            return "[Damage]"  # Fallback for empty expressions
+
+        return SpecialTag(tag_type="damage", value=damage_expression)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for damage tags, use process_tag instead."""
+        # Damage tags are handled via process_tag method, this is just for protocol compatibility
+        return ContentReferenceInfo(
+            name="damage",
+            display_text="damage",
+            source=None,
+            page=None,
+            content_type=None,
+            format_style=FormatStyle.PLAIN,
+        )
+
+    def should_include_page_reference(self, page: str | None) -> bool:
+        """Damage tags don't have page references."""
+        return False
+
+    def validate_content_reference(
+        self, node: TagNode, context: RenderingContext
+    ) -> list[TagValidationError]:
+        """Damage tags don't need content validation."""
+        return []
+
+    def track_content_for_appendix(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Damage tags don't need appendix tracking."""
+        pass
+
+
+class VariantRuleTagHandler(BaseTagHandler):
+    """Core handler for variant rule (@variantrule) tags.
+
+    This handler processes variant rule reference tags, removing redundant
+    context like "[Area of Effect]" and rendering just the rule name.
+
+    Example: {@variantrule Sphere [Area of Effect]|XPHB|Sphere} -> "Sphere"
+    """
+
+    def __init__(self) -> None:
+        try:
+            content_type = ContentType("variantrule")
+        except ValueError:
+            logger.debug("Content type 'variantrule' not found in registry")
+            content_type = None
+        super().__init__("variantrule", content_type)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract variant rule reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+        source = self._extract_source_info(node)
+        page = self._extract_page_info(node)
+
+        # Use clean_display_text from VariantRuleTagNode if available
+        # This properly handles the _TagPipedDisplayTextThird pattern
+        clean_display_text = getattr(node, "clean_display_text", None)
+        clean_text = (
+            clean_display_text
+            if clean_display_text
+            else (name if name else display_text)
+        )
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=clean_text,
+            source=source,
+            page=page,
+            content_type=self.content_type,
+            format_style=FormatStyle.ITALIC,  # Variant rules are formatted in italics
+        )
 
 
 class CardTagHandler(BaseTagHandler):
@@ -1092,7 +1275,10 @@ def get_default_core_handlers() -> list[TagHandler]:
         BookTagHandler(),
         ConditionTagHandler(),
         DCTagHandler(),
+        ChanceTagHandler(),
         DiceTagHandler(),
+        DamageTagHandler(),
+        VariantRuleTagHandler(),
         CardTagHandler(),
         AbilityTagHandler(),
         SavingThrowTagHandler(),

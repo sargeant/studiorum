@@ -21,20 +21,8 @@
 \setlength{\columnsep}{1cm}
 \setlength{\columnseprule}{0.1pt}
 
-% Section styling for articles (only if not using DND template styling)
-<@ if not use_dnd_template_styling @>
-\titleformat{\section}
-    {\normalfont\scshape\Large}
-    {\thesection}{1em}{}
-
-\titleformat{\subsection}
-    {\normalfont\scshape\large}
-    {\thesubsection}{1em}{}
-
-\titleformat{\subsubsection}
-    {\normalfont\scshape\normalsize}
-    {\thesubsubsection}{1em}{}
-<@ endif @>
+% Section styling for articles
+% DND-5e-LaTeX-Template provides all styling automatically
 
 % Configure section numbering depth for articles
 <@ if metadata and metadata.numbering_depth @>

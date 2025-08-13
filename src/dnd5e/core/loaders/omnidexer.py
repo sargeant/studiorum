@@ -281,6 +281,10 @@ class Omnidexer:
             loader = self._loaders[content_type]
             content_items = loader.load(path)
 
+            # Enhance spells with class information from lookup data
+            if content_type.value == "spell":
+                content_items = self._enhance_spells_with_class_data(content_items)
+
             # Index all loaded items
             for item in content_items:
                 self._add_to_index(item, content_type)
@@ -295,6 +299,29 @@ class Omnidexer:
         except Exception as e:
             logger.error(f"Failed to load {content_type.value} from {path}: {e}")
             return {}
+
+    def _enhance_spells_with_class_data(
+        self, content_items: list[BaseContent]
+    ) -> list[BaseContent]:
+        """Enhance spell objects with class information from lookup data."""
+        try:
+            from ..services.spell_class_lookup import get_spell_class_lookup_service
+
+            lookup_service = get_spell_class_lookup_service()
+
+            enhanced_items = []
+            for item in content_items:
+                enhanced_item = lookup_service.enhance_spell(item)
+                enhanced_items.append(enhanced_item)
+
+            logger.debug(
+                f"Enhanced {len(enhanced_items)} spells with class information"
+            )
+            return enhanced_items
+
+        except Exception as e:
+            logger.warning(f"Failed to enhance spells with class data: {e}")
+            return content_items
 
     def _is_already_indexed(
         self, content: BaseContent, content_type: ContentType

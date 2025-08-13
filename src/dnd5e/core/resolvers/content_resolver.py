@@ -3,12 +3,15 @@
 import difflib
 import logging
 from enum import Enum
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from dnd5e.core.loaders.content_merger import ContentMerger
 from dnd5e.core.models.content import BaseContent, ContentType
+
+if TYPE_CHECKING:
+    from dnd5e.core.models.spell_filters import SpellFilterCriteria
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +23,22 @@ class ResolutionStatus(Enum):
     MULTIPLE_MATCHES = "multiple_matches"
     NO_MATCH = "no_match"
     FUZZY_MATCH = "fuzzy_match"
+
+
+class SpellResolutionResult(BaseModel):
+    """Extended result for spell resolution with spell-specific metadata."""
+
+    status: ResolutionStatus = Field(description="Status of the resolution attempt")
+    spells: list[BaseContent] = Field(default_factory=list, description="Found spells")
+    unresolved_names: list[str] = Field(
+        default_factory=list, description="Names that couldn't be resolved"
+    )
+    suggestions: dict[str, list[str]] = Field(
+        default_factory=dict, description="Suggestions for unresolved names"
+    )
+    total_found: int = Field(0, description="Total number of spells found")
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class ContentResolutionResult(BaseModel):
@@ -493,3 +512,83 @@ class ContentResolver:
             logger.error(f"Failed to enrich {content_type.value} '{content.name}': {e}")
             # Return original content if enrichment fails
             return content
+
+    def resolve_spells_by_names(self, names: list[str]) -> SpellResolutionResult:
+        """Resolve multiple spells by name with fuzzy matching.
+
+        Args:
+            names: List of spell names to resolve
+
+        Returns:
+            SpellResolutionResult with found spells and unresolved names
+        """
+        result = SpellResolutionResult(status=ResolutionStatus.EXACT_MATCH)
+        spell_type = ContentType("spell")
+
+        for name in names:
+            # Try exact match first
+            matches = self.omnidexer.find_all(spell_type, name)
+
+            if matches:
+                # Add all exact matches
+                result.spells.extend(matches)
+                result.total_found += len(matches)
+            else:
+                # No exact match, try fuzzy matching
+                suggestions = self._find_spell_suggestions(name)
+                result.unresolved_names.append(name)
+                if suggestions:
+                    result.suggestions[name] = suggestions
+
+        # Update status based on results
+        if result.unresolved_names:
+            if result.spells:
+                result.status = ResolutionStatus.FUZZY_MATCH  # Partial success
+            else:
+                result.status = ResolutionStatus.NO_MATCH
+
+        return result
+
+    def resolve_spells_by_criteria(
+        self, criteria: "SpellFilterCriteria"
+    ) -> list[BaseContent]:
+        """Resolve spells matching filter criteria.
+
+        Args:
+            criteria: SpellFilterCriteria object with filtering parameters
+
+        Returns:
+            List of matching spell objects
+        """
+        # Import here to avoid circular imports
+        from ..services.spell_collector import SpellCollector
+
+        collector = SpellCollector(self.omnidexer)
+        result = collector.collect_spells(criteria)
+
+        return result.spells
+
+    def _find_spell_suggestions(self, name: str) -> list[str]:
+        """Find suggestions for a misspelled spell name.
+
+        Args:
+            name: The spell name to find suggestions for
+
+        Returns:
+            List of suggested spell names
+        """
+        spell_type = ContentType("spell")
+        all_spells = self.omnidexer.get_all_by_type(spell_type)
+
+        if not all_spells:
+            return []
+
+        # Get all spell names
+        spell_names = []
+        for spell in all_spells:
+            spell_names.append(spell.name)
+
+        # Use difflib for fuzzy matching
+        suggestions = difflib.get_close_matches(name, spell_names, n=5, cutoff=0.4)
+
+        return suggestions

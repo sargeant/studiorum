@@ -1,0 +1,6 @@
+# Test spell list for wizard
+fireball
+magic missile
+counterspell
+shield
+mage armor

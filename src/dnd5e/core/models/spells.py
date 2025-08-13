@@ -296,82 +296,100 @@ class Spell(BaseContent):
         return ", ".join(parts)
 
     def get_description_text(self) -> str:
-        """Extract text from complex entry structures."""
-        return self._extract_text_from_entries(self.entries)
+        """Extract text from complex entry structures using proper entry processing."""
+        from ...cli.main import get_tag_resolver
+        from ...renderers.core.interfaces import RenderingContext
+        from ...renderers.latex.entry_processor import RecursiveEntryProcessor
+
+        # Get the tag resolver for proper tag processing
+        tag_resolver = get_tag_resolver()
+
+        # Create a proper rendering context for entry processing
+        context = RenderingContext(
+            output_format="latex",
+            debug_mode=False,
+            tag_resolver=tag_resolver,
+            metadata={
+                "source_name": self.source or "unknown",
+                "tag_resolver": tag_resolver,
+                "content_type": "spell",
+            },
+        )
+
+        from ...core.entry_registry import ValidationMode
+
+        processor = RecursiveEntryProcessor(
+            use_dnd_template=True, validation_mode=ValidationMode.SILENT
+        )
+
+        # Convert Pydantic models to dicts for entry processor
+        entries_data = []
+        for entry in self.entries:
+            if hasattr(entry, "model_dump"):
+                entries_data.append(entry.model_dump())
+            else:
+                entries_data.append(entry)
+
+        # Process entries to get proper LaTeX with tag resolution
+        processed_entries = processor.process_entries(entries_data, context)
+
+        if not processed_entries:
+            return ""
+
+        # Format the first paragraph with \noindent and subsequent paragraphs with proper indentation
+        formatted_paragraphs = []
+        for i, entry in enumerate(processed_entries):
+            if i == 0:
+                # First paragraph should not be indented
+                formatted_paragraphs.append(f"\\noindent {entry}")
+            else:
+                # Subsequent paragraphs should use default paragraph indentation
+                formatted_paragraphs.append(entry)
+
+        # Join with double newlines to create proper paragraph breaks for LaTeX
+        return "\n\n".join(formatted_paragraphs)
 
     def get_higher_level_text(self) -> str:
-        """Extract text from complex higher level entries."""
+        """Extract text from complex higher level entries using proper entry processing."""
         if not self.higher_level:
             return ""
-        return self._extract_text_from_entries(self.higher_level)
 
-    def _extract_text_from_entries(self, entries: Any) -> str:
-        """Recursively extract text from complex entry structures."""
-        text_parts = []
+        from ...cli.main import get_tag_resolver
+        from ...renderers.core.interfaces import RenderingContext
+        from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
-        if isinstance(entries, list):
-            for entry in entries:
-                result = self._extract_text_from_entries(entry)
-                if result:
-                    text_parts.append(result)
-        elif hasattr(entries, "type") and hasattr(entries, "entries"):
-            # Handle structured entry models
-            if hasattr(entries, "name") and entries.name:
-                text_parts.append(f"**{entries.name}**")
-            if hasattr(entries, "entries") and entries.entries:
-                result = self._extract_text_from_entries(entries.entries)
-                if result:
-                    text_parts.append(result)
-            # Handle additional fields that might be present in extra fields
-            if hasattr(entries, "text") and entries.text:
-                text_parts.append(entries.text)
-            if hasattr(entries, "by") and entries.by:
-                text_parts.append(f"— {entries.by}")
-            if hasattr(entries, "items") and entries.items:
-                items = entries.items
-                if isinstance(items, list):
-                    for item in items:
-                        if isinstance(item, str):
-                            text_parts.append(f"• {item}")
-                        elif isinstance(item, dict):
-                            item_text_parts = []
-                            if "name" in item:
-                                item_text_parts.append(f"**{item['name']}**")
-                            if "text" in item:
-                                item_text_parts.append(item["text"])
-                            if item_text_parts:
-                                text_parts.append(f"• {' '.join(item_text_parts)}")
-        elif isinstance(entries, dict):
-            # Handle structured dict entries (current 5etools format)
-            if "entries" in entries:
-                result = self._extract_text_from_entries(entries["entries"])
-                if result:
-                    text_parts.append(result)
-            elif "text" in entries:
-                text_parts.append(entries["text"])
-            # Add name if present (for structured sections)
-            if "name" in entries:
-                text_parts.append(f"**{entries['name']}**")
-            # Add attribution for quotes
-            if "by" in entries:
-                text_parts.append(f"— {entries['by']}")
-            # Handle lists within entries
-            if "items" in entries and isinstance(entries["items"], list):
-                for item in entries["items"]:
-                    if isinstance(item, str):
-                        text_parts.append(f"• {item}")
-                    elif isinstance(item, dict):
-                        item_text_parts = []
-                        if "name" in item:
-                            item_text_parts.append(f"**{item['name']}**")
-                        if "text" in item:
-                            item_text_parts.append(item["text"])
-                        if item_text_parts:
-                            text_parts.append(f"• {' '.join(item_text_parts)}")
-        elif isinstance(entries, str):
-            text_parts.append(entries)
+        # Get the tag resolver for proper tag processing
+        tag_resolver = get_tag_resolver()
 
-        return " ".join(text_parts) if text_parts else ""
+        # Create a proper rendering context for entry processing
+        context = RenderingContext(
+            output_format="latex",
+            debug_mode=False,
+            tag_resolver=tag_resolver,
+            metadata={
+                "source_name": self.source or "unknown",
+                "tag_resolver": tag_resolver,
+                "content_type": "spell",
+            },
+        )
+
+        from ...core.entry_registry import ValidationMode
+
+        processor = RecursiveEntryProcessor(
+            use_dnd_template=True, validation_mode=ValidationMode.SILENT
+        )
+
+        # Convert Pydantic models to dicts for entry processor
+        entries_data = []
+        for entry in self.higher_level:
+            if hasattr(entry, "model_dump"):
+                entries_data.append(entry.model_dump())
+            else:
+                entries_data.append(entry)
+
+        # Process entries to get proper LaTeX with tag resolution
+        processed_entries = processor.process_entries(entries_data, context)
+        return " ".join(processed_entries)
 
     # Enhanced formatting methods for the new architecture
     def get_spell_attack_text(self) -> str:
@@ -396,6 +414,22 @@ class Spell(BaseContent):
         if not self.damage_inflict:
             return ""
         return ", ".join(self.damage_inflict)
+
+    def has_verbal_components(self) -> bool:
+        """Check if spell requires verbal components."""
+        return self.components.verbal
+
+    def has_somatic_components(self) -> bool:
+        """Check if spell requires somatic components."""
+        return self.components.somatic
+
+    def has_material_components(self) -> bool:
+        """Check if spell requires material components."""
+        return bool(self.components.material)
+
+    def is_concentration(self) -> bool:
+        """Check if spell requires concentration."""
+        return any(d.concentration for d in self.duration)
 
     def get_condition_text(self) -> str:
         """Get formatted conditions inflicted text."""
@@ -451,9 +485,18 @@ class Spell(BaseContent):
         """Get higher level scaling description text."""
         if not self.higher_level:
             return ""
-        text = self._extract_text_from_entries(self.higher_level)
-        # Remove "At Higher Levels" header for cleaner template rendering
-        return text.replace("**At Higher Levels**", "").strip()
+        # Use the new proper entry processing
+        text = self.get_higher_level_text()
+        # Remove LaTeX paragraph headers since we want just the content
+        import re
+
+        # Remove paragraph headers like \paragraph{At Higher Levels}
+        text = re.sub(r"\\paragraph\{[^}]*\}\s*", "", text)
+        # Remove textbf headers as well
+        text = text.replace("**At Higher Levels**", "")
+        text = text.replace("\\textbf{At Higher Levels}", "")
+        # Clean up extra whitespace
+        return text.strip()
 
     def get_spell_list_classes(self) -> str:
         """Get formatted list of classes that can cast this spell."""
@@ -465,22 +508,6 @@ class Spell(BaseContent):
             class_names.append(class_ref.name)
 
         return ", ".join(class_names)
-
-    def is_concentration(self) -> bool:
-        """Check if this spell requires concentration."""
-        return any(duration.concentration for duration in self.duration)
-
-    def has_verbal_components(self) -> bool:
-        """Check if spell has verbal components."""
-        return self.components.verbal
-
-    def has_somatic_components(self) -> bool:
-        """Check if spell has somatic components."""
-        return self.components.somatic
-
-    def has_material_components(self) -> bool:
-        """Check if spell has material components."""
-        return bool(self.components.material)
 
     def get_latex_safe_name(self) -> str:
         """Get LaTeX-safe version of spell name."""

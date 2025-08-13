@@ -9,6 +9,7 @@ The `5e2pdf` command-line tool provides several commands for different tasks:
 | Command | Purpose | Example |
 |---------|---------|---------|
 | `convert` | Convert content to PDF | `5e2pdf convert adventure cos` |
+| | • Convert spells | `5e2pdf convert spells --class wizard` |
 | `list` | List available content | `5e2pdf list sources` |
 | `info` | Show content information | `5e2pdf info content cos` |
 | `stats` | Display content statistics | `5e2pdf stats overview` |
@@ -55,6 +56,106 @@ The `5e2pdf` command-line tool provides several commands for different tasks:
 
 # Convert with custom title
 5e2pdf convert book mm --title "Monster Manual Custom"
+```
+
+### Converting Spells
+
+The spell conversion system provides powerful tools for creating custom spell books with advanced filtering, sorting, and class-based selection.
+
+#### Basic Spell Conversion
+
+```bash
+# Convert specific spells by name (wizard use case)
+5e2pdf convert spells "fireball" "magic missile" "counterspell"
+
+# Class-based filtering (cleric use case)
+5e2pdf convert spells --class wizard --level 1-5
+
+# Multiple classes
+5e2pdf convert spells --class wizard,sorcerer --max-level 3
+
+# With PDF compilation
+5e2pdf convert spells --class cleric --level 1-3 --pdf
+```
+
+#### Advanced Filtering
+
+```bash
+# Level filtering
+5e2pdf convert spells --class wizard --level 1-9      # Level range
+5e2pdf convert spells --class wizard --max-level 5    # Maximum level
+5e2pdf convert spells --levels 1,3,5                  # Specific levels
+
+# School filtering
+5e2pdf convert spells --class wizard --school evocation,abjuration
+5e2pdf convert spells --school e,a                    # Using abbreviations
+
+# Component filtering
+5e2pdf convert spells --class wizard --no-material    # No material components
+5e2pdf convert spells --somatic --verbal              # Require somatic and verbal
+5e2pdf convert spells --concentration                 # Concentration spells only
+
+# Combat filtering
+5e2pdf convert spells --damage-type fire,cold         # Damage types
+5e2pdf convert spells --save dex,wis                  # Saving throw types
+5e2pdf convert spells --attack-spell                  # Spells with attack rolls
+
+# Source filtering
+5e2pdf convert spells --sources PHB,XGE --class wizard
+5e2pdf convert spells --sources XPHB "wish"           # Specific source only
+```
+
+#### Sorting and Organization
+
+```bash
+# Group by spell level (default)
+5e2pdf convert spells --class wizard --sort level
+
+# Alphabetical ordering
+5e2pdf convert spells --class wizard --sort name
+
+# Table of contents control
+5e2pdf convert spells --class wizard --toc            # Include TOC (default)
+5e2pdf convert spells --class wizard --no-toc         # Exclude TOC
+```
+
+#### Optional and Variant Spells
+
+```bash
+# Include optional/variant class spells
+5e2pdf convert spells --class wizard --optional-spells "tasha's mind whip"
+
+# TCE variant spells for multiple classes
+5e2pdf convert spells --sources TCE --class wizard,sorcerer --optional-spells
+
+# Combine standard and optional spells
+5e2pdf convert spells --class wizard --level 1-5 --optional-spells --sources PHB,TCE
+```
+
+#### Input Methods
+
+```bash
+# Read spell names from file
+5e2pdf convert spells --from-file my-spell-list.txt
+
+# Read from stdin
+echo -e "fireball\nmagic missile" | 5e2pdf convert spells --from-stdin
+
+# Mixed approach: names + filtering
+5e2pdf convert spells "fireball" "wish" --class wizard --level 1-5
+```
+
+#### Output Customization
+
+```bash
+# Custom title and output
+5e2pdf convert spells --class wizard --title "My Wizard Spells" --output wizard-spells.tex
+
+# Custom LaTeX styling
+5e2pdf convert spells --class cleric --background print --fonts wotc --paper a4
+
+# Two-column layout
+5e2pdf convert spells --class wizard --two-column --pdf
 ```
 
 ### Converting Supplements
@@ -231,11 +332,30 @@ The `5e2pdf` command-line tool provides several commands for different tasks:
 5e2pdf list adventures
 ```
 
+### Spell Book Creation
+
+```bash
+# Create wizard spell book for levels 1-5
+5e2pdf convert spells --class wizard --level 1-5 --pdf --title "Wizard Spells (1-5)"
+
+# Create specific spell collection for quick reference
+5e2pdf convert spells "fireball" "counterspell" "magic missile" --pdf
+
+# Create cleric spell book with healing focus
+5e2pdf convert spells --class cleric --level 1-3 --school abjuration,evocation --pdf
+
+# Include optional TCE spells
+5e2pdf convert spells --class wizard --sources PHB,TCE --optional-spells --pdf
+```
+
 ### Homebrew Content
 
 ```bash
 # Convert custom content file
 5e2pdf convert supplement my-spells.json --pdf
+
+# Create custom spell book from homebrew
+5e2pdf convert spells --from-file homebrew-spells.txt --pdf
 
 # Bulk convert homebrew files
 find ./homebrew -name "*.json" -exec 5e2pdf convert supplement {} --pdf \;

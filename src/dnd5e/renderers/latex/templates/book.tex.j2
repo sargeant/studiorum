@@ -21,19 +21,7 @@
 <# super() #>
 
 % Enhanced chapter and section styling for books
-<@ if not use_dnd_template_styling @>
-\titleformat{\chapter}[display]
-    {\normalfont\scshape\Huge}
-    {\chaptertitlename\ \thechapter}{0pt}{\Huge}
-
-\titleformat{\section}
-    {\normalfont\scshape\Large}
-    {\thesection}{1em}{}
-
-\titleformat{\subsection}
-    {\normalfont\scshape\large}
-    {\thesubsection}{1em}{}
-<@ endif @>
+% DND-5e-LaTeX-Template provides all styling automatically
 
 % Configure section numbering depth for books
 <@ if metadata and metadata.numbering_depth @>

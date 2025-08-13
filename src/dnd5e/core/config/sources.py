@@ -70,12 +70,41 @@ class ContentSource(BaseModel):
         return Path(v).expanduser().resolve() if v else None
 
 
+class LaTeXFormattingConfig(BaseModel):
+    """LaTeX formatting preferences."""
+
+    paper_size: str | None = Field(
+        default=None, description="Paper size (letter, a4, a5)"
+    )
+    fonts: str | None = Field(default=None, description="Font package (wotc, dmsguild)")
+    no_outline: bool | None = Field(
+        default=None, description="Disable document outline"
+    )
+    font_size: str | None = Field(
+        default=None, description="Base font size (10pt, 11pt, 12pt)"
+    )
+    background: str | None = Field(
+        default=None, description="Background style (full, none, print)"
+    )
+    high_contrast: bool | None = Field(
+        default=None, description="Use high contrast mode"
+    )
+    two_column: bool | None = Field(default=None, description="Use two-column layout")
+    justified: bool | None = Field(default=None, description="Justify text columns")
+
+
 class ContentConfiguration(BaseModel):
     """Main content configuration."""
 
     version: str = Field(default="1.0", description="Configuration version")
     content_sources: list[ContentSource] = Field(
         default_factory=list, description="List of content sources"
+    )
+
+    # LaTeX formatting preferences
+    latex: LaTeXFormattingConfig = Field(
+        default_factory=LaTeXFormattingConfig,
+        description="LaTeX formatting preferences",
     )
 
     # Cache and storage settings

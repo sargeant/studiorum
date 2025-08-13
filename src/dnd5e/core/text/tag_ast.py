@@ -346,12 +346,18 @@ class ConditionTagNode(TagNode):
 class ChanceTagNode(TagNode):
     """Node representing a percentage chance tag."""
 
-    def __init__(self, percentage: str, original_text_span: TextSpan | None = None):
+    def __init__(
+        self,
+        percentage: str,
+        display_text: str | None = None,
+        original_text_span: TextSpan | None = None,
+    ):
         super().__init__("chance", original_text_span)
         self.percentage = percentage
+        self.display_text = display_text
 
     def __repr__(self) -> str:
-        return f"ChanceTagNode(percentage={self.percentage!r})"
+        return f"ChanceTagNode(percentage={self.percentage!r}, display_text={self.display_text!r})"
 
 
 class RechargeTagNode(TagNode):
@@ -577,3 +583,26 @@ class HazardTagNode(TagNode):
 
     def __repr__(self) -> str:
         return f"HazardTagNode(name={self.name!r})"
+
+
+class VariantRuleTagNode(TagNode):
+    """Node for variant rule reference tags."""
+
+    def __init__(
+        self,
+        name: str,
+        source: str | None = None,
+        display_text_nodes: list[ASTNode] | None = None,
+        page: str | None = None,
+        clean_display_text: str | None = None,
+    ):
+        super().__init__("variantrule")
+        self.name = name
+        self.source = source
+        self.page = page
+        self.clean_display_text = clean_display_text
+        self.display_text_nodes = display_text_nodes or []
+        self.children.extend(self.display_text_nodes)
+
+    def __repr__(self) -> str:
+        return f"VariantRuleTagNode(name={self.name!r}, clean_display_text={self.clean_display_text!r})"

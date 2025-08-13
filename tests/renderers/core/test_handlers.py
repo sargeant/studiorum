@@ -24,6 +24,7 @@ from dnd5e.renderers.core.interfaces import (
     RenderingContext,
     TagValidationError,
 )
+from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -456,6 +457,10 @@ class TestConditionTagHandler:
 class TestDefaultCoreHandlers:
     """Test the default handler registry."""
 
+    def setup_method(self) -> None:
+        """Reset test environment before each test."""
+        reset_test_environment()
+
     def test_get_default_core_handlers(self):
         """Test that all expected handlers are included."""
         handlers = get_default_core_handlers()
@@ -474,7 +479,10 @@ class TestDefaultCoreHandlers:
             "book",
             "condition",
             "dc",
+            "chance",
             "dice",
+            "damage",
+            "variantrule",
             "card",
             "ability",
             "savingThrow",
