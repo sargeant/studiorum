@@ -7,13 +7,10 @@
   "background": [
     {
       "name": "Acolyte",
-      "source": "PHB",
+      "source": "SRD",
       "page": 127,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Acolyte|XPHB"
-      ],
       "skillProficiencies": [
         {
           "insight": true,
@@ -256,8 +253,7 @@
             }
           ]
         }
-      ],
-      "hasFluff": true
+      ]
     }
   ]
 }

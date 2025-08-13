@@ -7,12 +7,9 @@
   "class": [
     {
       "name": "Monk",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
-      "reprintedAs": [
-        "Monk|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -458,20 +455,16 @@
         "Unarmored Defense|Monk||1",
         "Martial Arts|Monk||1",
         "Ki|Monk||2",
-        "Dedicated Weapon|Monk||2|TCE",
         "Unarmored Movement|Monk||2",
         "Deflect Missiles|Monk||3",
         {
           "classFeature": "Monastic Tradition|Monk||3",
           "gainSubclassFeature": true
         },
-        "Ki-Fueled Attack|Monk||3|TCE",
         "Ability Score Improvement|Monk||4",
         "Slow Fall|Monk||4",
-        "Quickened Healing|Monk||4|TCE",
         "Extra Attack|Monk||5",
         "Stunning Strike|Monk||5",
-        "Focused Aim|Monk||5|TCE",
         "Ki-Empowered Strikes|Monk||6",
         {
           "classFeature": "Monastic Tradition feature|Monk||6",
@@ -499,23 +492,18 @@
         "Ability Score Improvement|Monk||19",
         "Perfect Self|Monk||20"
       ],
-      "subclassTitle": "Monastic Tradition",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Monastic Tradition"
     }
   ],
   "subclass": [
     {
       "name": "Way of the Open Hand",
       "shortName": "Open Hand",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Monk",
       "classSource": "PHB",
       "page": 79,
       "srd": true,
-      "reprintedAs": [
-        "Open Hand|Monk|XPHB|XPHB"
-      ],
       "edition": "classic",
       "additionalSpells": [
         {
@@ -542,7 +530,7 @@
   "classFeature": [
     {
       "name": "Martial Arts",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -564,7 +552,7 @@
     },
     {
       "name": "Unarmored Defense",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -576,7 +564,7 @@
     },
     {
       "name": "Flurry of Blows",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -592,7 +580,7 @@
     },
     {
       "name": "Ki",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -631,7 +619,7 @@
     },
     {
       "name": "Patient Defense",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -647,7 +635,7 @@
     },
     {
       "name": "Step of the Wind",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -663,7 +651,7 @@
     },
     {
       "name": "Unarmored Movement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -676,7 +664,7 @@
     },
     {
       "name": "Deflect Missiles",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -689,7 +677,7 @@
     },
     {
       "name": "Monastic Tradition",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -701,7 +689,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -714,7 +702,7 @@
     },
     {
       "name": "Slow Fall",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -726,7 +714,7 @@
     },
     {
       "name": "Extra Attack",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -738,7 +726,7 @@
     },
     {
       "name": "Stunning Strike",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -754,7 +742,7 @@
     },
     {
       "name": "Ki-Empowered Strikes",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -766,7 +754,7 @@
     },
     {
       "name": "Monastic Tradition feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -778,7 +766,7 @@
     },
     {
       "name": "Evasion",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -790,7 +778,7 @@
     },
     {
       "name": "Stillness of Mind",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -802,7 +790,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -815,7 +803,7 @@
     },
     {
       "name": "Unarmored Movement improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -827,7 +815,7 @@
     },
     {
       "name": "Purity of Body",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -839,7 +827,7 @@
     },
     {
       "name": "Monastic Tradition feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -851,7 +839,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -864,7 +852,7 @@
     },
     {
       "name": "Tongue of the Sun and Moon",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -876,7 +864,7 @@
     },
     {
       "name": "Diamond Soul",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -893,7 +881,7 @@
     },
     {
       "name": "Timeless Body",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -905,7 +893,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -918,7 +906,7 @@
     },
     {
       "name": "Monastic Tradition feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -930,7 +918,7 @@
     },
     {
       "name": "Empty Body",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -947,7 +935,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -960,7 +948,7 @@
     },
     {
       "name": "Perfect Self",
-      "source": "PHB",
+      "source": "SRD",
       "page": 76,
       "srd": true,
       "className": "Monk",
@@ -974,7 +962,7 @@
   "subclassFeature": [
     {
       "name": "Way of the Open Hand",
-      "source": "PHB",
+      "source": "SRD",
       "page": 79,
       "srd": true,
       "className": "Monk",
@@ -992,7 +980,7 @@
     },
     {
       "name": "Open Hand Technique",
-      "source": "PHB",
+      "source": "SRD",
       "page": 79,
       "srd": true,
       "className": "Monk",
@@ -1015,7 +1003,7 @@
     },
     {
       "name": "Wholeness of Body",
-      "source": "PHB",
+      "source": "SRD",
       "page": 79,
       "srd": true,
       "className": "Monk",
@@ -1030,7 +1018,7 @@
     },
     {
       "name": "Tranquility",
-      "source": "PHB",
+      "source": "SRD",
       "page": 79,
       "srd": true,
       "className": "Monk",
@@ -1045,7 +1033,7 @@
     },
     {
       "name": "Quivering Palm",
-      "source": "PHB",
+      "source": "SRD",
       "page": 79,
       "srd": true,
       "className": "Monk",

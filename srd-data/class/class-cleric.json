@@ -8,13 +8,10 @@
   "class": [
     {
       "name": "Cleric",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Cleric|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -460,13 +457,11 @@
           "classFeature": "Channel Divinity|Cleric||2",
           "tableDisplayName": "Channel Divinity (1/rest)"
         },
-        "Channel Divinity: Harness Divine Power|Cleric||2|TCE",
         {
           "classFeature": "Divine Domain feature|Cleric||2",
           "gainSubclassFeature": true
         },
         "Ability Score Improvement|Cleric||4",
-        "Cantrip Versatility|Cleric||4|TCE",
         "Destroy Undead (CR 1/2)|Cleric||5",
         {
           "classFeature": "Channel Divinity|Cleric||6",
@@ -499,24 +494,19 @@
         "Ability Score Improvement|Cleric||19",
         "Divine Intervention Improvement|Cleric||20"
       ],
-      "subclassTitle": "Divine Domain",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Divine Domain"
     }
   ],
   "subclass": [
     {
       "name": "Life Domain",
       "shortName": "Life",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Cleric",
       "classSource": "PHB",
       "page": 60,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Life|Cleric|XPHB|XPHB"
-      ],
       "edition": "classic",
       "additionalSpells": [
         {
@@ -549,7 +539,6 @@
         "Channel Divinity: Preserve Life|Cleric||Life||2",
         "Blessed Healer|Cleric||Life||6",
         "Divine Strike|Cleric||Life||8",
-        "Blessed Strikes|Cleric||Life||8|TCE",
         "Supreme Healing|Cleric||Life||17"
       ]
     }
@@ -557,7 +546,7 @@
   "classFeature": [
     {
       "name": "Divine Domain",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -578,7 +567,7 @@
     },
     {
       "name": "Spellcasting",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -643,7 +632,7 @@
     },
     {
       "name": "Channel Divinity",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -663,7 +652,7 @@
     },
     {
       "name": "Channel Divinity: Turn Undead",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -681,7 +670,7 @@
     },
     {
       "name": "Divine Domain feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -694,7 +683,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -708,7 +697,7 @@
     },
     {
       "name": "Destroy Undead (CR 1/2)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -721,7 +710,7 @@
     },
     {
       "name": "Channel Divinity",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -734,7 +723,7 @@
     },
     {
       "name": "Divine Domain feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -747,7 +736,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -761,7 +750,7 @@
     },
     {
       "name": "Destroy Undead (CR 1)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -774,7 +763,7 @@
     },
     {
       "name": "Divine Domain feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -787,7 +776,7 @@
     },
     {
       "name": "Divine Intervention",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -802,7 +791,7 @@
     },
     {
       "name": "Destroy Undead (CR 2)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -815,7 +804,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -829,7 +818,7 @@
     },
     {
       "name": "Destroy Undead (CR 3)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -842,7 +831,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -856,7 +845,7 @@
     },
     {
       "name": "Destroy Undead (CR 4)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -869,7 +858,7 @@
     },
     {
       "name": "Divine Domain feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -882,7 +871,7 @@
     },
     {
       "name": "Channel Divinity",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -895,7 +884,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -909,7 +898,7 @@
     },
     {
       "name": "Divine Intervention Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 56,
       "srd": true,
       "basicRules": true,
@@ -924,7 +913,7 @@
   "subclassFeature": [
     {
       "name": "Life Domain",
-      "source": "PHB",
+      "source": "SRD",
       "page": 60,
       "srd": true,
       "basicRules": true,
@@ -982,7 +971,7 @@
     },
     {
       "name": "Bonus Proficiency",
-      "source": "PHB",
+      "source": "SRD",
       "page": 60,
       "srd": true,
       "basicRules": true,
@@ -998,7 +987,7 @@
     },
     {
       "name": "Disciple of Life",
-      "source": "PHB",
+      "source": "SRD",
       "page": 60,
       "srd": true,
       "basicRules": true,
@@ -1014,7 +1003,7 @@
     },
     {
       "name": "Channel Divinity: Preserve Life",
-      "source": "PHB",
+      "source": "SRD",
       "page": 60,
       "srd": true,
       "basicRules": true,
@@ -1034,7 +1023,7 @@
     },
     {
       "name": "Blessed Healer",
-      "source": "PHB",
+      "source": "SRD",
       "page": 60,
       "srd": true,
       "basicRules": true,
@@ -1050,7 +1039,7 @@
     },
     {
       "name": "Divine Strike",
-      "source": "PHB",
+      "source": "SRD",
       "page": 60,
       "srd": true,
       "basicRules": true,
@@ -1066,7 +1055,7 @@
     },
     {
       "name": "Supreme Healing",
-      "source": "PHB",
+      "source": "SRD",
       "page": 60,
       "srd": true,
       "basicRules": true,

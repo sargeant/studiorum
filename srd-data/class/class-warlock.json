@@ -8,12 +8,9 @@
   "class": [
     {
       "name": "Warlock",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
-      "reprintedAs": [
-        "Warlock|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -374,7 +371,6 @@
         "Eldritch Invocations|Warlock||2",
         "Pact Boon|Warlock||3",
         "Ability Score Improvement|Warlock||4",
-        "Eldritch Versatility|Warlock||4|TCE",
         {
           "classFeature": "Otherworldly Patron feature|Warlock||6",
           "gainSubclassFeature": true
@@ -397,23 +393,18 @@
         "Ability Score Improvement|Warlock||19",
         "Eldritch Master|Warlock||20"
       ],
-      "subclassTitle": "Otherworldly Patron",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Otherworldly Patron"
     }
   ],
   "subclass": [
     {
       "name": "The Fiend",
       "shortName": "Fiend",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Warlock",
       "classSource": "PHB",
       "page": 109,
       "srd": true,
-      "reprintedAs": [
-        "Fiend|Warlock|XPHB|XPHB"
-      ],
       "edition": "classic",
       "additionalSpells": [
         {
@@ -452,7 +443,7 @@
   "classFeature": [
     {
       "name": "Otherworldly Patron",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -464,7 +455,7 @@
     },
     {
       "name": "Pact Magic",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -528,7 +519,7 @@
     },
     {
       "name": "Eldritch Invocations",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -543,7 +534,7 @@
     },
     {
       "name": "Pact Boon",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -568,8 +559,7 @@
               "optionalfeature": "Pact of the Tome"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Pact of the Talisman|TCE"
+              "type": "refOptionalfeature"
             }
           ]
         }
@@ -577,7 +567,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -590,7 +580,7 @@
     },
     {
       "name": "Otherworldly Patron feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -602,7 +592,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -615,7 +605,7 @@
     },
     {
       "name": "Otherworldly Patron feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -627,7 +617,7 @@
     },
     {
       "name": "Mystic Arcanum (6th level)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -641,7 +631,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -654,7 +644,7 @@
     },
     {
       "name": "Mystic Arcanum (7th level)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -667,7 +657,7 @@
     },
     {
       "name": "Otherworldly Patron feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -679,7 +669,7 @@
     },
     {
       "name": "Mystic Arcanum (8th level)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -692,7 +682,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -705,7 +695,7 @@
     },
     {
       "name": "Mystic Arcanum (9th level)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -718,7 +708,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -731,7 +721,7 @@
     },
     {
       "name": "Eldritch Master",
-      "source": "PHB",
+      "source": "SRD",
       "page": 105,
       "srd": true,
       "className": "Warlock",
@@ -745,7 +735,7 @@
   "subclassFeature": [
     {
       "name": "The Fiend",
-      "source": "PHB",
+      "source": "SRD",
       "page": 109,
       "srd": true,
       "className": "Warlock",
@@ -804,7 +794,7 @@
     },
     {
       "name": "Dark One's Blessing",
-      "source": "PHB",
+      "source": "SRD",
       "page": 109,
       "srd": true,
       "className": "Warlock",
@@ -819,7 +809,7 @@
     },
     {
       "name": "Dark One's Own Luck",
-      "source": "PHB",
+      "source": "SRD",
       "page": 109,
       "srd": true,
       "className": "Warlock",
@@ -835,7 +825,7 @@
     },
     {
       "name": "Fiendish Resilience",
-      "source": "PHB",
+      "source": "SRD",
       "page": 109,
       "srd": true,
       "className": "Warlock",
@@ -850,7 +840,7 @@
     },
     {
       "name": "Hurl Through Hell",
-      "source": "PHB",
+      "source": "SRD",
       "page": 109,
       "srd": true,
       "className": "Warlock",

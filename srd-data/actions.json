@@ -2,61 +2,11 @@
   "_meta": {},
   "action": [
     {
-      "name": "Activate an Item",
-      "source": "DMG",
-      "page": 141,
-      "srd": true,
-      "basicRules": true,
-      "time": [
-        {
-          "number": 1,
-          "unit": "action"
-        }
-      ],
-      "entries": [
-        "Activating some magic items requires a user to do something in particular, such as holding the item and uttering a command word, reading the item if it is a scroll, or drinking it if it is a potion. The description of each item category or individual item details how an item is activated. Certain items use one or more of the following rules related to their activation.",
-        "If an item requires an action to activate, that action isn't a function of the {@action Use an Object} action, so a feature such as the rogue's {@subclassFeature Fast Hands|Rogue||Thief||3} can't be used to activate the item.",
-        {
-          "type": "entries",
-          "name": "Command Word",
-          "entries": [
-            "A command word is a word or phrase that must be spoken audibly for the item to operate. A magic item that requires the user to speak a command word can't be activated in the area of any effect that prevents sound, such as the area created by the silence spell."
-          ]
-        },
-        {
-          "type": "entries",
-          "name": "Consumables",
-          "entries": [
-            "Some items are used up when they are activated. A potion or elixir must be swallowed, or an oil applied to the body. The writing vanishes from a scroll when it is read. Once used, a consumable item loses its magic and no longer functions."
-          ]
-        },
-        {
-          "type": "entries",
-          "name": "Spells",
-          "entries": [
-            "Some magic items allow the user to cast a spell from the item, often by expending charges from it. The spell is cast at the lowest possible spell and caster level, doesn't expend any of the user's spell slots, and requires no components unless the item's description says otherwise. The spell uses its normal casting time, range, and duration, and the user of the item must concentrate if the spell requires {@status concentration}. Certain items make exceptions to these rules, changing the casting time, duration, or other parts of a spell.",
-            "Many items, such as potions, bypass the casting of the spell and confer the spell's effects. Such an item still uses the spell's duration unless the item's description says otherwise.",
-            "A magic item, such as certain staffs, may require you to use your own spellcasting ability when you cast a spell from the item. If you have more than one spellcasting ability, you choose which one to use with the item. If you don't have a spellcasting ability—perhaps you're a rogue with the Use Magic Device feature—your spellcasting ability modifier is +0 for the item, and your proficiency bonus does apply."
-          ]
-        },
-        {
-          "type": "entries",
-          "name": "Charges",
-          "entries": [
-            "Some magic items have charges that you expend to activate its properties. The number of charges an item has remaining is revealed when an identify spell is cast on the item, or when a creature attunes to the item. Additionally, when an item regains charges, the creature attuned to that item learns how many charges it regained."
-          ]
-        }
-      ]
-    },
-    {
       "name": "Attack",
-      "source": "PHB",
+      "source": "SRD",
       "page": 192,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Attack|XPHB"
-      ],
       "time": [
         {
           "number": 1,
@@ -79,13 +29,10 @@
     },
     {
       "name": "Cast a Spell",
-      "source": "PHB",
+      "source": "SRD",
       "page": 192,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Magic|XPHB"
-      ],
       "time": [
         "Varies"
       ],
@@ -95,13 +42,10 @@
     },
     {
       "name": "Dash",
-      "source": "PHB",
+      "source": "SRD",
       "page": 192,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Dash|XPHB"
-      ],
       "time": [
         {
           "number": 1,
@@ -115,13 +59,10 @@
     },
     {
       "name": "Disengage",
-      "source": "PHB",
+      "source": "SRD",
       "page": 192,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Disengage|XPHB"
-      ],
       "time": [
         {
           "number": 1,
@@ -134,13 +75,10 @@
     },
     {
       "name": "Dodge",
-      "source": "PHB",
+      "source": "SRD",
       "page": 192,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Dodge|XPHB"
-      ],
       "time": [
         {
           "number": 1,
@@ -152,33 +90,11 @@
       ]
     },
     {
-      "name": "Don or Doff a Shield",
-      "source": "PHB",
-      "page": 146,
-      "srd": true,
-      "basicRules": true,
-      "reprintedAs": [
-        "Don or Doff a Shield|XPHB"
-      ],
-      "time": [
-        {
-          "number": 1,
-          "unit": "action"
-        }
-      ],
-      "entries": [
-        "The time it takes to don or doff armor {@table Getting Into and Out of Armor; Donning and Doffing Armor|phb|depends on the armor's category}. A {@item shield|phb} can be donned or doffed as an action."
-      ]
-    },
-    {
       "name": "End Concentration",
-      "source": "PHB",
+      "source": "SRD",
       "page": 203,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "End Concentration|XPHB"
-      ],
       "time": [
         "Free"
       ],
@@ -187,39 +103,11 @@
       ]
     },
     {
-      "name": "Escape a Grapple",
-      "source": "PHB",
-      "page": 195,
-      "srd": true,
-      "basicRules": true,
-      "reprintedAs": [
-        "Escape a Grapple|XPHB"
-      ],
-      "time": [
-        {
-          "number": 1,
-          "unit": "action"
-        }
-      ],
-      "entries": [
-        "A {@condition grappled} creature can use its action to escape. To do so, it must succeed on a Strength ({@skill Athletics}) or Dexterity ({@skill Acrobatics}) check contested by your Strength ({@skill Athletics}) check."
-      ],
-      "seeAlsoAction": [
-        "Grapple"
-      ]
-    },
-    {
       "name": "Grapple",
-      "source": "PHB",
+      "source": "SRD",
       "page": 195,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        {
-          "uid": "Unarmed Strike|XPHB",
-          "tag": "variantrule"
-        }
-      ],
       "time": [
         {
           "number": 1,
@@ -243,13 +131,10 @@
     },
     {
       "name": "Help",
-      "source": "PHB",
+      "source": "SRD",
       "page": 192,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Help|XPHB"
-      ],
       "time": [
         {
           "number": 1,
@@ -263,13 +148,10 @@
     },
     {
       "name": "Hide",
-      "source": "PHB",
+      "source": "SRD",
       "page": 192,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Hide|XPHB"
-      ],
       "time": [
         {
           "number": 1,
@@ -282,13 +164,10 @@
     },
     {
       "name": "Opportunity Attack",
-      "source": "PHB",
+      "source": "SRD",
       "page": 195,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Opportunity Attack|XPHB"
-      ],
       "time": [
         {
           "number": 1,
@@ -302,64 +181,11 @@
       ]
     },
     {
-      "name": "Other Activity",
-      "source": "PHB",
-      "page": 190,
-      "srd": true,
-      "basicRules": true,
-      "time": [
-        "Varies"
-      ],
-      "entries": [
-        "Your turn can include a variety of flourishes that require neither your action nor your move.",
-        "You can communicate however you are able, through brief utterances and gestures, as you take your turn.",
-        "You can also interact with one object or feature of the environment for free, during either your move or your action. For example, you could open a door during your move as you stride toward a foe, or you could draw your weapon as part of the same action you use to attack.",
-        "If you want to interact with a second object, you need to use your action. Some magic items and other special objects always require an action to use, as stated in their descriptions.",
-        "The DM might require you to use an action for any of these activities when it needs special care or when it presents an unusual obstacle. For instance, the DM could reasonably expect you to use an action to open a stuck door or turn a crank to lower a drawbridge.",
-        {
-          "type": "inset",
-          "name": "Interacting with Objects Around You",
-          "entries": [
-            "Here are a few examples of the sorts of thing you can do in tandem with your movement and action:",
-            {
-              "type": "list",
-              "items": [
-                "draw or sheathe a sword",
-                "open or close a door",
-                "withdraw a potion from your backpack",
-                "pick up a dropped axe",
-                "take a bauble from a table",
-                "remove a ring from your finger",
-                "stuff some food into your mouth",
-                "plant a banner in the ground",
-                "fish a few coins from your belt pouch",
-                "drink all the ale in a flagon",
-                "throw a lever or a switch",
-                "pull a torch from a sconce",
-                "take a book from a shelf you can reach",
-                "extinguish a small flame",
-                "don a mask",
-                "pull the hood of your cloak up and over your head",
-                "put your ear to a door",
-                "kick a small stone",
-                "turn a key in a lock",
-                "tap the floor with a 10-foot pole",
-                "hand an item to another character"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
       "name": "Ready",
-      "source": "PHB",
+      "source": "SRD",
       "page": 193,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Ready|XPHB"
-      ],
       "time": [
         {
           "number": 1,
@@ -376,13 +202,10 @@
     },
     {
       "name": "Search",
-      "source": "PHB",
+      "source": "SRD",
       "page": 193,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Search|XPHB"
-      ],
       "time": [
         {
           "number": 1,
@@ -395,16 +218,10 @@
     },
     {
       "name": "Shove",
-      "source": "PHB",
+      "source": "SRD",
       "page": 195,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        {
-          "uid": "Unarmed Strike|XPHB",
-          "tag": "variantrule"
-        }
-      ],
       "time": [
         {
           "number": 1,
@@ -421,34 +238,11 @@
       ]
     },
     {
-      "name": "Stabilize a Creature",
-      "source": "PHB",
-      "page": 197,
-      "srd": true,
-      "basicRules": true,
-      "reprintedAs": [
-        "Help|XPHB"
-      ],
-      "time": [
-        {
-          "number": 1,
-          "unit": "action"
-        }
-      ],
-      "entries": [
-        "You can use your action to administer first aid to an {@condition unconscious} creature and attempt to stabilize it, which requires a successful {@dc 10} Wisdom ({@skill Medicine}) check.",
-        "A stable creature doesn't make death saving throws, even though it has 0 hit points, but it does remain {@condition unconscious}. The creature stops being stable, and must start making death saving throws again, if it takes any damage. A stable creature that isn't healed regains 1 hit point after {@dice 1d4} hours."
-      ]
-    },
-    {
       "name": "Two-Weapon Fighting",
-      "source": "PHB",
+      "source": "SRD",
       "page": 195,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Two-Weapon Fighting|XPHB"
-      ],
       "time": [
         {
           "number": 1,
@@ -465,13 +259,10 @@
     },
     {
       "name": "Use an Object",
-      "source": "PHB",
+      "source": "SRD",
       "page": 193,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Utilize|XPHB"
-      ],
       "time": [
         {
           "number": 1,

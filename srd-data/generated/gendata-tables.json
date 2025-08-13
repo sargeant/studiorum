@@ -45,7 +45,7 @@
       ],
       "name": "Variant: Customizing Ability Scores; Ability Score Point Cost",
       "page": 13,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Step-by-Step Characters",
         "ordinal": {
@@ -123,7 +123,7 @@
       ],
       "name": "Variant: Customizing Ability Scores; Ability Scores and Modifiers",
       "page": 13,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Step-by-Step Characters",
         "ordinal": {
@@ -251,7 +251,7 @@
       ],
       "name": "Beyond 1st Level; Character Advancement",
       "page": 15,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Step-by-Step Characters",
         "ordinal": {
@@ -319,7 +319,7 @@
       ],
       "name": "Standard Languages",
       "page": 123,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Personality and Background",
         "ordinal": {
@@ -387,7 +387,7 @@
       ],
       "name": "Exotic Languages",
       "page": 123,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Personality and Background",
         "ordinal": {
@@ -461,7 +461,7 @@
       ],
       "name": "Coinage; Standard Exchange Rates",
       "page": 143,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -683,7 +683,7 @@
       ],
       "name": "Armor and Shields; Armor",
       "page": 144,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -731,7 +731,7 @@
       ],
       "name": "Getting Into and Out of Armor; Donning and Doffing Armor",
       "page": 146,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -1198,7 +1198,7 @@
       ],
       "name": "Weapons",
       "page": 146,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -1830,7 +1830,7 @@
       ],
       "name": "Adventuring Gear",
       "page": 148,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -1911,7 +1911,7 @@
       ],
       "name": "Adventuring Gear; Container Capacity",
       "page": 148,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -1989,7 +1989,7 @@
       ],
       "name": "Mounts and Vehicles; Mounts and Other Animals",
       "page": 155,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -2108,7 +2108,7 @@
       ],
       "name": "Mounts and Vehicles; Tack, Harness, and Drawn Vehicles",
       "page": 155,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -2166,7 +2166,7 @@
       ],
       "name": "Mounts and Vehicles; Waterborne Vehicles",
       "page": 155,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -2243,7 +2243,7 @@
       ],
       "name": "Trade Goods",
       "page": 157,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -2429,7 +2429,7 @@
       ],
       "name": "Food, Drink, and Lodging",
       "page": 158,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -2507,7 +2507,7 @@
       ],
       "name": "Services",
       "page": 159,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Equipment",
         "ordinal": {
@@ -2580,7 +2580,7 @@
       ],
       "name": "Multiclassing Prerequisites",
       "page": 163,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Customization Options",
         "ordinal": {
@@ -2653,7 +2653,7 @@
       ],
       "name": "Multiclassing Proficiencies",
       "page": 164,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Customization Options",
         "ordinal": {
@@ -2934,7 +2934,7 @@
       ],
       "name": "Spellcasting; Multiclass Spellcaster: Spell Slots per Spell Level",
       "page": 164,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Customization Options",
         "ordinal": {
@@ -3012,7 +3012,7 @@
       ],
       "name": "Ability Scores and Modifiers",
       "page": 173,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Using Ability Scores",
         "ordinal": {
@@ -3062,7 +3062,7 @@
       ],
       "name": "Ability Checks; Typical Difficulty Classes",
       "page": 174,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Using Ability Scores",
         "ordinal": {
@@ -3115,7 +3115,7 @@
       ],
       "name": "Travel Pace",
       "page": 181,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Adventuring",
         "ordinal": {
@@ -3165,7 +3165,7 @@
       ],
       "name": "Creature Size; Size Categories",
       "page": 191,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Combat",
         "ordinal": {
@@ -3278,7 +3278,7 @@
       ],
       "name": "The Celtic Pantheon; Celtic Deities",
       "page": 297,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Gods of the Multiverse",
         "ordinal": {
@@ -3421,7 +3421,7 @@
       ],
       "name": "The Greek Pantheon; Greek Deities",
       "page": 297,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Gods of the Multiverse",
         "ordinal": {
@@ -3534,7 +3534,7 @@
       ],
       "name": "The Egyptian Pantheon; Egyptian Deities",
       "page": 297,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Gods of the Multiverse",
         "ordinal": {
@@ -3683,7 +3683,7 @@
       ],
       "name": "The Norse Pantheon; Norse Deities",
       "page": 298,
-      "source": "PHB",
+      "source": "SRD",
       "chapter": {
         "name": "Gods of the Multiverse",
         "ordinal": {
@@ -3720,7 +3720,7 @@
       ],
       "name": "Weather; Precipitation",
       "page": 109,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Adventure Environments",
         "ordinal": {
@@ -3836,7 +3836,7 @@
       ],
       "name": "Owning a Ship; Airborne and Waterborne Vehicles",
       "page": 119,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Adventure Environments",
         "ordinal": {
@@ -3878,7 +3878,7 @@
       ],
       "name": "Trap Effects; Trap Save DCs and Attack Bonuses",
       "page": 121,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Adventure Environments",
         "ordinal": {
@@ -3931,7 +3931,7 @@
       ],
       "name": "Trap Effects; Damage Severity by Level",
       "page": 121,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Adventure Environments",
         "ordinal": {
@@ -4020,7 +4020,7 @@
       ],
       "name": "Spell Scrolls; Spell Scroll",
       "page": 139,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Treasure",
         "ordinal": {
@@ -4057,7 +4057,7 @@
       ],
       "name": "Sentient Magic Item Communication",
       "page": 214,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Treasure",
         "ordinal": {
@@ -4098,7 +4098,7 @@
       ],
       "name": "Sentient Magic Item Senses",
       "page": 214,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Treasure",
         "ordinal": {
@@ -4159,7 +4159,7 @@
       ],
       "name": "Sentient Magic Item Alignment",
       "page": 216,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Treasure",
         "ordinal": {
@@ -4224,7 +4224,7 @@
       ],
       "name": "Sentient Special Purpose",
       "page": 216,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Treasure",
         "ordinal": {
@@ -4277,7 +4277,7 @@
       ],
       "name": "Object Armor Class",
       "page": 246,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Running the Game",
         "ordinal": {
@@ -4324,7 +4324,7 @@
       ],
       "name": "Object Hit Points",
       "page": 247,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Running the Game",
         "ordinal": {
@@ -4421,7 +4421,7 @@
       ],
       "name": "Poisons",
       "page": 257,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Running the Game",
         "ordinal": {
@@ -4486,7 +4486,7 @@
       ],
       "name": "Short-Term Madness",
       "page": 259,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Running the Game",
         "ordinal": {
@@ -4559,7 +4559,7 @@
       ],
       "name": "Long-Term Madness",
       "page": 259,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Running the Game",
         "ordinal": {
@@ -4632,7 +4632,7 @@
       ],
       "name": "Indefinite Madness",
       "page": 259,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Running the Game",
         "ordinal": {
@@ -4794,7 +4794,7 @@
       ],
       "name": "Final Challenge Rating; Experience Points by Challenge Rating",
       "page": 274,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Dungeon Master's Workshop",
         "ordinal": {
@@ -4852,7 +4852,7 @@
       ],
       "name": "Assign Hit Dice; Hit Dice by Size",
       "page": 276,
-      "source": "DMG",
+      "source": "SRD",
       "chapter": {
         "name": "Dungeon Master's Workshop",
         "ordinal": {

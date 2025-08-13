@@ -8,13 +8,10 @@
   "class": [
     {
       "name": "Wizard",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Wizard|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -456,7 +453,6 @@
           "classFeature": "Arcane Tradition|Wizard||2",
           "gainSubclassFeature": true
         },
-        "Cantrip Formulas|Wizard||3|TCE",
         "Ability Score Improvement|Wizard||4",
         {
           "classFeature": "Arcane Tradition feature|Wizard||6",
@@ -477,24 +473,19 @@
         "Ability Score Improvement|Wizard||19",
         "Signature Spells|Wizard||20"
       ],
-      "subclassTitle": "Arcane Tradition",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Arcane Tradition"
     }
   ],
   "subclass": [
     {
       "name": "School of Evocation",
       "shortName": "Evocation",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Wizard",
       "classSource": "PHB",
       "page": 117,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Evoker|Wizard|XPHB|XPHB"
-      ],
       "edition": "classic",
       "subclassFeatures": [
         "School of Evocation|Wizard||Evocation||2",
@@ -507,7 +498,7 @@
   "classFeature": [
     {
       "name": "Arcane Recovery",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -521,7 +512,7 @@
     },
     {
       "name": "Spellcasting",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -615,7 +606,7 @@
                     {
                       "type": "entries",
                       "name": "Copying from a Spell Scroll",
-                      "source": "DMG",
+                      "source": "SRD",
                       "page": 139,
                       "entries": [
                         "A wizard spell on a spell scroll can be copied just as spells in spellbooks can be copied. When you copy a spell from a spell scroll, you must succeed on an Intelligence ({@skill Arcana}) check with a DC equal to 10 + the spell's level. If the check succeeds, the spell is successfully copied. Whether the check succeeds or fails, the spell scroll is destroyed."
@@ -656,7 +647,7 @@
     },
     {
       "name": "Arcane Tradition",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -669,7 +660,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -683,7 +674,7 @@
     },
     {
       "name": "Arcane Tradition feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -696,7 +687,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -710,7 +701,7 @@
     },
     {
       "name": "Arcane Tradition feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -723,7 +714,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -737,7 +728,7 @@
     },
     {
       "name": "Arcane Tradition feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -750,7 +741,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -764,7 +755,7 @@
     },
     {
       "name": "Spell Mastery",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -778,7 +769,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -792,7 +783,7 @@
     },
     {
       "name": "Signature Spells",
-      "source": "PHB",
+      "source": "SRD",
       "page": 112,
       "srd": true,
       "basicRules": true,
@@ -808,7 +799,7 @@
   "subclassFeature": [
     {
       "name": "School of Evocation",
-      "source": "PHB",
+      "source": "SRD",
       "page": 117,
       "srd": true,
       "basicRules": true,
@@ -831,7 +822,7 @@
     },
     {
       "name": "Evocation Savant",
-      "source": "PHB",
+      "source": "SRD",
       "page": 117,
       "srd": true,
       "basicRules": true,
@@ -847,7 +838,7 @@
     },
     {
       "name": "Sculpt Spells",
-      "source": "PHB",
+      "source": "SRD",
       "page": 117,
       "srd": true,
       "basicRules": true,
@@ -863,7 +854,7 @@
     },
     {
       "name": "Potent Cantrip",
-      "source": "PHB",
+      "source": "SRD",
       "page": 117,
       "srd": true,
       "basicRules": true,
@@ -879,7 +870,7 @@
     },
     {
       "name": "Empowered Evocation",
-      "source": "PHB",
+      "source": "SRD",
       "page": 117,
       "srd": true,
       "basicRules": true,
@@ -895,7 +886,7 @@
     },
     {
       "name": "Overchannel",
-      "source": "PHB",
+      "source": "SRD",
       "page": 117,
       "srd": true,
       "basicRules": true,

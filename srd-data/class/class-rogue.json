@@ -7,13 +7,10 @@
   "class": [
     {
       "name": "Rogue",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Rogue|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -409,7 +406,6 @@
           "classFeature": "Roguish Archetype|Rogue||3",
           "gainSubclassFeature": true
         },
-        "Steady Aim|Rogue||3|TCE",
         "Ability Score Improvement|Rogue||4",
         "Uncanny Dodge|Rogue||5",
         "Expertise|Rogue||6",
@@ -437,24 +433,19 @@
         "Ability Score Improvement|Rogue||19",
         "Stroke of Luck|Rogue||20"
       ],
-      "subclassTitle": "Roguish Archetype",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Roguish Archetype"
     }
   ],
   "subclass": [
     {
       "name": "Thief",
       "shortName": "Thief",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Rogue",
       "classSource": "PHB",
       "page": 97,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Thief|Rogue|XPHB|XPHB"
-      ],
       "edition": "classic",
       "subclassFeatures": [
         "Thief|Rogue||Thief||3",
@@ -467,7 +458,7 @@
   "classFeature": [
     {
       "name": "Expertise",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -481,7 +472,7 @@
     },
     {
       "name": "Sneak Attack",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -496,7 +487,7 @@
     },
     {
       "name": "Thieves' Cant",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -510,7 +501,7 @@
     },
     {
       "name": "Cunning Action",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -523,7 +514,7 @@
     },
     {
       "name": "Roguish Archetype",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -536,7 +527,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -550,7 +541,7 @@
     },
     {
       "name": "Uncanny Dodge",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -563,7 +554,7 @@
     },
     {
       "name": "Expertise",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -576,7 +567,7 @@
     },
     {
       "name": "Evasion",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -589,7 +580,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -603,7 +594,7 @@
     },
     {
       "name": "Roguish Archetype feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -616,7 +607,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -630,7 +621,7 @@
     },
     {
       "name": "Reliable Talent",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -643,7 +634,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -657,7 +648,7 @@
     },
     {
       "name": "Roguish Archetype feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -670,7 +661,7 @@
     },
     {
       "name": "Blindsense",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -683,7 +674,7 @@
     },
     {
       "name": "Slippery Mind",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -696,7 +687,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -710,7 +701,7 @@
     },
     {
       "name": "Roguish Archetype feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -723,7 +714,7 @@
     },
     {
       "name": "Elusive",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -736,7 +727,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -750,7 +741,7 @@
     },
     {
       "name": "Stroke of Luck",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
@@ -766,7 +757,7 @@
   "subclassFeature": [
     {
       "name": "Thief",
-      "source": "PHB",
+      "source": "SRD",
       "page": 97,
       "srd": true,
       "basicRules": true,
@@ -789,7 +780,7 @@
     },
     {
       "name": "Fast Hands",
-      "source": "PHB",
+      "source": "SRD",
       "page": 97,
       "srd": true,
       "basicRules": true,
@@ -805,7 +796,7 @@
     },
     {
       "name": "Second-Story Work",
-      "source": "PHB",
+      "source": "SRD",
       "page": 97,
       "srd": true,
       "basicRules": true,
@@ -822,7 +813,7 @@
     },
     {
       "name": "Supreme Sneak",
-      "source": "PHB",
+      "source": "SRD",
       "page": 97,
       "srd": true,
       "basicRules": true,
@@ -838,7 +829,7 @@
     },
     {
       "name": "Use Magic Device",
-      "source": "PHB",
+      "source": "SRD",
       "page": 97,
       "srd": true,
       "basicRules": true,
@@ -854,7 +845,7 @@
     },
     {
       "name": "Thief's Reflexes",
-      "source": "PHB",
+      "source": "SRD",
       "page": 97,
       "srd": true,
       "basicRules": true,

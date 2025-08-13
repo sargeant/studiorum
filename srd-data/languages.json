@@ -3,13 +3,10 @@
   "language": [
     {
       "name": "Abyssal",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Abyssal|XPHB"
-      ],
       "type": "exotic",
       "typicalSpeakers": [
         "{@filter demons|bestiary|tag=demon}"
@@ -18,13 +15,10 @@
     },
     {
       "name": "Celestial",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Celestial|XPHB"
-      ],
       "type": "exotic",
       "typicalSpeakers": [
         "{@filter celestials|bestiary|type=celestial}"
@@ -33,13 +27,10 @@
     },
     {
       "name": "Common",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Common|XPHB"
-      ],
       "type": "standard",
       "typicalSpeakers": [
         "{@filter humans|bestiary|type=humanoid|tag=any race;human}"
@@ -51,13 +42,10 @@
     },
     {
       "name": "Deep Speech",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Deep Speech|XPHB"
-      ],
       "type": "exotic",
       "typicalSpeakers": [
         "{@creature mind flayer||mind flayers}",
@@ -67,19 +55,10 @@
     },
     {
       "name": "Draconic",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "additionalSources": [
-        {
-          "source": "PHB",
-          "page": 32
-        }
-      ],
-      "reprintedAs": [
-        "Draconic|XPHB"
-      ],
       "type": "exotic",
       "typicalSpeakers": [
         "{@filter dragons|bestiary|type=dragon}",
@@ -88,18 +67,14 @@
       "script": "Draconic",
       "entries": [
         "Draconic is thought to be one of the oldest languages and is often used in the study of magic. The language sounds harsh to most other creatures and includes numerous hard consonants and sibilants."
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Druidic",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Druidic|XPHB"
-      ],
       "type": "secret",
       "typicalSpeakers": [
         "{@class druid||druids}/{@creature druid||druids}",
@@ -111,19 +86,10 @@
     },
     {
       "name": "Dwarvish",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "additionalSources": [
-        {
-          "source": "PHB",
-          "page": 18
-        }
-      ],
-      "reprintedAs": [
-        "Dwarvish|XPHB"
-      ],
       "type": "standard",
       "typicalSpeakers": [
         "{@filter dwarves|bestiary|type=humanoid|tag=any race;dwarf}"
@@ -131,24 +97,14 @@
       "script": "Dwarvish",
       "entries": [
         "Dwarvish is full of hard consonants and guttural sounds, and those characteristics spill over into whatever other language a dwarf might speak."
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Elvish",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "additionalSources": [
-        {
-          "source": "PHB",
-          "page": 21
-        }
-      ],
-      "reprintedAs": [
-        "Elvish|XPHB"
-      ],
       "type": "standard",
       "typicalSpeakers": [
         "{@filter elves|bestiary|type=humanoid|tag=any race;elf}"
@@ -156,41 +112,27 @@
       "script": "Elvish",
       "entries": [
         "Elvish is fluid, with subtle intonations and intricate grammar. Elven literature is rich and varied, and their songs and poems are famous among other races. Many bards learn their language so they can add Elvish ballads to their repertoires."
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Giant",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Giant|XPHB"
-      ],
       "type": "standard",
       "typicalSpeakers": [
         "{@creature ogre||ogres}",
         "{@filter giants|bestiary|type=giant}"
       ],
-      "script": "Dwarvish",
-      "hasFluffImages": true
+      "script": "Dwarvish"
     },
     {
       "name": "Gnomish",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "additionalSources": [
-        {
-          "source": "PHB",
-          "page": 35
-        }
-      ],
-      "reprintedAs": [
-        "Gnomish|XPHB"
-      ],
       "type": "standard",
       "typicalSpeakers": [
         "{@filter gnomes|bestiary|type=humanoid|tag=any race;gnome}"
@@ -198,40 +140,26 @@
       "script": "Dwarvish",
       "entries": [
         "The Gnomish language, which uses the Dwarvish script, is renowned for its technical treatises and its catalogs of knowledge about the natural world."
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Goblin",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Goblin|XPHB"
-      ],
       "type": "standard",
       "typicalSpeakers": [
         "{@filter goblinoids|bestiary|tag=goblinoid}"
       ],
-      "script": "Dwarvish",
-      "hasFluffImages": true
+      "script": "Dwarvish"
     },
     {
       "name": "Halfling",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "additionalSources": [
-        {
-          "source": "PHB",
-          "page": 26
-        }
-      ],
-      "reprintedAs": [
-        "Halfling|XPHB"
-      ],
       "type": "standard",
       "typicalSpeakers": [
         "{@filter halflings|bestiary|type=humanoid|tag=any race;halfling}"
@@ -243,13 +171,10 @@
     },
     {
       "name": "Infernal",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Infernal|XPHB"
-      ],
       "type": "exotic",
       "typicalSpeakers": [
         "{@filter devils|bestiary|tag=devil}"
@@ -258,13 +183,10 @@
     },
     {
       "name": "Orc",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Orc|XPHB"
-      ],
       "type": "standard",
       "typicalSpeakers": [
         "{@filter orcs|bestiary|tag=orc}"
@@ -272,8 +194,7 @@
       "script": "Dwarvish",
       "entries": [
         "Orc is a harsh, grating language with hard consonants. It has no script of its own but is written in the Dwarvish script."
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Primordial",
@@ -283,19 +204,10 @@
         "Ignan",
         "Terran"
       ],
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "additionalSources": [
-        {
-          "source": "EEPC",
-          "page": 9
-        }
-      ],
-      "reprintedAs": [
-        "Primordial|XPHB"
-      ],
       "type": "exotic",
       "typicalSpeakers": [
         "{@filter elementals|bestiary|type=elemental}"
@@ -303,34 +215,26 @@
       "script": "Dwarvish",
       "entries": [
         "Primordial is a guttural language, filled with harsh syllables and hard consonants."
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Sylvan",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Sylvan|XPHB"
-      ],
       "type": "exotic",
       "typicalSpeakers": [
         "{@filter fey creatures|bestiary|type=fey}"
       ],
-      "script": "Elvish",
-      "hasFluffImages": true
+      "script": "Elvish"
     },
     {
       "name": "Thieves' Cant",
-      "source": "PHB",
+      "source": "SRD",
       "page": 94,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Thieves' Cant|XPHB"
-      ],
       "type": "secret",
       "typicalSpeakers": [
         "{@creature assassin||assassins}",
@@ -342,19 +246,15 @@
     },
     {
       "name": "Undercommon",
-      "source": "PHB",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Undercommon|XPHB"
-      ],
       "type": "exotic",
       "typicalSpeakers": [
         "underdark traders"
       ],
-      "script": "Elvish",
-      "hasFluffImages": true
+      "script": "Elvish"
     }
   ]
 }

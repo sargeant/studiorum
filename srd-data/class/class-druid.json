@@ -8,12 +8,9 @@
   "class": [
     {
       "name": "Druid",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
-      "reprintedAs": [
-        "Druid|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -460,14 +457,12 @@
         "Druidic|Druid||1",
         "Spellcasting|Druid||1",
         "Wild Shape|Druid||2",
-        "Wild Companion|Druid||2|TCE",
         {
           "classFeature": "Druid Circle|Druid||2",
           "gainSubclassFeature": true
         },
         "Wild Shape Improvement|Druid||4",
         "Ability Score Improvement|Druid||4",
-        "Cantrip Versatility|Druid||4|TCE",
         {
           "classFeature": "Druid Circle feature|Druid||6",
           "gainSubclassFeature": true
@@ -489,23 +484,18 @@
         "Ability Score Improvement|Druid||19",
         "Archdruid|Druid||20"
       ],
-      "subclassTitle": "Druid Circle",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Druid Circle"
     }
   ],
   "subclass": [
     {
       "name": "Circle of the Land",
       "shortName": "Land",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Druid",
       "classSource": "PHB",
       "page": 68,
       "srd": true,
-      "reprintedAs": [
-        "Land|Druid|XPHB|XPHB"
-      ],
       "edition": "classic",
       "additionalSpells": [
         {
@@ -760,7 +750,7 @@
   "classFeature": [
     {
       "name": "Druidic",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -772,7 +762,7 @@
     },
     {
       "name": "Spellcasting",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -836,7 +826,7 @@
     },
     {
       "name": "Druid Circle",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -848,7 +838,7 @@
     },
     {
       "name": "Wild Shape",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -909,7 +899,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -922,7 +912,7 @@
     },
     {
       "name": "Wild Shape Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -934,7 +924,7 @@
     },
     {
       "name": "Druid Circle feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -946,7 +936,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -959,7 +949,7 @@
     },
     {
       "name": "Wild Shape Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -971,7 +961,7 @@
     },
     {
       "name": "Druid Circle feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -983,7 +973,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -996,7 +986,7 @@
     },
     {
       "name": "Druid Circle feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -1008,7 +998,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -1021,7 +1011,7 @@
     },
     {
       "name": "Beast Spells",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -1033,7 +1023,7 @@
     },
     {
       "name": "Timeless Body",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -1045,7 +1035,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -1058,7 +1048,7 @@
     },
     {
       "name": "Archdruid",
-      "source": "PHB",
+      "source": "SRD",
       "page": 64,
       "srd": true,
       "className": "Druid",
@@ -1073,7 +1063,7 @@
   "subclassFeature": [
     {
       "name": "Circle of the Land",
-      "source": "PHB",
+      "source": "SRD",
       "page": 68,
       "srd": true,
       "className": "Druid",
@@ -1099,7 +1089,7 @@
     },
     {
       "name": "Bonus Cantrip",
-      "source": "PHB",
+      "source": "SRD",
       "page": 68,
       "srd": true,
       "className": "Druid",
@@ -1114,7 +1104,7 @@
     },
     {
       "name": "Circle Spells",
-      "source": "PHB",
+      "source": "SRD",
       "page": 68,
       "srd": true,
       "className": "Druid",
@@ -1370,7 +1360,7 @@
     },
     {
       "name": "Natural Recovery",
-      "source": "PHB",
+      "source": "SRD",
       "page": 68,
       "srd": true,
       "className": "Druid",
@@ -1386,7 +1376,7 @@
     },
     {
       "name": "Land's Stride",
-      "source": "PHB",
+      "source": "SRD",
       "page": 68,
       "srd": true,
       "className": "Druid",
@@ -1402,7 +1392,7 @@
     },
     {
       "name": "Nature's Ward",
-      "source": "PHB",
+      "source": "SRD",
       "page": 68,
       "srd": true,
       "className": "Druid",
@@ -1417,7 +1407,7 @@
     },
     {
       "name": "Nature's Sanctuary",
-      "source": "PHB",
+      "source": "SRD",
       "page": 68,
       "srd": true,
       "className": "Druid",
