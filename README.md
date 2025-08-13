@@ -23,16 +23,20 @@ The JSON data uses the same format as 5e.tools – which means you can still loa
 
 ## Status
 
-This tool is ready to produce print ready PDFs, but has a few rough edges and challenges
+This tool is able to produce print-ready PDFs, but has a few rough edges and challenges.
 
-| Status | Feature.       | Notes |
+| Status | Feature       | Notes |
 | :----: | :------------- | :----------------------- |
 | ✅     | Adventures     | Some tables might require hand tuning. |
 | ✅     | Books          | Some tables might require hand tuning  |
-| ✅     | Spellbooks     | Feature complete.         |
+| ✅     | Spellbooks     | Feature complete. |
 | ❌     | Images         | Not implemented yet. Likely to require hand tuning after. |
 | ❌     | DropCaseLine   | The big letter you get at the start of chapters. Proved to be more complicated with this architecture than expected. |
 | ❌     | LaTeX compiler | Some support, but realisticly you probably want to edit the .tex output to tweak, then build with `xelatex $texFile` |
+
+## Getting data
+
+This repository contains only content available under the [System Reference Document](https://www.dndbeyond.com/srd) (SRD). If you need additional data, you should look for a github source to add with `5e2pdf sources add 5etools --type github --url X`.
 
 ## Acknowledgements
 
@@ -66,19 +70,19 @@ uv sync
 
 ### 3. Configure Content Sources
 
-Run the interactive setup wizard to configure the default content sources:
+Run the interactive setup wizard (no relation) to configure the default content sources:
 
 ```bash
 uv run 5e2pdf setup wizard
 ```
 
-### 4. Convert a File
+### 4. Make the SRD spellbook
 
-Now you can convert a JSON file to a PDF. For example, to convert a file of spells:
+Assuming you added the SRD datasource, you can now use the `5ep2df onvert spells` command:
 
 ```bash
-# This command assumes a 'spells.json' file exists in your directory
-uv run 5e2pdf quick spells.json --pdf
+# This assumes you have added the SRD datasource
+uv run 5e2pdf convert spells --sources SRD --pdf
 ```
 
 ## License
