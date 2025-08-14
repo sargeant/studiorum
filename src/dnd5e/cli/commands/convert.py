@@ -253,73 +253,94 @@ def convert_adventure(
         ..., help="Adventure abbreviation (e.g., 'cos') or file path"
     ),
     output_file: Path | None = typer.Option(
-        None, "--output", "-o", help="Output LaTeX file",
-        rich_help_panel="Output Control"
+        None,
+        "--output",
+        "-o",
+        help="Output LaTeX file",
+        rich_help_panel="Output Control",
     ),
-    title: str | None = typer.Option(None, "--title", help="Document title", rich_help_panel="Output Control"),
+    title: str | None = typer.Option(
+        None, "--title", help="Document title", rich_help_panel="Output Control"
+    ),
     with_images: bool = typer.Option(
-        get_with_images_default(), "--images/--no-images", help="Include images",
-        rich_help_panel="Content Options"
+        get_with_images_default(),
+        "--images/--no-images",
+        help="Include images",
+        rich_help_panel="Content Options",
     ),
     with_items: bool = typer.Option(
-        get_with_items_default(), "--items/--no-items", help="Include item lists",
-        rich_help_panel="Content Options"
+        get_with_items_default(),
+        "--items/--no-items",
+        help="Include item lists",
+        rich_help_panel="Content Options",
     ),
     with_creatures: bool = typer.Option(
         get_with_creatures_default(),
         "--creatures/--no-creatures",
         help="Include creature lists",
-        rich_help_panel="Content Options"
+        rich_help_panel="Content Options",
     ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion",
-        rich_help_panel="Output Control"
+        get_compile_pdf_default(),
+        "--pdf",
+        help="Compile to PDF after conversion",
+        rich_help_panel="Output Control",
     ),
     # LaTeX document class options
     document_class: str = typer.Option(
         get_document_class_default(),
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     paper: str | None = typer.Option(
-        None, "--paper", help="Paper size (letter, a4, a5)",
-        rich_help_panel="Document Layout"
+        None,
+        "--paper",
+        help="Paper size (letter, a4, a5)",
+        rich_help_panel="Document Layout",
     ),
     fonts: str | None = typer.Option(
-        get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)",
-        rich_help_panel="Visual Styling"
+        get_fonts_default(),
+        "--fonts",
+        help="Font package to use (wotc, dmsguild)",
+        rich_help_panel="Visual Styling",
     ),
     no_outline: bool | None = typer.Option(
-        None, "--no-outline", help="Disable document outline",
-        rich_help_panel="Visual Styling"
+        None,
+        "--no-outline",
+        help="Disable document outline",
+        rich_help_panel="Visual Styling",
     ),
     font_size: str | None = typer.Option(
-        None, "--font-size", help="Base font size (10pt, 11pt, 12pt)",
-        rich_help_panel="Visual Styling"
+        None,
+        "--font-size",
+        help="Base font size (10pt, 11pt, 12pt)",
+        rich_help_panel="Visual Styling",
     ),
     background: str | None = typer.Option(
         None,
         "--background",
         "--bg",
         help="Background style (full, none, print)",
-        rich_help_panel="Visual Styling"
+        rich_help_panel="Visual Styling",
     ),
     high_contrast: bool | None = typer.Option(
-        None, "--high-contrast", help="Use high contrast mode",
-        rich_help_panel="Visual Styling"
+        None,
+        "--high-contrast",
+        help="Use high contrast mode",
+        rich_help_panel="Visual Styling",
     ),
     two_column: bool | None = typer.Option(
         None,
         "--two-column/--one-column",
         help="Use two-column layout",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     justified: bool | None = typer.Option(
         None,
         "--justified/--not-justified",
         help="Justify text columns",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
 ) -> None:
     """
@@ -519,67 +540,88 @@ def convert_book(
         ..., help="Book abbreviation (e.g., 'phb') or file path"
     ),
     output_file: Path | None = typer.Option(
-        None, "--output", "-o", help="Output LaTeX file",
-        rich_help_panel="Output Control"
+        None,
+        "--output",
+        "-o",
+        help="Output LaTeX file",
+        rich_help_panel="Output Control",
     ),
-    title: str | None = typer.Option(None, "--title", help="Document title", rich_help_panel="Output Control"),
+    title: str | None = typer.Option(
+        None, "--title", help="Document title", rich_help_panel="Output Control"
+    ),
     with_images: bool = typer.Option(
-        get_with_images_default(), "--images/--no-images", help="Include images",
-        rich_help_panel="Content Options"
+        get_with_images_default(),
+        "--images/--no-images",
+        help="Include images",
+        rich_help_panel="Content Options",
     ),
     with_index: bool = typer.Option(
-        get_with_index_default(), "--index/--no-index", help="Include index",
-        rich_help_panel="Content Options"
+        get_with_index_default(),
+        "--index/--no-index",
+        help="Include index",
+        rich_help_panel="Content Options",
     ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion",
-        rich_help_panel="Output Control"
+        get_compile_pdf_default(),
+        "--pdf",
+        help="Compile to PDF after conversion",
+        rich_help_panel="Output Control",
     ),
     # LaTeX document class options
     document_class: str = typer.Option(
         get_document_class_default(),
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     paper: str | None = typer.Option(
-        None, "--paper", help="Paper size (letter, a4, a5)",
-        rich_help_panel="Document Layout"
+        None,
+        "--paper",
+        help="Paper size (letter, a4, a5)",
+        rich_help_panel="Document Layout",
     ),
     fonts: str | None = typer.Option(
-        get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)",
-        rich_help_panel="Visual Styling"
+        get_fonts_default(),
+        "--fonts",
+        help="Font package to use (wotc, dmsguild)",
+        rich_help_panel="Visual Styling",
     ),
     no_outline: bool | None = typer.Option(
-        None, "--no-outline", help="Disable document outline",
-        rich_help_panel="Visual Styling"
+        None,
+        "--no-outline",
+        help="Disable document outline",
+        rich_help_panel="Visual Styling",
     ),
     font_size: str | None = typer.Option(
-        None, "--font-size", help="Base font size (10pt, 11pt, 12pt)",
-        rich_help_panel="Visual Styling"
+        None,
+        "--font-size",
+        help="Base font size (10pt, 11pt, 12pt)",
+        rich_help_panel="Visual Styling",
     ),
     background: str | None = typer.Option(
         None,
         "--background",
         "--bg",
         help="Background style (full, none, print)",
-        rich_help_panel="Visual Styling"
+        rich_help_panel="Visual Styling",
     ),
     high_contrast: bool | None = typer.Option(
-        None, "--high-contrast", help="Use high contrast mode",
-        rich_help_panel="Visual Styling"
+        None,
+        "--high-contrast",
+        help="Use high contrast mode",
+        rich_help_panel="Visual Styling",
     ),
     two_column: bool | None = typer.Option(
         None,
         "--two-column/--one-column",
         help="Use two-column layout",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     justified: bool | None = typer.Option(
         None,
         "--justified/--not-justified",
         help="Justify text columns",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
 ) -> None:
     """
@@ -780,8 +822,10 @@ def convert_supplement(
         ["all"], "--type", help="Content types to include"
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(), "--images/--no-images", help="Include images",
-        rich_help_panel="Visual Styling"
+        get_with_images_default(),
+        "--images/--no-images",
+        help="Include images",
+        rich_help_panel="Visual Styling",
     ),
     compile_pdf: bool = typer.Option(
         get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion"
@@ -791,46 +835,56 @@ def convert_supplement(
         get_document_class_default(),
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     paper: str | None = typer.Option(
-        None, "--paper", help="Paper size (letter, a4, a5)",
-        rich_help_panel="Document Layout"
+        None,
+        "--paper",
+        help="Paper size (letter, a4, a5)",
+        rich_help_panel="Document Layout",
     ),
     fonts: str | None = typer.Option(
-        get_fonts_default(), "--fonts", help="Font package to use (wotc, dmsguild)",
-        rich_help_panel="Visual Styling"
+        get_fonts_default(),
+        "--fonts",
+        help="Font package to use (wotc, dmsguild)",
+        rich_help_panel="Visual Styling",
     ),
     no_outline: bool | None = typer.Option(
-        None, "--no-outline", help="Disable document outline",
-        rich_help_panel="Visual Styling"
+        None,
+        "--no-outline",
+        help="Disable document outline",
+        rich_help_panel="Visual Styling",
     ),
     font_size: str | None = typer.Option(
-        None, "--font-size", help="Base font size (10pt, 11pt, 12pt)",
-        rich_help_panel="Visual Styling"
+        None,
+        "--font-size",
+        help="Base font size (10pt, 11pt, 12pt)",
+        rich_help_panel="Visual Styling",
     ),
     background: str | None = typer.Option(
         None,
         "--background",
         "--bg",
         help="Background style (full, none, print)",
-        rich_help_panel="Visual Styling"
+        rich_help_panel="Visual Styling",
     ),
     high_contrast: bool | None = typer.Option(
-        None, "--high-contrast", help="Use high contrast mode",
-        rich_help_panel="Visual Styling"
+        None,
+        "--high-contrast",
+        help="Use high contrast mode",
+        rich_help_panel="Visual Styling",
     ),
     two_column: bool | None = typer.Option(
         None,
         "--two-column/--one-column",
         help="Use two-column layout",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     justified: bool | None = typer.Option(
         None,
         "--justified/--not-justified",
         help="Justify text columns",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
 ) -> None:
     """
@@ -1051,8 +1105,10 @@ def convert_bulk(
         Path("output/bulk"), "--output-dir", "-d", help="Output directory"
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(), "--images/--no-images", help="Include images",
-        rich_help_panel="Visual Styling"
+        get_with_images_default(),
+        "--images/--no-images",
+        help="Include images",
+        rich_help_panel="Visual Styling",
     ),
     compile_pdf: bool = typer.Option(
         get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion"
@@ -1255,146 +1311,201 @@ def convert_spells(
     ),
     # Input sources
     from_file: Path | None = typer.Option(
-        None, "--from-file", help="Read spell names from file (one per line)",
-        rich_help_panel="Search & Selection"
+        None,
+        "--from-file",
+        help="Read spell names from file (one per line)",
+        rich_help_panel="Search & Selection",
     ),
     from_stdin: bool = typer.Option(
-        False, "--from-stdin", help="Read spell names from stdin",
-        rich_help_panel="Search & Selection"
+        False,
+        "--from-stdin",
+        help="Read spell names from stdin",
+        rich_help_panel="Search & Selection",
     ),
     # Class-based filtering
     classes: list[str] = typer.Option(
-        None, "--class", help="Spellcaster classes (e.g., wizard,cleric)",
-        rich_help_panel="Search & Selection"
+        None,
+        "--class",
+        help="Spellcaster classes (e.g., wizard,cleric)",
+        rich_help_panel="Search & Selection",
     ),
     level: str | None = typer.Option(
-        None, "--level", help="Level range (e.g., '1-5', '3+', '0' for cantrips)",
-        rich_help_panel="Search & Selection"
+        None,
+        "--level",
+        help="Level range (e.g., '1-5', '3+', '0' for cantrips)",
+        rich_help_panel="Search & Selection",
     ),
     max_level: int | None = typer.Option(
-        None, "--max-level", help="Maximum spell level (0-9)",
-        rich_help_panel="Search & Selection"
+        None,
+        "--max-level",
+        help="Maximum spell level (0-9)",
+        rich_help_panel="Search & Selection",
     ),
     # School and component filtering
     schools: list[str] = typer.Option(
-        None, "--school", help="Schools of magic (e.g., evocation,abjuration)",
-        rich_help_panel="Spell Properties"
+        None,
+        "--school",
+        help="Schools of magic (e.g., evocation,abjuration)",
+        rich_help_panel="Spell Properties",
     ),
     verbal: bool | None = typer.Option(
-        None, "--verbal/--no-verbal", help="Filter by verbal components",
-        rich_help_panel="Spell Properties"
+        None,
+        "--verbal/--no-verbal",
+        help="Filter by verbal components",
+        rich_help_panel="Spell Properties",
     ),
     somatic: bool | None = typer.Option(
-        None, "--somatic/--no-somatic", help="Filter by somatic components",
-        rich_help_panel="Spell Properties"
+        None,
+        "--somatic/--no-somatic",
+        help="Filter by somatic components",
+        rich_help_panel="Spell Properties",
     ),
     material: bool | None = typer.Option(
-        None, "--material/--no-material", help="Filter by material components",
-        rich_help_panel="Spell Properties"
+        None,
+        "--material/--no-material",
+        help="Filter by material components",
+        rich_help_panel="Spell Properties",
     ),
     no_material: bool = typer.Option(
-        False, "--no-material", help="Exclude spells with material components",
-        rich_help_panel="Spell Properties"
+        False,
+        "--no-material",
+        help="Exclude spells with material components",
+        rich_help_panel="Spell Properties",
     ),
     concentration: bool | None = typer.Option(
-        None, "--concentration/--no-concentration", help="Filter by concentration",
-        rich_help_panel="Spell Properties"
+        None,
+        "--concentration/--no-concentration",
+        help="Filter by concentration",
+        rich_help_panel="Spell Properties",
     ),
     ritual: bool | None = typer.Option(
-        None, "--ritual/--no-ritual", help="Filter by ritual casting",
-        rich_help_panel="Spell Properties"
+        None,
+        "--ritual/--no-ritual",
+        help="Filter by ritual casting",
+        rich_help_panel="Spell Properties",
     ),
     # Combat filtering
     damage_types: list[str] = typer.Option(
-        None, "--damage-type", help="Damage types (e.g., fire,cold)",
-        rich_help_panel="Combat & Effects"
+        None,
+        "--damage-type",
+        help="Damage types (e.g., fire,cold)",
+        rich_help_panel="Combat & Effects",
     ),
     saving_throws: list[str] = typer.Option(
-        None, "--save", help="Saving throw types (e.g., dex,wis)",
-        rich_help_panel="Combat & Effects"
+        None,
+        "--save",
+        help="Saving throw types (e.g., dex,wis)",
+        rich_help_panel="Combat & Effects",
     ),
     attack_spells: bool | None = typer.Option(
-        None, "--attack-spell/--no-attack-spell", help="Filter for spell attack rolls",
-        rich_help_panel="Combat & Effects"
+        None,
+        "--attack-spell/--no-attack-spell",
+        help="Filter for spell attack rolls",
+        rich_help_panel="Combat & Effects",
     ),
     # Source filtering
     sources: list[str] = typer.Option(
-        None, "--sources", help="Source abbreviations (e.g., PHB,XGE)",
-        rich_help_panel="Combat & Effects"
+        None,
+        "--sources",
+        help="Source abbreviations (e.g., PHB,XGE)",
+        rich_help_panel="Combat & Effects",
     ),
     # Standard document options
     output_file: Path | None = typer.Option(
-        None, "--output", "-o", help="Output LaTeX file",
-        rich_help_panel="Output Control"
+        None,
+        "--output",
+        "-o",
+        help="Output LaTeX file",
+        rich_help_panel="Output Control",
     ),
-    title: str | None = typer.Option(None, "--title", help="Document title", rich_help_panel="Output Control"),
+    title: str | None = typer.Option(
+        None, "--title", help="Document title", rich_help_panel="Output Control"
+    ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion",
-        rich_help_panel="Output Control"
+        get_compile_pdf_default(),
+        "--pdf",
+        help="Compile to PDF after conversion",
+        rich_help_panel="Output Control",
     ),
     # LaTeX document class options (inherited from other convert commands)
     document_class: str = typer.Option(
         get_document_class_default(),
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     paper: str | None = typer.Option(
-        None, "--paper", help="Paper size (letter, a4, a5)",
-        rich_help_panel="Document Layout"
+        None,
+        "--paper",
+        help="Paper size (letter, a4, a5)",
+        rich_help_panel="Document Layout",
     ),
     fonts: str | None = typer.Option(
-        None, "--fonts", help="Font package to use (wotc, dmsguild)",
-        rich_help_panel="Visual Styling"
+        None,
+        "--fonts",
+        help="Font package to use (wotc, dmsguild)",
+        rich_help_panel="Visual Styling",
     ),
     no_outline: bool | None = typer.Option(
-        None, "--no-outline", help="Disable document outline",
-        rich_help_panel="Visual Styling"
+        None,
+        "--no-outline",
+        help="Disable document outline",
+        rich_help_panel="Visual Styling",
     ),
     font_size: str | None = typer.Option(
-        None, "--font-size", help="Base font size (10pt, 11pt, 12pt)",
-        rich_help_panel="Visual Styling"
+        None,
+        "--font-size",
+        help="Base font size (10pt, 11pt, 12pt)",
+        rich_help_panel="Visual Styling",
     ),
     background: str | None = typer.Option(
         None,
         "--background",
         "--bg",
         help="Background style (full, none, print)",
-        rich_help_panel="Visual Styling"
+        rich_help_panel="Visual Styling",
     ),
     high_contrast: bool | None = typer.Option(
-        None, "--high-contrast", help="Use high contrast mode",
-        rich_help_panel="Visual Styling"
+        None,
+        "--high-contrast",
+        help="Use high contrast mode",
+        rich_help_panel="Visual Styling",
     ),
     two_column: bool | None = typer.Option(
         None,
         "--two-column/--one-column",
         help="Use two-column layout",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     justified: bool | None = typer.Option(
         None,
         "--justified/--not-justified",
         help="Justify text columns",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(), "--images/--no-images", help="Include images",
-        rich_help_panel="Visual Styling"
+        get_with_images_default(),
+        "--images/--no-images",
+        help="Include images",
+        rich_help_panel="Visual Styling",
     ),
     sort: SpellSortMode = typer.Option(
         SpellSortMode.LEVEL,
         "--sort",
         help="Sort order: 'level' (group by level, default) or 'name' (alphabetical)",
-        rich_help_panel="Output Control"
+        rich_help_panel="Output Control",
     ),
     show_toc: bool = typer.Option(
-        True, "--toc/--no-toc", help="Show table of contents (default: enabled)",
-        rich_help_panel="Output Control"
+        True,
+        "--toc/--no-toc",
+        help="Show table of contents (default: enabled)",
+        rich_help_panel="Output Control",
     ),
     include_optional: bool = typer.Option(
-        False, "--optional-spells", help="Include optional/variant class spells",
-        rich_help_panel="Output Control"
+        False,
+        "--optional-spells",
+        help="Include optional/variant class spells",
+        rich_help_panel="Output Control",
     ),
 ) -> None:
     """
@@ -1760,156 +1871,220 @@ def convert_items(
     ),
     # Input sources
     from_file: Path | None = typer.Option(
-        None, "--from-file", help="Read item names from file (one per line)",
-        rich_help_panel="Search & Selection"
+        None,
+        "--from-file",
+        help="Read item names from file (one per line)",
+        rich_help_panel="Search & Selection",
     ),
     from_stdin: bool = typer.Option(
-        False, "--from-stdin", help="Read item names from stdin",
-        rich_help_panel="Search & Selection"
+        False,
+        "--from-stdin",
+        help="Read item names from stdin",
+        rich_help_panel="Search & Selection",
     ),
     # Type-based filtering
     item_types: list[str] = typer.Option(
-        None, "--type", help="Item types (e.g., weapon,armor)",
-        rich_help_panel="Search & Selection"
+        None,
+        "--type",
+        help="Item types (e.g., weapon,armor)",
+        rich_help_panel="Search & Selection",
     ),
-    magic: bool = typer.Option(False, "--magic", help="Include only magic items", rich_help_panel="Search & Selection"),
+    magic: bool = typer.Option(
+        False,
+        "--magic",
+        help="Include only magic items",
+        rich_help_panel="Search & Selection",
+    ),
     mundane: bool = typer.Option(
-        False, "--mundane", help="Include only non-magic items",
-        rich_help_panel="Search & Selection"
+        False,
+        "--mundane",
+        help="Include only non-magic items",
+        rich_help_panel="Search & Selection",
     ),
     # Rarity filtering
     rarities: list[str] = typer.Option(
-        None, "--rarity", help="Item rarities (e.g., common,uncommon)",
-        rich_help_panel="Item Properties"
+        None,
+        "--rarity",
+        help="Item rarities (e.g., common,uncommon)",
+        rich_help_panel="Item Properties",
     ),
     # Value filtering
     value_range: str | None = typer.Option(
-        None, "--value", help="Value range (e.g., '1-10', '<100')",
-        rich_help_panel="Item Properties"
+        None,
+        "--value",
+        help="Value range (e.g., '1-10', '<100')",
+        rich_help_panel="Item Properties",
     ),
     max_value: float | None = typer.Option(
-        None, "--max-value", help="Maximum value in gp",
-        rich_help_panel="Item Properties"
+        None,
+        "--max-value",
+        help="Maximum value in gp",
+        rich_help_panel="Item Properties",
     ),
     # Weight filtering
     max_weight: float | None = typer.Option(
-        None, "--max-weight", help="Maximum weight in lbs",
-        rich_help_panel="Item Properties"
+        None,
+        "--max-weight",
+        help="Maximum weight in lbs",
+        rich_help_panel="Item Properties",
     ),
     # Weapon filtering
     weapon_categories: list[str] = typer.Option(
-        None, "--weapon-category", help="Weapon categories (martial,simple)",
-        rich_help_panel="Equipment Filtering"
+        None,
+        "--weapon-category",
+        help="Weapon categories (martial,simple)",
+        rich_help_panel="Equipment Filtering",
     ),
     weapon_properties: list[str] = typer.Option(
-        None, "--weapon-property", help="Weapon properties (finesse,versatile)",
-        rich_help_panel="Equipment Filtering"
+        None,
+        "--weapon-property",
+        help="Weapon properties (finesse,versatile)",
+        rich_help_panel="Equipment Filtering",
     ),
     damage_types: list[str] = typer.Option(
-        None, "--damage-type", help="Damage types (fire,cold)",
-        rich_help_panel="Equipment Filtering"
+        None,
+        "--damage-type",
+        help="Damage types (fire,cold)",
+        rich_help_panel="Equipment Filtering",
     ),
     # Armor filtering
     armor_types: list[str] = typer.Option(
-        None, "--armor-type", help="Armor types (light,medium,heavy)",
-        rich_help_panel="Equipment Filtering"
+        None,
+        "--armor-type",
+        help="Armor types (light,medium,heavy)",
+        rich_help_panel="Equipment Filtering",
     ),
-    min_ac: int | None = typer.Option(None, "--min-ac", help="Minimum AC", rich_help_panel="Equipment Filtering"),
+    min_ac: int | None = typer.Option(
+        None, "--min-ac", help="Minimum AC", rich_help_panel="Equipment Filtering"
+    ),
     no_strength_req: bool = typer.Option(
-        False, "--no-strength-req", help="No STR requirement",
-        rich_help_panel="Equipment Filtering"
+        False,
+        "--no-strength-req",
+        help="No STR requirement",
+        rich_help_panel="Equipment Filtering",
     ),
     no_stealth_disadvantage: bool = typer.Option(
-        False, "--no-stealth", help="No stealth disadvantage",
-        rich_help_panel="Equipment Filtering"
+        False,
+        "--no-stealth",
+        help="No stealth disadvantage",
+        rich_help_panel="Equipment Filtering",
     ),
     # Magic item filtering
     requires_attunement: bool | None = typer.Option(
-        None, "--attunement/--no-attunement", help="Filter by attunement requirement",
-        rich_help_panel="Equipment Filtering"
+        None,
+        "--attunement/--no-attunement",
+        help="Filter by attunement requirement",
+        rich_help_panel="Equipment Filtering",
     ),
     has_charges: bool | None = typer.Option(
-        None, "--charges/--no-charges", help="Filter by charges/uses",
-        rich_help_panel="Equipment Filtering"
+        None,
+        "--charges/--no-charges",
+        help="Filter by charges/uses",
+        rich_help_panel="Equipment Filtering",
     ),
     consumable: bool | None = typer.Option(
-        None, "--consumable/--permanent", help="Filter for consumable items",
-        rich_help_panel="Equipment Filtering"
+        None,
+        "--consumable/--permanent",
+        help="Filter for consumable items",
+        rich_help_panel="Equipment Filtering",
     ),
     # Source filtering
     sources: list[str] = typer.Option(
-        None, "--sources", help="Source abbreviations (PHB,DMG)",
-        rich_help_panel="Equipment Filtering"
+        None,
+        "--sources",
+        help="Source abbreviations (PHB,DMG)",
+        rich_help_panel="Equipment Filtering",
     ),
     # Standard document options
     output_file: Path | None = typer.Option(
-        None, "--output", "-o", help="Output LaTeX file",
-        rich_help_panel="Output Control"
+        None,
+        "--output",
+        "-o",
+        help="Output LaTeX file",
+        rich_help_panel="Output Control",
     ),
-    title: str | None = typer.Option(None, "--title", help="Document title", rich_help_panel="Output Control"),
+    title: str | None = typer.Option(
+        None, "--title", help="Document title", rich_help_panel="Output Control"
+    ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion",
-        rich_help_panel="Output Control"
+        get_compile_pdf_default(),
+        "--pdf",
+        help="Compile to PDF after conversion",
+        rich_help_panel="Output Control",
     ),
     # LaTeX document class options (inherited from other convert commands)
     document_class: str = typer.Option(
         get_document_class_default(),
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     paper: str | None = typer.Option(
-        None, "--paper", help="Paper size (letter, a4, a5)",
-        rich_help_panel="Document Layout"
+        None,
+        "--paper",
+        help="Paper size (letter, a4, a5)",
+        rich_help_panel="Document Layout",
     ),
     fonts: str | None = typer.Option(
-        None, "--fonts", help="Font package to use (wotc, dmsguild)",
-        rich_help_panel="Visual Styling"
+        None,
+        "--fonts",
+        help="Font package to use (wotc, dmsguild)",
+        rich_help_panel="Visual Styling",
     ),
     no_outline: bool | None = typer.Option(
-        None, "--no-outline", help="Disable document outline",
-        rich_help_panel="Visual Styling"
+        None,
+        "--no-outline",
+        help="Disable document outline",
+        rich_help_panel="Visual Styling",
     ),
     font_size: str | None = typer.Option(
-        None, "--font-size", help="Base font size (10pt, 11pt, 12pt)",
-        rich_help_panel="Visual Styling"
+        None,
+        "--font-size",
+        help="Base font size (10pt, 11pt, 12pt)",
+        rich_help_panel="Visual Styling",
     ),
     background: str | None = typer.Option(
         None,
         "--background",
         "--bg",
         help="Background style (full, none, print)",
-        rich_help_panel="Visual Styling"
+        rich_help_panel="Visual Styling",
     ),
     high_contrast: bool | None = typer.Option(
-        None, "--high-contrast", help="Use high contrast mode",
-        rich_help_panel="Visual Styling"
+        None,
+        "--high-contrast",
+        help="Use high contrast mode",
+        rich_help_panel="Visual Styling",
     ),
     two_column: bool | None = typer.Option(
         None,
         "--two-column/--one-column",
         help="Use two-column layout",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     justified: bool | None = typer.Option(
         None,
         "--justified/--not-justified",
         help="Justify text columns",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(), "--images/--no-images", help="Include images",
-        rich_help_panel="Visual Styling"
+        get_with_images_default(),
+        "--images/--no-images",
+        help="Include images",
+        rich_help_panel="Visual Styling",
     ),
     sort: ItemSortMode = typer.Option(
         ItemSortMode.TYPE,
         "--sort",
         help="Sort order: 'type' (group by type, default), 'name' (alphabetical), 'rarity', or 'value'",
-        rich_help_panel="Output Control"
+        rich_help_panel="Output Control",
     ),
     show_toc: bool = typer.Option(
-        True, "--toc/--no-toc", help="Show table of contents (default: enabled)",
-        rich_help_panel="Output Control"
+        True,
+        "--toc/--no-toc",
+        help="Show table of contents (default: enabled)",
+        rich_help_panel="Output Control",
     ),
 ) -> None:
     """
@@ -2303,177 +2478,266 @@ def convert_creatures(
     creature_names: list[str] = typer.Argument(None, help="Creature names to include"),
     # Input sources
     from_file: Path | None = typer.Option(
-        None, "--from-file", help="Read creature names from file (one per line)",
-        rich_help_panel="Search & Selection"
+        None,
+        "--from-file",
+        help="Read creature names from file (one per line)",
+        rich_help_panel="Search & Selection",
     ),
     from_stdin: bool = typer.Option(
-        False, "--from-stdin", help="Read creature names from stdin",
-        rich_help_panel="Search & Selection"
+        False,
+        "--from-stdin",
+        help="Read creature names from stdin",
+        rich_help_panel="Search & Selection",
     ),
     # CR filtering
     cr_range: str | None = typer.Option(
-        None, "--cr", help="Challenge rating range (e.g., '1-5', '1/4-2', '10+')",
-        rich_help_panel="Search & Selection"
+        None,
+        "--cr",
+        help="Challenge rating range (e.g., '1-5', '1/4-2', '10+')",
+        rich_help_panel="Search & Selection",
     ),
     min_cr: float | None = typer.Option(
-        None, "--min-cr", help="Minimum challenge rating",
-        rich_help_panel="Search & Selection"
+        None,
+        "--min-cr",
+        help="Minimum challenge rating",
+        rich_help_panel="Search & Selection",
     ),
     max_cr: float | None = typer.Option(
-        None, "--max-cr", help="Maximum challenge rating",
-        rich_help_panel="Search & Selection"
+        None,
+        "--max-cr",
+        help="Maximum challenge rating",
+        rich_help_panel="Search & Selection",
     ),
     # Type filtering (CRITICAL for ContentTracker)
     creature_types: list[str] = typer.Option(
-        None, "--type", help="Creature types (humanoid,dragon,giant,etc.)",
-        rich_help_panel="Search & Selection"
+        None,
+        "--type",
+        help="Creature types (humanoid,dragon,giant,etc.)",
+        rich_help_panel="Search & Selection",
     ),
     creature_tags: list[str] = typer.Option(
-        None, "--tag", help="Creature tags (demon,devil,aarakocra,etc.)",
-        rich_help_panel="Search & Selection"
+        None,
+        "--tag",
+        help="Creature tags (demon,devil,aarakocra,etc.)",
+        rich_help_panel="Search & Selection",
     ),
     sizes: list[str] = typer.Option(
-        None, "--size", help="Creature sizes (tiny,small,medium,large,huge,gargantuan)",
-        rich_help_panel="Search & Selection"
+        None,
+        "--size",
+        help="Creature sizes (tiny,small,medium,large,huge,gargantuan)",
+        rich_help_panel="Search & Selection",
     ),
     alignments: list[str] = typer.Option(
-        None, "--alignment", help="Creature alignments",
-        rich_help_panel="Search & Selection"
+        None,
+        "--alignment",
+        help="Creature alignments",
+        rich_help_panel="Search & Selection",
     ),
     # Combat filtering
-    min_ac: int | None = typer.Option(None, "--min-ac", help="Minimum armor class", rich_help_panel="Advanced Filtering"),
-    max_ac: int | None = typer.Option(None, "--max-ac", help="Maximum armor class", rich_help_panel="Advanced Filtering"),
-    min_hp: int | None = typer.Option(None, "--min-hp", help="Minimum hit points", rich_help_panel="Advanced Filtering"),
-    max_hp: int | None = typer.Option(None, "--max-hp", help="Maximum hit points", rich_help_panel="Advanced Filtering"),
+    min_ac: int | None = typer.Option(
+        None,
+        "--min-ac",
+        help="Minimum armor class",
+        rich_help_panel="Advanced Filtering",
+    ),
+    max_ac: int | None = typer.Option(
+        None,
+        "--max-ac",
+        help="Maximum armor class",
+        rich_help_panel="Advanced Filtering",
+    ),
+    min_hp: int | None = typer.Option(
+        None,
+        "--min-hp",
+        help="Minimum hit points",
+        rich_help_panel="Advanced Filtering",
+    ),
+    max_hp: int | None = typer.Option(
+        None,
+        "--max-hp",
+        help="Maximum hit points",
+        rich_help_panel="Advanced Filtering",
+    ),
     # Special abilities
     has_spellcasting: bool | None = typer.Option(
-        None, "--spellcasting/--no-spellcasting", help="Filter by spellcasting ability",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--spellcasting/--no-spellcasting",
+        help="Filter by spellcasting ability",
+        rich_help_panel="Advanced Filtering",
     ),
     has_legendary: bool | None = typer.Option(
-        None, "--legendary/--no-legendary", help="Filter by legendary actions",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--legendary/--no-legendary",
+        help="Filter by legendary actions",
+        rich_help_panel="Advanced Filtering",
     ),
     has_multiattack: bool | None = typer.Option(
-        None, "--multiattack/--no-multiattack", help="Filter by multiattack ability",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--multiattack/--no-multiattack",
+        help="Filter by multiattack ability",
+        rich_help_panel="Advanced Filtering",
     ),
     has_reactions: bool | None = typer.Option(
-        None, "--reactions/--no-reactions", help="Filter by reaction abilities",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--reactions/--no-reactions",
+        help="Filter by reaction abilities",
+        rich_help_panel="Advanced Filtering",
     ),
     # Movement and senses (HIGH VALUE from Gemini)
     has_fly_speed: bool | None = typer.Option(
-        None, "--fly/--no-fly", help="Filter by flying movement",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--fly/--no-fly",
+        help="Filter by flying movement",
+        rich_help_panel="Advanced Filtering",
     ),
     has_swim_speed: bool | None = typer.Option(
-        None, "--swim/--no-swim", help="Filter by swimming movement",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--swim/--no-swim",
+        help="Filter by swimming movement",
+        rich_help_panel="Advanced Filtering",
     ),
     has_climb_speed: bool | None = typer.Option(
-        None, "--climb/--no-climb", help="Filter by climbing movement",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--climb/--no-climb",
+        help="Filter by climbing movement",
+        rich_help_panel="Advanced Filtering",
     ),
     has_darkvision: bool | None = typer.Option(
-        None, "--darkvision/--no-darkvision", help="Filter by darkvision",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--darkvision/--no-darkvision",
+        help="Filter by darkvision",
+        rich_help_panel="Advanced Filtering",
     ),
     has_blindsight: bool | None = typer.Option(
-        None, "--blindsight/--no-blindsight", help="Filter by blindsight",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--blindsight/--no-blindsight",
+        help="Filter by blindsight",
+        rich_help_panel="Advanced Filtering",
     ),
     has_truesight: bool | None = typer.Option(
-        None, "--truesight/--no-truesight", help="Filter by truesight",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--truesight/--no-truesight",
+        help="Filter by truesight",
+        rich_help_panel="Advanced Filtering",
     ),
     # Communication and skills
     speaks_language: list[str] = typer.Option(
-        None, "--speaks", help="Languages creature speaks (e.g., Common,Draconic)",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--speaks",
+        help="Languages creature speaks (e.g., Common,Draconic)",
+        rich_help_panel="Advanced Filtering",
     ),
     has_skill: list[str] = typer.Option(
-        None, "--skill", help="Skill proficiencies (e.g., stealth,perception)",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--skill",
+        help="Skill proficiencies (e.g., stealth,perception)",
+        rich_help_panel="Advanced Filtering",
     ),
     # Source filtering
     sources: list[str] = typer.Option(
-        None, "--sources", help="Source abbreviations (e.g., PHB,MM,VGM)",
-        rich_help_panel="Advanced Filtering"
+        None,
+        "--sources",
+        help="Source abbreviations (e.g., PHB,MM,VGM)",
+        rich_help_panel="Advanced Filtering",
     ),
     # Sorting and TOC
     sort: CreatureSortMode = typer.Option(
-        CreatureSortMode.CR, "--sort", help="Sort mode for creature grouping",
-        rich_help_panel="Output Control"
+        CreatureSortMode.CR,
+        "--sort",
+        help="Sort mode for creature grouping",
+        rich_help_panel="Output Control",
     ),
     show_toc: bool = typer.Option(
-        True, "--toc/--no-toc", help="Show table of contents",
-        rich_help_panel="Output Control"
+        True,
+        "--toc/--no-toc",
+        help="Show table of contents",
+        rich_help_panel="Output Control",
     ),
     # Standard document options
     output_file: Path | None = typer.Option(
-        None, "--output", "-o", help="Output LaTeX file",
-        rich_help_panel="Output Control"
+        None,
+        "--output",
+        "-o",
+        help="Output LaTeX file",
+        rich_help_panel="Output Control",
     ),
-    title: str | None = typer.Option(None, "--title", help="Document title", rich_help_panel="Output Control"),
+    title: str | None = typer.Option(
+        None, "--title", help="Document title", rich_help_panel="Output Control"
+    ),
     compile_pdf: bool = typer.Option(
-        get_compile_pdf_default(), "--pdf", help="Compile to PDF after conversion",
-        rich_help_panel="Output Control"
+        get_compile_pdf_default(),
+        "--pdf",
+        help="Compile to PDF after conversion",
+        rich_help_panel="Output Control",
     ),
     # Utility options (HIGH VALUE from Gemini)
     dry_run: bool = typer.Option(
-        False, "--dry-run", help="Show matching creatures without generating output",
-        rich_help_panel="Output Control"
+        False,
+        "--dry-run",
+        help="Show matching creatures without generating output",
+        rich_help_panel="Output Control",
     ),
     # LaTeX document formatting options (same as convert_spells)
     document_class: str = typer.Option(
         get_document_class_default(),
         "--document-class",
         help="LaTeX document class (dndbook, dndarticle)",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     paper: str | None = typer.Option(
-        None, "--paper", help="Paper size (letter, a4, a5)",
-        rich_help_panel="Document Layout"
+        None,
+        "--paper",
+        help="Paper size (letter, a4, a5)",
+        rich_help_panel="Document Layout",
     ),
     fonts: str | None = typer.Option(
-        None, "--fonts", help="Font package to use (wotc, dmsguild)",
-        rich_help_panel="Visual Styling"
+        None,
+        "--fonts",
+        help="Font package to use (wotc, dmsguild)",
+        rich_help_panel="Visual Styling",
     ),
     no_outline: bool | None = typer.Option(
-        None, "--no-outline", help="Disable document outline",
-        rich_help_panel="Visual Styling"
+        None,
+        "--no-outline",
+        help="Disable document outline",
+        rich_help_panel="Visual Styling",
     ),
     font_size: str | None = typer.Option(
-        None, "--font-size", help="Base font size (10pt, 11pt, 12pt)",
-        rich_help_panel="Visual Styling"
+        None,
+        "--font-size",
+        help="Base font size (10pt, 11pt, 12pt)",
+        rich_help_panel="Visual Styling",
     ),
     background: str | None = typer.Option(
         None,
         "--background",
         "--bg",
         help="Background style (full, none, print)",
-        rich_help_panel="Visual Styling"
+        rich_help_panel="Visual Styling",
     ),
     high_contrast: bool | None = typer.Option(
-        None, "--high-contrast", help="Use high contrast mode",
-        rich_help_panel="Visual Styling"
+        None,
+        "--high-contrast",
+        help="Use high contrast mode",
+        rich_help_panel="Visual Styling",
     ),
     two_column: bool | None = typer.Option(
         None,
         "--two-column/--one-column",
         help="Use two-column layout",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     justified: bool | None = typer.Option(
         None,
         "--justified/--not-justified",
         help="Justify text columns",
-        rich_help_panel="Document Layout"
+        rich_help_panel="Document Layout",
     ),
     with_images: bool = typer.Option(
-        get_with_images_default(), "--images/--no-images", help="Include images",
-        rich_help_panel="Visual Styling"
+        get_with_images_default(),
+        "--images/--no-images",
+        help="Include images",
+        rich_help_panel="Visual Styling",
     ),
 ) -> None:
     """
