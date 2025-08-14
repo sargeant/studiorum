@@ -10,6 +10,7 @@ The `5e2pdf` command-line tool provides several commands for different tasks:
 |---------|---------|---------|
 | `convert` | Convert content to PDF | `5e2pdf convert adventure cos` |
 | | • Convert spells | `5e2pdf convert spells --class wizard` |
+| | • Convert creatures | `5e2pdf convert creatures --cr 1-5 --type dragon` |
 | `list` | List available content | `5e2pdf list sources` |
 | `info` | Show content information | `5e2pdf info content cos` |
 | `stats` | Display content statistics | `5e2pdf stats overview` |
@@ -156,6 +157,102 @@ echo -e "fireball\nmagic missile" | 5e2pdf convert spells --from-stdin
 
 # Two-column layout
 5e2pdf convert spells --class wizard --two-column --pdf
+```
+
+### Converting Creatures
+
+The creature conversion system provides powerful filtering options for creating custom bestiaries and encounter references with comprehensive D&D 5e creature data.
+
+#### Basic Creature Conversion
+
+```bash
+# Convert specific creatures by name
+5e2pdf convert creatures "goblin" "orc" "ancient red dragon"
+
+# Challenge Rating filtering
+5e2pdf convert creatures --cr 1-5            # CR range
+5e2pdf convert creatures --cr 1               # Specific CR
+5e2pdf convert creatures --min-cr 10          # Minimum CR
+5e2pdf convert creatures --max-cr 5           # Maximum CR
+
+# Creature type filtering
+5e2pdf convert creatures --type dragon        # Dragons only
+5e2pdf convert creatures --type humanoid,fey  # Multiple types
+
+# With PDF compilation
+5e2pdf convert creatures --cr 1-3 --type beast --pdf
+```
+
+#### Advanced Filtering
+
+```bash
+# Size filtering
+5e2pdf convert creatures --size large,huge
+5e2pdf convert creatures --size tiny          # Tiny creatures only
+
+# Combat abilities
+5e2pdf convert creatures --legendary          # Legendary actions
+5e2pdf convert creatures --spellcasting       # Spellcasting ability
+5e2pdf convert creatures --multiattack        # Multiattack ability
+
+# Movement and senses
+5e2pdf convert creatures --fly                # Flying speed
+5e2pdf convert creatures --swim               # Swimming speed
+5e2pdf convert creatures --darkvision         # Darkvision
+5e2pdf convert creatures --blindsight         # Blindsight
+
+# Combat statistics
+5e2pdf convert creatures --min-ac 15 --max-ac 20    # Armor Class range
+5e2pdf convert creatures --min-hp 50 --max-hp 200   # Hit Points range
+
+# Source filtering
+5e2pdf convert creatures --sources MM,VGM --cr 1-10
+```
+
+#### Input Methods
+
+```bash
+# Read creature names from file
+5e2pdf convert creatures --from-file encounter-list.txt
+
+# Read from stdin
+echo -e "goblin\norc\nbugbear" | 5e2pdf convert creatures --from-stdin
+
+# Mixed approach: names + filtering
+5e2pdf convert creatures "goblin" "orc" --cr 1-5 --type humanoid
+```
+
+#### Output Customization
+
+```bash
+# Custom title and output
+5e2pdf convert creatures --cr 1-5 --title "Low-Level Encounters" --output encounters.tex
+
+# Table of contents control
+5e2pdf convert creatures --type dragon --toc     # Include TOC (default)
+5e2pdf convert creatures --type dragon --no-toc  # Exclude TOC
+
+# Two-column layout for smaller creatures
+5e2pdf convert creatures --cr 0-2 --two-column --pdf
+```
+
+#### Common Use Cases
+
+```bash
+# Encounter building for specific CR
+5e2pdf convert creatures --cr 5 --legendary
+
+# Type-based collections
+5e2pdf convert creatures --type undead --pdf --title "Undead Compendium"
+
+# Adventure-appropriate creatures
+5e2pdf convert creatures --cr 1-8 --type humanoid,beast,monstrosity
+
+# Boss monster collection
+5e2pdf convert creatures --min-cr 15 --legendary --pdf
+
+# Flying encounters
+5e2pdf convert creatures --fly --cr 3-10 --pdf --title "Aerial Encounters"
 ```
 
 ### Converting Supplements
@@ -346,6 +443,25 @@ echo -e "fireball\nmagic missile" | 5e2pdf convert spells --from-stdin
 
 # Include optional TCE spells
 5e2pdf convert spells --class wizard --sources PHB,TCE --optional-spells --pdf
+```
+
+### Bestiary Creation
+
+```bash
+# Create encounter-specific bestiary
+5e2pdf convert creatures --cr 1-5 --pdf --title "Low-Level Encounters"
+
+# Create type-focused collections
+5e2pdf convert creatures --type dragon --pdf --title "Dragon Compendium"
+
+# Create boss monster reference
+5e2pdf convert creatures --min-cr 10 --legendary --pdf --title "Boss Monsters"
+
+# Create specific encounter list
+5e2pdf convert creatures "goblin" "orc" "bugbear" --pdf --title "Goblinoid Encounters"
+
+# Create adventure-appropriate bestiary
+5e2pdf convert creatures --cr 1-8 --type humanoid,beast,monstrosity --pdf
 ```
 
 ### Homebrew Content

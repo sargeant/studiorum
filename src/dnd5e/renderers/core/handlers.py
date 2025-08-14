@@ -1293,6 +1293,513 @@ class FormattingTagHandler(BaseTagHandler):
         return escape_latex_text(content_text)
 
 
+class AttackTagHandler(BaseTagHandler):
+    """Handler for attack type tags like {@atk mw}, {@atk rw,ms}."""
+
+    def __init__(self) -> None:
+        super().__init__("atk")
+        # Also handle @atkr tags
+        self.supported_tags = ["atk"]
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process attack type tags according to 5etools rules."""
+        # Get the attack type string (e.g., "mw", "rw,ms", "mw,rw")
+        attack_types = getattr(tag_node, "name", "").strip()
+        if not attack_types:
+            logger.warning("Empty attack type in @atk tag")
+            return "Attack:"
+
+        # Implementation based on 5etools attackTagToFull function
+        def render_attack_type(tags_str: str) -> str:
+            """Render a single attack type combination like 'mw' or 'rs'."""
+            tags = list(tags_str.lower())
+
+            # Type prefixes
+            pt_type = ""
+            if "m" in tags:
+                pt_type = "Melee "
+            elif "r" in tags:
+                pt_type = "Ranged "
+            elif "g" in tags:
+                pt_type = "Magical "
+            elif "a" in tags:
+                pt_type = "Area "
+
+            # Method suffixes
+            pt_method = ""
+            if "w" in tags:
+                pt_method = "Weapon "
+            elif "s" in tags:
+                pt_method = "Spell "
+            elif "p" in tags:
+                pt_method = "Power "
+
+            return f"{pt_type}{pt_method}"
+
+        # Split by comma and process each combination
+        type_groups = [t.strip() for t in attack_types.split(",") if t.strip()]
+        rendered_types = [render_attack_type(tg) for tg in type_groups]
+
+        # Join with " or " like 5etools does, strip any extra spaces
+        joined_types = " or ".join(rt.strip() for rt in rendered_types)
+        # Add space before "Attack:" if the joined types don't end with space
+        if joined_types and not joined_types.endswith(" "):
+            result = joined_types + " Attack:"
+        else:
+            result = joined_types + "Attack:"
+        return result
+
+
+class AttackRollTagHandler(BaseTagHandler):
+    """Handler for attack roll tags like {@atkr mw}, {@atkr m}."""
+
+    def __init__(self) -> None:
+        super().__init__("atkr")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process attack roll tags according to 5etools rules."""
+        # Get the attack type string (e.g., "mw", "m", "rw,ms")
+        attack_types = getattr(tag_node, "name", "").strip()
+        if not attack_types:
+            logger.warning("Empty attack type in @atkr tag")
+            return "Attack Roll:"
+
+        # Implementation based on 5etools attackTagToFull function with isRoll=true
+        def render_attack_type(tags_str: str) -> str:
+            """Render a single attack type combination like 'mw' or 'rs'."""
+            tags = list(tags_str.lower())
+
+            # Type prefixes
+            pt_type = ""
+            if "m" in tags:
+                pt_type = "Melee "
+            elif "r" in tags:
+                pt_type = "Ranged "
+            elif "g" in tags:
+                pt_type = "Magical "
+            elif "a" in tags:
+                pt_type = "Area "
+
+            # Method suffixes
+            pt_method = ""
+            if "w" in tags:
+                pt_method = "Weapon "
+            elif "s" in tags:
+                pt_method = "Spell "
+            elif "p" in tags:
+                pt_method = "Power "
+
+            return f"{pt_type}{pt_method}"
+
+        # Split by comma and process each combination
+        type_groups = [t.strip() for t in attack_types.split(",") if t.strip()]
+        rendered_types = [render_attack_type(tg) for tg in type_groups]
+
+        # Join with " or " like 5etools does, strip any extra spaces
+        joined_types = " or ".join(rt.strip() for rt in rendered_types)
+        # Add space before "Attack Roll:" if the joined types don't end with space
+        if joined_types and not joined_types.endswith(" "):
+            result = joined_types + " Attack Roll:"
+        else:
+            result = joined_types + "Attack Roll:"
+        return result
+
+
+class HitTagHandler(BaseTagHandler):
+    """Handler for hit bonus tags like {@hit 4}, {@hit +2}."""
+
+    def __init__(self) -> None:
+        super().__init__("hit")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process hit bonus tags to return the modifier."""
+        # Get the bonus value from the tag
+        bonus = getattr(tag_node, "bonus", "") or getattr(tag_node, "name", "")
+        if not bonus:
+            logger.warning("Empty bonus value in @hit tag")
+            return "+0"
+
+        # Ensure proper formatting with + or - prefix
+        try:
+            # Try to parse as number to ensure consistent formatting
+            num = int(bonus)  # Parse as-is to preserve sign
+            return f"{num:+d}"  # Format with + or - sign
+        except ValueError:
+            # If not a simple number, check if it already has +/- prefix
+            bonus = bonus.strip()
+            if not bonus.startswith(("+", "-")):
+                return f"+{bonus}"
+            return bonus
+
+
+class HitResultTagHandler(BaseTagHandler):
+    """Handler for hit result tags like {@h}."""
+
+    def __init__(self) -> None:
+        super().__init__("h")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process hit result tags."""
+        return "Hit:"
+
+
+class HitOrMissTagHandler(BaseTagHandler):
+    """Handler for hit or miss tags like {@hom}."""
+
+    def __init__(self) -> None:
+        super().__init__("hom")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process hit or miss tags."""
+        return "\\textit{Hit or Miss:}"
+
+
+class ActionSaveTagHandler(BaseTagHandler):
+    """Handler for action save tags like {@actSave dex}."""
+
+    def __init__(self) -> None:
+        super().__init__("actSave")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process action save tags to ability saving throw."""
+        # Get the ability abbreviation
+        ability_abv = getattr(tag_node, "name", "").strip()
+        if not ability_abv:
+            logger.warning("Empty ability in @actSave tag")
+            return "Saving Throw:"
+
+        # Convert ability abbreviation to full name (based on 5etools attAbvToFull)
+        ABILITY_ABV_TO_FULL = {
+            "str": "Strength",
+            "dex": "Dexterity",
+            "con": "Constitution",
+            "int": "Intelligence",
+            "wis": "Wisdom",
+            "cha": "Charisma",
+        }
+
+        ability_full = ABILITY_ABV_TO_FULL.get(ability_abv.lower(), ability_abv.title())
+        return f"\\textit{{{ability_full} Saving Throw:}}"
+
+
+class ActionSaveFailTagHandler(BaseTagHandler):
+    """Handler for action save fail tags like {@actSaveFail}."""
+
+    def __init__(self) -> None:
+        super().__init__("actSaveFail")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process action save fail tags."""
+        # Check if there's an ordinal (like "2" for "Second Failure:")
+        ordinal_text = getattr(tag_node, "name", "").strip()
+        if ordinal_text:
+            # Convert number to ordinal form like 5etools does
+            try:
+                ordinal = int(ordinal_text)
+                ordinal_words = {
+                    1: "First",
+                    2: "Second",
+                    3: "Third",
+                    4: "Fourth",
+                    5: "Fifth",
+                    6: "Sixth",
+                    7: "Seventh",
+                    8: "Eighth",
+                    9: "Ninth",
+                    10: "Tenth",
+                }
+                ordinal_word = ordinal_words.get(ordinal, f"{ordinal}th")
+                return f"\\textit{{{ordinal_word} Failure:}}"
+            except ValueError:
+                return f"\\textit{{{ordinal_text} Failure:}}"
+        else:
+            return "\\textit{Failure:}"
+
+
+class ActionSaveSuccessTagHandler(BaseTagHandler):
+    """Handler for action save success tags like {@actSaveSuccess}."""
+
+    def __init__(self) -> None:
+        super().__init__("actSaveSuccess")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process action save success tags."""
+        return "\\textit{Success:}"
+
+
+class ActionSaveSuccessOrFailTagHandler(BaseTagHandler):
+    """Handler for action save success or fail tags like {@actSaveSuccessOrFail}."""
+
+    def __init__(self) -> None:
+        super().__init__("actSaveSuccessOrFail")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process action save success or fail tags."""
+        return "\\textit{Success or Failure:}"
+
+
+class ActionSaveFailByTagHandler(BaseTagHandler):
+    """Handler for action save fail by amount tags like {@actSaveFailBy 5}."""
+
+    def __init__(self) -> None:
+        super().__init__("actSaveFailBy")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process action save fail by amount tags."""
+        amount = getattr(tag_node, "name", "").strip()
+        if amount:
+            return f"\\textit{{Failure by {amount} or more:}}"
+        else:
+            return "\\textit{Failure:}"
+
+
+class ActionTriggerTagHandler(BaseTagHandler):
+    """Handler for action trigger tags like {@actTrigger}."""
+
+    def __init__(self) -> None:
+        super().__init__("actTrigger")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process action trigger tags."""
+        return "\\textit{Trigger:}"
+
+
+class ActionResponseTagHandler(BaseTagHandler):
+    """Handler for action response tags like {@actResponse}."""
+
+    def __init__(self) -> None:
+        super().__init__("actResponse")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process action response tags."""
+        # Check if contains "d" for em-dash format
+        response_text = getattr(tag_node, "name", "")
+        if "d" in response_text:
+            return "\\textit{Response—}"
+        else:
+            return "\\textit{Response:}"
+
+
+class RechargeTagHandler(BaseTagHandler):
+    """Handler for recharge tags like {@recharge 5}, {@recharge 6|m}."""
+
+    def __init__(self) -> None:
+        super().__init__("recharge")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process recharge tags according to 5etools format."""
+        # Get the recharge value from the correct attribute
+        recharge_text = getattr(tag_node, "recharge", "6").strip()
+        flags = getattr(tag_node, "flags", "").strip()
+
+        # Parse recharge number
+        try:
+            recharge_num = int(recharge_text) if recharge_text else 6
+        except ValueError:
+            recharge_num = 6
+
+        # Format according to 5etools logic
+        if recharge_num < 6:
+            recharge_display = f"Recharge {recharge_num}–6"
+        else:
+            recharge_display = f"Recharge {recharge_num}"
+
+        # Check for minimal flag ("m") which removes parentheses
+        if "m" in flags:
+            return recharge_display
+        else:
+            return f"({recharge_display})"
+
+
+class DeityTagHandler(BaseTagHandler):
+    """Handler for deity reference tags like {@deity The Matron of Ravens}."""
+
+    def __init__(self) -> None:
+        try:
+            content_type = ContentType("deity")
+        except ValueError:
+            logger.debug("Content type 'deity' not found in registry")
+            content_type = None
+        super().__init__("deity", content_type)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract deity reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+        source = self._extract_source_info(node)
+        page = self._extract_page_info(node)
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=display_text,
+            source=source,
+            page=page,
+            content_type=self.content_type,
+            format_style=FormatStyle.PLAIN,
+        )
+
+
+class DiseaseTagHandler(BaseTagHandler):
+    """Handler for disease reference tags like {@disease bluerot}."""
+
+    def __init__(self) -> None:
+        try:
+            content_type = ContentType("disease")
+        except ValueError:
+            logger.debug("Content type 'disease' not found in registry")
+            content_type = None
+        super().__init__("disease", content_type)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract disease reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+        source = self._extract_source_info(node)
+        page = self._extract_page_info(node)
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=display_text,
+            source=source,
+            page=page,
+            content_type=self.content_type,
+            format_style=FormatStyle.ITALIC,  # Diseases are formatted in italic
+        )
+
+
+class TableTagHandler(BaseTagHandler):
+    """Handler for table reference tags like {@table short-term madness}."""
+
+    def __init__(self) -> None:
+        try:
+            content_type = ContentType("table")
+        except ValueError:
+            logger.debug("Content type 'table' not found in registry")
+            content_type = None
+        super().__init__("table", content_type)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract table reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+        source = self._extract_source_info(node)
+        page = self._extract_page_info(node)
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=display_text,
+            source=source,
+            page=page,
+            content_type=self.content_type,
+            format_style=FormatStyle.PLAIN,
+        )
+
+
+class NoteTagHandler(BaseTagHandler):
+    """Handler for note tags like {@note This trait applies when...}."""
+
+    def __init__(self) -> None:
+        super().__init__("note")
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process note tags by returning the note text."""
+        note_text = getattr(tag_node, "name", "").strip()
+        if note_text:
+            return f"\\textit{{{note_text}}}"
+        else:
+            return ""
+
+
 # Registry of core handlers for easy access
 def get_default_core_handlers() -> list[TagHandler]:
     """Get the list of default core tag handlers."""
@@ -1317,4 +1824,21 @@ def get_default_core_handlers() -> list[TagHandler]:
         SavingThrowTagHandler(),
         SkillCheckTagHandler(),
         FormattingTagHandler(),
+        AttackTagHandler(),
+        AttackRollTagHandler(),
+        HitTagHandler(),
+        HitResultTagHandler(),
+        HitOrMissTagHandler(),
+        ActionSaveTagHandler(),
+        ActionSaveFailTagHandler(),
+        ActionSaveSuccessTagHandler(),
+        ActionSaveSuccessOrFailTagHandler(),
+        ActionSaveFailByTagHandler(),
+        ActionTriggerTagHandler(),
+        ActionResponseTagHandler(),
+        RechargeTagHandler(),
+        DeityTagHandler(),
+        DiseaseTagHandler(),
+        TableTagHandler(),
+        NoteTagHandler(),
     ]

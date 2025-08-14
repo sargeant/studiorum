@@ -88,6 +88,46 @@ class ArmorClass(BaseModel):
         else:
             return "Unknown"
 
+    def get_processed_ac_text(self) -> str:
+        """Get armor class text with 5e.tools markup processed for LaTeX."""
+        if self.special:
+            try:
+                from ...cli.main import get_tag_resolver
+
+                tag_resolver = get_tag_resolver()
+                return str(tag_resolver.process_text(self.special))
+            except Exception:
+                return self.special
+        elif self.ac is not None:
+            result = str(self.ac)
+            if self.from_:
+                # Process 5e.tools markup tags in armor sources
+                processed_sources = []
+                for source in self.from_:
+                    try:
+                        from ...cli.main import get_tag_resolver
+
+                        tag_resolver = get_tag_resolver()
+                        processed_source = tag_resolver.process_text(source)
+                        processed_sources.append(str(processed_source))
+                    except Exception:
+                        # Fallback to raw source if tag processing fails
+                        processed_sources.append(source)
+                sources = ", ".join(processed_sources)
+                result += f" ({sources})"
+            if self.condition:
+                try:
+                    from ...cli.main import get_tag_resolver
+
+                    tag_resolver = get_tag_resolver()
+                    processed_condition = tag_resolver.process_text(self.condition)
+                    result += f" {processed_condition}"
+                except Exception:
+                    result += f" {self.condition}"
+            return result
+        else:
+            return "Unknown"
+
 
 class HitPoints(BaseModel):
     """Represents creature hit points."""
@@ -245,9 +285,83 @@ class Ability(BaseModel):
     def __str__(self) -> str:
         return self.name
 
+    def get_processed_name(self) -> str:
+        """Get ability name with 5e.tools markup processed for LaTeX."""
+        try:
+            from ...cli.main import get_omnidexer, get_tag_resolver
+            from ...renderers.core.interfaces import RenderingContext
+            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
+
+            # Get services for proper tag processing
+            omnidexer = get_omnidexer()
+            tag_resolver = get_tag_resolver()
+
+            # Create a proper rendering context for entry processing
+            context = RenderingContext(
+                output_format="latex",
+                debug_mode=False,
+                omnidexer=omnidexer,
+                tag_resolver=tag_resolver,
+                metadata={
+                    "source_name": "unknown",
+                    "tag_resolver": tag_resolver,
+                    "content_type": "creature",
+                },
+            )
+
+            # Use recursive entry processor to handle 5e.tools markup
+            processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+            # Process the name as if it were entry content
+            if self.name:
+                # Convert name to entry format and process
+                processed_entries = processor.process_entries([self.name], context)
+                return "\n".join(processed_entries)
+            else:
+                return ""
+
+        except Exception:
+            # Fallback to original name if processing fails
+            return self.name
+
     def get_description_text(self) -> str:
-        """Extract text from complex entry structures."""
-        return self._extract_text_from_entries(self.entries)
+        """Extract text from complex entry structures using proper entry processing."""
+        try:
+            from ...cli.main import get_omnidexer, get_tag_resolver
+            from ...renderers.core.interfaces import RenderingContext
+            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
+
+            # Get services for proper tag processing
+            omnidexer = get_omnidexer()
+            tag_resolver = get_tag_resolver()
+
+            # Create a proper rendering context for entry processing
+            context = RenderingContext(
+                output_format="latex",
+                debug_mode=False,
+                omnidexer=omnidexer,
+                tag_resolver=tag_resolver,
+                metadata={
+                    "source_name": "unknown",
+                    "tag_resolver": tag_resolver,
+                    "content_type": "creature",
+                },
+            )
+
+            # Use recursive entry processor to handle 5e.tools markup
+            processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+            # Process entries and return rendered text
+            if self.entries:
+                # Convert entries to the expected format and process with context
+                processed_entries = processor.process_entries(self.entries, context)
+                return "\n".join(processed_entries)
+            else:
+                return ""
+
+        except Exception:
+            # Fallback to simple text extraction if entry processing fails
+            return self._extract_text_from_entries(self.entries)
 
     def _extract_text_from_entries(self, entries: Any) -> str:
         """Recursively extract text from complex entry structures."""
@@ -473,44 +587,123 @@ class Creature(BaseContent):
         return f"{score} ({mod_text})"
 
     def get_size_type_alignment(self) -> str:
-        """Get formatted size, type, and alignment text."""
-        size_text = (
-            ", ".join(self.size) if isinstance(self.size, list) else str(self.size)
-        )
+        """Get formatted size, type, and alignment text with 5etools compatibility."""
+        # Process size abbreviations to full names
+        size_text = self._get_size_text()
         type_text = str(self.type)
         alignment_text = self._get_alignment_text()
 
         return f"{size_text} {type_text}, {alignment_text}"
 
+    def _get_size_text(self) -> str:
+        """Convert size abbreviations to full names based on 5etools mapping."""
+        # 5etools size abbreviation mapping
+        SIZE_ABV_TO_FULL = {
+            "F": "Fine",
+            "D": "Diminutive",
+            "T": "Tiny",
+            "S": "Small",
+            "M": "Medium",
+            "L": "Large",
+            "H": "Huge",
+            "G": "Gargantuan",
+            "C": "Colossal",
+            "V": "Varies",
+        }
+
+        if isinstance(self.size, list):
+            sizes = [SIZE_ABV_TO_FULL.get(s, s) for s in self.size]
+            return ", ".join(sizes)
+        else:
+            return SIZE_ABV_TO_FULL.get(str(self.size), str(self.size))
+
     def _get_alignment_text(self) -> str:
-        """Get formatted alignment text handling complex structures."""
+        """Get formatted alignment text with 5etools compatibility."""
         if not self.alignment:
             return "unaligned"
 
-        alignment_parts = []
-        for alignment_item in self.alignment:
-            if isinstance(alignment_item, str):
-                alignment_parts.append(alignment_item)
-            elif isinstance(alignment_item, dict):
-                # Handle complex alignment structures like {'alignment': ['N', 'G']}
-                if "alignment" in alignment_item:
-                    sub_alignment = alignment_item["alignment"]
-                    if isinstance(sub_alignment, list):
-                        alignment_parts.extend(sub_alignment)
-                    else:
-                        alignment_parts.append(str(sub_alignment))
-                else:
-                    alignment_parts.append(str(alignment_item))
-            else:
-                alignment_parts.append(str(alignment_item))
+        return self._process_alignment_list(self.alignment)
 
-        return " ".join(alignment_parts) if alignment_parts else "unaligned"
+    def _process_alignment_list(self, align_list: list) -> str:
+        """Process alignment list using 5etools logic."""
+        if not align_list:
+            return ""
+
+        # 5etools alignment abbreviation mapping
+        ALIGNMENT_ABV_TO_FULL = {
+            "L": "lawful",
+            "N": "neutral",
+            "NX": "neutral (law/chaos axis)",
+            "NY": "neutral (good/evil axis)",
+            "C": "chaotic",
+            "G": "good",
+            "E": "evil",
+            "U": "unaligned",
+            "A": "any alignment",
+        }
+
+        # Handle complex alignment structures (objects with special properties)
+        if any(isinstance(item, dict) for item in align_list):
+            processed = []
+            for alignment_item in align_list:
+                if isinstance(alignment_item, dict):
+                    if alignment_item.get("special"):
+                        return alignment_item["special"]
+                    elif "alignment" in alignment_item:
+                        sub_align = alignment_item["alignment"]
+                        if isinstance(sub_align, list):
+                            processed.extend(sub_align)
+                        else:
+                            processed.append(str(sub_align))
+                else:
+                    processed.append(str(alignment_item))
+            align_list = processed
+
+        # Convert string items to uppercase for processing
+        align_list = [str(item).upper() for item in align_list]
+
+        # 5etools alignment processing logic
+        if len(align_list) == 1:
+            return ALIGNMENT_ABV_TO_FULL.get(align_list[0], align_list[0].lower())
+        elif len(align_list) == 2:
+            # Pair like ["L", "G"] -> "lawful good"
+            return " ".join(ALIGNMENT_ABV_TO_FULL.get(a, a.lower()) for a in align_list)
+        elif len(align_list) == 3:
+            if "NX" in align_list and "NY" in align_list and "N" in align_list:
+                return "any neutral alignment"
+        elif len(align_list) == 4:
+            if "L" not in align_list and "NX" not in align_list:
+                return "any chaotic alignment"
+            elif "G" not in align_list and "NY" not in align_list:
+                return "any evil alignment"
+            elif "C" not in align_list and "NX" not in align_list:
+                return "any lawful alignment"
+            elif "E" not in align_list and "NY" not in align_list:
+                return "any good alignment"
+        elif len(align_list) == 5:
+            if "G" not in align_list:
+                return "any non-good alignment"
+            elif "E" not in align_list:
+                return "any non-evil alignment"
+            elif "L" not in align_list:
+                return "any non-lawful alignment"
+            elif "C" not in align_list:
+                return "any non-chaotic alignment"
+
+        # Fallback - just join the converted abbreviations
+        return " ".join(ALIGNMENT_ABV_TO_FULL.get(a, a.lower()) for a in align_list)
 
     def get_ac_text(self) -> str:
         """Get formatted AC text."""
         if isinstance(self.ac, list):
             return ", ".join(str(ac) for ac in self.ac)
         return str(self.ac)
+
+    def get_processed_ac_text(self) -> str:
+        """Get formatted AC text with 5e.tools markup processed."""
+        if isinstance(self.ac, list):
+            return ", ".join(ac.get_processed_ac_text() for ac in self.ac)
+        return self.ac.get_processed_ac_text()
 
     def get_hp_text(self) -> str:
         """Get formatted HP text."""
@@ -596,6 +789,50 @@ class Creature(BaseContent):
             if isinstance(self.senses, list)
             else str(self.senses)
         )
+
+    def get_processed_senses(self) -> str | None:
+        """Get senses with 5e.tools markup processed for LaTeX."""
+        if not hasattr(self, "senses") or not self.senses:
+            return None
+
+        try:
+            from ...cli.main import get_omnidexer, get_tag_resolver
+            from ...renderers.core.interfaces import RenderingContext
+            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
+
+            # Get services for proper tag processing
+            omnidexer = get_omnidexer()
+            tag_resolver = get_tag_resolver()
+
+            # Create a proper rendering context for entry processing
+            context = RenderingContext(
+                output_format="latex",
+                debug_mode=False,
+                omnidexer=omnidexer,
+                tag_resolver=tag_resolver,
+                metadata={
+                    "source_name": "unknown",
+                    "tag_resolver": tag_resolver,
+                    "content_type": "creature",
+                },
+            )
+
+            # Use recursive entry processor to handle 5e.tools markup
+            processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+            # Convert senses to entry format and process
+            if isinstance(self.senses, list):
+                senses_text = ", ".join(self.senses)
+            else:
+                senses_text = str(self.senses)
+
+            # Process the senses text
+            processed_entries = processor.process_entries([senses_text], context)
+            return "\n".join(processed_entries)
+
+        except Exception:
+            # Fallback to original formatted senses if processing fails
+            return self.get_formatted_senses()
 
     def get_formatted_languages(self) -> str | None:
         """Get formatted languages list."""
@@ -820,3 +1057,35 @@ class Creature(BaseContent):
             return resolved_spells
 
         return []
+
+    def requires_full_width_layout(self) -> bool:
+        """
+        Determine if creature is too large for two-column layout.
+
+        Large creatures with complex stat blocks should use single-column
+        layout to prevent awkward page breaks and readability issues.
+
+        Returns:
+            True if creature should use full-width layout, False otherwise
+        """
+        # Primary indicator: creatures with legendary actions are typically large
+        if self.legendary and len(self.legendary) > 0:
+            return True
+
+        # - Many traits (complex abilities)
+        if self.trait and len(self.trait) > 6:
+            return True
+
+        # - Many actions (complex combat)
+        if self.action and len(self.action) > 6:
+            return True
+
+        # - Spellcasters with many spell levels (complex spellcasting)
+        # This would require analyzing trait/action text for spellcasting blocks
+        # For now, check if creature has both spellcasting traits and many actions
+        if self.trait and self.action and len(self.action) > 4:
+            for trait in self.trait:
+                if hasattr(trait, "name") and "spellcasting" in str(trait.name).lower():
+                    return True
+
+        return False

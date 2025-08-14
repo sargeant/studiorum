@@ -19,6 +19,41 @@ LOG_LEVEL=DEBUG 5e2pdf convert your-content.json
 5e2pdf convert --keep-intermediate your-content.json
 ```
 
+### 5etools Markup Debugging
+
+For debugging 5etools tag processing and entry handling issues:
+
+```bash
+# Disable tag fallback to expose unknown tags
+DND5E_DISABLE_TAG_FALLBACK=1 5e2pdf convert creatures "ancient red dragon"
+
+# Enable entry processing debug logging
+DND5E_DEBUG_ENTRY_PROCESSING=1 5e2pdf convert creatures --cr 1-5
+
+# Strict mode - fail on processing issues instead of using fallbacks
+DND5E_STRICT_ENTRY_PROCESSING=1 5e2pdf convert creatures --cr 1-5
+
+# Combined strict debugging (recommended for development)
+DND5E_STRICT_ENTRY_PROCESSING=1 DND5E_DISABLE_TAG_FALLBACK=1 5e2pdf convert creatures --cr 0-30
+
+# Find all unknown tags in creature database
+DND5E_DISABLE_TAG_FALLBACK=1 5e2pdf convert creatures --cr 0-30 2>&1 | grep 'Unknown tag' | sort -u
+```
+
+#### Environment Variable Reference
+
+| Variable | Purpose | Usage |
+|----------|---------|--------|
+| `DND5E_DISABLE_TAG_FALLBACK=1` | Disable tag parsing fallbacks, expose unknown tags | Development debugging |
+| `DND5E_DEBUG_ENTRY_PROCESSING=1` | Log entry processing fallbacks and issues | Troubleshooting entry processing |
+| `DND5E_STRICT_ENTRY_PROCESSING=1` | Throw errors instead of using processing fallbacks | Quality assurance, testing |
+
+**Use Cases**:
+- **Tag Handler Development**: Use `DND5E_DISABLE_TAG_FALLBACK=1` to find missing tag handlers
+- **Entry Processing Issues**: Use `DND5E_DEBUG_ENTRY_PROCESSING=1` to diagnose Pydantic model issues
+- **Quality Assurance**: Use both strict flags to ensure complete processing without fallbacks
+- **Database Validation**: Run on entire creature database to find compatibility issues
+
 ### Common Issue Categories
 
 | Symptom | Likely Cause | Quick Fix |

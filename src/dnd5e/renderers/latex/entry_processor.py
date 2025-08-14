@@ -73,8 +73,62 @@ class RecursiveEntryProcessor:
             elif isinstance(entry, dict):
                 processed.append(self.process_entry_dict(entry, context))
             else:
-                # Fallback for other types
-                processed.append(str(entry))
+                # Handle Pydantic models by converting to dict
+                import os
+
+                # Debug logging for entry processing issues
+                if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+                    logger.warning(
+                        f"Entry processing fallback triggered for type {type(entry).__name__}: {entry}"
+                    )
+
+                try:
+                    # Check if it's a Pydantic model with model_dump method
+                    if hasattr(entry, "model_dump"):
+                        if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+                            logger.info(
+                                f"Converting Pydantic model {type(entry).__name__} to dict"
+                            )
+                        entry_dict = entry.model_dump(exclude_none=True)
+                        processed.append(self.process_entry_dict(entry_dict, context))
+                    # Check if it's a dataclass
+                    elif hasattr(entry, "__dataclass_fields__"):
+                        import dataclasses
+
+                        if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+                            logger.info(
+                                f"Converting dataclass {type(entry).__name__} to dict"
+                            )
+                        entry_dict = dataclasses.asdict(entry)
+                        processed.append(self.process_entry_dict(entry_dict, context))
+                    else:
+                        # Check if strict mode is enabled
+                        if os.getenv("DND5E_STRICT_ENTRY_PROCESSING"):
+                            raise ValueError(
+                                f"Unknown entry type {type(entry).__name__} encountered in strict mode. "
+                                f"Entry: {entry}. Expected str, dict, Pydantic model, or dataclass."
+                            )
+
+                        # Fallback for other types with logging
+                        if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+                            logger.warning(
+                                f"Using str() fallback for unknown entry type {type(entry).__name__}: {entry}"
+                            )
+                        processed.append(str(entry))
+                except Exception as e:
+                    # Check if strict mode is enabled
+                    if os.getenv("DND5E_STRICT_ENTRY_PROCESSING"):
+                        raise ValueError(
+                            f"Failed to process entry {type(entry).__name__} in strict mode: {e}. "
+                            f"Entry: {entry}"
+                        ) from e
+
+                    # If conversion fails, fallback to string with logging
+                    if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+                        logger.error(
+                            f"Entry conversion failed for {type(entry).__name__}, using str() fallback: {e}"
+                        )
+                    processed.append(str(entry))
 
         return processed
 
@@ -764,6 +818,15 @@ class RecursiveEntryProcessor:
             finally:
                 self._depth -= 1
 
+        # Debug logging for generic entries that produce no output
+        import os
+
+        if not result and os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+            entry_type = entry.get("type", "")
+            logger.warning(
+                f"Generic entry processing produced no output for type '{entry_type}', keys: {list(entry.keys())}"
+            )
+
         return "\n\n".join(result)
 
     def _get_section_command(self, depth: int, context: RenderingContext) -> str:
@@ -833,6 +896,49 @@ class RecursiveEntryProcessor:
 
         return commands[min(depth, len(commands) - 1)]
 
+    def _preprocess_attack_abbreviations(self, text: str) -> str:
+        """Preprocess attack abbreviations to match 2024 D&D format.
+
+        Converts standalone attack abbreviations like 'm +10' to 'Melee Attack Roll: +10'
+        based on 5etools attackTagToFull function.
+
+        Args:
+            text: Text that may contain attack abbreviations
+
+        Returns:
+            Text with attack abbreviations converted
+        """
+        import re
+
+        # Pattern to match attack abbreviations at start of text
+        # Matches: "m +10", "r +8", "m,r +5" etc.
+        # Must be at start of line or after sentence punctuation
+        attack_pattern = r"(?:^|(?<=[.!?;]\s))([mr](?:,[mr])*)\s+"
+
+        def replace_abbreviation(match):
+            abbrevs = match.group(1)  # e.g., "m", "r", "m,r"
+            attack_types = []
+
+            # Split by comma and process each type
+            for abbrev in abbrevs.split(","):
+                abbrev = abbrev.strip()
+                if abbrev == "m":
+                    attack_types.append("Melee")
+                elif abbrev == "r":
+                    attack_types.append("Ranged")
+
+            if len(attack_types) == 1:
+                return f"{attack_types[0]} Attack Roll: "
+            elif len(attack_types) > 1:
+                return f"{' or '.join(attack_types)} Attack Roll: "
+            else:
+                # Fallback, return original
+                return match.group(0)
+
+        # Apply the replacement
+        result = re.sub(attack_pattern, replace_abbreviation, text)
+        return result
+
     def _process_text_with_tags(self, text: str, context: RenderingContext) -> str:
         """Process text containing 5etools tags.
 
@@ -845,6 +951,9 @@ class RecursiveEntryProcessor:
         """
         if not text or not context.metadata.get("tag_resolver"):
             return self._escape_latex(text)
+
+        # Preprocess attack abbreviations (2024 D&D format)
+        text = self._preprocess_attack_abbreviations(text)
 
         # Skip obvious non-tag content to avoid parser warnings
         if not self._is_valid_tag_input(text):

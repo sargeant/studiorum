@@ -69,7 +69,7 @@ class TagASTTransformer(Transformer):
         "background": (1, 4),
         "feat": (1, 4),
         "condition": (1, 4),
-        "disease": (1, 4),
+        "disease": (1, 4),  # name|source|display|page
         "status": (1, 4),
         "skill": (1, 4),
         "action": (1, 4),
@@ -95,6 +95,21 @@ class TagASTTransformer(Transformer):
         "ability": (1, 2),  # ability_score|modifier
         "savingThrow": (1, 1),  # modifier_value
         "skillCheck": (1, 1),  # skill_modifier_value
+        # Attack and combat tags
+        "atk": (1, 1),  # attack_types
+        "atkr": (1, 1),  # attack_roll_types
+        "h": (0, 1),  # hit_result (usually empty)
+        "hom": (0, 1),  # hit_or_miss (usually empty)
+        # Action and save tags
+        "actSave": (1, 1),  # ability_name
+        "actSaveFail": (0, 1),  # ordinal (optional)
+        "actSaveSuccess": (0, 1),  # usually empty
+        "actSaveSuccessOrFail": (0, 1),  # usually empty
+        "actSaveFailBy": (1, 1),  # failure amount
+        "actTrigger": (0, 1),  # usually empty
+        "actResponse": (0, 1),  # flags (optional)
+        # Reference tags
+        "table": (1, 4),  # name|source|display|page
         # Formatting tags
         "bold": (1, 1),
         "italic": (1, 1),
@@ -103,10 +118,10 @@ class TagASTTransformer(Transformer):
         "u": (1, 1),
         "underline": (1, 1),
         "code": (1, 1),
-        "note": (1, 1),
+        "note": (1, 1),  # note_text
         "quickref": (1, 5),
         "loader": (1, 1),
-        "filter": (1, 3),
+        "filter": (1, 5),
     }
 
     def __init__(self, original_text: str):
@@ -377,8 +392,133 @@ class TagASTTransformer(Transformer):
             node.display_text_nodes = final_display_text_nodes or [TextNode(name)]
             return node
 
+        # Attack and combat tags
+        elif tag_type == "atk":
+            # Attack type tags have format: attack_types (e.g., "mw", "rw,ms")
+            node = TagNode(tag_type)
+            node.name = name  # Contains attack type abbreviations
+            return node
+
+        elif tag_type == "atkr":
+            # Attack roll tags have format: attack_types (e.g., "m", "r", "m,r")
+            node = TagNode(tag_type)
+            node.name = name  # Contains attack roll type abbreviations
+            return node
+
+        elif tag_type == "h":
+            # Hit result tags - simple marker
+            node = TagNode(tag_type)
+            node.name = name  # Usually empty or contains bonus
+            return node
+
+        elif tag_type == "hit":
+            # Hit bonus tags have format: bonus_value
+            node = TagNode(tag_type)
+            node.name = name  # Contains hit bonus like "4" or "+2"
+            return node
+
+        elif tag_type == "hom":
+            # Hit or miss tags - simple marker
+            node = TagNode(tag_type)
+            node.name = name  # Usually empty
+            return node
+
+        # Action and save tags
+        elif tag_type == "actSave":
+            # Action save tags have format: ability_name
+            node = TagNode(tag_type)
+            node.name = name  # Contains ability abbreviation like "dex", "con"
+            return node
+
+        elif tag_type == "actSaveFail":
+            # Action save fail tags have format: ordinal (optional)
+            node = TagNode(tag_type)
+            node.name = name  # Contains ordinal like "2" for "Second Failure"
+            return node
+
+        elif tag_type == "actSaveSuccess":
+            # Action save success tags - simple marker
+            node = TagNode(tag_type)
+            node.name = name  # Usually empty
+            return node
+
+        elif tag_type == "actSaveSuccessOrFail":
+            # Action save success or fail tags - simple marker
+            node = TagNode(tag_type)
+            node.name = name  # Usually empty
+            return node
+
+        elif tag_type == "actSaveFailBy":
+            # Action save fail by amount tags
+            node = TagNode(tag_type)
+            node.name = name  # Contains failure amount like "5"
+            return node
+
+        elif tag_type == "actTrigger":
+            # Action trigger tags - simple marker
+            node = TagNode(tag_type)
+            node.name = name  # Usually empty
+            return node
+
+        elif tag_type == "actResponse":
+            # Action response tags have format: flags (optional)
+            node = TagNode(tag_type)
+            node.name = name  # Contains flags like "d" for em-dash
+            return node
+
+        # Reference tags
+        elif tag_type == "quickref":
+            # Quick reference tags have format: text|source|page|section|flags
+            node = TagNode(tag_type)
+            node.name = name  # Contains reference text
+            node.source = source  # Contains source book
+            node.display_text_nodes = final_display_text_nodes
+            return node
+
+        elif tag_type == "deity":
+            # Deity reference tags have format: name|pantheon|source|display
+            node = TagNode(tag_type)
+            node.name = name
+            node.source = source
+            node.page = page
+            node.display_text_nodes = final_display_text_nodes
+            return node
+
+        elif tag_type == "disease":
+            # Disease reference tags have format: name|source|display|page
+            node = TagNode(tag_type)
+            node.name = name
+            node.source = source
+            node.page = page
+            node.display_text_nodes = final_display_text_nodes
+            return node
+
+        elif tag_type == "table":
+            # Table reference tags have format: name|source|display|page
+            node = TagNode(tag_type)
+            node.name = name
+            node.source = source
+            node.page = page
+            node.display_text_nodes = final_display_text_nodes
+            return node
+
+        elif tag_type == "note":
+            # Note tags have format: note_text
+            node = TagNode(tag_type)
+            node.name = name  # Contains note text
+            return node
+
         # Generic fallback - create node with name/display text for automatic passthrough
         else:
+            # Check if fallback should be disabled for development/debugging
+            import os
+
+            if os.getenv("DND5E_DISABLE_TAG_FALLBACK"):
+                raise TagParseError(
+                    f"Unknown tag type '@{tag_type}' with content '{name}' - "
+                    f"no specific handler found (fallback disabled by DND5E_DISABLE_TAG_FALLBACK)"
+                )
+
             node = TagNode(tag_type)
             node.name = name  # Store the parsed name for fallback rendering
 

@@ -485,11 +485,82 @@ The tag system has completed a major architectural refactoring:
 
 ## Troubleshooting
 
+### Debug Environment Variables
+
+For systematic tag system debugging, use these environment variables:
+
+```bash
+# Expose all unknown/unhandled tags
+DND5E_DISABLE_TAG_FALLBACK=1 5e2pdf convert creatures --cr 1
+
+# Log entry processing fallbacks (e.g., Pydantic model issues)
+DND5E_DEBUG_ENTRY_PROCESSING=1 5e2pdf convert creatures "ancient copper dragon"
+
+# Strict mode - fail fast on processing issues
+DND5E_STRICT_ENTRY_PROCESSING=1 5e2pdf convert creatures --cr 1-5
+
+# Combined debugging for tag handler development
+DND5E_STRICT_ENTRY_PROCESSING=1 DND5E_DISABLE_TAG_FALLBACK=1 5e2pdf convert creatures --cr 0-30
+```
+
+#### Debug Variable Usage Patterns
+
+| Scenario | Command | Purpose |
+|----------|---------|---------|
+| **New Tag Handler Development** | `DND5E_DISABLE_TAG_FALLBACK=1 5e2pdf convert creatures "target"` | Find missing handlers |
+| **Parser Registration Issues** | `DND5E_DISABLE_TAG_FALLBACK=1 5e2pdf convert creatures --cr 0-30 \| grep 'Unknown tag' \| sort -u` | Catalog all unhandled tags |
+| **Entry Processing Debug** | `DND5E_DEBUG_ENTRY_PROCESSING=1 5e2pdf convert creatures --cr 1-5` | Diagnose Pydantic model issues |
+| **Quality Assurance** | `DND5E_STRICT_ENTRY_PROCESSING=1 DND5E_DISABLE_TAG_FALLBACK=1 5e2pdf convert creatures --cr 0-30` | Ensure no fallbacks used |
+
 ### Common Issues
 
 #### Missing Tag Handler
-**Symptom**: Unknown tags rendered as plain text
-**Solution**: Add handler to `get_default_core_handlers()`
+**Symptom**: `Unknown tag type '@tagname'` errors with `DND5E_DISABLE_TAG_FALLBACK=1`
+
+**Root Cause**: Tag handler registration requires changes in **both** parser and handlers:
+
+**Solution**:
+1. Add to `TAG_PARAMETER_LIMITS` in `tag_parser.py`:
+   ```python
+   "newtag": (1, 3),  # min_params, max_params
+   ```
+
+2. Add node creation in `_create_tag_node_with_nodes()`:
+   ```python
+   elif tag_type == "newtag":
+       node = TagNode(tag_type)
+       node.name = name
+       return node
+   ```
+
+3. Create handler in `handlers.py`:
+   ```python
+   class NewTagHandler(BaseTagHandler):
+       def __init__(self) -> None:
+           super().__init__("newtag")
+   ```
+
+4. Register in `get_default_core_handlers()`:
+   ```python
+   return [
+       # ... existing handlers
+       NewTagHandler(),
+   ]
+   ```
+
+#### Parser vs Handler Mismatch
+**Symptom**: Handler exists but tag still fallback to text
+
+**Root Cause**: Parser missing explicit tag type handling
+
+**Solution**: Verify both `TAG_PARAMETER_LIMITS` entry AND `_create_tag_node_with_nodes()` case exist
+
+#### Pydantic Model Processing Issues
+**Symptom**: `model_dump()` errors or raw dict output with `DND5E_DEBUG_ENTRY_PROCESSING=1`
+
+**Root Cause**: Entry processor not handling Pydantic models properly
+
+**Solution**: Check `process_entries()` method handles `hasattr(entry, "model_dump")`
 
 #### Validation Errors
 **Symptom**: Content not found warnings in debug mode
@@ -516,6 +587,15 @@ context = RenderingContext(
 # Access processing statistics
 pipeline.get_performance_stats()
 ```
+
+### Tag Handler Development Workflow
+
+1. **Discovery**: Use `DND5E_DISABLE_TAG_FALLBACK=1` to find unknown tags
+2. **Parser Update**: Add to `TAG_PARAMETER_LIMITS` and node creation
+3. **Handler Creation**: Implement handler with proper tag_type
+4. **Registration**: Add to `get_default_core_handlers()`
+5. **Testing**: Verify with strict flags and targeted examples
+6. **Validation**: Run full database test with both debug flags
 
 ## Future Enhancements
 
