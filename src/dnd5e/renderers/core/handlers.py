@@ -1800,6 +1800,42 @@ class NoteTagHandler(BaseTagHandler):
             return ""
 
 
+class QuickrefTagHandler(BaseTagHandler):
+    """Handle @quickref tags for rules and game mechanics references."""
+
+    def __init__(self) -> None:
+        super().__init__("quickref")
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Extract quickref information as a content reference."""
+        name = getattr(node, "name", "").strip()
+        if not name:
+            return None
+
+        # For quickref, the name IS the display text (e.g., "difficult terrain")
+        # Don't use _extract_display_text as that would get the page number
+        display_text = name
+
+        return ContentReferenceInfo(
+            name=name,
+            display_text=display_text,
+            source=getattr(node, "source", None),
+            page=None,
+            content_type=ContentType.REFERENCE,
+            format_style=FormatStyle.ITALIC,  # Rules references are italicized
+        )
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process quickref tags by returning italicized text."""
+        content_info = self.extract_content_info(tag_node, context)
+        if content_info:
+            return f"\\textit{{{content_info.display_text}}}"
+        else:
+            return ""
+
+
 # Registry of core handlers for easy access
 def get_default_core_handlers() -> list[TagHandler]:
     """Get the list of default core tag handlers."""
@@ -1841,4 +1877,5 @@ def get_default_core_handlers() -> list[TagHandler]:
         DiseaseTagHandler(),
         TableTagHandler(),
         NoteTagHandler(),
+        QuickrefTagHandler(),
     ]

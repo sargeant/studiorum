@@ -182,6 +182,8 @@ class Speed(BaseModel):
                 )
                 speed_text = f"{speed_type} {speed_val} ft."
                 if condition:
+                    # Strip existing parentheses to avoid double wrapping
+                    condition = condition.strip().strip("()")
                     speed_text += f" ({condition})"
                 speeds.append(speed_text)
 

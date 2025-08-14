@@ -48,6 +48,7 @@ class ContentType(str, Enum):
     VEHICLE = "vehicle"
     LEGENDARYGROUP = "legendarygroup"
     PSIONIC = "psionic"
+    REFERENCE = "reference"  # For quick reference tags and rule references
 
     # Items and objects
     BASEITEM = "baseitem"
