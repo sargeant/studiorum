@@ -12,6 +12,7 @@ from dnd5e.core.models.creatures import Creature
 from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.requires_data
 @pytest.mark.integration
 @pytest.mark.slow
 class TestCreatureRealDataIntegration:
