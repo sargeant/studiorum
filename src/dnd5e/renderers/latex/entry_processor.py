@@ -267,7 +267,18 @@ class RecursiveEntryProcessor:
             LaTeX string
         """
         entries = inset.get("entries", [])
-        processed_entries = self.process_entries(entries, context)
+
+        # Create sidebar context for nested entries
+        sidebar_context = RenderingContext(
+            output_format=context.output_format,
+            debug_mode=context.debug_mode,
+            omnidexer=context.omnidexer,
+            content_tracker=context.content_tracker,
+            tag_resolver=context.tag_resolver,
+            metadata={**context.metadata, "in_sidebar": True},
+        )
+
+        processed_entries = self.process_entries(entries, sidebar_context)
         content = "\n".join(processed_entries)
 
         if self.use_dnd_template:
@@ -287,7 +298,18 @@ class RecursiveEntryProcessor:
         """
         name = inset.get("name", "")
         entries = inset.get("entries", [])
-        processed_entries = self.process_entries(entries, context)
+
+        # Create sidebar context for nested entries
+        sidebar_context = RenderingContext(
+            output_format=context.output_format,
+            debug_mode=context.debug_mode,
+            omnidexer=context.omnidexer,
+            content_tracker=context.content_tracker,
+            tag_resolver=context.tag_resolver,
+            metadata={**context.metadata, "in_sidebar": True},
+        )
+
+        processed_entries = self.process_entries(entries, sidebar_context)
         content = "\n".join(processed_entries)
 
         if self.use_dnd_template:
@@ -764,19 +786,10 @@ class RecursiveEntryProcessor:
         # Check if this is spell or item content that should use deeper sectioning
         is_spell_content = context.metadata.get("content_type") == "spell"
         is_item_content = context.metadata.get("content_type") == "item"
+        is_in_sidebar = context.metadata.get("in_sidebar", False)
 
-        # For books and adventures, entry content should start at section level
-        # because the document structure builder already creates \chapter{} commands
-        # Map JSON depths to LaTeX sectioning to match expected hierarchy
-        if document_type in [DocumentType.BOOK, DocumentType.ADVENTURE]:
-            commands = [
-                "section",  # depth 0 - "Key Plot Points", "Nakari's Lair"
-                "subsection",  # depth 1 - intermediate level
-                "subsection",  # depth 2 - "Lair Locations"
-                "subsubsection",  # depth 3 - "N1: East Entrance", etc.
-                "paragraph",  # depth 4+ - deeper nested content
-            ]
-        elif is_spell_content:
+        # Check special content types first (these override document type)
+        if is_spell_content:
             # For spells, use deeper sectioning so "At Higher Levels" becomes \paragraph
             commands = [
                 "subsubsection",  # depth 0 - rarely used in spells
@@ -789,6 +802,24 @@ class RecursiveEntryProcessor:
                 "subsubsection",  # depth 0 - rarely used in items
                 "subparagraph",  # depth 1 - "Spells", "Regaining Charges" entries with indentation
                 "subparagraph",  # depth 2+ - deeper nested content
+            ]
+        elif is_in_sidebar:
+            # For sidebar content, use deeper sectioning so named entries become \paragraph
+            commands = [
+                "subsubsection",  # depth 0 - rarely used in sidebars
+                "paragraph",  # depth 1 - named entries within sidebars
+                "subparagraph",  # depth 2+ - deeper nested content
+            ]
+        elif document_type in [DocumentType.BOOK, DocumentType.ADVENTURE]:
+            # For books and adventures, entry content should start at section level
+            # because the document structure builder already creates \chapter{} commands
+            # Map JSON depths to LaTeX sectioning to match expected hierarchy
+            commands = [
+                "section",  # depth 0 - "Key Plot Points", "Nakari's Lair"
+                "subsection",  # depth 1 - intermediate level
+                "subsection",  # depth 2 - "Lair Locations"
+                "subsubsection",  # depth 3 - "N1: East Entrance", etc.
+                "paragraph",  # depth 4+ - deeper nested content
             ]
         else:
             # For articles, supplements, etc. - no chapters, start with sections
