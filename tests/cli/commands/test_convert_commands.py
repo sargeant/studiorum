@@ -110,7 +110,9 @@ class TestConvertAdventureCommand:
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
-    @patch("dnd5e.cli.commands.convert.ContentResolver")
+    @patch(
+        "dnd5e.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
+    )
     @patch("dnd5e.cli.commands.convert.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.display_manager")
     @patch("pathlib.Path.mkdir")
@@ -119,16 +121,38 @@ class TestConvertAdventureCommand:
         mock_mkdir,
         mock_display,
         mock_renderer_class,
-        mock_resolver_class,
+        mock_enrich_content,
         mock_user_config,
         mock_app_config,
         mock_tag_resolver,
         mock_omnidexer,
     ):
         """Test converting adventure from abbreviation."""
+        # Create a proper Adventure instance instead of Mock
+        from dnd5e.core.models.adventures import Adventure
+        from dnd5e.core.models.content import Source
+
+        mock_adventure = Adventure(
+            name="Test Adventure",
+            source=Source(
+                abbreviation="test", name="Test Source"
+            ),  # lowercase "test" to match CLI input
+            id="test-adventure",
+            contents=[],
+        )
+
         # Mock dependencies
         mock_omnidexer_instance = Mock(spec=Omnidexer)
+        mock_omnidexer_instance.get_all_by_type.return_value = [mock_adventure]
+
+        # Mock the source_manager to avoid file loading
+        mock_source_manager = Mock()
+        mock_omnidexer_instance.source_manager = mock_source_manager
         mock_omnidexer.return_value = mock_omnidexer_instance
+
+        # Mock content enrichment to return content unchanged (avoid file loading)
+        mock_enrich_content.side_effect = lambda content, content_type: content
+
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 
@@ -141,45 +165,29 @@ class TestConvertAdventureCommand:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = False
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
+        mock_latex = Mock()
+        mock_latex.paper_size = None
+        mock_latex.fonts = None
+        mock_latex.font_size = None
+        mock_latex.background = None
+        mock_latex.no_outline = None
+        mock_latex.high_contrast = None
+        mock_latex.two_column = None
+        mock_latex.justified = None
+
         mock_user_config_obj = Mock()
-        mock_user_config_obj.latex.paper_size = None
-        mock_user_config_obj.latex.fonts = None
-        mock_user_config_obj.latex.font_size = None
-        mock_user_config_obj.latex.background = None
-        mock_user_config_obj.latex.no_outline = None
-        mock_user_config_obj.latex.high_contrast = None
-        mock_user_config_obj.latex.two_column = None
-        mock_user_config_obj.latex.justified = None
+        mock_user_config_obj.latex = mock_latex
         mock_user_config.return_value = mock_user_config_obj
 
-        # Mock resolver
-        mock_resolver = Mock()
-
-        # Create a proper Adventure instance instead of Mock
-        from dnd5e.core.models.adventures import Adventure
-        from dnd5e.core.models.content import Source
-
-        mock_adventure = Adventure(
-            name="Test Adventure",
-            source=Source(abbreviation="TEST", name="Test Source"),
-            id="test-adventure",
-            contents=[],
-        )
-
-        from dnd5e.core.resolvers.content_resolver import (
-            ContentResolutionResult,
-            ResolutionStatus,
-        )
-
-        mock_result = ContentResolutionResult(
-            status=ResolutionStatus.EXACT_MATCH, content=mock_adventure, query="test"
-        )
-        # Make the mock async
-        mock_resolver.resolve_adventure = Mock(return_value=mock_result)
-        mock_resolver_class.return_value = mock_resolver
+        # Mock resolver - no longer needed since we're using the real resolver with mocked omnidexer
+        # The ContentResolver will be instantiated with our mocked omnidexer
+        # and will find the mock_adventure through get_all_by_type
 
         # Mock renderer
         mock_renderer = Mock()
@@ -434,6 +442,9 @@ class TestConvertBookCommand:
         mock_config.rendering.latex.document.font_size = "11pt"
         mock_config.rendering.latex.document.two_column = False
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
@@ -994,6 +1005,9 @@ class TestLaTeXDocumentOptions:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = False
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
@@ -1201,6 +1215,9 @@ class TestLaTeXDocumentOptions:
         mock_config.rendering.latex.document.font_size = "11pt"
         mock_config.rendering.latex.document.two_column = False
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_get_app_config.return_value = mock_config
 
         # Mock user config (should return None values to test fallback to app config)
@@ -1377,6 +1394,9 @@ class TestConvertSpellsCommand:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = True
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
@@ -1489,6 +1509,9 @@ class TestConvertSpellsCommand:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = True
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
@@ -1596,6 +1619,9 @@ class TestConvertSpellsCommand:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = True
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
@@ -1695,6 +1721,9 @@ class TestConvertSpellsCommand:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = True
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
@@ -1799,6 +1828,9 @@ class TestConvertSpellsCommand:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = True
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
@@ -1887,6 +1919,9 @@ class TestConvertSpellsCommand:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = True
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
@@ -2035,6 +2070,9 @@ class TestConvertSpellsCommand:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = True
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
@@ -2147,6 +2185,9 @@ class TestConvertSpellsCommand:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = True
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
@@ -2217,6 +2258,9 @@ class TestConvertSpellsCommand:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = True
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
@@ -2331,6 +2375,9 @@ class TestConvertSpellsCommand:
         mock_config.rendering.latex.document.high_contrast = False
         mock_config.rendering.latex.document.two_column = True
         mock_config.rendering.latex.document.justified_text = False
+        mock_config.rendering.latex.document.no_outline = (
+            False  # Add the missing no_outline field
+        )
         mock_app_config.return_value = mock_config
 
         # Mock user config with defaults (all None to use app config defaults)
