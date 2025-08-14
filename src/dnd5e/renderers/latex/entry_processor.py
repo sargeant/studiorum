@@ -915,7 +915,7 @@ class RecursiveEntryProcessor:
         # Must be at start of line or after sentence punctuation
         attack_pattern = r"(?:^|(?<=[.!?;]\s))([mr](?:,[mr])*)\s+"
 
-        def replace_abbreviation(match):
+        def replace_abbreviation(match: re.Match[str]) -> str:
             abbrevs = match.group(1)  # e.g., "m", "r", "m,r"
             attack_types = []
 

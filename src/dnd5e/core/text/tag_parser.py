@@ -471,35 +471,39 @@ class TagASTTransformer(Transformer):
             # Quick reference tags have format: text|source|page|section|flags
             node = TagNode(tag_type)
             node.name = name  # Contains reference text
-            node.source = source  # Contains source book
-            node.display_text_nodes = final_display_text_nodes
+            node.source = source  # type: ignore[attr-defined]  # Contains source book
+            if final_display_text_nodes is not None:
+                node.display_text_nodes = final_display_text_nodes
             return node
 
         elif tag_type == "deity":
             # Deity reference tags have format: name|pantheon|source|display
             node = TagNode(tag_type)
             node.name = name
-            node.source = source
-            node.page = page
-            node.display_text_nodes = final_display_text_nodes
+            node.source = source  # type: ignore[attr-defined]
+            node.page = page  # type: ignore[attr-defined]
+            if final_display_text_nodes is not None:
+                node.display_text_nodes = final_display_text_nodes
             return node
 
         elif tag_type == "disease":
             # Disease reference tags have format: name|source|display|page
             node = TagNode(tag_type)
             node.name = name
-            node.source = source
-            node.page = page
-            node.display_text_nodes = final_display_text_nodes
+            node.source = source  # type: ignore[attr-defined]
+            node.page = page  # type: ignore[attr-defined]
+            if final_display_text_nodes is not None:
+                node.display_text_nodes = final_display_text_nodes
             return node
 
         elif tag_type == "table":
             # Table reference tags have format: name|source|display|page
             node = TagNode(tag_type)
             node.name = name
-            node.source = source
-            node.page = page
-            node.display_text_nodes = final_display_text_nodes
+            node.source = source  # type: ignore[attr-defined]
+            node.page = page  # type: ignore[attr-defined]
+            if final_display_text_nodes is not None:
+                node.display_text_nodes = final_display_text_nodes
             return node
 
         elif tag_type == "note":

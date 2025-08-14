@@ -355,8 +355,24 @@ class Ability(BaseModel):
 
             # Process entries and return rendered text
             if self.entries:
-                # Convert entries to the expected format and process with context
-                processed_entries = processor.process_entries(self.entries, context)
+                # Convert Pydantic models to dicts for entry processor
+                converted_entries: list[str | dict[str, Any]] = []
+                for entry in self.entries:
+                    if isinstance(entry, str):
+                        converted_entries.append(entry)
+                    elif hasattr(entry, "model_dump"):
+                        # Convert Pydantic model to dict
+                        converted_entries.append(entry.model_dump())
+                    else:
+                        # Fallback for other types - convert to dict or string
+                        if hasattr(entry, "__dict__"):
+                            converted_entries.append(vars(entry))
+                        else:
+                            converted_entries.append(str(entry))
+
+                processed_entries = processor.process_entries(
+                    converted_entries, context
+                )
                 return "\n".join(processed_entries)
             else:
                 return ""
@@ -650,7 +666,7 @@ class Creature(BaseContent):
             for alignment_item in align_list:
                 if isinstance(alignment_item, dict):
                     if alignment_item.get("special"):
-                        return alignment_item["special"]
+                        return str(alignment_item["special"])
                     elif "alignment" in alignment_item:
                         sub_align = alignment_item["alignment"]
                         if isinstance(sub_align, list):
@@ -666,7 +682,7 @@ class Creature(BaseContent):
 
         # 5etools alignment processing logic
         if len(align_list) == 1:
-            return ALIGNMENT_ABV_TO_FULL.get(align_list[0], align_list[0].lower())
+            return str(ALIGNMENT_ABV_TO_FULL.get(align_list[0], align_list[0].lower()))
         elif len(align_list) == 2:
             # Pair like ["L", "G"] -> "lawful good"
             return " ".join(ALIGNMENT_ABV_TO_FULL.get(a, a.lower()) for a in align_list)
@@ -704,8 +720,15 @@ class Creature(BaseContent):
     def get_processed_ac_text(self) -> str:
         """Get formatted AC text with 5e.tools markup processed."""
         if isinstance(self.ac, list):
-            return ", ".join(ac.get_processed_ac_text() for ac in self.ac)
-        return self.ac.get_processed_ac_text()
+            ac_parts = []
+            for ac_item in self.ac:
+                if isinstance(ac_item, int):
+                    ac_parts.append(str(ac_item))
+                else:
+                    # ArmorClass object
+                    ac_parts.append(ac_item.get_processed_ac_text())
+            return ", ".join(ac_parts)
+        return str(self.ac)
 
     def get_hp_text(self) -> str:
         """Get formatted HP text."""

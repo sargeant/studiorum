@@ -1301,6 +1301,19 @@ class AttackTagHandler(BaseTagHandler):
         # Also handle @atkr tags
         self.supported_tags = ["atk"]
 
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for attack tags, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Attack",
+            display_text="Attack",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
+
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
     ) -> ContentReferenceInfo | None:
@@ -1361,6 +1374,19 @@ class AttackRollTagHandler(BaseTagHandler):
 
     def __init__(self) -> None:
         super().__init__("atkr")
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
 
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
@@ -1423,6 +1449,19 @@ class HitTagHandler(BaseTagHandler):
     def __init__(self) -> None:
         super().__init__("hit")
 
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
+
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
     ) -> ContentReferenceInfo | None:
@@ -1456,6 +1495,19 @@ class HitResultTagHandler(BaseTagHandler):
     def __init__(self) -> None:
         super().__init__("h")
 
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
+
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
     ) -> ContentReferenceInfo | None:
@@ -1473,6 +1525,19 @@ class HitOrMissTagHandler(BaseTagHandler):
     def __init__(self) -> None:
         super().__init__("hom")
 
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
+
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
     ) -> ContentReferenceInfo | None:
@@ -1489,6 +1554,19 @@ class ActionSaveTagHandler(BaseTagHandler):
 
     def __init__(self) -> None:
         super().__init__("actSave")
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
 
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
@@ -1523,6 +1601,19 @@ class ActionSaveFailTagHandler(BaseTagHandler):
 
     def __init__(self) -> None:
         super().__init__("actSaveFail")
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
 
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
@@ -1564,6 +1655,19 @@ class ActionSaveSuccessTagHandler(BaseTagHandler):
     def __init__(self) -> None:
         super().__init__("actSaveSuccess")
 
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
+
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
     ) -> ContentReferenceInfo | None:
@@ -1581,6 +1685,19 @@ class ActionSaveSuccessOrFailTagHandler(BaseTagHandler):
     def __init__(self) -> None:
         super().__init__("actSaveSuccessOrFail")
 
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
+
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
     ) -> ContentReferenceInfo | None:
@@ -1597,6 +1714,19 @@ class ActionSaveFailByTagHandler(BaseTagHandler):
 
     def __init__(self) -> None:
         super().__init__("actSaveFailBy")
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
 
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
@@ -1619,6 +1749,19 @@ class ActionTriggerTagHandler(BaseTagHandler):
     def __init__(self) -> None:
         super().__init__("actTrigger")
 
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
+
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
     ) -> ContentReferenceInfo | None:
@@ -1635,6 +1778,19 @@ class ActionResponseTagHandler(BaseTagHandler):
 
     def __init__(self) -> None:
         super().__init__("actResponse")
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
 
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
@@ -1657,6 +1813,19 @@ class RechargeTagHandler(BaseTagHandler):
 
     def __init__(self) -> None:
         super().__init__("recharge")
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
 
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
@@ -1785,6 +1954,19 @@ class NoteTagHandler(BaseTagHandler):
     def __init__(self) -> None:
         super().__init__("note")
 
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
+
     def get_content_reference_info(
         self, tag_node: TagNode, context: RenderingContext
     ) -> ContentReferenceInfo | None:
@@ -1808,11 +1990,12 @@ class QuickrefTagHandler(BaseTagHandler):
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
-    ) -> ContentReferenceInfo | None:
+    ) -> ContentReferenceInfo:
         """Extract quickref information as a content reference."""
         name = getattr(node, "name", "").strip()
         if not name:
-            return None
+            # Return a fallback rather than None to satisfy protocol
+            name = "unknown reference"
 
         # For quickref, the name IS the display text (e.g., "difficult terrain")
         # Don't use _extract_display_text as that would get the page number
