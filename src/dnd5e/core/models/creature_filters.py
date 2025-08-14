@@ -359,11 +359,11 @@ class CreatureFilterCriteria(BaseModel):
 
         return True
 
-    def matches_size(self, size: str) -> bool:
+    def matches_size(self, size: str | list[str]) -> bool:
         """Check if a creature size matches the filter criteria.
 
         Args:
-            size: The creature size to check
+            size: The creature size to check (string or list of strings)
 
         Returns:
             True if the size matches the criteria
@@ -371,7 +371,28 @@ class CreatureFilterCriteria(BaseModel):
         if self.sizes is None:
             return True  # No size filtering
 
-        return size.lower() in self.sizes
+        # Handle both string and list formats
+        if isinstance(size, list):
+            if not size:
+                return False
+            size_str = size[0]  # Take the first size if multiple
+        else:
+            size_str = size
+
+        # Normalize the input size using the same mapping as the validator
+        size_map = {
+            "t": "tiny",
+            "s": "small",
+            "m": "medium",
+            "l": "large",
+            "h": "huge",
+            "g": "gargantuan",
+        }
+
+        size_clean = size_str.strip().lower()
+        normalized_size = size_map.get(size_clean, size_clean)
+
+        return normalized_size in self.sizes
 
 
 class CreatureCollectionResult(BaseModel):
@@ -379,6 +400,18 @@ class CreatureCollectionResult(BaseModel):
 
     creatures: list = Field(default_factory=list, description="Collected creatures")
     total_count: int = Field(0, description="Total number of creatures collected")
+    matched_count: int = Field(
+        0, description="Number of creatures that matched the criteria"
+    )
+    total_available: int = Field(
+        0, description="Total number of creatures available to search"
+    )
+    criteria_used: "CreatureFilterCriteria | None" = Field(
+        None, description="Filter criteria used for this collection"
+    )
+    search_time_ms: int = Field(
+        0, description="Time taken for the search in milliseconds"
+    )
     by_cr: dict[str, int] = Field(
         default_factory=dict, description="Count by challenge rating"
     )
@@ -399,6 +432,7 @@ class CreatureCollectionResult(BaseModel):
         """Add a creature to the collection with metadata tracking."""
         self.creatures.append(creature)
         self.total_count += 1
+        self.matched_count += 1
 
         # Track by CR
         cr_str = str(getattr(creature, "cr", "unknown"))
