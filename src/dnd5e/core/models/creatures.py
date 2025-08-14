@@ -667,6 +667,14 @@ class Creature(BaseContent):
                 if isinstance(alignment_item, dict):
                     if alignment_item.get("special"):
                         return str(alignment_item["special"])
+                    elif "choose" in alignment_item:
+                        # Handle choose format: {"choose": [["L", "G"], ["L", "N"]]}
+                        # Use the first choice for simplicity
+                        choose_options = alignment_item["choose"]
+                        if choose_options and isinstance(choose_options[0], list):
+                            processed.extend(choose_options[0])
+                        else:
+                            processed.extend(choose_options)
                     elif "alignment" in alignment_item:
                         sub_align = alignment_item["alignment"]
                         if isinstance(sub_align, list):
@@ -1069,11 +1077,21 @@ class Creature(BaseContent):
         for ability_list in ability_lists:
             for ability in ability_list:
                 if isinstance(ability, Ability):
-                    # Extract text from ability entries
-                    text = ability.get_description_text()
-                    # Parse spell references
-                    references = SpellReferenceParser.extract_spell_references(text)
-                    spell_references.extend(references)
+                    # Extract spell references from raw entries before processing
+                    for entry in ability.entries:
+                        if isinstance(entry, str):
+                            # Parse spell references from string entries
+                            references = SpellReferenceParser.extract_spell_references(
+                                entry
+                            )
+                            spell_references.extend(references)
+                        elif hasattr(entry, "model_dump"):
+                            # Convert complex entries to strings for parsing
+                            entry_text = str(entry.model_dump())
+                            references = SpellReferenceParser.extract_spell_references(
+                                entry_text
+                            )
+                            spell_references.extend(references)
 
         # Resolve spell references to actual spell objects
         if spell_references:

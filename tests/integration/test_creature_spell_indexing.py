@@ -71,9 +71,13 @@ class TestCreatureSpellIndexing:
 
         creature = Creature.model_validate(creature_data)
 
-        # Extract spell references directly from the text
-        trait_text = creature.trait[0].get_description_text()
-        references = SpellReferenceParser.extract_spell_references(trait_text)
+        # Extract spell references from raw trait entries
+        all_references = []
+        for entry in creature.trait[0].entries:
+            if isinstance(entry, str):
+                references = SpellReferenceParser.extract_spell_references(entry)
+                all_references.extend(references)
+        references = all_references
 
         assert len(references) >= 3
         spell_names = [ref.name for ref in references]
@@ -117,12 +121,14 @@ class TestCreatureSpellIndexing:
 
         creature = Creature.model_validate(creature_data)
 
-        # Extract spell references from actions
-        all_text = ""
+        # Extract spell references from raw action entries
+        all_references = []
         for action in creature.action:
-            all_text += " " + action.get_description_text()
-
-        references = SpellReferenceParser.extract_spell_references(all_text)
+            for entry in action.entries:
+                if isinstance(entry, str):
+                    references = SpellReferenceParser.extract_spell_references(entry)
+                    all_references.extend(references)
+        references = all_references
 
         assert len(references) >= 3
         spell_names = [ref.name for ref in references]
@@ -159,9 +165,13 @@ class TestCreatureSpellIndexing:
 
         creature = Creature.model_validate(creature_data)
 
-        # Extract spell references from actions
-        action_text = creature.action[0].get_description_text()
-        references = SpellReferenceParser.extract_spell_references(action_text)
+        # Extract spell references from raw action entries
+        all_references = []
+        for entry in creature.action[0].entries:
+            if isinstance(entry, str):
+                references = SpellReferenceParser.extract_spell_references(entry)
+                all_references.extend(references)
+        references = all_references
 
         assert len(references) == 0
 
@@ -208,14 +218,18 @@ class TestCreatureSpellIndexing:
 
         creature = Creature.model_validate(creature_data)
 
-        # Collect all text from all ability types
-        all_text = ""
+        # Extract spell references from raw entries across all ability types
+        all_references = []
         for ability_list in [creature.trait, creature.action, creature.reaction]:
             if ability_list:
                 for ability in ability_list:
-                    all_text += " " + ability.get_description_text()
-
-        references = SpellReferenceParser.extract_spell_references(all_text)
+                    for entry in ability.entries:
+                        if isinstance(entry, str):
+                            references = SpellReferenceParser.extract_spell_references(
+                                entry
+                            )
+                            all_references.extend(references)
+        references = all_references
 
         assert len(references) >= 4
         spell_names = [ref.name for ref in references]
