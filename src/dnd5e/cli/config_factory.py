@@ -112,3 +112,8 @@ def get_appendix_items_default() -> bool:
 def get_appendix_creatures_default() -> bool:
     """Get default appendix creatures setting from config."""
     return get_app_config().rendering.content.appendix_creatures
+
+
+def get_default_sources() -> list[str]:
+    """Get default sources for content resolution from config."""
+    return get_app_config().rendering.content.default_sources

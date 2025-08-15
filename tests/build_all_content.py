@@ -15,16 +15,16 @@ PURPOSE:
 
 USAGE:
     # Test everything (may take 10+ minutes)
-    uv run python tests/build_all_content.py
+    python tests/build_all_content.py
 
     # Quick sample test
-    uv run python tests/build_all_content.py --limit 5 --summary-only
+    python tests/build_all_content.py --limit 5 --summary-only
 
     # Test only adventures, show progress
-    uv run python tests/build_all_content.py --adventures-only --verbose
+    python tests/build_all_content.py --adventures-only --verbose
 
     # Test books with custom output directory
-    uv run python tests/build_all_content.py --books-only --output-dir ./test-output
+    python tests/build_all_content.py --books-only --output-dir ./test-output
 
 OPTIONS:
     --adventures-only    Build only adventures

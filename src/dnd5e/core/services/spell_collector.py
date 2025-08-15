@@ -143,24 +143,25 @@ class SpellCollector:
         result = SpellCollectionResult()
         spell_type = ContentType("spell")
 
+        # Use default sources if none specified
+        if sources is None:
+            from dnd5e.cli.config_factory import get_default_sources
+
+            sources = get_default_sources()
+
         for name in names:
             # Try exact match first
             matches = self.omnidexer.find_all(spell_type, name)
 
             if matches:
-                # Filter by sources if specified
-                if sources:
-                    filtered_matches: list[Spell] = []
-                    for spell in matches:
-                        if isinstance(spell, Spell) and self._matches_sources(
-                            spell, sources
-                        ):
-                            filtered_matches.append(spell)
-                    spell_matches = filtered_matches
-                else:
-                    spell_matches = [
-                        spell for spell in matches if isinstance(spell, Spell)
-                    ]
+                # Filter by sources (now always specified, either from parameter or default)
+                filtered_matches: list[Spell] = []
+                for spell in matches:
+                    if isinstance(spell, Spell) and self._matches_sources(
+                        spell, sources
+                    ):
+                        filtered_matches.append(spell)
+                spell_matches = filtered_matches
 
                 # Add all matching spells
                 for spell in spell_matches:

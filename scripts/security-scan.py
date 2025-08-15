@@ -7,7 +7,7 @@ This script runs comprehensive security checks including:
 - Static code analysis with bandit
 - Basic secret detection patterns
 
-Usage: uv run scripts/security-scan.py [--fix] [--report]
+Usage: python scripts/security-scan.py [--fix] [--report]
 """
 
 import argparse
@@ -31,7 +31,7 @@ def run_command(
         return result
     except FileNotFoundError:
         print(f"❌ Command not found: {cmd[0]}")
-        print(f"💡 Install with: uv add --dev {cmd[0]}")
+        print(f"💡 Install missing tool: {cmd[0]}")
         sys.exit(1)
 
 
@@ -39,7 +39,7 @@ def check_pip_audit() -> dict[str, Any]:
     """Run pip-audit for dependency vulnerabilities."""
     print("\n🔒 Checking for dependency vulnerabilities...")
 
-    result = run_command(["uv", "run", "pip-audit", "--format=json", "--desc=off"])
+    result = run_command(["pip-audit", "--format=json", "--desc=off"])
 
     try:
         if result.stdout:
@@ -80,7 +80,7 @@ def check_bandit() -> dict[str, Any]:
     """Run bandit for static security analysis."""
     print("\n🔍 Running static security analysis...")
 
-    result = run_command(["uv", "run", "bandit", "-r", "src/", "-f", "json", "-q"])
+    result = run_command(["bandit", "-r", "src/", "-f", "json", "-q"])
 
     try:
         if result.stdout:
@@ -221,7 +221,7 @@ def main():
     if args.fix and exit_code != 0:
         print("\n🔧 Attempting to fix issues...")
         if results["pip_audit"]["status"] == "vulnerable":
-            print("💡 For dependency vulnerabilities, try: uv update")
+            print("💡 For dependency vulnerabilities, try: pip install --upgrade")
         if results["bandit"]["status"] == "issues":
             print("💡 Review bandit issues manually - they require code changes")
         if results["secrets"]["status"] == "issues":

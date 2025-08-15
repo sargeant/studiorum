@@ -156,22 +156,23 @@ class ItemCollector:
         result = ItemCollectionResult()
         item_type = ContentType("item")
 
+        # Use default sources if none specified
+        if sources is None:
+            from dnd5e.cli.config_factory import get_default_sources
+
+            sources = get_default_sources()
+
         for name in names:
             # Try exact match first
             matches = self.omnidexer.find_all(item_type, name)
 
             if matches:
-                # Filter by sources if specified
-                if sources:
-                    filtered_matches: list[Item] = []
-                    for item in matches:
-                        if isinstance(item, Item) and self._matches_sources(
-                            item, sources
-                        ):
-                            filtered_matches.append(item)
-                    item_matches = filtered_matches
-                else:
-                    item_matches = [item for item in matches if isinstance(item, Item)]
+                # Filter by sources (now always specified, either from parameter or default)
+                filtered_matches: list[Item] = []
+                for item in matches:
+                    if isinstance(item, Item) and self._matches_sources(item, sources):
+                        filtered_matches.append(item)
+                item_matches = filtered_matches
 
                 # Add all matching items
                 for item in item_matches:

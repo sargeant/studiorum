@@ -24,8 +24,8 @@ class TrackedContent(BaseModel):
     @field_validator("name")
     @classmethod
     def normalize_name(cls, v: str) -> str:
-        """Normalize name by stripping whitespace."""
-        return v.strip()
+        """Normalize name by stripping whitespace and converting to lowercase."""
+        return v.strip().lower()
 
     @field_validator("source")
     @classmethod

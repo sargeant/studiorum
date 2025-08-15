@@ -165,26 +165,25 @@ class CreatureCollector:
         result = CreatureCollectionResult()
         creature_type = ContentType("creature")
 
+        # Use default sources if none specified
+        if sources is None:
+            from dnd5e.cli.config_factory import get_default_sources
+
+            sources = get_default_sources()
+
         for name in names:
             # Try exact match first
             matches = self.omnidexer.find_all(creature_type, name)
 
             if matches:
-                # Filter by sources if specified
-                if sources:
-                    filtered_matches: list[Creature] = []
-                    for creature in matches:
-                        if isinstance(creature, Creature) and self._matches_sources(
-                            creature, sources
-                        ):
-                            filtered_matches.append(creature)
-                    creature_matches = filtered_matches
-                else:
-                    creature_matches = [
-                        creature
-                        for creature in matches
-                        if isinstance(creature, Creature)
-                    ]
+                # Filter by sources (now always specified, either from parameter or default)
+                filtered_matches: list[Creature] = []
+                for creature in matches:
+                    if isinstance(creature, Creature) and self._matches_sources(
+                        creature, sources
+                    ):
+                        filtered_matches.append(creature)
+                creature_matches = filtered_matches
 
                 # Add all matching creatures
                 for creature in creature_matches:

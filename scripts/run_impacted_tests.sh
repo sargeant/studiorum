@@ -50,15 +50,15 @@ if [ -f .test-impact.json ]; then
     if [ "$TOTAL_TESTS" -lt 10 ]; then
         # For small test sets, show verbose output
         echo -e "${YELLOW}Running tests with verbose output...${NC}"
-        uv run pytest $TEST_PATHS -v
+        pytest $TEST_PATHS -v
     elif [ "$TOTAL_TESTS" -lt 50 ]; then
         # For medium test sets, use normal verbosity
         echo -e "${YELLOW}Running tests...${NC}"
-        uv run pytest $TEST_PATHS
+        pytest $TEST_PATHS
     else
         # For large test sets, use parallel execution
         echo -e "${YELLOW}Running tests in parallel...${NC}"
-        uv run pytest $TEST_PATHS -n auto --dist=worksteal
+        pytest $TEST_PATHS -n auto --dist=worksteal
     fi
 
     RESULT=$?

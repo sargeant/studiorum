@@ -84,6 +84,11 @@ class ContentConfig(BaseModel):
     appendix_creatures: bool = Field(
         default=False, description="Generate creature appendices by default"
     )
+    # Default source resolution
+    default_sources: list[str] = Field(
+        default=["xphb", "xmm", "xdmg"],
+        description="Default sources for content resolution when no source specified in tags",
+    )
 
 
 class CompilationConfig(BaseModel):
