@@ -110,6 +110,16 @@ class TagASTTransformer(Transformer):
         "actResponse": (0, 1),  # flags (optional)
         # Reference tags
         "table": (1, 4),  # name|source|display|page
+        # Tarokka and card-specific tags
+        "card": (1, 3),  # card_name|deck|source
+        "deck": (1, 3),  # deck_name|source|display_text
+        # Recipe tags
+        "recipe": (1, 4),  # name|source|display|page
+        # Reward tags
+        "reward": (1, 4),  # name|source|display|page
+        # Scaled damage and dice tags
+        "scaledamage": (1, 3),  # damage|progression|base_damage
+        "scaledice": (1, 4),  # dice|progression|base_dice|unit
         # Formatting tags
         "bold": (1, 1),
         "italic": (1, 1),
@@ -510,6 +520,76 @@ class TagASTTransformer(Transformer):
             # Note tags have format: note_text
             node = TagNode(tag_type)
             node.name = name  # Contains note text
+            return node
+
+        # Tarokka and card-specific tags
+        elif tag_type == "card":
+            # Card tags have format: card_name|deck|source
+            node = TagNode(tag_type)
+            node.name = name  # Contains card name
+            node.source = source  # type: ignore[attr-defined]  # Contains deck name
+            # Use display text if provided, otherwise card name
+            if final_display_text_nodes is not None:
+                node.display_text_nodes = final_display_text_nodes
+            else:
+                node.display_text_nodes = [TextNode(name)]
+            return node
+
+        elif tag_type == "deck":
+            # Deck tags have format: deck_name|source|display_text
+            node = TagNode(tag_type)
+            node.name = name  # Contains deck name
+            node.source = source  # type: ignore[attr-defined]  # Contains source
+            # Use display text if provided, otherwise deck name
+            if final_display_text_nodes is not None:
+                node.display_text_nodes = final_display_text_nodes
+            else:
+                node.display_text_nodes = [TextNode(name)]
+            return node
+
+        # Recipe tags
+        elif tag_type == "recipe":
+            # Recipe reference tags have format: name|source|display|page
+            node = TagNode(tag_type)
+            node.name = name
+            node.source = source  # type: ignore[attr-defined]
+            node.page = page  # type: ignore[attr-defined]
+            if final_display_text_nodes is not None:
+                node.display_text_nodes = final_display_text_nodes
+            else:
+                node.display_text_nodes = [TextNode(name)]
+            return node
+
+        # Reward tags
+        elif tag_type == "reward":
+            # Reward reference tags have format: name|source|display|page
+            node = TagNode(tag_type)
+            node.name = name
+            node.source = source  # type: ignore[attr-defined]
+            node.page = page  # type: ignore[attr-defined]
+            if final_display_text_nodes is not None:
+                node.display_text_nodes = final_display_text_nodes
+            else:
+                node.display_text_nodes = [TextNode(name)]
+            return node
+
+        # Scaled damage and dice tags
+        elif tag_type == "scaledamage":
+            # Scale damage tags have format: damage|progression|base_damage
+            node = TagNode(tag_type)
+            node.name = name  # Contains damage expression like "2d6", "3d8"
+            node.source = source  # type: ignore[attr-defined]  # Contains progression like "3,5,7,9"
+            # For scaledamage, display the primary damage value
+            node.display_text_nodes = [TextNode(name)]
+            return node
+
+        elif tag_type == "scaledice":
+            # Scale dice tags have format: dice|progression|base_dice|unit
+            node = TagNode(tag_type)
+            node.name = name  # Contains dice expression like "5d8"
+            node.source = source  # type: ignore[attr-defined]  # Contains progression like "1-7"
+            # For scaledice, display the primary dice value
+            node.display_text_nodes = [TextNode(name)]
             return node
 
         # Generic fallback - create node with name/display text for automatic passthrough
