@@ -145,9 +145,6 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 # Ensure source information is present
                 item = self._ensure_source_info(item, path)
 
-                # Add missing required fields with reasonable defaults
-                item = self._add_missing_required_fields(item)
-
                 validated_item = self._content_factory.create_content(
                     item, self._content_type
                 )
@@ -454,115 +451,6 @@ class JsonDataLoader(DataLoader[BaseContent]):
             # Convert string source to proper format
             source_abbrev = item["source"]
             item["source"] = {"abbreviation": source_abbrev, "name": source_abbrev}
-
-        return item
-
-    def _add_missing_required_fields(self, item: dict[str, Any]) -> dict[str, Any]:
-        """Add missing required fields with reasonable defaults."""
-        # Handle missing fields for different content types
-        if self._content_type == ContentType.CREATURE:
-            # Add missing alignment field for creatures
-            if "alignment" not in item:
-                item["alignment"] = ["N"]  # Default to Neutral
-                logger.debug(
-                    f"Added default alignment for creature {item.get('name', 'unknown')}"
-                )
-
-        elif self._content_type == ContentType.ITEM:
-            # Add missing type field for items
-            if "type" not in item:
-                item_type = self._infer_item_type(item)
-                item["type"] = item_type
-                logger.debug(
-                    f"Added inferred type '{item_type}' for item {item.get('name', 'unknown')}"
-                )
-
-        elif self._content_type == ContentType.ADVENTURE:
-            # Add missing name field for 5etools adventure format
-            if "name" not in item and "data" in item:
-                # For 5etools format, derive adventure name from source or use generic name
-                source = item.get("source")
-                if source:
-                    abbrev = None
-                    # Handle both dict and object source formats
-                    if isinstance(source, dict):
-                        abbrev = source.get("abbreviation")
-                    elif hasattr(source, "abbreviation"):
-                        abbrev = source.abbreviation
-
-                    if abbrev:
-                        # Use abbreviation as name for adventures since actual names are in adventures.json
-                        item["name"] = f"Adventure {abbrev}"
-                    else:
-                        item["name"] = "Unknown Adventure"
-                else:
-                    item["name"] = "Unknown Adventure"
-                logger.debug(f"Added name '{item['name']}' for adventure")
-
-        elif self._content_type == ContentType.BOOK:
-            # Add missing name field for 5etools book format
-            if "name" not in item and "data" in item:
-                # For 5etools format, derive book name from source or use generic name
-                source = item.get("source")
-                if source:
-                    abbrev = None
-                    # Handle both dict and object source formats
-                    if isinstance(source, dict):
-                        abbrev = source.get("abbreviation")
-                    elif hasattr(source, "abbreviation"):
-                        abbrev = source.abbreviation
-
-                    if abbrev:
-                        # Convert abbreviation to readable name
-                        name_map = {
-                            "PHB": "Player's Handbook",
-                            "MM": "Monster Manual",
-                            "DMG": "Dungeon Master's Guide",
-                            "XPHB": "Player's Handbook (2024)",
-                        }
-                        item["name"] = name_map.get(abbrev, abbrev)
-                    else:
-                        item["name"] = "Unknown Book"
-                else:
-                    item["name"] = "Unknown Book"
-                logger.debug(f"Added name '{item['name']}' for book")
-
-        elif self._content_type == ContentType.SPELL:
-            # Add missing required fields for spells
-            defaults_added = []
-
-            if "components" not in item:
-                item["components"] = {}  # Empty dict for SpellComponent defaults
-                defaults_added.append("components")
-
-            if "level" not in item:
-                item["level"] = 0  # Cantrip
-                defaults_added.append("level")
-
-            if "school" not in item:
-                item["school"] = "T"  # Transmutation
-                defaults_added.append("school")
-
-            if "time" not in item:
-                item["time"] = [{"number": 1, "unit": "action"}]
-                defaults_added.append("time")
-
-            if "range" not in item:
-                item["range"] = {"type": "point", "distance": {"type": "self"}}
-                defaults_added.append("range")
-
-            if "duration" not in item:
-                item["duration"] = [{"type": "instant"}]
-                defaults_added.append("duration")
-
-            if "entries" not in item:
-                item["entries"] = ["Incomplete spell data."]
-                defaults_added.append("entries")
-
-            if defaults_added:
-                logger.debug(
-                    f"Added default fields {defaults_added} for spell {item.get('name', 'unknown')}"
-                )
 
         return item
 
@@ -1031,18 +919,6 @@ class JsonDataLoader(DataLoader[BaseContent]):
         )
         return []
 
-    def _infer_item_type(self, item: dict[str, Any]) -> str:
-        """Infer item type from common fields."""
-        if "weaponCategory" in item:
-            return "weapon"
-        if "armorCategory" in item:
-            return "armor"
-        if "wondrous" in item:
-            return "wondrous item"
-        if "consumable" in item:
-            return "consumable"
-        return "item"  # Default generic item
-
     def _extract_fluff_text(self, fluff_item: dict[str, Any]) -> str:
         """Extract descriptive text from fluff item."""
         text_parts = []
@@ -1310,9 +1186,6 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
                 # Ensure source information is present
                 item = self._ensure_source_info(item, path)
-
-                # Add missing required fields with reasonable defaults
-                item = self._add_missing_required_fields(item)
 
                 validated_item = self._content_factory.create_content(
                     item, self._content_type
