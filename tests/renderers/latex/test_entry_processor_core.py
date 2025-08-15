@@ -27,7 +27,9 @@ class TestRecursiveEntryProcessor:
 
         # Mock tag resolver to return escaped text
         mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text = Mock(side_effect=lambda x: f"processed_{x}")
+        mock_tag_resolver.process_text = Mock(
+            side_effect=lambda text, context=None: f"processed_{text}"
+        )
         self.context = RenderingContext(
             output_format="latex",
             metadata={"include_images": True, "tag_resolver": mock_tag_resolver},
@@ -177,7 +179,9 @@ class TestRecursiveEntryProcessor:
         from unittest.mock import Mock
 
         mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text = Mock(side_effect=lambda x: f"processed_{x}")
+        mock_tag_resolver.process_text = Mock(
+            side_effect=lambda text, context=None: f"processed_{text}"
+        )
         context.tag_resolver = mock_tag_resolver
 
         entry = {"type": "image", "href": "path/to/image.png", "title": "Test Image"}

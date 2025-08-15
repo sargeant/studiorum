@@ -51,9 +51,14 @@ class SpellEntryRenderer(BaseEntryRenderer):
         self, content: Spell, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for spell using model methods."""
-        # New template expects direct access to spell object and its methods
+        # Provide both the spell object and preprocessed fields for compatibility
         return {
             "spell": content,
+            "level_text": content.get_enhanced_level_text(),
+            "components_text": content.get_enhanced_components_text(),
+            "duration_text": content.get_enhanced_duration_text(),
+            "description_text": content.get_description_text(),
+            "higher_level_text": content.get_higher_level_text(),
         }
 
 
@@ -68,9 +73,26 @@ class CreatureEntryRenderer(BaseEntryRenderer):
         self, content: Creature, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for creature using model methods."""
-        # New template expects direct access to creature object and its methods
+        # Provide both the creature object and preprocessed fields for compatibility
         return {
             "creature": content,
+            "size_type_alignment": content.get_size_type_alignment(),
+            "ability_scores": {
+                "str": content.strength,
+                "dex": content.dexterity,
+                "con": content.constitution,
+                "int": content.intelligence,
+                "wis": content.wisdom,
+                "cha": content.charisma,
+            },
+            "formatted_abilities": {
+                "str": content.get_ability_text(content.strength),
+                "dex": content.get_ability_text(content.dexterity),
+                "con": content.get_ability_text(content.constitution),
+                "int": content.get_ability_text(content.intelligence),
+                "wis": content.get_ability_text(content.wisdom),
+                "cha": content.get_ability_text(content.charisma),
+            },
         }
 
 
@@ -85,9 +107,13 @@ class ItemEntryRenderer(BaseEntryRenderer):
         self, content: Item, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for item using model methods."""
-        # New template expects direct access to item object and its methods
+        # Provide both the item object and preprocessed fields for compatibility
         return {
             "item": content,
+            "type_text": content.get_type_text(),
+            "rarity_text": content.get_rarity_text(),
+            "weight_text": content.get_weight_text(),
+            "value_text": content.get_value_text(),
         }
 
 

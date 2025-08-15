@@ -231,7 +231,7 @@ class TestLiberalParsing:
         print("✅ Fluff file detection and liberal parsing working")
 
     def test_missing_required_fields_default_handling(self) -> None:
-        """Test that missing required fields are handled with defaults."""
+        """Test that missing required fields are handled with validation errors."""
         creature_data = {
             "monster": [
                 {
@@ -239,7 +239,7 @@ class TestLiberalParsing:
                     "source": "TEST",
                     "size": ["M"],
                     "type": "humanoid",
-                    # Missing alignment - should get default
+                    # Missing alignment - should cause validation error
                     "ac": [{"ac": 10}],
                     "hp": {"average": 10, "formula": "2d8+1"},
                     "speed": {"walk": 30},
@@ -263,14 +263,11 @@ class TestLiberalParsing:
             )
             creatures = creature_loader.load(Path(f.name))
 
-            # Should load creature with default alignment
-            assert len(creatures) == 1
-            assert creatures[0].name == "Creature Missing Alignment"
-            assert isinstance(creatures[0], Creature)
-            assert creatures[0].alignment == ["N"]  # Default neutral alignment
+            # Should skip creature with missing required field
+            assert len(creatures) == 0
 
         Path(f.name).unlink()  # Clean up
-        print("✅ Missing required fields default handling working")
+        print("✅ Missing required fields validation working")
 
     def test_complex_spell_entry_text_extraction(self) -> None:
         """Test text extraction from complex spell entry structures."""

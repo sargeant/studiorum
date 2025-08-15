@@ -103,7 +103,11 @@ class RecursiveEntryProcessor:
                         processed.append(self.process_entry_dict(entry_dict, context))
                     else:
                         # Check if strict mode is enabled
-                        if os.getenv("DND5E_STRICT_ENTRY_PROCESSING"):
+                        if os.getenv("DND5E_STRICT_ENTRY_PROCESSING", "").lower() in (
+                            "1",
+                            "true",
+                            "yes",
+                        ):
                             raise ValueError(
                                 f"Unknown entry type {type(entry).__name__} encountered in strict mode. "
                                 f"Entry: {entry}. Expected str, dict, Pydantic model, or dataclass."
@@ -117,7 +121,11 @@ class RecursiveEntryProcessor:
                         processed.append(str(entry))
                 except Exception as e:
                     # Check if strict mode is enabled
-                    if os.getenv("DND5E_STRICT_ENTRY_PROCESSING"):
+                    if os.getenv("DND5E_STRICT_ENTRY_PROCESSING", "").lower() in (
+                        "1",
+                        "true",
+                        "yes",
+                    ):
                         raise ValueError(
                             f"Failed to process entry {type(entry).__name__} in strict mode: {e}. "
                             f"Entry: {entry}"

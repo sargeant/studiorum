@@ -93,6 +93,10 @@ class Book(BaseContent):
                 # Create a copy of the data and transform it
                 transformed = dict(data)
 
+                # Ensure the book has a name field
+                if "name" not in transformed:
+                    transformed["name"] = "unknown"
+
                 # Process each item in data_array to ensure required fields
                 processed_contents = []
                 for i, item in enumerate(data_array):

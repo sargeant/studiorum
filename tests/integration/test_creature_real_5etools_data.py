@@ -56,6 +56,22 @@ class TestCreatureReal5etoolsDataIntegration:
             if not self.loaded_creatures:
                 pytest.skip("No creatures loaded from 5etools data")
 
+            # Filter to creatures from default sources for compatibility with CreatureCollector
+            from dnd5e.cli.config_factory import get_default_sources
+
+            default_sources = get_default_sources()
+            self.default_source_creatures = [
+                creature
+                for creature in self.loaded_creatures
+                if creature.source.abbreviation.lower()
+                in [s.lower() for s in default_sources]
+            ]
+
+            if not self.default_source_creatures:
+                pytest.skip(
+                    f"No creatures from default sources {default_sources} available"
+                )
+
         except Exception as e:
             pytest.skip(f"Failed to load 5etools creature data: {e}")
 
@@ -260,8 +276,10 @@ class TestCreatureReal5etoolsDataIntegration:
                 f"No {most_common_type} creatures found"
             )
 
-        # Test collection by names - use names that are actually present
-        creature_names = [creature.name for creature in self.loaded_creatures[:5]]
+        # Test collection by names - use names from default sources that collector can find
+        creature_names = [
+            creature.name for creature in self.default_source_creatures[:5]
+        ]
         if creature_names:
             name_result = collector.collect_by_names(creature_names)
             assert name_result.matched_count > 0, "No creatures found by name"
