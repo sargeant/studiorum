@@ -622,3 +622,19 @@ def set_validation_mode(mode: ValidationMode) -> None:
     """Set the validation mode on the registry instance."""
     registry = get_registry()
     registry.validation_mode = mode
+
+
+# Rebuild models that use forward references from base_context
+def _rebuild_validation_models() -> None:
+    """Rebuild validation models after base context models are available."""
+    try:
+        from dnd5e.core.loaders.omnidexer import Omnidexer  # noqa: F401
+
+        ValidationContext.model_rebuild()
+    except ImportError:
+        # Dependencies not yet available, rebuilds will happen later
+        pass
+
+
+# Trigger rebuild immediately if possible
+_rebuild_validation_models()

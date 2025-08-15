@@ -305,17 +305,22 @@ class Omnidexer:
     ) -> list[BaseContent]:
         """Enhance spell objects with class information from lookup data."""
         try:
+            from ..models.spells import Spell
             from ..services.spell_class_lookup import get_spell_class_lookup_service
 
             lookup_service = get_spell_class_lookup_service()
 
-            enhanced_items = []
+            enhanced_items: list[BaseContent] = []
             for item in content_items:
-                enhanced_item = lookup_service.enhance_spell(item)
-                enhanced_items.append(enhanced_item)
+                if isinstance(item, Spell):
+                    enhanced_item = lookup_service.enhance_spell(item)
+                    enhanced_items.append(enhanced_item)
+                else:
+                    # Not a spell, just add as-is
+                    enhanced_items.append(item)
 
             logger.debug(
-                f"Enhanced {len(enhanced_items)} spells with class information"
+                f"Enhanced {len([item for item in content_items if isinstance(item, Spell)])} spells with class information"
             )
             return enhanced_items
 

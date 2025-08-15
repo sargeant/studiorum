@@ -2,10 +2,13 @@
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..logging import get_logger
 from ..models.spells import ClassReference, SpellClassList
+
+if TYPE_CHECKING:
+    from ..models.spells import Spell
 
 logger = get_logger(__name__)
 
@@ -112,7 +115,7 @@ class SpellClassLookupService:
 
         return SpellClassList(fromClassList=class_refs)
 
-    def enhance_spell(self, spell: Any, include_optional: bool = False) -> Any:
+    def enhance_spell(self, spell: "Spell", include_optional: bool = False) -> "Spell":
         """Enhance a spell object with class information from lookup data.
 
         Args:

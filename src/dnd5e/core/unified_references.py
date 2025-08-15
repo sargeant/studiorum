@@ -11,11 +11,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
 
 from pydantic import BaseModel, Field
 
 from dnd5e.core.base_context import BaseContext
+
+if TYPE_CHECKING:
+    from dnd5e.core.models.content import BaseContent
 
 T = TypeVar("T")
 
@@ -383,7 +386,7 @@ def create_spell_reference(
     source: str | None = None,
     display_text: str | None = None,
     original_text: str = "",
-) -> Reference[Any]:  # Use Any to avoid circular imports
+) -> Reference[BaseContent]:
     """Create a spell reference compatible with existing SpellReference system.
 
     Args:
@@ -395,7 +398,6 @@ def create_spell_reference(
     Returns:
         Unified Reference object
     """
-    # Import here to avoid circular dependency
     from dnd5e.core.models.content import BaseContent
 
     return Reference(
@@ -416,7 +418,7 @@ def create_cross_reference(
     latex_label: str | None = None,
     section: str | None = None,
     page: int | None = None,
-) -> Reference[Any]:
+) -> Reference[BaseContent]:
     """Create a cross-reference compatible with existing CrossReference system.
 
     Args:

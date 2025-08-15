@@ -368,3 +368,19 @@ class ReferenceResolver:
         data["appendix_data"] = self.tag_integration.export_appendix_data()
 
         return data
+
+
+# Rebuild models that use forward references from base_context
+def _rebuild_reference_models() -> None:
+    """Rebuild reference models after base context models are available."""
+    try:
+        from dnd5e.core.loaders.omnidexer import Omnidexer  # noqa: F401
+
+        ReferenceContext.model_rebuild()
+    except ImportError:
+        # Dependencies not yet available, rebuilds will happen later
+        pass
+
+
+# Trigger rebuild immediately if possible
+_rebuild_reference_models()

@@ -7,13 +7,17 @@ standardizing common patterns while allowing for specialized functionality.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
 
 from pydantic import BaseModel, Field
 
 from dnd5e.core.config.unified_config import ApplicationConfig
 
+if TYPE_CHECKING:
+    from dnd5e.core.loaders.omnidexer import Omnidexer
+
 T = TypeVar("T")
+U = TypeVar("U")
 
 
 class BaseContext(Protocol):
@@ -35,7 +39,7 @@ class BaseContext(Protocol):
         ...
 
     @property
-    def omnidexer(self) -> Any:  # Avoid circular import
+    def omnidexer(self) -> Omnidexer | None:
         """Access to the content indexer for lookups."""
         ...
 
@@ -72,7 +76,9 @@ class Context(BaseModel, ABC):
     model_config = {"arbitrary_types_allowed": True}
 
     # Core services - these will be injected by the container
-    omnidexer: Any = Field(default=None, description="Content indexer for lookups")
+    omnidexer: Omnidexer | None = Field(
+        default=None, description="Content indexer for lookups"
+    )
 
     # Source information for debugging
     source_file: str | None = Field(default=None, description="Source file path")
@@ -166,7 +172,7 @@ class ProcessingContext[T](Context):
     def content_type(self) -> str:
         return self.content_type_name
 
-    def get_option(self, key: str, default: Any = None) -> Any:
+    def get_option[U](self, key: str, default: U | None = None) -> U | None:
         """Get a processing option with optional default."""
         return self.processing_options.get(key, default)
 
@@ -204,12 +210,12 @@ class ServiceContext(Context):
         """Check if a service is available."""
         return getattr(self, service_name, None) is not None
 
-    def get_service(self, service_name: str) -> Any:
+    def get_service[U](self, service_name: str, service_type: type[U]) -> U:
         """Get a service, raising an error if not available."""
         service = getattr(self, service_name, None)
         if service is None:
             raise ValueError(f"Service '{service_name}' not available in context")
-        return service
+        return cast(U, service)
 
 
 # Utility functions for context creation and management
@@ -218,7 +224,7 @@ class ServiceContext(Context):
 def create_processing_context[T](
     content: T,
     content_type: str,
-    omnidexer: Any = None,
+    omnidexer: Omnidexer | None = None,
     source_file: str | None = None,
     source_section: str | None = None,
     **options: Any,
@@ -248,7 +254,7 @@ def create_processing_context[T](
 
 def create_document_context(
     document_type: str = "general",
-    omnidexer: Any = None,
+    omnidexer: Omnidexer | None = None,
     current_section: str = "",
     **options: Any,
 ) -> DocumentContext:
@@ -272,7 +278,7 @@ def create_document_context(
 
 
 def create_service_context(
-    omnidexer: Any = None,
+    omnidexer: Omnidexer | None = None,
     config: ApplicationConfig | None = None,
     **services: Any,
 ) -> ServiceContext:
@@ -291,3 +297,22 @@ def create_service_context(
         config=config,
         **services,
     )
+
+
+# Rebuild models that use forward references to Omnidexer
+def _rebuild_context_models() -> None:
+    """Rebuild context models after Omnidexer is available."""
+    try:
+        from dnd5e.core.loaders.omnidexer import Omnidexer  # noqa: F401
+
+        Context.model_rebuild()
+        DocumentContext.model_rebuild()
+        ProcessingContext.model_rebuild()
+        ServiceContext.model_rebuild()
+    except ImportError:
+        # Omnidexer not yet available, rebuilds will happen later
+        pass
+
+
+# Trigger rebuild immediately if possible
+_rebuild_context_models()
