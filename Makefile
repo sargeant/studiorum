@@ -1,5 +1,6 @@
 # Makefile for 5e2pdf project
-# All commands run via uv (https://github.com/astral-sh/uv)
+# Local targets use direct python commands (requires activate-5e)
+# CI targets use uv run for isolated environment
 
 # Configuration for fail-fast behavior and error checking
 SHELL := /bin/bash
@@ -95,91 +96,91 @@ uv-docs:
 ## Linting and formatting
 ruff: uv
 	@echo "Running ruff formatting and checks..."
-	$(UV) ruff format $(SRC_DIR) $(TEST_DIR)
-	$(UV) ruff check $(SRC_DIR) $(TEST_DIR) || (echo "Ruff checks failed"; exit 1)
+	ruff format $(SRC_DIR) $(TEST_DIR)
+	ruff check $(SRC_DIR) $(TEST_DIR) || (echo "Ruff checks failed"; exit 1)
 
 ## Code formatting target
 format: uv
 	@echo "Formatting code..."
-	$(UV) ruff format $(SRC_DIR) $(TEST_DIR)
+	ruff format $(SRC_DIR) $(TEST_DIR)
 	@echo "Code formatted"
 
 ## Static type checking
 mypy: uv
 	@echo "Running mypy type checking..."
-	$(UV) mypy $(SRC_DIR)/ || (echo "Type checking failed"; exit 1)
+	mypy $(SRC_DIR)/ || (echo "Type checking failed"; exit 1)
 
 ## Check for circular imports
 imports: uv
 	@echo "Checking for circular imports..."
-	$(UV) python $(SCRIPTS_DIR)/check_circular_imports.py $(SRC_DIR)/dnd5e/ --fail-on-cycles || (echo "Circular import check failed"; exit 1)
+	python $(SCRIPTS_DIR)/check_circular_imports.py $(SRC_DIR)/dnd5e/ --fail-on-cycles || (echo "Circular import check failed"; exit 1)
 
 ## Check architectural boundaries
 boundaries: uv
 	@echo "Checking architectural boundaries..."
-	$(UV) python $(SCRIPTS_DIR)/check_architectural_boundaries.py $(SRC_DIR)/dnd5e/ --fail-on-violations || (echo "Architectural boundary check failed"; exit 1)
+	python $(SCRIPTS_DIR)/check_architectural_boundaries.py $(SRC_DIR)/dnd5e/ --fail-on-violations || (echo "Architectural boundary check failed"; exit 1)
 
 # Security checks
 ## Security vulnerability scan
 pip-audit: uv
 	@echo "Running security vulnerability scan..."
-	$(UV) pip-audit --desc=off || (echo "Security vulnerability scan failed"; exit 1)
+	pip-audit --desc=off || (echo "Security vulnerability scan failed"; exit 1)
 
 ## Static security analysis (medium severity)
 bandit-medium: uv
 	@echo "Running static security analysis (medium severity)..."
-	$(UV) bandit --severity-level medium -r $(SRC_DIR)/ || (echo "Security analysis failed"; exit 1)
+	bandit --severity-level medium -r $(SRC_DIR)/ || (echo "Security analysis failed"; exit 1)
 
 ## Static security analysis (all severity)
 bandit: uv
 	@echo "Running static security analysis..."
-	$(UV) bandit -ll -r $(SRC_DIR)/ || (echo "Security analysis failed"; exit 1)
+	bandit -ll -r $(SRC_DIR)/ || (echo "Security analysis failed"; exit 1)
 
 # Run all tests
 test: uv
 	@echo "Running all tests..."
-	$(UV) pytest
+	pytest
 
 # Speed-based test targets for development workflow
 ## Run fast tests only (<1s per test)
 test-fast: uv
 	@echo "Running fast tests only..."
-	$(UV) pytest -m "fast"
+	pytest -m "fast"
 
 ## Run unit tests (excludes integration and slow tests)
 test-unit: uv
 	@echo "Running unit tests..."
-	$(UV) pytest -m "not integration and not slow and not ci_broken"
+	pytest -m "not integration and not slow and not ci_broken"
 
 ## Run core functionality tests
 test-core: uv
 	@echo "Running core functionality tests..."
-	$(UV) pytest -m "core"
+	pytest -m "core"
 
 ## Run rendering system tests
 test-rendering: uv
 	@echo "Running rendering system tests..."
-	$(UV) pytest -m "rendering and not ci_broken"
+	pytest -m "rendering and not ci_broken"
 
 ## Run CLI interface tests
 test-cli: uv
 	@echo "Running CLI interface tests..."
-	$(UV) pytest -m "cli and not ci_broken"
+	pytest -m "cli and not ci_broken"
 
 ## Run integration tests only
 test-integration: uv
 	@echo "Running integration tests..."
-	$(UV) pytest -m "integration and not ci_broken"
+	pytest -m "integration and not ci_broken"
 
 ## Run slow tests only (>10s per test)
 test-slow: uv
 	@echo "Running slow tests..."
-	$(UV) pytest -m "slow"
+	pytest -m "slow"
 
 ## Run tests requiring external data
 test-data: uv
 	@echo "Running tests requiring external data..."
-	$(UV) pytest -m "requires_data"
+	pytest -m "requires_data"
 
 # Smart Test Selection (Phase 4.1)
 ## Run only tests impacted by current changes
@@ -190,7 +191,7 @@ test-impacted: uv
 ## Analyze which tests are impacted by changes
 test-impact-analyze: uv
 	@echo "Analyzing test impact..."
-	@git diff --name-only main...HEAD | xargs $(UV) python $(SCRIPTS_DIR)/test_impact_analyzer.py
+	@git diff --name-only main...HEAD | xargs python $(SCRIPTS_DIR)/test_impact_analyzer.py
 
 ## Run tests for current feature branch
 test-focused: uv
@@ -203,70 +204,70 @@ test-quick: uv
 	@if [ -n "$$(git diff --name-only HEAD 2>/dev/null)" ]; then \
 		$(SCRIPTS_DIR)/run_impacted_tests.sh HEAD; \
 	else \
-		$(UV) pytest -m "fast" --tb=short; \
+		pytest -m "fast" --tb=short; \
 	fi
 
 # Test Performance and Quality Monitoring (Phase 4.2)
 ## Run tests with performance profiling
 test-profile: uv
 	@echo "Running tests with performance profiling..."
-	$(UV) pytest --profile -m "not slow" || true
+	pytest --profile -m "not slow" || true
 	@echo "Performance report saved to .test-performance-report.json"
 
 ## Create performance baseline
 test-perf-baseline: uv
 	@echo "Creating performance baseline..."
-	$(UV) python $(SCRIPTS_DIR)/performance_baseline.py --create-baseline
+	python $(SCRIPTS_DIR)/performance_baseline.py --create-baseline
 	@echo "Performance baseline created"
 
 ## Compare performance against baseline
 test-perf-compare: uv
 	@echo "Comparing performance against baseline..."
-	$(UV) pytest --profile -m "not slow" || true
-	$(UV) python $(SCRIPTS_DIR)/performance_baseline.py --compare
+	pytest --profile -m "not slow" || true
+	python $(SCRIPTS_DIR)/performance_baseline.py --compare
 
 ## Track performance history
 test-perf-track: uv
 	@echo "Tracking performance history..."
-	$(UV) pytest --profile -m "not slow" || true
-	$(UV) python $(SCRIPTS_DIR)/performance_baseline.py --track
+	pytest --profile -m "not slow" || true
+	python $(SCRIPTS_DIR)/performance_baseline.py --track
 
 ## Show performance trends
 test-perf-trends: uv
 	@echo "Showing performance trends..."
-	$(UV) python $(SCRIPTS_DIR)/performance_baseline.py --trends
+	python $(SCRIPTS_DIR)/performance_baseline.py --trends
 
 
 ## Analyze test quality metrics
 test-quality: uv
 	@echo "Analyzing test quality metrics..."
-	$(UV) python $(SCRIPTS_DIR)/test_quality_metrics.py --report || (echo "Test quality analysis failed"; exit 1)
+	python $(SCRIPTS_DIR)/test_quality_metrics.py --report || (echo "Test quality analysis failed"; exit 1)
 	@echo "Test quality analysis completed"
 
 ## Check test quality gates
 test-quality-gate: uv
 	@echo "Checking test quality gates..."
-	$(UV) python $(SCRIPTS_DIR)/test_quality_metrics.py --check --fail-on-issues || (echo "Test quality gates failed"; exit 1)
+	python $(SCRIPTS_DIR)/test_quality_metrics.py --check --fail-on-issues || (echo "Test quality gates failed"; exit 1)
 	@echo "Test quality gates passed"
 
 ## Comprehensive test quality validation
 test-quality-strict: uv
 	@echo "Running strict test quality validation..."
-	$(UV) python $(SCRIPTS_DIR)/test_quality_metrics.py --check --strict --fail-on-issues || (echo "Strict test quality validation failed"; exit 1)
+	python $(SCRIPTS_DIR)/test_quality_metrics.py --check --strict --fail-on-issues || (echo "Strict test quality validation failed"; exit 1)
 	@echo "Strict test quality validation passed"
 
 # Documentation
 ## Build HTML docs and open in browser
 docs: uv-docs
 	@echo "Building documentation..."
-	cd $(DOCS_DIR) && $(UV) sphinx-build -b html source _build/html || (echo "Documentation build failed"; exit 1)
+	cd $(DOCS_DIR) && sphinx-build -b html source _build/html || (echo "Documentation build failed"; exit 1)
 	@echo "Documentation built and opened"
 
 ## Start documentation auto-rebuild server
 docs-serve: uv-docs
 	@echo "Starting documentation auto-rebuild server..."
 	@echo "Server will be available at http://localhost:8000"
-	cd $(DOCS_DIR) && $(UV) sphinx-autobuild source _build/html --host 0.0.0.0 --port 8000 --open-browser || (echo "Documentation server failed to start"; exit 1)
+	cd $(DOCS_DIR) && sphinx-autobuild source _build/html --host 0.0.0.0 --port 8000 --open-browser || (echo "Documentation server failed to start"; exit 1)
 
 ## Clean documentation build artifacts
 docs-clean:
@@ -281,20 +282,20 @@ docs-rebuild: docs-clean docs
 ## Check documentation for issues (broken links, syntax)
 docs-check: uv-docs
 	@echo "Checking documentation for issues..."
-	cd $(DOCS_DIR) && $(UV) sphinx-build -b linkcheck source _build/linkcheck || (echo "Link check failed"; exit 1)
-	cd $(DOCS_DIR) && $(UV) sphinx-build -W -b html source _build/html || (echo "Documentation syntax check failed"; exit 1)
+	cd $(DOCS_DIR) && sphinx-build -b linkcheck source _build/linkcheck || (echo "Link check failed"; exit 1)
+	cd $(DOCS_DIR) && sphinx-build -W -b html source _build/html || (echo "Documentation syntax check failed"; exit 1)
 	@echo "Documentation checks passed"
 
 ## Validate documentation quality and structure
 docs-validate: uv-docs
 	@echo "Validating documentation quality..."
-	$(UV) python $(SCRIPTS_DIR)/validate_docs.py --docs-dir $(DOCS_DIR) || (echo "Documentation validation failed"; exit 1)
+	python $(SCRIPTS_DIR)/validate_docs.py --docs-dir $(DOCS_DIR) || (echo "Documentation validation failed"; exit 1)
 	@echo "Documentation validation passed"
 
 ## Full documentation validation (strict mode)
 docs-validate-strict: uv-docs
 	@echo "Running strict documentation validation..."
-	$(UV) python $(SCRIPTS_DIR)/validate_docs.py --docs-dir $(DOCS_DIR) --strict || (echo "Strict documentation validation failed"; exit 1)
+	python $(SCRIPTS_DIR)/validate_docs.py --docs-dir $(DOCS_DIR) --strict || (echo "Strict documentation validation failed"; exit 1)
 	@echo "Strict documentation validation passed"
 
 # Cleanup and maintenance

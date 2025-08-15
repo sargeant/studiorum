@@ -55,6 +55,7 @@ __pycache__/
 venv/
 env/
 .env
+.env.local
 .venv/
 
 # uv
@@ -95,6 +96,11 @@ test-report.xml
 .gemini/
 CLAUDE.md
 .serena
+
+# Local development overrides (keep .env.* files)
+!.env.dev
+!.env.test
+!.env.minimal
 
 # Coverage reports
 htmlcov/
