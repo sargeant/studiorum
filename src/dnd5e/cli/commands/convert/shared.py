@@ -1,12 +1,16 @@
 """Shared utility functions for convert commands."""
 
+import json
 from pathlib import Path
 
 import typer
 from rich import print as rprint
 
 from dnd5e.cli.display_manager import display_manager
+from dnd5e.cli.main import get_omnidexer
 from dnd5e.core.config.unified_config import get_app_config
+from dnd5e.core.models.content import BaseContent, ContentType
+from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
 from dnd5e.renderers.latex.compiler import LaTeXCompiler
 
@@ -73,4 +77,86 @@ async def compile_pdf(latex_path: Path) -> None:
 
     except Exception as e:
         rprint(f"[red]Error during PDF compilation:[/red] {e}")
+        raise typer.Exit(1)
+
+
+def resolve_content_or_file(
+    source: str, content_type: ContentType
+) -> tuple[list[BaseContent], str]:
+    """Resolve content source to content objects.
+
+    Args:
+        source: File path or content abbreviation
+        content_type: Type of content to resolve
+
+    Returns:
+        tuple of (content_items, source_description)
+
+    Raises:
+        typer.Exit: If content cannot be resolved
+    """
+    omnidexer = get_omnidexer()
+
+    # Check if it's a file path
+    path = Path(source)
+    if path.is_file():
+        content_data = load_from_file(path)
+        if isinstance(content_data, list):
+            return content_data, f"file: {path}"
+        else:
+            return [content_data], f"file: {path}"
+
+    # Try to resolve as abbreviation
+    resolver = ContentResolver(omnidexer)
+    if content_type == ContentType.ADVENTURE:
+        result = resolver.resolve_adventure(source)
+    elif content_type == ContentType.BOOK:
+        result = resolver.resolve_book(source)
+    else:
+        rprint(f"[red]Error:[/red] Unsupported content type: {content_type}")
+        raise typer.Exit(1)
+
+    return handle_resolution_result(result, source, content_type)
+
+
+def load_from_file(file_path: Path) -> BaseContent | list[BaseContent]:
+    """Load content from a JSON file."""
+    try:
+        with open(file_path, encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Handle both single objects and arrays
+        if isinstance(data, list):
+            return data  # type: ignore[return-value,no-any-return]
+        else:
+            return data  # type: ignore[return-value,no-any-return]
+
+    except (json.JSONDecodeError, FileNotFoundError) as e:
+        rprint(f"[red]Error:[/red] Failed to load file {file_path}: {e}")
+        raise typer.Exit(1)
+
+
+def handle_resolution_result(
+    result: ContentResolutionResult, query: str, content_type: ContentType
+) -> tuple[list[BaseContent], str]:
+    """Handle content resolution result."""
+    if result.is_success and result.content:
+        return [result.content], f"abbreviation: {query}"
+
+    elif result.suggestions:
+        content_name = content_type.value
+        rprint("[yellow]Did you mean?[/yellow]")
+        for suggestion in result.suggestions[:5]:
+            rprint(f"  • {suggestion}")
+        rprint(
+            f"Run [bold]5e2pdf list {content_name}s[/bold] to see all available content."
+        )
+        raise typer.Exit(1)
+
+    else:
+        content_name = content_type.value
+        rprint(f"[red]Error:[/red] {content_name.title()} '{query}' not found.")
+        rprint(
+            f"Run [bold]5e2pdf list {content_name}s[/bold] to see available content."
+        )
         raise typer.Exit(1)

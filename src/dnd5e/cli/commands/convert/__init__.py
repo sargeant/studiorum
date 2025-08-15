@@ -8,6 +8,12 @@ from .bulk import bulk
 from .compendiums.creatures import creatures
 from .compendiums.items import items
 from .compendiums.spells import spells
+from .shared import (
+    compile_pdf as _compile_pdf,
+    handle_resolution_result as _handle_resolution_result,
+    load_from_file as _load_from_file,
+    resolve_content_or_file,
+)
 from .supplement import supplement
 
 # Create the main convert app

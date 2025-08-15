@@ -26,89 +26,12 @@ from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
-from .shared import compile_pdf as compile_pdf_async
-
-
-def resolve_content_or_file(
-    source: str, content_type: ContentType
-) -> tuple[list[BaseContent], str]:
-    """Resolve content source to content objects.
-
-    Args:
-        source: File path or content abbreviation
-        content_type: Type of content to resolve
-
-    Returns:
-        tuple of (content_items, source_description)
-
-    Raises:
-        typer.Exit: If content cannot be resolved
-    """
-    omnidexer = get_omnidexer()
-
-    # Check if it's a file path
-    path = Path(source)
-    if path.is_file():
-        content_data = _load_from_file(path)
-        if isinstance(content_data, list):
-            return content_data, f"file: {path}"
-        else:
-            return [content_data], f"file: {path}"
-
-    # Try to resolve as abbreviation
-    resolver = ContentResolver(omnidexer)
-    if content_type == ContentType.ADVENTURE:
-        result = resolver.resolve_adventure(source)
-    elif content_type == ContentType.BOOK:
-        result = resolver.resolve_book(source)
-    else:
-        rprint(f"[red]Error:[/red] Unsupported content type: {content_type}")
-        raise typer.Exit(1)
-
-    return _handle_resolution_result(result, source, content_type)
-
-
-def _load_from_file(file_path: Path) -> BaseContent | list[BaseContent]:
-    """Load content from a JSON file."""
-    try:
-        with open(file_path, encoding="utf-8") as f:
-            data = json.load(f)
-
-        # Handle both single objects and arrays
-        if isinstance(data, list):
-            return data  # type: ignore[return-value,no-any-return]
-        else:
-            return data  # type: ignore[return-value,no-any-return]
-
-    except (json.JSONDecodeError, FileNotFoundError) as e:
-        rprint(f"[red]Error:[/red] Failed to load file {file_path}: {e}")
-        raise typer.Exit(1)
-
-
-def _handle_resolution_result(
-    result: ContentResolutionResult, query: str, content_type: ContentType
-) -> tuple[list[BaseContent], str]:
-    """Handle content resolution result."""
-    if result.is_success and result.content:
-        return [result.content], f"abbreviation: {query}"
-
-    elif result.suggestions:
-        content_name = content_type.value
-        rprint("[yellow]Did you mean?[/yellow]")
-        for suggestion in result.suggestions[:5]:
-            rprint(f"  • {suggestion}")
-        rprint(
-            f"Run [bold]5e2pdf list {content_name}s[/bold] to see all available content."
-        )
-        raise typer.Exit(1)
-
-    else:
-        content_name = content_type.value
-        rprint(f"[red]Error:[/red] {content_name.title()} '{query}' not found.")
-        rprint(
-            f"Run [bold]5e2pdf list {content_name}s[/bold] to see available content."
-        )
-        raise typer.Exit(1)
+from .shared import (
+    compile_pdf as compile_pdf_async,
+    handle_resolution_result,
+    load_from_file,
+    resolve_content_or_file,
+)
 
 
 def book(
