@@ -285,6 +285,71 @@ class LaTeXEngineConfig(BaseModel):
 
 Configuration for content data sources and automatic updates.
 
+### Default Sources Configuration
+
+**Location**: `src/dnd5e/core/config/unified_config.py`
+
+The content configuration now includes default sources that are automatically used when no specific sources are provided to content collectors (spells, creatures, items).
+
+#### ContentConfig
+
+```python
+class ContentConfig(BaseModel):
+    """Content-related configuration settings."""
+
+    default_sources: list[str] = Field(
+        default_factory=lambda: ["xphb", "xmm", "xdmg"],
+        description="Default source abbreviations used when none specified"
+    )
+
+    content_validation: str = Field(
+        default="normal",
+        description="Content validation level"
+    )
+
+    enable_content_tracking: bool = Field(
+        default=True,
+        description="Enable content tracking for appendices"
+    )
+```
+
+#### Usage in Content Collection
+
+```python
+from dnd5e.cli.config_factory import get_default_sources
+from dnd5e.core.services.creature_collector import CreatureCollector
+
+# Automatic default source resolution
+collector = CreatureCollector()
+
+# When no sources specified, uses default sources
+creatures = collector.collect_creatures_by_cr(1)  # Uses ["xphb", "xmm", "xdmg"]
+
+# Explicit sources override defaults
+creatures = collector.collect_creatures_by_cr(1, sources=["mm"])  # Uses only MM
+
+# Helper function for default sources
+default_sources = get_default_sources()
+print(f"Default sources: {default_sources}")  # ["xphb", "xmm", "xdmg"]
+```
+
+#### Benefits
+
+- **Consistent Behavior**: All content collectors use same default sources
+- **Appendix Deduplication**: Eliminates duplicate content in appendices (e.g., "Skeleton" vs "skeleton")
+- **User Convenience**: No need to specify sources for common use cases
+- **Configurable**: Can be overridden via environment variables or configuration
+
+#### Environment Configuration
+
+```bash
+# Override default sources via environment
+export DND5E_CONTENT__DEFAULT_SOURCES='["phb", "mm", "dmg"]'
+
+# Or in .env file
+DND5E_CONTENT__DEFAULT_SOURCES=["phb","mm","dmg"]
+```
+
 ### SourceType
 
 ```python

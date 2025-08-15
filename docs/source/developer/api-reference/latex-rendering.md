@@ -291,7 +291,7 @@ Formats spell levels with proper ordinals.
 
 **Location**: `src/dnd5e/renderers/latex/entry_processor.py`
 
-Processes 5etools entry structures recursively into LaTeX content.
+Processes 5etools entry structures recursively into LaTeX content with comprehensive support for Pydantic models, dataclasses, and enhanced debugging capabilities.
 
 ### Constructor
 
@@ -316,37 +316,57 @@ Initializes the entry processor.
 ```python
 def process_entries(
     self,
-    entries: list[str | dict[str, Any]],
+    entries: list[str | dict[str, Any] | BaseModel],
     context: RenderContext
 ) -> list[str]
 ```
 
-Processes a list of entries into LaTeX content.
+Processes a list of entries into LaTeX content with enhanced support for multiple data types.
 
 **Parameters:**
-- `entries` (list): List of entry objects (strings or dicts)
+- `entries` (list): List of entry objects (strings, dicts, Pydantic models, or dataclasses)
 - `context` (RenderContext): Rendering context with shared state
 
 **Returns:**
 - `list[str]`: List of processed LaTeX strings
 
+**Enhanced Type Support:**
+- **String entries**: Direct text processing with tag resolution
+- **Dict entries**: Traditional 5etools JSON format processing
+- **Pydantic models**: Automatic `model_dump(exclude_none=True)` conversion
+- **Dataclasses**: Automatic `dataclasses.asdict()` conversion
+- **Fallback**: String conversion for unknown types with error logging
+
 **Example:**
 ```python
 from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
 from dnd5e.renderers.base import RenderContext
+from dnd5e.core.models.entry_types import ListEntry, InsetEntry
 
 processor = RecursiveEntryProcessor()
 context = RenderContext()
 
+# Mixed entry types - all supported
 entries = [
     "This is plain text.",
     {
         "type": "insetReadaloud",
         "entries": ["You hear a strange noise..."]
-    }
+    },
+    ListEntry(type="list", items=["Item 1", "Item 2"]),  # Pydantic model
+    InsetEntry(type="inset", name="Sidebar", entries=["Content"])  # Pydantic model
 ]
 
 latex_output = processor.process_entries(entries, context)
+```
+
+**Debug Support:**
+```bash
+# Enable debug logging for entry processing
+export DND5E_DEBUG_ENTRY_PROCESSING=1
+
+# Run with debug output to see Pydantic model conversions
+5e2pdf convert adventure "cos" --output debug.tex
 ```
 
 #### get_processing_statistics

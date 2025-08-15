@@ -163,7 +163,7 @@ templates/
 
 **Location**: `src/dnd5e/renderers/latex/entry_processor.py`
 
-Handles the complex nested entry structures from 5etools data:
+Handles the complex nested entry structures from 5etools data with comprehensive support for Pydantic models, dataclasses, and various entry formats.
 
 #### Core Processing Logic
 
@@ -179,6 +179,72 @@ processor = RecursiveEntryProcessor(
 # Process entry list
 latex_content = processor.process_entries(entries, context)
 ```
+
+#### Enhanced Pydantic Model Support
+
+The processor now includes comprehensive support for Pydantic models and enhanced entry processing with debugging capabilities:
+
+```python
+def process_entries(
+    self, entries: list[str | dict[str, Any]], context: RenderingContext
+) -> list[str]:
+    """Process a list of entries into LaTeX content."""
+    processed = []
+
+    for entry in entries:
+        if isinstance(entry, str):
+            # Plain text entry - process tags
+            processed.append(self._process_text_with_tags(entry, context))
+        elif isinstance(entry, dict):
+            processed.append(self.process_entry_dict(entry, context))
+        else:
+            # Handle Pydantic models by converting to dict
+            try:
+                # Check if it's a Pydantic model with model_dump method
+                if hasattr(entry, "model_dump"):
+                    entry_dict = entry.model_dump(exclude_none=True)
+                    processed.append(self.process_entry_dict(entry_dict, context))
+                # Check if it's a dataclass
+                elif hasattr(entry, "__dataclass_fields__"):
+                    entry_dict = dataclasses.asdict(entry)
+                    processed.append(self.process_entry_dict(entry_dict, context))
+                else:
+                    # Fallback to string conversion
+                    processed.append(str(entry))
+            except Exception as e:
+                logger.error(f"Failed to process entry {type(entry)}: {e}")
+                processed.append(str(entry))
+
+    return processed
+```
+
+#### Debug Environment Variables
+
+Enhanced debugging capabilities for entry processing issues:
+
+```bash
+# Debug entry processing issues with Pydantic models
+export DND5E_DEBUG_ENTRY_PROCESSING=1
+
+# Example usage
+DND5E_DEBUG_ENTRY_PROCESSING=1 5e2pdf convert adventure "cos" --output debug-adventure.tex
+```
+
+**Debug Output Examples:**
+```
+INFO: Converting Pydantic model ListEntry to dict
+WARNING: Entry processing fallback triggered for type CustomEntry: <CustomEntry instance>
+INFO: Converting dataclass ActionEntry to dict
+```
+
+#### Benefits of Enhanced Entry Processing
+
+- **Type Safety**: Automatic conversion of Pydantic models preserves type information
+- **Data Integrity**: `model_dump(exclude_none=True)` removes null/undefined fields
+- **Debugging**: Comprehensive logging helps identify processing issues
+- **Backward Compatibility**: Maintains support for dict entries and plain text
+- **Error Recovery**: Graceful fallback to string conversion prevents crashes
+- **Performance**: Efficient detection of model types avoids unnecessary processing
 
 #### Supported Entry Types
 
