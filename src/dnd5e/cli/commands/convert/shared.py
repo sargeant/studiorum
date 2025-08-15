@@ -43,6 +43,7 @@ async def compile_pdf(latex_path: Path) -> None:
     """Compile LaTeX to PDF using configured LaTeX compiler."""
     rprint(f"[cyan]Compiling PDF: {latex_path.with_suffix('.pdf')}[/cyan]")
 
+    result = None  # Initialize to avoid UnboundLocalError
     try:
         compiler = create_latex_compiler()
 
@@ -64,13 +65,13 @@ async def compile_pdf(latex_path: Path) -> None:
 
             display_manager.update_task(compile_task, completed=100)
 
-        if result.success:
+        if result and result.success:
             rprint(f"[green]✓[/green] PDF compiled: {latex_path.with_suffix('.pdf')}")
         else:
             rprint("[red]✗[/red] Compilation failed")
-            if result.error_message:
+            if result and result.error_message:
                 rprint(f"[red]Error:[/red] {result.error_message}")
-            if result.warnings:
+            if result and result.warnings:
                 for warning in result.warnings:
                     rprint(f"[yellow]Warning:[/yellow] {warning}")
             raise typer.Exit(1)
