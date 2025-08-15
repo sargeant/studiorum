@@ -217,9 +217,9 @@ class TestContentTracker:
 
         # Should be sorted by: content_type, name, source
         expected_order = [
-            ("creature", "Ancient Red Dragon", "MM"),
-            ("spell", "Fireball", "PHB"),
-            ("spell", "Zephyr Strike", "PHB"),
+            ("creature", "ancient red dragon", "MM"),  # Names normalized to lowercase
+            ("spell", "fireball", "PHB"),
+            ("spell", "zephyr strike", "PHB"),
         ]
 
         actual_order = [(c.content_type, c.name, c.source) for c in tracked]
@@ -299,14 +299,22 @@ class TestContentTracker:
             content_type="spell", name="Fireball", source="PHB", page="123"
         )
         tuple_result = content.to_tuple()
-        assert tuple_result == ("spell", "Fireball", "PHB")
+        assert tuple_result == (
+            "spell",
+            "fireball",
+            "PHB",
+        )  # Names normalized to lowercase
 
         # Test with None source
         content_no_source: Any = TrackedContent(
             content_type="spell", name="Fireball", source=None
         )
         tuple_result = content_no_source.to_tuple()
-        assert tuple_result == ("spell", "Fireball", None)
+        assert tuple_result == (
+            "spell",
+            "fireball",
+            None,
+        )  # Names normalized to lowercase
 
     def test_get_tracked_content_by_type(self) -> None:
         """Test filtering tracked content by type."""
