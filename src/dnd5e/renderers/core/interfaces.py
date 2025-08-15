@@ -406,7 +406,9 @@ class UnifiedTagRenderer:
             {
                 "enhancement_config": self.config,
                 "hyperlink_manager": self.config.hyperlink_manager,
-                "content_tracker": self.config.content_tracker,
+                # Prioritize content tracker from base context over config
+                "content_tracker": base_context.content_tracker
+                or self.config.content_tracker,
             }
         )
 

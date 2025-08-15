@@ -55,10 +55,15 @@ class TagResolver(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def process_text(self, text: str) -> str:
+    def process_text(self, text: str, context: RenderingContext | None = None) -> str:
         """Process text with tags and return rendered output.
 
         This method processes text using the modern core architecture.
+
+        Args:
+            text: Text to process with tags
+            context: Optional rendering context to override default context,
+                    particularly useful for passing ContentTracker
         """
         if not text:
             return text
@@ -67,6 +72,31 @@ class TagResolver(BaseModel):
             # Parse text to AST
             document = self.parser.parse(text)
 
+            # Determine which context to use for rendering
+            render_context = self.rendering_context
+            if context:
+                # Merge external context with internal context
+                # This is especially important for ContentTracker integration
+                render_context = RenderingContext(
+                    output_format=context.output_format
+                    or self.rendering_context.output_format,
+                    omnidexer=context.omnidexer or self.rendering_context.omnidexer,
+                    content_tracker=context.content_tracker
+                    or self.rendering_context.content_tracker,
+                    debug_mode=context.debug_mode
+                    if context.debug_mode is not None
+                    else self.rendering_context.debug_mode,
+                    metadata={**self.rendering_context.metadata, **context.metadata},
+                )
+
+                # Update renderer's enhancement configuration with new ContentTracker
+                if context.content_tracker and hasattr(
+                    self.renderer, "enhancement_config"
+                ):
+                    self.renderer.enhancement_config.content_tracker = (
+                        context.content_tracker
+                    )
+
             # Render each node in the document
             result_parts = []
             for node in document.children:
@@ -74,7 +104,7 @@ class TagResolver(BaseModel):
                 from dnd5e.core.text.tag_ast import TagNode, TextNode
 
                 if isinstance(node, TagNode):  # TagNode
-                    rendered = self.renderer.render_tag(node, self.rendering_context)
+                    rendered = self.renderer.render_tag(node, render_context)
                     result_parts.append(rendered)
                 elif isinstance(node, TextNode):  # TextNode - extract and escape text
                     from dnd5e.core.latex_utils import escape_latex_text

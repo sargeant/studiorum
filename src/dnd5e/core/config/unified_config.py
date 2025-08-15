@@ -74,11 +74,15 @@ class ContentConfig(BaseModel):
     """Configuration for content inclusion."""
 
     include_images: bool = Field(default=False, description="Include images by default")
-    include_items: bool = Field(
-        default=True, description="Include item lists by default"
+    # Appendix configuration
+    appendix_spells: bool = Field(
+        default=False, description="Generate spell appendices by default"
     )
-    include_creatures: bool = Field(
-        default=True, description="Include creature lists by default"
+    appendix_items: bool = Field(
+        default=False, description="Generate item appendices by default"
+    )
+    appendix_creatures: bool = Field(
+        default=False, description="Generate creature appendices by default"
     )
 
 

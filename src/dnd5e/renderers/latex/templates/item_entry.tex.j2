@@ -1,13 +1,6 @@
-% Entry template for item rendering using EntryRenderer
-\subsection{<# item.name | latex_escape #>}
-<@ if metadata_line @>\textit{<# metadata_line | latex_escape #>}<@ endif @>
+% Individual item entry template using shared item rendering macro
+% Imports the same rendering logic used by itemcompendium.tex.j2 for consistency
 
-<@ if ac_text @>\textbf{Armor Class:} <# ac_text | latex_escape #> \\<@ endif @>
-<@ if damage_text @>\textbf{Damage:} <# damage_text | latex_escape #> \\<@ endif @>
-<@ if range_text @>\textbf{Range:} <# range_text | latex_escape #> \\<@ endif @>
-<@ if properties @>\textbf{Properties:} <# properties|join(", ") | latex_escape #> \\<@ endif @>
-<@ if weight_text @>\textbf{Weight:} <# weight_text | latex_escape #> \\<@ endif @>
-<@ if value_text @>\textbf{Value:} <# value_text | latex_escape #> \\<@ endif @>
-<@ if charges_text @>\textbf{Charges:} <# charges_text | latex_escape #> \\<@ endif @>
+<@ from "_item_render_block.tex.j2" import render_item @>
 
-<# description_text | safe #>
+<# render_item(item) #>

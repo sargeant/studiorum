@@ -961,7 +961,7 @@ class RecursiveEntryProcessor:
 
         # Type cast needed due to forward reference in RenderingContext
         tag_resolver = context.metadata.get("tag_resolver")
-        result = tag_resolver.process_text(text) if tag_resolver else text
+        result = tag_resolver.process_text(text, context) if tag_resolver else text
         return str(result)
 
     def _is_valid_tag_input(self, text: str) -> bool:

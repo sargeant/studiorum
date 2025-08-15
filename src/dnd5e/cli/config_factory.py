@@ -17,9 +17,11 @@ def get_cli_defaults() -> dict[str, Any]:
         "justified": config.rendering.latex.document.justified_text,
         # Content inclusion
         "with_images": config.rendering.content.include_images,
-        "with_items": config.rendering.content.include_items,
-        "with_creatures": config.rendering.content.include_creatures,
         "with_index": config.rendering.latex.document.show_index,
+        # Appendix generation
+        "appendix_spells": config.rendering.content.appendix_spells,
+        "appendix_items": config.rendering.content.appendix_items,
+        "appendix_creatures": config.rendering.content.appendix_creatures,
         # Font and outline options
         "fonts": config.rendering.latex.document.fonts,
         "no_outline": config.rendering.latex.document.no_outline,
@@ -72,16 +74,6 @@ def get_with_images_default() -> bool:
     return get_app_config().rendering.content.include_images
 
 
-def get_with_items_default() -> bool:
-    """Get default include items setting from config."""
-    return get_app_config().rendering.content.include_items
-
-
-def get_with_creatures_default() -> bool:
-    """Get default include creatures setting from config."""
-    return get_app_config().rendering.content.include_creatures
-
-
 def get_with_index_default() -> bool:
     """Get default include index setting from config."""
     return get_app_config().rendering.latex.document.show_index
@@ -105,3 +97,18 @@ def get_fonts_default() -> str | None:
 def get_no_outline_default() -> bool:
     """Get default no outline setting from config."""
     return get_app_config().rendering.latex.document.no_outline
+
+
+def get_appendix_spells_default() -> bool:
+    """Get default appendix spells setting from config."""
+    return get_app_config().rendering.content.appendix_spells
+
+
+def get_appendix_items_default() -> bool:
+    """Get default appendix items setting from config."""
+    return get_app_config().rendering.content.appendix_items
+
+
+def get_appendix_creatures_default() -> bool:
+    """Get default appendix creatures setting from config."""
+    return get_app_config().rendering.content.appendix_creatures

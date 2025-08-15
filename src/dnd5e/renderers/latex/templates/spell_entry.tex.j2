@@ -1,14 +1,6 @@
-% Entry template for spell rendering using EntryRenderer
-\subsection{<# spell.name | latex_escape #>}
-\textit{<# level_text | latex_escape #> <# spell.school | latex_escape #>}
+% Individual spell entry template using shared spell rendering macro
+% Imports the same rendering logic used by spellbook.tex.j2 for consistency
 
-\textbf{Casting Time:} <# casting_time | latex_escape #> \\
-\textbf{Range:} <# range_text | latex_escape #> \\
-\textbf{Components:} <# components_text | latex_escape #> \\
-\textbf{Duration:} <# duration_text | latex_escape #>
+<@ from "_spell_render_block.tex.j2" import render_spell @>
 
-<# description_text | safe #>
-
-<@ if higher_level_text @>
-\textbf{At Higher Levels.} <# higher_level_text | safe #>
-<@ endif @>
+<# render_spell(spell) #>

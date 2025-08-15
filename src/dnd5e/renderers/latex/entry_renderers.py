@@ -51,19 +51,9 @@ class SpellEntryRenderer(BaseEntryRenderer):
         self, content: Spell, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for spell using model methods."""
-        # Get raw text content - tag processing happens at a different layer
-        description_text = content.get_description_text()
-        higher_level_text = content.get_higher_level_scaling_text()
-
+        # New template expects direct access to spell object and its methods
         return {
             "spell": content,
-            "level_text": content.get_enhanced_level_text(),
-            "components_text": content.get_enhanced_components_text(),
-            "duration_text": content.get_enhanced_duration_text(),
-            "description_text": description_text,
-            "higher_level_text": higher_level_text,
-            "casting_time": content.get_casting_time_text(),
-            "range_text": content.get_range_text(),
         }
 
 
@@ -78,81 +68,10 @@ class CreatureEntryRenderer(BaseEntryRenderer):
         self, content: Creature, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for creature using model methods."""
-        # Use enhanced creature formatting methods
+        # New template expects direct access to creature object and its methods
         return {
             "creature": content,
-            "size_type_alignment": content.get_size_type_alignment(),
-            "ac_text": content.get_ac_text(),
-            "hp_text": content.get_hp_text(),
-            "speed_text": content.get_speed_text(),
-            "ability_scores": {
-                "str": content.get_ability_text(content.strength),
-                "dex": content.get_ability_text(content.dexterity),
-                "con": content.get_ability_text(content.constitution),
-                "int": content.get_ability_text(content.intelligence),
-                "wis": content.get_ability_text(content.wisdom),
-                "cha": content.get_ability_text(content.charisma),
-            },
-            "saving_throws": content.get_formatted_saving_throws(),
-            "skills": content.get_formatted_skills(),
-            "senses": content.get_formatted_senses(),
-            "languages": content.get_formatted_languages(),
-            "damage_resistances": content.get_formatted_resistances(),
-            "damage_immunities": content.get_formatted_immunities(),
-            "damage_vulnerabilities": content.get_formatted_vulnerabilities(),
-            "condition_immunities": content.get_formatted_condition_immunities(),
-            "cr_text": content.get_enhanced_cr_text(),
-            "formatted_abilities": self._format_creature_abilities(content, context),
         }
-
-    def _format_creature_abilities(
-        self, creature: Creature, context: RenderingContext
-    ) -> dict[str, list[str]]:
-        """Format creature abilities by type."""
-        abilities = {}
-
-        if creature.trait:
-            abilities["traits"] = [
-                self._format_ability_entry(ability, context)
-                for ability in creature.trait
-            ]
-
-        if creature.action:
-            abilities["actions"] = [
-                self._format_ability_entry(ability, context)
-                for ability in creature.action
-            ]
-
-        if creature.legendary:
-            abilities["legendary"] = [
-                self._format_ability_entry(ability, context)
-                for ability in creature.legendary
-            ]
-
-        if creature.reaction:
-            abilities["reactions"] = [
-                self._format_ability_entry(ability, context)
-                for ability in creature.reaction
-            ]
-
-        if creature.bonus:
-            abilities["bonus"] = [
-                self._format_ability_entry(ability, context)
-                for ability in creature.bonus
-            ]
-
-        return abilities
-
-    def _format_ability_entry(self, ability: Any, context: RenderingContext) -> str:
-        """Format a single ability entry."""
-        if hasattr(ability, "get_description_text"):
-            description = str(ability.get_description_text())
-        else:
-            # Fallback for basic ability structures
-            description = str(ability)
-
-        # Return raw text - tag processing happens at a different architectural layer
-        return description
 
 
 class ItemEntryRenderer(BaseEntryRenderer):
@@ -166,24 +85,9 @@ class ItemEntryRenderer(BaseEntryRenderer):
         self, content: Item, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for item using model methods."""
-        # Get raw description text - tag processing happens at a different layer
-        description_text = content.get_description_text()
-
+        # New template expects direct access to item object and its methods
         return {
             "item": content,
-            "type_text": content.get_type_text(),
-            "rarity_text": content.get_rarity_text(),
-            "enhanced_rarity_text": content.get_enhanced_rarity_text(),
-            "metadata_line": content.get_item_metadata_line(),
-            "weight_text": content.get_weight_text(),
-            "value_text": content.get_value_text(),
-            "attunement_text": content.get_attunement_text(),
-            "ac_text": content.get_ac_text(),
-            "damage_text": content.get_damage_text(),
-            "range_text": content.get_range_text(),
-            "properties": content.get_properties_text(),
-            "charges_text": content.get_charges_text(),
-            "description_text": description_text,
         }
 
 

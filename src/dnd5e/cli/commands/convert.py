@@ -10,6 +10,9 @@ import typer
 from rich import print as rprint
 
 from dnd5e.cli.config_factory import (
+    get_appendix_creatures_default,
+    get_appendix_items_default,
+    get_appendix_spells_default,
     get_background_default,
     get_compile_pdf_default,
     get_concurrent_limit_default,
@@ -20,10 +23,8 @@ from dnd5e.cli.config_factory import (
     get_justified_default,
     get_no_outline_default,
     get_two_column_default,
-    get_with_creatures_default,
     get_with_images_default,
     get_with_index_default,
-    get_with_items_default,
 )
 from dnd5e.cli.display_manager import display_manager
 from dnd5e.cli.main import get_omnidexer, get_tag_resolver
@@ -268,18 +269,6 @@ def convert_adventure(
         help="Include images",
         rich_help_panel="Content Options",
     ),
-    with_items: bool = typer.Option(
-        get_with_items_default(),
-        "--items/--no-items",
-        help="Include item lists",
-        rich_help_panel="Content Options",
-    ),
-    with_creatures: bool = typer.Option(
-        get_with_creatures_default(),
-        "--creatures/--no-creatures",
-        help="Include creature lists",
-        rich_help_panel="Content Options",
-    ),
     compile_pdf: bool = typer.Option(
         get_compile_pdf_default(),
         "--pdf",
@@ -341,6 +330,25 @@ def convert_adventure(
         "--justified/--not-justified",
         help="Justify text columns",
         rich_help_panel="Document Layout",
+    ),
+    # Appendix options
+    appendix_spells: bool = typer.Option(
+        get_appendix_spells_default(),
+        "--spells/--no-spells",
+        help="Generate spells appendix with all referenced spells",
+        rich_help_panel="Appendices",
+    ),
+    appendix_items: bool = typer.Option(
+        get_appendix_items_default(),
+        "--items/--no-items",
+        help="Generate items appendix with all referenced items",
+        rich_help_panel="Appendices",
+    ),
+    appendix_creatures: bool = typer.Option(
+        get_appendix_creatures_default(),
+        "--creatures/--no-creatures",
+        help="Generate creatures appendix with all referenced creatures",
+        rich_help_panel="Appendices",
     ),
 ) -> None:
     """
@@ -481,19 +489,28 @@ def convert_adventure(
                 use_parts=False,
             )
 
+            # Create content tracker for appendix generation
+            from dnd5e.core.references.content_tracker import ContentTracker
+
+            content_tracker = ContentTracker()
+
             # Create render context
             context = RenderingContext(
                 output_format="latex",
                 omnidexer=omnidexer,
+                content_tracker=content_tracker,
+                tag_resolver=tag_resolver,
                 metadata={
                     "title": title or f"{content_items[0].name}",
                     "include_images": with_images,
                     "include_toc": True,
-                    "include_items": with_items,
-                    "include_creatures": with_creatures,
                     "tag_resolver": tag_resolver,
                     "document_metadata": metadata,
                     "latex_config": latex_config,
+                    "content_tracker": content_tracker,
+                    "appendix_spells": appendix_spells,
+                    "appendix_items": appendix_items,
+                    "appendix_creatures": appendix_creatures,
                 },
             )
 
@@ -622,6 +639,25 @@ def convert_book(
         "--justified/--not-justified",
         help="Justify text columns",
         rich_help_panel="Document Layout",
+    ),
+    # Appendix options
+    appendix_spells: bool = typer.Option(
+        get_appendix_spells_default(),
+        "--spells/--no-spells",
+        help="Generate spells appendix with all referenced spells",
+        rich_help_panel="Appendices",
+    ),
+    appendix_items: bool = typer.Option(
+        get_appendix_items_default(),
+        "--items/--no-items",
+        help="Generate items appendix with all referenced items",
+        rich_help_panel="Appendices",
+    ),
+    appendix_creatures: bool = typer.Option(
+        get_appendix_creatures_default(),
+        "--creatures/--no-creatures",
+        help="Generate creatures appendix with all referenced creatures",
+        rich_help_panel="Appendices",
     ),
 ) -> None:
     """
@@ -759,10 +795,17 @@ def convert_book(
                 include_index=with_index,
             )
 
+            # Create content tracker for appendix generation
+            from dnd5e.core.references.content_tracker import ContentTracker
+
+            content_tracker = ContentTracker()
+
             # Create render context
             context = RenderingContext(
                 output_format="latex",
                 omnidexer=omnidexer,
+                content_tracker=content_tracker,
+                tag_resolver=tag_resolver,
                 metadata={
                     "title": title or f"Book: {book_title}",
                     "include_images": with_images,
@@ -771,6 +814,10 @@ def convert_book(
                     "tag_resolver": tag_resolver,
                     "document_metadata": metadata,
                     "latex_config": latex_config,
+                    "content_tracker": content_tracker,
+                    "appendix_spells": appendix_spells,
+                    "appendix_items": appendix_items,
+                    "appendix_creatures": appendix_creatures,
                 },
             )
 

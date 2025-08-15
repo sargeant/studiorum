@@ -13,6 +13,7 @@ from ...core.models.document_metadata import (
     DocumentMetadata,
     DocumentType,
 )
+from ...core.services.appendix_generator import AppendixFlags, AppendixGenerator
 from ...core.types import LaTeXConfig, RenderContextDict
 from ..base import DocumentRenderer, RenderingError
 from ..core.interfaces import RenderingContext
@@ -174,6 +175,9 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         rendered_document = self._render_content_in_sections(
             document, sections, context
         )
+
+        # Generate appendices if requested
+        rendered_document = self._append_appendices(rendered_document, context)
 
         return rendered_document
 
@@ -520,6 +524,12 @@ This content type is not yet fully supported by the rendering system.
                 f"Adventure entry detection for {content.get('name', 'unnamed')}: {has_adventure_keys}, keys: {list(content.keys())}"
             )
             return has_adventure_keys
+        elif hasattr(content, "entries") and hasattr(content, "name"):
+            # Chapter objects from adventure content (Pydantic models)
+            logger.debug(
+                f"Adventure chapter detected: {getattr(content, 'name', 'unnamed')}"
+            )
+            return True
 
         return False
 
@@ -527,7 +537,7 @@ This content type is not yet fully supported by the rendering system.
         """Render a raw adventure entry using RecursiveEntryProcessor.
 
         Args:
-            content: Raw adventure entry (string or dict)
+            content: Raw adventure entry (string, dict, or Chapter)
             context: Rendering context
 
         Returns:
@@ -543,7 +553,7 @@ This content type is not yet fully supported by the rendering system.
             # Process string content with tags
             tag_resolver = context.metadata.get("tag_resolver")
             if tag_resolver:
-                result = tag_resolver.process_text(content)
+                result = tag_resolver.process_text(content, context)
                 return str(result)
             else:
                 return self._escape_latex(content)
@@ -563,6 +573,37 @@ This content type is not yet fully supported by the rendering system.
                     f"Failed to render adventure entry {content.get('name', 'unnamed')}: {e}"
                 )
                 logger.debug(f"Entry content: {content}")
+                import traceback
+
+                logger.debug(f"Traceback: {traceback.format_exc()}")
+                return ""
+        elif hasattr(content, "entries"):
+            # Process Chapter object - render its entries
+            try:
+                chapter_name = getattr(content, "name", "Unnamed Chapter")
+                logger.debug(f"Processing adventure chapter: {chapter_name}")
+                processed_entries = processor.process_entries(content.entries, context)
+
+                # Add chapter header if chapter has a name
+                result = []
+                if chapter_name:
+                    # Use section command for chapter titles
+                    section_cmd = (
+                        "chapter"  # Always use chapter for top-level adventure chapters
+                    )
+                    escaped_name = self._escape_latex(chapter_name)
+                    result.append(f"\\{section_cmd}{{{escaped_name}}}")
+
+                # Add the processed entries
+                result.extend(processed_entries)
+
+                logger.debug(
+                    f"Adventure chapter result: {len(result)} parts, first 100 chars: {str(result[0])[:100] if result else 'None'}"
+                )
+                return "\n\n".join(result)
+            except Exception as e:
+                chapter_name = getattr(content, "name", "unnamed")
+                logger.error(f"Failed to render adventure chapter {chapter_name}: {e}")
                 import traceback
 
                 logger.debug(f"Traceback: {traceback.format_exc()}")
@@ -590,7 +631,7 @@ This content type is not yet fully supported by the rendering system.
             # Process string content with tags
             tag_resolver = context.metadata.get("tag_resolver")
             if tag_resolver:
-                result = tag_resolver.process_text(content)
+                result = tag_resolver.process_text(content, context)
                 return str(result)
             else:
                 return self._escape_latex(content)
@@ -716,6 +757,98 @@ This content type is not yet fully supported by the rendering system.
                 result.output_file = output_path
 
         return result
+
+    def _append_appendices(self, document: str, context: RenderingContext) -> str:
+        """Generate and append appendices to the document if requested.
+
+        Args:
+            document: The rendered document content
+            context: Rendering context with metadata
+
+        Returns:
+            Document with appendices appended
+        """
+        # Check if any appendix flags are enabled
+        appendix_flags = AppendixFlags(
+            spells=context.metadata.get("appendix_spells", False),
+            items=context.metadata.get("appendix_items", False),
+            creatures=context.metadata.get("appendix_creatures", False),
+        )
+
+        if not appendix_flags.has_any_enabled():
+            return document
+
+        # Get content tracker from context
+        content_tracker = context.metadata.get("content_tracker")
+        if not content_tracker:
+            logger.warning("No content tracker found in context, skipping appendices")
+            return document
+
+        # Generate appendices
+        try:
+            # Debug: Check what content was tracked
+            tracked_data = content_tracker.export_for_appendix()
+            logger.info(f"Content tracked for appendices: {tracked_data}")
+            logger.info(
+                f"Total tracked items: {sum(len(items) for items in tracked_data.values())}"
+            )
+
+            omnidexer = context.omnidexer
+            appendix_generator = AppendixGenerator(omnidexer, self.template_engine)
+            appendix_sections = appendix_generator.generate_appendices(
+                content_tracker, appendix_flags
+            )
+
+            if not appendix_sections:
+                logger.info("No appendices generated (no tracked content found)")
+                return document
+            else:
+                logger.info(f"Generated {len(appendix_sections)} appendix sections")
+
+            # Insert appendices before \end{document}
+            # Find the position to insert appendices
+            end_doc_pos = document.rfind(r"\end{document}")
+            if end_doc_pos == -1:
+                logger.warning(
+                    "Could not find \\end{document}, appending appendices at end"
+                )
+                appendix_content = self._render_appendix_sections(appendix_sections)
+                return document + "\n" + appendix_content
+
+            # Insert appendices before \end{document}
+            appendix_content = self._render_appendix_sections(appendix_sections)
+            return (
+                document[:end_doc_pos]
+                + "\n"
+                + appendix_content
+                + "\n"
+                + document[end_doc_pos:]
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to generate appendices: {e}")
+            return document
+
+    def _render_appendix_sections(self, appendix_sections: list) -> str:
+        """Render appendix sections as LaTeX content.
+
+        Args:
+            appendix_sections: List of AppendixSection objects
+
+        Returns:
+            LaTeX content for all appendices
+        """
+        if not appendix_sections:
+            return ""
+
+        appendix_latex = "% Generated appendices\n"
+        appendix_latex += "\\appendix\n\n"
+
+        for section in appendix_sections:
+            appendix_latex += f"\\chapter{{{section.title}}}\n"
+            appendix_latex += section.content + "\n\n"
+
+        return appendix_latex
 
     def validate_latex_environment(self) -> dict[str, bool]:
         """Validate the LaTeX compilation environment.
