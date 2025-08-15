@@ -109,7 +109,7 @@ class TestConvertAdventureCommand:
 
     @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.adventure.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
     @patch(
         "dnd5e.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
@@ -236,7 +236,7 @@ class TestConvertAdventureCommand:
         assert "Error:" in result.stdout
 
     @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.ContentResolver")
+    @patch("dnd5e.core.resolvers.ContentResolver")
     def test_convert_adventure_resolution_failure(
         self, mock_resolver_class, mock_omnidexer
     ):
@@ -348,10 +348,10 @@ class TestConvertBookCommand:
             ]
         }
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.LaTeXDocumentRenderer")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.book.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.book.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.book.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.book.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_book_with_file_path(
@@ -403,12 +403,12 @@ class TestConvertBookCommand:
         finally:
             Path(file_path).unlink()
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.book.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.book.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.book.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
-    @patch("dnd5e.cli.commands.convert.adventure.LaTeXDocumentRenderer")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.book.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.book.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_book_with_custom_options(
@@ -532,10 +532,10 @@ class TestConvertSupplementCommand:
             ]
         }
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.LaTeXDocumentRenderer")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.supplement.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.supplement.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.supplement.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.supplement.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_supplement_with_spells(
@@ -597,9 +597,9 @@ class TestConvertSupplementCommand:
         assert result.exit_code == 1
         assert "Error:" in result.stdout
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.supplement.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.supplement.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.supplement.display_manager")
     @patch("builtins.open")
     def test_convert_supplement_empty_content(
         self,
@@ -879,7 +879,7 @@ class TestSpecialCases:
 
     @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.ContentResolver")
+    @patch("dnd5e.core.resolvers.ContentResolver")
     @patch("dnd5e.cli.commands.convert.adventure.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
@@ -1372,13 +1372,13 @@ class TestConvertSpellsCommand:
             },
         ]
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
     @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert._render_spellbook")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     def test_convert_spells_with_spell_names(
         self,
@@ -1485,13 +1485,13 @@ class TestConvertSpellsCommand:
         if Path("output").exists():
             shutil.rmtree("output")
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
     @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert._render_spellbook")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
     @patch("dnd5e.core.parsers.spell_input.SpellInputParser")
     @patch("pathlib.Path.mkdir")
     @patch("builtins.open")
@@ -1595,13 +1595,13 @@ class TestConvertSpellsCommand:
         finally:
             Path(file_path).unlink()
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
     @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert._render_spellbook")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
     @patch("dnd5e.core.parsers.spell_input.SpellInputParser")
     @patch("pathlib.Path.mkdir")
     @patch("builtins.open")
@@ -1699,13 +1699,13 @@ class TestConvertSpellsCommand:
         criteria = mock_collector.collect_spells.call_args[0][0]
         assert criteria.classes == ["wizard"]
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
     @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert._render_spellbook")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     @patch("builtins.open")
     def test_convert_spells_with_sorting_modes(
@@ -1806,13 +1806,13 @@ class TestConvertSpellsCommand:
         # Verify renderer was called for both
         assert mock_render_spellbook.call_count == 2
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
     @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert._render_spellbook")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     @patch("builtins.open")
     def test_convert_spells_with_optional_spells_flag(
@@ -1897,13 +1897,13 @@ class TestConvertSpellsCommand:
         criteria = mock_collector.collect_spells.call_args[0][0]
         assert criteria.include_optional is True
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
     @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert._render_spellbook")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     @patch("builtins.open")
     def test_convert_spells_with_toc_control(
@@ -2006,10 +2006,10 @@ class TestConvertSpellsCommand:
         assert result.exit_code == 1
         assert "Spell file not found" in result.stdout
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
     @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
     def test_convert_spells_no_spells_found(
         self,
         mock_display,
@@ -2048,13 +2048,13 @@ class TestConvertSpellsCommand:
         assert "could not be found" in result.stdout
         assert "Suggestions" in result.stdout
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
     @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert._render_spellbook")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     @patch("builtins.open")
     def test_convert_spells_with_latex_options(
@@ -2167,12 +2167,12 @@ class TestConvertSpellsCommand:
         assert latex_config.document.two_column is False
         assert latex_config.document.justified_text is False
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
     @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
     @patch("dnd5e.core.parsers.spell_input.SpellInputParser")
     def test_convert_spells_invalid_level_range(
         self,
@@ -2236,13 +2236,13 @@ class TestConvertSpellsCommand:
         assert result.exit_code == 1
         assert "Invalid level range" in result.stdout
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
     @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert._render_spellbook")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     @patch("builtins.open")
     def test_convert_spells_advanced_filtering(
@@ -2353,13 +2353,13 @@ class TestConvertSpellsCommand:
         assert criteria.has_somatic is True
         assert criteria.no_material is True
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
     @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert._render_spellbook")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     @patch("builtins.open")
     def test_convert_spells_custom_title(

@@ -101,11 +101,8 @@ def resolve_content_or_file(
     # Check if it's a file path
     path = Path(source)
     if path.is_file():
-        content_data = load_from_file(path)
-        if isinstance(content_data, list):
-            return content_data, f"file: {path}"
-        else:
-            return [content_data], f"file: {path}"
+        # Use the model validation function for consistent behavior
+        return _load_from_file_with_type(path, content_type)
 
     # Try to resolve as abbreviation
     resolver = ContentResolver(omnidexer)
@@ -133,6 +130,81 @@ def load_from_file(file_path: Path) -> BaseContent | list[BaseContent]:
             return data  # type: ignore[return-value,no-any-return]
 
     except (json.JSONDecodeError, FileNotFoundError) as e:
+        rprint(f"[red]Error:[/red] Failed to load file {file_path}: {e}")
+        raise typer.Exit(1)
+
+
+def _load_from_file_with_type(
+    file_path: Path, content_type: ContentType
+) -> tuple[list[BaseContent], str]:
+    """Load content from file with content type processing (for test compatibility)."""
+    try:
+        content_data = load_from_file(file_path)
+
+        # Handle different content types
+        if content_type == ContentType.BOOK:
+            # Import Book model
+            from dnd5e.core.models.books import Book
+
+            # For books, validate through the Book model
+            try:
+                # Ensure the data has required fields
+                if isinstance(content_data, dict):
+                    book_data = dict(content_data)
+                    if "name" not in book_data:
+                        book_data["name"] = f"Book: {file_path.stem}"
+                    if "source" not in book_data:
+                        book_data["source"] = {
+                            "abbreviation": "FILE",
+                            "name": f"File: {file_path.name}",
+                        }
+                else:
+                    book_data = content_data
+
+                book = Book.model_validate(book_data)
+                return [book], f"file: {file_path}"
+            except Exception as e:
+                rprint(f"[red]Error:[/red] Invalid book data in {file_path}: {e}")
+                raise typer.Exit(1)
+        elif content_type == ContentType.ADVENTURE:
+            # Import Adventure model
+            from dnd5e.core.models.adventures import Adventure
+
+            # For adventures, handle the adventure array structure and create model instances
+            if isinstance(content_data, dict) and "adventure" in content_data:
+                adventures = content_data["adventure"]
+                if not adventures:
+                    rprint(f"[red]Error:[/red] No adventures found in {file_path}")
+                    raise typer.Exit(1)
+
+                # Validate each adventure through the model
+                validated_adventures = []
+                for adventure_data in adventures:
+                    try:
+                        adventure = Adventure.model_validate(adventure_data)
+                        validated_adventures.append(adventure)
+                    except Exception as e:
+                        rprint(
+                            f"[red]Error:[/red] Invalid adventure data in {file_path}: {e}"
+                        )
+                        raise typer.Exit(1)
+
+                return validated_adventures, f"file: {file_path}"
+            else:
+                # Single adventure object
+                try:
+                    adventure = Adventure.model_validate(content_data)
+                    return [adventure], f"file: {file_path}"
+                except Exception as e:
+                    rprint(
+                        f"[red]Error:[/red] Invalid adventure data in {file_path}: {e}"
+                    )
+                    raise typer.Exit(1)
+        else:
+            rprint(f"[red]Error:[/red] Unsupported content type: {content_type}")
+            raise typer.Exit(1)
+
+    except Exception as e:
         rprint(f"[red]Error:[/red] Failed to load file {file_path}: {e}")
         raise typer.Exit(1)
 
