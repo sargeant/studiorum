@@ -363,13 +363,24 @@ class TestTagParser:
             ("{@book Player's Handbook|PHB}", BookTagNode),
             ("{@filter spells}", FilterTagNode),
             ("{@loader bestiary}", LoaderTagNode),
-            ("{@unknown test}", TagNode),
         ]
 
         for text, expected_type in test_cases:
             result = self.parser.parse(text)
             assert len(result.children) == 1
             assert isinstance(result.children[0], expected_type)
+
+        # Test unknown tag handling - depends on fallback setting
+        import os
+
+        result = self.parser.parse("{@unknown test}")
+        assert len(result.children) == 1
+        if os.getenv("DND5E_DISABLE_TAG_FALLBACK"):
+            # When fallback is disabled, unknown tags become TextNode
+            assert isinstance(result.children[0], TextNode)
+        else:
+            # When fallback is enabled, unknown tags become TagNode
+            assert isinstance(result.children[0], TagNode)
 
     def test_parse_malformed_tags_error_recovery(self) -> None:
         """Test parser error recovery with malformed tags."""

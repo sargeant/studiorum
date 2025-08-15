@@ -100,7 +100,11 @@ class ContentTracker:
         self, content_type: str, name: str, source: str | None = None
     ) -> int:
         """Get the number of times specific content has been referenced."""
-        key = (content_type.lower(), name.strip(), source.strip() if source else None)
+        key = (
+            content_type.lower(),
+            name.strip().lower(),
+            source.strip() if source else None,
+        )
         return self._content_counts.get(key, 0)
 
     def get_content_types(self) -> list[str]:
