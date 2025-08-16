@@ -14,7 +14,7 @@ TEST_DIR := tests
 DOCS_DIR := docs
 SCRIPTS_DIR := scripts
 
-.PHONY: help uv uv-docs test mypy pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full test-perf-baseline test-perf-compare test-quality-gate test-quality-strict doctor upgrade
+.PHONY: help uv uv-docs test mypy pyright-errors pyright-warnings pyright-json typecheck-full pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full test-perf-baseline test-perf-compare test-quality-gate test-quality-strict doctor upgrade
 
 # Parallel execution control - only sync targets should be serial
 # This allows make to run independent targets in parallel while ensuring
@@ -26,7 +26,9 @@ help:
 	@echo "Available targets:"
 	@echo "  help         - Show this help message"
 	@echo "  all          - Run all checks, security, and tests"
-	@echo "  check        - Run code quality checks (ruff, mypy, imports, boundaries)"
+	@echo "  check        - Run code quality checks (ruff, mypy, pyright, imports, boundaries)"
+	@echo "  typecheck-full - Run both mypy and pyright type checking"
+	@echo "  pyright-errors - Run pyright error checking only"
 	@echo "  security     - Run security scans (pip-audit, bandit)"
 	@echo "  test         - Run tests"
 	@echo "  test-latex-integration - Run LaTeX integration tests (requires LaTeX installation)"
@@ -76,7 +78,7 @@ help:
 all: check security test
 	@echo "All pipeline checks completed successfully"
 
-check: ruff mypy imports boundaries
+check: ruff mypy pyright-errors imports boundaries
 	@echo "All code quality checks passed"
 
 security: uv pip-audit bandit-medium
@@ -110,6 +112,23 @@ format: uv
 mypy: uv
 	@echo "Running mypy type checking..."
 	mypy $(SRC_DIR)/ || (echo "Type checking failed"; exit 1)
+
+# Pyright type checking targets
+pyright-errors: uv
+	@echo "Running Pyright error checking..."
+	pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level error
+
+pyright-warnings: uv
+	@echo "Running Pyright full analysis..."
+	pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level warning
+
+pyright-json: uv
+	@echo "Running Pyright with JSON output..."
+	pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level error --outputjson
+
+# Combined type checking (mypy + pyright)
+typecheck-full: mypy pyright-errors
+	@echo "✅ All type checking passed"
 
 ## Check for circular imports
 imports: uv

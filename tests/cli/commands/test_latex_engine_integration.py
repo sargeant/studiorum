@@ -44,7 +44,7 @@ class TestLaTeXEngineIntegration:
     @pytest.mark.ci_broken
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.shared.compile_pdf")
+    @patch("dnd5e.cli.commands.convert.adventure.compile_pdf_async")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_adventure_pdf_uses_latex_compiler_with_config(
         self,
@@ -112,7 +112,7 @@ class TestLaTeXEngineIntegration:
     @pytest.mark.ci_broken
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.shared.compile_pdf")
+    @patch("dnd5e.cli.commands.convert.book.compile_pdf_async")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_book_pdf_uses_configured_engine(
         self,

@@ -5,7 +5,7 @@ automatically across thousands of generated test cases.
 """
 
 import pytest
-from hypothesis import assume, example, given, strategies as st
+from hypothesis import assume, example, given, settings, strategies as st
 from hypothesis.strategies import composite
 
 from dnd5e.core.models.spells import (
@@ -438,6 +438,7 @@ class TestSpellDataIntegrity:
     """Test spell data integrity and consistency."""
 
     @given(valid_spells())
+    @settings(deadline=None)  # Disable deadline due to initial data loading
     def test_spell_entries_non_empty(self, spell_data: dict):
         """Spells must have non-empty description entries."""
         spell = Spell.model_validate(spell_data)

@@ -66,18 +66,21 @@ class TestHybridParameterDetection:
         # Create a proper Adventure instance instead of Mock
         mock_adventure = Adventure(
             name="Curse of Strahd",
+            id="cos",  # Add ID to prevent loading issues
             source=Source(abbreviation="CoS", name="Curse of Strahd"),
         )
 
-        # Mock omnidexer with proper iterable return
+        # Mock omnidexer with comprehensive mocking for enrichment
         mock_omnidexer = Mock()
-        mock_omnidexer.get_all_by_type.return_value = [
-            mock_adventure
-        ]  # Return list, not Mock
+        # Mock all methods that might be called during enrichment
+        mock_omnidexer.get_all_by_type.return_value = []  # Return empty list for enrichment calls
+        mock_omnidexer.find.return_value = None  # No cross-references found
         mock_get_omnidexer.return_value = mock_omnidexer
 
         # Mock successful resolution
-        with patch("dnd5e.cli.commands.convert.ContentResolver") as mock_resolver_class:
+        with patch(
+            "dnd5e.cli.commands.convert.shared.ContentResolver"
+        ) as mock_resolver_class:
             mock_resolver = Mock()
             mock_resolver_class.return_value = mock_resolver
 
