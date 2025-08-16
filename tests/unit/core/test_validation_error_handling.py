@@ -195,12 +195,22 @@ class TestJsonLoaderValidationIntegration:
         self, mock_validation_tracker: MagicMock
     ) -> None:
         """Test that JsonDataLoader uses ValidationErrorTracker for error handling."""
-        # Patch the ValidationErrorTracker class before creating the loader
-        with patch(
-            "dnd5e.core.loaders.json_loader.ValidationErrorTracker"
-        ) as mock_tracker_class:
+        # Patch both the tracker and settings to ensure proper test environment
+        with (
+            patch(
+                "dnd5e.core.loaders.json_loader.ValidationErrorTracker"
+            ) as mock_tracker_class,
+            patch("dnd5e.core.loaders.json_loader.get_settings") as mock_get_settings,
+        ):
+            # Setup tracker mock
             mock_tracker_class.return_value = mock_validation_tracker
             mock_validation_tracker.should_log_error.return_value = True
+
+            # Setup settings mock to ensure normal (not strict) mode
+            mock_settings = MagicMock()
+            mock_settings.validation_strictness = "normal"
+            mock_settings.validation_summary = False
+            mock_get_settings.return_value = mock_settings
 
             loader = JsonDataLoader(ContentType("spell"))
 
