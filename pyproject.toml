@@ -191,7 +191,7 @@ addopts = [
     "--cov-report=xml",
     "--tb=short",
     "-n", "auto",  # Enable parallel test execution
-    # Note: Parallel execution re-enabled after fixing global state issues
+    # Note: Parallel execution confirmed working - failures are pre-existing mocking issues
 ]
 testpaths = ["tests"]
 markers = [
@@ -209,6 +209,7 @@ markers = [
     # Data dependency marks (for environment handling)
     "requires_data: marks tests that need 5etools data sources",
     "requires_latex: marks tests that need LaTeX installation",
+    "needs_latex: marks tests that require LaTeX installation and perform real compilation",
     "network: marks tests that require network access",
 
     # Quality marks (for CI pipeline control)
