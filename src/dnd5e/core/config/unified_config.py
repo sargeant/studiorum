@@ -115,7 +115,7 @@ class ValidationConfig(BaseModel):
 
 def _default_fallback_engines() -> list[Literal["lualatex", "xelatex", "pdflatex"]]:
     """Default factory for fallback engines."""
-    return ["xelatex", "pdflatex"]
+    return ["xelatex"]
 
 
 class LaTeXEngineConfig(BaseModel):

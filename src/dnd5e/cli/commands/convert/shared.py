@@ -24,6 +24,9 @@ def create_latex_compiler() -> LaTeXCompiler:
 
     Returns:
         LaTeXCompiler configured with unified application config
+
+    Raises:
+        typer.Exit: If configuration validation fails
     """
     config = get_app_config()
 
@@ -39,6 +42,18 @@ def create_latex_compiler() -> LaTeXCompiler:
         show_progress=config.rendering.latex.engine.show_progress,
         keep_intermediate_files=config.rendering.latex.engine.keep_temp_files,
     )
+
+    # Validate configuration for early error detection
+    validation_errors = compilation_config.validate_config()
+    if validation_errors:
+        rprint("[red]LaTeX configuration errors:[/red]")
+        for error in validation_errors:
+            rprint(f"  [red]•[/red] {error}")
+        rprint("\n[yellow]Suggestions:[/yellow]")
+        rprint("  • Use XeLaTeX or LuaLaTeX for fontspec package support")
+        rprint("  • Remove fontspec from required packages if using PDFLaTeX")
+        rprint("  • Check your configuration in ~/.5e2pdf/config.yaml")
+        raise typer.Exit(1)
 
     return LaTeXCompiler(compilation_config)
 

@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 
 from dnd5e.renderers.latex.compilation_config import (  # type: ignore
+    ENGINE_PACKAGE_COMPATIBILITY,
     CompilationConfig,
     CompilationMode,
     CompilationResult,
@@ -44,7 +45,7 @@ class TestCompilationConfig:
         config: Any = CompilationConfig()
 
         assert config.primary_engine == LaTeXEngine.LUALATEX
-        assert config.fallback_engines == [LaTeXEngine.XELATEX, LaTeXEngine.PDFLATEX]
+        assert config.fallback_engines == [LaTeXEngine.XELATEX]
         assert config.mode == CompilationMode.NORMAL
         assert config.max_passes == 4
         assert config.timeout_seconds == 300
@@ -324,3 +325,143 @@ class TestCompilationResult:
 
         assert len(result.warnings) == 0
         assert isinstance(result.warnings, list)
+
+
+@pytest.mark.rendering
+class TestEnginePackageCompatibility:
+    """Tests for engine-package compatibility system."""
+
+    def test_engine_package_compatibility_matrix(self) -> None:
+        """Test that the compatibility matrix contains expected packages."""
+        # LuaLaTeX should support all packages including fontspec
+        assert "fontspec" in ENGINE_PACKAGE_COMPATIBILITY["lualatex"]
+        assert "dndbook" in ENGINE_PACKAGE_COMPATIBILITY["lualatex"]
+        assert "unicode-math" in ENGINE_PACKAGE_COMPATIBILITY["lualatex"]
+
+        # XeLaTeX should support fontspec
+        assert "fontspec" in ENGINE_PACKAGE_COMPATIBILITY["xelatex"]
+        assert "dndbook" in ENGINE_PACKAGE_COMPATIBILITY["xelatex"]
+
+        # PDFLaTeX should NOT support fontspec
+        assert "fontspec" not in ENGINE_PACKAGE_COMPATIBILITY["pdflatex"]
+        assert "dndbook" in ENGINE_PACKAGE_COMPATIBILITY["pdflatex"]
+
+    def test_is_engine_compatible_with_packages(self) -> None:
+        """Test engine-package compatibility checking."""
+        config = CompilationConfig()
+
+        # LuaLaTeX should be compatible with fontspec
+        assert config.is_engine_compatible_with_packages(
+            LaTeXEngine.LUALATEX, ["fontspec", "dndbook"]
+        )
+
+        # XeLaTeX should be compatible with fontspec
+        assert config.is_engine_compatible_with_packages(
+            LaTeXEngine.XELATEX, ["fontspec", "dndbook"]
+        )
+
+        # PDFLaTeX should NOT be compatible with fontspec
+        assert not config.is_engine_compatible_with_packages(
+            LaTeXEngine.PDFLATEX, ["fontspec", "dndbook"]
+        )
+
+        # PDFLaTeX should be compatible with basic packages
+        assert config.is_engine_compatible_with_packages(
+            LaTeXEngine.PDFLATEX, ["dndbook", "geometry"]
+        )
+
+    def test_get_compatible_engines(self) -> None:
+        """Test getting compatible engines for packages."""
+        config = CompilationConfig(
+            primary_engine=LaTeXEngine.LUALATEX,
+            fallback_engines=[LaTeXEngine.XELATEX, LaTeXEngine.PDFLATEX],
+            required_packages=["dndbook", "fontspec"],
+        )
+
+        compatible = config.get_compatible_engines()
+
+        # Should include LuaLaTeX and XeLaTeX but not PDFLaTeX
+        assert LaTeXEngine.LUALATEX in compatible
+        assert LaTeXEngine.XELATEX in compatible
+        assert LaTeXEngine.PDFLATEX not in compatible
+
+    def test_get_filtered_fallback_engines(self) -> None:
+        """Test filtering fallback engines by compatibility."""
+        config = CompilationConfig(
+            fallback_engines=[LaTeXEngine.XELATEX, LaTeXEngine.PDFLATEX],
+            required_packages=["dndbook", "fontspec"],
+        )
+
+        filtered = config.get_filtered_fallback_engines()
+
+        # Should only include XeLaTeX
+        assert LaTeXEngine.XELATEX in filtered
+        assert LaTeXEngine.PDFLATEX not in filtered
+
+    def test_validate_engine_package_compatibility_success(self) -> None:
+        """Test successful compatibility validation."""
+        config = CompilationConfig(
+            primary_engine=LaTeXEngine.LUALATEX,
+            fallback_engines=[LaTeXEngine.XELATEX],
+            required_packages=["dndbook", "fontspec"],
+        )
+
+        errors = config.validate_engine_package_compatibility()
+        assert len(errors) == 0
+
+    def test_validate_engine_package_compatibility_primary_error(self) -> None:
+        """Test compatibility validation with incompatible primary engine."""
+        config = CompilationConfig(
+            primary_engine=LaTeXEngine.PDFLATEX,
+            fallback_engines=[LaTeXEngine.XELATEX],
+            required_packages=["dndbook", "fontspec"],
+        )
+
+        errors = config.validate_engine_package_compatibility()
+        assert len(errors) == 1
+        assert "Primary engine pdflatex doesn't support packages" in errors[0]
+        assert "fontspec" in errors[0]
+
+    def test_validate_engine_package_compatibility_no_fallbacks(self) -> None:
+        """Test compatibility validation with no compatible fallbacks."""
+        config = CompilationConfig(
+            primary_engine=LaTeXEngine.PDFLATEX,
+            fallback_engines=[LaTeXEngine.PDFLATEX],  # Another PDFLaTeX
+            required_packages=["dndbook", "fontspec"],
+        )
+
+        errors = config.validate_engine_package_compatibility()
+        assert len(errors) == 2  # Primary engine error + no fallbacks error
+        assert any("Primary engine" in error for error in errors)
+        assert any("No fallback engines support" in error for error in errors)
+
+    def test_validate_config_includes_compatibility(self) -> None:
+        """Test that main validate_config includes compatibility checks."""
+        config = CompilationConfig(
+            primary_engine=LaTeXEngine.PDFLATEX,
+            fallback_engines=[],
+            required_packages=["fontspec"],
+        )
+
+        errors = config.validate_config()
+        # Should include compatibility errors along with other validation
+        assert len(errors) > 0
+        assert any("fontspec" in error for error in errors)
+
+    def test_default_config_fontspec_compatibility(self) -> None:
+        """Test that default configuration is fontspec-compatible."""
+        config = CompilationConfig()  # Default config
+
+        # Default should be LuaLaTeX primary with XeLaTeX fallback
+        assert config.primary_engine == LaTeXEngine.LUALATEX
+        assert LaTeXEngine.XELATEX in config.fallback_engines
+        assert LaTeXEngine.PDFLATEX not in config.fallback_engines
+
+        # Should pass compatibility validation
+        errors = config.validate_engine_package_compatibility()
+        assert len(errors) == 0
+
+        # Even if fontspec is added, should still be compatible
+        config.required_packages.append("fontspec")
+        errors = config.validate_engine_package_compatibility()
+        assert len(errors) == 0

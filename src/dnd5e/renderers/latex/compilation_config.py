@@ -6,6 +6,75 @@ from typing import Any, TypedDict, Unpack
 
 from pydantic import BaseModel, Field, field_validator
 
+# Engine-Package Compatibility Matrix
+# Defines which LaTeX packages are supported by each engine
+ENGINE_PACKAGE_COMPATIBILITY: dict[str, set[str]] = {
+    "lualatex": {
+        # LuaLaTeX supports all packages including Unicode and system fonts
+        "dndbook",
+        "dnd",
+        "fontspec",
+        "geometry",
+        "xcolor",
+        "graphicx",
+        "fancyhdr",
+        "tikz",
+        "tcolorbox",
+        "hyperref",
+        "enumitem",
+        "multicol",
+        "caption",
+        "amsmath",
+        "amsfonts",
+        "amssymb",
+        "babel",
+        "polyglossia",
+        "unicode-math",
+    },
+    "xelatex": {
+        # XeLaTeX supports most packages including fontspec for system fonts
+        "dndbook",
+        "dnd",
+        "fontspec",
+        "geometry",
+        "xcolor",
+        "graphicx",
+        "fancyhdr",
+        "tikz",
+        "tcolorbox",
+        "hyperref",
+        "enumitem",
+        "multicol",
+        "caption",
+        "amsmath",
+        "amsfonts",
+        "amssymb",
+        "babel",
+        "polyglossia",
+    },
+    "pdflatex": {
+        # PDFLaTeX is more limited - no fontspec, no system fonts, limited Unicode
+        "dndbook",
+        "dnd",
+        "geometry",
+        "xcolor",
+        "graphicx",
+        "fancyhdr",
+        "tikz",
+        "tcolorbox",
+        "hyperref",
+        "enumitem",
+        "multicol",
+        "caption",
+        "amsmath",
+        "amsfonts",
+        "amssymb",
+        "babel",
+        "inputenc",
+        "fontenc",
+    },
+}
+
 
 class CompilationConfigKwargs(TypedDict, total=False):
     """Keyword arguments for CompilationConfig."""
@@ -48,7 +117,7 @@ class CompilationConfig(BaseModel):
         default=LaTeXEngine.LUALATEX, description="Primary LaTeX engine to use"
     )
     fallback_engines: list[LaTeXEngine] = Field(
-        default_factory=lambda: [LaTeXEngine.XELATEX, LaTeXEngine.PDFLATEX],
+        default_factory=lambda: [LaTeXEngine.XELATEX],
         description="Fallback engines to try if primary fails",
     )
 
@@ -84,7 +153,7 @@ class CompilationConfig(BaseModel):
         default=True, description="Check for required LaTeX packages"
     )
     required_packages: list[str] = Field(
-        default_factory=lambda: ["dndbook", "dnd", "fontspec"],
+        default_factory=lambda: ["dndbook", "dnd"],
         description="Required LaTeX packages",
     )
 
@@ -222,6 +291,94 @@ class CompilationConfig(BaseModel):
 
         if self.output_dir and not isinstance(self.output_dir, Path):
             errors.append("output_dir must be a Path object")
+
+        # Validate engine-package compatibility
+        compatibility_errors = self.validate_engine_package_compatibility()
+        errors.extend(compatibility_errors)
+
+        return errors
+
+    def get_compatible_engines(
+        self, packages: list[str] | None = None
+    ) -> list[LaTeXEngine]:
+        """Get engines compatible with the required packages.
+
+        Args:
+            packages: List of required packages. If None, uses self.required_packages
+
+        Returns:
+            List of engines that support all required packages
+        """
+        if packages is None:
+            packages = self.required_packages
+
+        compatible_engines = []
+        all_engines = [self.primary_engine] + self.fallback_engines
+
+        for engine in all_engines:
+            if self.is_engine_compatible_with_packages(engine, packages):
+                compatible_engines.append(engine)
+
+        return compatible_engines
+
+    def is_engine_compatible_with_packages(
+        self, engine: LaTeXEngine, packages: list[str]
+    ) -> bool:
+        """Check if an engine supports all required packages.
+
+        Args:
+            engine: LaTeX engine to check
+            packages: List of required packages
+
+        Returns:
+            True if engine supports all packages
+        """
+        supported_packages = ENGINE_PACKAGE_COMPATIBILITY.get(engine.value, set())
+        return all(package in supported_packages for package in packages)
+
+    def get_filtered_fallback_engines(self) -> list[LaTeXEngine]:
+        """Get fallback engines filtered by package compatibility.
+
+        Returns:
+            List of fallback engines compatible with required packages
+        """
+        return [
+            engine
+            for engine in self.fallback_engines
+            if self.is_engine_compatible_with_packages(engine, self.required_packages)
+        ]
+
+    def validate_engine_package_compatibility(self) -> list[str]:
+        """Validate that primary and fallback engines support required packages.
+
+        Returns:
+            List of compatibility errors (empty if all compatible)
+        """
+        errors = []
+
+        # Check primary engine
+        if not self.is_engine_compatible_with_packages(
+            self.primary_engine, self.required_packages
+        ):
+            incompatible_packages = [
+                pkg
+                for pkg in self.required_packages
+                if pkg
+                not in ENGINE_PACKAGE_COMPATIBILITY.get(
+                    self.primary_engine.value, set()
+                )
+            ]
+            errors.append(
+                f"Primary engine {self.primary_engine.value} doesn't support packages: "
+                f"{', '.join(incompatible_packages)}"
+            )
+
+        # Check if any fallback engines are compatible
+        compatible_fallbacks = self.get_filtered_fallback_engines()
+        if not compatible_fallbacks:
+            errors.append(
+                f"No fallback engines support all required packages: {', '.join(self.required_packages)}"
+            )
 
         return errors
 

@@ -89,8 +89,11 @@ class LaTeXCompiler:
         # Write LaTeX source to file
         tex_file.write_text(latex_content, encoding="utf-8")
 
-        # Try engines in order of preference
-        engines_to_try = [self.config.primary_engine] + self.config.fallback_engines
+        # Try engines in order of preference, filtered by package compatibility
+        compatible_engines = self.config.get_compatible_engines()
+        engines_to_try = (
+            compatible_engines if compatible_engines else [self.config.primary_engine]
+        )
         last_result = None
 
         for engine in engines_to_try:
@@ -117,12 +120,24 @@ class LaTeXCompiler:
             last_result.total_time = time.time() - start_time
             return last_result
         else:
+            # Provide informative error message about compatibility
+            all_engines = [self.config.primary_engine] + self.config.fallback_engines
+            if not compatible_engines:
+                error_msg = (
+                    f"No engines compatible with required packages {self.config.required_packages}. "
+                    f"Available engines: {[e.value for e in all_engines]}"
+                )
+            else:
+                error_msg = f"No compatible LaTeX engines available: {[e.value for e in engines_to_try]}"
+
             return CompilationResult(
                 success=False,
-                engine_used=engines_to_try[0],
+                engine_used=engines_to_try[0]
+                if engines_to_try
+                else self.config.primary_engine,
                 passes_completed=0,
                 total_time=time.time() - start_time,
-                error_message="No LaTeX engines available",
+                error_message=error_msg,
             )
 
     async def _compile_with_engine(

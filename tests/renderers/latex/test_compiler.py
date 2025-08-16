@@ -413,7 +413,7 @@ class TestLaTeXCompilerIntegration:
             result = await self.compiler.compile_document(latex_content, "test")
             assert result.success is False
             assert result.error_message is not None
-            assert "No LaTeX engines available" in result.error_message
+            assert "No compatible LaTeX engines available" in result.error_message
 
     async def test_compile_with_dependency_error(self) -> None:
         """Test compilation with dependency check failure."""

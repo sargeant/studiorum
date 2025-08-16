@@ -221,6 +221,26 @@ class LaTeXErrorParser:
                 "extract": lambda m: f"Fontspec error: {m.group(1)}",
             },
             {
+                "pattern": re.compile(r"! Package fontspec Error: (.+)"),
+                "severity": ErrorSeverity.ERROR,
+                "category": ErrorCategory.FONT_ERROR,
+                "extract": lambda m: f"Fontspec package error: {m.group(1)}",
+            },
+            {
+                "pattern": re.compile(
+                    r"! Undefined control sequence.*\\usepackage.*fontspec", re.DOTALL
+                ),
+                "severity": ErrorSeverity.ERROR,
+                "category": ErrorCategory.FONT_ERROR,
+                "extract": lambda m: "Fontspec package not available - requires XeLaTeX or LuaLaTeX",
+            },
+            {
+                "pattern": re.compile(r"! LaTeX Error: File `fontspec\.sty' not found"),
+                "severity": ErrorSeverity.ERROR,
+                "category": ErrorCategory.MISSING_PACKAGE,
+                "extract": lambda m: "Fontspec package not installed or not available with current engine",
+            },
+            {
                 "pattern": re.compile(r"LaTeX Warning: (.+)"),
                 "severity": ErrorSeverity.WARNING,
                 "category": ErrorCategory.UNKNOWN,
@@ -252,6 +272,8 @@ class LaTeXErrorParser:
                 "Ensure working directory is set correctly",
             ],
             ErrorCategory.FONT_ERROR: [
+                "Use XeLaTeX or LuaLaTeX engines for fontspec package support",
+                "PDFLaTeX does not support fontspec - switch engines or remove fontspec",
                 "Install template-compatible fonts or use fallback configuration",
                 "Check font installation in your system",
                 "Verify fontspec package is properly configured",
