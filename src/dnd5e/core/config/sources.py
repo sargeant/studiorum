@@ -179,6 +179,11 @@ class ContentConfigManager:
 
     def _get_default_config_path(self) -> Path:
         """Get the default configuration file path."""
+        # Check for environment variable override first
+        config_file = os.environ.get("DND5E_CONFIG_FILE")
+        if config_file:
+            return Path(config_file)
+
         # Cross-platform config directory
         if os.name == "nt":  # Windows
             config_dir = (

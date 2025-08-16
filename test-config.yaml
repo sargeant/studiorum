@@ -1,0 +1,12 @@
+version: "1.0"
+content_sources:
+  - name: "test-data"
+    type: "directory"
+    path: "test-data"
+    enabled: true
+    priority: 0
+cache_dir: ".cache/5e2pdf-test"
+config_dir: ".config/5e2pdf-test"
+auto_update_enabled: false
+parallel_downloads: 1
+content_index_ttl: 60

@@ -40,13 +40,21 @@ class TestBookConversion:
         """Reset global state for complete isolation using service container."""
         reset_test_environment()
 
+    def _get_test_env(self) -> dict[str, str]:
+        """Get environment with test configuration override."""
+        import os
+
+        env = os.environ.copy()
+        env["DND5E_CONFIG_FILE"] = "test-config.yaml"
+        return env
+
     def test_book_conversion_produces_content(self):
         """Test that book conversion produces LaTeX with actual content."""
         # Use a temporary output file
         with tempfile.TemporaryDirectory() as temp_dir:
             output_file = Path(temp_dir) / "TEST.tex"
 
-            # Run the conversion command
+            # Run the conversion command with test config
             result = subprocess.run(
                 [
                     "uv",
@@ -61,6 +69,7 @@ class TestBookConversion:
                 capture_output=True,
                 text=True,
                 cwd=Path.cwd(),
+                env=self._get_test_env(),
             )
 
             # Check that the command succeeded
@@ -115,7 +124,7 @@ class TestBookConversion:
             with tempfile.TemporaryDirectory() as temp_dir:
                 output_file = Path(temp_dir) / f"{book_id}.tex"
 
-                # Try to convert the book
+                # Try to convert the book with test config
                 result = subprocess.run(
                     [
                         "uv",
@@ -130,6 +139,7 @@ class TestBookConversion:
                     capture_output=True,
                     text=True,
                     cwd=Path.cwd(),
+                    env=self._get_test_env(),
                 )
 
                 # Some books might not be available in test data
@@ -179,6 +189,7 @@ class TestBookConversion:
                 capture_output=True,
                 text=True,
                 cwd=Path.cwd(),
+                env=self._get_test_env(),
             )
 
             end_time = time.time()
@@ -320,6 +331,7 @@ class TestBookConversion:
                 capture_output=True,
                 text=True,
                 cwd=Path.cwd(),
+                env=self._get_test_env(),
             )
 
             if result.returncode != 0:
@@ -418,6 +430,7 @@ class TestBookConversion:
                 capture_output=True,
                 text=True,
                 cwd=Path.cwd(),
+                env=self._get_test_env(),
             )
 
             # Should work without hardcoded paths
@@ -470,6 +483,7 @@ class TestBookConversion:
                 capture_output=True,
                 text=True,
                 cwd=Path.cwd(),
+                env=self._get_test_env(),
             )
 
             # Should fail gracefully with appropriate error message
@@ -509,6 +523,7 @@ class TestBookConversion:
                 capture_output=True,
                 text=True,
                 cwd=Path.cwd(),
+                env=self._get_test_env(),
             )
 
             if result.returncode != 0:

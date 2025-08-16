@@ -40,6 +40,14 @@ class TestAdventureConversion:
         """Reset global state for complete isolation using service container."""
         reset_test_environment()
 
+    def _get_test_env(self) -> dict[str, str]:
+        """Get environment with test configuration override."""
+        import os
+
+        env = os.environ.copy()
+        env["DND5E_CONFIG_FILE"] = "test-config.yaml"
+        return env
+
     def test_adventure_conversion_produces_content(self):
         """Test that adventure conversion produces LaTeX with actual content."""
         # Use a temporary output file
@@ -61,6 +69,7 @@ class TestAdventureConversion:
                 capture_output=True,
                 text=True,
                 cwd=Path.cwd(),
+                env=self._get_test_env(),
             )
 
             # Check that the command succeeded
@@ -129,6 +138,7 @@ class TestAdventureConversion:
                     capture_output=True,
                     text=True,
                     cwd=Path.cwd(),
+                    env=self._get_test_env(),
                 )
 
                 # Some adventures might not be available in test data
@@ -182,6 +192,7 @@ class TestAdventureConversion:
                 capture_output=True,
                 text=True,
                 cwd=Path.cwd(),
+                env=self._get_test_env(),
             )
 
             end_time = time.time()
@@ -319,6 +330,7 @@ class TestAdventureConversion:
                 capture_output=True,
                 text=True,
                 cwd=Path.cwd(),
+                env=self._get_test_env(),
             )
 
             if result.returncode != 0:
@@ -408,6 +420,7 @@ class TestAdventureConversion:
                 capture_output=True,
                 text=True,
                 cwd=Path.cwd(),
+                env=self._get_test_env(),
             )
 
             # Should fail gracefully with appropriate error message
@@ -447,6 +460,7 @@ class TestAdventureConversion:
                 capture_output=True,
                 text=True,
                 cwd=Path.cwd(),
+                env=self._get_test_env(),
             )
 
             if result.returncode != 0:
