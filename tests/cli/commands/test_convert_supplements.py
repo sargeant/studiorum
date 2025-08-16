@@ -65,7 +65,8 @@ class TestConvertSupplementCommand:
         mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Omnidexer()
+        mock_omnidexer_instance = Mock(spec=Omnidexer)
+        mock_omnidexer.return_value = mock_omnidexer_instance
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 
@@ -126,7 +127,8 @@ class TestConvertSupplementCommand:
         mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Omnidexer()
+        mock_omnidexer_instance = Mock(spec=Omnidexer)
+        mock_omnidexer.return_value = mock_omnidexer_instance
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 

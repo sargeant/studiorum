@@ -237,7 +237,8 @@ class TestConvertAdventureCommand:
     ):
         """Test error handling when content resolution fails."""
         # Mock dependencies
-        mock_omnidexer.return_value = Omnidexer()
+        mock_omnidexer_instance = Mock(spec=Omnidexer)
+        mock_omnidexer.return_value = mock_omnidexer_instance
 
         # Mock failed resolution
         mock_resolver = Mock()
@@ -261,12 +262,13 @@ class TestConvertAdventureCommand:
         assert "Error:" in result.stdout
 
     @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.shared.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.adventure.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
-    @patch("dnd5e.cli.commands.convert.shared.compile_pdf")
+    @patch("dnd5e.cli.commands.convert.adventure.compile_pdf_async")
     def test_convert_adventure_with_pdf_compilation(
         self,
         mock_compile_pdf,
@@ -275,6 +277,7 @@ class TestConvertAdventureCommand:
         mock_display,
         mock_renderer_class,
         mock_tag_resolver,
+        mock_shared_omnidexer,
         mock_omnidexer,
     ):
         """Test adventure conversion with PDF compilation."""
@@ -284,7 +287,11 @@ class TestConvertAdventureCommand:
         mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Omnidexer()
+        mock_omnidexer_instance = Mock(spec=Omnidexer)
+        mock_omnidexer.return_value = mock_omnidexer_instance
+        mock_shared_omnidexer.return_value = (
+            mock_omnidexer_instance  # Use same mock instance
+        )
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 

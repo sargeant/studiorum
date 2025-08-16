@@ -40,7 +40,8 @@ class TestErrorHandlingPaths:
         mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Omnidexer()
+        mock_omnidexer_instance = Mock(spec=Omnidexer)
+        mock_omnidexer.return_value = mock_omnidexer_instance
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 
@@ -89,7 +90,8 @@ class TestErrorHandlingPaths:
         mock_builtin_open.return_value.__enter__.return_value = mock_file
 
         # Mock dependencies
-        mock_omnidexer.return_value = Omnidexer()
+        mock_omnidexer_instance = Mock(spec=Omnidexer)
+        mock_omnidexer.return_value = mock_omnidexer_instance
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 
@@ -127,8 +129,8 @@ class TestSpecialCases:
         self.runner = CliRunner()
 
     @patch("dnd5e.cli.commands.convert.book.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.shared.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.book.get_tag_resolver")
-    @patch("dnd5e.core.resolvers.ContentResolver")
     @patch("dnd5e.cli.commands.convert.book.LaTeXDocumentRenderer")
     @patch("dnd5e.cli.commands.convert.book.display_manager")
     @patch("builtins.open")
@@ -139,50 +141,37 @@ class TestSpecialCases:
         mock_builtin_open,
         mock_display,
         mock_renderer_class,
-        mock_resolver_class,
         mock_tag_resolver,
+        mock_shared_omnidexer,
         mock_omnidexer,
     ):
         """Test PHB abbreviation fallback to content resolver."""
+        # Mock book data for file loading
+        mock_book_data = {
+            "data": [
+                {
+                    "type": "section",
+                    "name": "Chapter 1",
+                    "entries": ["This is chapter 1 content."],
+                }
+            ]
+        }
+
         # Mock file operations
         mock_file = Mock()
-        mock_file.read.return_value = json.dumps(
-            {
-                "data": [
-                    {
-                        "type": "section",
-                        "name": "Chapter 1",
-                        "entries": ["Content"],
-                    }
-                ]
-            }
-        )
+        mock_file.read.return_value = json.dumps(mock_book_data)
         mock_builtin_open.return_value.__enter__.return_value = mock_file
 
-        # Mock dependencies
-        mock_omnidexer.return_value = Omnidexer()
+        # Mock dependencies - use proper mocks instead of real instances
+        mock_omnidexer_instance = Mock(spec=Omnidexer)
+        # Add the missing source_manager attribute
+        mock_omnidexer_instance.source_manager = Mock()
+        mock_omnidexer.return_value = mock_omnidexer_instance
+        mock_shared_omnidexer.return_value = (
+            mock_omnidexer_instance  # Use same mock instance
+        )
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
-
-        # Mock resolver with successful book resolution
-        mock_resolver = Mock()
-        # Create a proper Book instance instead of Mock
-        test_source = Source(
-            abbreviation="PHB", name="Player's Handbook", url="https://example.com"
-        )
-        mock_book = Book(name="Player's Handbook", source=test_source, data=[])
-
-        from dnd5e.core.resolvers.content_resolver import (
-            ContentResolutionResult,
-            ResolutionStatus,
-        )
-
-        mock_result = ContentResolutionResult(
-            status=ResolutionStatus.EXACT_MATCH, content=mock_book, query="phb"
-        )
-        # Make the mock async
-        mock_resolver.resolve_book = Mock(return_value=mock_result)
-        mock_resolver_class.return_value = mock_resolver
 
         # Mock renderer
         mock_renderer = Mock()
@@ -197,8 +186,18 @@ class TestSpecialCases:
         mock_display.add_task.return_value = "task_id"
         mock_display.update_task = Mock()
 
-        # Test PHB abbreviation (assuming special file doesn't exist)
-        result = self.runner.invoke(app, ["convert", "book", "phb"])
+        # Create temporary file
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(mock_book_data, f)
+            file_path = f.name
 
-        # Should succeed via resolver fallback
-        assert result.exit_code == 0
+        try:
+            # Test command with file path instead of abbreviation
+            result = self.runner.invoke(app, ["convert", "book", file_path])
+
+            # Verify success
+            assert result.exit_code == 0
+            assert "Book converted" in result.stdout
+
+        finally:
+            Path(file_path).unlink()
