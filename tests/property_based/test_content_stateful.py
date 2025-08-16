@@ -200,14 +200,6 @@ class ContentResolutionStateMachine(RuleBasedStateMachine):
 class TestStatefulContentManagement:
     """Integration tests using stateful testing patterns."""
 
-    @pytest.mark.skip(
-        reason="Omnidexer implementation details not suitable for stateful testing"
-    )
-    def test_omnidexer_state_machine(self):
-        """Run stateful tests on omnidexer operations."""
-        # Run the state machine with a reasonable number of steps
-        OmnidexerStateMachine.TestCase().runTest()
-
     def test_content_resolution_state_machine(self):
         """Run stateful tests on content resolution."""
         ContentResolutionStateMachine.TestCase().runTest()

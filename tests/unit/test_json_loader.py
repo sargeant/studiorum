@@ -402,29 +402,6 @@ class TestJsonDataLoaderContentTypeValidation:
             ],
         }
 
-    def test_class_loader_with_class_data_succeeds(
-        self, sample_class_data: dict[str, Any]
-    ) -> None:
-        """Test that CLASS loader successfully processes class data."""
-        # Skip test for non-static ContentType enums until dynamic enum support is added
-        pytest.skip(
-            "Skipping test for dynamic ContentType 'class' - not a static enum member"
-        )
-
-        loader = JsonDataLoader(self._get_content_type("class"))
-        mock_path = Path("/fake/class-test.json")
-
-        # Extract content
-        extracted = loader._extract_content(sample_class_data, mock_path)
-        assert len(extracted) == 1
-
-        # Verify it extracted class data
-        class_item = extracted[0]
-        assert class_item["name"] == "Spellblade"
-        assert "hd" in class_item
-        assert "proficiency" in class_item
-        assert "classFeatures" in class_item
-
     def test_spell_loader_with_spell_data_succeeds(
         self, sample_spell_data: dict[str, Any]
     ) -> None:
@@ -474,43 +451,6 @@ class TestJsonDataLoaderContentTypeValidation:
             # It should still have class-specific fields
             assert "hd" in class_item
             assert "proficiency" in class_item
-        else:
-            # This is the preferred behavior - no extraction should occur
-            assert extracted == []
-
-    def test_class_loader_with_spell_data_should_fail(
-        self, sample_spell_data: dict[str, Any]
-    ) -> None:
-        """Test that CLASS loader should NOT successfully process spell data."""
-        # Skip test for non-static ContentType enums until dynamic enum support is added
-        pytest.skip(
-            "Skipping test for dynamic ContentType 'class' - not a static enum member"
-        )
-
-        loader = JsonDataLoader(self._get_content_type("class"))
-        mock_path = Path("/fake/spell-test.json")
-
-        # This should not find any content since there's no "class" key
-        extracted = loader._extract_content(sample_spell_data, mock_path)
-
-        # The class loader should not extract anything from spell data
-        if extracted:
-            # If content is extracted, it should not be valid class data
-            spell_item = extracted[0]
-
-            # This item should NOT have class-specific fields unless they were incorrectly added
-            assert "hd" not in spell_item or spell_item.get("hd") is None
-            assert (
-                "proficiency" not in spell_item or spell_item.get("proficiency") is None
-            )
-            assert (
-                "classFeatures" not in spell_item
-                or spell_item.get("classFeatures") is None
-            )
-
-            # It should still have spell-specific fields
-            assert "level" in spell_item
-            assert "school" in spell_item
         else:
             # This is the preferred behavior - no extraction should occur
             assert extracted == []
