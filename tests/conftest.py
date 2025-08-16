@@ -279,9 +279,15 @@ def make_tag_resolver():
 def test_data_omnidexer() -> Omnidexer:
     """Omnidexer using test-data and srd-data sources."""
     import asyncio
+    import uuid
 
     # Use full reset sequence for complete isolation
     reset_test_environment()
+
+    # CRITICAL: Force a fresh service container for each test to avoid parallel contamination
+    from dnd5e.core.container import reset_global_container
+
+    reset_global_container()
 
     # Create a temporary config that forces test-data inclusion
     import tempfile

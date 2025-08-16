@@ -194,7 +194,9 @@ addopts = [
     "--cov-report=xml",
     "--tb=short",
     "-n", "auto",  # Enable parallel test execution
-    # Note: Parallel execution confirmed working - failures are pre-existing mocking issues
+    "--dist", "loadscope",  # Group tests by module for better isolation
+    "--max-worker-restart", "1",  # Force new processes to avoid contamination
+    # Note: Enhanced isolation for parallel execution
 ]
 testpaths = ["tests"]
 markers = [

@@ -18,6 +18,11 @@ class TestBookResolution:
         """Reset global state for complete isolation using service container."""
         reset_test_environment()
 
+        # Extra isolation for parallel execution
+        from dnd5e.core.container import reset_global_container
+
+        reset_global_container()
+
     def test_omnidexer_loads_only_book_metadata(self):
         """Test that omnidexer loads only metadata files for books."""
         omnidexer = get_omnidexer()

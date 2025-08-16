@@ -191,40 +191,44 @@ class TestJsonLoaderValidationIntegration:
         tracker.get_summary.return_value = {}
         return tracker
 
-    @patch("dnd5e.core.loaders.json_loader.ValidationErrorTracker")
     def test_json_loader_uses_error_tracker(
-        self, mock_tracker_class: MagicMock, mock_validation_tracker: MagicMock
+        self, mock_validation_tracker: MagicMock
     ) -> None:
         """Test that JsonDataLoader uses ValidationErrorTracker for error handling."""
-        mock_tracker_class.return_value = mock_validation_tracker
+        # Patch the ValidationErrorTracker class before creating the loader
+        with patch(
+            "dnd5e.core.loaders.json_loader.ValidationErrorTracker"
+        ) as mock_tracker_class:
+            mock_tracker_class.return_value = mock_validation_tracker
+            mock_validation_tracker.should_log_error.return_value = True
 
-        loader = JsonDataLoader(ContentType("spell"))
+            loader = JsonDataLoader(ContentType("spell"))
 
-        # Simulate validation error during content creation
-        with patch.object(loader._content_factory, "create_content") as mock_create:
-            validation_error = ValidationError.from_exception_data(
-                "TestModel",
-                [
-                    {
-                        "type": "missing",
-                        "loc": ("field",),
-                        "msg": "Field required",
-                        "input": {},
-                    }
-                ],
-            )
-            mock_create.side_effect = validation_error
+            # Simulate validation error during content creation
+            with patch.object(loader._content_factory, "create_content") as mock_create:
+                validation_error = ValidationError.from_exception_data(
+                    "TestModel",
+                    [
+                        {
+                            "type": "missing",
+                            "loc": ("field",),
+                            "msg": "Field required",
+                            "input": {},
+                        }
+                    ],
+                )
+                mock_create.side_effect = validation_error
 
-            # Call load_from_data which should trigger error handling
-            data = {"spell": [{"name": "Test Spell", "level": 1, "school": "A"}]}
-            path = Path("/test/path.json")
+                # Call load_from_data which should trigger error handling
+                data = {"spell": [{"name": "Test Spell", "level": 1, "school": "A"}]}
+                path = Path("/test/path.json")
 
-            loader.load_from_data(data, path)
+                loader.load_from_data(data, path)
 
-            # Verify tracker was used
-            mock_tracker_class.assert_called_once()
-            mock_validation_tracker.should_log_error.assert_called()
-            mock_validation_tracker.record_error.assert_called()
+                # Verify tracker was used
+                mock_tracker_class.assert_called_once()
+                mock_validation_tracker.should_log_error.assert_called()
+                mock_validation_tracker.record_error.assert_called()
 
     @patch("dnd5e.core.loaders.json_loader.get_settings")
     @patch("dnd5e.core.loaders.json_loader.ValidationErrorTracker")

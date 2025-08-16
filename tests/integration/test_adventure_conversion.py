@@ -40,6 +40,11 @@ class TestAdventureConversion:
         """Reset global state for complete isolation using service container."""
         reset_test_environment()
 
+        # Extra isolation for parallel execution
+        from dnd5e.core.container import reset_global_container
+
+        reset_global_container()
+
     def _get_test_env(self) -> dict[str, str]:
         """Get environment with test configuration override."""
         import os
