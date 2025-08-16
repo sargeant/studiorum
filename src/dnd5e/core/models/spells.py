@@ -297,7 +297,7 @@ class Spell(BaseContent):
 
     def get_description_text(self) -> str:
         """Extract text from complex entry structures using proper entry processing."""
-        from ...cli.main import get_tag_resolver
+        from ...cli.utils import get_tag_resolver
         from ...renderers.core.interfaces import RenderingContext
         from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
@@ -354,7 +354,7 @@ class Spell(BaseContent):
         if not self.higher_level:
             return ""
 
-        from ...cli.main import get_tag_resolver
+        from ...cli.utils import get_tag_resolver
         from ...renderers.core.interfaces import RenderingContext
         from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 

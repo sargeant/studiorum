@@ -8,7 +8,7 @@ from rich import print as rprint
 from rich.table import Table
 
 from dnd5e.cli.display_manager import display_manager
-from dnd5e.cli.main import get_omnidexer
+from dnd5e.cli.utils import get_omnidexer
 from dnd5e.core.models.content import ContentType
 
 app: typer.Typer = typer.Typer(help="List available D&D content")

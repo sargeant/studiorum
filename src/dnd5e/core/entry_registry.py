@@ -601,13 +601,6 @@ class EntryTypeRegistry:
                 logger.warning(f"  {entry_type}: {count}")
 
 
-def get_registry() -> EntryTypeRegistry:
-    """Get the entry type registry instance from the service container."""
-    from dnd5e.core.container import get_global_container
-
-    return get_global_container().get_entry_registry()
-
-
 def reset_entry_registry() -> None:
     """Reset the entry type registry (for testing).
 
@@ -618,9 +611,18 @@ def reset_entry_registry() -> None:
     pass
 
 
+def get_registry() -> EntryTypeRegistry:
+    """Get the global entry type registry instance."""
+    from .container import get_global_container
+
+    return get_global_container().get_entry_registry()
+
+
 def set_validation_mode(mode: ValidationMode) -> None:
     """Set the validation mode on the registry instance."""
-    registry = get_registry()
+    from .container import get_global_container
+
+    registry = get_global_container().get_entry_registry()
     registry.validation_mode = mode
 
 

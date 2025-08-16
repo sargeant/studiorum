@@ -13,7 +13,7 @@ from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
 from ..validation.error_tracker import ValidationErrorTracker
 from .base import DataLoader
-from .content_factory import ContentFactory, get_content_factory
+from .content_factory import ContentFactory
 
 logger = get_logger(__name__)
 
@@ -34,7 +34,11 @@ class JsonDataLoader(DataLoader[BaseContent]):
         content_factory: ContentFactory | None = None,
     ):
         self._content_type = content_type
-        self._content_factory = content_factory or get_content_factory()
+        if content_factory is None:
+            from ..container import get_global_container
+
+            content_factory = get_global_container().get_content_factory()
+        self._content_factory = content_factory
         self._error_tracker = ValidationErrorTracker()
         self._settings = get_settings()
         self._base_items_registry: dict[str, dict[str, Any]] | None = None

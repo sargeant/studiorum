@@ -421,7 +421,7 @@ class Item(BaseContent):
         if not all_entries:
             return ""
 
-        from ...cli.main import get_tag_resolver
+        from ...cli.utils import get_tag_resolver
         from ...renderers.core.interfaces import RenderingContext
         from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 

@@ -13,7 +13,7 @@ from dnd5e.cli.config_factory import (
     get_with_images_default,
 )
 from dnd5e.cli.display_manager import display_manager
-from dnd5e.cli.main import get_omnidexer, get_tag_resolver
+from dnd5e.cli.utils import get_omnidexer, get_tag_resolver
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.renderers.core.interfaces import RenderingContext

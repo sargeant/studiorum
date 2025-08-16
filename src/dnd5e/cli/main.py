@@ -114,22 +114,6 @@ def main(
         logging.info("Enabled verbose mode")
 
 
-def get_omnidexer() -> Omnidexer:
-    """Get the omnidexer instance from the service container."""
-    from dnd5e.core.container import get_global_container
-
-    container = get_global_container()
-    return container.get_omnidexer()
-
-
-def get_tag_resolver() -> TagResolver:
-    """Get the tag resolver instance from the service container."""
-    from dnd5e.core.container import get_global_container
-
-    container = get_global_container()
-    return container.get_tag_resolver()
-
-
 # Import and mount CLI command modules
 try:
     from dnd5e.cli.commands.cache import app as cache_app
@@ -203,6 +187,8 @@ def quick_convert(
                 load_task = display_manager.add_task(
                     "[cyan]Initializing...", total=None
                 )
+                from dnd5e.cli.utils import get_omnidexer, get_tag_resolver
+
                 omnidexer = get_omnidexer()
                 tag_resolver = get_tag_resolver()
                 display_manager.update_task(load_task, completed=100)
@@ -316,6 +302,28 @@ def quick_convert(
             raise typer.Exit(1)
 
     _quick_convert()
+
+
+def get_omnidexer() -> Omnidexer:
+    """Get the omnidexer instance from the service container.
+
+    This function provides backward compatibility for tests that expect
+    these functions to be available from dnd5e.cli.main.
+    """
+    from dnd5e.cli.utils import get_omnidexer as _get_omnidexer
+
+    return _get_omnidexer()
+
+
+def get_tag_resolver() -> TagResolver:
+    """Get the tag resolver instance from the service container.
+
+    This function provides backward compatibility for tests that expect
+    these functions to be available from dnd5e.cli.main.
+    """
+    from dnd5e.cli.utils import get_tag_resolver as _get_tag_resolver
+
+    return _get_tag_resolver()
 
 
 def reset_cli_globals() -> None:

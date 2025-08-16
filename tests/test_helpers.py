@@ -38,11 +38,8 @@ def reset_test_environment() -> None:
         reset_content_type_registry()
         logger.debug("Content type registry reset (preserving decorator registrations)")
 
-        # 3. Reset ContentFactory (clears both global instance and class state)
-        # Do this before initialize_content_types() to ensure clean state
-        from dnd5e.core.loaders.content_factory import reset_content_factory
-
-        reset_content_factory()
+        # 3. ContentFactory is now managed by the DI container
+        # It gets reset when the container is reset, so no manual reset needed
 
         # 4. Reset disk-based cache
         from dnd5e.core.cache import CacheManager

@@ -2,15 +2,20 @@
 
 from typing import Any
 
-from ..interfaces import get_content_type_registry
+from ..interfaces import ContentTypeRegistry
 from ..models.content import BaseContent, ContentType
 
 
 class ContentFactory:
     """Factory for creating content instances based on content type."""
 
-    def __init__(self) -> None:
-        self._registry = get_content_type_registry()
+    def __init__(self, registry: ContentTypeRegistry | None = None) -> None:
+        if registry is None:
+            # Get from service container when not provided
+            from ..container import get_global_container
+
+            registry = get_global_container().get_content_type_registry()
+        self._registry = registry
         self._class_map: dict[ContentType, type[BaseContent]] = {}
         self._initialized = False
 
@@ -92,32 +97,3 @@ class ContentFactory:
         self._class_map[content_type] = content_class
         # Also register in the type registry
         self._registry.register(content_class, content_type)
-
-
-# Global factory instance
-_content_factory = ContentFactory()
-
-
-def get_content_factory() -> ContentFactory:
-    """Get the global content factory.
-
-    Returns:
-        Global content factory instance
-    """
-    return _content_factory
-
-
-def reset_content_factory() -> None:
-    """Reset the global content factory (for testing).
-
-    This recreates the global factory instance to ensure clean state.
-    Also clears any class-level state to prevent contamination between tests.
-    """
-    global _content_factory
-
-    # Clear class-level state that might have been set by registry manager
-    # or contaminated by tests
-    if hasattr(ContentFactory, "_class_map"):
-        delattr(ContentFactory, "_class_map")
-
-    _content_factory = ContentFactory()

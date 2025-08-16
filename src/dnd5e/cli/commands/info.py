@@ -5,7 +5,7 @@ from rich import print as rprint
 from rich.panel import Panel
 
 from dnd5e.cli.display_manager import display_manager
-from dnd5e.cli.main import get_omnidexer
+from dnd5e.cli.utils import get_omnidexer
 from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.models.creatures import Creature
 from dnd5e.core.models.items import Item

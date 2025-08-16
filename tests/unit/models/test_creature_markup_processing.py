@@ -32,8 +32,8 @@ class TestCreatureMarkupProcessing:
         mock_omnidexer = Mock()
 
         with (
-            patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver),
-            patch("dnd5e.cli.main.get_omnidexer", return_value=mock_omnidexer),
+            patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver),
+            patch("dnd5e.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
                 "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
@@ -60,8 +60,8 @@ class TestCreatureMarkupProcessing:
         mock_omnidexer = Mock()
 
         with (
-            patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver),
-            patch("dnd5e.cli.main.get_omnidexer", return_value=mock_omnidexer),
+            patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver),
+            patch("dnd5e.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
                 "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
@@ -93,7 +93,7 @@ class TestCreatureMarkupProcessing:
             "{@item shield}", "shield"
         ).replace("{@spell mage armor}", "mage armor")
 
-        with patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver):
+        with patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver):
             processed_ac = ac.get_processed_ac_text()
             assert "17 (natural armor, shield) (19 with mage armor)" == processed_ac
 
@@ -129,8 +129,8 @@ class TestCreatureMarkupProcessing:
         mock_omnidexer = Mock()
 
         with (
-            patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver),
-            patch("dnd5e.cli.main.get_omnidexer", return_value=mock_omnidexer),
+            patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver),
+            patch("dnd5e.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
                 "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
@@ -158,7 +158,7 @@ class TestCreatureMarkupProcessing:
 
         # Test that fallback works when tag processing raises exceptions
         with patch(
-            "dnd5e.cli.main.get_tag_resolver",
+            "dnd5e.cli.utils.get_tag_resolver",
             side_effect=Exception("Tag resolver error"),
         ):
             # Should fall back to original name
@@ -198,8 +198,8 @@ class TestCreatureMarkupProcessing:
         mock_omnidexer = Mock()
 
         with (
-            patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver),
-            patch("dnd5e.cli.main.get_omnidexer", return_value=mock_omnidexer),
+            patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver),
+            patch("dnd5e.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
                 "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
@@ -227,8 +227,8 @@ class TestCreatureMarkupProcessing:
         mock_omnidexer = Mock()
 
         with (
-            patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver),
-            patch("dnd5e.cli.main.get_omnidexer", return_value=mock_omnidexer),
+            patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver),
+            patch("dnd5e.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
                 "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
@@ -269,8 +269,8 @@ class TestCreatureMarkupProcessing:
         mock_omnidexer = Mock()
 
         with (
-            patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver),
-            patch("dnd5e.cli.main.get_omnidexer", return_value=mock_omnidexer),
+            patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver),
+            patch("dnd5e.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
                 "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
@@ -304,8 +304,8 @@ class TestCreatureMarkupProcessing:
         mock_omnidexer = Mock()
 
         with (
-            patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver),
-            patch("dnd5e.cli.main.get_omnidexer", return_value=mock_omnidexer),
+            patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver),
+            patch("dnd5e.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
                 "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
@@ -340,8 +340,8 @@ class TestCreatureMarkupProcessing:
         mock_omnidexer = Mock()
 
         with (
-            patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver),
-            patch("dnd5e.cli.main.get_omnidexer", return_value=mock_omnidexer),
+            patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver),
+            patch("dnd5e.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
                 "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
@@ -371,8 +371,8 @@ class TestCreatureMarkupProcessing:
         mock_omnidexer = Mock()
 
         with (
-            patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver),
-            patch("dnd5e.cli.main.get_omnidexer", return_value=mock_omnidexer),
+            patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver),
+            patch("dnd5e.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
                 "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
@@ -412,7 +412,7 @@ class TestCreatureMarkupEdgeCases:
 
         # Should handle empty entries gracefully
         with patch(
-            "dnd5e.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
+            "dnd5e.cli.utils.get_tag_resolver", side_effect=Exception("No resolver")
         ):
             description = ability.get_description_text()
             assert description == ""
@@ -431,7 +431,7 @@ class TestCreatureMarkupEdgeCases:
 
         # Test fallback text extraction without tag processing
         with patch(
-            "dnd5e.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
+            "dnd5e.cli.utils.get_tag_resolver", side_effect=Exception("No resolver")
         ):
             description = ability.get_description_text()
             assert "String entry" in description
@@ -455,7 +455,7 @@ class TestCreatureMarkupEdgeCases:
 
         # Should handle malformed entries without crashing
         with patch(
-            "dnd5e.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
+            "dnd5e.cli.utils.get_tag_resolver", side_effect=Exception("No resolver")
         ):
             description = ability.get_description_text()
             assert "Valid string" in description
@@ -470,8 +470,8 @@ class TestCreatureMarkupEdgeCases:
         mock_omnidexer = Mock()
 
         with (
-            patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver),
-            patch("dnd5e.cli.main.get_omnidexer", return_value=mock_omnidexer),
+            patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver),
+            patch("dnd5e.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
                 "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor",
                 side_effect=Exception("Construction failed"),
@@ -489,8 +489,8 @@ class TestCreatureMarkupEdgeCases:
         mock_omnidexer = Mock()
 
         with (
-            patch("dnd5e.cli.main.get_tag_resolver", return_value=mock_tag_resolver),
-            patch("dnd5e.cli.main.get_omnidexer", return_value=mock_omnidexer),
+            patch("dnd5e.cli.utils.get_tag_resolver", return_value=mock_tag_resolver),
+            patch("dnd5e.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
                 "dnd5e.renderers.core.interfaces.RenderingContext",
                 side_effect=Exception("Context creation failed"),

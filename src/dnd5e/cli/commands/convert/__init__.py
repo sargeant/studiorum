@@ -4,7 +4,7 @@ import typer
 
 # Re-export functions that tests may need to mock
 from dnd5e.cli.display_manager import display_manager
-from dnd5e.cli.main import get_omnidexer, get_tag_resolver
+from dnd5e.cli.utils import get_omnidexer, get_tag_resolver
 from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.resolvers.content_resolver import ContentResolver
 

@@ -279,6 +279,7 @@ def make_tag_resolver():
 def test_data_omnidexer() -> Omnidexer:
     """Omnidexer using test-data and srd-data sources."""
     import asyncio
+    import os
     import uuid
 
     # Use full reset sequence for complete isolation
@@ -289,33 +290,16 @@ def test_data_omnidexer() -> Omnidexer:
 
     reset_global_container()
 
-    # Create a temporary config that forces test-data inclusion
-    import tempfile
-    from pathlib import Path
+    # Set test configuration environment variable
+    os.environ["DND5E_CONFIG_FILE"] = "test-config.yaml"
 
-    import yaml
+    # Get omnidexer from the DI container
+    from dnd5e.core.container import get_global_container
 
-    # Create test configuration with test-data
-    config = ContentConfiguration()
-    config.add_source(
-        ContentSource(
-            name="test-data",
-            type=SourceType.DIRECTORY,
-            path=Path("test-data"),
-            enabled=True,
-            priority=0,  # Highest priority
-        )
-    )
+    container = get_global_container()
+    omnidexer = container.get_omnidexer()
 
-    # Create ConfigurableSourceManager with custom config
-    source_manager = ConfigurableSourceManager()
-
-    # Override the config temporarily
-    source_manager._config = config
-    source_manager._manager = None  # Force rebuild
-    source_manager.ensure_sources_ready()
-
-    omnidexer = Omnidexer(source_manager)
+    # Load all data
     omnidexer.load_all_data()
     return omnidexer
 

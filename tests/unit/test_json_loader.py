@@ -249,9 +249,9 @@ class TestJsonDataLoaderBookIntegration:
         assert book_item["data"][1]["name"] == "Character Creation"
 
         # Create the actual Book object
-        from dnd5e.core.loaders.content_factory import get_content_factory
+        from dnd5e.core.container import get_global_container
 
-        factory = get_content_factory()
+        factory = get_global_container().get_content_factory()
         book = factory.create_content(book_item, self._get_content_type("book"))
 
         # Verify the book structure

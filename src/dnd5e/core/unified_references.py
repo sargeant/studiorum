@@ -445,13 +445,6 @@ def create_cross_reference(
     return ref.with_latex_info(latex_label or f"{content_type}:{name}", section, page)
 
 
-def get_reference_manager() -> ReferenceManager:
-    """Get the reference manager instance from the service container."""
-    from dnd5e.core.container import get_global_container
-
-    return get_global_container().get_reference_manager()
-
-
 def reset_reference_manager() -> None:
     """Reset the reference manager (for testing).
 

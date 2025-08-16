@@ -8,7 +8,7 @@ import typer
 from rich import print as rprint
 
 from dnd5e.cli.display_manager import display_manager
-from dnd5e.cli.main import get_omnidexer
+from dnd5e.cli.utils import get_omnidexer
 from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver

@@ -14,7 +14,7 @@ from dnd5e.cli.config_factory import (
     get_with_images_default,
 )
 from dnd5e.cli.display_manager import display_manager
-from dnd5e.cli.main import get_omnidexer, get_tag_resolver
+from dnd5e.cli.utils import get_omnidexer, get_tag_resolver
 from dnd5e.core.config.latex_config import LaTeXConfig
 from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.models.spells import Spell

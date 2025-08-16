@@ -191,6 +191,11 @@ class ArchitecturalBoundaryChecker:
         """Generate a comprehensive architectural boundary report."""
         stats = self.get_statistics()
 
+        # For clean output: if no violations, just show success
+        if stats["total_violations"] == 0:
+            return "✓ No architectural boundary violations found!"
+
+        # Full report only when there are violations
         report = ["Architectural Boundary Analysis Report"]
         report.append("=" * 45)
         report.append("")
@@ -214,18 +219,15 @@ class ArchitecturalBoundaryChecker:
         report.append(f"  Layers with violations: {stats['layers_with_violations']}")
         report.append("")
 
-        if stats["total_violations"] > 0:
-            report.append("Violation Types:")
-            for vtype, count in stats["violation_types"].items():
-                report.append(f"  {vtype}: {count} violations")
-            report.append("")
+        report.append("Violation Types:")
+        for vtype, count in stats["violation_types"].items():
+            report.append(f"  {vtype}: {count} violations")
+        report.append("")
 
-            report.append("Detailed Violations:")
-            for violation in self.violations:
-                report.append(f"  {violation}")
-            report.append("")
-        else:
-            report.append("✓ No architectural boundary violations found!")
+        report.append("Detailed Violations:")
+        for violation in self.violations:
+            report.append(f"  {violation}")
+        report.append("")
 
         return "\n".join(report)
 

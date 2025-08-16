@@ -92,7 +92,7 @@ class ArmorClass(BaseModel):
         """Get armor class text with 5e.tools markup processed for LaTeX."""
         if self.special:
             try:
-                from ...cli.main import get_tag_resolver
+                from ...cli.utils import get_tag_resolver
 
                 tag_resolver = get_tag_resolver()
                 return str(tag_resolver.process_text(self.special))
@@ -105,7 +105,7 @@ class ArmorClass(BaseModel):
                 processed_sources = []
                 for source in self.from_:
                     try:
-                        from ...cli.main import get_tag_resolver
+                        from ...cli.utils import get_tag_resolver
 
                         tag_resolver = get_tag_resolver()
                         processed_source = tag_resolver.process_text(source)
@@ -117,7 +117,7 @@ class ArmorClass(BaseModel):
                 result += f" ({sources})"
             if self.condition:
                 try:
-                    from ...cli.main import get_tag_resolver
+                    from ...cli.utils import get_tag_resolver
 
                     tag_resolver = get_tag_resolver()
                     processed_condition = tag_resolver.process_text(self.condition)
@@ -290,7 +290,7 @@ class Ability(BaseModel):
     def get_processed_name(self) -> str:
         """Get ability name with 5e.tools markup processed for LaTeX."""
         try:
-            from ...cli.main import get_omnidexer, get_tag_resolver
+            from ...cli.utils import get_omnidexer, get_tag_resolver
             from ...renderers.core.interfaces import RenderingContext
             from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
@@ -329,7 +329,7 @@ class Ability(BaseModel):
     def get_description_text(self) -> str:
         """Extract text from complex entry structures using proper entry processing."""
         try:
-            from ...cli.main import get_omnidexer, get_tag_resolver
+            from ...cli.utils import get_omnidexer, get_tag_resolver
             from ...renderers.core.interfaces import RenderingContext
             from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
@@ -832,7 +832,7 @@ class Creature(BaseContent):
             return None
 
         try:
-            from ...cli.main import get_omnidexer, get_tag_resolver
+            from ...cli.utils import get_omnidexer, get_tag_resolver
             from ...renderers.core.interfaces import RenderingContext
             from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 

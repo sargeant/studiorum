@@ -99,7 +99,8 @@ class ContentType(str, Enum):
         from ..interfaces import get_content_type_registry
 
         registry = get_content_type_registry()
-        return registry.get_type(content)
+        result: ContentType = registry.get_type(content)
+        return result
 
 
 class Source(BaseModel):
