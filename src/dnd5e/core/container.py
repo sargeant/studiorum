@@ -369,10 +369,14 @@ def get_global_container() -> DefaultServiceContainer:
 def reset_global_container() -> None:
     """Reset the global service container for testing.
 
-    This creates a new container instance, effectively clearing all
-    cached services. Used primarily for test isolation.
+    This properly closes the existing container and creates a new one,
+    ensuring complete cleanup of all cached services and their resources.
+    Used primarily for test isolation.
     """
     global _global_container
+    if _global_container is not None:
+        # Properly close the existing container to clean up resources
+        _global_container.close()
     _global_container = None
 
 

@@ -190,8 +190,8 @@ addopts = [
     "--cov-report=html",
     "--cov-report=xml",
     "--tb=short",
-    # Note: Parallel execution disabled due to global state issues with decorator-based registration
-    # To run tests in parallel manually, use: pytest -n auto
+    "-n", "auto",  # Enable parallel test execution
+    # Note: Parallel execution re-enabled after fixing global state issues
 ]
 testpaths = ["tests"]
 markers = [
