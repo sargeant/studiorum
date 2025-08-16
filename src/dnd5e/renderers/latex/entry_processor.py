@@ -1529,15 +1529,27 @@ class RecursiveEntryProcessor:
         Returns:
             Resolved content dictionary or None if not found
         """
-        # Use registry-based statblock tag resolution (Phase 3 migration)
-        from ...core.models.content import ContentType
-        from ...core.registry.content_type_registry import get_content_type_registry
+        # Map statblock tags to ContentType enums
+        tag_to_content_type = {
+            "variantrule": "VARIANTRULE",  # Fixed to match develop ContentType
+            "action": "ACTION",
+            "condition": "CONDITION",
+            "sense": "SENSE",
+            "hazard": "HAZARD",
+            "status": "STATUS",
+        }
 
-        registry = get_content_type_registry()
-        content_type = self._get_content_type_for_statblock_tag(registry, tag)
-
-        if content_type is None:
+        content_type_name = tag_to_content_type.get(tag)
+        if not content_type_name:
             logger.debug(f"Unsupported statblock tag type: {tag}")
+            return None
+
+        try:
+            from ...core.models.content import ContentType
+
+            content_type = getattr(ContentType, content_type_name)
+        except AttributeError:
+            logger.debug(f"ContentType.{content_type_name} not found")
             return None
 
         # Try to find the content in the omnidexer
@@ -1593,32 +1605,6 @@ class RecursiveEntryProcessor:
         # Combine header with content
         content_text = "\n\n".join(processed_entries)
         return f"{header}\n\n{content_text}"
-
-    def _get_content_type_for_statblock_tag(
-        self, registry: Any, tag: str
-    ) -> ContentType | None:
-        """Get ContentType for statblock tag using registry (Phase 3 migration).
-
-        Args:
-            registry: Content type registry instance
-            tag: Statblock tag to resolve
-
-        Returns:
-            ContentType enum instance or None if not found
-        """
-        from ...core.models.content import ContentType
-
-        for enum_value, metadata in registry.get_all().items():
-            if metadata.statblock_tags and tag in metadata.statblock_tags:
-                try:
-                    # Use ContentType constructor for safe validation (Phase 3 pattern)
-                    return ContentType(enum_value)
-                except ValueError:
-                    # Skip test-only registrations that aren't valid enum members
-                    logger.debug(f"Skipping test-only content type: {enum_value}")
-                    continue
-
-        return None
 
     def get_processing_statistics(self) -> dict[str, Any]:
         """Get processing statistics for this processor instance.
