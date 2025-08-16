@@ -180,6 +180,7 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
+    @pytest.mark.latex_required
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert._create_latex_compiler")

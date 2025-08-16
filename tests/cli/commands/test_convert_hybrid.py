@@ -60,7 +60,7 @@ class TestHybridParameterDetection:
         finally:
             Path(file_path).unlink()  # Clean up
 
-    @patch("dnd5e.cli.commands.convert.get_omnidexer")
+    @patch("dnd5e.cli.commands.convert.shared.get_omnidexer")
     def test_resolve_content_or_file_with_abbreviation(self, mock_get_omnidexer):
         """Test that non-file strings are treated as abbreviations."""
         # Mock omnidexer and resolver
