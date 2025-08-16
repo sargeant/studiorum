@@ -1,0 +1,19 @@
+{
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "tests/**",
+    "**/__pycache__",
+    "**/.pytest_cache",
+    "**/.mypy_cache",
+    "output/**",
+    "srd-data/**"
+  ],
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "reportCallIssue": false,
+  "pythonVersion": "3.12",
+  "pythonPlatform": "All",
+  "typeCheckingMode": "basic"
+}

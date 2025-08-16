@@ -178,6 +178,9 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
+exclude = [
+    "tests/.*\\.py$"
+]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
