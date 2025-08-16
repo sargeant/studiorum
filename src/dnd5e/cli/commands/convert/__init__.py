@@ -3,7 +3,9 @@
 import typer
 
 # Re-export functions that tests may need to mock
-from dnd5e.cli.main import get_omnidexer
+from dnd5e.cli.display_manager import display_manager
+from dnd5e.cli.main import get_omnidexer, get_tag_resolver
+from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.resolvers.content_resolver import ContentResolver
 
 from .adventure import adventure
@@ -20,6 +22,8 @@ from .shared import (
     load_from_file,
     resolve_content_or_file,
 )
+
+# Additional re-exports that tests expect to find
 from .supplement import supplement
 
 # Create the main convert app
