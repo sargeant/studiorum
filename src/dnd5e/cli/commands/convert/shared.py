@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import typer
 from rich import print as rprint
@@ -195,12 +195,14 @@ def _load_from_file_with_type(
                         )
                         raise typer.Exit(1)
 
-                return validated_adventures, f"file: {file_path}"
+                return cast(
+                    list[BaseContent], validated_adventures
+                ), f"file: {file_path}"
             else:
                 # Single adventure object
                 try:
                     adventure = Adventure.model_validate(content_data)
-                    return [adventure], f"file: {file_path}"
+                    return cast(list[BaseContent], [adventure]), f"file: {file_path}"
                 except Exception as e:
                     rprint(
                         f"[red]Error:[/red] Invalid adventure data in {file_path}: {e}"

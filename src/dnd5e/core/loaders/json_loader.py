@@ -811,23 +811,24 @@ class JsonDataLoader(DataLoader[BaseContent]):
                         return True
 
         # Check top-level arrays for similar pattern
-        for key, value in data.items():
-            if isinstance(value, list) and len(value) > 0:
-                # Check first few items
-                sample_size = min(10, len(value))
-                string_items = sum(
-                    1 for item in value[:sample_size] if isinstance(item, str)
-                )
-
-                if string_items / sample_size > 0.5:  # More than 50% are strings
-                    # Check if strings contain tag patterns
-                    tag_strings = sum(
-                        1
-                        for item in value[:sample_size]
-                        if isinstance(item, str) and "{@" in item
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(value, list) and len(value) > 0:
+                    # Check first few items
+                    sample_size = min(10, len(value))
+                    string_items = sum(
+                        1 for item in value[:sample_size] if isinstance(item, str)
                     )
-                    if tag_strings > 0:
-                        return True
+
+                    if string_items / sample_size > 0.5:  # More than 50% are strings
+                        # Check if strings contain tag patterns
+                        tag_strings = sum(
+                            1
+                            for item in value[:sample_size]
+                            if isinstance(item, str) and "{@" in item
+                        )
+                        if tag_strings > 0:
+                            return True
 
         return False
 
