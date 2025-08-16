@@ -245,7 +245,7 @@ class TestLaTeXDocumentOptions:
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     @patch("dnd5e.core.config.sources.get_content_config")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
+    @patch("dnd5e.cli.commands.convert.supplement.get_app_config")
     def test_supplement_with_paper_size_from_settings(
         self,
         mock_get_app_config,
