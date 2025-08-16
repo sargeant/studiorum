@@ -99,14 +99,11 @@ class TestAdventureConversion:
             assert len(content) > 2000, "Generated LaTeX file is too short"
 
             # Verify it contains actual adventure content
-            assert "Adventures in the Forgotten Realms: A Verdant Tomb" in content, (
-                "Missing adventure title"
-            )
+            assert "Test Adventure" in content, "Missing adventure title"
             assert "chapter{" in content, "Missing chapter structure"
-            assert (
-                "Adventures in the Forgotten Realms" in content
-                or "adventure" in content.lower()
-            ), "Missing adventure content"
+            assert "Test Adventure" in content or "adventure" in content.lower(), (
+                "Missing adventure content"
+            )
 
             # Verify it has content structure, sections should be present
             assert "section{" in content, "Missing section structure"
@@ -430,6 +427,8 @@ class TestAdventureConversion:
                 or "could not resolve" in result.stdout.lower()
                 or "not found" in result.stderr.lower()
                 or "could not resolve" in result.stderr.lower()
+                or "did you mean?" in result.stdout.lower()
+                or "see all available content" in result.stdout.lower()
             ), (
                 f"Unexpected error message - stdout: {result.stdout}, stderr: {result.stderr}"
             )

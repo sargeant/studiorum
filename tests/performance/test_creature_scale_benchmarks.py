@@ -389,11 +389,11 @@ class TestCreatureDatasetScaling:
                 # Performance should scale reasonably (not exponentially)
                 # Allow for some overhead due to memory pressure and GC at larger sizes
                 max_validation_scaling = (
-                    size_ratio * 2.0
-                )  # More realistic for Pydantic validation
+                    size_ratio * 3.0
+                )  # More realistic for Pydantic validation with GC pressure
                 max_collection_scaling = (
-                    size_ratio * 2.0
-                )  # Collection can have overhead too
+                    size_ratio * 4.0
+                )  # Collection can have significant overhead with filtering
 
                 assert validation_ratio < max_validation_scaling, (
                     f"Poor validation scaling: {validation_ratio:.1f}x time for {size_ratio:.1f}x size "

@@ -493,6 +493,8 @@ class TestBookConversion:
                 or "could not resolve" in result.stdout.lower()
                 or "not found" in result.stderr.lower()
                 or "could not resolve" in result.stderr.lower()
+                or "did you mean?" in result.stdout.lower()
+                or "see all available content" in result.stdout.lower()
             ), (
                 f"Unexpected error message - stdout: {result.stdout}, stderr: {result.stderr}"
             )

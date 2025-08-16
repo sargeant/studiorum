@@ -44,12 +44,12 @@ class TestLaTeXEngineIntegration:
     @pytest.mark.ci_broken
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert._create_latex_compiler")
+    @patch("dnd5e.cli.commands.convert.shared.compile_pdf")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_adventure_pdf_uses_latex_compiler_with_config(
         self,
         mock_display,
-        mock_create_compiler,
+        mock_compile_pdf,
         mock_get_tag_resolver,
         mock_get_omnidexer,
     ):
@@ -66,13 +66,8 @@ class TestLaTeXEngineIntegration:
         )  # Pass through tags unchanged
         mock_get_tag_resolver.return_value = mock_tag_resolver
 
-        # Only mock the LaTeX compiler and display manager (external dependencies)
-        mock_compiler = Mock()
-        mock_result = Mock()
-        mock_result.success = True
-        mock_result.output_file = Path("/tmp/test.pdf")
-        mock_compiler.compile_document.return_value = mock_result
-        mock_create_compiler.return_value = mock_compiler
+        # Mock the compile_pdf function to avoid actual LaTeX compilation
+        mock_compile_pdf.return_value = None  # Async function returns None
 
         # Mock display manager for clean output
         mock_display.progress.return_value.__enter__ = Mock()
@@ -102,16 +97,14 @@ class TestLaTeXEngineIntegration:
             # Verify success
             assert result.exit_code == 0, f"Command failed with output: {result.stdout}"
 
-            # Verify LaTeXCompiler was created
-            mock_create_compiler.assert_called_once()
+            # Verify PDF compilation was called
+            mock_compile_pdf.assert_called_once()
 
-            # Verify LaTeX compilation was called instead of hardcoded subprocess
-            mock_compiler.compile_document.assert_called_once()
+            # Verify the LaTeX file was created
+            assert output_file.exists(), "LaTeX file should be created"
 
-            # Verify the compiler was called with proper LaTeX content containing real data
-            call_args = mock_compiler.compile_document.call_args
-            assert call_args is not None
-            latex_content = call_args[0][0]  # First argument should be LaTeX content
+            # Verify the LaTeX file contains proper content
+            latex_content = output_file.read_text()
             assert "Test Adventure" in latex_content  # From real test data
             assert "\\documentclass" in latex_content
 
@@ -119,12 +112,12 @@ class TestLaTeXEngineIntegration:
     @pytest.mark.ci_broken
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert._create_latex_compiler")
+    @patch("dnd5e.cli.commands.convert.shared.compile_pdf")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_book_pdf_uses_configured_engine(
         self,
         mock_display,
-        mock_create_compiler,
+        mock_compile_pdf,
         mock_get_tag_resolver,
         mock_get_omnidexer,
     ):
@@ -141,13 +134,8 @@ class TestLaTeXEngineIntegration:
         )  # Pass through tags unchanged
         mock_get_tag_resolver.return_value = mock_tag_resolver
 
-        # Only mock the LaTeX compiler and display manager (external dependencies)
-        mock_compiler = Mock()
-        mock_result = Mock()
-        mock_result.success = True
-        mock_result.output_file = Path("/tmp/test.pdf")
-        mock_compiler.compile_document.return_value = mock_result
-        mock_create_compiler.return_value = mock_compiler
+        # Mock the compile_pdf function to avoid actual LaTeX compilation
+        mock_compile_pdf.return_value = None  # Async function returns None
 
         # Mock display manager for clean output
         mock_display.progress.return_value.__enter__ = Mock()
@@ -177,11 +165,11 @@ class TestLaTeXEngineIntegration:
             # Verify success
             assert result.exit_code == 0, f"Command failed with output: {result.stdout}"
 
-            # Verify LaTeX compiler configuration and usage
-            mock_create_compiler.assert_called_once()
+            # Verify PDF compilation was called
+            mock_compile_pdf.assert_called_once()
 
-            # Verify compilation was called
-            mock_compiler.compile_document.assert_called_once()
+            # Verify the LaTeX file was created
+            assert output_file.exists(), "LaTeX file should be created"
 
     @patch("subprocess.run")
     def test_no_hardcoded_xelatex_calls_in_convert_commands(self, mock_subprocess):

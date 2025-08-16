@@ -213,6 +213,7 @@ markers = [
     "requires_data: marks tests that need 5etools data sources",
     "requires_latex: marks tests that need LaTeX installation",
     "needs_latex: marks tests that require LaTeX installation and perform real compilation",
+    "latex_required: marks tests that require LaTeX installation",
     "network: marks tests that require network access",
 
     # Quality marks (for CI pipeline control)

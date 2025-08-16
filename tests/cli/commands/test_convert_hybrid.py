@@ -63,15 +63,18 @@ class TestHybridParameterDetection:
     @patch("dnd5e.cli.commands.convert.shared.get_omnidexer")
     def test_resolve_content_or_file_with_abbreviation(self, mock_get_omnidexer):
         """Test that non-file strings are treated as abbreviations."""
-        # Mock omnidexer and resolver
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
-
         # Create a proper Adventure instance instead of Mock
         mock_adventure = Adventure(
             name="Curse of Strahd",
             source=Source(abbreviation="CoS", name="Curse of Strahd"),
         )
+
+        # Mock omnidexer with proper iterable return
+        mock_omnidexer = Mock()
+        mock_omnidexer.get_all_by_type.return_value = [
+            mock_adventure
+        ]  # Return list, not Mock
+        mock_get_omnidexer.return_value = mock_omnidexer
 
         # Mock successful resolution
         with patch("dnd5e.cli.commands.convert.ContentResolver") as mock_resolver_class:
