@@ -20,6 +20,7 @@ class TestContentLoadingPerformance:
     """Test performance of content loading system."""
 
     @pytest.mark.slow
+    @pytest.mark.requires_data
     def test_omnidexer_loading_performance(self):
         """Test that omnidexer loading completes in reasonable time."""
         start_time = time.time()
@@ -44,6 +45,7 @@ class TestContentLoadingPerformance:
         assert len(books) > 0, "Should have loaded books"
 
     @pytest.mark.slow
+    @pytest.mark.requires_data
     def test_content_resolution_performance(self):
         """Test that content resolution is reasonably fast."""
         source_manager = ConfigurableSourceManager()
@@ -54,61 +56,47 @@ class TestContentLoadingPerformance:
 
         # Test adventure resolution performance
         start_time = time.time()
-        adventure = resolver.resolve_adventure("TEST")
+        adventure_result = resolver.resolve_adventure("LMoP")  # Lost Mine of Phandelver
         end_time = time.time()
 
         adventure_time = end_time - start_time
 
-        assert adventure is not None, "Should resolve adventure"
+        assert adventure_result.is_success, "Should resolve adventure"
         assert adventure_time < 10, (
             f"Adventure resolution took too long: {adventure_time:.2f}s"
         )
 
         # Test book resolution performance
         start_time = time.time()
-        book = resolver.resolve_book("TEST")
+        book_result = resolver.resolve_book("PHB")  # Player's Handbook
         end_time = time.time()
 
         book_time = end_time - start_time
 
-        assert book is not None, "Should resolve book"
+        assert book_result.is_success, "Should resolve book"
         assert book_time < 15, f"Book resolution took too long: {book_time:.2f}s"
 
-    def test_caching_effectiveness(self):
-        """Test that caching improves performance on repeated access."""
+    @pytest.mark.requires_data
+    def test_repeated_resolution_consistency(self):
+        """Test that repeated resolutions are consistent."""
         source_manager = ConfigurableSourceManager()
         omnidexer = Omnidexer(source_manager)
         omnidexer.load_all_data()
 
         resolver = ContentResolver(omnidexer)
 
-        # First resolution (cache miss)
-        start_time = time.time()
-        result1 = resolver.resolve_adventure("TEST")
-        first_time = time.time() - start_time
+        # Resolve the same content twice
+        result1 = resolver.resolve_adventure("LMoP")  # Lost Mine of Phandelver
+        result2 = resolver.resolve_adventure("LMoP")
 
-        # Second resolution (cache hit)
-        start_time = time.time()
-        result2 = resolver.resolve_adventure("TEST")
-        second_time = time.time() - start_time
-
-        assert result1 is not None and result2 is not None, (
+        assert result1.is_success and result2.is_success, (
             "Both resolutions should succeed"
         )
 
-        # Second resolution should be faster (or at least not significantly slower)
-        # Allow for some variance in timing
-        assert second_time <= first_time * 2, (
-            f"Second resolution should benefit from caching: {first_time:.3f}s vs {second_time:.3f}s"
+        # Content should be identical (cached or not)
+        assert result1.content.name == result2.content.name, (
+            "Content should be identical across repeated resolutions"
         )
-
-        # Check cache statistics if available
-        content_merger = resolver.content_merger
-        if hasattr(content_merger, "get_cache_stats"):
-            stats = content_merger.get_cache_stats()
-            assert stats.get("hits", 0) > 0, (
-                "Should have cache hits from repeated access"
-            )
 
 
 if __name__ == "__main__":

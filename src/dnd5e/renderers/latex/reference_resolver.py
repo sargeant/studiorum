@@ -60,7 +60,6 @@ class ReferenceResolver:
     def __init__(self, tag_integration: Any) -> None:
         """Initialize with tag integration system."""
         self.tag_integration = tag_integration
-        self.reference_cache: dict[str, str] = {}
         self.forward_references: dict[str, list[str]] = {}
         self.reverse_references: dict[str, list[str]] = {}
         self.unresolved_references: set[str] = set()
@@ -74,11 +73,6 @@ class ReferenceResolver:
         force_hyperlink: bool = False,
     ) -> str:
         """Resolve a content reference with appropriate formatting."""
-        # Create cache key
-        cache_key = f"{content_type}:{name}:{context.document_type}"
-
-        if cache_key in self.reference_cache and not force_hyperlink:
-            return self.reference_cache[cache_key]
 
         # Get cross-reference manager
         cross_ref_mgr = self.tag_integration.cross_ref_manager
@@ -86,9 +80,7 @@ class ReferenceResolver:
 
         if not cross_ref_mgr:
             # No cross-reference support, return basic formatting
-            formatted = self._apply_basic_formatting(content_type, display_text or name)
-            self.reference_cache[cache_key] = formatted
-            return formatted
+            return self._apply_basic_formatting(content_type, display_text or name)
 
         # Register content and get reference ID
         ref_id = cross_ref_mgr.register_content(content_type, name)
@@ -123,8 +115,6 @@ class ReferenceResolver:
         # Track reference relationship
         self._track_reference_relationship(ref_id, context)
 
-        # Cache result
-        self.reference_cache[cache_key] = result
         return str(result)
 
     def _apply_basic_formatting(self, content_type: str, text: str) -> str:
@@ -316,7 +306,7 @@ class ReferenceResolver:
         content_tracker = self.tag_integration.content_tracker
 
         report: dict[str, Any] = {
-            "total_references": len(self.reference_cache),
+            "total_references": 0,  # Reference caching removed
             "forward_references": len(self.forward_references),
             "reverse_references": len(self.reverse_references),
             "unresolved": len(self.unresolved_references),
@@ -344,7 +334,7 @@ class ReferenceResolver:
 
     def clear_cache(self) -> None:
         """Clear reference resolution cache."""
-        self.reference_cache.clear()
+        # Reference cache removed - no cache to clear
         self.forward_references.clear()
         self.reverse_references.clear()
         self.unresolved_references.clear()

@@ -57,7 +57,7 @@ class LaTeXTemplateEngine:
         # Initialize LaTeX configuration
         self.latex_config = get_default_latex_config()
 
-        # Initialize the environment and cache
+        # Initialize the environment
         self.update_latex_config(None)
 
     def update_latex_config(self, latex_config: LaTeXConfig | None) -> None:
@@ -98,7 +98,6 @@ class LaTeXTemplateEngine:
         self._add_latex_filters()
 
         # Template cache
-        self._template_cache: dict[str, Template] = {}
 
     def _add_latex_filters(self) -> None:
         """Add LaTeX-specific filters to Jinja2 environment."""
@@ -363,7 +362,7 @@ class LaTeXTemplateEngine:
             ) from e
 
     def _get_template(self, template_name: str) -> Template:
-        """Get template object by name with caching.
+        """Get template object by name.
 
         Args:
             template_name: Name of template file
@@ -371,9 +370,7 @@ class LaTeXTemplateEngine:
         Returns:
             Jinja2 Template object
         """
-        if template_name not in self._template_cache:
-            self._template_cache[template_name] = self.env.get_template(template_name)
-        return self._template_cache[template_name]
+        return self.env.get_template(template_name)
 
     def _post_process_output(self, content: str) -> str:
         """Post-process rendered template output.
@@ -425,10 +422,6 @@ class LaTeXTemplateEngine:
             template_name = template_file.name.replace(".tex.j2", "")
             templates.append(template_name)
         return sorted(templates)
-
-    def clear_cache(self) -> None:
-        """Clear template cache."""
-        self._template_cache.clear()
 
     def get_template_path(self, template_name: str) -> Path:
         """Get full path to template file.

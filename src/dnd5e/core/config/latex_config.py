@@ -310,10 +310,7 @@ class LaTeXTemplateConfig(BaseModel):
         default="book", description="Default template to use for documents"
     )
 
-    # Template options
-    template_cache_enabled: bool = Field(
-        default=True, description="Enable template caching"
-    )
+    # Template options (caching removed)
 
     # Content type mappings
     content_type_templates: dict[str, str] = Field(

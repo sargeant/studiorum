@@ -132,6 +132,7 @@ def get_tag_resolver() -> TagResolver:
 
 # Import and mount CLI command modules
 try:
+    from dnd5e.cli.commands.cache import app as cache_app
     from dnd5e.cli.commands.convert import app as convert_app
     from dnd5e.cli.commands.info import app as info_app
     from dnd5e.cli.commands.list_content import app as list_app
@@ -140,6 +141,7 @@ try:
     from dnd5e.cli.commands.stats import app as stats_app
 
     # Mount sub-applications
+    app.add_typer(cache_app, name="cache")
     app.add_typer(convert_app, name="convert")
     app.add_typer(list_app, name="list")
     app.add_typer(info_app, name="info")

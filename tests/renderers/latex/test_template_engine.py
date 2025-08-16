@@ -217,17 +217,13 @@ class TestLaTeXTemplateEngine:
         # Test with non-existing template
         assert engine.validate_template("nonexistent") is False
 
-    def test_clear_cache(self) -> None:
-        """Test template cache clearing."""
+    def test_template_caching_removed(self) -> None:
+        """Test that template caching has been removed."""
         engine: Any = LaTeXTemplateEngine()
 
-        # Add something to cache
-        engine._template_cache["test"] = "cached_value"
-        assert len(engine._template_cache) > 0
-
-        # Clear cache
-        engine.clear_cache()
-        assert len(engine._template_cache) == 0
+        # Verify that template cache attributes no longer exist
+        assert not hasattr(engine, "_template_cache")
+        assert not hasattr(engine, "clear_cache")
 
     def test_render_template_not_found(self) -> None:
         """Test rendering with non-existent template."""

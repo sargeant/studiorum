@@ -200,7 +200,8 @@ test-slow: uv
 ## Run tests requiring external data
 test-data: uv
 	@echo "Running tests requiring external data..."
-	pytest -m "requires_data"
+	@echo "Loading .env.dev environment for data access..."
+	uv run --env-file .env.dev pytest -m "requires_data"
 
 ## Run LaTeX integration tests (requires LaTeX installation)
 test-latex-integration: uv
