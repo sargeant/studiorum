@@ -79,6 +79,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
             # Read JSON file synchronously
             with open(path, encoding="utf-8") as f:
+                content = ""  # Initialize content
                 try:
                     content = f.read()
                     data = json.loads(content)
@@ -782,7 +783,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return False
 
-    def _is_index_file(self, path: Path, data: dict[str, Any]) -> bool:
+    def _is_index_file(self, path: Path, data: dict[str, Any] | list[Any]) -> bool:
         """Check if this is an index/list file containing tag references."""
         filename = path.name.lower()
 

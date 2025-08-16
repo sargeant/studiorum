@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from typing import Any
 
 import typer
 from rich import print as rprint
@@ -13,6 +14,9 @@ from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
 from dnd5e.renderers.latex.compiler import LaTeXCompiler
+
+# JSON type alias for type safety
+JSONValue = dict[str, Any] | list[Any] | str | int | float | bool | None
 
 
 def create_latex_compiler() -> LaTeXCompiler:
@@ -117,7 +121,7 @@ def resolve_content_or_file(
     return handle_resolution_result(result, source, content_type)
 
 
-def load_from_file(file_path: Path) -> BaseContent | list[BaseContent]:
+def load_from_file(file_path: Path) -> JSONValue:
     """Load content from a JSON file."""
     try:
         with open(file_path, encoding="utf-8") as f:
@@ -149,6 +153,7 @@ def _load_from_file_with_type(
             # For books, validate through the Book model
             try:
                 # Ensure the data has required fields
+                book_data: dict[str, Any]
                 if isinstance(content_data, dict):
                     book_data = dict(content_data)
                     if "name" not in book_data:
@@ -159,7 +164,7 @@ def _load_from_file_with_type(
                             "name": f"File: {file_path.name}",
                         }
                 else:
-                    book_data = content_data
+                    book_data = content_data  # type: ignore[assignment]
 
                 book = Book.model_validate(book_data)
                 return [book], f"file: {file_path}"
@@ -172,7 +177,8 @@ def _load_from_file_with_type(
 
             # For adventures, handle the adventure array structure and create model instances
             if isinstance(content_data, dict) and "adventure" in content_data:
-                adventures = content_data["adventure"]
+                adventures_data: dict[str, Any] = content_data
+                adventures = adventures_data["adventure"]
                 if not adventures:
                     rprint(f"[red]Error:[/red] No adventures found in {file_path}")
                     raise typer.Exit(1)

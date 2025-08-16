@@ -67,8 +67,10 @@ class ItemProperty(BaseContent):
         # Try to extract from entries if available
         if self.entries:
             for entry in self.entries:
-                if isinstance(entry, dict) and entry.get("name"):
-                    return entry["name"]
+                if isinstance(entry, dict) and "name" in entry:
+                    name_value = entry.get("name")
+                    if isinstance(name_value, str):
+                        return name_value
         return self.name
 
     def get_abbreviation(self) -> str:

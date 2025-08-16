@@ -1,6 +1,6 @@
 """Creature data models."""
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -693,7 +693,9 @@ class Creature(BaseContent):
             return str(ALIGNMENT_ABV_TO_FULL.get(align_list[0], align_list[0].lower()))
         elif len(align_list) == 2:
             # Pair like ["L", "G"] -> "lawful good"
-            return " ".join(ALIGNMENT_ABV_TO_FULL.get(a, a.lower()) for a in align_list)
+            return " ".join(
+                ALIGNMENT_ABV_TO_FULL.get(a) or a.lower() for a in align_list
+            )
         elif len(align_list) == 3:
             if "NX" in align_list and "NY" in align_list and "N" in align_list:
                 return "any neutral alignment"
@@ -717,7 +719,7 @@ class Creature(BaseContent):
                 return "any non-chaotic alignment"
 
         # Fallback - just join the converted abbreviations
-        return " ".join(ALIGNMENT_ABV_TO_FULL.get(a, a.lower()) for a in align_list)
+        return " ".join(ALIGNMENT_ABV_TO_FULL.get(a) or a.lower() for a in align_list)
 
     def get_ac_text(self) -> str:
         """Get formatted AC text."""
@@ -805,7 +807,8 @@ class Creature(BaseContent):
             if isinstance(bonus, str):
                 skill_parts.append(f"{formatted_skill} {bonus}")
             elif isinstance(bonus, int | float):
-                sign = "+" if bonus >= 0 else ""
+                numeric_bonus = cast(int | float, bonus)
+                sign = "+" if numeric_bonus >= 0 else ""
                 skill_parts.append(f"{formatted_skill} {sign}{bonus}")
             else:
                 skill_parts.append(f"{formatted_skill} {bonus}")

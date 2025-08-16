@@ -540,9 +540,8 @@ class CreatureCollector:
             creature_skills: list[str] = []
             if isinstance(creature.skill, dict):
                 creature_skills.extend(creature.skill.keys())
-            elif isinstance(creature.skill, list):
-                creature_skills.extend(str(skill).lower() for skill in creature.skill)
-            else:
+            elif creature.skill is not None:
+                # Handle other non-None, non-dict types
                 creature_skills.append(str(creature.skill).lower())
 
             creature_skills = [skill.lower() for skill in creature_skills]

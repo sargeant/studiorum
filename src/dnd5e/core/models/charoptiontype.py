@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from enum import Enum
 from typing import Any
 
@@ -109,7 +110,7 @@ class CharacterOptionType(BaseContent):
         return parts[1] if len(parts) > 1 else None
 
     @classmethod
-    def create_standard_types(cls) -> list[CharacterOptionType]:
+    def create_standard_types(cls) -> Sequence[CharacterOptionType]:
         """Create instances for all standard character option types."""
         from .content import Source
 

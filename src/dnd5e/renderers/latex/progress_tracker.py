@@ -2,32 +2,50 @@
 
 import time
 from contextlib import contextmanager
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from pydantic import BaseModel, Field
 
+if TYPE_CHECKING:
+    from rich.console import Console
+    from rich.progress import TaskID
+
+    from dnd5e.cli.display_manager import display_manager as dm_type
+else:
+    Console = None
+    TaskID = None
+    dm_type = None
+
 # Type annotation for display_manager (can be None when import fails)
 display_manager: Any = None
+
+# Check for rich availability
+_rich_available = False
+_display_manager_available = False
 
 try:
     from rich.console import Console
     from rich.progress import TaskID
 
-    RICH_AVAILABLE = True
+    _rich_available = True
 
     # Import display manager
     try:
         from dnd5e.cli.display_manager import display_manager
 
-        DISPLAY_MANAGER_AVAILABLE = True
+        _display_manager_available = True
     except ImportError:
-        DISPLAY_MANAGER_AVAILABLE = False
+        _display_manager_available = False
         display_manager = None
 
 except ImportError:
-    RICH_AVAILABLE = False
-    DISPLAY_MANAGER_AVAILABLE = False
+    _rich_available = False
+    _display_manager_available = False
     display_manager = None
+
+# Constants that Pyright can understand are never None
+RICH_AVAILABLE: bool = _rich_available
+DISPLAY_MANAGER_AVAILABLE: bool = _display_manager_available
 
 
 class ProgressReporter(Protocol):
@@ -61,7 +79,7 @@ class ProgressReporter(Protocol):
 class RichProgressReporter:
     """Rich-based progress reporter with fancy output."""
 
-    def __init__(self, console: Console | None = None):
+    def __init__(self, console: "Console | None" = None):
         """Initialize rich progress reporter.
 
         Args:
@@ -75,7 +93,10 @@ class RichProgressReporter:
             self.console = display_manager.console
             self.use_display_manager = True
         else:
-            self.console = console or Console()
+            if Console is not None:
+                self.console = console or Console()
+            else:
+                raise ImportError("Rich Console not available")
             self.use_display_manager = False
 
         self.main_task: TaskID | None = None
@@ -275,7 +296,7 @@ class CompilationProgress(BaseModel):
 class ProgressTracker:
     """Main progress tracking coordinator."""
 
-    def __init__(self, style: str = "rich", console: Console | None = None):
+    def __init__(self, style: str = "rich", console: "Console | None" = None):
         """Initialize progress tracker.
 
         Args:
@@ -286,7 +307,9 @@ class ProgressTracker:
         self._reporter = self._create_reporter(style, console)
         self._progress = CompilationProgress(engine="unknown", total_passes=0)
 
-    def _create_reporter(self, style: str, console: Console | None) -> ProgressReporter:
+    def _create_reporter(
+        self, style: str, console: "Console | None"
+    ) -> ProgressReporter:
         """Create appropriate progress reporter.
 
         Args:
@@ -342,6 +365,7 @@ class ProgressTracker:
         self._progress.pass_progress = 0.0
 
         pass_start_time = time.time()
+        success = False  # Initialize success before try block
 
         try:
             self._reporter.start_pass(pass_number, description)

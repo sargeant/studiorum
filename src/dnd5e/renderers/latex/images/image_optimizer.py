@@ -3,16 +3,27 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from PIL import Image
+else:
+    Image = None
+
+# Check for PIL availability
+_pil_available = False
 
 try:
     from PIL import Image
 
-    PIL_AVAILABLE = True
+    _pil_available = True
 except ImportError:
-    PIL_AVAILABLE = False
+    _pil_available = False
+
+# Constant that Pyright can understand is never None
+PIL_AVAILABLE: bool = _pil_available
 
 
 class OptimizationConfig(BaseModel):
@@ -125,6 +136,8 @@ class ImageOptimizer:
             Dictionary with optimization metadata
         """
         try:
+            if Image is None:
+                raise ImportError("PIL Image not available")
             with Image.open(input_path) as img:
                 original_size = img.size
                 was_resized = False
@@ -213,6 +226,8 @@ class ImageOptimizer:
             Resized image
         """
         if not config.preserve_aspect_ratio:
+            if Image is None:
+                raise ImportError("PIL Image not available")
             return img.resize(
                 (config.max_width, config.max_height), Image.Resampling.LANCZOS
             )
@@ -228,6 +243,8 @@ class ImageOptimizer:
         new_width = int(width * ratio)
         new_height = int(height * ratio)
 
+        if Image is None:
+            raise ImportError("PIL Image not available")
         return img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
     def _get_save_kwargs(

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel, Field, model_validator
 
 from ..registry import content_type
-from .content import BaseContent
+from .content import BaseContent, Source
 from .entry_types import Entry
 
 if TYPE_CHECKING:
@@ -295,7 +295,7 @@ class Class(BaseContent):
 
             return ClassFeature(
                 name=feature_name,
-                source={"abbreviation": source_abbrev, "name": source_abbrev},
+                source=Source(abbreviation=source_abbrev, name=source_abbrev),
                 className=class_name,
                 classSource=self.source.abbreviation,
                 level=level,
@@ -327,7 +327,7 @@ class Class(BaseContent):
 
             return SubclassFeature(
                 name=feature_name,
-                source={"abbreviation": subclass.source, "name": subclass.source},
+                source=Source(abbreviation=subclass.source, name=subclass.source),
                 className=class_name,
                 classSource=self.source.abbreviation,
                 subclassShortName=subclass.short_name,

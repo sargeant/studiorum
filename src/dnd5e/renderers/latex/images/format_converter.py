@@ -3,16 +3,27 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from PIL import Image
+else:
+    Image = None
+
+# Check for PIL availability
+_pil_available = False
 
 try:
     from PIL import Image
 
-    PIL_AVAILABLE = True
+    _pil_available = True
 except ImportError:
-    PIL_AVAILABLE = False
+    _pil_available = False
+
+# Constant that Pyright can understand is never None
+PIL_AVAILABLE: bool = _pil_available
 
 
 class ConversionResult(BaseModel):
@@ -90,6 +101,8 @@ class FormatConverter:
             png_path: Output PNG file
         """
         try:
+            if Image is None:
+                raise ImportError("PIL Image not available")
             with Image.open(webp_path) as img:
                 # Convert to RGB if necessary (WebP can have transparency)
                 if img.mode in ("RGBA", "LA"):
@@ -174,6 +187,8 @@ class FormatConverter:
             output_path: Output PNG file
         """
         try:
+            if Image is None:
+                raise ImportError("PIL Image not available")
             with Image.open(input_path) as img:
                 # Convert to RGB if necessary
                 if img.mode in ("RGBA", "LA"):
