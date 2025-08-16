@@ -82,13 +82,6 @@ class ContentType(str, Enum):
     # Generic fluff fallback
     FLUFF = "fluff"
 
-    # Rule glossary types
-    ACTION = "action"
-    CONDITION = "condition"
-    SENSE = "sense"
-    HAZARD = "hazard"
-    STATUS = "status"
-
     @classmethod
     def from_content(cls, content: BaseContent) -> ContentType:
         """Determine content type from content object.
