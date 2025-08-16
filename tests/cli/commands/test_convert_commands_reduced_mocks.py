@@ -183,7 +183,7 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.latex_required
     @patch("dnd5e.cli.commands.convert.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.shared.compile_pdf")
+    @patch("dnd5e.cli.commands.convert.adventure.compile_pdf_async")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_pdf_compilation_uses_configured_compiler(
         self,
