@@ -266,7 +266,9 @@ class TestErrorHandling:
             file_path = Path(f.name)
 
         try:
-            with pytest.raises(json.JSONDecodeError):
+            import typer
+
+            with pytest.raises(typer.Exit):
                 _load_from_file(file_path, ContentType.ADVENTURE)
         finally:
             file_path.unlink()
