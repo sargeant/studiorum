@@ -1,0 +1,121 @@
+name: LaTeX Integration Tests
+
+on:
+  workflow_dispatch:  # Manual trigger only
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly on Monday at 6 AM UTC
+
+jobs:
+  latex-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # Prevent runaway LaTeX compilation
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+
+    - name: Set up Python
+      run: uv python install 3.12
+
+    - name: Cache LaTeX installation
+      id: cache-latex
+      uses: actions/cache@v4
+      with:
+        path: |
+          /usr/share/texlive
+          /usr/bin/tex*
+          /usr/bin/latex*
+          /usr/bin/pdflatex*
+          /var/lib/texmf
+        key: latex-texlive-${{ runner.os }}-v1
+        restore-keys: |
+          latex-texlive-${{ runner.os }}-
+
+    - name: Install LaTeX (if not cached)
+      if: steps.cache-latex.outputs.cache-hit != 'true'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          texlive-latex-recommended \
+          texlive-latex-extra \
+          texlive-fonts-recommended \
+          texlive-fonts-extra \
+          lmodern \
+          cm-super
+
+        # Verify installation
+        pdflatex --version
+        kpsewhich --version
+
+    - name: Cache DND-5e-LaTeX-Template
+      id: cache-dnd-template
+      uses: actions/cache@v4
+      with:
+        path: ~/.local/share/texmf
+        key: dnd-template-${{ runner.os }}-v1
+
+    - name: Install DND-5e-LaTeX-Template (if not cached)
+      if: steps.cache-dnd-template.outputs.cache-hit != 'true'
+      run: |
+        # Clone the DND template repository
+        git clone https://github.com/rpgtex/DND-5e-LaTeX-Template.git /tmp/dnd-template
+
+        # Create user texmf directory
+        mkdir -p ~/.local/share/texmf/tex/latex/dnd
+
+        # Copy template files to texmf directory
+        cp /tmp/dnd-template/*.cls ~/.local/share/texmf/tex/latex/dnd/
+        cp /tmp/dnd-template/*.sty ~/.local/share/texmf/tex/latex/dnd/
+        cp -r /tmp/dnd-template/lib/* ~/.local/share/texmf/tex/latex/dnd/ 2>/dev/null || true
+
+        # Update texmf database
+        texhash ~/.local/share/texmf
+
+        # Verify template is available
+        kpsewhich DND-5e.cls
+
+    - name: Install dependencies
+      run: make ci-install
+
+    - name: Verify LaTeX and template installation
+      run: |
+        echo "=== LaTeX Installation ==="
+        pdflatex --version | head -1
+        echo "=== DND Template Check ==="
+        kpsewhich DND-5e.cls
+        echo "=== Test Data Verification ==="
+        export DND5E_CONFIG_FILE=test-config.yaml
+        uv run 5e2pdf list books
+        uv run 5e2pdf list adventures
+
+    - name: Run LaTeX integration tests
+      run: make test-latex-integration
+      env:
+        # Ensure we use test data configuration
+        DND5E_CONFIG_FILE: test-config.yaml
+
+    - name: Upload compilation artifacts (on failure)
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: latex-integration-failure-artifacts
+        path: |
+          /tmp/*/debug_output.tex
+          /tmp/*/document.log
+          /tmp/*/document.aux
+        retention-days: 7
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: latex-integration-test-results
+        path: |
+          test-results.xml
+          htmlcov/
+        retention-days: 14

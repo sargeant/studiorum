@@ -29,6 +29,7 @@ help:
 	@echo "  check        - Run code quality checks (ruff, mypy, imports, boundaries)"
 	@echo "  security     - Run security scans (pip-audit, bandit)"
 	@echo "  test         - Run tests"
+	@echo "  test-latex-integration - Run LaTeX integration tests (requires LaTeX installation)"
 	@echo "  format       - Format code with ruff"
 	@echo "  docs         - Build and open documentation"
 	@echo "  clean        - Clean build artifacts"
@@ -181,6 +182,14 @@ test-slow: uv
 test-data: uv
 	@echo "Running tests requiring external data..."
 	pytest -m "requires_data"
+
+## Run LaTeX integration tests (requires LaTeX installation)
+test-latex-integration: uv
+	@echo "Running LaTeX integration tests (requires LaTeX installation)..."
+	@echo "This will perform actual LaTeX compilation and requires:"
+	@echo "  - LaTeX installation (texlive)"
+	@echo "  - DND-5e-LaTeX-Template"
+	pytest -m "needs_latex" tests/integration/latex/ -v || (echo "LaTeX integration tests failed"; exit 1)
 
 # Smart Test Selection (Phase 4.1)
 ## Run only tests impacted by current changes
