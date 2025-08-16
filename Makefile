@@ -225,6 +225,14 @@ test-latex-integration: uv
 	@echo "  - DND-5e-LaTeX-Template"
 	pytest -m "needs_latex" tests/integration/latex/ -v || (echo "LaTeX integration tests failed"; exit 1)
 
+## Run LaTeX integration tests (requires LaTeX installation)
+test-latex-integration: uv
+	@echo "Running LaTeX integration tests (requires LaTeX installation)..."
+	@echo "This will perform actual LaTeX compilation and requires:"
+	@echo "  - LaTeX installation (texlive)"
+	@echo "  - DND-5e-LaTeX-Template"
+	pytest -m "needs_latex" tests/integration/latex/ -v || (echo "LaTeX integration tests failed"; exit 1)
+
 # Smart Test Selection (Phase 4.1)
 ## Run only tests impacted by current changes
 test-impacted: uv
