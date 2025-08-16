@@ -540,6 +540,6 @@ find ./homebrew -name "*.json" -exec 5e2pdf convert supplement {} --pdf \;
 
 ## Next Steps
 
-- **Source Management**: Learn about [content sources and configuration](../developer/index.md)
+- **Source Management**: Learn about [content sources and configuration](getting-started.md)
 - **LaTeX Customization**: Explore document styling options in the developer guide
 - **Troubleshooting**: Get help with [common issues](troubleshooting.md)

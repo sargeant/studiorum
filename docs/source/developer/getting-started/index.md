@@ -31,7 +31,7 @@ Progressive onboarding from first contribution to independent development.
 
 ## Quick Navigation
 
-- **System Overview**: {doc}`../system-guide/index`
+- **System Overview**: {doc}`../system-guide/architecture-overview`
 - **Development Workflows**: {doc}`../development-workflows/index`
 - **API Reference**: {doc}`../api-reference/index`
 - **Contributing Guide**: {doc}`../contributing/index`
@@ -42,3 +42,14 @@ Progressive onboarding from first contribution to independent development.
 - {doc}`../development-workflows/tdd-methodology` - Test-driven development
 - {doc}`../contributing/coding-standards` - Code quality requirements
 - {doc}`../api-reference/core-apis` - Key interfaces and APIs
+
+## Getting Started Documents
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+
+for-developers
+for-ai-agents
+for-new-contributors
+```

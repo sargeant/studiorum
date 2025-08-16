@@ -610,7 +610,7 @@ export VALIDATION_STRICTNESS=normal
 
 #### .env File
 
-```env
+```bash
 # .env file for development
 LOG_LEVEL=DEBUG
 DATA_PATH=./data/5etools

@@ -107,7 +107,7 @@ html_theme_options = {
             "children": [
                 {
                     "title": "User Guide",
-                    "url": "/user-guide/index",
+                    "url": "/basic-usage",
                     "summary": "Getting started and basic usage",
                 },
                 {

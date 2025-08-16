@@ -1,4 +1,4 @@
-# API Reference
+# Library Reference
 
 This section provides comprehensive API documentation for the 5e2pdf package.
 
@@ -51,11 +51,11 @@ The most commonly used classes in the API:
 
 ## Configuration
 
-See {doc}`config` for detailed configuration options and {doc}`/user-guide/installation` for setup instructions.
+See {doc}`config` for detailed configuration options and {doc}`/installation` for setup instructions.
 
 ## Examples
 
 For practical usage examples, see:
 - {doc}`/examples/index` - Code examples
-- {doc}`/user-guide/basic-usage` - User guide
-- {doc}`/developer/implementation/index` - Implementation guides
+- {doc}`/basic-usage` - User guide
+- {doc}`/component-guides` - Implementation guides

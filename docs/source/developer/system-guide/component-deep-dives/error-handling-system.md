@@ -439,8 +439,7 @@ def log_result_pattern[T, E](
 
 ### Error Logging Context
 
-```python
-### Simple Context Pattern
+#### Simple Context Pattern
 
 ```python
 def log_with_context(

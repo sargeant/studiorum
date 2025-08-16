@@ -281,4 +281,4 @@ register_renderer("markdown", MarkdownRenderer)
 # 5e2pdf convert --renderer markdown --output spells.md
 ```
 
-See {doc}`/developer/implementation/index` for detailed renderer development guides.
+See {doc}`/component-guides` for detailed renderer development guides.

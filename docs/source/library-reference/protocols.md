@@ -397,4 +397,4 @@ def create_application(
     )
 ```
 
-See {doc}`/developer/architecture` for more details on the protocol-based architecture and {doc}`/developer/contributing` for guidelines on implementing new protocols.
+See {doc}`/architecture-overview` for more details on the protocol-based architecture and {doc}`/contributing` for guidelines on implementing new protocols.

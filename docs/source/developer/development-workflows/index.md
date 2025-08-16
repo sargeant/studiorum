@@ -9,7 +9,6 @@ Process and methodology guidance for effective development.
 
 tdd-methodology
 quality-standards
-performance-optimization
 troubleshooting-strategies
 ```
 
@@ -19,8 +18,7 @@ troubleshooting-strategies
 
 ## Quality Assurance
 
-- {doc}`quality-standards` - Code quality requirements and validation
-- {doc}`performance-optimization` - Performance best practices and optimization strategies
+- {doc}`quality-standards` - Code quality requirements, validation, and performance best practices
 
 ## Problem Solving
 

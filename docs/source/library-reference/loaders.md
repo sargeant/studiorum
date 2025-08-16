@@ -199,4 +199,4 @@ The system supports multiple data sources:
 - **Homebrew Content**: Custom user-defined content
 - **Third-party Sources**: Additional community content
 
-See {doc}`/user-guide/advanced-features` for configuration details.
+See {doc}`/advanced-features` for configuration details.

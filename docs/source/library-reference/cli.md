@@ -112,4 +112,4 @@ The CLI provides detailed error messages and logging:
 5e2pdf convert --validate --source PHB --content-type spell
 ```
 
-See {doc}`/user-guide/troubleshooting` for common issues and solutions.
+See {doc}`/troubleshooting` for common issues and solutions.

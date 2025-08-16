@@ -139,13 +139,13 @@ tlmgr install collection-fontsrecommended
 ### Getting Help
 
 - Use `5e2pdf --help` for command-line options
-- Check the [troubleshooting guide](user-guide/troubleshooting.md) for detailed solutions
+- Check the [troubleshooting guide](troubleshooting.md) for detailed solutions
 - Report issues on [GitHub](https://github.com/sargeant/5e2pdf/issues)
 
 ## Next Steps
 
-- Read the [User Guide](user-guide/index.md) for detailed usage instructions
+- Read the [User Guide](basic-usage.md) for detailed usage instructions
 - Explore [Examples](examples/index.md) for advanced use cases
-- Check out the [Developer Guide](developer/index.md) if you want to contribute or extend 5e2pdf
+- Check out the [Developer Guide](getting-started.md) if you want to contribute or extend 5e2pdf
 
-Ready to dive deeper? Continue to the [User Guide](user-guide/index.md) →
+Ready to dive deeper? Continue to the [User Guide](basic-usage.md) →

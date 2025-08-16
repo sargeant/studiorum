@@ -315,6 +315,6 @@ xelatex --version
 
 ## Next Steps
 
-- **Developer Documentation**: For extending 5e2pdf functionality, see the [Developer Guide](../developer/index.md)
+- **Developer Documentation**: For extending 5e2pdf functionality, see the [Developer Guide](getting-started.md)
 - **API Integration**: Explore programmatic usage through the Python API
 - **Custom Templates**: Learn about LaTeX template customization in the developer documentation

@@ -323,4 +323,4 @@ except ValidationError as e:
     print(f"Configuration errors: {e}")
 ```
 
-See {doc}`/user-guide/installation` for initial setup and {doc}`/user-guide/advanced-features` for advanced configuration scenarios.
+See {doc}`/installation` for initial setup and {doc}`/advanced-features` for advanced configuration scenarios.

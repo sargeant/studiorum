@@ -260,7 +260,7 @@ export DND5E_VALIDATION__MAX_DUPLICATE_ERRORS=5
 
 The system automatically loads configuration from `.env` files:
 
-```env
+```bash
 # .env file example
 DND5E_LOGGING__LEVEL=INFO
 DND5E_PATHS__DATA_PATH=/home/user/5etools-data

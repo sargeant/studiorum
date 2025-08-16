@@ -10,17 +10,23 @@ description: Convert D&D 5e JSON data from 5e.tools to beautifully formatted LaT
 :caption: For Users
 
 quickstart
-user-guide/index
+installation
+basic-usage
+advanced-features
+troubleshooting
 ```
 
 ```{toctree}
 :hidden:
 :caption: For Developers
-:max_depth: 2
 
-developer/index
-developer/contributing
-api/index
+getting-started
+architecture-overview
+component-guides
+development-workflows
+contributing
+library-reference/index
+examples/index
 ```
 
 ```{rst-class} lead
@@ -109,7 +115,7 @@ pip install git+https://github.com/sargeant/5e2pdf#egg=5e2pdf
 :gutter: 3
 
 ```{grid-item-card}
-:link: http://5e2pdf.sargeant.net.nz/user-guide
+:link: basic-usage
 :link-type: doc
 :text-align: center
 :class-title: sd-card-title-large
@@ -120,12 +126,12 @@ Complete guide for users getting started with 5e2pdf
 ```
 
 ```{grid-item-card}
-:link: http://5e2pdf.sargeant.net.nz/developer
+:link: library-reference/index
 :link-type: doc
 :text-align: center
 :class-title: sd-card-title-large
 
-<span class="heroicon"><img src="/_static/icons/wrench.svg" alt="Wrench icon"></span> API Reference
+<span class="heroicon"><img src="/_static/icons/wrench.svg" alt="Wrench icon"></span> Library Reference
 +++
 Developer documentation and API reference for `dnd5e`
 ```
