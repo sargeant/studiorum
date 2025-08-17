@@ -1,6 +1,5 @@
 """Shared utility functions for convert commands."""
 
-import json
 from pathlib import Path
 from typing import Any, cast
 
@@ -14,9 +13,6 @@ from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
 from dnd5e.renderers.latex.compiler import LaTeXCompiler
-
-# JSON type alias for type safety
-JSONValue = dict[str, Any] | list[Any] | str | int | float | bool | None
 
 
 def create_latex_compiler() -> LaTeXCompiler:
@@ -103,7 +99,7 @@ async def compile_pdf(latex_path: Path) -> None:
 def resolve_content_or_file(
     source: str, content_type: ContentType
 ) -> tuple[list[BaseContent], str]:
-    """Resolve content source to content objects.
+    """Resolve content source to content objects using unified ContentLoader.
 
     Args:
         source: File path or content abbreviation
@@ -115,16 +111,50 @@ def resolve_content_or_file(
     Raises:
         typer.Exit: If content cannot be resolved
     """
-    omnidexer = get_omnidexer()
+    from dnd5e.core.loaders.content_sources import (
+        ContentLoader,
+        create_file_source,
+        create_omnidexer_source,
+    )
 
     # Check if it's a file path
     path = Path(source)
     if path.is_file():
-        # Use the model validation function for consistent behavior
-        return _load_from_file_with_type(path, content_type)
+        # Use ContentLoader for unified error handling and validation
+        loader = ContentLoader()
+        file_source = create_file_source(path, content_type)
 
-    # Try to resolve as abbreviation
+        # Validate the source
+        validation = file_source.validate()
+        if not validation.is_valid:
+            for error in validation.errors:
+                rprint(f"[red]Error:[/red] {error}")
+            raise typer.Exit(1)
+
+        # Show warnings if any
+        for warning in validation.warnings:
+            rprint(f"[yellow]Warning:[/yellow] {warning}")
+
+        loader.add_source(file_source)
+
+        try:
+            content_items = loader.load_all()
+            if not content_items:
+                rprint(
+                    f"[red]Error:[/red] No {content_type.value} content found in {path}"
+                )
+                raise typer.Exit(1)
+            return content_items, f"file: {path}"
+        except Exception as e:
+            rprint(
+                f"[red]Error:[/red] Failed to load {content_type.value} from {path}: {e}"
+            )
+            raise typer.Exit(1)
+
+    # Try to resolve as abbreviation using omnidexer
+    omnidexer = get_omnidexer()
     resolver = ContentResolver(omnidexer)
+
     if content_type == ContentType.ADVENTURE:
         result = resolver.resolve_adventure(source)
     elif content_type == ContentType.BOOK:
@@ -134,102 +164,6 @@ def resolve_content_or_file(
         raise typer.Exit(1)
 
     return handle_resolution_result(result, source, content_type)
-
-
-def load_from_file(file_path: Path) -> JSONValue:
-    """Load content from a JSON file."""
-    try:
-        with open(file_path, encoding="utf-8") as f:
-            data = json.load(f)
-
-        # Handle both single objects and arrays
-        if isinstance(data, list):
-            return data  # type: ignore[return-value,no-any-return]
-        else:
-            return data  # type: ignore[return-value,no-any-return]
-
-    except (json.JSONDecodeError, FileNotFoundError) as e:
-        rprint(f"[red]Error:[/red] Failed to load file {file_path}: {e}")
-        raise typer.Exit(1)
-
-
-def _load_from_file_with_type(
-    file_path: Path, content_type: ContentType
-) -> tuple[list[BaseContent], str]:
-    """Load content from file with content type processing (for test compatibility)."""
-    try:
-        content_data = load_from_file(file_path)
-
-        # Handle different content types
-        if content_type == ContentType.BOOK:
-            # Import Book model
-            from dnd5e.core.models.books import Book
-
-            # For books, validate through the Book model
-            try:
-                # Ensure the data has required fields
-                book_data: dict[str, Any]
-                if isinstance(content_data, dict):
-                    book_data = dict(content_data)
-                    if "name" not in book_data:
-                        book_data["name"] = f"Book: {file_path.stem}"
-                    if "source" not in book_data:
-                        book_data["source"] = {
-                            "abbreviation": "FILE",
-                            "name": f"File: {file_path.name}",
-                        }
-                else:
-                    book_data = content_data  # type: ignore[assignment]
-
-                book = Book.model_validate(book_data)
-                return [book], f"file: {file_path}"
-            except Exception as e:
-                rprint(f"[red]Error:[/red] Invalid book data in {file_path}: {e}")
-                raise typer.Exit(1)
-        elif content_type == ContentType.ADVENTURE:
-            # Import Adventure model
-            from dnd5e.core.models.adventures import Adventure
-
-            # For adventures, handle the adventure array structure and create model instances
-            if isinstance(content_data, dict) and "adventure" in content_data:
-                adventures_data: dict[str, Any] = content_data
-                adventures = adventures_data["adventure"]
-                if not adventures:
-                    rprint(f"[red]Error:[/red] No adventures found in {file_path}")
-                    raise typer.Exit(1)
-
-                # Validate each adventure through the model
-                validated_adventures = []
-                for adventure_data in adventures:
-                    try:
-                        adventure = Adventure.model_validate(adventure_data)
-                        validated_adventures.append(adventure)
-                    except Exception as e:
-                        rprint(
-                            f"[red]Error:[/red] Invalid adventure data in {file_path}: {e}"
-                        )
-                        raise typer.Exit(1)
-
-                return cast(
-                    list[BaseContent], validated_adventures
-                ), f"file: {file_path}"
-            else:
-                # Single adventure object
-                try:
-                    adventure = Adventure.model_validate(content_data)
-                    return cast(list[BaseContent], [adventure]), f"file: {file_path}"
-                except Exception as e:
-                    rprint(
-                        f"[red]Error:[/red] Invalid adventure data in {file_path}: {e}"
-                    )
-                    raise typer.Exit(1)
-        else:
-            rprint(f"[red]Error:[/red] Unsupported content type: {content_type}")
-            raise typer.Exit(1)
-
-    except Exception as e:
-        rprint(f"[red]Error:[/red] Failed to load file {file_path}: {e}")
-        raise typer.Exit(1)
 
 
 def handle_resolution_result(

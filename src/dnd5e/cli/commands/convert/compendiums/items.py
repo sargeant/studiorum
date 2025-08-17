@@ -385,23 +385,43 @@ def items(
             if item_names:
                 all_item_names.extend(item_names)
 
-            # Collect from file
+            # Collect from file using ContentLoader system
             if from_file:
-                if not from_file.exists():
-                    rprint(f"[red]Error:[/red] Item file not found: {from_file}")
-                    raise typer.Exit(1)
-
-                file_items = ItemInputParser.parse_item_names_from_file(from_file)
+                command_instance = BaseConvertCommand()
+                file_items = command_instance.get_name_list_from_file(from_file, "item")
                 all_item_names.extend(file_items)
                 rprint(
                     f"[green]Loaded {len(file_items)} items from {from_file}[/green]"
                 )
 
-            # Collect from stdin
+            # Collect from stdin using ContentLoader system
             if from_stdin:
-                stdin_items = ItemInputParser.parse_item_names_from_stdin()
-                all_item_names.extend(stdin_items)
-                rprint(f"[green]Loaded {len(stdin_items)} items from stdin[/green]")
+                try:
+                    import sys
+
+                    if sys.stdin.isatty():
+                        rprint("[red]Error:[/red] No input provided via stdin")
+                        raise typer.Exit(1)
+
+                    stdin_lines = []
+                    for line in sys.stdin:
+                        line = line.strip()
+                        if line and not line.startswith("#"):
+                            # Handle inline comments
+                            if "#" in line:
+                                line = line.split("#", 1)[0].strip()
+                            if line:
+                                stdin_lines.append(line)
+
+                    if not stdin_lines:
+                        rprint("[red]Error:[/red] No item names found in stdin")
+                        raise typer.Exit(1)
+
+                    all_item_names.extend(stdin_lines)
+                    rprint(f"[green]Loaded {len(stdin_lines)} items from stdin[/green]")
+                except KeyboardInterrupt:
+                    rprint("[red]Error:[/red] Input interrupted")
+                    raise typer.Exit(1)
 
             # Parse value range if provided
             min_value, max_value_parsed = None, None

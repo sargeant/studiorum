@@ -283,6 +283,51 @@ class BaseConvertCommand:
         source = create_stdin_source(content_type)
         loader.add_source(source)
 
+    def get_name_list_from_file(self, file_path: Path, content_type: str) -> list[str]:
+        """Load a list of content names from a file using ContentLoader.
+
+        Args:
+            file_path: Path to file containing names (one per line)
+            content_type: Type of content (for validation and metadata)
+
+        Returns:
+            List of content names
+
+        Raises:
+            typer.Exit: If file cannot be loaded or validated
+        """
+        import typer
+        from rich import print as rprint
+
+        from dnd5e.core.loaders.content_sources import create_name_list_source
+        from dnd5e.core.models.content import ContentType
+
+        try:
+            content_type_enum = ContentType(content_type.lower())
+        except ValueError:
+            rprint(f"[red]Error:[/red] Invalid content type: {content_type}")
+            raise typer.Exit(1)
+
+        name_source = create_name_list_source(file_path, content_type_enum)
+
+        # Validate the source
+        validation = name_source.validate()
+        if not validation.is_valid:
+            for error in validation.errors:
+                rprint(f"[red]Error:[/red] {error}")
+            raise typer.Exit(1)
+
+        # Show warnings if any
+        for warning in validation.warnings:
+            rprint(f"[yellow]Warning:[/yellow] {warning}")
+
+        try:
+            names = name_source.load()
+            return names
+        except Exception as e:
+            rprint(f"[red]Error:[/red] Failed to load names from {file_path}: {e}")
+            raise typer.Exit(1)
+
     def validate_and_load_content(
         self, loader: ContentLoader, show_validation: bool = True
     ) -> Any:

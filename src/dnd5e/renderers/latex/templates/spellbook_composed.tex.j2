@@ -1,0 +1,83 @@
+% Spellbook template using composition pattern
+% Extends base_composed.tex.j2 for consistent document structure
+
+<@ extends "base_composed.tex.j2" @>
+
+<#-- Document-specific packages --#>
+<@ block document_packages @>
+% Spellbook-specific packages for spell formatting
+\usepackage{multicol}
+\usepackage{enumitem}
+<@ endblock @>
+
+<#-- Additional configuration for spellbook layout --#>
+<@ block additional_config @>
+% Configure spell list formatting
+<@ if two_column @>
+\setlength{\columnsep}{0.8cm}
+<@ endif @>
+
+% Set up spell description formatting
+\setlist[description]{leftmargin=0pt, labelindent=0pt}
+<@ endblock @>
+
+<#-- Main spellbook content --#>
+<@ block main_content @>
+<@ if spell_groups @>
+<@ for group in spell_groups @>
+\chapter{<# group.title | latex_escape #>}
+<@ if group.description @>
+<# group.description | latex_escape #>
+
+<@ endif @>
+
+<@ if two_column @>
+\begin{multicols}{2}
+<@ endif @>
+
+<@ for spell in group.spells @>
+<@ include '_spell_render_block.tex.j2' @>
+<@ endfor @>
+
+<@ if two_column @>
+\end{multicols}
+<@ endif @>
+
+<@ endfor @>
+<@ else @>
+<#-- Single list of spells --#>
+\chapter{Spells}
+
+<@ if spell_level_groups @>
+<@ for level_group in spell_level_groups @>
+\section{<# level_group.title | latex_escape #>}
+
+<@ if two_column @>
+\begin{multicols}{2}
+<@ endif @>
+
+<@ for spell in level_group.spells @>
+<@ include '_spell_render_block.tex.j2' @>
+<@ endfor @>
+
+<@ if two_column @>
+\end{multicols}
+<@ endif @>
+
+<@ endfor @>
+<@ else @>
+<#-- Flat spell list --#>
+<@ if two_column @>
+\begin{multicols}{2}
+<@ endif @>
+
+<@ for spell in spells @>
+<@ include '_spell_render_block.tex.j2' @>
+<@ endfor @>
+
+<@ if two_column @>
+\end{multicols}
+<@ endif @>
+<@ endif @>
+<@ endif @>
+<@ endblock @>

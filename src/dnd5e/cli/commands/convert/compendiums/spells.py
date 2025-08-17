@@ -339,23 +339,47 @@ def spells(
             if spell_names:
                 all_spell_names.extend(spell_names)
 
-            # Collect from file
+            # Collect from file using ContentLoader system
             if from_file:
-                if not from_file.exists():
-                    rprint(f"[red]Error:[/red] Spell file not found: {from_file}")
-                    raise typer.Exit(1)
-
-                file_spells = SpellInputParser.parse_spell_names_from_file(from_file)
+                command_instance = BaseConvertCommand()
+                file_spells = command_instance.get_name_list_from_file(
+                    from_file, "spell"
+                )
                 all_spell_names.extend(file_spells)
                 rprint(
                     f"[green]Loaded {len(file_spells)} spells from {from_file}[/green]"
                 )
 
-            # Collect from stdin
+            # Collect from stdin using ContentLoader system
             if from_stdin:
-                stdin_spells = SpellInputParser.parse_spell_names_from_stdin()
-                all_spell_names.extend(stdin_spells)
-                rprint(f"[green]Loaded {len(stdin_spells)} spells from stdin[/green]")
+                try:
+                    import sys
+
+                    if sys.stdin.isatty():
+                        rprint("[red]Error:[/red] No input provided via stdin")
+                        raise typer.Exit(1)
+
+                    stdin_lines = []
+                    for line in sys.stdin:
+                        line = line.strip()
+                        if line and not line.startswith("#"):
+                            # Handle inline comments
+                            if "#" in line:
+                                line = line.split("#", 1)[0].strip()
+                            if line:
+                                stdin_lines.append(line)
+
+                    if not stdin_lines:
+                        rprint("[red]Error:[/red] No spell names found in stdin")
+                        raise typer.Exit(1)
+
+                    all_spell_names.extend(stdin_lines)
+                    rprint(
+                        f"[green]Loaded {len(stdin_lines)} spells from stdin[/green]"
+                    )
+                except KeyboardInterrupt:
+                    rprint("[red]Error:[/red] Input interrupted")
+                    raise typer.Exit(1)
 
             # Parse level range if provided
             min_level, max_level_parsed = None, None

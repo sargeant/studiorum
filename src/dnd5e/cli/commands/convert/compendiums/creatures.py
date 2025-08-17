@@ -642,11 +642,7 @@ def creatures(
 
             # Import creature-specific modules
             from dnd5e.core.models.creature_filters import CreatureFilterCriteria
-            from dnd5e.core.parsers.creature_input import (
-                parse_cr_range,
-                parse_creature_names_from_file,
-                parse_creature_names_from_stdin,
-            )
+            from dnd5e.core.parsers.creature_input import parse_cr_range
             from dnd5e.core.services.creature_collector import CreatureCollector
 
             # Load omnidexer and tag resolver
@@ -665,32 +661,47 @@ def creatures(
             if creature_names:
                 all_creature_names.extend(creature_names)
 
-            # Collect from file
+            # Collect from file using ContentLoader system
             if from_file and isinstance(from_file, Path):
-                if not from_file.exists():
-                    rprint(f"[red]Error:[/red] Creature file not found: {from_file}")
-                    raise typer.Exit(1)
+                command_instance = BaseConvertCommand()
+                file_creatures = command_instance.get_name_list_from_file(
+                    from_file, "creature"
+                )
+                all_creature_names.extend(file_creatures)
+                rprint(
+                    f"[green]Loaded {len(file_creatures)} creatures from {from_file}[/green]"
+                )
 
-                try:
-                    file_creatures = parse_creature_names_from_file(from_file)
-                    all_creature_names.extend(file_creatures)
-                    rprint(
-                        f"[green]Loaded {len(file_creatures)} creatures from {from_file}[/green]"
-                    )
-                except (FileNotFoundError, PermissionError, ValueError) as e:
-                    rprint(f"[red]Error reading file:[/red] {e}")
-                    raise typer.Exit(1)
-
-            # Collect from stdin
+            # Collect from stdin using ContentLoader system
             if from_stdin:
                 try:
-                    stdin_creatures = parse_creature_names_from_stdin()
-                    all_creature_names.extend(stdin_creatures)
+                    # Use stdin as a temporary name list
+                    import sys
+
+                    if sys.stdin.isatty():
+                        rprint("[red]Error:[/red] No input provided via stdin")
+                        raise typer.Exit(1)
+
+                    stdin_lines = []
+                    for line in sys.stdin:
+                        line = line.strip()
+                        if line and not line.startswith("#"):
+                            # Handle inline comments
+                            if "#" in line:
+                                line = line.split("#", 1)[0].strip()
+                            if line:
+                                stdin_lines.append(line)
+
+                    if not stdin_lines:
+                        rprint("[red]Error:[/red] No creature names found in stdin")
+                        raise typer.Exit(1)
+
+                    all_creature_names.extend(stdin_lines)
                     rprint(
-                        f"[green]Loaded {len(stdin_creatures)} creatures from stdin[/green]"
+                        f"[green]Loaded {len(stdin_lines)} creatures from stdin[/green]"
                     )
-                except ValueError as e:
-                    rprint(f"[red]Error reading stdin:[/red] {e}")
+                except KeyboardInterrupt:
+                    rprint("[red]Error:[/red] Input interrupted")
                     raise typer.Exit(1)
 
             # Parse CR range if provided
