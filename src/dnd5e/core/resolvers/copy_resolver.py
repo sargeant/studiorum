@@ -47,18 +47,11 @@ class CopyResolver:
         resolved_count = 0
         for content_type, item in items_needing_resolution:
             try:
-                item_name = getattr(item, "name", "unknown")
-                if item_name == "Zastra":
-                    logger.info("Processing Zastra for copy resolution...")
                 if self._resolve_copy_for_item(item):
                     resolved_count += 1
-                    if item_name == "Zastra":
-                        logger.info("Successfully resolved Zastra")
             except Exception as e:
                 item_name = getattr(item, "name", "unknown")
                 logger.warning(f"Failed to resolve copy for {item_name}: {e}")
-                if item_name == "Zastra":
-                    logger.error(f"Zastra resolution failed: {e}")
 
         logger.info(f"Successfully resolved {resolved_count} copy references")
 
@@ -81,77 +74,9 @@ class CopyResolver:
         if not source_item:
             return False
 
-        # Convert items to dicts for processing
-        source_dict = self._item_to_dict(source_item)
-        target_dict = self._item_to_dict(item)
-
-        # Create base copy (source properties as base, target properties override)
-        # For copy operations, most fields should come from source (base creature)
-        # Only specific fields from target should override (like alignment, specific traits)
-        resolved_dict = source_dict.copy()
-
-        # Override with specific target properties, but exclude placeholder fields
-        placeholder_fields = {
-            "ac",
-            "hp",
-            "speed",
-            "strength",
-            "dexterity",
-            "constitution",
-            "intelligence",
-            "wisdom",
-            "charisma",
-            "save",
-            "skill",
-            "resist",
-            "immune",
-            "conditionImmune",
-            "senses",
-            "passive",
-            "cr",
-            "trait",
-            "action",
-            "reaction",
-            "legendary",
-            "mythic",
-            "spellcasting",
-        }
-
-        for key, value in target_dict.items():
-            # Include copy metadata and specific overrides, but skip placeholder stats
-            # Also exclude copy processing attributes that should be cleaned up
-            if (
-                key.startswith("_")
-                and key
-                not in {"_copy", "_needsCopyResolution"}  # Exclude cleanup attributes
-                or key
-                in {
-                    "name",
-                    "source",
-                    "alignment",
-                    "isNpc",
-                    "isNamedCreature",
-                    "hasToken",
-                }
-                or key not in placeholder_fields
-            ):
-                resolved_dict[key] = value
-
-        # Apply _mod transformations if present
-        if "_mod" in copy_ref:
-            try:
-                resolved_dict = self._apply_mod_transformations(
-                    resolved_dict, copy_ref["_mod"], item_name
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to apply _mod transformations for {item_name}: {e}"
-                )
-
-        # TODO: Handle _templates if present
-
-        # Update the item with resolved data
-        self._update_item_from_dict(item, resolved_dict)
+        # Apply copy resolution directly to preserve typed objects
+        # This approach avoids dictionary conversion that would lose type information
+        self._apply_copy_resolution_direct(item, source_item, copy_ref, item_name)
 
         # IMMEDIATE cleanup after update - explicit removal of copy processing attributes
         # Do this by setting them to None and then deleting
@@ -205,185 +130,6 @@ class CopyResolver:
         else:
             logger.warning(f"Invalid copy reference format for {item_name}")
             return None
-
-    def _item_to_dict(self, item) -> dict[str, Any]:
-        """Convert an item to a dictionary for processing."""
-        if isinstance(item, dict):
-            return item.copy()
-        elif hasattr(item, "model_dump"):
-            return item.model_dump()
-        elif hasattr(item, "__dict__"):
-            return item.__dict__.copy()
-        else:
-            # Fallback
-            try:
-                return dict(item)
-            except (TypeError, ValueError):
-                logger.warning(f"Could not convert item to dict: {type(item)}")
-                return {}
-
-    def _update_item_from_dict(self, item, data: dict[str, Any]) -> None:
-        """Update an item with data from a dictionary."""
-        # Remove the copy markers from the data
-        data = data.copy()
-        data.pop("_copy", None)
-        data.pop("_needsCopyResolution", None)
-
-        if hasattr(item, "__dict__"):
-            # Update the item's attributes
-            for key, value in data.items():
-                setattr(item, key, value)
-        else:
-            logger.warning(f"Could not update item of type {type(item)}")
-
-    def _apply_mod_transformations(
-        self, item: dict[str, Any], mod_data: dict[str, Any], item_name: str
-    ) -> dict[str, Any]:
-        """Apply _mod transformations to a copied item."""
-        # Create a deep copy to avoid modifying the original
-        modified_item = copy.deepcopy(item)
-
-        for prop_path, transformations in mod_data.items():
-            # Ensure transformations is a list
-            if isinstance(transformations, dict):
-                transformations = [transformations]
-            elif not isinstance(transformations, list):
-                logger.warning(
-                    f"Invalid _mod format for {item_name}: {prop_path} should be dict or list"
-                )
-                continue
-
-            for transform in transformations:
-                if not isinstance(transform, dict):
-                    continue
-
-                mode = transform.get("mode")
-                if mode == "replaceTxt":
-                    self._apply_replace_txt_transformation(
-                        modified_item, prop_path, transform, item_name
-                    )
-                elif mode == "appendArr":
-                    self._apply_append_arr_transformation(
-                        modified_item, prop_path, transform, item_name
-                    )
-                else:
-                    logger.debug(f"Unsupported _mod mode '{mode}' for {item_name}")
-
-        return modified_item
-
-    def _apply_replace_txt_transformation(
-        self,
-        item: dict[str, Any],
-        prop_path: str,
-        transform: dict[str, Any],
-        item_name: str,
-    ) -> None:
-        """Apply replaceTxt transformation to an item."""
-        replace_text = transform.get("replace", "")
-        with_text = transform.get("with", "")
-        flags_str = transform.get("flags", "")
-
-        # Convert flags string to re flags
-        flags = 0
-        if "i" in flags_str:
-            flags |= re.IGNORECASE
-        if "m" in flags_str:
-            flags |= re.MULTILINE
-        if "s" in flags_str:
-            flags |= re.DOTALL
-
-        pattern = re.compile(replace_text, flags)
-
-        if prop_path == "*":
-            # Apply to all string properties recursively
-            self._replace_text_recursive(item, pattern, with_text)
-        else:
-            # Apply to specific property
-            self._replace_text_in_property(item, prop_path, pattern, with_text)
-
-    def _replace_text_recursive(
-        self, obj: Any, pattern: re.Pattern, replacement: str
-    ) -> None:
-        """Recursively replace text in all string values."""
-        if isinstance(obj, str):
-            # This shouldn't happen as we're called on containers, but handle it
-            return pattern.sub(replacement, obj)
-        elif isinstance(obj, dict):
-            for key, value in obj.items():
-                if isinstance(value, str):
-                    obj[key] = pattern.sub(replacement, value)
-                elif isinstance(value, dict | list):
-                    self._replace_text_recursive(value, pattern, replacement)
-        elif isinstance(obj, list):
-            for i, item in enumerate(obj):
-                if isinstance(item, str):
-                    obj[i] = pattern.sub(replacement, item)
-                elif isinstance(item, dict | list):
-                    self._replace_text_recursive(item, pattern, replacement)
-
-    def _replace_text_in_property(
-        self,
-        item: dict[str, Any],
-        prop_path: str,
-        pattern: re.Pattern,
-        replacement: str,
-    ) -> None:
-        """Replace text in a specific property path."""
-        # Navigate to the property
-        path_parts = prop_path.split(".")
-        current = item
-
-        # Navigate to the parent of the target property
-        for part in path_parts[:-1]:
-            if isinstance(current, dict) and part in current:
-                current = current[part]
-            else:
-                return  # Property path doesn't exist
-
-        # Apply replacement to the final property
-        final_prop = path_parts[-1]
-        if isinstance(current, dict) and final_prop in current:
-            target = current[final_prop]
-            if isinstance(target, str):
-                current[final_prop] = pattern.sub(replacement, target)
-            elif isinstance(target, dict | list):
-                self._replace_text_recursive(target, pattern, replacement)
-
-    def _apply_append_arr_transformation(
-        self,
-        item: dict[str, Any],
-        prop_path: str,
-        transform: dict[str, Any],
-        item_name: str,
-    ) -> None:
-        """Apply appendArr transformation to an item."""
-        items_to_append = transform.get("items")
-        if not items_to_append:
-            return
-
-        # Navigate to the property
-        path_parts = prop_path.split(".")
-        current = item
-
-        # Navigate to the parent of the target property
-        for part in path_parts[:-1]:
-            if isinstance(current, dict) and part in current:
-                current = current[part]
-            else:
-                return  # Property path doesn't exist
-
-        # Append to the final property
-        final_prop = path_parts[-1]
-        if isinstance(current, dict):
-            if final_prop not in current:
-                current[final_prop] = []
-            elif not isinstance(current[final_prop], list):
-                return  # Property exists but is not a list
-
-            if isinstance(items_to_append, list):
-                current[final_prop].extend(items_to_append)
-            else:
-                current[final_prop].append(items_to_append)
 
     def _update_omnidexer_index(self, resolved_item) -> None:
         """Update the omnidexer index with the resolved item.
@@ -444,11 +190,9 @@ class CopyResolver:
                 if lookup_key in type_index:
                     index_entry = type_index[lookup_key]
                     # Replace the content in the index entry
-                    old_ac = getattr(index_entry.content, "ac", "unknown")
                     index_entry.content = resolved_item
-                    new_ac = getattr(index_entry.content, "ac", "unknown")
-                    logger.info(
-                        f"Updated omnidexer index for {item_name} ({content_type}): AC {old_ac} -> {new_ac}"
+                    logger.debug(
+                        f"Updated omnidexer index for {item_name} ({content_type})"
                     )
 
                     # Clear cache for this specific item to ensure fresh lookups
@@ -495,3 +239,242 @@ class CopyResolver:
 
         except Exception as e:
             logger.warning(f"Failed to clear cache for {name}: {e}")
+
+    def _apply_copy_resolution_direct(
+        self, target_item, source_item, copy_ref: dict[str, Any], item_name: str
+    ) -> None:
+        """Apply copy resolution directly to objects to preserve typed properties.
+
+        This method copies properties from source to target while maintaining
+        object types and applying _mod transformations.
+        """
+        # Define which fields should come from source (base creature stats)
+        # vs target (specific overrides like name, source, alignment)
+        source_fields = {
+            "ac",
+            "hp",
+            "speed",
+            "strength",
+            "dexterity",
+            "constitution",
+            "intelligence",
+            "wisdom",
+            "charisma",
+            "save",
+            "skill",
+            "resist",
+            "immune",
+            "conditionImmune",
+            "senses",
+            "passive",
+            "cr",
+            "trait",
+            "action",
+            "reaction",
+            "legendary",
+            "mythic",
+            "spellcasting",
+            "size",
+            "type",  # Basic creature properties from source
+        }
+
+        target_fields = {
+            "name",
+            "source",
+            "alignment",
+            "isNpc",
+            "isNamedCreature",
+            "hasToken",
+        }
+
+        # Copy source properties (main creature stats)
+        for field in source_fields:
+            if hasattr(source_item, field):
+                source_value = getattr(source_item, field)
+                if source_value is not None:
+                    setattr(target_item, field, source_value)
+
+        # Preserve target properties (specific overrides)
+        # These are already set on target_item, so no action needed
+
+        # Copy any additional properties from target that aren't placeholders
+        # This handles custom properties specific to the copied creature
+        if hasattr(target_item, "__dict__") and hasattr(source_item, "__dict__"):
+            for key, value in target_item.__dict__.items():
+                # Skip known source fields and copy processing attributes
+                if (
+                    key not in source_fields
+                    and key not in {"_copy", "_needsCopyResolution"}
+                    and not key.startswith("_")
+                    or key in target_fields
+                ):
+                    # This preserves target-specific properties
+                    pass  # Already set on target
+
+        # Apply _mod transformations if present
+        if "_mod" in copy_ref:
+            try:
+                self._apply_mod_transformations_direct(
+                    target_item, copy_ref["_mod"], item_name
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Failed to apply _mod transformations for {item_name}: {e}"
+                )
+
+    def _apply_mod_transformations_direct(
+        self, item, mod_data: dict[str, Any], item_name: str
+    ) -> None:
+        """Apply _mod transformations directly to the object to preserve types."""
+        for prop_path, transformations in mod_data.items():
+            # Ensure transformations is a list
+            if isinstance(transformations, dict):
+                transformations = [transformations]
+            elif not isinstance(transformations, list):
+                logger.warning(
+                    f"Invalid _mod format for {item_name}: {prop_path} should be dict or list"
+                )
+                continue
+
+            for transform in transformations:
+                if not isinstance(transform, dict):
+                    continue
+
+                mode = transform.get("mode")
+                if mode == "replaceTxt":
+                    self._apply_replace_txt_transformation_direct(
+                        item, prop_path, transform, item_name
+                    )
+                elif mode == "appendArr":
+                    self._apply_append_arr_transformation_direct(
+                        item, prop_path, transform, item_name
+                    )
+                else:
+                    logger.debug(f"Unsupported _mod mode '{mode}' for {item_name}")
+
+    def _apply_replace_txt_transformation_direct(
+        self, item, prop_path: str, transform: dict[str, Any], item_name: str
+    ) -> None:
+        """Apply replaceTxt transformation directly to object properties."""
+        replace_text = transform.get("replace", "")
+        with_text = transform.get("with", "")
+        flags_str = transform.get("flags", "")
+
+        # Convert flags string to re flags
+        flags = 0
+        if "i" in flags_str:
+            flags |= re.IGNORECASE
+        if "m" in flags_str:
+            flags |= re.MULTILINE
+        if "s" in flags_str:
+            flags |= re.DOTALL
+
+        pattern = re.compile(replace_text, flags)
+
+        if prop_path == "*":
+            # Apply to all string properties recursively on the object
+            self._replace_text_recursive_direct(item, pattern, with_text)
+        else:
+            # Apply to specific property
+            self._replace_text_in_property_direct(item, prop_path, pattern, with_text)
+
+    def _replace_text_recursive_direct(
+        self, obj: Any, pattern: re.Pattern, replacement: str
+    ) -> None:
+        """Recursively replace text in all string values of an object."""
+        if hasattr(obj, "__dict__"):
+            for key, value in obj.__dict__.items():
+                if isinstance(value, str):
+                    setattr(obj, key, pattern.sub(replacement, value))
+                elif hasattr(value, "__dict__") or isinstance(value, dict | list):
+                    self._replace_text_recursive_direct(value, pattern, replacement)
+        elif isinstance(obj, dict):
+            for key, value in obj.items():
+                if isinstance(value, str):
+                    obj[key] = pattern.sub(replacement, value)
+                elif isinstance(value, dict | list):
+                    self._replace_text_recursive_direct(value, pattern, replacement)
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                if isinstance(item, str):
+                    obj[i] = pattern.sub(replacement, item)
+                elif isinstance(item, dict | list) or hasattr(item, "__dict__"):
+                    self._replace_text_recursive_direct(item, pattern, replacement)
+
+    def _replace_text_in_property_direct(
+        self, item, prop_path: str, pattern: re.Pattern, replacement: str
+    ) -> None:
+        """Replace text in a specific property path on an object."""
+        # Navigate to the property
+        path_parts = prop_path.split(".")
+        current = item
+
+        # Navigate to the parent of the target property
+        for part in path_parts[:-1]:
+            if hasattr(current, part):
+                current = getattr(current, part)
+            elif isinstance(current, dict) and part in current:
+                current = current[part]
+            else:
+                return  # Property path doesn't exist
+
+        # Apply replacement to the final property
+        final_prop = path_parts[-1]
+        if hasattr(current, final_prop):
+            target = getattr(current, final_prop)
+            if isinstance(target, str):
+                setattr(current, final_prop, pattern.sub(replacement, target))
+            elif isinstance(target, dict | list) or hasattr(target, "__dict__"):
+                self._replace_text_recursive_direct(target, pattern, replacement)
+        elif isinstance(current, dict) and final_prop in current:
+            target = current[final_prop]
+            if isinstance(target, str):
+                current[final_prop] = pattern.sub(replacement, target)
+            elif isinstance(target, dict | list) or hasattr(target, "__dict__"):
+                self._replace_text_recursive_direct(target, pattern, replacement)
+
+    def _apply_append_arr_transformation_direct(
+        self, item, prop_path: str, transform: dict[str, Any], item_name: str
+    ) -> None:
+        """Apply appendArr transformation directly to object properties."""
+        items_to_append = transform.get("items")
+        if not items_to_append:
+            return
+
+        # Navigate to the property
+        path_parts = prop_path.split(".")
+        current = item
+
+        # Navigate to the parent of the target property
+        for part in path_parts[:-1]:
+            if hasattr(current, part):
+                current = getattr(current, part)
+            elif isinstance(current, dict) and part in current:
+                current = current[part]
+            else:
+                return  # Property path doesn't exist
+
+        # Append to the final property
+        final_prop = path_parts[-1]
+        if hasattr(current, final_prop):
+            target_list = getattr(current, final_prop)
+            if target_list is None:
+                setattr(current, final_prop, [])
+                target_list = getattr(current, final_prop)
+            elif not isinstance(target_list, list):
+                return  # Property exists but is not a list
+
+            if isinstance(items_to_append, list):
+                target_list.extend(items_to_append)
+            else:
+                target_list.append(items_to_append)
+        elif isinstance(current, dict):
+            if final_prop not in current:
+                current[final_prop] = []
+            elif not isinstance(current[final_prop], list):
+                return  # Property exists but is not a list
+
+            if isinstance(items_to_append, list):
+                current[final_prop].extend(items_to_append)
+            else:
+                current[final_prop].append(items_to_append)
