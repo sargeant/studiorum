@@ -608,6 +608,14 @@ class RecursiveEntryProcessor:
             # Build column specification from colStyles or use defaults
             col_spec = self._build_column_spec(col_styles, col_count)
 
+            # Debug logging for wide table handling
+            import os
+
+            if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+                logger.info(
+                    f"Table '{caption}': col_styles={col_styles}, col_count={col_count}, col_spec='{col_spec}'"
+                )
+
             # Use correct DndTable syntax: \begin{DndTable}[header=Name]{column_spec}
             # Only include header parameter if caption exists
             if caption:
@@ -768,6 +776,22 @@ class RecursiveEntryProcessor:
             else:
                 # Default to left-aligned for most content
                 col_specs.append("l")
+
+        # Handle tables with too many columns for the available width
+        if col_count >= 4:
+            fixed_columns = [
+                i for i, spec in enumerate(col_specs) if spec in ["c", "l", "r"]
+            ]
+
+            # If we have 3+ fixed columns in a 4+ column table, convert some to expandable
+            if len(fixed_columns) >= 3:
+                # Keep the first fixed column (often labels), convert others to X
+                # Prioritize converting 'c' columns (centered numbers) as they're most flexible
+                converted = 0
+                for i in reversed(fixed_columns[1:]):  # Skip first fixed column
+                    if col_specs[i] == "c" and converted < len(fixed_columns) - 2:
+                        col_specs[i] = "X"
+                        converted += 1
 
         return "".join(col_specs)
 
