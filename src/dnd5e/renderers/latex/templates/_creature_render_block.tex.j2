@@ -127,6 +127,10 @@
 <@ endfor @>
 <@ endif @>
 
+% Add source abbreviation at the bottom
+\vspace{2pt}
+\noindent\hfill{\scriptsize\textcolor{gray}{<# creature.source.abbreviation | latex_escape #>}}
+
 \end{DndMonster}
 
 <@ if creature.requires_full_width_layout() @>
