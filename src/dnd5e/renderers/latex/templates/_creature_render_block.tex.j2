@@ -47,6 +47,7 @@
 <@ endif @>
 
 <@ if creature.trait @>
+\DndMonsterSection{Traits}
 <@ for trait in creature.trait @>
 \DndMonsterAction{<# trait.get_processed_name() | safe #>}
 <# trait.get_description_text() | safe #>
@@ -54,6 +55,28 @@
 <@ endfor @>
 <@ endif @>
 
+<@ set action_spells = [] @>
+<@ set bonus_spells = [] @>
+<@ set reaction_spells = [] @>
+<@ if creature.spellcasting @>
+<@ for spellcasting in creature.spellcasting @>
+<@ if spellcasting.displayAs == "action" @>
+<@ set _ = action_spells.append(spellcasting) @>
+<@ elif spellcasting.displayAs == "bonus" @>
+<@ set _ = bonus_spells.append(spellcasting) @>
+<@ elif spellcasting.displayAs == "reaction" @>
+<@ set _ = reaction_spells.append(spellcasting) @>
+<@ endif @>
+<@ endfor @>
+<@ endif @>
+
+<@ if creature.action or action_spells @>
+\DndMonsterSection{Actions}
+<@ for spellcasting in action_spells @>
+\DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
+<# spellcasting.get_description_text() | safe #>
+
+<@ endfor @>
 <@ if creature.action @>
 <@ for action in creature.action @>
 \DndMonsterAction{<# action.get_processed_name() | safe #>}
@@ -61,30 +84,45 @@
 
 <@ endfor @>
 <@ endif @>
+<@ endif @>
 
-<@ if creature.legendary @>
-\DndMonsterSection{Legendary Actions}
-<@ for legendary in creature.legendary @>
-\DndMonsterAction{<# legendary.get_processed_name() | safe #>}
-<# legendary.get_description_text() | safe #>
+<@ if creature.bonus or bonus_spells @>
+\DndMonsterSection{Bonus Actions}
+<@ for spellcasting in bonus_spells @>
+\DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
+<# spellcasting.get_description_text() | safe #>
+
+<@ endfor @>
+<@ if creature.bonus @>
+<@ for bonus in creature.bonus @>
+\DndMonsterAction{<# bonus.get_processed_name() | safe #>}
+<# bonus.get_description_text() | safe #>
 
 <@ endfor @>
 <@ endif @>
+<@ endif @>
 
-<@ if creature.reaction @>
+<@ if creature.reaction or reaction_spells @>
 \DndMonsterSection{Reactions}
+<@ for spellcasting in reaction_spells @>
+\DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
+<# spellcasting.get_description_text() | safe #>
+
+<@ endfor @>
+<@ if creature.reaction @>
 <@ for reaction in creature.reaction @>
 \DndMonsterAction{<# reaction.get_processed_name() | safe #>}
 <# reaction.get_description_text() | safe #>
 
 <@ endfor @>
 <@ endif @>
+<@ endif @>
 
-<@ if creature.bonus @>
-\DndMonsterSection{Bonus Actions}
-<@ for bonus in creature.bonus @>
-\DndMonsterAction{<# bonus.get_processed_name() | safe #>}
-<# bonus.get_description_text() | safe #>
+<@ if creature.legendary @>
+\DndMonsterSection{Legendary Actions}
+<@ for legendary in creature.legendary @>
+\DndMonsterAction{<# legendary.get_processed_name() | safe #>}
+<# legendary.get_description_text() | safe #>
 
 <@ endfor @>
 <@ endif @>

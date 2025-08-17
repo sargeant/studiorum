@@ -18,6 +18,7 @@ from dnd5e.cli.utils import get_omnidexer, get_tag_resolver
 from dnd5e.core.config.latex_config import LaTeXConfig
 from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.models.creatures import Creature
+from dnd5e.core.references.content_tracker import ContentTracker
 from dnd5e.renderers.core.interfaces import RenderingContext
 
 from ..shared import compile_pdf as compile_pdf_async
@@ -104,6 +105,18 @@ def _sort_creatures(
     else:  # CreatureSortMode.NAME
         # Sort alphabetically by name
         return sorted(creatures, key=lambda c: c.name.lower())
+
+
+def _combine_bestiary_and_appendix(bestiary_latex: str, appendix_latex: str) -> str:
+    """Combine bestiary and spell appendix LaTeX content."""
+    # Find the end of the document body in bestiary
+    if "\\end{document}" in bestiary_latex:
+        # Insert appendix before \end{document}
+        parts = bestiary_latex.rsplit("\\end{document}", 1)
+        return f"{parts[0]}\n\n{appendix_latex}\n\n\\end{{document}}{parts[1]}"
+    else:
+        # Fallback: append appendix
+        return f"{bestiary_latex}\n\n{appendix_latex}"
 
 
 def _render_bestiary(
@@ -474,6 +487,13 @@ def creatures(
         help="Include images",
         rich_help_panel="Visual Styling",
     ),
+    # Appendix options
+    spells: bool = typer.Option(
+        False,
+        "--spells/--no-spells",
+        help="Generate spellbook appendix with creature-referenced spells",
+        rich_help_panel="Output Control",
+    ),
 ) -> None:
     """
     🐉 Convert creatures to LaTeX bestiary
@@ -818,10 +838,14 @@ def creatures(
                 use_parts=False,
             )
 
+            # Create ContentTracker for spell reference tracking if needed
+            content_tracker = ContentTracker() if spells else None
+
             # Create render context with bestiary-specific data
             context = RenderingContext(
                 output_format="latex",
                 omnidexer=omnidexer,
+                content_tracker=content_tracker,
                 metadata={
                     "title": creature_title,
                     "include_images": with_images,
@@ -836,6 +860,7 @@ def creatures(
                     if result.sources_used
                     else [],
                     "template": "bestiary",  # Use bestiary template
+                    "spells": spells,  # Pass flag to rendering pipeline
                 },
             )
 
@@ -852,6 +877,80 @@ def creatures(
                     show_toc,
                 )
                 display_manager.update_task(render_task, completed=100)
+
+            # Generate spell appendix if requested
+            if spells and content_tracker:
+                from dnd5e.core.services.appendix_generator import (
+                    AppendixFlags,
+                    AppendixGenerator,
+                )
+                from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
+
+                # Create template engine for appendix generation
+                template_engine = LaTeXTemplateEngine()
+
+                appendix_generator = AppendixGenerator(
+                    omnidexer=omnidexer, template_engine=template_engine
+                )
+
+                # Create appendix flags
+                appendix_flags = AppendixFlags(
+                    spells=True, creatures=False, items=False
+                )
+
+                # Deep Indexing → ContentTracker Bridge:
+                # Populate ContentTracker with spell references from creature spellcasting
+                with display_manager.progress("Extracting spell references") as _:
+                    for creature in sorted_creatures:
+                        # Use deep indexing to extract spell references from creature
+                        deep_entries = creature.get_deep_index_entries(omnidexer)
+
+                        # Add each extracted spell to the ContentTracker
+                        for spell_entry in deep_entries:
+                            # Extract source abbreviation from Source object
+                            source_str = (
+                                spell_entry.source.abbreviation
+                                if spell_entry.source
+                                else "UNKNOWN"
+                            )
+                            content_tracker.add_content(
+                                content_type="spell",
+                                name=spell_entry.name.lower(),
+                                source=source_str,
+                            )
+
+                # Generate spell appendix
+                spell_appendix = appendix_generator.generate_appendices(
+                    content_tracker, appendix_flags
+                )
+
+                # Combine outputs if appendix was generated
+                if spell_appendix:
+                    # Debug: check what type we got back
+                    with display_manager.progress("Processing appendix") as _:
+                        # Handle different possible return types
+                        if hasattr(spell_appendix, "content"):
+                            # It's an AppendixSection object
+                            appendix_content = spell_appendix.content
+                        elif (
+                            isinstance(spell_appendix, list) and len(spell_appendix) > 0
+                        ):
+                            # It's a list of AppendixSection objects
+                            appendix_content = "\n\n".join(
+                                section.content
+                                for section in spell_appendix
+                                if hasattr(section, "content")
+                            )
+                        elif isinstance(spell_appendix, str):
+                            # It's already a string
+                            appendix_content = spell_appendix
+                        else:
+                            # Fallback to string representation
+                            appendix_content = str(spell_appendix)
+
+                    latex_result = _combine_bestiary_and_appendix(
+                        latex_result, appendix_content
+                    )
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)

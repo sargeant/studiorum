@@ -76,31 +76,39 @@ class AppendixGenerator:
         if not flags.has_any_enabled():
             return appendices
 
-        # Export tracked content by type
+        # Export initial tracked content by type
         tracked_content = content_tracker.export_for_appendix()
 
-        # Generate appendices in alphabetical order
+        # Generate creature appendix first (may add spell references during rendering)
         if flags.creatures and "creature" in tracked_content:
             creatures_appendix = self._generate_creature_appendix(
-                tracked_content["creature"]
+                tracked_content["creature"], content_tracker
             )
             if creatures_appendix:
                 appendices.append(creatures_appendix)
 
+        # Re-export tracked content to capture any new references from creature rendering
+        tracked_content = content_tracker.export_for_appendix()
+
+        # Generate remaining appendices in alphabetical order
         if flags.items and "item" in tracked_content:
-            items_appendix = self._generate_item_appendix(tracked_content["item"])
+            items_appendix = self._generate_item_appendix(
+                tracked_content["item"], content_tracker
+            )
             if items_appendix:
                 appendices.append(items_appendix)
 
         if flags.spells and "spell" in tracked_content:
-            spells_appendix = self._generate_spell_appendix(tracked_content["spell"])
+            spells_appendix = self._generate_spell_appendix(
+                tracked_content["spell"], content_tracker
+            )
             if spells_appendix:
                 appendices.append(spells_appendix)
 
         return appendices
 
     def _generate_spell_appendix(
-        self, tracked_spells: list[dict[str, Any]]
+        self, tracked_spells: list[dict[str, Any]], content_tracker: ContentTracker
     ) -> AppendixSection | None:
         """Generate spells appendix using SpellCollector and spellbook template.
 
@@ -150,7 +158,7 @@ class AppendixGenerator:
 
             # Spells in this level
             for i, spell in enumerate(spell_list):
-                spell_latex = self._render_spell_entry(spell)
+                spell_latex = self._render_spell_entry(spell, content_tracker)
                 content_parts.append(spell_latex)
 
                 if i < len(spell_list) - 1:  # Not the last spell
@@ -168,7 +176,7 @@ class AppendixGenerator:
         )
 
     def _generate_item_appendix(
-        self, tracked_items: list[dict[str, Any]]
+        self, tracked_items: list[dict[str, Any]], content_tracker: ContentTracker
     ) -> AppendixSection | None:
         """Generate items appendix using ItemCollector and itemcompendium template.
 
@@ -207,7 +215,7 @@ class AppendixGenerator:
 
             # Items in this group
             for i, item in enumerate(item_list):
-                item_latex = self._render_item_entry(item)
+                item_latex = self._render_item_entry(item, content_tracker)
                 content_parts.append(item_latex)
 
                 if i < len(item_list) - 1:  # Not the last item
@@ -225,7 +233,7 @@ class AppendixGenerator:
         )
 
     def _generate_creature_appendix(
-        self, tracked_creatures: list[dict[str, Any]]
+        self, tracked_creatures: list[dict[str, Any]], content_tracker: ContentTracker
     ) -> AppendixSection | None:
         """Generate creatures appendix using CreatureCollector and bestiary template.
 
@@ -260,7 +268,7 @@ class AppendixGenerator:
 
             # Creatures in this group
             for i, creature in enumerate(creature_list):
-                creature_latex = self._render_creature_entry(creature)
+                creature_latex = self._render_creature_entry(creature, content_tracker)
                 content_parts.append(creature_latex)
 
                 # Add float barrier every 10 creatures to prevent accumulation (same as bestiary)
@@ -283,11 +291,12 @@ class AppendixGenerator:
             item_count=len(collection_result.creatures),
         )
 
-    def _render_spell_entry(self, spell: Spell) -> str:
+    def _render_spell_entry(self, spell: Spell, content_tracker: ContentTracker) -> str:
         """Render a single spell entry using the entry renderer system.
 
         Args:
             spell: Spell object to render
+            content_tracker: ContentTracker for tracking references
 
         Returns:
             LaTeX content for the spell entry
@@ -295,18 +304,23 @@ class AppendixGenerator:
         # Use existing entry renderer for consistent rendering
         from dnd5e.renderers.core.interfaces import RenderingContext
 
-        # Create minimal rendering context for entry renderer
-        context = RenderingContext(output_format="latex")
+        # Create rendering context with ContentTracker for tracking references
+        context = RenderingContext(
+            output_format="latex",
+            omnidexer=self.omnidexer,
+            content_tracker=content_tracker,
+        )
 
         # Get spell renderer and render
         spell_renderer = self.entry_registry.get_renderer("spell")
         return spell_renderer.render(spell, context)
 
-    def _render_item_entry(self, item: Item) -> str:
+    def _render_item_entry(self, item: Item, content_tracker: ContentTracker) -> str:
         """Render a single item entry using the entry renderer system.
 
         Args:
             item: Item object to render
+            content_tracker: ContentTracker for tracking references
 
         Returns:
             LaTeX content for the item entry
@@ -314,18 +328,25 @@ class AppendixGenerator:
         # Use existing entry renderer for consistent rendering
         from dnd5e.renderers.core.interfaces import RenderingContext
 
-        # Create minimal rendering context for entry renderer
-        context = RenderingContext(output_format="latex")
+        # Create rendering context with ContentTracker for tracking references
+        context = RenderingContext(
+            output_format="latex",
+            omnidexer=self.omnidexer,
+            content_tracker=content_tracker,
+        )
 
         # Get item renderer and render
         item_renderer = self.entry_registry.get_renderer("item")
         return item_renderer.render(item, context)
 
-    def _render_creature_entry(self, creature: Creature) -> str:
+    def _render_creature_entry(
+        self, creature: Creature, content_tracker: ContentTracker
+    ) -> str:
         """Render a single creature entry using the entry renderer system.
 
         Args:
             creature: Creature object to render
+            content_tracker: ContentTracker for tracking references
 
         Returns:
             LaTeX content for the creature entry
@@ -333,8 +354,12 @@ class AppendixGenerator:
         # Use existing entry renderer for consistent rendering
         from dnd5e.renderers.core.interfaces import RenderingContext
 
-        # Create minimal rendering context for entry renderer
-        context = RenderingContext(output_format="latex")
+        # Create rendering context with ContentTracker for tracking references
+        context = RenderingContext(
+            output_format="latex",
+            omnidexer=self.omnidexer,
+            content_tracker=content_tracker,
+        )
 
         # Get creature renderer and render
         creature_renderer = self.entry_registry.get_renderer("creature")

@@ -1,0 +1,210 @@
+{
+  "monster": [
+    {
+      "name": "Apprentice Wizard",
+      "source": "TestAdv",
+      "size": [
+        "M"
+      ],
+      "type": "humanoid",
+      "alignment": [
+        "L",
+        "N"
+      ],
+      "ac": [
+        {
+          "ac": 12,
+          "from": [
+            "15 ({@spell mage armor|XPHB})"
+          ]
+        }
+      ],
+      "hp": {
+        "average": 40,
+        "formula": "9d8 + 9"
+      },
+      "speed": {
+        "walk": 30
+      },
+      "str": 9,
+      "dex": 14,
+      "con": 13,
+      "int": 16,
+      "wis": 12,
+      "cha": 11,
+      "save": {
+        "int": "+6",
+        "wis": "+4"
+      },
+      "skill": {
+        "arcana": "+6",
+        "investigation": "+6"
+      },
+      "languages": [
+        "Common",
+        "Draconic"
+      ],
+      "cr": "6",
+      "spellcasting": [
+        {
+          "name": "Spellcasting",
+          "type": "spellcasting",
+          "headerEntries": [
+            "The apprentice is a 5th-level spellcaster. Its spellcasting ability is Intelligence (spell save DC 14, +6 to hit with spell attacks). It has the following wizard spells prepared:"
+          ],
+          "spells": {
+            "0": {
+              "spells": [
+                "{@spell fire bolt|XPHB}",
+                "{@spell light|XPHB}",
+                "{@spell minor illusion|XPHB}",
+                "{@spell prestidigitation|XPHB}"
+              ]
+            },
+            "1": {
+              "slots": 4,
+              "spells": [
+                "{@spell magic missile|XPHB}",
+                "{@spell mage armor|XPHB}",
+                "{@spell shield|XPHB}"
+              ]
+            },
+            "2": {
+              "slots": 3,
+              "spells": [
+                "{@spell misty step|XPHB}",
+                "{@spell web|XPHB}"
+              ]
+            },
+            "3": {
+              "slots": 2,
+              "spells": [
+                "{@spell fireball|XPHB}",
+                "{@spell counterspell|XPHB}"
+              ]
+            }
+          },
+          "ability": "int",
+          "displayAs": "action"
+        }
+      ],
+      "trait": [
+        {
+          "name": "Arcane Recovery",
+          "entries": [
+            "Once per day during a short rest, the apprentice can recover spell slots with a combined level equal to 3 (rounded up)."
+          ]
+        }
+      ],
+      "action": [
+        {
+          "name": "Quarterstaff",
+          "entries": [
+            "{@atk mw} {@hit 2} to hit, reach 5 ft., one target. {@h}2 ({@damage 1d6 - 1}) bludgeoning damage, or 3 ({@damage 1d8 - 1}) bludgeoning damage if used with two hands."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Arcane Guardian",
+      "source": "TestAdv",
+      "size": [
+        "L"
+      ],
+      "type": "construct",
+      "alignment": [
+        "U"
+      ],
+      "ac": [
+        {
+          "ac": 17,
+          "from": [
+            "natural armor"
+          ]
+        }
+      ],
+      "hp": {
+        "average": 112,
+        "formula": "15d10 + 30"
+      },
+      "speed": {
+        "walk": 30,
+        "fly": 60
+      },
+      "str": 18,
+      "dex": 9,
+      "con": 15,
+      "int": 6,
+      "wis": 10,
+      "cha": 1,
+      "immune": [
+        "poison",
+        "psychic"
+      ],
+      "conditionImmune": [
+        "charmed",
+        "exhaustion",
+        "frightened",
+        "paralyzed",
+        "petrified",
+        "poisoned"
+      ],
+      "languages": [
+        "understands Common but can't speak"
+      ],
+      "cr": "9",
+      "spellcasting": [
+        {
+          "name": "Defensive Magic",
+          "type": "spellcasting",
+          "headerEntries": [
+            "The guardian casts the following spells, requiring no spell components and using Wisdom as the spellcasting ability (spell save DC 13):"
+          ],
+          "will": [
+            "{@spell detect magic|XPHB}",
+            "{@spell mage hand|XPHB}"
+          ],
+          "daily": {
+            "3": [
+              "{@spell dispel magic|XPHB}",
+              "{@spell shield|XPHB}"
+            ],
+            "1": [
+              "{@spell antimagic field|XPHB}"
+            ]
+          },
+          "ability": "wis",
+          "displayAs": "action"
+        }
+      ],
+      "trait": [
+        {
+          "name": "Magic Resistance",
+          "entries": [
+            "The guardian has advantage on saving throws against spells and other magical effects."
+          ]
+        },
+        {
+          "name": "Immutable Form",
+          "entries": [
+            "The guardian is immune to any spell or effect that would alter its form."
+          ]
+        }
+      ],
+      "action": [
+        {
+          "name": "Multiattack",
+          "entries": [
+            "The guardian makes two slam attacks."
+          ]
+        },
+        {
+          "name": "Slam",
+          "entries": [
+            "{@atk mw} {@hit 8} to hit, reach 5 ft., one target. {@h}14 ({@damage 2d8 + 4}) bludgeoning damage."
+          ]
+        }
+      ]
+    }
+  ]
+}
