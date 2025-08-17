@@ -765,11 +765,21 @@ class JsonDataLoader(DataLoader[BaseContent]):
             placeholder_data, content_type
         )
 
-        # Preserve the copy resolution flag and original copy data as attributes
+        # Preserve the copy resolution flag and original copy data as extra fields
         if item.get("_needsCopyResolution"):
-            content_obj._needsCopyResolution = True
+            if (
+                not hasattr(content_obj, "__pydantic_extra__")
+                or content_obj.__pydantic_extra__ is None
+            ):
+                content_obj.__pydantic_extra__ = {}
+            content_obj.__pydantic_extra__["_needsCopyResolution"] = True
         if "_copy" in item:
-            content_obj._copy = item["_copy"]
+            if (
+                not hasattr(content_obj, "__pydantic_extra__")
+                or content_obj.__pydantic_extra__ is None
+            ):
+                content_obj.__pydantic_extra__ = {}
+            content_obj.__pydantic_extra__["_copy"] = item["_copy"]
 
         return content_obj
 

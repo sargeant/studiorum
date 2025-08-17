@@ -33,10 +33,22 @@ class CopyResolver:
             try:
                 all_items = self._omnidexer.get_all_by_type(content_type)
                 for item in all_items:
-                    if hasattr(item, "_needsCopyResolution") or (
+                    needs_resolution = False
+                    # Check in __pydantic_extra__ first (proper way for pydantic models)
+                    if (
+                        hasattr(item, "__pydantic_extra__")
+                        and item.__pydantic_extra__
+                        and item.__pydantic_extra__.get("_needsCopyResolution")
+                    ):
+                        needs_resolution = True
+                    # Fallback to direct attribute check
+                    elif hasattr(item, "_needsCopyResolution") or (
                         hasattr(item, "__dict__")
                         and item.__dict__.get("_needsCopyResolution")
                     ):
+                        needs_resolution = True
+
+                    if needs_resolution:
                         items_needing_resolution.append((content_type, item))
             except Exception as e:
                 logger.debug(f"Could not get items of type {content_type}: {e}")
@@ -62,7 +74,15 @@ class CopyResolver:
         """Resolve copy reference for a single item."""
         # Get the raw _copy data
         copy_ref = None
-        if hasattr(item, "_copy"):
+        # Check in __pydantic_extra__ first (proper way for pydantic models)
+        if (
+            hasattr(item, "__pydantic_extra__")
+            and item.__pydantic_extra__
+            and "_copy" in item.__pydantic_extra__
+        ):
+            copy_ref = item.__pydantic_extra__["_copy"]
+        # Fallback to direct attribute check
+        elif hasattr(item, "_copy"):
             copy_ref = item._copy
         elif hasattr(item, "__dict__") and "_copy" in item.__dict__:
             copy_ref = item.__dict__["_copy"]
@@ -82,7 +102,12 @@ class CopyResolver:
         self._apply_copy_resolution_direct(item, source_item, copy_ref, item_name)
 
         # IMMEDIATE cleanup after update - explicit removal of copy processing attributes
-        # Do this by setting them to None and then deleting
+        # Remove from __pydantic_extra__ first (proper way for pydantic models)
+        if hasattr(item, "__pydantic_extra__"):
+            item.__pydantic_extra__.pop("_copy", None)
+            item.__pydantic_extra__.pop("_needsCopyResolution", None)
+
+        # Fallback cleanup for direct attributes
         for attr in ["_copy", "_needsCopyResolution"]:
             if hasattr(item, attr):
                 setattr(item, attr, None)  # Clear the value
