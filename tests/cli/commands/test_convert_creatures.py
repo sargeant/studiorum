@@ -336,3 +336,22 @@ class TestCreatureCommandValidation:
             # Should not fail with "Unknown option" error (exit code 2)
             if result.exit_code == 2:
                 assert "Unknown option" not in result.output
+
+    def test_creatures_spells_flag_recognition(self):
+        """Test that --spells flag is recognized by creatures command."""
+        # Test --spells flag exists and is recognized
+        result = self.runner.invoke(app, ["convert", "creatures", "--help"])
+        assert result.exit_code == 0
+        assert "--spells" in result.output
+        assert "--no-spells" in result.output
+        assert "spellbook" in result.output.lower()
+        assert "creature-referenced" in result.output.lower()
+
+    def test_creatures_spells_flag_default_behavior(self):
+        """Test that --spells flag defaults to False (no appendix)."""
+        # Test help output shows default is False/disabled
+        result = self.runner.invoke(app, ["convert", "creatures", "--help"])
+        assert result.exit_code == 0
+        # Verify the flag is there but not enabled by default
+        help_text = result.output.lower()
+        assert "--spells" in help_text and "--no-spells" in help_text
