@@ -529,6 +529,71 @@ def creatures(
 
     def _convert() -> None:
         try:
+            # Handle potential parameter resolution issues when called directly in tests
+            # This is needed because Typer parameter resolution doesn't work properly in direct calls
+            def normalize_typer_param(param, expected_type=None, default=None):
+                """Normalize Typer parameters that may be OptionInfo objects."""
+                if hasattr(param, "default"):  # It's a Typer OptionInfo object
+                    return param.default
+                return param
+
+            nonlocal \
+                from_file, \
+                from_stdin, \
+                cr_range, \
+                min_cr, \
+                max_cr, \
+                creature_types, \
+                creature_tags
+            nonlocal \
+                sizes, \
+                alignments, \
+                min_ac, \
+                max_ac, \
+                min_hp, \
+                max_hp, \
+                has_spellcasting, \
+                has_legendary
+            nonlocal \
+                has_multiattack, \
+                has_reactions, \
+                has_fly_speed, \
+                has_swim_speed, \
+                has_climb_speed
+            nonlocal \
+                has_darkvision, \
+                has_blindsight, \
+                has_truesight, \
+                speaks_language, \
+                has_skill, \
+                sources
+
+            from_file = normalize_typer_param(from_file)
+            from_stdin = normalize_typer_param(from_stdin, bool, False)
+            cr_range = normalize_typer_param(cr_range)
+            min_cr = normalize_typer_param(min_cr)
+            max_cr = normalize_typer_param(max_cr)
+            creature_types = normalize_typer_param(creature_types)
+            creature_tags = normalize_typer_param(creature_tags)
+            sizes = normalize_typer_param(sizes)
+            alignments = normalize_typer_param(alignments)
+            sources = normalize_typer_param(sources)
+            speaks_language = normalize_typer_param(speaks_language)
+            has_skill = normalize_typer_param(has_skill)
+            min_ac = normalize_typer_param(min_ac)
+            max_ac = normalize_typer_param(max_ac)
+            min_hp = normalize_typer_param(min_hp)
+            max_hp = normalize_typer_param(max_hp)
+            has_spellcasting = normalize_typer_param(has_spellcasting)
+            has_legendary = normalize_typer_param(has_legendary)
+            has_multiattack = normalize_typer_param(has_multiattack)
+            has_reactions = normalize_typer_param(has_reactions)
+            has_fly_speed = normalize_typer_param(has_fly_speed)
+            has_swim_speed = normalize_typer_param(has_swim_speed)
+            has_climb_speed = normalize_typer_param(has_climb_speed)
+            has_darkvision = normalize_typer_param(has_darkvision)
+            has_blindsight = normalize_typer_param(has_blindsight)
+            has_truesight = normalize_typer_param(has_truesight)
             # Import creature-specific modules
             from dnd5e.core.models.creature_filters import CreatureFilterCriteria
             from dnd5e.core.parsers.creature_input import (
@@ -555,7 +620,7 @@ def creatures(
                 all_creature_names.extend(creature_names)
 
             # Collect from file
-            if from_file:
+            if from_file and isinstance(from_file, Path):
                 if not from_file.exists():
                     rprint(f"[red]Error:[/red] Creature file not found: {from_file}")
                     raise typer.Exit(1)

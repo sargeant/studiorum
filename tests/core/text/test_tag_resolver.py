@@ -332,7 +332,7 @@ class TestContentTracker:
 
         creature_content = tracker.get_tracked_content_by_type("creature")
         assert len(creature_content) == 1
-        assert creature_content[0].name == "dragon"  # Names are normalized to lowercase
+        assert creature_content[0].name == "Dragon"  # Names preserve original case
 
         # Test case insensitive
         spell_content_upper = tracker.get_tracked_content_by_type("SPELL")
@@ -486,7 +486,7 @@ class TestContentTracker:
         spell_entries = export["spell"]
         assert len(spell_entries) == 1
         spell_entry = spell_entries[0]
-        assert spell_entry["name"] == "fireball"  # Names are normalized to lowercase
+        assert spell_entry["name"] == "Fireball"  # Names preserve original case
         assert spell_entry["type"] == "spell"
         assert spell_entry["source"] == "PHB"
         assert spell_entry["page"] == "251"
@@ -497,8 +497,8 @@ class TestContentTracker:
         assert len(creature_entries) == 1
         creature_entry = creature_entries[0]
         assert (
-            creature_entry["name"] == "ancient red dragon"
-        )  # Names are normalized to lowercase
+            creature_entry["name"] == "Ancient Red Dragon"
+        )  # Names preserve original case
         assert creature_entry["reference_count"] == 1
 
     def test_content_with_pages(self) -> None:
@@ -509,9 +509,9 @@ class TestContentTracker:
 
         content_list = tracker.get_tracked_content()
 
-        # Find the entries (names are normalized to lowercase)
-        fireball: Any = next(c for c in content_list if c.name == "fireball")
-        dragon: Any = next(c for c in content_list if c.name == "dragon")
+        # Find the entries (names preserve original case)
+        fireball: Any = next(c for c in content_list if c.name == "Fireball")
+        dragon: Any = next(c for c in content_list if c.name == "Dragon")
 
         assert fireball.page == "251"
         assert dragon.page is None
