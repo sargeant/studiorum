@@ -218,6 +218,13 @@ class TestTemplateInjectionVulnerabilities:
                 self.wisdom = 13
                 self.charisma = 21
 
+                # Add mock source for testing source abbreviation
+                class MockSource:
+                    def __init__(self):
+                        self.abbreviation = "TST"
+
+                self.source = MockSource()
+
                 # Add empty lists for optional attributes
                 self.trait = []
                 self.action = []
