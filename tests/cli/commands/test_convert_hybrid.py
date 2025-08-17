@@ -9,7 +9,6 @@ import pytest
 
 from dnd5e.cli.commands.convert import (
     _handle_resolution_result,
-    _load_from_file,
     resolve_content_or_file,
 )
 from dnd5e.core.models.adventures import Adventure
@@ -123,8 +122,8 @@ class TestHybridParameterDetection:
             file_path = Path(f.name)
 
         try:
-            content_items, source_desc = _load_from_file(
-                file_path, ContentType.ADVENTURE
+            content_items, source_desc = resolve_content_or_file(
+                str(file_path), ContentType.ADVENTURE
             )
 
             assert len(content_items) == 1
@@ -151,7 +150,9 @@ class TestHybridParameterDetection:
             file_path = Path(f.name)
 
         try:
-            content_items, source_desc = _load_from_file(file_path, ContentType.BOOK)
+            content_items, source_desc = resolve_content_or_file(
+                str(file_path), ContentType.BOOK
+            )
 
             assert len(content_items) == 1
             assert "Book:" in content_items[0].name
@@ -275,12 +276,12 @@ class TestErrorHandling:
             import typer
 
             with pytest.raises(typer.Exit):
-                _load_from_file(file_path, ContentType.ADVENTURE)
+                resolve_content_or_file(str(file_path), ContentType.ADVENTURE)
         finally:
             file_path.unlink()
 
     def test_empty_adventure_file(self):
-        """Test handling of adventure file with no valid content."""
+        """Test handling of adventure file with empty adventure list - should succeed with ContentLoader."""
         adventure_data = {"adventure": []}  # Empty adventure list
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -288,10 +289,15 @@ class TestErrorHandling:
             file_path = Path(f.name)
 
         try:
-            import typer
+            # ContentLoader now creates default adventure for empty files
+            content_items, source_desc = resolve_content_or_file(
+                str(file_path), ContentType.ADVENTURE
+            )
 
-            with pytest.raises(typer.Exit):
-                _load_from_file(file_path, ContentType.ADVENTURE)
+            # Should create a default adventure with generated name and source
+            assert len(content_items) == 1
+            assert "Adventure:" in content_items[0].name
+            assert "file:" in source_desc
         finally:
             file_path.unlink()
 
@@ -305,8 +311,8 @@ class TestErrorHandling:
             import typer
 
             with pytest.raises(typer.Exit):
-                _load_from_file(
-                    file_path, ContentType.SPELL
+                resolve_content_or_file(
+                    str(file_path), ContentType.SPELL
                 )  # Unsupported for file loading
         finally:
             file_path.unlink()
