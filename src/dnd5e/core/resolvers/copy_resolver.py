@@ -47,11 +47,18 @@ class CopyResolver:
         resolved_count = 0
         for content_type, item in items_needing_resolution:
             try:
+                item_name = getattr(item, "name", "unknown")
+                if item_name == "Zastra":
+                    logger.info("Processing Zastra for copy resolution...")
                 if self._resolve_copy_for_item(item):
                     resolved_count += 1
+                    if item_name == "Zastra":
+                        logger.info("Successfully resolved Zastra")
             except Exception as e:
                 item_name = getattr(item, "name", "unknown")
                 logger.warning(f"Failed to resolve copy for {item_name}: {e}")
+                if item_name == "Zastra":
+                    logger.error(f"Zastra resolution failed: {e}")
 
         logger.info(f"Successfully resolved {resolved_count} copy references")
 
@@ -112,8 +119,11 @@ class CopyResolver:
 
         for key, value in target_dict.items():
             # Include copy metadata and specific overrides, but skip placeholder stats
+            # Also exclude copy processing attributes that should be cleaned up
             if (
                 key.startswith("_")
+                and key
+                not in {"_copy", "_needsCopyResolution"}  # Exclude cleanup attributes
                 or key
                 in {
                     "name",
@@ -143,14 +153,25 @@ class CopyResolver:
         # Update the item with resolved data
         self._update_item_from_dict(item, resolved_dict)
 
-        # Cleanup
-        if hasattr(item, "_copy"):
-            delattr(item, "_copy")
-        if hasattr(item, "_needsCopyResolution"):
-            delattr(item, "_needsCopyResolution")
+        # IMMEDIATE cleanup after update - explicit removal of copy processing attributes
+        # Do this by setting them to None and then deleting
+        for attr in ["_copy", "_needsCopyResolution"]:
+            if hasattr(item, attr):
+                setattr(item, attr, None)  # Clear the value
+                delattr(item, attr)  # Remove the attribute
+
+        # Remove from __dict__ as well if present
+        if hasattr(item, "__dict__"):
+            item.__dict__.pop("_copy", None)
+            item.__dict__.pop("_needsCopyResolution", None)
 
         # Mark as copy
         item._isCopy = True
+
+        # CRITICAL: Update omnidexer index to reflect the resolved item
+        # The omnidexer creates new instances on each find(), so we need to
+        # update the indexed content to ensure future finds return the resolved version
+        self._update_omnidexer_index(item)
 
         logger.debug(f"Resolved copy for {item_name}")
         return True
@@ -363,3 +384,114 @@ class CopyResolver:
                 current[final_prop].extend(items_to_append)
             else:
                 current[final_prop].append(items_to_append)
+
+    def _update_omnidexer_index(self, resolved_item) -> None:
+        """Update the omnidexer index with the resolved item.
+
+        This is critical because the omnidexer creates new instances on each find(),
+        so we need to replace the indexed content with the resolved version.
+        """
+        try:
+            # Get the item's lookup information
+            item_name = getattr(resolved_item, "name", None)
+            item_source = getattr(resolved_item, "source", None)
+
+            if not item_name or not item_source:
+                logger.warning(
+                    f"Cannot update index: missing name or source for {resolved_item}"
+                )
+                return
+
+            # Extract source abbreviation (source can be a Source object or dict)
+            if hasattr(item_source, "abbreviation"):
+                source_abbrev = item_source.abbreviation
+            elif isinstance(item_source, dict) and "abbreviation" in item_source:
+                source_abbrev = item_source["abbreviation"]
+            elif isinstance(item_source, str):
+                source_abbrev = item_source
+            else:
+                logger.warning(f"Cannot extract source abbreviation from {item_source}")
+                return
+
+            # Find the content type
+            content_type = None
+            # Try to determine content type from the item
+            from ..models.content import ContentType
+
+            if hasattr(resolved_item, "__class__"):
+                class_name = resolved_item.__class__.__name__.lower()
+                if "creature" in class_name:
+                    content_type = ContentType.CREATURE
+                elif "item" in class_name:
+                    content_type = ContentType.ITEM
+                elif "spell" in class_name:
+                    content_type = ContentType.SPELL
+
+            if not content_type:
+                logger.warning(f"Cannot determine content type for {item_name}")
+                return
+
+            # Access omnidexer internal structures to update the index
+            # This is a direct manipulation of internal state, but necessary
+            # to ensure the resolved item is returned by future find() calls
+
+            # Create lookup key (matches omnidexer format)
+            lookup_key = f"{item_name}|{source_abbrev}".lower()
+
+            # Update the type-based index
+            if content_type in self._omnidexer._by_type:
+                type_index = self._omnidexer._by_type[content_type]
+                if lookup_key in type_index:
+                    index_entry = type_index[lookup_key]
+                    # Replace the content in the index entry
+                    old_ac = getattr(index_entry.content, "ac", "unknown")
+                    index_entry.content = resolved_item
+                    new_ac = getattr(index_entry.content, "ac", "unknown")
+                    logger.info(
+                        f"Updated omnidexer index for {item_name} ({content_type}): AC {old_ac} -> {new_ac}"
+                    )
+
+                    # Clear cache for this specific item to ensure fresh lookups
+                    self._clear_omnidexer_cache_for_item(
+                        item_name, source_abbrev, content_type
+                    )
+
+                else:
+                    logger.warning(
+                        f"Lookup key {lookup_key} not found in {content_type} index"
+                    )
+            else:
+                logger.warning(f"Content type {content_type} not found in omnidexer")
+
+        except Exception as e:
+            item_name = getattr(resolved_item, "name", "unknown")
+            logger.warning(f"Failed to update omnidexer index for {item_name}: {e}")
+
+    def _clear_omnidexer_cache_for_item(
+        self, name: str, source: str, content_type
+    ) -> None:
+        """Clear omnidexer cache entries for a specific item.
+
+        The omnidexer uses @cached decorator on _find_cached, so we need to
+        clear the cache to ensure updated items are returned.
+        """
+        try:
+            from ..cache import CacheManager
+
+            # The cache key format matches the one in omnidexer._find_cached
+            cache_key_exact = f"omnidexer:find:{content_type.value}:{name}:{source}:deep={self._omnidexer.enable_deep_indexing}"
+            cache_key_any = f"omnidexer:find:{content_type.value}:{name}:any:deep={self._omnidexer.enable_deep_indexing}"
+
+            cache = CacheManager.get_instance()
+
+            # Clear both exact and 'any' source lookups
+            if cache_key_exact in cache:
+                del cache[cache_key_exact]
+                logger.debug(f"Cleared cache for {name}|{source}")
+
+            if cache_key_any in cache:
+                del cache[cache_key_any]
+                logger.debug(f"Cleared cache for {name}|any")
+
+        except Exception as e:
+            logger.warning(f"Failed to clear cache for {name}: {e}")

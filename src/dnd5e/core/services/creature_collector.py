@@ -733,9 +733,20 @@ class CreatureCollector:
         Returns:
             True if creature source is in target sources
         """
+        source_abbrev = None
+
+        # Handle Source objects (normal case)
         if hasattr(creature.source, "abbreviation"):
-            source_abbrev = creature.source.abbreviation.upper()
-            return source_abbrev in [src.upper() for src in target_sources]
+            source_abbrev = creature.source.abbreviation
+        # Handle dictionary sources (from copy resolution)
+        elif isinstance(creature.source, dict) and "abbreviation" in creature.source:
+            source_abbrev = creature.source["abbreviation"]
+        # Handle string sources (fallback)
+        elif isinstance(creature.source, str):
+            source_abbrev = creature.source
+
+        if source_abbrev:
+            return source_abbrev.upper() in [src.upper() for src in target_sources]
 
         return False
 
