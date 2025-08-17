@@ -442,6 +442,168 @@ class Ability(BaseModel):
         return " ".join(text_parts) if text_parts else ""
 
 
+class SpellcasterSpells(BaseModel):
+    """Spell list for a specific spell level."""
+
+    slots: int | None = Field(None, description="Number of spell slots")
+    spells: list[str] = Field(..., description="List of spells with {@spell} tags")
+
+
+class Spellcasting(BaseModel):
+    """Creature spellcasting ability."""
+
+    name: str = Field(..., description="Name of the spellcasting feature")
+    type: str = Field(..., description="Type of spellcasting (e.g., 'spellcasting')")
+    headerEntries: list[str] | None = Field(None, description="Descriptive header text")
+    footerEntries: list[str] | None = Field(None, description="Descriptive footer text")
+    spells: dict[str, SpellcasterSpells] | None = Field(
+        None, description="Spells by level"
+    )
+    will: list[str] | None = Field(None, description="At-will spells")
+    daily: dict[str, list[str]] | None = Field(None, description="Daily use spells")
+    ability: str | None = Field(None, description="Spellcasting ability")
+    hidden: list[str] | None = Field(None, description="Hidden sections")
+    displayAs: str | None = Field(
+        None, description="Where to display this spellcasting feature"
+    )
+
+    def get_processed_name(self) -> str:
+        """Get spellcasting name with 5e.tools markup processed for LaTeX."""
+        try:
+            from ...cli.utils import get_omnidexer, get_tag_resolver
+            from ...renderers.core.interfaces import RenderingContext
+            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
+
+            # Get services for proper tag processing
+            omnidexer = get_omnidexer()
+            tag_resolver = get_tag_resolver()
+
+            # Create a proper rendering context for entry processing
+            context = RenderingContext(
+                output_format="latex",
+                debug_mode=False,
+                omnidexer=omnidexer,
+                tag_resolver=tag_resolver,
+                metadata={
+                    "source_name": "unknown",
+                    "tag_resolver": tag_resolver,
+                    "content_type": "creature",
+                },
+            )
+
+            # Use recursive entry processor to handle 5e.tools markup
+            processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+            # Process the name as if it were entry content
+            if self.name:
+                # Convert name to entry format and process
+                processed_entries = processor.process_entries([self.name], context)
+                return "\n".join(processed_entries)
+            else:
+                return ""
+
+        except Exception:
+            # Fallback to original name if processing fails
+            return self.name
+
+    def get_description_text(self) -> str:
+        """Generate formatted spellcasting description with all spell information."""
+        try:
+            from ...cli.utils import get_omnidexer, get_tag_resolver
+            from ...renderers.core.interfaces import RenderingContext
+            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
+
+            # Get services for proper tag processing
+            omnidexer = get_omnidexer()
+            tag_resolver = get_tag_resolver()
+
+            # Create a proper rendering context for entry processing
+            context = RenderingContext(
+                output_format="latex",
+                debug_mode=False,
+                omnidexer=omnidexer,
+                tag_resolver=tag_resolver,
+                metadata={
+                    "source_name": "unknown",
+                    "tag_resolver": tag_resolver,
+                    "content_type": "creature",
+                },
+            )
+
+            # Use recursive entry processor to handle 5e.tools markup
+            processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+            # Build the complete spellcasting description
+            description_parts = []
+
+            # Add header entries
+            if self.headerEntries:
+                processed_headers = processor.process_entries(
+                    self.headerEntries, context
+                )
+                description_parts.extend(processed_headers)
+
+            # Add spell lists
+            if self.spells:
+                for level in sorted(self.spells.keys()):
+                    spell_data = self.spells[level]
+                    if spell_data.spells:
+                        # Create spell level entry
+                        if level == "0":
+                            level_text = (
+                                f"Cantrips (at will): {', '.join(spell_data.spells)}"
+                            )
+                        else:
+                            slot_info = (
+                                f" ({spell_data.slots} slots)"
+                                if spell_data.slots
+                                else ""
+                            )
+                            level_text = f"{level}{'st' if level == '1' else 'nd' if level == '2' else 'rd' if level == '3' else 'th'} level{slot_info}: {', '.join(spell_data.spells)}"
+
+                        processed_level = processor.process_entries(
+                            [level_text], context
+                        )
+                        description_parts.extend(processed_level)
+
+            # Add at-will spells
+            if self.will:
+                will_text = f"At will: {', '.join(self.will)}"
+                processed_will = processor.process_entries([will_text], context)
+                description_parts.extend(processed_will)
+
+            # Add daily spells
+            if self.daily:
+                for frequency, spells in self.daily.items():
+                    if spells:
+                        daily_text = f"{frequency}: {', '.join(spells)}"
+                        processed_daily = processor.process_entries(
+                            [daily_text], context
+                        )
+                        description_parts.extend(processed_daily)
+
+            # Add footer entries
+            if self.footerEntries:
+                processed_footers = processor.process_entries(
+                    self.footerEntries, context
+                )
+                description_parts.extend(processed_footers)
+
+            return "\n\n".join(description_parts)
+
+        except Exception:
+            # Fallback to simple text if processing fails
+            fallback_parts = []
+            if self.headerEntries:
+                fallback_parts.extend(self.headerEntries)
+            if self.will:
+                fallback_parts.append(f"At will: {', '.join(self.will)}")
+            if self.daily:
+                for freq, spells in self.daily.items():
+                    fallback_parts.append(f"{freq}: {', '.join(spells)}")
+            return " ".join(fallback_parts)
+
+
 @content_type(
     enum_value="creature",
     file_patterns=["bestiary", "monster", "creatures"],
@@ -491,6 +653,11 @@ class Creature(BaseContent):
     legendary: list[Ability] | None = Field(None, description="Legendary actions")
     reaction: list[Ability] | None = Field(None, description="Reactions")
     bonus: list[Ability] | None = Field(None, description="Bonus actions")
+
+    # Spellcasting abilities
+    spellcasting: list[Spellcasting] | None = Field(
+        None, description="Spellcasting features"
+    )
 
     # Resistances and immunities
     resist: list[str | DamageDict] | None = Field(
@@ -593,6 +760,40 @@ class Creature(BaseContent):
             return v
         # For any other type, let Pydantic handle the validation error
         raise ValueError(f"Expected dict or None for skill field, got {type(v)}")
+
+    @field_validator("spellcasting", mode="before")
+    @classmethod
+    def parse_spellcasting(cls, v: Any) -> list[Spellcasting] | Any:
+        """Parse spellcasting from various formats."""
+        if isinstance(v, list):
+            result = []
+            for item in v:
+                if isinstance(item, dict):
+                    # Handle spells dict transformation if present
+                    if "spells" in item and isinstance(item["spells"], dict):
+                        # Transform spells structure to match our model
+                        spells_dict = {}
+                        for level, spell_data in item["spells"].items():
+                            if isinstance(spell_data, dict):
+                                spells_dict[level] = SpellcasterSpells.model_validate(
+                                    spell_data
+                                )
+                            else:
+                                # Handle edge cases where spell data isn't dict
+                                spells_dict[level] = SpellcasterSpells(
+                                    spells=spell_data
+                                    if isinstance(spell_data, list)
+                                    else []
+                                )
+                        item = dict(item)  # Make a copy
+                        item["spells"] = spells_dict
+
+                    # Validate the item using our Spellcasting model
+                    result.append(Spellcasting.model_validate(item))
+                else:
+                    result.append(item)
+            return result
+        return v
 
     def get_ability_modifier(self, ability_score: int) -> int:
         """Calculate ability modifier from score."""
@@ -984,11 +1185,44 @@ class Creature(BaseContent):
             for condition in self.conditionImmune:
                 if isinstance(condition, str):
                     condition_parts.append(condition)
+                elif isinstance(condition, dict):
+                    # Handle complex condition immunity structure
+                    formatted_condition = self._format_condition_immunity_dict(
+                        condition
+                    )
+                    if formatted_condition:
+                        condition_parts.append(formatted_condition)
                 else:
                     condition_parts.append(str(condition))
             return ", ".join(condition_parts)
         else:
             return str(self.conditionImmune)
+
+    def _format_condition_immunity_dict(self, condition_dict: dict) -> str:
+        """Format a complex condition immunity dictionary."""
+        # Handle 5etools condition immunity format:
+        # {'note': '(with Mind Blank)', 'cond': True, 'conditionImmune': ['charmed']}
+        conditions = []
+        note = ""
+
+        if "conditionImmune" in condition_dict:
+            immune_list = condition_dict["conditionImmune"]
+            if isinstance(immune_list, list):
+                conditions.extend(immune_list)
+            else:
+                conditions.append(str(immune_list))
+
+        if "note" in condition_dict:
+            note = condition_dict["note"]
+
+        if conditions:
+            condition_text = ", ".join(conditions)
+            if note:
+                return f"{condition_text} {note}"
+            else:
+                return condition_text
+
+        return ""
 
     def get_enhanced_cr_text(self) -> str:
         """Get enhanced challenge rating text with XP calculation."""
@@ -1093,6 +1327,51 @@ class Creature(BaseContent):
                             entry_text = str(entry.model_dump())
                             references = SpellReferenceParser.extract_spell_references(
                                 entry_text
+                            )
+                            spell_references.extend(references)
+
+        # Parse spell references from spellcasting features
+        if self.spellcasting:
+            for spellcasting_feature in self.spellcasting:
+                # Extract spells from header entries
+                if spellcasting_feature.headerEntries:
+                    for header in spellcasting_feature.headerEntries:
+                        references = SpellReferenceParser.extract_spell_references(
+                            header
+                        )
+                        spell_references.extend(references)
+
+                # Extract spells from footer entries
+                if spellcasting_feature.footerEntries:
+                    for footer in spellcasting_feature.footerEntries:
+                        references = SpellReferenceParser.extract_spell_references(
+                            footer
+                        )
+                        spell_references.extend(references)
+
+                # Extract spells from spell lists
+                if spellcasting_feature.spells:
+                    for level, spell_list in spellcasting_feature.spells.items():
+                        for spell in spell_list.spells:
+                            references = SpellReferenceParser.extract_spell_references(
+                                spell
+                            )
+                            spell_references.extend(references)
+
+                # Extract at-will spells
+                if spellcasting_feature.will:
+                    for spell in spellcasting_feature.will:
+                        references = SpellReferenceParser.extract_spell_references(
+                            spell
+                        )
+                        spell_references.extend(references)
+
+                # Extract daily spells
+                if spellcasting_feature.daily:
+                    for frequency, spell_list in spellcasting_feature.daily.items():
+                        for spell in spell_list:
+                            references = SpellReferenceParser.extract_spell_references(
+                                spell
                             )
                             spell_references.extend(references)
 

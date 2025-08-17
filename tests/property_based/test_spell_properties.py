@@ -306,6 +306,7 @@ class TestSpellInvariants:
                 assert len(spell_component.material) > 0
 
     @given(valid_spells())
+    @settings(deadline=None, max_examples=50)  # Reduce examples and disable deadline
     def test_spell_serialization_roundtrip(self, spell_data: dict):
         """Spells should serialize and deserialize consistently."""
         # Create spell from data

@@ -353,14 +353,17 @@ class CreatureProcessor(ContentProcessor):
 
     def _is_spellcaster(self, creature: Creature) -> bool:
         """Check if creature has spellcasting abilities."""
-        if not hasattr(creature, "trait") or not creature.trait:
-            return False
+        # Check the dedicated spellcasting field first
+        if hasattr(creature, "spellcasting") and creature.spellcasting:
+            return True
 
-        for trait in creature.trait:
-            if isinstance(trait, dict):
-                name = trait.get("name", "").lower()
-                if "spellcasting" in name:
-                    return True
+        # Fallback: check traits for spellcasting abilities (older format)
+        if hasattr(creature, "trait") and creature.trait:
+            for trait in creature.trait:
+                if isinstance(trait, dict):
+                    name = trait.get("name", "").lower()
+                    if "spellcasting" in name:
+                        return True
 
         return False
 
