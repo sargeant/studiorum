@@ -578,6 +578,19 @@ def creatures(
                 speaks_language, \
                 has_skill, \
                 sources
+            nonlocal sort, show_toc, output_file, title, compile_pdf, dry_run
+            nonlocal \
+                document_class, \
+                paper, \
+                fonts, \
+                no_outline, \
+                font_size, \
+                background, \
+                high_contrast, \
+                two_column, \
+                justified, \
+                with_images, \
+                spells
 
             from_file = normalize_typer_param(from_file)
             from_stdin = normalize_typer_param(from_stdin)
@@ -605,6 +618,28 @@ def creatures(
             has_darkvision = normalize_typer_param(has_darkvision)
             has_blindsight = normalize_typer_param(has_blindsight)
             has_truesight = normalize_typer_param(has_truesight)
+
+            # Normalize output control parameters
+            sort = normalize_typer_param(sort)
+            show_toc = normalize_typer_param(show_toc)
+            output_file = normalize_typer_param(output_file)
+            title = normalize_typer_param(title)
+            compile_pdf = normalize_typer_param(compile_pdf)
+            dry_run = normalize_typer_param(dry_run)
+
+            # Normalize LaTeX document parameters
+            document_class = normalize_typer_param(document_class)
+            paper = normalize_typer_param(paper)
+            fonts = normalize_typer_param(fonts)
+            no_outline = normalize_typer_param(no_outline)
+            font_size = normalize_typer_param(font_size)
+            background = normalize_typer_param(background)
+            high_contrast = normalize_typer_param(high_contrast)
+            two_column = normalize_typer_param(two_column)
+            justified = normalize_typer_param(justified)
+            with_images = normalize_typer_param(with_images)
+            spells = normalize_typer_param(spells)
+
             # Import creature-specific modules
             from dnd5e.core.models.creature_filters import CreatureFilterCriteria
             from dnd5e.core.parsers.creature_input import (
@@ -928,10 +963,18 @@ def creatures(
                 from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
 
                 # Create template engine for appendix generation
-                LaTeXTemplateEngine()
+                template_engine = LaTeXTemplateEngine()
 
                 # Create appendix flags
-                AppendixFlags(spells=True, creatures=False, items=False)
+                appendix_flags = AppendixFlags(
+                    spells=True, creatures=False, items=False
+                )
+
+                # Create AppendixGenerator with omnidexer and template engine
+                appendix_generator = AppendixGenerator(
+                    omnidexer=omnidexer,
+                    template_engine=template_engine,
+                )
 
                 # Unified Reference Tracking:
                 # Use the unified reference system to automatically track spell references
@@ -943,8 +986,10 @@ def creatures(
                             context="creature spellcasting abilities",
                         )
 
-                # Generate spell appendix using unified system
-                spell_appendix = appendix_mixin.generate_appendices()
+                # Generate spell appendix using AppendixGenerator
+                spell_appendix = appendix_generator.generate_appendices(
+                    content_tracker, appendix_flags
+                )
 
                 # Combine outputs if appendix was generated
                 if spell_appendix:
