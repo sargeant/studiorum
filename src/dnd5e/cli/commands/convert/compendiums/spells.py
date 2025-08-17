@@ -11,6 +11,7 @@ import typer
 if TYPE_CHECKING:
     from dnd5e.core.interfaces import TagResolver
     from dnd5e.core.references.content_reference_manager import ContentReferenceManager
+    from dnd5e.core.services.appendix_generator import AppendixSection
 from rich import print as rprint
 
 from dnd5e.cli.config_factory import (
@@ -37,7 +38,7 @@ class SpellSortMode(str, Enum):
 
 
 def _combine_spellbook_and_appendix(
-    spellbook_content: str, appendix_content: str
+    spellbook_content: str, appendix_content: str | list["AppendixSection"]
 ) -> str:
     """Combine spellbook and creature appendix content."""
     # Handle different possible return types from appendix generation
