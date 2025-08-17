@@ -21,6 +21,7 @@ from dnd5e.core.models.creatures import Creature
 from dnd5e.core.references.content_tracker import ContentTracker
 from dnd5e.renderers.core.interfaces import RenderingContext
 
+from ..base import AppendixMixin, BaseConvertCommand
 from ..shared import compile_pdf as compile_pdf_async
 
 
@@ -733,74 +734,31 @@ def creatures(
             else:
                 output_path = output_file
 
-            # Create LaTeX configuration with user config preferences
-            from dnd5e.core.config.sources import get_content_config
-
-            app_config = get_app_config()
-            user_config = get_content_config()
-
-            # Apply configuration hierarchy: CLI args > user config > app defaults
-            actual_paper_size = (
-                paper
-                or user_config.latex.paper_size
-                or app_config.rendering.latex.document.paper_size
-            )
-            actual_fonts = (
-                fonts
-                or user_config.latex.fonts
-                or app_config.rendering.latex.document.fonts
-            )
-            actual_background = (
-                background
-                or user_config.latex.background
-                or app_config.rendering.latex.document.background
-            )
-            actual_no_outline = (
-                no_outline
-                if no_outline is not None
-                else user_config.latex.no_outline
-                if user_config.latex.no_outline is not None
-                else app_config.rendering.latex.document.no_outline
-            )
-            actual_font_size = (
-                font_size
-                or user_config.latex.font_size
-                or app_config.rendering.latex.document.font_size
-            )
-            actual_high_contrast = (
-                high_contrast
-                if high_contrast is not None
-                else user_config.latex.high_contrast
-                if user_config.latex.high_contrast is not None
-                else app_config.rendering.latex.document.high_contrast
-            )
-            actual_two_column = (
-                two_column
-                if two_column is not None
-                else user_config.latex.two_column
-                if user_config.latex.two_column is not None
-                else app_config.rendering.latex.document.two_column
-            )
-            actual_justified = (
-                justified
-                if justified is not None
-                else user_config.latex.justified
-                if user_config.latex.justified is not None
-                else app_config.rendering.latex.document.justified_text
+            # Create LaTeX configuration using base class
+            command_instance = BaseConvertCommand()
+            config = command_instance.apply_config_hierarchy(
+                paper=paper,
+                fonts=fonts,
+                background=background,
+                no_outline=no_outline,
+                font_size=font_size,
+                high_contrast=high_contrast,
+                two_column=two_column,
+                justified=justified,
             )
 
             from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
 
             latex_doc_config = LaTeXDocumentConfig(
                 document_class=document_class,
-                paper_size=actual_paper_size,
-                font_size=actual_font_size,
-                background=actual_background,
-                high_contrast=actual_high_contrast,
-                two_column=actual_two_column,
-                justified_text=actual_justified,
-                fonts=actual_fonts,
-                no_outline=actual_no_outline,
+                paper_size=config["paper_size"],
+                font_size=config["font_size"],
+                background=config["background"],
+                high_contrast=config["high_contrast"],
+                two_column=config["two_column"],
+                justified_text=config["justified"],
+                fonts=config["fonts"],
+                no_outline=config["no_outline"],
             )
             latex_config = LaTeXConfig(document=latex_doc_config)
 
@@ -839,7 +797,14 @@ def creatures(
             )
 
             # Create ContentTracker for spell reference tracking if needed
-            content_tracker = ContentTracker() if spells else None
+            # Create unified reference manager for spell tracking
+            appendix_mixin = AppendixMixin()
+            reference_manager = (
+                appendix_mixin.create_reference_manager(omnidexer) if spells else None
+            )
+            content_tracker = (
+                reference_manager.get_content_tracker() if reference_manager else None
+            )
 
             # Create render context with bestiary-specific data
             context = RenderingContext(
@@ -889,39 +854,23 @@ def creatures(
                 # Create template engine for appendix generation
                 template_engine = LaTeXTemplateEngine()
 
-                appendix_generator = AppendixGenerator(
-                    omnidexer=omnidexer, template_engine=template_engine
-                )
-
                 # Create appendix flags
                 appendix_flags = AppendixFlags(
                     spells=True, creatures=False, items=False
                 )
 
-                # Deep Indexing → ContentTracker Bridge:
-                # Populate ContentTracker with spell references from creature spellcasting
+                # Unified Reference Tracking:
+                # Use the unified reference system to automatically track spell references
                 with display_manager.progress("Extracting spell references") as _:
-                    for creature in sorted_creatures:
-                        # Use deep indexing to extract spell references from creature
-                        deep_entries = creature.get_deep_index_entries(omnidexer)
+                    appendix_mixin.track_deep_index_references(
+                        reference_manager,
+                        sorted_creatures,
+                        context="creature spellcasting abilities",
+                    )
 
-                        # Add each extracted spell to the ContentTracker
-                        for spell_entry in deep_entries:
-                            # Extract source abbreviation from Source object
-                            source_str = (
-                                spell_entry.source.abbreviation
-                                if spell_entry.source
-                                else "UNKNOWN"
-                            )
-                            content_tracker.add_content(
-                                content_type="spell",
-                                name=spell_entry.name.lower(),
-                                source=source_str,
-                            )
-
-                # Generate spell appendix
-                spell_appendix = appendix_generator.generate_appendices(
-                    content_tracker, appendix_flags
+                # Generate spell appendix using unified system
+                spell_appendix = appendix_mixin.generate_appendices(
+                    reference_manager, appendix_flags, template_engine, omnidexer
                 )
 
                 # Combine outputs if appendix was generated

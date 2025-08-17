@@ -42,6 +42,63 @@ class IndexEntry(BaseModel):
 - Clear error messages
 - API documentation generation
 
+### Command Configuration Hierarchy
+
+Convert commands use a three-tier configuration hierarchy with shared base classes:
+
+```python
+class BaseConvertCommand:
+    def apply_config_hierarchy(self, **cli_args) -> dict[str, Any]:
+        """Apply: CLI args > user config > app defaults."""
+        app_config = get_app_config()
+        user_config = get_content_config()
+
+        return {
+            'paper_size': (
+                cli_args.get('paper')
+                or user_config.latex.paper_size
+                or app_config.rendering.latex.document.paper_size
+            ),
+            # ... more config options
+        }
+```
+
+**Benefits:**
+- Single source of truth for configuration logic
+- Consistent behavior across all commands
+- Eliminates 300+ lines of duplicate code
+- Easy to add new configuration options
+
+### Unified Content Reference System
+
+Commands use a unified reference tracking system that automatically captures references from both template tags and deep indexing:
+
+```python
+class AppendixMixin:
+    def create_reference_manager(self, omnidexer=None):
+        """Create unified content reference manager."""
+        return ContentReferenceManager(omnidexer=omnidexer)
+
+    def track_deep_index_references(self, reference_manager, content_items, context):
+        """Track references from deep indexing automatically."""
+        for content in content_items:
+            if isinstance(content, DeepIndexable):
+                reference_manager.track_deep_index_references(content, context)
+
+# Usage in commands
+reference_manager = appendix_mixin.create_reference_manager(omnidexer)
+appendix_mixin.track_deep_index_references(
+    reference_manager, creatures, "creature spellcasting"
+)
+```
+
+**Benefits:**
+- Eliminates manual bridge patterns between reference systems
+- Automatic tracking from both template tags and deep indexing
+- Single source of truth for all content references
+- Unified appendix generation across all commands
+- Reduces complex bridge code from 19 lines to 4 lines
+
 ### Synchronous I/O Pattern
 
 I/O operations use efficient synchronous patterns for simplicity and reliability:
