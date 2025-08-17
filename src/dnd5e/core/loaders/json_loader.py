@@ -3,7 +3,10 @@
 import json
 from datetime import timedelta
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    pass
 
 from pydantic import ValidationError
 
@@ -731,7 +734,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
         return item
 
-    def _create_copy_placeholder(self, item: dict[str, Any], content_type: ContentType):
+    def _create_copy_placeholder(
+        self, item: dict[str, Any], content_type: ContentType
+    ) -> BaseContent:
         """Create a placeholder object for items needing copy resolution."""
         # Create a minimal valid object with required fields filled with defaults
         placeholder_data = item.copy()

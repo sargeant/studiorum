@@ -2,7 +2,10 @@
 
 import copy
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any, Optional
+
+if TYPE_CHECKING:
+    from ..loaders.omnidexer import Omnidexer
 
 from ..logging import get_logger
 from ..models.content import ContentType
@@ -13,7 +16,7 @@ logger = get_logger(__name__)
 class CopyResolver:
     """Resolves _copy references after all data has been loaded."""
 
-    def __init__(self, omnidexer):
+    def __init__(self, omnidexer: "Omnidexer") -> None:
         """Initialize with an omnidexer for finding copy sources."""
         self._omnidexer = omnidexer
 
@@ -55,7 +58,7 @@ class CopyResolver:
 
         logger.info(f"Successfully resolved {resolved_count} copy references")
 
-    def _resolve_copy_for_item(self, item) -> bool:
+    def _resolve_copy_for_item(self, item: Any) -> bool:
         """Resolve copy reference for a single item."""
         # Get the raw _copy data
         copy_ref = None
@@ -101,7 +104,7 @@ class CopyResolver:
         logger.debug(f"Resolved copy for {item_name}")
         return True
 
-    def _find_copy_source(self, copy_ref: dict[str, Any], item_name: str):
+    def _find_copy_source(self, copy_ref: dict[str, Any], item_name: str) -> Any | None:
         """Find the source item to copy from."""
         if "name" in copy_ref and "source" in copy_ref:
             # Creature-to-creature copy
@@ -131,7 +134,7 @@ class CopyResolver:
             logger.warning(f"Invalid copy reference format for {item_name}")
             return None
 
-    def _update_omnidexer_index(self, resolved_item) -> None:
+    def _update_omnidexer_index(self, resolved_item: Any) -> None:
         """Update the omnidexer index with the resolved item.
 
         This is critical because the omnidexer creates new instances on each find(),
@@ -212,7 +215,7 @@ class CopyResolver:
             logger.warning(f"Failed to update omnidexer index for {item_name}: {e}")
 
     def _clear_omnidexer_cache_for_item(
-        self, name: str, source: str, content_type
+        self, name: str, source: str, content_type: ContentType
     ) -> None:
         """Clear omnidexer cache entries for a specific item.
 
@@ -241,7 +244,11 @@ class CopyResolver:
             logger.warning(f"Failed to clear cache for {name}: {e}")
 
     def _apply_copy_resolution_direct(
-        self, target_item, source_item, copy_ref: dict[str, Any], item_name: str
+        self,
+        target_item: Any,
+        source_item: Any,
+        copy_ref: dict[str, Any],
+        item_name: str,
     ) -> None:
         """Apply copy resolution directly to objects to preserve typed properties.
 
@@ -323,7 +330,7 @@ class CopyResolver:
                 )
 
     def _apply_mod_transformations_direct(
-        self, item, mod_data: dict[str, Any], item_name: str
+        self, item: Any, mod_data: dict[str, Any], item_name: str
     ) -> None:
         """Apply _mod transformations directly to the object to preserve types."""
         for prop_path, transformations in mod_data.items():
@@ -353,7 +360,7 @@ class CopyResolver:
                     logger.debug(f"Unsupported _mod mode '{mode}' for {item_name}")
 
     def _apply_replace_txt_transformation_direct(
-        self, item, prop_path: str, transform: dict[str, Any], item_name: str
+        self, item: Any, prop_path: str, transform: dict[str, Any], item_name: str
     ) -> None:
         """Apply replaceTxt transformation directly to object properties."""
         replace_text = transform.get("replace", "")
@@ -402,7 +409,7 @@ class CopyResolver:
                     self._replace_text_recursive_direct(item, pattern, replacement)
 
     def _replace_text_in_property_direct(
-        self, item, prop_path: str, pattern: re.Pattern, replacement: str
+        self, item: Any, prop_path: str, pattern: re.Pattern, replacement: str
     ) -> None:
         """Replace text in a specific property path on an object."""
         # Navigate to the property
@@ -434,7 +441,7 @@ class CopyResolver:
                 self._replace_text_recursive_direct(target, pattern, replacement)
 
     def _apply_append_arr_transformation_direct(
-        self, item, prop_path: str, transform: dict[str, Any], item_name: str
+        self, item: Any, prop_path: str, transform: dict[str, Any], item_name: str
     ) -> None:
         """Apply appendArr transformation directly to object properties."""
         items_to_append = transform.get("items")
