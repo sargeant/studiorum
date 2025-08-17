@@ -20,6 +20,7 @@ from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.models.spells import Spell
 from dnd5e.renderers.core.interfaces import RenderingContext
 
+from ..base import BaseConvertCommand
 from ..shared import compile_pdf as compile_pdf_async
 
 
@@ -474,74 +475,31 @@ def spells(
             else:
                 output_path = output_file
 
-            # Create LaTeX configuration with user config preferences
-            from dnd5e.core.config.sources import get_content_config
-
-            app_config = get_app_config()
-            user_config = get_content_config()
-
-            # Apply configuration hierarchy: CLI args > user config > app defaults
-            actual_paper_size = (
-                paper
-                or user_config.latex.paper_size
-                or app_config.rendering.latex.document.paper_size
-            )
-            actual_fonts = (
-                fonts
-                or user_config.latex.fonts
-                or app_config.rendering.latex.document.fonts
-            )
-            actual_background = (
-                background
-                or user_config.latex.background
-                or app_config.rendering.latex.document.background
-            )
-            actual_no_outline = (
-                no_outline
-                if no_outline is not None
-                else user_config.latex.no_outline
-                if user_config.latex.no_outline is not None
-                else app_config.rendering.latex.document.no_outline
-            )
-            actual_font_size = (
-                font_size
-                or user_config.latex.font_size
-                or app_config.rendering.latex.document.font_size
-            )
-            actual_high_contrast = (
-                high_contrast
-                if high_contrast is not None
-                else user_config.latex.high_contrast
-                if user_config.latex.high_contrast is not None
-                else app_config.rendering.latex.document.high_contrast
-            )
-            actual_two_column = (
-                two_column
-                if two_column is not None
-                else user_config.latex.two_column
-                if user_config.latex.two_column is not None
-                else app_config.rendering.latex.document.two_column
-            )
-            actual_justified = (
-                justified
-                if justified is not None
-                else user_config.latex.justified
-                if user_config.latex.justified is not None
-                else app_config.rendering.latex.document.justified_text
+            # Create LaTeX configuration using base class
+            command_instance = BaseConvertCommand()
+            config = command_instance.apply_config_hierarchy(
+                paper=paper,
+                fonts=fonts,
+                background=background,
+                no_outline=no_outline,
+                font_size=font_size,
+                high_contrast=high_contrast,
+                two_column=two_column,
+                justified=justified,
             )
 
             from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
 
             latex_doc_config = LaTeXDocumentConfig(
                 document_class=document_class,
-                paper_size=actual_paper_size,
-                font_size=actual_font_size,
-                background=actual_background,
-                high_contrast=actual_high_contrast,
-                two_column=actual_two_column,
-                justified_text=actual_justified,
-                fonts=actual_fonts,
-                no_outline=actual_no_outline,
+                paper_size=config["paper_size"],
+                font_size=config["font_size"],
+                background=config["background"],
+                high_contrast=config["high_contrast"],
+                two_column=config["two_column"],
+                justified_text=config["justified"],
+                fonts=config["fonts"],
+                no_outline=config["no_outline"],
             )
             latex_config = LaTeXConfig(document=latex_doc_config)
 

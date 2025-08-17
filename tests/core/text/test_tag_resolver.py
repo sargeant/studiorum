@@ -166,10 +166,10 @@ class TestContentTracker:
         tracked = tracker.get_tracked_content()
         assert len(tracked) == 2
 
-        # Check that content exists (order may vary) - names are normalized to lowercase
+        # Check that content exists (order may vary) - names preserve original case
         types_and_names = [(c.content_type, c.name, c.source) for c in tracked]
-        assert ("creature", "ancient red dragon", "MM") in types_and_names
-        assert ("spell", "fireball", "PHB") in types_and_names
+        assert ("creature", "Ancient Red Dragon", "MM") in types_and_names
+        assert ("spell", "Fireball", "PHB") in types_and_names
 
     def test_content_tracker_deduplication(self) -> None:
         """Test that duplicate content is not tracked multiple times."""
@@ -185,7 +185,7 @@ class TestContentTracker:
 
         content = tracked[0]
         assert content.content_type == "spell"  # Normalized to lowercase
-        assert content.name == "fireball"  # Normalized to lowercase
+        assert content.name == "Fireball"  # Preserves original case of first occurrence
         assert content.source == "PHB"
 
         # Check reference count is incremented for all three additions
@@ -217,9 +217,9 @@ class TestContentTracker:
 
         # Should be sorted by: content_type, name, source
         expected_order = [
-            ("creature", "ancient red dragon", "MM"),  # Names normalized to lowercase
-            ("spell", "fireball", "PHB"),
-            ("spell", "zephyr strike", "PHB"),
+            ("creature", "Ancient Red Dragon", "MM"),  # Names preserve original case
+            ("spell", "Fireball", "PHB"),
+            ("spell", "Zephyr Strike", "PHB"),
         ]
 
         actual_order = [(c.content_type, c.name, c.source) for c in tracked]
@@ -246,11 +246,13 @@ class TestContentTracker:
         )
         assert content.content_type == "spell"
 
-        # Test name stripping and normalization
+        # Test name stripping (preserves original case)
         content2: Any = TrackedContent(
             content_type="spell", name="  Fireball  ", source="PHB"
         )
-        assert content2.name == "fireball"  # Names are normalized to lowercase
+        assert (
+            content2.name == "Fireball"
+        )  # Names preserve original case, whitespace stripped
 
         # Test source stripping
         content3: Any = TrackedContent(
@@ -330,7 +332,7 @@ class TestContentTracker:
 
         creature_content = tracker.get_tracked_content_by_type("creature")
         assert len(creature_content) == 1
-        assert creature_content[0].name == "dragon"  # Names are normalized to lowercase
+        assert creature_content[0].name == "Dragon"  # Names preserve original case
 
         # Test case insensitive
         spell_content_upper = tracker.get_tracked_content_by_type("SPELL")
@@ -484,7 +486,7 @@ class TestContentTracker:
         spell_entries = export["spell"]
         assert len(spell_entries) == 1
         spell_entry = spell_entries[0]
-        assert spell_entry["name"] == "fireball"  # Names are normalized to lowercase
+        assert spell_entry["name"] == "Fireball"  # Names preserve original case
         assert spell_entry["type"] == "spell"
         assert spell_entry["source"] == "PHB"
         assert spell_entry["page"] == "251"
@@ -495,8 +497,8 @@ class TestContentTracker:
         assert len(creature_entries) == 1
         creature_entry = creature_entries[0]
         assert (
-            creature_entry["name"] == "ancient red dragon"
-        )  # Names are normalized to lowercase
+            creature_entry["name"] == "Ancient Red Dragon"
+        )  # Names preserve original case
         assert creature_entry["reference_count"] == 1
 
     def test_content_with_pages(self) -> None:
@@ -507,9 +509,9 @@ class TestContentTracker:
 
         content_list = tracker.get_tracked_content()
 
-        # Find the entries (names are normalized to lowercase)
-        fireball: Any = next(c for c in content_list if c.name == "fireball")
-        dragon: Any = next(c for c in content_list if c.name == "dragon")
+        # Find the entries (names preserve original case)
+        fireball: Any = next(c for c in content_list if c.name == "Fireball")
+        dragon: Any = next(c for c in content_list if c.name == "Dragon")
 
         assert fireball.page == "251"
         assert dragon.page is None

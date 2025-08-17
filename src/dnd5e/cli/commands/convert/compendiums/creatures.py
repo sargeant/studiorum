@@ -4,6 +4,7 @@ import asyncio
 import os
 from enum import Enum
 from pathlib import Path
+from typing import Any, Protocol, Union
 
 import typer
 from rich import print as rprint
@@ -21,7 +22,14 @@ from dnd5e.core.models.creatures import Creature
 from dnd5e.core.references.content_tracker import ContentTracker
 from dnd5e.renderers.core.interfaces import RenderingContext
 
+from ..base import AppendixMixin, BaseConvertCommand
 from ..shared import compile_pdf as compile_pdf_async
+
+
+class TyperOptionInfo(Protocol):
+    """Protocol for Typer OptionInfo objects that have a default value."""
+
+    default: Any
 
 
 class CreatureSortMode(str, Enum):
@@ -528,6 +536,110 @@ def creatures(
 
     def _convert() -> None:
         try:
+            # Handle potential parameter resolution issues when called directly in tests
+            # This is needed because Typer parameter resolution doesn't work properly in direct calls
+            def normalize_typer_param(param: Any | TyperOptionInfo) -> Any:
+                """Normalize Typer parameters that may be OptionInfo objects.
+
+                When Typer functions are called directly (in tests), parameters
+                may be OptionInfo objects instead of resolved values.
+                """
+                if hasattr(param, "default"):  # It's a Typer OptionInfo object
+                    return param.default
+                return param
+
+            nonlocal \
+                from_file, \
+                from_stdin, \
+                cr_range, \
+                min_cr, \
+                max_cr, \
+                creature_types, \
+                creature_tags
+            nonlocal \
+                sizes, \
+                alignments, \
+                min_ac, \
+                max_ac, \
+                min_hp, \
+                max_hp, \
+                has_spellcasting, \
+                has_legendary
+            nonlocal \
+                has_multiattack, \
+                has_reactions, \
+                has_fly_speed, \
+                has_swim_speed, \
+                has_climb_speed
+            nonlocal \
+                has_darkvision, \
+                has_blindsight, \
+                has_truesight, \
+                speaks_language, \
+                has_skill, \
+                sources
+            nonlocal sort, show_toc, output_file, title, compile_pdf, dry_run
+            nonlocal \
+                document_class, \
+                paper, \
+                fonts, \
+                no_outline, \
+                font_size, \
+                background, \
+                high_contrast, \
+                two_column, \
+                justified, \
+                with_images, \
+                spells
+
+            from_file = normalize_typer_param(from_file)
+            from_stdin = normalize_typer_param(from_stdin)
+            cr_range = normalize_typer_param(cr_range)
+            min_cr = normalize_typer_param(min_cr)
+            max_cr = normalize_typer_param(max_cr)
+            creature_types = normalize_typer_param(creature_types)
+            creature_tags = normalize_typer_param(creature_tags)
+            sizes = normalize_typer_param(sizes)
+            alignments = normalize_typer_param(alignments)
+            sources = normalize_typer_param(sources)
+            speaks_language = normalize_typer_param(speaks_language)
+            has_skill = normalize_typer_param(has_skill)
+            min_ac = normalize_typer_param(min_ac)
+            max_ac = normalize_typer_param(max_ac)
+            min_hp = normalize_typer_param(min_hp)
+            max_hp = normalize_typer_param(max_hp)
+            has_spellcasting = normalize_typer_param(has_spellcasting)
+            has_legendary = normalize_typer_param(has_legendary)
+            has_multiattack = normalize_typer_param(has_multiattack)
+            has_reactions = normalize_typer_param(has_reactions)
+            has_fly_speed = normalize_typer_param(has_fly_speed)
+            has_swim_speed = normalize_typer_param(has_swim_speed)
+            has_climb_speed = normalize_typer_param(has_climb_speed)
+            has_darkvision = normalize_typer_param(has_darkvision)
+            has_blindsight = normalize_typer_param(has_blindsight)
+            has_truesight = normalize_typer_param(has_truesight)
+
+            # Normalize output control parameters
+            sort = normalize_typer_param(sort)
+            show_toc = normalize_typer_param(show_toc)
+            output_file = normalize_typer_param(output_file)
+            title = normalize_typer_param(title)
+            compile_pdf = normalize_typer_param(compile_pdf)
+            dry_run = normalize_typer_param(dry_run)
+
+            # Normalize LaTeX document parameters
+            document_class = normalize_typer_param(document_class)
+            paper = normalize_typer_param(paper)
+            fonts = normalize_typer_param(fonts)
+            no_outline = normalize_typer_param(no_outline)
+            font_size = normalize_typer_param(font_size)
+            background = normalize_typer_param(background)
+            high_contrast = normalize_typer_param(high_contrast)
+            two_column = normalize_typer_param(two_column)
+            justified = normalize_typer_param(justified)
+            with_images = normalize_typer_param(with_images)
+            spells = normalize_typer_param(spells)
+
             # Import creature-specific modules
             from dnd5e.core.models.creature_filters import CreatureFilterCriteria
             from dnd5e.core.parsers.creature_input import (
@@ -554,7 +666,7 @@ def creatures(
                 all_creature_names.extend(creature_names)
 
             # Collect from file
-            if from_file:
+            if from_file and isinstance(from_file, Path):
                 if not from_file.exists():
                     rprint(f"[red]Error:[/red] Creature file not found: {from_file}")
                     raise typer.Exit(1)
@@ -733,74 +845,31 @@ def creatures(
             else:
                 output_path = output_file
 
-            # Create LaTeX configuration with user config preferences
-            from dnd5e.core.config.sources import get_content_config
-
-            app_config = get_app_config()
-            user_config = get_content_config()
-
-            # Apply configuration hierarchy: CLI args > user config > app defaults
-            actual_paper_size = (
-                paper
-                or user_config.latex.paper_size
-                or app_config.rendering.latex.document.paper_size
-            )
-            actual_fonts = (
-                fonts
-                or user_config.latex.fonts
-                or app_config.rendering.latex.document.fonts
-            )
-            actual_background = (
-                background
-                or user_config.latex.background
-                or app_config.rendering.latex.document.background
-            )
-            actual_no_outline = (
-                no_outline
-                if no_outline is not None
-                else user_config.latex.no_outline
-                if user_config.latex.no_outline is not None
-                else app_config.rendering.latex.document.no_outline
-            )
-            actual_font_size = (
-                font_size
-                or user_config.latex.font_size
-                or app_config.rendering.latex.document.font_size
-            )
-            actual_high_contrast = (
-                high_contrast
-                if high_contrast is not None
-                else user_config.latex.high_contrast
-                if user_config.latex.high_contrast is not None
-                else app_config.rendering.latex.document.high_contrast
-            )
-            actual_two_column = (
-                two_column
-                if two_column is not None
-                else user_config.latex.two_column
-                if user_config.latex.two_column is not None
-                else app_config.rendering.latex.document.two_column
-            )
-            actual_justified = (
-                justified
-                if justified is not None
-                else user_config.latex.justified
-                if user_config.latex.justified is not None
-                else app_config.rendering.latex.document.justified_text
+            # Create LaTeX configuration using base class
+            command_instance = BaseConvertCommand()
+            config = command_instance.apply_config_hierarchy(
+                paper=paper,
+                fonts=fonts,
+                background=background,
+                no_outline=no_outline,
+                font_size=font_size,
+                high_contrast=high_contrast,
+                two_column=two_column,
+                justified=justified,
             )
 
             from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
 
             latex_doc_config = LaTeXDocumentConfig(
                 document_class=document_class,
-                paper_size=actual_paper_size,
-                font_size=actual_font_size,
-                background=actual_background,
-                high_contrast=actual_high_contrast,
-                two_column=actual_two_column,
-                justified_text=actual_justified,
-                fonts=actual_fonts,
-                no_outline=actual_no_outline,
+                paper_size=config["paper_size"],
+                font_size=config["font_size"],
+                background=config["background"],
+                high_contrast=config["high_contrast"],
+                two_column=config["two_column"],
+                justified_text=config["justified"],
+                fonts=config["fonts"],
+                no_outline=config["no_outline"],
             )
             latex_config = LaTeXConfig(document=latex_doc_config)
 
@@ -839,7 +908,14 @@ def creatures(
             )
 
             # Create ContentTracker for spell reference tracking if needed
-            content_tracker = ContentTracker() if spells else None
+            # Create unified reference manager for spell tracking
+            appendix_mixin = AppendixMixin()
+            reference_manager = (
+                appendix_mixin.create_reference_manager(omnidexer) if spells else None
+            )
+            content_tracker = (
+                reference_manager.get_content_tracker() if reference_manager else None
+            )
 
             # Create render context with bestiary-specific data
             context = RenderingContext(
@@ -889,37 +965,28 @@ def creatures(
                 # Create template engine for appendix generation
                 template_engine = LaTeXTemplateEngine()
 
-                appendix_generator = AppendixGenerator(
-                    omnidexer=omnidexer, template_engine=template_engine
-                )
-
                 # Create appendix flags
                 appendix_flags = AppendixFlags(
                     spells=True, creatures=False, items=False
                 )
 
-                # Deep Indexing → ContentTracker Bridge:
-                # Populate ContentTracker with spell references from creature spellcasting
+                # Create AppendixGenerator with omnidexer and template engine
+                appendix_generator = AppendixGenerator(
+                    omnidexer=omnidexer,
+                    template_engine=template_engine,
+                )
+
+                # Unified Reference Tracking:
+                # Use the unified reference system to automatically track spell references
                 with display_manager.progress("Extracting spell references") as _:
-                    for creature in sorted_creatures:
-                        # Use deep indexing to extract spell references from creature
-                        deep_entries = creature.get_deep_index_entries(omnidexer)
+                    if reference_manager:
+                        appendix_mixin.track_deep_index_references(
+                            reference_manager,
+                            sorted_creatures,
+                            context="creature spellcasting abilities",
+                        )
 
-                        # Add each extracted spell to the ContentTracker
-                        for spell_entry in deep_entries:
-                            # Extract source abbreviation from Source object
-                            source_str = (
-                                spell_entry.source.abbreviation
-                                if spell_entry.source
-                                else "UNKNOWN"
-                            )
-                            content_tracker.add_content(
-                                content_type="spell",
-                                name=spell_entry.name.lower(),
-                                source=source_str,
-                            )
-
-                # Generate spell appendix
+                # Generate spell appendix using AppendixGenerator
                 spell_appendix = appendix_generator.generate_appendices(
                     content_tracker, appendix_flags
                 )
