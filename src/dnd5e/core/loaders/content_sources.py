@@ -189,17 +189,75 @@ class FileContentSource(BaseContentSource):
         if self.content_type:
             # Single content type specified
             items = data.get(self.content_type.value, [])
-            for item_data in items:
+
+            # Special handling for direct content objects (backward compatibility)
+            if (
+                self.content_type == ContentType.BOOK
+                and not items
+                and isinstance(data, dict)
+            ):
+                # Treat the entire data as a book object
+                book_data = dict(data)
+
+                # Add default name and source if missing (for backward compatibility)
+                if "name" not in book_data:
+                    book_data["name"] = f"Book: {self.file_path.stem}"
+                if "source" not in book_data:
+                    book_data["source"] = {
+                        "abbreviation": "FILE",
+                        "name": f"File: {self.file_path.name}",
+                    }
+
                 try:
                     content_items.append(
-                        factory.create_content(item_data, self.content_type)
+                        factory.create_content(book_data, self.content_type)
                     )
                 except ValidationError as e:
                     # Log validation error but continue
                     from ..logging import get_logger
 
                     logger = get_logger(__name__)
-                    logger.warning(f"Failed to load {self.content_type} item: {e}")
+                    logger.warning(f"Failed to load book: {e}")
+            elif (
+                self.content_type == ContentType.ADVENTURE
+                and not items
+                and isinstance(data, dict)
+            ):
+                # Treat the entire data as an adventure object
+                adventure_data = dict(data)
+
+                # Add default name and source if missing (for backward compatibility)
+                if "name" not in adventure_data:
+                    adventure_data["name"] = f"Adventure: {self.file_path.stem}"
+                if "source" not in adventure_data:
+                    adventure_data["source"] = {
+                        "abbreviation": "FILE",
+                        "name": f"File: {self.file_path.name}",
+                    }
+
+                try:
+                    content_items.append(
+                        factory.create_content(adventure_data, self.content_type)
+                    )
+                except ValidationError as e:
+                    # Log validation error but continue
+                    from ..logging import get_logger
+
+                    logger = get_logger(__name__)
+                    logger.warning(f"Failed to load adventure: {e}")
+            else:
+                # Normal case: process items array
+                for item_data in items:
+                    try:
+                        content_items.append(
+                            factory.create_content(item_data, self.content_type)
+                        )
+                    except ValidationError as e:
+                        # Log validation error but continue
+                        from ..logging import get_logger
+
+                        logger = get_logger(__name__)
+                        logger.warning(f"Failed to load {self.content_type} item: {e}")
         else:
             # Auto-detect content types
             type_handlers = {

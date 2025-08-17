@@ -210,7 +210,7 @@ class TestConvertSpellsCommand:
 
         # Should exit with error
         assert result.exit_code == 1
-        assert "Spell file not found" in result.stdout
+        assert "File does not exist" in result.stdout
 
     @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
