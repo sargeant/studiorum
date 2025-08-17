@@ -107,6 +107,142 @@ class AppendixGenerator:
 
         return appendices
 
+    def generate_recursive_appendices(
+        self, content_tracker: ContentTracker, flags: AppendixFlags, max_depth: int = 2
+    ) -> list[AppendixSection]:
+        """Generate appendices with recursive reference tracking.
+
+        Args:
+            content_tracker: Initial tracked content from main document
+            flags: Which appendix types to generate
+            max_depth: Maximum recursion depth (default 2 = original + 1 level)
+
+        Returns:
+            List of AppendixSection objects with recursive content
+        """
+        if not flags.has_any_enabled() or max_depth < 1:
+            return []
+
+        # Start with primary appendices (depth 1)
+        primary_appendices = self.generate_appendices(content_tracker, flags)
+
+        if max_depth == 1 or not primary_appendices:
+            return primary_appendices
+
+        # Track secondary references from primary appendix content
+        secondary_tracker = ContentTracker()
+
+        for appendix in primary_appendices:
+            if appendix.content_type == "creature" and flags.spells:
+                # Track spells referenced by creatures in creature appendix
+                self._track_references_in_content(appendix.content, secondary_tracker)
+            elif appendix.content_type == "spell" and flags.creatures:
+                # Track creatures referenced by spells in spell appendix
+                self._track_references_in_content(appendix.content, secondary_tracker)
+            # Items don't typically reference other content types, so skip
+
+        # Generate secondary appendices if new content was found
+        secondary_data = secondary_tracker.export_for_appendix()
+        if not any(len(items) > 0 for items in secondary_data.values()):
+            return primary_appendices
+
+        # Create flags for secondary content (only generate what was referenced)
+        secondary_flags = AppendixFlags(
+            spells=flags.spells
+            and "spell" in secondary_data
+            and len(secondary_data["spell"]) > 0,
+            creatures=flags.creatures
+            and "creature" in secondary_data
+            and len(secondary_data["creature"]) > 0,
+            items=False,  # Items don't typically have references
+        )
+
+        if not secondary_flags.has_any_enabled():
+            return primary_appendices
+
+        secondary_appendices = self.generate_appendices(
+            secondary_tracker, secondary_flags
+        )
+
+        # Merge secondary content into primary appendices rather than creating separate sections
+        merged_appendices = self._merge_appendix_content(
+            primary_appendices, secondary_appendices
+        )
+
+        return merged_appendices
+
+    def _track_references_in_content(
+        self, content: str, tracker: ContentTracker
+    ) -> None:
+        """Extract and track references from rendered LaTeX content.
+
+        Args:
+            content: Rendered LaTeX content to scan for references
+            tracker: ContentTracker to store found references
+        """
+        import re
+
+        # Find and process all tags in the content
+        # This is a simplified approach - we'll look for common tag patterns
+        # Pattern to match any {@tag ...} format
+        tag_pattern = r"\{@(\w+)(?:\s+([^}]+))?\}"
+
+        for match in re.finditer(tag_pattern, content):
+            tag_type = match.group(1)
+            tag_content = match.group(2) if match.group(2) else ""
+
+            # Only track creature and spell tags for recursive references
+            if tag_type in ["creature", "spell"] and tag_content:
+                # Parse the tag content to extract name
+                # Handle formats like "creature name" or "creature name|display text"
+                parts = tag_content.split("|")
+                entity_name = parts[0].strip()
+
+                if entity_name:
+                    # Add to tracker using add_content method
+                    tracker.add_content(tag_type, entity_name, "recursive_appendix")
+
+    def _merge_appendix_content(
+        self, primary: list[AppendixSection], secondary: list[AppendixSection]
+    ) -> list[AppendixSection]:
+        """Merge secondary appendix content into primary appendices.
+
+        Args:
+            primary: Primary appendix sections
+            secondary: Secondary appendix sections to merge
+
+        Returns:
+            Merged appendix sections
+        """
+        # Create a lookup for primary appendices by content type
+        primary_by_type = {appendix.content_type: appendix for appendix in primary}
+
+        # Merge secondary content into matching primary appendices
+        for secondary_appendix in secondary:
+            content_type = secondary_appendix.content_type
+
+            if content_type in primary_by_type:
+                primary_appendix = primary_by_type[content_type]
+
+                # Add a section separator and merge the content
+                merged_content = (
+                    primary_appendix.content
+                    + "\n\n\\vspace{1em}\n"
+                    + "\\subsection{Additional "
+                    + content_type.title()
+                    + "s}\n"
+                    + secondary_appendix.content
+                )
+
+                # Update the primary appendix with merged content
+                primary_appendix.content = merged_content
+                primary_appendix.item_count += secondary_appendix.item_count
+            else:
+                # If no primary appendix exists for this type, add secondary as new
+                primary.append(secondary_appendix)
+
+        return primary
+
     def _generate_spell_appendix(
         self, tracked_spells: list[dict[str, Any]], content_tracker: ContentTracker
     ) -> AppendixSection | None:

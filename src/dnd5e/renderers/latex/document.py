@@ -795,9 +795,21 @@ This content type is not yet fully supported by the rendering system.
 
             omnidexer = context.omnidexer
             appendix_generator = AppendixGenerator(omnidexer, self.template_engine)
-            appendix_sections = appendix_generator.generate_appendices(
-                content_tracker, appendix_flags
-            )
+
+            # Check if ultimate appendix mode is enabled
+            ultimate_appendix = context.metadata.get("ultimate_appendix", False)
+
+            if ultimate_appendix:
+                # Use recursive generation for ultimate auto-appendix
+                logger.info("Using recursive appendix generation (ultimate mode)")
+                appendix_sections = appendix_generator.generate_recursive_appendices(
+                    content_tracker, appendix_flags, max_depth=2
+                )
+            else:
+                # Standard single-level appendices
+                appendix_sections = appendix_generator.generate_appendices(
+                    content_tracker, appendix_flags
+                )
 
             if not appendix_sections:
                 logger.info("No appendices generated (no tracked content found)")

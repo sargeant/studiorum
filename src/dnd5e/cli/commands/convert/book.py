@@ -141,6 +141,12 @@ def book(
         help="Generate creatures appendix with all referenced creatures",
         rich_help_panel="Appendices",
     ),
+    ultimate_appendix: bool = typer.Option(
+        False,
+        "--ultimate-appendix",
+        help="Generate recursive appendices (creatures include spells, spells include creatures)",
+        rich_help_panel="Appendices",
+    ),
 ) -> None:
     """
     📚 Convert book to LaTeX
@@ -257,6 +263,7 @@ def book(
                     "appendix_spells": appendix_spells,
                     "appendix_items": appendix_items,
                     "appendix_creatures": appendix_creatures,
+                    "ultimate_appendix": ultimate_appendix,
                 },
             )
 
