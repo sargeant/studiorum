@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/base/context.py
-# hypothesis_version: 6.136.7
-
-['10pt', '11pt', '12pt', '14pt', '17pt', '20pt', 'Base font size', 'Content type filters', 'Custom renderer data', 'Document author', 'Document date', 'Document subtitle', 'Document title', 'Fonts directory path', 'Page size for output', 'a4paper', 'a5paper', 'b5paper', 'creature', 'executivepaper', 'font_size', 'item', 'legalpaper', 'letterpaper', 'page_size', 'spell']

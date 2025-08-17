@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/models/books.py
-# hypothesis_version: 6.136.7
-
-['Authors', 'Book ID', 'Book authors', 'Book chapters', 'Book identifier', 'Book metadata', 'Cover image', 'Omnidexer', 'Publication date', 'Table of contents', 'author', 'before', 'book', 'book_id', 'book_name', 'chapter', 'contents', 'data', 'entries', 'has_content', 'is_metadata_only', 'name', 'section', 'total_chapters', 'total_entries', 'type']

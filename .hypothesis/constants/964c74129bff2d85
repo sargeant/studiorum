@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/document.py
-# hypothesis_version: 6.136.7
-
-['D&D 5e Content', 'Index', 'Table of Contents', 'Unknown', 'Unnamed Content', 'Unnamed Item', '\\today', 'abbreviation', 'article', 'author', 'book', 'compilation_timeout', 'content_items', 'content_type', 'date', 'document', 'document_footer', 'document_header', 'entries', 'font_size', 'fonts_dir', 'include_images', 'index', 'index_entries', 'keep_temp_files', 'latex', 'latex_config', 'latex_engine', 'max_passes', 'metadata', 'name', 'output_dir', 'page_size', 'show_index', 'show_progress', 'show_title_page', 'show_toc', 'source', 'subtitle', 'table_of_contents', 'tag_resolver', 'title', 'type']

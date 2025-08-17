@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/layout/multi_column.py
-# hypothesis_version: 6.136.7
-
-[1.2, 500, '\n\\flushcolumns', '1cm', '\\nopagebreak\n', '\\raggedcolumns\n', 'after', 'auto', 'balance_columns', 'before', 'column_count', 'column_sep', 'default_columns']

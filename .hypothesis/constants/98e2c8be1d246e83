@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/cli/main.py
-# hypothesis_version: 6.136.7
-
-[100, 8000, '-', '--host', '--images', '--output', '--pdf', '--port', '--reload', '--type', '--verbose', '-o', '-t', '.pdf', '.tex', '5e2pdf', 'Compile to PDF', 'Enable auto-reload', 'Enabled verbose mode', 'Host to bind to', 'INFO', 'Include images', 'Initializing', 'Input JSON file', 'Loading omnidexer', 'Output file', 'Port to bind to', 'Rendering', '__main__', 'abbreviation', 'auto', 'convert', 'creature', 'creatures', 'info', 'item', 'items', 'list', 'localhost', 'monster', 'monsters', 'name', 'not found', 'quick', 'r', 'rich', 'serve', 'setup', 'source', 'sources', 'spell', 'spells', 'stats', 'utf-8', 'version', 'w']

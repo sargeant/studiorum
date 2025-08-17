@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/config/settings.py
-# hypothesis_version: 6.136.7
-
-[3600, '.env', 'ASSETS_PATH', 'BUILD_PATH', 'CACHE_TTL', 'DATA_PATH', 'DEFAULT_PAPER_SIZE', 'ENABLE_CACHING', 'FONT_DIR', 'LATEX_ENGINE', 'LOG_LEVEL', 'MAX_DUPLICATE_ERRORS', 'MAX_WORKERS', 'OUTPUT_PATH', 'Path to asset files', 'VALIDATION_SUMMARY', 'WARNING', 'assets', 'build', 'letterpaper', 'lualatex', 'normal', 'output', 'utf-8']

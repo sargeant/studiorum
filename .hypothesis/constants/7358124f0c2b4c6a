@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/models/chapter.py
-# hypothesis_version: 6.136.7
-
-['Chapter content', 'Chapter name', 'Chapter numbering', 'Section headers', 'appendix', 'before', 'chapter', 'header', 'headers', 'identifier', 'part', 'type']

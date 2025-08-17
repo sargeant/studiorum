@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/sources/github.py
-# hypothesis_version: 6.136.7
-
-['*.json', '--branch', '--depth', '--format=%ci', '--show-current', '--version', '-1', '.git', '1', 'HEAD', 'Unknown git error', '__pycache__', 'branch', 'clone', 'commit_hash', 'current_branch', 'git', 'last_commit_date', 'local_path', 'log', 'master', 'meta.json', 'node_modules', 'package.json', 'pull', 'repositories', 'rev-parse', 'tsconfig.json']

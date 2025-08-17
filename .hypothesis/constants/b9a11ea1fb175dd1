@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/error_parser.py
-# hypothesis_version: 6.136.7
-
-[497, 500, '!', '! (.+)', '(./', '(/', ', ', '...', 'Error message', 'Error severity level', 'LaTeX Warning: (.+)', 'Line number in file', 'No errors found.', '\\((\\.?/[^)]+)', 'category', 'compilation_error', 'context', 'error', 'extract', 'fatal', 'file_path', 'font_error', 'fontspec error: (.+)', 'info', 'l\\.(\\d+)', 'missing_file', 'missing_package', 'pattern', 'severity', 'syntax_error', 'template_error', 'timeout_error', 'unknown', 'warning']

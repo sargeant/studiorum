@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/cli/commands/stats.py
-# hypothesis_version: 6.136.7
-
-[999.0, 100, '/', 'CR', 'Cantrip', 'Common', 'Content Type', 'Count', 'G', 'Gargantuan', 'H', 'Huge', 'L', 'Large', 'Level', 'Loading stats data', 'M', 'Medium', 'Mixed', 'Percentage', 'Primary Content', 'Rarity', 'S', 'School', 'Size', 'Small', 'Source', 'T', 'Tiny', 'Type', 'Unknown', 'artifact', 'blue', 'by_source', 'by_type', 'common', 'content', 'cr', 'cr_counts', 'cyan', 'green', 'legendary', 'level_counts', 'magenta', 'overview', 'rare', 'rarity', 'rarity_counts', 'red', 'right', 'school_counts', 'size_counts', 'sources', 'total_items', 'type', 'type_counts', 'uncommon', 'very rare', 'yellow', '⚡ Spells by Level', '🎒 Items by Type', '🏫 Spells by School', '💎 Items by Rarity', '📊 Content Overview', '📋 Content by Type', '📏 Creatures by Size', '📚 Source Statistics', '📚 Top Sources']

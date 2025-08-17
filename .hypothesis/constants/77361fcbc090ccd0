@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/models/nested_content.py
-# hypothesis_version: 6.136.7
-
-[100, 400, 500, 900, 1000, 'C', 'CD', 'CM', 'Column headers', 'D', 'Document type', 'I', 'IV', 'IX', 'Inset ID', 'Inset content', 'L', 'M', 'Page number', 'Rule ID', 'Rule content', 'Section ID', 'Section content', 'Table ID', 'Table caption', 'Table data', 'Type of inset', 'Type of section', 'V', 'X', 'XC', 'XL', 'before', 'inset', 'page', 'section']

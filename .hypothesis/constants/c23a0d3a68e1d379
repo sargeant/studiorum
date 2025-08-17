@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/layout/float_manager.py
-# hypothesis_version: 6.136.7
-
-[100, '\\FloatBarrier\n', '\\begin{DndMonster}', '\\begin{DndTable}', '\\begin{array}', '\\begin{figure}', '\\begin{longtable}', '\\begin{pgfpicture}', '\\begin{table}', '\\begin{tabular}', '\\begin{tikzpicture}', '\\includegraphics', 'b', 'bottom', 'float*=', 'float*=b', 'float=', 'max_floats_per_page', 'top']

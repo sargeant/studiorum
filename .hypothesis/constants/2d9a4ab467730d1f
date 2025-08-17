@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/models/adventures.py
-# hypothesis_version: 6.136.7
-
-['-', 'Adventure', 'Adventure ID', 'Adventure chapters', 'Adventure group', 'Adventure identifier', 'Adventure metadata', 'Cover image', 'Level range', 'Omnidexer', 'Publication date', 'Storyline', 'Storyline/campaign', 'UNK', 'Unknown Adventure', 'Unknown Source', 'Unnamed Chapter', 'abbreviation', 'adventure', 'adventure_id', 'adventure_name', 'after', 'contents', 'data', 'end', 'entries', 'has_content', 'id', 'identifier', 'is_metadata_only', 'level', 'name', 'ordinal', 'section', 'source', 'start', 'total_chapters', 'total_entries', 'type']

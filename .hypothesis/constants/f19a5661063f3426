@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/models/content.py
-# hypothesis_version: 6.136.7
-
-['Content name', 'URL reference', 'abbreviation', 'adventure', 'adventureInset', 'adventureLocation', 'adventureNpc', 'adventureSection', 'adventureTable', 'allow', 'background', 'before', 'book', 'bookInset', 'bookSection', 'bookTable', 'class', 'classFeature', 'creature', 'creatureFluff', 'feat', 'item', 'itemFluff', 'name', 'race', 'source', 'spell', 'spellFluff', 'subclassFeature', 'supplement', 'variantRule', 'vehicle']
