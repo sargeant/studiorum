@@ -30,7 +30,6 @@ from .base import BaseConvertCommand
 from .shared import (
     compile_pdf as compile_pdf_async,
     handle_resolution_result,
-    load_from_file,
     resolve_content_or_file,
 )
 

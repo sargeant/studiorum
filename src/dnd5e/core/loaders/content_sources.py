@@ -431,6 +431,105 @@ class InlineContentSource(BaseContentSource):
         return extracted
 
 
+class NameListFileSource(BaseContentSource):
+    """Load content names from a text file (one name per line)."""
+
+    def __init__(self, file_path: Path, content_type: ContentType) -> None:
+        super().__init__(str(file_path), f"Name list: {file_path.name}")
+        self.file_path = file_path
+        self.content_type = content_type
+        self._cached_names: list[str] | None = None
+
+    def get_metadata(self) -> ContentSourceMetadata:
+        """Get metadata about this name list source."""
+        content_count = 0
+        size_str = "unknown"
+
+        if self.file_path.exists():
+            size_bytes = self.file_path.stat().st_size
+            if size_bytes < 1024:
+                size_str = f"{size_bytes} bytes"
+            elif size_bytes < 1024 * 1024:
+                size_str = f"{size_bytes // 1024} KB"
+            else:
+                size_str = f"{size_bytes // (1024 * 1024)} MB"
+
+            try:
+                names = self._load_names()
+                content_count = len(names)
+            except Exception:
+                pass
+
+        return ContentSourceMetadata(
+            source_type="name_list",
+            location=str(self.file_path),
+            description=self.description,
+            content_count=content_count,
+            estimated_size=size_str,
+        )
+
+    def validate(self) -> ValidationResult:
+        """Validate the name list file."""
+        result = ValidationResult(is_valid=True)
+
+        if not self.file_path.exists():
+            result.add_error(f"File does not exist: {self.file_path}")
+            return result
+
+        if not self.file_path.is_file():
+            result.add_error(f"Path is not a file: {self.file_path}")
+            return result
+
+        try:
+            names = self._load_names()
+            if not names:
+                result.add_warning(f"No names found in file: {self.file_path}")
+        except Exception as e:
+            result.add_error(f"Failed to read file: {e}")
+
+        return result
+
+    def load(self) -> list[str]:  # type: ignore[override]
+        """Load names from the file."""
+        return self._load_names()
+
+    def _load_names(self) -> list[str]:
+        """Load and parse names from file."""
+        if self._cached_names is not None:
+            return self._cached_names
+
+        if not self.file_path.exists():
+            raise FileNotFoundError(f"File not found: {self.file_path}")
+
+        try:
+            with self.file_path.open("r", encoding="utf-8") as f:
+                lines = f.readlines()
+        except PermissionError:
+            raise PermissionError(f"Cannot read file: {self.file_path}")
+
+        names = []
+        for line_num, line in enumerate(lines, 1):
+            line = line.strip()
+
+            # Skip empty lines and comments
+            if not line or line.startswith("#"):
+                continue
+
+            # Handle inline comments
+            if "#" in line:
+                line = line.split("#", 1)[0].strip()
+                if not line:
+                    continue
+
+            names.append(line)
+
+        if not names:
+            raise ValueError(f"No names found in file: {self.file_path}")
+
+        self._cached_names = names
+        return names
+
+
 class StdinContentSource(BaseContentSource):
     """Load content from stdin/pipe input."""
 
@@ -597,3 +696,10 @@ def create_inline_source(
 ) -> InlineContentSource:
     """Factory function to create an inline content source."""
     return InlineContentSource(adventure_data, content_type)
+
+
+def create_name_list_source(
+    file_path: Path, content_type: ContentType
+) -> NameListFileSource:
+    """Factory function to create a name list source."""
+    return NameListFileSource(file_path, content_type)

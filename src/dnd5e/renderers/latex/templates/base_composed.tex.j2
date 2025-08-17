@@ -65,7 +65,11 @@
 
 <#-- Appendices block --#>
 <@ block appendices @>
+<@ if use_enhanced_appendices @>
+<@ include "components/appendix_enhanced.tex.j2" @>
+<@ else @>
 <@ include "components/appendix.tex.j2" @>
+<@ endif @>
 <@ endblock @>
 
 \end{document}
