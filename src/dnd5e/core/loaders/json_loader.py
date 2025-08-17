@@ -131,7 +131,10 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 item = self._resolve_base_type_inheritance(item)
 
                 # Skip other copy-template items (NPCs with missing stats)
-                if self._is_copy_template(item):
+                # But don't skip items marked for copy resolution
+                if self._is_copy_template(item) and not item.get(
+                    "_needsCopyResolution"
+                ):
                     logger.debug(
                         f"Skipping copy-template item {item.get('name', 'unknown')} in {path}"
                     )
@@ -150,9 +153,16 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 # Ensure source information is present
                 item = self._ensure_source_info(item, path)
 
-                validated_item = self._content_factory.create_content(
-                    item, self._content_type
-                )
+                # For items needing copy resolution, create a minimal placeholder object
+                if item.get("_needsCopyResolution"):
+                    validated_item = self._create_copy_placeholder(
+                        item, self._content_type
+                    )
+                else:
+                    validated_item = self._content_factory.create_content(
+                        item, self._content_type
+                    )
+
                 validated_content.append(validated_item)
             except ValidationError as e:
                 # Handle validation error with enhanced error tracking
@@ -669,49 +679,94 @@ class JsonDataLoader(DataLoader[BaseContent]):
         )
 
     def _process_copy_inheritance(self, item: dict[str, Any]) -> dict[str, Any]:
-        """Resolve _copy references during JSON loading."""
+        """Handle _copy references during JSON loading.
+
+        For now, we only resolve simple base item references (abbreviation/source).
+        Complex copy references (name/source with _mod) are marked for post-loading resolution.
+        """
         if "_copy" not in item:
             return item
 
         copy_ref = item["_copy"]
+        if not isinstance(copy_ref, dict):
+            logger.warning(
+                f"Invalid _copy reference format in item {item.get('name', 'unknown')}: expected dict, got {type(copy_ref)}"
+            )
+            return item
+
+        # Handle simple base item references (existing logic)
         if (
-            not isinstance(copy_ref, dict)
-            or "abbreviation" not in copy_ref
-            or "source" not in copy_ref
+            "abbreviation" in copy_ref
+            and "source" in copy_ref
+            and not copy_ref.get("_mod")
+            and not copy_ref.get("_templates")
         ):
-            logger.warning(
-                f"Invalid _copy reference format in item {item.get('name', 'unknown')}"
-            )
-            return item
+            copy_source_key = f"{copy_ref['abbreviation']}|{copy_ref['source']}"
+            base_items = self._get_base_items_registry()
+            source_item = base_items.get(copy_source_key)
 
-        source_key = f"{copy_ref['abbreviation']}|{copy_ref['source']}"
-        base_items = self._get_base_items_registry()
-        source_item = base_items.get(source_key)
+            if source_item:
+                # Merge properties (source properties as base, item properties override)
+                resolved_item = {**source_item, **item}
+                # Cleanup and mark as copy
+                if "_copy" in resolved_item:
+                    del resolved_item["_copy"]
+                resolved_item["_isCopy"] = True
+                logger.debug(
+                    f"Resolved simple _copy inheritance for {item.get('name', 'unknown')} from {copy_source_key}"
+                )
+                return resolved_item
+            else:
+                logger.warning(
+                    f"Could not resolve base item _copy reference: {copy_source_key} for item {item.get('name', 'unknown')}"
+                )
 
-        if not source_item:
-            logger.warning(
-                f"Could not resolve _copy reference: {source_key} for item {item.get('name', 'unknown')}"
-            )
-            return item
-
-        # Merge properties (source properties as base, item properties override)
-        resolved_item = {**source_item, **item}
-
-        # Apply _mod if present (future enhancement)
-        if "_mod" in copy_ref:
+        # For complex copy references (creature-to-creature, _mod, _templates),
+        # mark for post-loading resolution
+        if "name" in copy_ref or "_mod" in copy_ref or "_templates" in copy_ref:
+            item["_needsCopyResolution"] = True
             logger.debug(
-                f"_mod transformations not yet implemented for {item.get('name', 'unknown')}"
+                f"Marked {item.get('name', 'unknown')} for post-loading copy resolution"
             )
 
-        # Cleanup and mark as copy
-        if "_copy" in resolved_item:
-            del resolved_item["_copy"]
-        resolved_item["_isCopy"] = True
+        return item
 
-        logger.debug(
-            f"Resolved _copy inheritance for {item.get('name', 'unknown')} from {source_key}"
+    def _create_copy_placeholder(self, item: dict[str, Any], content_type: ContentType):
+        """Create a placeholder object for items needing copy resolution."""
+        # Create a minimal valid object with required fields filled with defaults
+        placeholder_data = item.copy()
+
+        if content_type == ContentType.CREATURE:
+            # Add minimal required creature fields with placeholder values
+            placeholder_data.setdefault("size", ["M"])  # Medium as default
+            placeholder_data.setdefault(
+                "type", {"type": "humanoid"}
+            )  # Generic humanoid
+            placeholder_data.setdefault("ac", [10])  # Default AC
+            placeholder_data.setdefault(
+                "hp", {"average": 1, "formula": "1d1"}
+            )  # Minimal HP
+            placeholder_data.setdefault("speed", {"walk": 30})  # Default speed
+            # Default ability scores (all 10s)
+            placeholder_data.setdefault("str", 10)
+            placeholder_data.setdefault("dex", 10)
+            placeholder_data.setdefault("con", 10)
+            placeholder_data.setdefault("int", 10)
+            placeholder_data.setdefault("wis", 10)
+            placeholder_data.setdefault("cha", 10)
+
+        # Create the content object with the placeholder data
+        content_obj = self._content_factory.create_content(
+            placeholder_data, content_type
         )
-        return resolved_item
+
+        # Preserve the copy resolution flag and original copy data as attributes
+        if item.get("_needsCopyResolution"):
+            content_obj._needsCopyResolution = True
+        if "_copy" in item:
+            content_obj._copy = item["_copy"]
+
+        return content_obj
 
     def _resolve_base_type_inheritance(self, item: dict[str, Any]) -> dict[str, Any]:
         """Resolve inheritance from base types for items that reference base items by type."""
@@ -757,7 +812,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
     def _is_copy_template(self, item: dict[str, Any]) -> bool:
         """Check if this item is a copy-template that references other content."""
-        # _copy items are now resolved, so this only checks for other template types
+        # Items with _copy references or marked for copy resolution should not be considered templates
+        if "_copy" in item or item.get("_needsCopyResolution"):
+            return False
 
         # Check for NPC/template markers that indicate incomplete data
         if item.get("isNpc"):
@@ -1174,7 +1231,10 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 item = self._resolve_base_type_inheritance(item)
 
                 # Skip other copy-template items (NPCs with missing stats)
-                if self._is_copy_template(item):
+                # But don't skip items marked for copy resolution
+                if self._is_copy_template(item) and not item.get(
+                    "_needsCopyResolution"
+                ):
                     logger.debug(
                         f"Skipping copy-template item {item.get('name', 'unknown')} in {path}"
                     )
