@@ -4,6 +4,7 @@ import asyncio
 import os
 from enum import Enum
 from pathlib import Path
+from typing import Any, Protocol, Union
 
 import typer
 from rich import print as rprint
@@ -23,6 +24,12 @@ from dnd5e.renderers.core.interfaces import RenderingContext
 
 from ..base import AppendixMixin, BaseConvertCommand
 from ..shared import compile_pdf as compile_pdf_async
+
+
+class TyperOptionInfo(Protocol):
+    """Protocol for Typer OptionInfo objects that have a default value."""
+
+    default: Any
 
 
 class CreatureSortMode(str, Enum):
@@ -531,8 +538,12 @@ def creatures(
         try:
             # Handle potential parameter resolution issues when called directly in tests
             # This is needed because Typer parameter resolution doesn't work properly in direct calls
-            def normalize_typer_param(param, expected_type=None, default=None):
-                """Normalize Typer parameters that may be OptionInfo objects."""
+            def normalize_typer_param(param: Any | TyperOptionInfo) -> Any:
+                """Normalize Typer parameters that may be OptionInfo objects.
+
+                When Typer functions are called directly (in tests), parameters
+                may be OptionInfo objects instead of resolved values.
+                """
                 if hasattr(param, "default"):  # It's a Typer OptionInfo object
                     return param.default
                 return param
@@ -569,7 +580,7 @@ def creatures(
                 sources
 
             from_file = normalize_typer_param(from_file)
-            from_stdin = normalize_typer_param(from_stdin, bool, False)
+            from_stdin = normalize_typer_param(from_stdin)
             cr_range = normalize_typer_param(cr_range)
             min_cr = normalize_typer_param(min_cr)
             max_cr = normalize_typer_param(max_cr)
