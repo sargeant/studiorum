@@ -2019,6 +2019,41 @@ class QuickrefTagHandler(BaseTagHandler):
             return ""
 
 
+class HitYourSpellAttackTagHandler(BaseTagHandler):
+    """Handler for hit your spell attack tags like {@hitYourSpellAttack}."""
+
+    def __init__(self) -> None:
+        super().__init__("hitYourSpellAttack")
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="Placeholder",
+            display_text="Placeholder",
+            source=None,
+            page=None,
+            content_type=ContentType.ACTION,
+            format_style=FormatStyle.PLAIN,
+        )
+
+    def get_content_reference_info(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo | None:
+        """Not a content reference - return None."""
+        return None
+
+    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+        """Process hit your spell attack tags."""
+        # Get display text if provided, otherwise use default
+        display_text = getattr(tag_node, "display_text", None)
+        if display_text and isinstance(display_text, str):
+            return str(display_text)
+        else:
+            return "your spell attack modifier"
+
+
 # Registry of core handlers for easy access
 def get_default_core_handlers() -> list[TagHandler]:
     """Get the list of default core tag handlers."""
@@ -2061,4 +2096,5 @@ def get_default_core_handlers() -> list[TagHandler]:
         TableTagHandler(),
         NoteTagHandler(),
         QuickrefTagHandler(),
+        HitYourSpellAttackTagHandler(),
     ]

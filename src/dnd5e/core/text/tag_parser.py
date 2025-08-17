@@ -411,15 +411,15 @@ class TagASTTransformer(Transformer):
 
         elif tag_type == "atkr":
             # Attack roll tags have format: attack_types (e.g., "m", "r", "m,r")
-            node = TagNode(tag_type)
-            node.name = name  # Contains attack roll type abbreviations
-            return node
+            from dnd5e.core.text.tag_ast import AttackRollTagNode
+
+            return AttackRollTagNode(name)
 
         elif tag_type == "h":
             # Hit result tags - simple marker
-            node = TagNode(tag_type)
-            node.name = name  # Usually empty or contains bonus
-            return node
+            from dnd5e.core.text.tag_ast import HitResultTagNode
+
+            return HitResultTagNode(name)
 
         elif tag_type == "hit":
             # Hit bonus tags have format: bonus_value
@@ -432,6 +432,13 @@ class TagASTTransformer(Transformer):
             node = TagNode(tag_type)
             node.name = name  # Usually empty
             return node
+
+        elif tag_type == "hitYourSpellAttack":
+            # Hit your spell attack tags - display as spell attack modifier
+            from dnd5e.core.text.tag_ast import HitYourSpellAttackTagNode
+
+            display_text = self._nodes_to_text(source_nodes) if source_nodes else None
+            return HitYourSpellAttackTagNode(display_text)
 
         # Action and save tags
         elif tag_type == "actSave":

@@ -377,6 +377,51 @@ class RechargeTagNode(TagNode):
         return f"RechargeTagNode(recharge={self.recharge!r}, flags={self.flags!r})"
 
 
+class HitYourSpellAttackTagNode(TagNode):
+    """Node representing a hit your spell attack tag."""
+
+    def __init__(
+        self,
+        display_text: str | None = None,
+        original_text_span: TextSpan | None = None,
+    ):
+        super().__init__("hitYourSpellAttack", original_text_span)
+        self.display_text = display_text or "your spell attack modifier"
+
+    def __repr__(self) -> str:
+        return f"HitYourSpellAttackTagNode(display_text={self.display_text!r})"
+
+
+class AttackRollTagNode(TagNode):
+    """Node representing an attack roll tag (@atkr)."""
+
+    def __init__(
+        self,
+        attack_types: str,
+        original_text_span: TextSpan | None = None,
+    ):
+        super().__init__("atkr", original_text_span)
+        self.attack_types = attack_types  # e.g., "m", "r", "m,r"
+
+    def __repr__(self) -> str:
+        return f"AttackRollTagNode(attack_types={self.attack_types!r})"
+
+
+class HitResultTagNode(TagNode):
+    """Node representing a hit result tag (@h)."""
+
+    def __init__(
+        self,
+        bonus: str | None = None,
+        original_text_span: TextSpan | None = None,
+    ):
+        super().__init__("h", original_text_span)
+        self.bonus = bonus or ""
+
+    def __repr__(self) -> str:
+        return f"HitResultTagNode(bonus={self.bonus!r})"
+
+
 # Reference Tags
 
 
