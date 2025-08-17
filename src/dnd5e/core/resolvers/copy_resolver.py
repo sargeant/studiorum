@@ -79,7 +79,53 @@ class CopyResolver:
         target_dict = self._item_to_dict(item)
 
         # Create base copy (source properties as base, target properties override)
-        resolved_dict = {**source_dict, **target_dict}
+        # For copy operations, most fields should come from source (base creature)
+        # Only specific fields from target should override (like alignment, specific traits)
+        resolved_dict = source_dict.copy()
+
+        # Override with specific target properties, but exclude placeholder fields
+        placeholder_fields = {
+            "ac",
+            "hp",
+            "speed",
+            "strength",
+            "dexterity",
+            "constitution",
+            "intelligence",
+            "wisdom",
+            "charisma",
+            "save",
+            "skill",
+            "resist",
+            "immune",
+            "conditionImmune",
+            "senses",
+            "passive",
+            "cr",
+            "trait",
+            "action",
+            "reaction",
+            "legendary",
+            "mythic",
+            "spellcasting",
+        }
+
+        for key, value in target_dict.items():
+            # Include copy metadata and specific overrides, but skip placeholder stats
+            if (
+                key.startswith("_")
+                or key
+                in {
+                    "name",
+                    "source",
+                    "alignment",
+                    "isNpc",
+                    "isNamedCreature",
+                    "hasToken",
+                }
+                or key not in placeholder_fields
+            ):
+                resolved_dict[key] = value
 
         # Apply _mod transformations if present
         if "_mod" in copy_ref:
