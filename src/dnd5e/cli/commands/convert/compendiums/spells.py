@@ -4,8 +4,13 @@ import asyncio
 import os
 from enum import Enum
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import typer
+
+if TYPE_CHECKING:
+    from dnd5e.core.interfaces import TagResolver
+    from dnd5e.core.references.content_reference_manager import ContentReferenceManager
 from rich import print as rprint
 
 from dnd5e.cli.config_factory import (
@@ -20,7 +25,7 @@ from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.models.spells import Spell
 from dnd5e.renderers.core.interfaces import RenderingContext
 
-from ..base import BaseConvertCommand
+from ..base import AppendixMixin, BaseConvertCommand
 from ..shared import compile_pdf as compile_pdf_async
 
 
@@ -29,6 +34,36 @@ class SpellSortMode(str, Enum):
 
     LEVEL = "level"
     NAME = "name"
+
+
+def _combine_spellbook_and_appendix(
+    spellbook_content: str, appendix_content: str
+) -> str:
+    """Combine spellbook and creature appendix content."""
+    # Handle different possible return types from appendix generation
+    if hasattr(appendix_content, "content"):
+        # It's an AppendixSection object
+        appendix_latex = appendix_content.content
+    elif isinstance(appendix_content, list) and len(appendix_content) > 0:
+        # It's a list of AppendixSection objects
+        appendix_latex = "\n\n".join(
+            section.content
+            for section in appendix_content
+            if hasattr(section, "content")
+        )
+    elif isinstance(appendix_content, str):
+        # It's already a string
+        appendix_latex = appendix_content
+    else:
+        # Fallback to string representation
+        appendix_latex = str(appendix_content)
+
+    # Find the end of main content (before \end{document})
+    if "\\end{document}" in spellbook_content:
+        main_content, document_end = spellbook_content.rsplit("\\end{document}", 1)
+        return f"{main_content}\n\n{appendix_latex}\n\\end{{document}}{document_end}"
+    else:
+        return f"{spellbook_content}\n\n{appendix_latex}"
 
 
 def _render_spellbook(
@@ -70,6 +105,8 @@ def _render_spellbook(
         show_spell_table_of_contents=show_toc,
         # Add helper functions
         ordinal=_ordinal_number,
+        # Pass rendering context for proper tag tracking
+        rendering_context=context,
     )
 
     # Render using spellbook template
@@ -286,6 +323,13 @@ def spells(
         False,
         "--optional-spells",
         help="Include optional/variant class spells",
+        rich_help_panel="Output Control",
+    ),
+    # Appendix options
+    creatures: bool = typer.Option(
+        False,
+        "--creatures/--no-creatures",
+        help="Generate creatures appendix with spell-referenced creatures",
         rich_help_panel="Output Control",
     ),
 ) -> None:
@@ -563,10 +607,22 @@ def spells(
                 use_parts=False,
             )
 
+            # Create ContentTracker for creature reference tracking if needed
+            appendix_mixin = AppendixMixin()
+            reference_manager = (
+                appendix_mixin.create_reference_manager(omnidexer)
+                if creatures
+                else None
+            )
+            content_tracker = (
+                reference_manager.get_content_tracker() if reference_manager else None
+            )
+
             # Create render context with spellbook-specific data
             context = RenderingContext(
                 output_format="latex",
                 omnidexer=omnidexer,
+                content_tracker=content_tracker,
                 metadata={
                     "title": spell_title,
                     "include_images": with_images,
@@ -581,6 +637,7 @@ def spells(
                     if result.sources_used
                     else [],
                     "template": "spellbook",  # Use spellbook template
+                    "creatures": creatures,  # Pass flag to rendering pipeline
                 },
             )
 
@@ -598,6 +655,30 @@ def spells(
                     show_toc,
                 )
                 display_manager.update_task(render_task, completed=100)
+
+            # Generate creature appendix if requested
+            if creatures and content_tracker:
+                from dnd5e.core.services.appendix_generator import (
+                    AppendixFlags,
+                    AppendixGenerator,
+                )
+                from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
+
+                # Generate creature appendix (reference tracking happens automatically during template rendering)
+                appendix_flags = AppendixFlags(
+                    creatures=True, spells=False, items=False
+                )
+                template_engine = LaTeXTemplateEngine()
+                appendix_generator = AppendixGenerator(omnidexer, template_engine)
+                creature_appendix = appendix_generator.generate_appendices(
+                    content_tracker, appendix_flags
+                )
+
+                # Combine outputs
+                if creature_appendix:
+                    latex_result = _combine_spellbook_and_appendix(
+                        latex_result, creature_appendix
+                    )
 
             # Write output
             output_path.parent.mkdir(parents=True, exist_ok=True)

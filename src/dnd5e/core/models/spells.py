@@ -1,6 +1,9 @@
 """Spell data models."""
 
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from ...renderers.core.interfaces import RenderingContext
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -295,26 +298,34 @@ class Spell(BaseContent):
 
         return ", ".join(parts)
 
-    def get_description_text(self) -> str:
-        """Extract text from complex entry structures using proper entry processing."""
-        from ...cli.utils import get_tag_resolver
+    def get_description_text(self, context: "RenderingContext | None" = None) -> str:
+        """Extract text from complex entry structures using proper entry processing.
+
+        Args:
+            context: Optional rendering context with reference tracking. If None,
+                    creates a default context for backward compatibility.
+        """
         from ...renderers.core.interfaces import RenderingContext
         from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
-        # Get the tag resolver for proper tag processing
-        tag_resolver = get_tag_resolver()
+        # Use provided context or create default for backward compatibility
+        if context is None:
+            from ...cli.utils import get_tag_resolver
 
-        # Create a proper rendering context for entry processing
-        context = RenderingContext(
-            output_format="latex",
-            debug_mode=False,
-            tag_resolver=tag_resolver,
-            metadata={
-                "source_name": self.source or "unknown",
-                "tag_resolver": tag_resolver,
-                "content_type": "spell",
-            },
-        )
+            # Get the tag resolver for proper tag processing
+            tag_resolver = get_tag_resolver()
+
+            # Create a proper rendering context for entry processing
+            context = RenderingContext(
+                output_format="latex",
+                debug_mode=False,
+                tag_resolver=tag_resolver,
+                metadata={
+                    "source_name": self.source or "unknown",
+                    "tag_resolver": tag_resolver,
+                    "content_type": "spell",
+                },
+            )
 
         from ...core.entry_registry import ValidationMode
 
@@ -349,29 +360,37 @@ class Spell(BaseContent):
         # Join with double newlines to create proper paragraph breaks for LaTeX
         return "\n\n".join(formatted_paragraphs)
 
-    def get_higher_level_text(self) -> str:
-        """Extract text from complex higher level entries using proper entry processing."""
+    def get_higher_level_text(self, context: "RenderingContext | None" = None) -> str:
+        """Extract text from complex higher level entries using proper entry processing.
+
+        Args:
+            context: Optional rendering context with reference tracking. If None,
+                    creates a default context for backward compatibility.
+        """
         if not self.higher_level:
             return ""
 
-        from ...cli.utils import get_tag_resolver
         from ...renderers.core.interfaces import RenderingContext
         from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
-        # Get the tag resolver for proper tag processing
-        tag_resolver = get_tag_resolver()
+        # Use provided context or create default for backward compatibility
+        if context is None:
+            from ...cli.utils import get_tag_resolver
 
-        # Create a proper rendering context for entry processing
-        context = RenderingContext(
-            output_format="latex",
-            debug_mode=False,
-            tag_resolver=tag_resolver,
-            metadata={
-                "source_name": self.source or "unknown",
-                "tag_resolver": tag_resolver,
-                "content_type": "spell",
-            },
-        )
+            # Get the tag resolver for proper tag processing
+            tag_resolver = get_tag_resolver()
+
+            # Create a proper rendering context for entry processing
+            context = RenderingContext(
+                output_format="latex",
+                debug_mode=False,
+                tag_resolver=tag_resolver,
+                metadata={
+                    "source_name": self.source or "unknown",
+                    "tag_resolver": tag_resolver,
+                    "content_type": "spell",
+                },
+            )
 
         from ...core.entry_registry import ValidationMode
 
