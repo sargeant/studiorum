@@ -166,10 +166,10 @@ class TestContentTracker:
         tracked = tracker.get_tracked_content()
         assert len(tracked) == 2
 
-        # Check that content exists (order may vary) - names are normalized to lowercase
+        # Check that content exists (order may vary) - names preserve original case
         types_and_names = [(c.content_type, c.name, c.source) for c in tracked]
-        assert ("creature", "ancient red dragon", "MM") in types_and_names
-        assert ("spell", "fireball", "PHB") in types_and_names
+        assert ("creature", "Ancient Red Dragon", "MM") in types_and_names
+        assert ("spell", "Fireball", "PHB") in types_and_names
 
     def test_content_tracker_deduplication(self) -> None:
         """Test that duplicate content is not tracked multiple times."""
@@ -185,7 +185,7 @@ class TestContentTracker:
 
         content = tracked[0]
         assert content.content_type == "spell"  # Normalized to lowercase
-        assert content.name == "fireball"  # Normalized to lowercase
+        assert content.name == "Fireball"  # Preserves original case of first occurrence
         assert content.source == "PHB"
 
         # Check reference count is incremented for all three additions
@@ -217,9 +217,9 @@ class TestContentTracker:
 
         # Should be sorted by: content_type, name, source
         expected_order = [
-            ("creature", "ancient red dragon", "MM"),  # Names normalized to lowercase
-            ("spell", "fireball", "PHB"),
-            ("spell", "zephyr strike", "PHB"),
+            ("creature", "Ancient Red Dragon", "MM"),  # Names preserve original case
+            ("spell", "Fireball", "PHB"),
+            ("spell", "Zephyr Strike", "PHB"),
         ]
 
         actual_order = [(c.content_type, c.name, c.source) for c in tracked]
@@ -246,11 +246,13 @@ class TestContentTracker:
         )
         assert content.content_type == "spell"
 
-        # Test name stripping and normalization
+        # Test name stripping (preserves original case)
         content2: Any = TrackedContent(
             content_type="spell", name="  Fireball  ", source="PHB"
         )
-        assert content2.name == "fireball"  # Names are normalized to lowercase
+        assert (
+            content2.name == "Fireball"
+        )  # Names preserve original case, whitespace stripped
 
         # Test source stripping
         content3: Any = TrackedContent(

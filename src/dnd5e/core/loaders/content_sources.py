@@ -241,6 +241,11 @@ class FileContentSource(BaseContentSource):
 
             with open(self.file_path, encoding="utf-8") as f:
                 self._cached_data = json.load(f)
+
+        # Type guard to ensure we return the expected type
+        if self._cached_data is None:
+            raise ValueError("Failed to load JSON data from file")
+
         return self._cached_data
 
     def _count_content_items(self, data: dict[str, Any]) -> int:
@@ -467,6 +472,10 @@ class StdinContentSource(BaseContentSource):
 
         if self._cached_data is None:
             self._cached_data = sys.stdin.read()
+
+        # Type guard to ensure _cached_data is not None
+        if self._cached_data is None:
+            raise ValueError("Failed to read data from stdin")
 
         try:
             data = json.loads(self._cached_data)

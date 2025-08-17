@@ -35,6 +35,16 @@ class BaseConvertCommand:
         omnidexer = get_global_container().get_omnidexer()
         self._content_reference_manager = ContentReferenceManager(omnidexer)
 
+    def _safe_getattr(self, obj: Any, attr_path: str) -> Any:
+        """Safely get nested attribute, returning None if any part is missing."""
+        try:
+            result = obj
+            for attr in attr_path.split("."):
+                result = getattr(result, attr)
+            return result
+        except AttributeError:
+            return None
+
     @staticmethod
     def get_common_parameters() -> dict[str, Any]:
         """Return common parameter definitions."""
@@ -65,54 +75,112 @@ class BaseConvertCommand:
         two_column = cli_args.get("two_column")
         justified = cli_args.get("justified")
 
+        # Extract additional CLI values
+        title = cli_args.get("title")
+        author = cli_args.get("author")
+        main_font = cli_args.get("main_font")
+        sans_font = cli_args.get("sans_font")
+        mono_font = cli_args.get("mono_font")
+        output_dir = cli_args.get("output_dir")
+
         # Apply hierarchy for each configuration option
         actual_config = {
             "paper_size": (
                 paper
-                or user_config.latex.paper_size
+                or self._safe_getattr(user_config, "latex.paper_size")
                 or app_config.rendering.latex.document.paper_size
             ),
             "fonts": (
                 fonts
-                or user_config.latex.fonts
+                or self._safe_getattr(user_config, "latex.fonts")
                 or app_config.rendering.latex.document.fonts
+            ),
+            "main_font": (
+                main_font
+                or self._safe_getattr(user_config, "latex.fonts.main_font")
+                or None  # No specific main_font in app config structure
+            ),
+            "sans_font": (
+                sans_font
+                or self._safe_getattr(user_config, "latex.fonts.sans_font")
+                or None  # No specific sans_font in app config structure
+            ),
+            "mono_font": (
+                mono_font
+                or self._safe_getattr(user_config, "latex.fonts.mono_font")
+                or None  # No specific mono_font in app config structure
+            ),
+            "title": (
+                title
+                or self._safe_getattr(user_config, "latex.title")
+                or None  # No title in app config document structure
+            ),
+            "author": (
+                author
+                or self._safe_getattr(user_config, "latex.author")
+                or None  # No author in app config document structure
+            ),
+            "margin_top": (
+                cli_args.get("margin_top")
+                or self._safe_getattr(user_config, "latex.margin_top")
+                or "1in"  # Default margin
+            ),
+            "margin_bottom": (
+                cli_args.get("margin_bottom")
+                or self._safe_getattr(user_config, "latex.margin_bottom")
+                or "1in"  # Default margin
+            ),
+            "margin_left": (
+                cli_args.get("margin_left")
+                or self._safe_getattr(user_config, "latex.margin_left")
+                or "1in"  # Default margin
+            ),
+            "margin_right": (
+                cli_args.get("margin_right")
+                or self._safe_getattr(user_config, "latex.margin_right")
+                or "1in"  # Default margin
+            ),
+            "output_directory": (
+                output_dir
+                or self._safe_getattr(user_config, "output_directory")
+                or app_config.paths.output_path
             ),
             "background": (
                 background
-                or user_config.latex.background
+                or self._safe_getattr(user_config, "latex.background")
                 or app_config.rendering.latex.document.background
             ),
             "no_outline": (
                 no_outline
                 if no_outline is not None
-                else user_config.latex.no_outline
-                if user_config.latex.no_outline is not None
+                else self._safe_getattr(user_config, "latex.no_outline")
+                if self._safe_getattr(user_config, "latex.no_outline") is not None
                 else app_config.rendering.latex.document.no_outline
             ),
             "font_size": (
                 font_size
-                or user_config.latex.font_size
+                or self._safe_getattr(user_config, "latex.font_size")
                 or app_config.rendering.latex.document.font_size
             ),
             "high_contrast": (
                 high_contrast
                 if high_contrast is not None
-                else user_config.latex.high_contrast
-                if user_config.latex.high_contrast is not None
+                else self._safe_getattr(user_config, "latex.high_contrast")
+                if self._safe_getattr(user_config, "latex.high_contrast") is not None
                 else app_config.rendering.latex.document.high_contrast
             ),
             "two_column": (
                 two_column
                 if two_column is not None
-                else user_config.latex.two_column
-                if user_config.latex.two_column is not None
+                else self._safe_getattr(user_config, "latex.two_column")
+                if self._safe_getattr(user_config, "latex.two_column") is not None
                 else app_config.rendering.latex.document.two_column
             ),
             "justified": (
                 justified
                 if justified is not None
-                else user_config.latex.justified
-                if user_config.latex.justified is not None
+                else self._safe_getattr(user_config, "latex.justified")
+                if self._safe_getattr(user_config, "latex.justified") is not None
                 else app_config.rendering.latex.document.justified_text
             ),
         }
@@ -136,7 +204,7 @@ class BaseConvertCommand:
 
             omnidexer = get_global_container().get_omnidexer()
             # Convert string to ContentType enum
-            content_type_enum = ContentType(content_type.upper())
+            content_type_enum = ContentType(content_type.lower())
             source = create_omnidexer_source(omnidexer, content_type_enum)
             loader.add_source(source)
 

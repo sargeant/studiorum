@@ -453,7 +453,9 @@ class Spellcasting(BaseModel):
     """Creature spellcasting ability."""
 
     name: str = Field(..., description="Name of the spellcasting feature")
-    type: str = Field(..., description="Type of spellcasting (e.g., 'spellcasting')")
+    type: str | None = Field(
+        None, description="Type of spellcasting (e.g., 'spellcasting')"
+    )
     headerEntries: list[str] | None = Field(None, description="Descriptive header text")
     footerEntries: list[str] | None = Field(None, description="Descriptive footer text")
     spells: dict[str, SpellcasterSpells] | None = Field(
@@ -538,8 +540,9 @@ class Spellcasting(BaseModel):
 
             # Add header entries
             if self.headerEntries:
+                # Cast to correct type - headerEntries is list[str] but process_entries expects list[str | dict[str, Any]]
                 processed_headers = processor.process_entries(
-                    self.headerEntries, context
+                    cast(list[str | dict[str, Any]], self.headerEntries), context
                 )
                 description_parts.extend(processed_headers)
 
@@ -584,8 +587,9 @@ class Spellcasting(BaseModel):
 
             # Add footer entries
             if self.footerEntries:
+                # Cast to correct type - footerEntries is list[str] but process_entries expects list[str | dict[str, Any]]
                 processed_footers = processor.process_entries(
-                    self.footerEntries, context
+                    cast(list[str | dict[str, Any]], self.footerEntries), context
                 )
                 description_parts.extend(processed_footers)
 
@@ -1187,8 +1191,9 @@ class Creature(BaseContent):
                     condition_parts.append(condition)
                 elif isinstance(condition, dict):
                     # Handle complex condition immunity structure
+                    # Cast DamageDict to dict for the method
                     formatted_condition = self._format_condition_immunity_dict(
-                        condition
+                        cast(dict[str, Any], condition)
                     )
                     if formatted_condition:
                         condition_parts.append(formatted_condition)
@@ -1351,8 +1356,8 @@ class Creature(BaseContent):
 
                 # Extract spells from spell lists
                 if spellcasting_feature.spells:
-                    for level, spell_list in spellcasting_feature.spells.items():
-                        for spell in spell_list.spells:
+                    for level, spell_level_data in spellcasting_feature.spells.items():
+                        for spell in spell_level_data.spells:
                             references = SpellReferenceParser.extract_spell_references(
                                 spell
                             )
@@ -1368,7 +1373,9 @@ class Creature(BaseContent):
 
                 # Extract daily spells
                 if spellcasting_feature.daily:
-                    for frequency, spell_list in spellcasting_feature.daily.items():
+                    # Type annotation: daily is dict[str, list[str]]
+                    daily_spells: dict[str, list[str]] = spellcasting_feature.daily
+                    for frequency, spell_list in daily_spells.items():
                         for spell in spell_list:
                             references = SpellReferenceParser.extract_spell_references(
                                 spell

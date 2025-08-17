@@ -24,8 +24,8 @@ class TrackedContent(BaseModel):
     @field_validator("name")
     @classmethod
     def normalize_name(cls, v: str) -> str:
-        """Normalize name by stripping whitespace and converting to lowercase."""
-        return v.strip().lower()
+        """Normalize name by stripping whitespace (preserve original case)."""
+        return v.strip()
 
     @field_validator("source")
     @classmethod
@@ -40,15 +40,15 @@ class TrackedContent(BaseModel):
         return v.strip() if v else None
 
     def to_tuple(self) -> tuple[str, str, str | None]:
-        """Convert to tuple for set operations."""
-        return (self.content_type, self.name, self.source)
+        """Convert to tuple for set operations (case-insensitive for deduplication)."""
+        return (self.content_type.lower(), self.name.lower(), self.source)
 
     def __hash__(self) -> int:
-        """Hash based on type, name, and source."""
+        """Hash based on type, name, and source (case-insensitive)."""
         return hash(self.to_tuple())
 
     def __eq__(self, other: object) -> bool:
-        """Equality based on type, name, and source."""
+        """Equality based on type, name, and source (case-insensitive)."""
         if not isinstance(other, TrackedContent):
             return False
         return self.to_tuple() == other.to_tuple()

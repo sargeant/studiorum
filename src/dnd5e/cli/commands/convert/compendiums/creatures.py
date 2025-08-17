@@ -852,26 +852,23 @@ def creatures(
                 from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
 
                 # Create template engine for appendix generation
-                template_engine = LaTeXTemplateEngine()
+                LaTeXTemplateEngine()
 
                 # Create appendix flags
-                appendix_flags = AppendixFlags(
-                    spells=True, creatures=False, items=False
-                )
+                AppendixFlags(spells=True, creatures=False, items=False)
 
                 # Unified Reference Tracking:
                 # Use the unified reference system to automatically track spell references
                 with display_manager.progress("Extracting spell references") as _:
-                    appendix_mixin.track_deep_index_references(
-                        reference_manager,
-                        sorted_creatures,
-                        context="creature spellcasting abilities",
-                    )
+                    if reference_manager:
+                        appendix_mixin.track_deep_index_references(
+                            reference_manager,
+                            sorted_creatures,
+                            context="creature spellcasting abilities",
+                        )
 
                 # Generate spell appendix using unified system
-                spell_appendix = appendix_mixin.generate_appendices(
-                    reference_manager, appendix_flags, template_engine, omnidexer
-                )
+                spell_appendix = appendix_mixin.generate_appendices()
 
                 # Combine outputs if appendix was generated
                 if spell_appendix:

@@ -12,6 +12,8 @@ All errors provide rich context for debugging and user-friendly messages.
 from collections.abc import Callable
 from typing import Any
 
+from ..logging.logger import get_logger
+
 
 class ArchitectureError(Exception):
     """Base exception for architecture-related errors."""
@@ -131,11 +133,17 @@ def handle_content_source_error(func: Callable[..., Any]) -> Callable[..., Any]:
             )
             source_type = type(args[0]).__name__ if args else "unknown"
 
+            # Extract clean error message
+            if hasattr(e, "args") and e.args:
+                original_error = str(e.args[0])
+            else:
+                original_error = str(e)
+
             raise ContentSourceError(
                 f"Unexpected error in content source operation: {e}",
                 source_location=source_location,
                 source_type=source_type,
-                original_error=str(e),
+                original_error=original_error,
                 original_type=type(e).__name__,
             ) from e
 
@@ -144,6 +152,7 @@ def handle_content_source_error(func: Callable[..., Any]) -> Callable[..., Any]:
 
 def handle_reference_tracking_error(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to handle reference tracking errors consistently."""
+    import inspect
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
@@ -152,15 +161,39 @@ def handle_reference_tracking_error(func: Callable[..., Any]) -> Callable[..., A
             # Re-raise architecture errors as-is
             raise
         except Exception as e:
-            # Extract context from arguments
+            # Extract context from arguments and function defaults
             reference_type = kwargs.get("content_type", "unknown")
             reference_name = kwargs.get("name", "unknown")
+
+            # If not found in kwargs, check function signature for defaults
+            if reference_type == "unknown" or reference_name == "unknown":
+                try:
+                    sig = inspect.signature(func)
+                    # Get bound arguments to resolve defaults
+                    bound_args = sig.bind(*args, **kwargs)
+                    bound_args.apply_defaults()
+
+                    if reference_type == "unknown":
+                        reference_type = bound_args.arguments.get(
+                            "content_type", "unknown"
+                        )
+                    if reference_name == "unknown":
+                        reference_name = bound_args.arguments.get("name", "unknown")
+                except Exception:
+                    # If signature inspection fails, fall back to defaults
+                    pass
+
+            # Extract clean error message
+            if hasattr(e, "args") and e.args:
+                original_error = str(e.args[0])
+            else:
+                original_error = str(e)
 
             raise ReferenceTrackingError(
                 f"Unexpected error in reference tracking: {e}",
                 reference_type=reference_type,
                 reference_name=reference_name,
-                original_error=str(e),
+                original_error=original_error,
                 original_type=type(e).__name__,
             ) from e
 
@@ -188,8 +221,6 @@ def format_error_for_user(error: ArchitectureError) -> str:
 def log_architecture_error(error: ArchitectureError, logger: Any = None) -> None:
     """Log an architecture error with full context."""
     if logger is None:
-        from ..logging import get_logger
-
         logger = get_logger(__name__)
 
     # Log the error with full context
