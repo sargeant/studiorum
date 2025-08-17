@@ -463,12 +463,27 @@ class Omnidexer:
 
         return matches
 
-    def get_all_by_type(self, content_type: ContentType) -> list[BaseContent]:
-        """Get all content of a specific type."""
+    def get_all_by_type(self, content_type: ContentType | str) -> list[BaseContent]:
+        """Get all content of a specific type.
+
+        Args:
+            content_type: ContentType enum or string value
+
+        Returns:
+            List of content items of the specified type
+        """
+        # Convert string to ContentType enum for backward compatibility
+        if isinstance(content_type, str):
+            try:
+                content_type = ContentType(content_type)
+            except ValueError:
+                # If the string doesn't match a valid ContentType, return empty list
+                return []
+
         if content_type not in self._by_type:
             return []
         # Type cast needed due to Any type in IndexEntry.content
-        return [entry.content for entry in self._by_type[content_type].values()]  # type: ignore[misc]
+        return [entry.content for entry in self._by_type[content_type].values()]  # type: ignore[misc]  # type: ignore[misc]
 
     def get_all_by_source(self, source: str) -> list[BaseContent]:
         """Get all content from a specific source."""
