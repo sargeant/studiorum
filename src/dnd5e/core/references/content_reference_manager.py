@@ -61,10 +61,13 @@ class ContentReferenceManager:
     It automatically manages deduplication and provides unified appendix generation.
     """
 
-    def __init__(self, omnidexer: Omnidexer | None = None):
+    def __init__(self, omnidexer: Omnidexer | None = None) -> None:
         self.omnidexer = omnidexer
         self._references: list[ContentReference] = []
         self._reference_counts: dict[tuple[str, str, str | None], int] = {}
+
+        # Performance optimization: Use sets for fast deduplication
+        self._reference_keys: set[tuple[str, str, str | None]] = set()
 
         # Keep ContentTracker for backward compatibility
         self._content_tracker = ContentTracker()
@@ -102,15 +105,21 @@ class ContentReferenceManager:
             reference_source=reference_source,
         )
 
-        # Add to our tracking
-        self._references.append(reference)
-
-        # Track reference count
+        # Performance optimization: Check for duplicates before adding
         key = (content_type.lower(), name.lower(), source)
-        self._content_tracker.add_content(
-            content_type=content_type, name=name, source=source, page=page
-        )
+
+        # Always increment reference count
         self._reference_counts[key] = self._reference_counts.get(key, 0) + 1
+
+        # Only add to tracking if not already seen (for first occurrence tracking)
+        if key not in self._reference_keys:
+            self._reference_keys.add(key)
+            self._references.append(reference)
+
+            # Add to ContentTracker (only once per unique reference)
+            self._content_tracker.add_content(
+                content_type=content_type, name=name, source=source, page=page
+            )
 
     def track_tag_reference(
         self,
@@ -137,7 +146,7 @@ class ContentReferenceManager:
         )
 
     def track_deep_index_references(
-        self, content: BaseContent & DeepIndexable, context: str = "deep indexing"
+        self, content: Any, context: str = "deep indexing"
     ) -> None:
         """Track all references from deep indexing a piece of content.
 
@@ -275,6 +284,7 @@ class ContentReferenceManager:
         """Clear all tracked references."""
         self._references.clear()
         self._reference_counts.clear()
+        self._reference_keys.clear()
         self._content_tracker = ContentTracker()
 
 
@@ -285,11 +295,13 @@ class ReferenceTrackingTagResolver:
     any references discovered during tag resolution.
     """
 
-    def __init__(self, tag_resolver: Any, reference_manager: ContentReferenceManager):
+    def __init__(
+        self, tag_resolver: Any, reference_manager: ContentReferenceManager
+    ) -> None:
         self.tag_resolver = tag_resolver
         self.reference_manager = reference_manager
 
-    def resolve_tag(self, tag: str, template_location: str = "unknown") -> str | None:
+    def resolve_tag(self, tag: str, template_location: str = "unknown") -> Any:
         """Resolve a tag and track the reference.
 
         Args:

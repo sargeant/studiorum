@@ -890,6 +890,255 @@ class RecoverableError(BaseError):
         return Error(self)
 ```
 
+## Enhanced Architecture Error Handling
+
+### Overview
+
+The enhanced architecture error handling provides structured exceptions with rich context for the new architectural components introduced in Phase 4. This system complements the Result[T, E] pattern with traditional exception handling where appropriate.
+
+**Location**: `src/dnd5e/core/errors/architecture_errors.py`
+
+### Architecture Error Hierarchy
+
+```python
+class ArchitectureError(Exception):
+    """Base exception for architecture-related errors."""
+
+    def __init__(self, message: str, context: dict[str, Any] | None = None):
+        super().__init__(message)
+        self.context = context or {}
+
+    def __str__(self) -> str:
+        base_message = super().__str__()
+        if self.context:
+            context_str = ", ".join(f"{k}={v}" for k, v in self.context.items())
+            return f"{base_message} (Context: {context_str})"
+        return base_message
+```
+
+### Specific Error Types
+
+**Content Source Errors:**
+```python
+class ContentSourceError(ArchitectureError):
+    """Errors related to content source operations."""
+
+    def __init__(self, message: str, source_location: str = "unknown",
+                 source_type: str = "unknown", **context):
+        context.update({
+            "source_location": source_location,
+            "source_type": source_type
+        })
+        super().__init__(message, context)
+
+class ContentValidationError(ContentSourceError):
+    """Errors during content validation."""
+
+    def __init__(self, message: str, validation_errors: list[str] | None = None, **context):
+        if validation_errors:
+            context["validation_errors"] = validation_errors
+        super().__init__(message, **context)
+
+class ContentLoadingError(ContentSourceError):
+    """Errors during content loading."""
+
+    def __init__(self, message: str, items_processed: int = 0,
+                 items_failed: int = 0, **context):
+        context.update({
+            "items_processed": items_processed,
+            "items_failed": items_failed
+        })
+        super().__init__(message, **context)
+```
+
+**Reference System Errors:**
+```python
+class ReferenceTrackingError(ArchitectureError):
+    """Errors related to reference tracking operations."""
+
+    def __init__(self, message: str, reference_type: str = "unknown",
+                 reference_name: str = "unknown", **context):
+        context.update({
+            "reference_type": reference_type,
+            "reference_name": reference_name
+        })
+        super().__init__(message, context)
+```
+
+**Configuration Errors:**
+```python
+class ConfigurationError(ArchitectureError):
+    """Errors related to configuration hierarchy."""
+
+    def __init__(self, message: str, config_key: str = "unknown",
+                 config_source: str = "unknown", **context):
+        context.update({
+            "config_key": config_key,
+            "config_source": config_source
+        })
+        super().__init__(message, context)
+```
+
+**Template System Errors:**
+```python
+class TemplateCompositionError(ArchitectureError):
+    """Errors related to template composition."""
+
+    def __init__(self, message: str, template_name: str = "unknown",
+                 component_name: str = "unknown", **context):
+        context.update({
+            "template_name": template_name,
+            "component_name": component_name
+        })
+        super().__init__(message, context)
+```
+
+### Error Handling Decorators
+
+**Automatic Error Wrapping:**
+```python
+def handle_content_source_error(func):
+    """Decorator to handle content source errors consistently."""
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except ContentSourceError:
+            # Re-raise architecture errors as-is
+            raise
+        except Exception as e:
+            # Wrap other exceptions in ContentSourceError
+            source_location = getattr(args[0], 'location', 'unknown') if args else 'unknown'
+            source_type = type(args[0]).__name__ if args else 'unknown'
+
+            raise ContentSourceError(
+                f"Unexpected error in content source operation: {e}",
+                source_location=source_location,
+                source_type=source_type,
+                original_error=str(e),
+                original_type=type(e).__name__
+            ) from e
+    return wrapper
+
+@handle_content_source_error
+def load_content_from_file(self, file_path: Path) -> list[BaseContent]:
+    """Load content with automatic error wrapping."""
+    return self._parse_file(file_path)
+```
+
+**Reference Tracking Error Handling:**
+```python
+def handle_reference_tracking_error(func):
+    """Decorator to handle reference tracking errors consistently."""
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except ReferenceTrackingError:
+            raise
+        except Exception as e:
+            reference_type = kwargs.get('content_type', 'unknown')
+            reference_name = kwargs.get('name', 'unknown')
+
+            raise ReferenceTrackingError(
+                f"Unexpected error in reference tracking: {e}",
+                reference_type=reference_type,
+                reference_name=reference_name,
+                original_error=str(e),
+                original_type=type(e).__name__
+            ) from e
+    return wrapper
+```
+
+### User-Friendly Error Formatting
+
+```python
+def format_error_for_user(error: ArchitectureError) -> str:
+    """Format an architecture error for user-friendly display."""
+    if isinstance(error, ContentValidationError):
+        return f"Content validation failed: {error}"
+    elif isinstance(error, ContentLoadingError):
+        return f"Content loading failed: {error}"
+    elif isinstance(error, ContentSourceError):
+        return f"Content source error: {error}"
+    elif isinstance(error, ReferenceTrackingError):
+        return f"Reference tracking error: {error}"
+    elif isinstance(error, ConfigurationError):
+        return f"Configuration error: {error}"
+    elif isinstance(error, TemplateCompositionError):
+        return f"Template error: {error}"
+    else:
+        return f"Architecture error: {error}"
+
+# Usage
+try:
+    content = source.load()
+except ArchitectureError as e:
+    user_message = format_error_for_user(e)
+    print(user_message)
+
+    # Log with full context
+    log_architecture_error(e, logger)
+```
+
+### Structured Logging Integration
+
+```python
+def log_architecture_error(error: ArchitectureError, logger=None):
+    """Log an architecture error with full context."""
+    if logger is None:
+        from ..logging import get_logger
+        logger = get_logger(__name__)
+
+    # Log the error with full context
+    error_type = type(error).__name__
+    logger.error(f"{error_type}: {error}")
+
+    if error.context:
+        logger.error(f"Error context: {error.context}")
+
+    # Log the original exception if available
+    if hasattr(error, '__cause__') and error.__cause__:
+        logger.error(f"Original exception: {error.__cause__}")
+```
+
+### Best Practices
+
+**Error Context Enrichment:**
+```python
+# Provide rich context for debugging
+raise ContentSourceError(
+    "Failed to parse JSON file",
+    source_location=str(file_path),
+    source_type="file",
+    file_size=file_path.stat().st_size,
+    encoding_detected="utf-8",
+    line_number=42,
+    suggested_fix="Check JSON syntax around line 42"
+)
+```
+
+**Graceful Degradation:**
+```python
+try:
+    primary_content = primary_source.load()
+except ContentSourceError as e:
+    logger.warning(f"Primary source failed: {e}")
+    log_architecture_error(e, logger)
+
+    # Attempt fallback
+    try:
+        fallback_content = fallback_source.load()
+        logger.info("Successfully loaded from fallback source")
+        return fallback_content
+    except ContentSourceError as fallback_error:
+        # Chain errors for full context
+        raise ContentSourceError(
+            "Both primary and fallback sources failed",
+            primary_error=str(e),
+            fallback_error=str(fallback_error),
+            suggested_action="Check source configurations and file permissions"
+        ) from e
+```
+
 ### Integration Roadmap
 
 **Metrics and Monitoring:**

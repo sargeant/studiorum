@@ -462,6 +462,165 @@ def profile_loading_performance():
     # Analyze with snakeviz or py-spy
 ```
 
+## Content Source Abstraction
+
+### Overview
+
+The Content Source Abstraction provides a unified interface for loading content from various sources while maintaining the dual-file architecture's benefits. This system enables flexible content loading from files, omnidexer, stdin, and inline sources.
+
+### Architecture
+
+**Location**: `src/dnd5e/core/loaders/content_sources.py`
+
+#### Protocol Definition
+
+```python
+class ContentSource(Protocol):
+    def get_metadata(self) -> ContentSourceMetadata: ...
+    def validate(self) -> ValidationResult: ...
+    def load(self) -> list[BaseContent]: ...
+    def supports_streaming(self) -> bool: ...
+```
+
+#### Content Source Types
+
+**FileContentSource**: Load from JSON files with automatic type detection
+```python
+from dnd5e.core.loaders.content_sources import FileContentSource, ContentType
+
+# Single content type
+source = FileContentSource(Path("spells.json"), ContentType.SPELL)
+
+# Auto-detection from file content
+source = FileContentSource(Path("mixed_content.json"))
+content = source.load()  # Automatically detects and creates appropriate types
+```
+
+**OmnidexerContentSource**: Efficient access to indexed content
+```python
+from dnd5e.core.loaders.content_sources import OmnidexerContentSource
+
+source = OmnidexerContentSource(omnidexer, ContentType.CREATURE)
+source.supports_streaming()  # Returns True for efficient access
+```
+
+**StdinContentSource**: Read from standard input
+```python
+from dnd5e.core.loaders.content_sources import StdinContentSource
+
+source = StdinContentSource(ContentType.SPELL)
+# Reads JSON from stdin and creates appropriate content objects
+```
+
+**InlineContentSource**: Extract embedded content from adventures
+```python
+from dnd5e.core.loaders.content_sources import InlineContentSource
+
+source = InlineContentSource(adventure_data, ContentType.CREATURE)
+# Automatically extracts statblocks and other inline content
+```
+
+### Unified Content Loader
+
+**ContentLoader** orchestrates multiple sources:
+
+```python
+from dnd5e.core.loaders.content_sources import ContentLoader, create_file_source, create_omnidexer_source
+
+loader = ContentLoader()
+loader.add_source(create_file_source(Path("custom_spells.json"), ContentType.SPELL))
+loader.add_source(create_omnidexer_source(omnidexer, ContentType.CREATURE))
+
+# Validate all sources before loading
+validation_results = loader.validate_all()
+for source_name, result in validation_results.items():
+    if not result.is_valid:
+        print(f"Source {source_name} validation errors: {result.errors}")
+
+# Load content from all sources
+if all(result.is_valid for result in validation_results.values()):
+    all_content = loader.load_all()
+```
+
+### Performance Optimizations
+
+#### Caching and File Modification Tracking
+
+```python
+class FileContentSource:
+    def load(self) -> list[BaseContent]:
+        # Check cache first
+        current_modified = self.file_path.stat().st_mtime
+        if (self._cached_content is not None and
+            self._last_modified is not None and
+            current_modified <= self._last_modified):
+            return self._cached_content
+
+        # Load and cache if modified
+        content = self._load_and_parse()
+        self._cached_content = content
+        self._last_modified = current_modified
+        return content
+```
+
+#### Content Factory Integration
+
+```python
+from dnd5e.core.loaders.content_factory import ContentFactory
+
+factory = ContentFactory()
+for item_data in json_data:
+    content_item = factory.create_content(item_data, content_type)
+```
+
+### Error Handling
+
+```python
+from dnd5e.core.errors.architecture_errors import ContentSourceError, ContentValidationError
+
+try:
+    content = source.load()
+except ContentValidationError as e:
+    # Handle validation errors with detailed context
+    print(f"Validation failed: {e}")
+    print(f"Validation errors: {e.context.get('validation_errors', [])}")
+except ContentSourceError as e:
+    # Handle general source errors
+    print(f"Source error: {e}")
+    print(f"Source location: {e.context.get('source_location')}")
+```
+
+### Extension Points
+
+#### Adding New Source Types
+
+```python
+class CustomContentSource(BaseContentSource):
+    def get_metadata(self) -> ContentSourceMetadata:
+        return ContentSourceMetadata(
+            source_type="custom",
+            location=self.location,
+            description="Custom data source"
+        )
+
+    def validate(self) -> ValidationResult:
+        result = ValidationResult(is_valid=True)
+        # Add custom validation logic
+        return result
+
+    def load(self) -> list[BaseContent]:
+        # Implement custom loading logic
+        return self._load_custom_format()
+```
+
+#### Factory Functions
+
+```python
+def create_custom_source(config: dict) -> CustomContentSource:
+    """Factory for creating custom content sources."""
+    return CustomContentSource(config["location"], config.get("description"))
+```
+
 ## Migration Guide
 
 ### Implementation Migration

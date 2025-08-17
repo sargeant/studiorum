@@ -99,6 +99,113 @@ appendix_mixin.track_deep_index_references(
 - Unified appendix generation across all commands
 - Reduces complex bridge code from 19 lines to 4 lines
 
+### Content Source Abstraction
+
+A unified abstraction layer for loading content from different sources (files, omnidexer, stdin, inline):
+
+```python
+from dnd5e.core.loaders.content_sources import ContentLoader, create_file_source, create_omnidexer_source
+
+# Create loader with multiple sources
+loader = ContentLoader()
+loader.add_source(create_file_source(Path("custom_spells.json"), ContentType.SPELL))
+loader.add_source(create_omnidexer_source(omnidexer, ContentType.CREATURE))
+
+# Validate all sources
+validation_results = loader.validate_all()
+if all(result.is_valid for result in validation_results.values()):
+    content = loader.load_all()
+```
+
+**Protocol Definition:**
+```python
+class ContentSource(Protocol):
+    def get_metadata(self) -> ContentSourceMetadata: ...
+    def validate(self) -> ValidationResult: ...
+    def load(self) -> list[BaseContent]: ...
+    def supports_streaming(self) -> bool: ...
+```
+
+**Benefits:**
+- Unified interface for all content sources
+- Consistent validation and error handling
+- Performance optimizations with caching and lazy loading
+- Easy to add new source types (URLs, databases, etc.)
+- Graceful error handling with context preservation
+
+### Template Composition Pattern
+
+Reusable template components for consistent LaTeX document structure:
+
+```python
+# Base composed template with reusable components
+{% extends "base_composed.tex.j2" %}
+
+{% block document_packages %}
+\usepackage{custom-package}
+{% endblock %}
+
+{% block main_content %}
+{{ content | render_content }}
+{% endblock %}
+
+{% block appendices %}
+{{ super() }}  {# Include unified appendix components #}
+{% endblock %}
+```
+
+**Component Structure:**
+- `components/document_header.tex.j2` - Common document header
+- `components/document_config.tex.j2` - Shared configuration
+- `components/appendix.tex.j2` - Unified appendix formatting
+- `base_composed.tex.j2` - Main composition template
+
+**Benefits:**
+- Consistent document structure across content types
+- Reusable components reduce template duplication
+- Easy maintenance of common document elements
+- Flexible composition through template inheritance
+- Centralized styling and formatting
+
+### Enhanced Error Handling Architecture
+
+Structured error handling with rich context and user-friendly messages:
+
+```python
+from dnd5e.core.errors.architecture_errors import ContentSourceError, handle_content_source_error
+
+@handle_content_source_error
+def load_content(self, file_path: Path) -> list[BaseContent]:
+    """Load content with automatic error wrapping."""
+    try:
+        return self._parse_file(file_path)
+    except FileNotFoundError as e:
+        # Automatically wrapped in ContentSourceError with context
+        raise
+
+# Usage
+try:
+    content = source.load_content(path)
+except ContentSourceError as e:
+    user_message = format_error_for_user(e)
+    log_architecture_error(e, logger)
+```
+
+**Error Hierarchy:**
+- `ArchitectureError` - Base with context support
+- `ContentSourceError` - Source loading errors
+- `ContentValidationError` - Data validation errors
+- `ReferenceTrackingError` - Reference system errors
+- `ConfigurationError` - Config hierarchy errors
+- `TemplateCompositionError` - Template system errors
+
+**Benefits:**
+- Rich error context for debugging
+- User-friendly error messages
+- Automatic error wrapping with decorators
+- Structured logging with full context
+- Graceful degradation patterns
+
 ### Synchronous I/O Pattern
 
 I/O operations use efficient synchronous patterns for simplicity and reliability:

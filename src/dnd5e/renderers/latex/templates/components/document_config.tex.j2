@@ -1,0 +1,31 @@
+% Reusable document configuration component
+% Provides consistent document setup across all document types
+
+% Disable automatic section numbering while preserving TOC entries
+\setcounter{secnumdepth}{-1}
+
+<@ if not justified_text @>
+% Disable text justification but preserve paragraph indentation
+\raggedright
+\raggedbottom
+% Restore paragraph indentation after \raggedright resets it
+\setlength{\parindent}{0.8em}
+<@ endif @>
+
+% Hyperlink configuration
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=black,
+    citecolor=black,
+    filecolor=black,
+    pdftitle={<# metadata.title | latex_escape if metadata and metadata.title else 'D&D 5e Document' #>},
+    pdfauthor={<# metadata.get_author_list() | latex_escape if metadata and metadata.authors else 'D&D 5e Tools' #>},
+    pdfsubject={D&D 5e Content},
+    pdfkeywords={D&D, 5e, RPG}
+}
+
+<@ if no_outline @>
+% Disable PDF outline/bookmarks
+\hypersetup{bookmarks=false}
+<@ endif @>

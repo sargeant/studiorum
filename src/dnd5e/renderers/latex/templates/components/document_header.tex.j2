@@ -1,0 +1,27 @@
+% Reusable document header component
+% Provides consistent header formatting across all document types
+
+<#-- Document class configuration --#>
+\documentclass[<# class_options | join(', ') #>]{<# document_class | default('dndbook') #>}
+
+<#-- Essential packages that all documents need --#>
+% DND-5e-LaTeX-Template provides most styling automatically
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{makeidx}
+
+<@ if enable_index @>
+\makeindex
+<@ endif @>
+
+<#-- Document metadata setup --#>
+<@ if metadata @>
+\title{<# metadata.title | latex_escape #>}
+<@ if metadata.subtitle @>
+\subtitle{<# metadata.subtitle | latex_escape #>}
+<@ endif @>
+<@ if metadata.authors @>
+\author{<# metadata.get_author_list() | latex_escape #>}
+<@ endif @>
+\date{<# metadata.get_formatted_date() | latex_escape #>}
+<@ endif @>
