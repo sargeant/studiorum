@@ -247,10 +247,10 @@ class TestLaTeXDocumentOptions:
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     @patch("dnd5e.core.config.sources.get_content_config")
-    @patch("dnd5e.cli.commands.convert.supplement.get_app_config")
+    @patch("dnd5e.cli.commands.convert.base.BaseConvertCommand.apply_config_hierarchy")
     def test_supplement_with_paper_size_from_settings(
         self,
-        mock_get_app_config,
+        mock_apply_config_hierarchy,
         mock_get_content_config,
         mock_mkdir,
         mock_builtin_open,
@@ -280,20 +280,18 @@ class TestLaTeXDocumentOptions:
             ]
         }
 
-        # Mock app config with custom paper size
-        mock_config = Mock()
-        mock_config.rendering.latex.document.paper_size = "a5"
-        mock_config.rendering.latex.document.fonts = None
-        mock_config.rendering.latex.document.no_outline = False
-        mock_config.rendering.latex.document.background = "full"
-        mock_config.rendering.latex.document.high_contrast = False
-        mock_config.rendering.latex.document.font_size = "11pt"
-        mock_config.rendering.latex.document.two_column = False
-        mock_config.rendering.latex.document.justified_text = False
-        mock_config.rendering.latex.document.no_outline = (
-            False  # Add the missing no_outline field
-        )
-        mock_get_app_config.return_value = mock_config
+        # Mock apply_config_hierarchy to return config with custom paper size
+        mock_config_dict = {
+            "paper_size": "a5",
+            "fonts": None,
+            "background": "full",
+            "high_contrast": False,
+            "font_size": "11pt",
+            "two_column": False,
+            "justified": False,
+            "no_outline": False,
+        }
+        mock_apply_config_hierarchy.return_value = mock_config_dict
 
         # Mock user config (should return None values to test fallback to app config)
         mock_user_config = Mock()
