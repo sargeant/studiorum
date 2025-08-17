@@ -228,7 +228,14 @@ class ConfigurableSourceManager(SourceManager):
                             assigned_files.add(file_path)
 
             if type_paths:
-                data_paths[content_type] = type_paths
+                # Remove duplicates while preserving order (PHASE 1)
+                unique_paths = []
+                seen = set()
+                for path in type_paths:
+                    if path not in seen:
+                        unique_paths.append(path)
+                        seen.add(path)
+                data_paths[content_type] = unique_paths
 
         # PHASE 2: Assign remaining files based on filename patterns (lower confidence)
         for content_type in all_content_types:
@@ -272,7 +279,25 @@ class ConfigurableSourceManager(SourceManager):
                             assigned_files.add(file_path)
 
             if type_paths:
-                data_paths[content_type] = type_paths
+                # Remove duplicates while preserving order (PHASE 2)
+                unique_paths = []
+                seen = set()
+                for path in type_paths:
+                    if path not in seen:
+                        unique_paths.append(path)
+                        seen.add(path)
+                data_paths[content_type] = unique_paths
+
+        # Final deduplication pass for all content types
+        for content_type in data_paths:
+            if data_paths[content_type]:
+                unique_paths = []
+                seen = set()
+                for path in data_paths[content_type]:
+                    if path not in seen:
+                        unique_paths.append(path)
+                        seen.add(path)
+                data_paths[content_type] = unique_paths
 
         self._data_paths_cache = data_paths
 

@@ -118,6 +118,13 @@ class DefaultServiceContainer:
                     "[cyan]Loading content data...", total=None
                 )
                 self._omnidexer.load_all_data()
+                display_manager.update_task(task, completed=50)
+
+                # Resolve copy references after all data is loaded
+                display_manager.update_task(
+                    task, description="[cyan]Resolving copy references..."
+                )
+                self._resolve_copy_references()
                 display_manager.update_task(task, completed=100)
 
         return self._omnidexer
@@ -260,6 +267,19 @@ class DefaultServiceContainer:
             self._reference_manager = ReferenceManager()
 
         return self._reference_manager
+
+    def _resolve_copy_references(self) -> None:
+        """Resolve all pending copy references in the omnidexer."""
+        if self._omnidexer is None:
+            return
+
+        try:
+            from dnd5e.core.resolvers.copy_resolver import CopyResolver
+
+            copy_resolver = CopyResolver(self._omnidexer)
+            copy_resolver.resolve_copies_in_omnidexer()
+        except Exception as e:
+            logger.warning(f"Failed to resolve copy references: {e}")
 
     def close(self) -> None:
         """Clean up all managed resources.
