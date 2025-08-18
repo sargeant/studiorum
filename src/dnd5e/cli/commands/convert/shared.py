@@ -1,5 +1,7 @@
 """Shared utility functions for convert commands."""
 
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any, cast
 
@@ -96,9 +98,6 @@ async def compile_pdf(latex_path: Path, open_file: bool = False) -> None:
             # Open the PDF file if requested
             if open_file and pdf_path.exists():
                 try:
-                    import subprocess
-                    import sys
-
                     if sys.platform == "darwin":  # macOS
                         subprocess.run(["open", str(pdf_path)], check=True)
                         rprint(f"[green]✓[/green] Opened PDF: {pdf_path}")
@@ -106,7 +105,9 @@ async def compile_pdf(latex_path: Path, open_file: bool = False) -> None:
                         subprocess.run(["xdg-open", str(pdf_path)], check=True)
                         rprint(f"[green]✓[/green] Opened PDF: {pdf_path}")
                     elif sys.platform == "win32":  # Windows
-                        subprocess.run(["start", str(pdf_path)], shell=True, check=True)
+                        subprocess.run(
+                            ["cmd", "/c", "start", "", str(pdf_path)], check=True
+                        )
                         rprint(f"[green]✓[/green] Opened PDF: {pdf_path}")
                     else:
                         rprint(

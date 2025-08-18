@@ -437,8 +437,10 @@ class TagASTTransformer(Transformer):
             # Hit your spell attack tags - display as spell attack modifier
             from dnd5e.core.text.tag_ast import HitYourSpellAttackTagNode
 
-            display_text = self._nodes_to_text(source_nodes) if source_nodes else None
-            return HitYourSpellAttackTagNode(display_text)
+            spell_display_text: str | None = (
+                self._nodes_to_text(source_nodes) if source_nodes else None
+            )
+            return HitYourSpellAttackTagNode(spell_display_text)
 
         # Action and save tags
         elif tag_type == "actSave":
