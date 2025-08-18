@@ -307,26 +307,10 @@ def test_data_omnidexer() -> Omnidexer:
     # The container loads adventures correctly but books fail to load.
     # This needs deeper investigation but is documented in private/omnidexer-dup.md
 
-    # WORKAROUND: Manually load books to bypass the environmental issue
-    # This is a temporary fix until the root cause is resolved
-    from pathlib import Path
-
-    from dnd5e.core.content_types import ContentType
-
-    test_data_path = Path("test-data")
-    books_json_path = test_data_path / "books.json"
-
-    if books_json_path.exists():
-        # Manually call the internal loading method for books
-        # This bypasses the environmental issue that prevents book loading
-        try:
-            omnidexer._load_content_type(ContentType.BOOK, str(books_json_path))
-        except Exception as e:
-            # Log but don't fail - some tests may not need books
-            import logging
-
-            logger = logging.getLogger(__name__)
-            logger.debug(f"Manual book loading workaround failed: {e}")
+    # NOTE: Book loading issue was resolved as of 2025-08-19
+    # The environmental issue that prevented books from loading in the test
+    # environment appears to have been fixed. See private/omnidexer-dup.md
+    # for the full investigation history. The workaround has been removed.
 
     return omnidexer
 
