@@ -33,6 +33,7 @@ class TestPDFCompilation:
         mock_result = Mock()
         mock_result.success = True
         mock_result.output_file = Path("/tmp/test.pdf")
+        mock_result.warnings = []  # Add missing warnings attribute
 
         # For async methods, we need to return a coroutine
         async def mock_compile_document(*args, **kwargs):

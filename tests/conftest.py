@@ -299,8 +299,14 @@ def test_data_omnidexer() -> Omnidexer:
     container = get_global_container()
     omnidexer = container.get_omnidexer()
 
-    # Load all data
-    omnidexer.load_all_data()
+    # The container already calls load_all_data() when creating the omnidexer
+    # No need to call it again - doing so triggers duplicate detection
+
+    # NOTE: There is a known issue where books fail to load in test environment
+    # due to complex global state corruption. This affects multiple test files.
+    # The container loads adventures correctly but books fail to load.
+    # This needs deeper investigation but is documented in private/omnidexer-dup.md
+
     return omnidexer
 
 
