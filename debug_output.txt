@@ -1,0 +1,203 @@
+=== Debugging Book Loader ===
+DEBUG:tests.test_helpers:Service container reset
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: adventure
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: book
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: creature
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: item
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: spell
+DEBUG:tests.test_helpers:Content type registry reset (preserving decorator registrations)
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: fluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: spellFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: creatureFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: itemFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: raceFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: featFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: classFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: backgroundFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: optionalfeatureFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: vehicleFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: objectFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: languageFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: rewardFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: conditionDiseaseFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: trapHazardFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: bastionFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: recipeFluff
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: charoptionFluff
+DEBUG:tests.test_helpers:Configuration manager reset to use temporary config
+INFO:dnd5e.core.registry.initialization:Initializing content type registry
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: background
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: baseitem
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: charoption
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: charoptiontype
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: classFeature
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: subclassFeature
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: class
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: cult
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: boon
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: deck
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: deity
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: disease
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: facility
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: feat
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: itemMastery
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: itemProperty
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: legendarygroup
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: magicvariant
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: object
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: optionalfeature
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: psionic
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: race
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: recipe
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: reward
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: action
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: condition
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: sense
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: hazard
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: status
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: subclass
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: subrace
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: table
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: tableGroup
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: trap
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: variantrule
+DEBUG:dnd5e.core.registry.content_type_registry:Registered content type: vehicle
+INFO:dnd5e.core.registry.content_type_registry:Finalizing content type registry with 59 types
+INFO:dnd5e.core.registry.registry_manager:Applying content type registrations
+DEBUG:dnd5e.core.registry.registry_manager:Replaced content_patterns with 59 registry-based patterns
+DEBUG:dnd5e.core.registry.registry_manager:Omnidexer uses dynamic registry-based content type resolution
+DEBUG:dnd5e.core.registry.registry_manager:Replaced _class_map with 59 registry-based mappings
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.ADVENTURE -> Adventure
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.BOOK -> Book
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.CREATURE -> Creature
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.ITEM -> Item
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.SPELL -> Spell
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.FLUFF -> BaseFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.SPELL_FLUFF -> SpellFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.CREATURE_FLUFF -> CreatureFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.ITEM_FLUFF -> ItemFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.RACE_FLUFF -> RaceFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.FEAT_FLUFF -> FeatFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.CLASS_FLUFF -> ClassFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.BACKGROUND_FLUFF -> BackgroundFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.OPTIONALFEATURE_FLUFF -> OptionalFeatureFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.VEHICLE_FLUFF -> VehicleFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.OBJECT_FLUFF -> ObjectFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.LANGUAGE_FLUFF -> LanguageFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.REWARD_FLUFF -> RewardFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.CONDITIONDISEASE_FLUFF -> ConditionDiseaseFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.TRAPHAZARD_FLUFF -> TrapHazardFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.BASTION_FLUFF -> BastionFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.RECIPE_FLUFF -> RecipeFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.CHAROPTION_FLUFF -> CharoptionFluff
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.BACKGROUND -> Background
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.BASEITEM -> BaseItem
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.CHAROPTION -> CharacterOption
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.CHAROPTIONTYPE -> CharacterOptionType
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.CLASS_FEATURE -> ClassFeature
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.SUBCLASS_FEATURE -> SubclassFeature
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.CLASS -> Class
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.CULT -> Cult
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.BOON -> Boon
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.DECK -> Deck
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.DEITY -> Deity
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.DISEASE -> Disease
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.FACILITY -> Facility
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.FEAT -> Feat
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.ITEM_MASTERY -> ItemMastery
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.ITEM_PROPERTY -> ItemProperty
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.LEGENDARYGROUP -> LegendaryGroup
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.MAGICVARIANT -> MagicVariant
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.OBJECT -> Object
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.OPTIONALFEATURE -> OptionalFeature
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.PSIONIC -> Psionic
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.RACE -> Race
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.RECIPE -> Recipe
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.REWARD -> Reward
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.ACTION -> Action
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.CONDITION -> Condition
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.SENSE -> Sense
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.HAZARD -> Hazard
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.STATUS -> Status
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.SUBCLASS -> Subclass
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.SUBRACE -> Subrace
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.TABLE -> Table
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.TABLE_GROUP -> TableGroup
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.TRAP -> Trap
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.VARIANTRULE -> VariantRule
+DEBUG:dnd5e.core.registry.registry_manager:Registered with interface registry: ContentType.VEHICLE -> Vehicle
+DEBUG:dnd5e.core.registry.registry_manager:Replaced statblock tags with 59 registry-based mappings
+INFO:dnd5e.core.registry.initialization:Content type registry initialization completed
+DEBUG:tests.test_helpers:Content type registry initialized
+DEBUG:tests.test_helpers:Test environment reset completed
+INFO:dnd5e.core.registry.initialization:Initializing content type registry
+INFO:dnd5e.core.registry.initialization:Content type registry initialization completed
+DEBUG:dnd5e.core.container:Creating content factory instance
+DEBUG:dnd5e.core.container:Creating content type registry instance
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for adventure
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for book
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for creature
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for item
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for spell
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for background
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for baseitem
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for charoption
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for charoptiontype
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for classFeature
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for subclassFeature
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for class
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for cult
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for boon
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for deck
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for deity
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for disease
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for facility
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for feat
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for itemMastery
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for itemProperty
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for legendarygroup
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for magicvariant
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for object
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for optionalfeature
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for psionic
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for race
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for recipe
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for reward
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for action
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for condition
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for sense
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for hazard
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for status
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for subclass
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for subrace
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for table
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for tableGroup
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for trap
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for variantrule
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for vehicle
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for fluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for spellFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for creatureFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for itemFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for raceFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for featFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for classFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for backgroundFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for optionalfeatureFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for vehicleFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for objectFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for languageFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for rewardFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for conditionDiseaseFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for trapHazardFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for bastionFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for recipeFluff
+INFO:dnd5e.core.loaders.omnidexer:Registered loader for charoptionFluff
+Book loader registered: True
+Book loader type: <class 'dnd5e.core.loaders.json_loader.JsonDataLoader'>
+Test file exists: True
+
+--- Testing loader directly ---
+DEBUG:dnd5e.core.loaders.json_loader:Cache hit for test-data/books.json
+Loader returned: 1 items
+  - Test Sourcebook (type: <class 'dnd5e.core.models.books.Book'>)
