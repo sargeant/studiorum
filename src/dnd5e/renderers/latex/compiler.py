@@ -189,8 +189,11 @@ class LaTeXCompiler:
                         compilation_passes.append(comp_pass)
                         passes_completed += 1
 
-                        if not comp_pass.success:
-                            # Parse errors from this pass
+                        # Check if compilation was successful
+                        # LaTeX can return non-zero codes due to warnings but still produce a valid PDF
+                        pdf_exists = pdf_file.exists()
+                        if not comp_pass.success and not pdf_exists:
+                            # Real failure - no PDF generated
                             errors = self._analyze_compilation_errors(comp_pass)
                             error_summary = self.error_parser.get_error_summary(errors)
 
@@ -205,7 +208,10 @@ class LaTeXCompiler:
                             )
 
                         # Check if additional passes are needed
-                        if pass_num < max_passes and not comp_pass.needs_rerun:
+                        # Only continue if we have a successful compilation (PDF exists) and need another pass
+                        if pass_num < max_passes and (
+                            not pdf_exists or not comp_pass.needs_rerun
+                        ):
                             break
 
                 # Compilation successful

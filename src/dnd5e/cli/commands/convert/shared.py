@@ -82,6 +82,10 @@ async def compile_pdf(latex_path: Path) -> None:
 
         if result and result.success:
             rprint(f"[green]✓[/green] PDF compiled: {latex_path.with_suffix('.pdf')}")
+            # Show warnings but don't treat them as fatal errors
+            if result.warnings:
+                for warning in result.warnings:
+                    rprint(f"[yellow]Warning:[/yellow] {warning}")
         else:
             rprint("[red]✗[/red] Compilation failed")
             if result and result.error_message:
