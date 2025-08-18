@@ -426,6 +426,12 @@ def creatures(
         help="Compile to PDF after conversion",
         rich_help_panel="Output Control",
     ),
+    open_pdf: bool = typer.Option(
+        False,
+        "--open",
+        help="Open PDF file after compilation (requires --pdf)",
+        rich_help_panel="Output Control",
+    ),
     # Utility options (HIGH VALUE from Gemini)
     dry_run: bool = typer.Option(
         False,
@@ -578,7 +584,7 @@ def creatures(
                 speaks_language, \
                 has_skill, \
                 sources
-            nonlocal sort, show_toc, output_file, title, compile_pdf, dry_run
+            nonlocal sort, show_toc, output_file, title, compile_pdf, open_pdf, dry_run
             nonlocal \
                 document_class, \
                 paper, \
@@ -625,6 +631,7 @@ def creatures(
             output_file = normalize_typer_param(output_file)
             title = normalize_typer_param(title)
             compile_pdf = normalize_typer_param(compile_pdf)
+            open_pdf = normalize_typer_param(open_pdf)
             dry_run = normalize_typer_param(dry_run)
 
             # Normalize LaTeX document parameters
@@ -1042,7 +1049,7 @@ def creatures(
 
             # Compile PDF if requested
             if compile_pdf:
-                asyncio.run(compile_pdf_async(output_path))
+                asyncio.run(compile_pdf_async(output_path, open_pdf))
 
         except Exception as e:
             import traceback

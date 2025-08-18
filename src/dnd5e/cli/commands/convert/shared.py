@@ -54,8 +54,13 @@ def create_latex_compiler() -> LaTeXCompiler:
     return LaTeXCompiler(compilation_config)
 
 
-async def compile_pdf(latex_path: Path) -> None:
-    """Compile LaTeX to PDF using configured LaTeX compiler."""
+async def compile_pdf(latex_path: Path, open_file: bool = False) -> None:
+    """Compile LaTeX to PDF using configured LaTeX compiler.
+
+    Args:
+        latex_path: Path to the LaTeX file to compile
+        open_file: Whether to open the PDF file after successful compilation
+    """
     rprint(f"[cyan]Compiling PDF: {latex_path.with_suffix('.pdf')}[/cyan]")
 
     result = None  # Initialize to avoid UnboundLocalError
@@ -81,11 +86,36 @@ async def compile_pdf(latex_path: Path) -> None:
             display_manager.update_task(compile_task, completed=100)
 
         if result and result.success:
-            rprint(f"[green]✓[/green] PDF compiled: {latex_path.with_suffix('.pdf')}")
+            pdf_path = latex_path.with_suffix(".pdf")
+            rprint(f"[green]✓[/green] PDF compiled: {pdf_path}")
             # Show warnings but don't treat them as fatal errors
             if result.warnings:
                 for warning in result.warnings:
                     rprint(f"[yellow]Warning:[/yellow] {warning}")
+
+            # Open the PDF file if requested
+            if open_file and pdf_path.exists():
+                try:
+                    import subprocess
+                    import sys
+
+                    if sys.platform == "darwin":  # macOS
+                        subprocess.run(["open", str(pdf_path)], check=True)
+                        rprint(f"[green]✓[/green] Opened PDF: {pdf_path}")
+                    elif sys.platform.startswith("linux"):  # Linux
+                        subprocess.run(["xdg-open", str(pdf_path)], check=True)
+                        rprint(f"[green]✓[/green] Opened PDF: {pdf_path}")
+                    elif sys.platform == "win32":  # Windows
+                        subprocess.run(["start", str(pdf_path)], shell=True, check=True)
+                        rprint(f"[green]✓[/green] Opened PDF: {pdf_path}")
+                    else:
+                        rprint(
+                            f"[yellow]Warning:[/yellow] Cannot open PDF on platform {sys.platform}"
+                        )
+                except subprocess.CalledProcessError:
+                    rprint(f"[yellow]Warning:[/yellow] Failed to open PDF: {pdf_path}")
+                except Exception as e:
+                    rprint(f"[yellow]Warning:[/yellow] Error opening PDF: {e}")
         else:
             rprint("[red]✗[/red] Compilation failed")
             if result and result.error_message:

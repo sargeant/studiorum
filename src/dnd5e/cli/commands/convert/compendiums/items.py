@@ -260,6 +260,12 @@ def items(
         help="Compile to PDF after conversion",
         rich_help_panel="Output Control",
     ),
+    open_pdf: bool = typer.Option(
+        False,
+        "--open",
+        help="Open PDF file after compilation (requires --pdf)",
+        rich_help_panel="Output Control",
+    ),
     # LaTeX document class options (inherited from other convert commands)
     document_class: str = typer.Option(
         get_document_class_default(),
@@ -683,7 +689,7 @@ def items(
 
             # Compile PDF if requested
             if compile_pdf:
-                asyncio.run(compile_pdf_async(output_path))
+                asyncio.run(compile_pdf_async(output_path, open_pdf))
 
         except Exception as e:
             import traceback
