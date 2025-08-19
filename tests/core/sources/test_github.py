@@ -270,12 +270,17 @@ class TestGitHubSourceManager:
 
     def test_is_git_available_true(self):
         """Test git availability check when git is available."""
-        with patch("subprocess.run") as mock_run:
+        with (
+            patch("subprocess.run") as mock_run,
+            patch("dnd5e.core.sources.github.get_git_executable") as mock_get_git,
+        ):
+            mock_get_git.return_value = "git"
             mock_run.return_value = None  # Successful completion
 
             result = self.manager.is_git_available()
 
             assert result is True
+            mock_get_git.assert_called_once()
             mock_run.assert_called_once_with(
                 ["git", "--version"],
                 stdout=subprocess.DEVNULL,

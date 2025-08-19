@@ -2,11 +2,14 @@
 
 import asyncio
 import shutil
-import subprocess
+
+# Using subprocess securely with validated Git paths via dnd5e.core.security
+import subprocess  # nosec B404
 from pathlib import Path
 
 from ..config.sources import ContentSource, SourceType
 from ..logging import get_logger
+from ..security import ExecutableNotFoundError, get_git_executable
 
 logger = get_logger(__name__)
 
@@ -117,14 +120,19 @@ class GitHubSourceManager:
     def is_git_available(self) -> bool:
         """Check if git is available on the system."""
         try:
+            git_path = get_git_executable()
             subprocess.run(
-                ["git", "--version"],
+                [git_path, "--version"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 check=True,
             )
             return True
-        except (subprocess.CalledProcessError, FileNotFoundError):
+        except (
+            subprocess.CalledProcessError,
+            FileNotFoundError,
+            ExecutableNotFoundError,
+        ):
             return False
 
     def get_repository_info(self, source: ContentSource) -> dict | None:
@@ -136,8 +144,9 @@ class GitHubSourceManager:
 
         try:
             # Get current commit hash
+            git_path = get_git_executable()
             result = subprocess.run(
-                ["git", "rev-parse", "HEAD"],
+                [git_path, "rev-parse", "HEAD"],
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
@@ -147,7 +156,7 @@ class GitHubSourceManager:
 
             # Get last commit date
             result = subprocess.run(
-                ["git", "log", "-1", "--format=%ci"],
+                [git_path, "log", "-1", "--format=%ci"],
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
@@ -157,7 +166,7 @@ class GitHubSourceManager:
 
             # Get current branch
             result = subprocess.run(
-                ["git", "branch", "--show-current"],
+                [git_path, "branch", "--show-current"],
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
@@ -172,7 +181,7 @@ class GitHubSourceManager:
                 "local_path": str(repo_path),
             }
 
-        except subprocess.CalledProcessError as e:
+        except (subprocess.CalledProcessError, ExecutableNotFoundError) as e:
             logger.warning(f"Failed to get repository info for {source.name}: {e}")
             return None
 

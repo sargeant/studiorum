@@ -4,11 +4,18 @@ This module provides functionality to detect, validate, and configure
 the DND-5e-LaTeX-Template for use with 5e2pdf.
 """
 
-import subprocess
+# Using subprocess securely with validated LaTeX paths via dnd5e.core.security
+import subprocess  # nosec B404
 import sys
 from pathlib import Path
 
 from rich.console import Console
+
+from dnd5e.core.security import (
+    ExecutableNotFoundError,
+    get_latex_executable,
+    get_latex_utility,
+)
 
 console = Console()
 
@@ -58,8 +65,9 @@ class DNDTemplateManager:
         """
         try:
             # Use kpsewhich to find file in LaTeX search paths
+            kpsewhich_path = get_latex_utility("kpsewhich")
             result = subprocess.run(
-                ["kpsewhich", filename], capture_output=True, text=True, timeout=30
+                [kpsewhich_path, filename], capture_output=True, text=True, timeout=30
             )
 
             if result.returncode == 0 and result.stdout.strip():
@@ -69,6 +77,7 @@ class DNDTemplateManager:
             subprocess.TimeoutExpired,
             subprocess.CalledProcessError,
             FileNotFoundError,
+            ExecutableNotFoundError,
         ):
             pass
 
@@ -93,8 +102,9 @@ class DNDTemplateManager:
         """
         try:
             # Check for LaTeX engine
+            pdflatex_path = get_latex_executable("pdflatex")
             result = subprocess.run(
-                ["pdflatex", "--version"], capture_output=True, text=True, timeout=30
+                [pdflatex_path, "--version"], capture_output=True, text=True, timeout=30
             )
 
             if result.returncode == 0:
@@ -105,6 +115,7 @@ class DNDTemplateManager:
             subprocess.TimeoutExpired,
             subprocess.CalledProcessError,
             FileNotFoundError,
+            ExecutableNotFoundError,
         ):
             pass
 
@@ -135,8 +146,9 @@ class DNDTemplateManager:
         """
         try:
             # Use kpsewhich to find package file
+            kpsewhich_path = get_latex_utility("kpsewhich")
             result = subprocess.run(
-                ["kpsewhich", f"{package}.sty"],
+                [kpsewhich_path, f"{package}.sty"],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -148,6 +160,7 @@ class DNDTemplateManager:
             subprocess.TimeoutExpired,
             subprocess.CalledProcessError,
             FileNotFoundError,
+            ExecutableNotFoundError,
         ):
             return False
 
@@ -161,8 +174,9 @@ class DNDTemplateManager:
 
         try:
             # Get TEXMFHOME (user's personal tex directory)
+            kpsewhich_path = get_latex_utility("kpsewhich")
             result = subprocess.run(
-                ["kpsewhich", "--var-value=TEXMFHOME"],
+                [kpsewhich_path, "--var-value=TEXMFHOME"],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -176,6 +190,7 @@ class DNDTemplateManager:
             subprocess.TimeoutExpired,
             subprocess.CalledProcessError,
             FileNotFoundError,
+            ExecutableNotFoundError,
         ):
             pass
 
@@ -210,8 +225,9 @@ class DNDTemplateManager:
 
         # Get TeX Live version if available
         try:
+            tex_path = get_latex_executable("tex")
             result = subprocess.run(
-                ["tex", "--version"], capture_output=True, text=True, timeout=30
+                [tex_path, "--version"], capture_output=True, text=True, timeout=30
             )
 
             if result.returncode == 0:
@@ -222,6 +238,7 @@ class DNDTemplateManager:
             subprocess.TimeoutExpired,
             subprocess.CalledProcessError,
             FileNotFoundError,
+            ExecutableNotFoundError,
         ):
             info["tex_version"] = "Not available"
 

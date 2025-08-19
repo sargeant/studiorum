@@ -334,7 +334,8 @@ class ReferenceTrackingTagResolver:
                             source=source,
                             template_location=template_location,
                         )
-        except Exception:
+        # Optional reference tracking, graceful degradation for malformed content
+        except Exception:  # nosec B110
             # If parsing fails, continue without tracking
             pass
 

@@ -6,6 +6,8 @@ from typing import Any, TypedDict, Unpack
 
 from pydantic import BaseModel, Field, field_validator
 
+from dnd5e.core.security import ExecutableNotFoundError, get_latex_executable
+
 # Engine-Package Compatibility Matrix
 # Defines which LaTeX packages are supported by each engine
 ENGINE_PACKAGE_COMPATIBILITY: dict[str, set[str]] = {
@@ -210,8 +212,13 @@ class CompilationConfig(BaseModel):
 
         Returns:
             Command as list of strings
+
+        Raises:
+            ExecutableNotFoundError: If the LaTeX engine is not found
         """
-        cmd = [engine.value]
+        # Use secure executable path resolution to prevent B607 vulnerabilities
+        engine_path = get_latex_executable(engine.value)
+        cmd = [engine_path]
         cmd.extend(self.engine_options.get(engine.value, []))
 
         # Add mode-specific options

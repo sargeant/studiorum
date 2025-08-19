@@ -29,8 +29,12 @@ class TestDNDTemplateManager:
         assert "expl3" in manager.required_packages
 
     @patch("subprocess.run")
-    def test_find_template_file_found(self, mock_run: Any) -> None:
+    @patch("dnd5e.renderers.latex.dnd_template.get_latex_utility")
+    def test_find_template_file_found(
+        self, mock_get_utility: Any, mock_run: Any
+    ) -> None:
         """Test finding template file when it exists."""
+        mock_get_utility.return_value = "kpsewhich"
         mock_run.return_value = Mock(
             returncode=0,
             stdout="/usr/local/texlive/2023/texmf-dist/tex/latex/dnd/dndbook.cls\n",
@@ -41,6 +45,7 @@ class TestDNDTemplateManager:
 
         assert result is not None
         assert result.name == "dndbook.cls"
+        mock_get_utility.assert_called_once_with("kpsewhich")
         mock_run.assert_called_once_with(
             ["kpsewhich", "dndbook.cls"], capture_output=True, text=True, timeout=30
         )

@@ -20,7 +20,8 @@ class CharOptionTypeCategory(str, Enum):
     OPTIONAL_FEATURE = "OF"
     DARK_GIFT = "DG"
     REPLACEMENT_FEATURE_BACKGROUND = "RF:B"
-    CHARACTER_SECRET = "CS"
+    # Not a password, D&D 5e character option type abbreviation
+    CHARACTER_SECRET = "CS"  # nosec B105
 
 
 @content_type(

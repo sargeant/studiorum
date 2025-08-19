@@ -1,6 +1,7 @@
 """Shared utility functions for convert commands."""
 
-import subprocess
+# Using subprocess securely with validated paths via dnd5e.core.security
+import subprocess  # nosec B404
 import sys
 from pathlib import Path
 from typing import Any, cast
@@ -13,6 +14,7 @@ from dnd5e.cli.utils import get_omnidexer
 from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
+from dnd5e.core.security import ExecutableNotFoundError, get_platform_file_opener
 from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
 from dnd5e.renderers.latex.compiler import LaTeXCompiler
 
@@ -98,21 +100,27 @@ async def compile_pdf(latex_path: Path, open_file: bool = False) -> None:
             # Open the PDF file if requested
             if open_file and pdf_path.exists():
                 try:
+                    # Use secure executable path resolution to prevent B607 vulnerabilities
                     if sys.platform == "darwin":  # macOS
-                        subprocess.run(["open", str(pdf_path)], check=True)
+                        opener = get_platform_file_opener()
+                        subprocess.run([opener, str(pdf_path)], check=True)
                         rprint(f"[green]✓[/green] Opened PDF: {pdf_path}")
                     elif sys.platform.startswith("linux"):  # Linux
-                        subprocess.run(["xdg-open", str(pdf_path)], check=True)
+                        opener = get_platform_file_opener()
+                        subprocess.run([opener, str(pdf_path)], check=True)
                         rprint(f"[green]✓[/green] Opened PDF: {pdf_path}")
                     elif sys.platform == "win32":  # Windows
+                        cmd_path = get_platform_file_opener()
                         subprocess.run(
-                            ["cmd", "/c", "start", "", str(pdf_path)], check=True
+                            [cmd_path, "/c", "start", "", str(pdf_path)], check=True
                         )
                         rprint(f"[green]✓[/green] Opened PDF: {pdf_path}")
                     else:
                         rprint(
                             f"[yellow]Warning:[/yellow] Cannot open PDF on platform {sys.platform}"
                         )
+                except ExecutableNotFoundError as e:
+                    rprint(f"[yellow]Warning:[/yellow] Cannot open PDF - {e}")
                 except subprocess.CalledProcessError:
                     rprint(f"[yellow]Warning:[/yellow] Failed to open PDF: {pdf_path}")
                 except Exception as e:

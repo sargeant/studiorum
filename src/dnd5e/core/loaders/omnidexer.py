@@ -65,7 +65,8 @@ class IndexEntry(BaseModel):
                             and attr_value.__class__.__name__ == "ContentType"
                         ):
                             return cast(ContentType, attr_value)
-                except Exception:
+                # Validation fallback chain, raises ValueError after all attempts
+                except Exception:  # nosec B110
                     pass
                 raise ValueError(f"Invalid ContentType: {v}") from e
 

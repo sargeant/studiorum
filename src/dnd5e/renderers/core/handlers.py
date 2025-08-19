@@ -1172,7 +1172,8 @@ class FormattingTagHandler(BaseTagHandler):
                                 rendered_content = context.renderer.render_tag(
                                     child, context
                                 )
-                            except Exception:
+                            # Rendering fallback chain, multiple attempts for content extraction
+                            except Exception:  # nosec B110
                                 pass
 
                         # Try using tag resolver if renderer unavailable
@@ -1183,7 +1184,8 @@ class FormattingTagHandler(BaseTagHandler):
                                     rendered_content = tag_resolver.renderer.render_tag(
                                         child, tag_resolver.rendering_context
                                     )
-                                except Exception:
+                                # Rendering fallback chain, multiple attempts for content extraction
+                                except Exception:  # nosec B110
                                     pass
 
                         # Fall back to extracting name or meaningful content

@@ -230,3 +230,29 @@ markers = [
     "latex_compilation: marks tests that require LaTeX compilation",
 ]
 filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]
+
+[tool.bandit]
+# We use inline # nosec comments for specific suppressions rather than global skips
+# This provides better documentation and context for each suppression
+# The only global skip is B603 which has too many occurrences (23+) to annotate individually
+# Note: Bandit may show "nosec encountered but no failed test" warnings - this is a
+# known bandit limitation with multi-line constructs and can be safely ignored
+
+# Skip B603 - subprocess without shell=True is secure by design (23+ occurrences)
+# Source: https://docs.python.org/3/library/subprocess.html#security-considerations
+# "Unlike some other popen functions, this implementation will never
+# implicitly call a system shell. This means that all characters,
+# including shell metacharacters, can safely be passed to child processes."
+# References:
+# - OWASP: https://owasp.org/www-community/attacks/Command_Injection
+# - OpenStack Security: https://security.openstack.org/guidelines/dg_avoid-shell-true.html
+skips = ["B603"]
+
+# All other suppressions use inline # nosec comments with explanations:
+# - B404: subprocess imports (4 occurrences) - using secure patterns
+# - B101: assert for type narrowing (4 occurrences) - not security assertions
+# - B105: "CS" enum value (1 occurrence) - not a password
+# - B110: try-except-pass (9 occurrences) - intentional graceful degradation
+# - B607: Already resolved via dnd5e.core.security module (0 remaining)
+
+exclude_dirs = ["/tests/", "/scripts/"]

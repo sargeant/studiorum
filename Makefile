@@ -174,9 +174,9 @@ boundaries: uv
 pip-audit: uv
 	@pip-audit --desc=off || (echo "ERROR: pip-audit: security vulnerabilities found"; exit 1)
 
-## Static security analysis (medium severity)
+## Static security analysis
 bandit: uv
-	@bandit --severity-level medium --quiet -r $(SRC_DIR)/ || (echo "ERROR: bandit: security issues found"; exit 1)
+	@bandit -c pyproject.toml --quiet -r $(SRC_DIR)/ || (echo "ERROR: bandit: security issues found"; exit 1)
 
 # Run all tests
 test: uv

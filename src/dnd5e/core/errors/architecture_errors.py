@@ -179,8 +179,8 @@ def handle_reference_tracking_error(func: Callable[..., Any]) -> Callable[..., A
                         )
                     if reference_name == "unknown":
                         reference_name = bound_args.arguments.get("name", "unknown")
-                except Exception:
-                    # If signature inspection fails, fall back to defaults
+                # If signature inspection fails, fall back to defaults
+                except Exception:  # nosec B110
                     pass
 
             # Extract clean error message

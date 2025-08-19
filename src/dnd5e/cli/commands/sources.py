@@ -94,7 +94,8 @@ def add_source(
 
     # Validate directory path exists
     if source_type_enum == SourceType.DIRECTORY:
-        assert path is not None  # Already validated above
+        # Already validated above via typer.Option, not a security assertion
+        assert path is not None  # nosec B101
         dir_path = Path(path).expanduser().resolve()
         if not dir_path.exists():
             console.print(f"[red]Error:[/red] Directory does not exist: {dir_path}")

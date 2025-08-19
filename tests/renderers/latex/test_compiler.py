@@ -56,13 +56,18 @@ class TestLaTeXCompiler:
             LaTeXCompiler(invalid_config)
 
     @patch("subprocess.run")
-    def test_check_engine_availability_success(self, mock_run: Any) -> None:
+    @patch("dnd5e.renderers.latex.compiler.get_latex_executable")
+    def test_check_engine_availability_success(
+        self, mock_get_executable: Any, mock_run: Any
+    ) -> None:
         """Test successful engine availability check."""
+        mock_get_executable.return_value = "lualatex"
         mock_run.return_value = Mock(returncode=0)
 
         result = self.compiler._check_engine_availability(LaTeXEngine.LUALATEX)
         assert result is True
 
+        mock_get_executable.assert_called_once_with("lualatex")
         mock_run.assert_called_once()
         args = mock_run.call_args[0][0]
         assert args[0] == "lualatex"
@@ -178,8 +183,17 @@ class TestLaTeXCompiler:
         assert self.compiler._get_pass_description(5, 5) == "Additional pass 5"
 
     @patch("subprocess.run")
-    def test_get_available_engines(self, mock_run: Any) -> None:
+    @patch("dnd5e.renderers.latex.compiler.get_latex_executable")
+    def test_get_available_engines(
+        self, mock_get_executable: Any, mock_run: Any
+    ) -> None:
         """Test getting available engines."""
+
+        # Mock get_latex_executable to return the command names
+        def mock_get_executable_fn(engine_name: str) -> str:
+            return engine_name
+
+        mock_get_executable.side_effect = mock_get_executable_fn
 
         # Mock successful checks for LuaLaTeX and XeLaTeX, failed for PDFLaTeX
         def mock_subprocess_run(cmd: Any, **kwargs: Any) -> Any:
@@ -200,8 +214,22 @@ class TestLaTeXCompiler:
         assert LaTeXEngine.PDFLATEX not in available
 
     @patch("subprocess.run")
-    def test_validate_environment(self, mock_run: Any) -> None:
+    @patch("dnd5e.renderers.latex.compiler.get_latex_executable")
+    @patch("dnd5e.renderers.latex.compiler.get_latex_utility")
+    def test_validate_environment(
+        self, mock_get_utility: Any, mock_get_executable: Any, mock_run: Any
+    ) -> None:
         """Test environment validation."""
+
+        # Mock executable resolution
+        def mock_get_executable_fn(engine_name: str) -> str:
+            return engine_name
+
+        def mock_get_utility_fn(utility_name: str) -> str:
+            return utility_name
+
+        mock_get_executable.side_effect = mock_get_executable_fn
+        mock_get_utility.side_effect = mock_get_utility_fn
 
         # Mock LuaLaTeX available, others not
         def mock_subprocess_run(cmd: Any, **kwargs: Any) -> Any:

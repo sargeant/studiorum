@@ -128,7 +128,8 @@ class FileContentSource(BaseContentSource):
             try:
                 data = self._load_json_data()
                 content_count = self._count_content_items(data)
-            except Exception:
+            # Optional metadata counting, graceful degradation
+            except Exception:  # nosec B110
                 pass
 
         return ContentSourceMetadata(
@@ -333,7 +334,8 @@ class OmnidexerContentSource(BaseContentSource):
             # Get count from omnidexer
             all_content = self.omnidexer.find_all(self.content_type)
             content_count = len(all_content)
-        except Exception:
+        # Optional metadata counting, graceful degradation
+        except Exception:  # nosec B110
             pass
 
         return ContentSourceMetadata(
@@ -456,7 +458,8 @@ class InlineContentSource(BaseContentSource):
                     for chapter in chapters:
                         if isinstance(chapter, dict) and "entries" in chapter:
                             count += len(self._extract_from_entries(chapter["entries"]))
-        except Exception:
+        # Optional metadata counting for adventures, graceful degradation
+        except Exception:  # nosec B110
             pass
         return count
 
@@ -515,7 +518,8 @@ class NameListFileSource(BaseContentSource):
             try:
                 names = self._load_names()
                 content_count = len(names)
-            except Exception:
+            # Optional metadata counting for books, graceful degradation
+            except Exception:  # nosec B110
                 pass
 
         return ContentSourceMetadata(

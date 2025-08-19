@@ -19,6 +19,7 @@ from dnd5e.core.loaders.content_sources import (
     create_omnidexer_source,
     create_stdin_source,
 )
+from dnd5e.core.logging import get_logger
 from dnd5e.core.references.content_reference_manager import (
     ContentReferenceManager,
     ReferenceTrackingTagResolver,
@@ -507,6 +508,8 @@ class AppendixMixin:
             omnidexer = get_global_container().get_omnidexer()
             self._content_reference_manager = ContentReferenceManager(omnidexer)
 
+        self.logger = get_logger(self.__class__.__name__)
+
     def get_content_reference_manager(self) -> ContentReferenceManager:
         """Get the content reference manager."""
         return self._content_reference_manager
@@ -520,9 +523,13 @@ class AppendixMixin:
         for item in content:
             try:
                 reference_manager.track_deep_index_references(item, context)
-            except Exception:
+            except Exception as e:
                 # Graceful degradation - continue processing other items
-                pass
+                # Log the error for debugging but don't fail the entire process
+                self.logger.debug(
+                    f"Failed to track references for item in {context}: {e}. "
+                    f"Item type: {type(item).__name__}. Continuing gracefully."
+                )
 
     def generate_appendices(self) -> dict[str, Any]:
         """Generate appendices from tracked references."""

@@ -2,10 +2,18 @@
 
 import re
 import shutil
-import subprocess
+
+# Using subprocess securely with validated LaTeX paths via dnd5e.core.security
+import subprocess  # nosec B404
 import tempfile
 import time
 from pathlib import Path
+
+from dnd5e.core.security import (
+    ExecutableNotFoundError,
+    get_latex_executable,
+    get_latex_utility,
+)
 
 from .compilation_config import (
     CompilationConfig,
@@ -366,11 +374,17 @@ class LaTeXCompiler:
             True if engine is available
         """
         try:
+            engine_path = get_latex_executable(engine.value)
             result = subprocess.run(
-                [engine.value, "--version"], capture_output=True, timeout=10
+                [engine_path, "--version"], capture_output=True, timeout=10
             )
             return result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        except (
+            subprocess.TimeoutExpired,
+            FileNotFoundError,
+            OSError,
+            ExecutableNotFoundError,
+        ):
             return False
 
     async def _check_dependencies(self, tex_file: Path) -> list[str]:
@@ -451,11 +465,17 @@ class LaTeXCompiler:
         # Check for DND template (basic check)
         try:
             # Try to find DND template files
+            kpsewhich_path = get_latex_utility("kpsewhich")
             result = subprocess.run(
-                ["kpsewhich", "dndbook.cls"], capture_output=True, timeout=10
+                [kpsewhich_path, "dndbook.cls"], capture_output=True, timeout=10
             )
             results["dnd_template"] = result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        except (
+            subprocess.TimeoutExpired,
+            FileNotFoundError,
+            OSError,
+            ExecutableNotFoundError,
+        ):
             results["dnd_template"] = False
 
         return results

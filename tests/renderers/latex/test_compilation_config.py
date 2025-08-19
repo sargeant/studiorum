@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -87,8 +88,16 @@ class TestCompilationConfig:
             assert "-file-line-error" in options
             assert "-synctex=1" in options
 
-    def test_get_engine_command(self) -> None:
+    @patch("dnd5e.renderers.latex.compilation_config.get_latex_executable")
+    def test_get_engine_command(self, mock_get_executable: Any) -> None:
         """Test engine command generation."""
+
+        # Mock get_latex_executable to return engine names directly
+        def mock_get_executable_fn(engine_name: str) -> str:
+            return engine_name
+
+        mock_get_executable.side_effect = mock_get_executable_fn
+
         config: Any = CompilationConfig()
 
         # Test LuaLaTeX command
@@ -111,8 +120,12 @@ class TestCompilationConfig:
             "-shell-escape" not in cmd
         )  # PDFLaTeX doesn't get shell-escape by default
 
-    def test_get_engine_command_draft_mode(self) -> None:
+    @patch("dnd5e.renderers.latex.compilation_config.get_latex_executable")
+    def test_get_engine_command_draft_mode(self, mock_get_executable: Any) -> None:
         """Test engine command generation in draft mode."""
+        # Mock get_latex_executable to return engine names directly
+        mock_get_executable.return_value = "lualatex"
+
         config: Any = CompilationConfig(mode=CompilationMode.DRAFT)
 
         cmd = config.get_engine_command(LaTeXEngine.LUALATEX)

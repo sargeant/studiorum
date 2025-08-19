@@ -215,10 +215,12 @@ class TagASTTransformer(Transformer):
                         current_text = current_text.lstrip()
                     nodes.append(TextNode(current_text))
                     current_text = ""
-                assert isinstance(part_value, TagNode)  # Type narrowing
+                # Type narrowing for mypy, not a security assertion
+                assert isinstance(part_value, TagNode)  # nosec B101
                 nodes.append(part_value)
             elif part_type == "text":
-                assert isinstance(part_value, str)  # Type narrowing
+                # Type narrowing for mypy, not a security assertion
+                assert isinstance(part_value, str)  # nosec B101
                 current_text += part_value
 
         # Flush remaining text
@@ -666,7 +668,8 @@ class TagParser:
             tree = self.parser.parse(text)
             transformer = TagASTTransformer(text)
             ast = transformer.transform(tree)
-            assert isinstance(ast, DocumentNode)
+            # Type narrowing for return type, not a security assertion
+            assert isinstance(ast, DocumentNode)  # nosec B101
             return ast
         except Exception as e:
             logger.warning("Tag parsing failed: %s. Falling back to TextNode.", e)
