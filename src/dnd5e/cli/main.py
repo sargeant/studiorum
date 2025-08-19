@@ -9,7 +9,12 @@ import typer
 from rich import print as rprint
 
 from dnd5e.cli.display_manager import display_manager
-from dnd5e.core.config.unified_config import get_app_config
+from dnd5e.core.config.loader import ConfigLoader, ConfigValidationError
+from dnd5e.core.config.unified_config import (
+    get_app_config,
+    reset_app_config,
+    set_app_config,
+)
 from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.logging.logger import setup_logging
 from dnd5e.core.models.content import BaseContent
@@ -72,6 +77,13 @@ def main(
     debug: bool = typer.Option(
         False, "--debug", help="Enable debug output (most verbose)"
     ),
+    config_file: Path = typer.Option(
+        None,
+        "--config-file",
+        "-c",
+        help="Load configuration from YAML file",
+        exists=False,  # Don't require file to exist (allows None)
+    ),
 ) -> None:
     """
     🎲 **5e2pdf** - Modern D&D 5e content converter
@@ -82,11 +94,25 @@ def main(
     # Reset global state to ensure clean execution for each command
     # This prevents validation contamination between CLI runs
     reset_cli_globals()
+    reset_app_config()  # Reset config cache to allow new config loading
 
-    config = get_app_config()
-
-    # Validate configuration at startup
+    # Load configuration with optional file override
     try:
+        if config_file:
+            # Use ConfigLoader for file-based configuration
+            config_loader = ConfigLoader()
+            config = config_loader.load_with_overrides(
+                config_file=config_file, env_overrides=True
+            )
+            # Update global config cache with loaded config
+            set_app_config(config)
+            if verbose or debug:
+                rprint(f"[green]Configuration loaded from:[/green] {config_file}")
+        else:
+            # Use default configuration loading (environment + defaults)
+            config = get_app_config()
+
+        # Validate configuration at startup
         # This will trigger Pydantic validation and create directories
         _ = config.model_dump()
         if verbose or debug:
@@ -94,6 +120,16 @@ def main(
             logger.info("Configuration loaded successfully")
             logger.info(f"LaTeX engine: {config.rendering.latex.engine.primary_engine}")
             logger.info(f"Output path: {config.paths.output_path}")
+            if config.mcp.enabled:
+                logger.info(
+                    f"MCP server enabled on {config.mcp.host}:{config.mcp.port}"
+                )
+    except ConfigValidationError as e:
+        rprint(f"[red]Configuration validation error:[/red] {e.message}")
+        if e.errors:
+            for error in e.errors:
+                rprint(f"  • {error}")
+        raise typer.Exit(1)
     except Exception as e:
         rprint(f"[red]Configuration error:[/red] {e}")
         raise typer.Exit(1)

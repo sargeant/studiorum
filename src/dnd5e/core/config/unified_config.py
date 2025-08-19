@@ -237,6 +237,40 @@ class RenderingConfig(BaseModel):
     )
 
 
+class MCPConfig(BaseModel):
+    """Configuration for MCP server functionality."""
+
+    enabled: bool = Field(default=False, description="Enable MCP server functionality")
+    host: str = Field(default="localhost", description="MCP server host address")
+    port: int = Field(default=8080, description="MCP server port", ge=0)
+    max_concurrent_requests: int = Field(
+        default=10, description="Maximum concurrent MCP requests", gt=0
+    )
+    request_timeout: int = Field(
+        default=30, description="Request timeout in seconds", gt=0
+    )
+    memory_limit_mb: int = Field(
+        default=1024, description="Memory limit for MCP operations in MB", gt=0
+    )
+
+    # Performance tuning
+    cache_size_mb: int = Field(
+        default=256, description="Cache size for MCP operations in MB", gt=0
+    )
+    preload_content_types: list[str] = Field(
+        default_factory=list,
+        description="Content types to preload for faster MCP responses",
+    )
+
+    # Security and reliability
+    enable_hot_reload: bool = Field(
+        default=False, description="Enable hot-reload of configuration changes"
+    )
+    log_requests: bool = Field(
+        default=True, description="Log MCP requests for monitoring"
+    )
+
+
 class ApplicationConfig(BaseSettings):
     """
     Complete application configuration.
@@ -259,6 +293,9 @@ class ApplicationConfig(BaseSettings):
     )
     rendering: RenderingConfig = Field(
         default_factory=RenderingConfig, description="Rendering configuration"
+    )
+    mcp: MCPConfig = Field(
+        default_factory=MCPConfig, description="MCP server configuration"
     )
 
     model_config = SettingsConfigDict(
@@ -292,6 +329,12 @@ def reset_app_config() -> None:
     """Reset the global configuration instance (for testing)."""
     global _app_config
     _app_config = None
+
+
+def set_app_config(config: ApplicationConfig) -> None:
+    """Set the global application configuration instance."""
+    global _app_config
+    _app_config = config
 
 
 # Convenience functions for backward compatibility
