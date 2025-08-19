@@ -260,6 +260,7 @@ To add a new entry type:
 
 ## Related Documentation
 
+- [Advanced Entry System Guide](entry-system-advanced.md) - Complex patterns and optimization
 - [Tag System Architecture](component-deep-dives/tag-system-architecture.md)
 - [Content Parsing](component-deep-dives/content-parsing.md)
 - [LaTeX Rendering](component-deep-dives/latex-rendering.md)

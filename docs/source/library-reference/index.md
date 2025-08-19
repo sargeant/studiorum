@@ -30,6 +30,7 @@ output = renderer.render_content(spells)
 ```{toctree}
 :maxdepth: 2
 
+api/index
 cli
 models
 loaders

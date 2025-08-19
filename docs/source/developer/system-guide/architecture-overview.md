@@ -4,6 +4,11 @@ This document provides a comprehensive overview of the 5e2pdf system architectur
 focusing on the sophisticated dual-file loader system and core components that
 enable efficient D&D 5e content processing and PDF generation.
 
+```{note}
+For visual representations of the architecture, see {doc}`architecture-diagrams` which contains
+comprehensive diagrams of all system components and data flows.
+```
+
 ## System Overview
 
 The 5e2pdf architecture implements a sophisticated dual-file loading system that
