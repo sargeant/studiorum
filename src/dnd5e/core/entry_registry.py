@@ -615,14 +615,24 @@ def get_registry() -> EntryTypeRegistry:
     """Get the global entry type registry instance."""
     from .container import get_global_container
 
-    return get_global_container().get_entry_registry()
+    registry_result = get_global_container().get_entry_registry()
+    if registry_result.is_error():
+        raise RuntimeError(
+            f"Failed to get entry registry: {registry_result.error.message}"  # type: ignore[attr-defined]
+        )
+    return registry_result.unwrap()
 
 
 def set_validation_mode(mode: ValidationMode) -> None:
     """Set the validation mode on the registry instance."""
     from .container import get_global_container
 
-    registry = get_global_container().get_entry_registry()
+    registry_result = get_global_container().get_entry_registry()
+    if registry_result.is_error():
+        raise RuntimeError(
+            f"Failed to get entry registry: {registry_result.error.message}"  # type: ignore[attr-defined]
+        )
+    registry = registry_result.unwrap()
     registry.validation_mode = mode
 
 

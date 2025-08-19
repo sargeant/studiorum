@@ -33,7 +33,12 @@ class BaseConvertCommand:
         """Initialize the base convert command."""
         from dnd5e.core.container import get_global_container
 
-        omnidexer = get_global_container().get_omnidexer()
+        omnidexer_result = get_global_container().get_omnidexer()
+        if omnidexer_result.is_error():
+            raise RuntimeError(
+                f"Failed to get omnidexer: {omnidexer_result.error.message}"  # type: ignore[attr-defined]
+            )
+        omnidexer = omnidexer_result.unwrap()
         self._content_reference_manager = ContentReferenceManager(omnidexer)
 
     def _safe_getattr(self, obj: Any, attr_path: str) -> Any:
@@ -505,7 +510,12 @@ class AppendixMixin:
         from dnd5e.core.container import get_global_container
 
         if not hasattr(self, "_content_reference_manager"):
-            omnidexer = get_global_container().get_omnidexer()
+            omnidexer_result = get_global_container().get_omnidexer()
+            if omnidexer_result.is_error():
+                raise RuntimeError(
+                    f"Failed to get omnidexer: {omnidexer_result.error.message}"  # type: ignore[attr-defined]
+                )
+            omnidexer = omnidexer_result.unwrap()
             self._content_reference_manager = ContentReferenceManager(omnidexer)
 
         self.logger = get_logger(self.__class__.__name__)

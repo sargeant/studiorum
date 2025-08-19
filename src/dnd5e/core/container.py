@@ -24,41 +24,49 @@ if TYPE_CHECKING:
     from dnd5e.core.text.tag_resolver import TagResolver
     from dnd5e.core.unified_references import ReferenceManager
 
+from dnd5e.core.error_types import (
+    ErrorCategory,
+    ErrorSeverity,
+    MCPErrorCode,
+    ServiceError,
+)
+from dnd5e.core.result import Error, Result, Success
+
 logger = logging.getLogger(__name__)
 
 
 class ServiceContainer(Protocol):
     """Protocol for service containers that manage application dependencies."""
 
-    def get_omnidexer(self) -> Omnidexer:
+    def get_omnidexer(self) -> Result[Omnidexer, ServiceError]:
         """Get or create the omnidexer instance."""
         ...
 
-    def get_tag_resolver(self) -> TagResolver:
+    def get_tag_resolver(self) -> Result[TagResolver, ServiceError]:
         """Get or create the tag resolver instance."""
         ...
 
-    def get_content_type_registry(self) -> ContentTypeRegistry:
+    def get_content_type_registry(self) -> Result[ContentTypeRegistry, ServiceError]:
         """Get or create the content type registry instance."""
         ...
 
-    def get_display_manager(self) -> DisplayManager:
+    def get_display_manager(self) -> Result[DisplayManager, ServiceError]:
         """Get or create the display manager instance."""
         ...
 
-    def get_content_factory(self) -> ContentFactory:
+    def get_content_factory(self) -> Result[ContentFactory, ServiceError]:
         """Get or create the content factory instance."""
         ...
 
-    def get_entry_registry(self) -> EntryTypeRegistry:
+    def get_entry_registry(self) -> Result[EntryTypeRegistry, ServiceError]:
         """Get or create the entry registry instance."""
         ...
 
-    def get_app_config(self) -> ApplicationConfig:
+    def get_app_config(self) -> Result[ApplicationConfig, ServiceError]:
         """Get or create the application configuration instance."""
         ...
 
-    def get_reference_manager(self) -> ReferenceManager:
+    def get_reference_manager(self) -> Result[ReferenceManager, ServiceError]:
         """Get or create the reference manager instance."""
         ...
 
@@ -91,182 +99,373 @@ class DefaultServiceContainer:
         # Track if container is closed
         self._closed = False
 
-    def get_omnidexer(self) -> Omnidexer:
+    def get_omnidexer(self) -> Result[Omnidexer, ServiceError]:
         """Get or create the omnidexer instance.
 
         The omnidexer is lazily initialized and cached for the lifetime
         of the container.
 
         Returns:
-            The omnidexer instance
+            Success with omnidexer instance, or Error with service failure details
 
-        Raises:
-            RuntimeError: If container has been closed
+        Examples:
+            ```python
+            result = container.get_omnidexer()
+            if result.is_success():
+                omnidexer = result.unwrap()
+            else:
+                error = result.error
+                print(f"Failed to load omnidexer: {error.message}")
+            ```
         """
-        self._check_not_closed()
+        closed_check = self._check_not_closed()
+        if closed_check.is_error():
+            return Error(closed_check.error)  # type: ignore[attr-defined]
 
         if self._omnidexer is None:
             logger.debug("Creating omnidexer instance")
-            from dnd5e.core.loaders.omnidexer import Omnidexer
 
-            self._omnidexer = Omnidexer()
+            try:
+                from dnd5e.core.loaders.omnidexer import Omnidexer
 
-            # Load data with progress display if available
-            display_manager = self.get_display_manager()
-            with display_manager.progress("Loading omnidexer") as _:
-                task = display_manager.add_task(
-                    "[cyan]Loading content data...", total=None
+                self._omnidexer = Omnidexer()
+
+                # Get display manager for progress display
+                display_result = self.get_display_manager()
+                if display_result.is_error():
+                    # Fallback to no progress display if display manager fails
+                    logger.warning("Display manager unavailable for progress display")
+                    self._omnidexer.load_all_data()
+                    self._resolve_copy_references()
+                else:
+                    display_manager = display_result.unwrap()
+                    with display_manager.progress("Loading omnidexer") as _:
+                        task = display_manager.add_task(
+                            "[cyan]Loading content data...", total=None
+                        )
+                        self._omnidexer.load_all_data()
+                        display_manager.update_task(task, completed=50)
+
+                        # Resolve copy references after all data is loaded
+                        display_manager.update_task(
+                            task, description="[cyan]Resolving copy references..."
+                        )
+                        self._resolve_copy_references()
+                        display_manager.update_task(task, completed=100)
+
+            except Exception as e:
+                return Error(
+                    ServiceError(
+                        message=f"Failed to initialize omnidexer: {e}",
+                        error_code=MCPErrorCode.SERVICE_UNAVAILABLE,
+                        category=ErrorCategory.SYSTEM_ERROR,
+                        severity=ErrorSeverity.ERROR,
+                        source="ServiceContainer.get_omnidexer",
+                        suggestions=[
+                            "Check data file availability and format",
+                            "Verify memory availability for data loading",
+                            "Check file system permissions",
+                            "Review omnidexer configuration",
+                        ],
+                        data={
+                            "service_name": "omnidexer",
+                            "exception_type": type(e).__name__,
+                            "operation": "initialization",
+                        },
+                    )
                 )
-                self._omnidexer.load_all_data()
-                display_manager.update_task(task, completed=50)
 
-                # Resolve copy references after all data is loaded
-                display_manager.update_task(
-                    task, description="[cyan]Resolving copy references..."
-                )
-                self._resolve_copy_references()
-                display_manager.update_task(task, completed=100)
+        return Success(self._omnidexer)
 
-        return self._omnidexer
-
-    def get_tag_resolver(self) -> TagResolver:
+    def get_tag_resolver(self) -> Result[TagResolver, ServiceError]:
         """Get or create the tag resolver instance.
 
         The tag resolver depends on the omnidexer and is lazily initialized.
 
         Returns:
-            The tag resolver instance
-
-        Raises:
-            RuntimeError: If container has been closed
+            Success with tag resolver instance, or Error with service failure details
         """
-        self._check_not_closed()
+        closed_check = self._check_not_closed()
+        if closed_check.is_error():
+            return Error(closed_check.error)  # type: ignore[attr-defined]
 
         if self._tag_resolver is None:
             logger.debug("Creating tag resolver instance")
-            from dnd5e.core.text.tag_resolver import TagResolver
 
-            omnidexer = self.get_omnidexer()
-            self._tag_resolver = TagResolver(omnidexer)
+            try:
+                from dnd5e.core.text.tag_resolver import TagResolver
 
-        return self._tag_resolver
+                omnidexer_result = self.get_omnidexer()
+                if omnidexer_result.is_error():
+                    return Error(omnidexer_result.error)  # type: ignore[attr-defined]
 
-    def get_content_type_registry(self) -> ContentTypeRegistry:
+                omnidexer = omnidexer_result.unwrap()
+                self._tag_resolver = TagResolver(omnidexer)
+            except Exception as e:
+                return Error(
+                    ServiceError(
+                        message=f"Failed to initialize tag resolver: {e}",
+                        error_code=MCPErrorCode.SERVICE_UNAVAILABLE,
+                        category=ErrorCategory.SYSTEM_ERROR,
+                        severity=ErrorSeverity.ERROR,
+                        source="ServiceContainer.get_tag_resolver",
+                        suggestions=[
+                            "Check omnidexer availability",
+                            "Verify tag resolver dependencies",
+                            "Check text processing configuration",
+                        ],
+                        data={
+                            "service_name": "tag_resolver",
+                            "exception_type": type(e).__name__,
+                            "operation": "initialization",
+                        },
+                    )
+                )
+
+        return Success(self._tag_resolver)
+
+    def get_content_type_registry(self) -> Result[ContentTypeRegistry, ServiceError]:
         """Get or create the content type registry instance.
 
         Returns:
-            The content type registry instance
-
-        Raises:
-            RuntimeError: If container has been closed
+            Success with content type registry instance, or Error with service failure details
         """
-        self._check_not_closed()
+        closed_check = self._check_not_closed()
+        if closed_check.is_error():
+            return Error(closed_check.error)  # type: ignore[attr-defined]
 
         if self._content_type_registry is None:
             logger.debug("Creating content type registry instance")
-            from dnd5e.core.interfaces import ContentTypeRegistry
 
-            # Create a basic interface-based registry
-            # Content type mappings will be populated by the registry manager
-            # when initialize_content_types() is called from elsewhere
-            self._content_type_registry = ContentTypeRegistry()
+            try:
+                from dnd5e.core.interfaces import ContentTypeRegistry
 
-        return self._content_type_registry
+                # Create a basic interface-based registry
+                # Content type mappings will be populated by the registry manager
+                # when initialize_content_types() is called from elsewhere
+                self._content_type_registry = ContentTypeRegistry()
+            except Exception as e:
+                return Error(
+                    ServiceError(
+                        message=f"Failed to initialize content type registry: {e}",
+                        error_code=MCPErrorCode.SERVICE_UNAVAILABLE,
+                        category=ErrorCategory.SYSTEM_ERROR,
+                        severity=ErrorSeverity.ERROR,
+                        source="ServiceContainer.get_content_type_registry",
+                        suggestions=[
+                            "Check content type registry dependencies",
+                            "Verify interface module availability",
+                            "Check registry configuration",
+                        ],
+                        data={
+                            "service_name": "content_type_registry",
+                            "exception_type": type(e).__name__,
+                            "operation": "initialization",
+                        },
+                    )
+                )
 
-    def get_display_manager(self) -> DisplayManager:
+        return Success(self._content_type_registry)
+
+    def get_display_manager(self) -> Result[DisplayManager, ServiceError]:
         """Get or create the display manager instance.
 
         Returns:
-            The display manager instance
-
-        Raises:
-            RuntimeError: If container has been closed
+            Success with display manager instance, or Error with service failure details
         """
-        self._check_not_closed()
+        closed_check = self._check_not_closed()
+        if closed_check.is_error():
+            return Error(closed_check.error)  # type: ignore[attr-defined]
 
         if self._display_manager is None:
             logger.debug("Creating display manager instance")
-            from dnd5e.cli.display_manager import DisplayManager
 
-            self._display_manager = DisplayManager()
+            try:
+                from dnd5e.cli.display_manager import DisplayManager
 
-        return self._display_manager
+                self._display_manager = DisplayManager()
+            except Exception as e:
+                return Error(
+                    ServiceError(
+                        message=f"Failed to initialize display manager: {e}",
+                        error_code=MCPErrorCode.SERVICE_UNAVAILABLE,
+                        category=ErrorCategory.SYSTEM_ERROR,
+                        severity=ErrorSeverity.ERROR,
+                        source="ServiceContainer.get_display_manager",
+                        suggestions=[
+                            "Check CLI dependencies availability",
+                            "Verify terminal/console support",
+                            "Check display configuration",
+                        ],
+                        data={
+                            "service_name": "display_manager",
+                            "exception_type": type(e).__name__,
+                            "operation": "initialization",
+                        },
+                    )
+                )
 
-    def get_content_factory(self) -> ContentFactory:
+        return Success(self._display_manager)
+
+    def get_content_factory(self) -> Result[ContentFactory, ServiceError]:
         """Get or create the content factory instance.
 
         Returns:
-            The content factory instance
-
-        Raises:
-            RuntimeError: If container has been closed
+            Success with content factory instance, or Error with service failure details
         """
-        self._check_not_closed()
+        closed_check = self._check_not_closed()
+        if closed_check.is_error():
+            return Error(closed_check.error)  # type: ignore[attr-defined]
 
         if self._content_factory is None:
             logger.debug("Creating content factory instance")
-            from dnd5e.core.loaders.content_factory import ContentFactory
 
-            self._content_factory = ContentFactory()
+            try:
+                from dnd5e.core.loaders.content_factory import ContentFactory
 
-        return self._content_factory
+                self._content_factory = ContentFactory()
+            except Exception as e:
+                return Error(
+                    ServiceError(
+                        message=f"Failed to initialize content factory: {e}",
+                        error_code=MCPErrorCode.SERVICE_UNAVAILABLE,
+                        category=ErrorCategory.SYSTEM_ERROR,
+                        severity=ErrorSeverity.ERROR,
+                        source="ServiceContainer.get_content_factory",
+                        suggestions=[
+                            "Check content factory dependencies",
+                            "Verify loader module availability",
+                            "Check factory configuration",
+                        ],
+                        data={
+                            "service_name": "content_factory",
+                            "exception_type": type(e).__name__,
+                            "operation": "initialization",
+                        },
+                    )
+                )
 
-    def get_entry_registry(self) -> EntryTypeRegistry:
+        return Success(self._content_factory)
+
+    def get_entry_registry(self) -> Result[EntryTypeRegistry, ServiceError]:
         """Get or create the entry registry instance.
 
         Returns:
-            The entry registry instance
-
-        Raises:
-            RuntimeError: If container has been closed
+            Success with entry registry instance, or Error with service failure details
         """
-        self._check_not_closed()
+        closed_check = self._check_not_closed()
+        if closed_check.is_error():
+            return Error(closed_check.error)  # type: ignore[attr-defined]
 
         if self._entry_registry is None:
             logger.debug("Creating entry registry instance")
-            from dnd5e.core.entry_registry import EntryTypeRegistry
 
-            self._entry_registry = EntryTypeRegistry()
+            try:
+                from dnd5e.core.entry_registry import EntryTypeRegistry
 
-        return self._entry_registry
+                self._entry_registry = EntryTypeRegistry()
+            except Exception as e:
+                return Error(
+                    ServiceError(
+                        message=f"Failed to initialize entry registry: {e}",
+                        error_code=MCPErrorCode.SERVICE_UNAVAILABLE,
+                        category=ErrorCategory.SYSTEM_ERROR,
+                        severity=ErrorSeverity.ERROR,
+                        source="ServiceContainer.get_entry_registry",
+                        suggestions=[
+                            "Check entry registry dependencies",
+                            "Verify entry registry module availability",
+                            "Check registry configuration",
+                        ],
+                        data={
+                            "service_name": "entry_registry",
+                            "exception_type": type(e).__name__,
+                            "operation": "initialization",
+                        },
+                    )
+                )
 
-    def get_app_config(self) -> ApplicationConfig:
+        return Success(self._entry_registry)
+
+    def get_app_config(self) -> Result[ApplicationConfig, ServiceError]:
         """Get or create the application configuration instance.
 
         Returns:
-            The application configuration instance
-
-        Raises:
-            RuntimeError: If container has been closed
+            Success with application configuration instance, or Error with service failure details
         """
-        self._check_not_closed()
+        closed_check = self._check_not_closed()
+        if closed_check.is_error():
+            return Error(closed_check.error)  # type: ignore[attr-defined]
 
         if self._app_config is None:
             logger.debug("Creating application configuration instance")
-            from dnd5e.core.config.unified_config import ApplicationConfig
 
-            self._app_config = ApplicationConfig()
+            try:
+                from dnd5e.core.config.unified_config import ApplicationConfig
 
-        return self._app_config
+                self._app_config = ApplicationConfig()
+            except Exception as e:
+                return Error(
+                    ServiceError(
+                        message=f"Failed to initialize application configuration: {e}",
+                        error_code=MCPErrorCode.CONFIGURATION_ERROR,
+                        category=ErrorCategory.CONFIGURATION,
+                        severity=ErrorSeverity.ERROR,
+                        source="ServiceContainer.get_app_config",
+                        suggestions=[
+                            "Check application configuration dependencies",
+                            "Verify configuration module availability",
+                            "Check configuration file format",
+                        ],
+                        data={
+                            "service_name": "app_config",
+                            "exception_type": type(e).__name__,
+                            "operation": "initialization",
+                        },
+                    )
+                )
 
-    def get_reference_manager(self) -> ReferenceManager:
+        return Success(self._app_config)
+
+    def get_reference_manager(self) -> Result[ReferenceManager, ServiceError]:
         """Get or create the reference manager instance.
 
         Returns:
-            The reference manager instance
-
-        Raises:
-            RuntimeError: If container has been closed
+            Success with reference manager instance, or Error with service failure details
         """
-        self._check_not_closed()
+        closed_check = self._check_not_closed()
+        if closed_check.is_error():
+            return Error(closed_check.error)  # type: ignore[attr-defined]
 
         if self._reference_manager is None:
             logger.debug("Creating reference manager instance")
-            from dnd5e.core.unified_references import ReferenceManager
 
-            self._reference_manager = ReferenceManager()
+            try:
+                from dnd5e.core.unified_references import ReferenceManager
 
-        return self._reference_manager
+                self._reference_manager = ReferenceManager()
+            except Exception as e:
+                return Error(
+                    ServiceError(
+                        message=f"Failed to initialize reference manager: {e}",
+                        error_code=MCPErrorCode.SERVICE_UNAVAILABLE,
+                        category=ErrorCategory.SYSTEM_ERROR,
+                        severity=ErrorSeverity.ERROR,
+                        source="ServiceContainer.get_reference_manager",
+                        suggestions=[
+                            "Check reference manager dependencies",
+                            "Verify reference module availability",
+                            "Check reference configuration",
+                        ],
+                        data={
+                            "service_name": "reference_manager",
+                            "exception_type": type(e).__name__,
+                            "operation": "initialization",
+                        },
+                    )
+                )
+
+        return Success(self._reference_manager)
 
     def _resolve_copy_references(self) -> None:
         """Resolve all pending copy references in the omnidexer."""
@@ -309,14 +508,29 @@ class DefaultServiceContainer:
 
         self._closed = True
 
-    def _check_not_closed(self) -> None:
+    def _check_not_closed(self) -> Result[None, ServiceError]:
         """Check that the container hasn't been closed.
 
-        Raises:
-            RuntimeError: If the container has been closed
+        Returns:
+            Success if container is open, Error if closed
         """
         if self._closed:
-            raise RuntimeError("Service container has been closed")
+            return Error(
+                ServiceError(
+                    message="Service container has been closed",
+                    error_code=MCPErrorCode.SERVICE_UNAVAILABLE,
+                    category=ErrorCategory.SYSTEM_ERROR,
+                    severity=ErrorSeverity.ERROR,
+                    source="ServiceContainer",
+                    suggestions=[
+                        "Create a new service container",
+                        "Use a context manager to ensure proper cleanup",
+                        "Check container lifecycle management",
+                    ],
+                    data={"container_state": "closed"},
+                )
+            )
+        return Success(None)
 
     def __repr__(self) -> str:
         """Return string representation of the container."""

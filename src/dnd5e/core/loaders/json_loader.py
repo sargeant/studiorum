@@ -40,7 +40,12 @@ class JsonDataLoader(DataLoader[BaseContent]):
         if content_factory is None:
             from ..container import get_global_container
 
-            content_factory = get_global_container().get_content_factory()
+            factory_result = get_global_container().get_content_factory()
+            if factory_result.is_error():
+                raise RuntimeError(
+                    f"Failed to get content factory: {factory_result.error.message}"  # type: ignore[attr-defined]
+                )
+            content_factory = factory_result.unwrap()
         self._content_factory = content_factory
         self._error_tracker = ValidationErrorTracker()
         self._settings = get_settings()

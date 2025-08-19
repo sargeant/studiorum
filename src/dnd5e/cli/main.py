@@ -101,9 +101,18 @@ def main(
         if config_file:
             # Use ConfigLoader for file-based configuration
             config_loader = ConfigLoader()
-            config = config_loader.load_with_overrides(
+            config_result = config_loader.load_with_overrides(
                 config_file=config_file, env_overrides=True
             )
+            if config_result.is_error():
+                error = config_result.error  # type: ignore[attr-defined]
+                rprint(f"[red]Error loading configuration: {error.message}[/red]")
+                if error.suggestions:
+                    rprint("[yellow]Suggestions:[/yellow]")
+                    for suggestion in error.suggestions:
+                        rprint(f"  - {suggestion}")
+                raise typer.Exit(1)
+            config = config_result.unwrap()
             # Update global config cache with loaded config
             set_app_config(config)
             if verbose or debug:

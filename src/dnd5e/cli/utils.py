@@ -14,7 +14,10 @@ def get_omnidexer() -> Omnidexer:
     from dnd5e.core.container import get_global_container
 
     container = get_global_container()
-    return container.get_omnidexer()
+    omnidexer_result = container.get_omnidexer()
+    if omnidexer_result.is_error():
+        raise RuntimeError(f"Failed to get omnidexer: {omnidexer_result.error.message}")  # type: ignore[attr-defined]
+    return omnidexer_result.unwrap()
 
 
 def get_tag_resolver() -> TagResolver:
@@ -22,4 +25,9 @@ def get_tag_resolver() -> TagResolver:
     from dnd5e.core.container import get_global_container
 
     container = get_global_container()
-    return container.get_tag_resolver()
+    tag_resolver_result = container.get_tag_resolver()
+    if tag_resolver_result.is_error():
+        raise RuntimeError(
+            f"Failed to get tag resolver: {tag_resolver_result.error.message}"  # type: ignore[attr-defined]
+        )
+    return tag_resolver_result.unwrap()

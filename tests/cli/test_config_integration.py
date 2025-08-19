@@ -83,7 +83,7 @@ class TestCLIConfigIntegration:
             )
 
             assert result.exit_code == 1
-            assert "Configuration validation error:" in result.stdout
+            assert "Error loading configuration:" in result.stdout
         finally:
             invalid_path.unlink()
 
@@ -116,7 +116,7 @@ class TestCLIConfigIntegration:
             )
 
             assert result.exit_code == 1
-            assert "Configuration validation error:" in result.stdout
+            assert "Error loading configuration:" in result.stdout
         finally:
             config_path.unlink()
 

@@ -3,15 +3,17 @@ Error types for use with Result pattern.
 
 This module defines structured error types that work well with the Result[T, E]
 pattern while integrating with the existing exception hierarchy.
+
+All error types use Pydantic models for consistency with the codebase and
+to provide MCP-compatible JSON-RPC error formatting.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from dnd5e.core.exceptions import (
     DnD5eError,
@@ -39,22 +41,43 @@ class ErrorCategory(str, Enum):
     IO = "io"  # File/network I/O failures
     CONFIGURATION = "configuration"  # Configuration/setup issues
     RENDER = "render"  # Rendering/output failures
-    SYSTEM = "system"  # System/infrastructure issues
+    SYSTEM_ERROR = "system_error"  # System/infrastructure issues
+    USER_ERROR = "user_error"  # User input errors
 
 
-@dataclass(frozen=True)
-class BaseError:
+class MCPErrorCode(Enum):
+    """MCP JSON-RPC error codes for structured error responses."""
+
+    # MCP JSON-RPC standard codes
+    PARSE_ERROR = -32700
+    INVALID_REQUEST = -32600
+    METHOD_NOT_FOUND = -32601
+    INVALID_PARAMS = -32602
+    INTERNAL_ERROR = -32603
+
+    # Application-specific error codes (positive range)
+    CONTENT_NOT_FOUND = 1001
+    VALIDATION_FAILED = 1002
+    PROCESSING_ERROR = 1003
+    CONFIGURATION_ERROR = 1004
+    SERVICE_UNAVAILABLE = 1005
+
+
+class BaseError(BaseModel):
     """
     Base error type for Result pattern.
 
     Provides common fields and functionality for all error types.
+    Uses Pydantic for consistency with codebase standards.
     """
+
+    model_config = ConfigDict(frozen=True)
 
     message: str
     category: ErrorCategory
     severity: ErrorSeverity = ErrorSeverity.ERROR
     source: str | None = None
-    suggestions: list[str] | None = None
+    suggestions: list[str] | None = Field(default_factory=list)
 
     def to_exception(self) -> DnD5eError:
         """Convert this error to an appropriate exception."""
@@ -73,18 +96,43 @@ class BaseError:
         )
 
 
-@dataclass(frozen=True)
+class MCPError(BaseModel):
+    """MCP-compatible error with structured JSON-RPC response."""
+
+    model_config = ConfigDict(frozen=True)
+
+    message: str
+    error_code: MCPErrorCode
+    category: ErrorCategory
+    severity: ErrorSeverity = ErrorSeverity.ERROR
+    source: str | None = None
+    suggestions: list[str] | None = Field(default_factory=list)
+    data: dict[str, Any] | None = Field(default_factory=dict)
+
+    def to_json_rpc_error(self) -> dict[str, Any]:
+        """Convert to JSON-RPC error format."""
+        return {
+            "code": self.error_code.value,
+            "message": self.message,
+            "data": {
+                "category": self.category.value,
+                "severity": self.severity.value,
+                "source": self.source,
+                "suggestions": self.suggestions,
+                **(self.data or {}),
+            },
+        }
+
+
 class ValidationError(BaseError):
     """Error for validation failures."""
+
+    model_config = ConfigDict(frozen=True)
 
     field_name: str | None = None
     entry_type: str | None = None
     parent_name: str | None = None
-
-    def __post_init__(self) -> None:
-        """Ensure category is set to validation."""
-        if self.category != ErrorCategory.VALIDATION:
-            object.__setattr__(self, "category", ErrorCategory.VALIDATION)
+    category: ErrorCategory = ErrorCategory.VALIDATION
 
     def to_exception(self) -> EntryValidationError:
         """Convert to EntryValidationError exception."""
@@ -97,18 +145,15 @@ class ValidationError(BaseError):
         )
 
 
-@dataclass(frozen=True)
 class ProcessingError(BaseError):
     """Error for content processing failures."""
 
+    model_config = ConfigDict(frozen=True)
+
     entry_type: str | None = None
     parent_name: str | None = None
-    context: dict[str, Any] | None = None
-
-    def __post_init__(self) -> None:
-        """Ensure category is set to processing."""
-        if self.category != ErrorCategory.PROCESSING:
-            object.__setattr__(self, "category", ErrorCategory.PROCESSING)
+    context: dict[str, Any] | None = Field(default_factory=dict)
+    category: ErrorCategory = ErrorCategory.PROCESSING
 
     def to_exception(self) -> EntryProcessingError:
         """Convert to EntryProcessingError exception."""
@@ -120,15 +165,15 @@ class ProcessingError(BaseError):
         )
 
 
-@dataclass(frozen=True)
 class UnknownTypeError(ProcessingError):
     """Error for unknown entry types."""
 
-    available_types: list[str] | None = None
+    model_config = ConfigDict(frozen=True)
 
-    def __post_init__(self) -> None:
-        """Ensure entry_type is required and category is set."""
-        super().__post_init__()
+    available_types: list[str] | None = Field(default_factory=list)
+
+    def model_post_init(self, __context: Any) -> None:
+        """Ensure entry_type is required."""
         if not self.entry_type:
             raise ValueError("entry_type is required for UnknownTypeError")
 
@@ -143,9 +188,10 @@ class UnknownTypeError(ProcessingError):
         )
 
 
-@dataclass(frozen=True)
 class MalformedDataError(ProcessingError):
     """Error for malformed data structures."""
+
+    model_config = ConfigDict(frozen=True)
 
     expected_type: str | None = None
     actual_type: str | None = None
@@ -157,6 +203,45 @@ class MalformedDataError(ProcessingError):
             source=self.source,
             parent_name=self.parent_name,
         )
+
+
+# New MCP-specific error types
+
+
+class ContentNotFoundError(MCPError):
+    """Content could not be located or resolved."""
+
+    model_config = ConfigDict(frozen=True)
+
+    error_code: MCPErrorCode = MCPErrorCode.CONTENT_NOT_FOUND
+    category: ErrorCategory = ErrorCategory.USER_ERROR
+
+
+class ConfigurationError(MCPError):
+    """Configuration validation or loading failed."""
+
+    model_config = ConfigDict(frozen=True)
+
+    error_code: MCPErrorCode = MCPErrorCode.CONFIGURATION_ERROR
+    category: ErrorCategory = ErrorCategory.SYSTEM_ERROR
+
+
+class ServiceError(MCPError):
+    """Service initialization or operation failed."""
+
+    model_config = ConfigDict(frozen=True)
+
+    error_code: MCPErrorCode = MCPErrorCode.SERVICE_UNAVAILABLE
+    category: ErrorCategory = ErrorCategory.SYSTEM_ERROR
+
+
+class PerformanceError(MCPError):
+    """Operation exceeded performance constraints."""
+
+    model_config = ConfigDict(frozen=True)
+
+    error_code: MCPErrorCode = MCPErrorCode.PROCESSING_ERROR
+    category: ErrorCategory = ErrorCategory.SYSTEM_ERROR
 
 
 class ErrorContext(BaseModel):

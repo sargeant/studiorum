@@ -14,7 +14,12 @@ class ContentFactory:
             # Get from service container when not provided
             from ..container import get_global_container
 
-            registry = get_global_container().get_content_type_registry()
+            registry_result = get_global_container().get_content_type_registry()
+            if registry_result.is_error():
+                raise RuntimeError(
+                    f"Failed to get content type registry: {registry_result.error.message}"  # type: ignore[attr-defined]
+                )
+            registry = registry_result.unwrap()
         self._registry = registry
         self._class_map: dict[ContentType, type[BaseContent]] = {}
         self._initialized = False

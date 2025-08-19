@@ -251,7 +251,12 @@ class TestJsonDataLoaderBookIntegration:
         # Create the actual Book object
         from dnd5e.core.container import get_global_container
 
-        factory = get_global_container().get_content_factory()
+        factory_result = get_global_container().get_content_factory()
+        if factory_result.is_error():
+            raise RuntimeError(
+                f"Failed to get content factory: {factory_result.error.message}"
+            )  # type: ignore[attr-defined]
+        factory = factory_result.unwrap()
         book = factory.create_content(book_item, self._get_content_type("book"))
 
         # Verify the book structure

@@ -50,7 +50,10 @@ class TestConfigLoader:
             config_path = Path(f.name)
 
         try:
-            config = self.loader.load_from_file(config_path)
+            result = self.loader.load_from_file(config_path)
+
+            assert result.is_success()
+            config = result.unwrap()
 
             assert config.mcp.enabled is True
             assert config.mcp.host == "0.0.0.0"
@@ -68,8 +71,10 @@ class TestConfigLoader:
         """Test loading from non-existent file."""
         non_existent_path = Path("/tmp/non_existent_config.yaml")
 
-        with pytest.raises(FileNotFoundError, match="Configuration file not found"):
-            self.loader.load_from_file(non_existent_path)
+        result = self.loader.load_from_file(non_existent_path)
+        assert result.is_error()
+        error = result.error  # type: ignore[attr-defined]
+        assert "Configuration file not found" in error.message
 
     def test_load_from_file_invalid_yaml(self) -> None:
         """Test loading from file with invalid YAML."""
@@ -78,10 +83,10 @@ class TestConfigLoader:
             invalid_path = Path(f.name)
 
         try:
-            with pytest.raises(
-                ConfigValidationError, match="Failed to parse YAML file"
-            ):
-                self.loader.load_from_file(invalid_path)
+            result = self.loader.load_from_file(invalid_path)
+            assert result.is_error()
+            error = result.error  # type: ignore[attr-defined]
+            assert "Failed to parse YAML file" in error.message
         finally:
             invalid_path.unlink()
 
@@ -99,10 +104,10 @@ class TestConfigLoader:
             config_path = Path(f.name)
 
         try:
-            with pytest.raises(
-                ConfigValidationError, match="Configuration validation failed"
-            ):
-                self.loader.load_from_file(config_path)
+            result = self.loader.load_from_file(config_path)
+            assert result.is_error()
+            error = result.error  # type: ignore[attr-defined]
+            assert "Configuration validation failed" in error.message
         finally:
             config_path.unlink()
 
@@ -113,7 +118,9 @@ class TestConfigLoader:
             config_path = Path(f.name)
 
         try:
-            config = self.loader.load_from_file(config_path)
+            result = self.loader.load_from_file(config_path)
+            assert result.is_success()
+            config = result.unwrap()
             # Should load with default values
             assert isinstance(config, ApplicationConfig)
             assert config.mcp.enabled is False  # Default value
@@ -180,7 +187,9 @@ class TestConfigLoader:
         """Test validation of valid configuration."""
         config = ApplicationConfig()
         result = self.loader.validate_config(config)
-        assert result == config
+        assert result.is_success()
+        validated_config = result.unwrap()
+        assert validated_config.mcp.enabled == config.mcp.enabled
 
     def test_validate_config_invalid(self) -> None:
         """Test validation of invalid configuration."""
@@ -195,14 +204,16 @@ class TestConfigLoader:
         # Create config bypassing validation temporarily
         config = ApplicationConfig.model_construct(**config_data)
 
-        with pytest.raises(
-            ConfigValidationError, match="Configuration validation failed"
-        ):
-            self.loader.validate_config(config)
+        result = self.loader.validate_config(config)
+        assert result.is_error()
+        error = result.error  # type: ignore[attr-defined]
+        assert "Configuration validation failed" in error.message
 
     def test_load_with_overrides_defaults_only(self) -> None:
         """Test loading with default values only."""
-        config = self.loader.load_with_overrides()
+        result = self.loader.load_with_overrides()
+        assert result.is_success()
+        config = result.unwrap()
 
         assert isinstance(config, ApplicationConfig)
         assert config.mcp.enabled is False
@@ -218,9 +229,11 @@ class TestConfigLoader:
             config_path = Path(f.name)
 
         try:
-            config = self.loader.load_with_overrides(
+            result = self.loader.load_with_overrides(
                 config_file=config_path, env_overrides=False
             )
+            assert result.is_success()
+            config = result.unwrap()
 
             assert config.mcp.enabled is True
             assert config.mcp.port == 9000
@@ -243,7 +256,9 @@ class TestConfigLoader:
             os.environ[key] = value
 
         try:
-            config = self.loader.load_with_overrides(env_overrides=True)
+            result = self.loader.load_with_overrides(env_overrides=True)
+            assert result.is_success()
+            config = result.unwrap()
 
             assert config.mcp.enabled is True
             assert config.mcp.port == 7777
@@ -279,9 +294,11 @@ class TestConfigLoader:
             os.environ[key] = value
 
         try:
-            config = self.loader.load_with_overrides(
+            result = self.loader.load_with_overrides(
                 config_file=config_path, env_overrides=True
             )
+            assert result.is_success()
+            config = result.unwrap()
 
             # From env: host overrides file value
             assert config.mcp.host == "env-host"  # From env (overrides file)

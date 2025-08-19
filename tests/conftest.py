@@ -297,7 +297,10 @@ def test_data_omnidexer() -> Omnidexer:
     from dnd5e.core.container import get_global_container
 
     container = get_global_container()
-    omnidexer = container.get_omnidexer()
+    omnidexer_result = container.get_omnidexer()
+    if omnidexer_result.is_error():
+        raise RuntimeError(f"Failed to get omnidexer: {omnidexer_result.error.message}")  # type: ignore[attr-defined]
+    omnidexer = omnidexer_result.unwrap()
 
     # The container already calls load_all_data() when creating the omnidexer
     # No need to call it again - doing so triggers duplicate detection

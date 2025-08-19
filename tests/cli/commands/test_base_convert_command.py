@@ -11,6 +11,7 @@ from dnd5e.cli.commands.convert.base import (
     LaTeXMixin,
 )
 from dnd5e.core.errors.architecture_errors import ConfigurationError
+from dnd5e.core.result import Success
 from tests.test_helpers import reset_test_environment
 
 
@@ -160,7 +161,7 @@ class TestBaseConvertCommand:
         """Test content loader with omnidexer source."""
         mock_omnidexer = Mock()
         mock_container = Mock()
-        mock_container.get_omnidexer.return_value = mock_omnidexer
+        mock_container.get_omnidexer.return_value = Success(mock_omnidexer)
         mock_get_container.return_value = mock_container
 
         command = BaseConvertCommand()
@@ -184,9 +185,10 @@ class TestBaseConvertCommand:
                 from dnd5e.core.models.content import ContentType
 
                 expected_content_type = ContentType.SPELL
-                mock_create_source.assert_called_once_with(
-                    mock_omnidexer, expected_content_type
-                )
+                # The method receives the Success result, not the unwrapped omnidexer
+                actual_call = mock_create_source.call_args[0]
+                assert actual_call[0].unwrap() == mock_omnidexer
+                assert actual_call[1] == expected_content_type
                 mock_loader.add_source.assert_called_once_with(mock_source)
 
     def test_get_content_loader_file_sources(self):
@@ -218,7 +220,7 @@ class TestBaseConvertCommand:
         """Test getting content reference manager."""
         mock_omnidexer = Mock()
         mock_container = Mock()
-        mock_container.get_omnidexer.return_value = mock_omnidexer
+        mock_container.get_omnidexer.return_value = Success(mock_omnidexer)
         mock_get_container.return_value = mock_container
 
         command = BaseConvertCommand()
@@ -375,7 +377,7 @@ class TestAppendixMixin:
         """Test getting content reference manager."""
         mock_omnidexer = Mock()
         mock_container = Mock()
-        mock_container.get_omnidexer.return_value = mock_omnidexer
+        mock_container.get_omnidexer.return_value = Success(mock_omnidexer)
         mock_get_container.return_value = mock_container
 
         mixin = AppendixMixin()
@@ -483,7 +485,7 @@ class TestBaseConvertCommandIntegration:
 
         mock_omnidexer = Mock()
         mock_container = Mock()
-        mock_container.get_omnidexer.return_value = mock_omnidexer
+        mock_container.get_omnidexer.return_value = Success(mock_omnidexer)
         mock_get_container.return_value = mock_container
 
         # Create command with all mixins for full workflow test
