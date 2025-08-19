@@ -158,12 +158,12 @@ Use this framework to categorize requests and select the appropriate systematic 
 
 ### Essential Knowledge (Master First)
 1. **Dual-file Loading Architecture**
-   - {doc}`../system-guide/component-deep-dives/loader-architecture`
+   - {doc}`../system-guide/components` (Loading section)
    - ContentMerger with LRU caching and TTL
    - Runtime merging of metadata and content files
 
 2. **Omnidexer System**
-   - {doc}`../system-guide/component-deep-dives/deep-indexing`
+   - {doc}`../system-guide/components` (Omnidexer section)
    - Multi-index architecture for content discovery
    - DeepIndexable protocol for nested content
 
@@ -174,7 +174,7 @@ Use this framework to categorize requests and select the appropriate systematic 
 
 ### Important Knowledge (Learn Second)
 1. **LaTeX Rendering Pipeline**
-   - {doc}`../system-guide/component-deep-dives/latex-rendering`
+   - {doc}`../system-guide/components` (Document Rendering section)
    - Template-based document generation
    - Multi-engine compilation support
 
@@ -227,7 +227,7 @@ Run this validation sequence before considering any task complete:
 
 ### Initial Orientation (Do Once)
 1. Read {doc}`../system-guide/architecture-overview` for high-level understanding
-2. Review {doc}`../system-guide/component-deep-dives/index` for component relationships
+2. Review {doc}`../system-guide/components` for component relationships
 3. Examine {doc}`../api-reference/index` for key interfaces
 4. Understand {doc}`../contributing/index` for development workflow
 

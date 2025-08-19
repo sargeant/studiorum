@@ -11,7 +11,7 @@ The tag system uses a unified architecture with clear separation of concerns:
 - **Enhancement Pipeline** - Apply format-specific presentation
 - **Content References** (`src/dnd5e/core/references/`) - Cross-references and content tracking
 
-For comprehensive architecture details, see the [Tag System Architecture Guide](../developer/system-guide/component-deep-dives/tag-system-architecture.md).
+For architecture details, see the [System Components Guide](../developer/system-guide/components.md).
 
 ## Tag Parser
 
@@ -201,4 +201,4 @@ The tag system integrates seamlessly with:
 - **Service Container**: Dependency injection provides omnidexer and content tracker
 - **Content Tracking**: Tags automatically registered for appendix generation
 
-For comprehensive implementation details, see the [Tag System Architecture Guide](../developer/system-guide/component-deep-dives/tag-system-architecture.md).
+For implementation details, see the [System Components Guide](../developer/system-guide/components.md).

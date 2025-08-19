@@ -24,7 +24,6 @@ The `dnd5e` package is organized into the following main modules:
    dnd5e.core
    dnd5e.cli
    dnd5e.renderers
-   dnd5e.utils
 ```
 
 ## Key Components

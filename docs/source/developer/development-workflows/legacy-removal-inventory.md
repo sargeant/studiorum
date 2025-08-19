@@ -24,7 +24,7 @@ The project now uses the **unified tag system architecture** exclusively:
 - **Enhancement Pipeline**: `src/dnd5e/renderers/core/interfaces.py` - Presentation formatting
 - **LaTeX Integration**: `src/dnd5e/renderers/latex/tag_renderer.py` - Final output rendering
 
-For complete architecture details, see the [Tag System Architecture Guide](../system-guide/component-deep-dives/tag-system-architecture.md).
+For complete architecture details, see the [System Components Guide](../system-guide/components.md#tag-processing).
 
 ---
 

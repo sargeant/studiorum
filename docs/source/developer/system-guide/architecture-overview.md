@@ -379,7 +379,7 @@ A major architectural enhancement was implemented to achieve feature parity with
 - **Performance Optimized**: <50% processing overhead with intelligent caching and content deduplication
 - **Full Backward Compatibility**: Existing code continues to work unchanged
 
-This enhancement addressed a critical gap in the Python implementation, enabling the full depth of D&D content to be indexed and searchable through `omnidexer.find()`. See [Deep Indexing Implementation Guide](component-deep-dives/deep-indexing.md) for comprehensive technical details.
+This enhancement addressed a critical gap in the Python implementation, enabling the full depth of D&D content to be indexed and searchable through `omnidexer.find()`. See [System Components Guide](components.md#loading-omnidexer) for technical details.
 
 ## Extension Points
 
@@ -401,4 +401,4 @@ This enhancement addressed a critical gap in the Python implementation, enabling
 - **Output formats**: Beyond LaTeX/PDF
 - **Post-processing**: Custom PDF manipulation
 
-For detailed implementation guides, see [Implementation Documentation](component-deep-dives/index.md) and [API Reference](../api-reference/index.md).
+For detailed implementation guides, see [System Components](components.md) and [API Reference](../api-reference/index.md).

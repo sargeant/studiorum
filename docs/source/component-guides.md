@@ -29,7 +29,7 @@ The loader architecture implements a 5etools-compatible dual-file system that se
 - **ContentMerger**: Dual-file architecture implementation with LRU caching
 - **ContentResolver**: Fuzzy matching for user abbreviations and partial names
 
-For detailed implementation guide, see {doc}`developer/system-guide/component-deep-dives/loader-architecture`.
+For details, see {doc}`developer/system-guide/components`.
 
 ### Deep Indexing System
 
@@ -43,7 +43,7 @@ The deep indexing system enables nested content discovery, making class features
 - **Performance Optimized**: <50% processing overhead with intelligent caching
 - **Full Backward Compatibility**: Existing code continues to work unchanged
 
-For comprehensive technical details, see {doc}`developer/system-guide/component-deep-dives/deep-indexing`.
+For details, see {doc}`developer/system-guide/components`.
 
 ## Content Processing
 
@@ -59,7 +59,7 @@ The tag system provides comprehensive processing of 5etools tags through a unifi
 - **Enhancement Pipeline**: Multi-stage presentation formatting
 - **Type Safety**: Full Pydantic validation and Python 3.12 generics
 
-For comprehensive guide, see {doc}`developer/system-guide/component-deep-dives/tag-system-architecture`.
+For details, see {doc}`developer/system-guide/components`.
 
 ### Entry Types System
 
@@ -73,7 +73,7 @@ The entry types system provides 13+ specialized Pydantic models replacing `dict[
 - **Integration**: Seamless integration with content models and validation
 - **Performance**: Optimized field access and validation caching
 
-For implementation details, see {doc}`developer/system-guide/component-deep-dives/entry-types-system`.
+For details, see {doc}`developer/system-guide/components`.
 
 ### Content Parsing Pipeline
 
@@ -87,7 +87,7 @@ The content parsing system handles the sophisticated transformation of 5etools J
 - **EntryParser**: Extracting nested content from complex structures
 - **Validation System**: Strict/liberal modes with comprehensive error handling
 
-For detailed guide, see {doc}`developer/system-guide/component-deep-dives/content-parsing`.
+For details, see {doc}`developer/system-guide/components`.
 
 ## Rendering & Output
 
@@ -103,7 +103,7 @@ The image processing pipeline provides a 4-component system for handling images 
 - **ImagePlacer**: Intelligent LaTeX placement with floating figures and text wrapping
 - **ImageProcessor**: Unified coordination of the complete pipeline
 
-For comprehensive guide, see {doc}`developer/system-guide/component-deep-dives/image-processing`.
+For details, see {doc}`developer/system-guide/components`.
 
 ### LaTeX Rendering System
 
@@ -117,7 +117,7 @@ The LaTeX rendering system provides multi-layered architecture with template-bas
 - **RecursiveEntryProcessor**: Handling 40+ 5etools entry types
 - **Multi-engine Compilation**: XeLaTeX, PDFLaTeX, LuaLaTeX support
 
-For detailed implementation, see {doc}`developer/system-guide/component-deep-dives/latex-rendering`.
+For details, see {doc}`developer/system-guide/components`.
 
 ## Infrastructure & Configuration
 
@@ -133,7 +133,7 @@ The configuration system provides a single source of truth consolidating scatter
 - **CLI Integration**: Seamless parameter defaults through configuration factory
 - **Legacy Compatibility**: Bridges for existing configuration patterns
 
-For implementation details, see {doc}`developer/system-guide/component-deep-dives/unified-configuration`.
+For details, see {doc}`developer/system-guide/components`.
 
 ### Error Handling System
 
@@ -147,7 +147,7 @@ The error handling system implements a complete Result pattern with structured e
 - **Error Chaining**: Batch processing with collect_results for complex pipelines
 - **Logging Integration**: Standardized ErrorContext with severity levels
 
-For comprehensive guide, see {doc}`developer/system-guide/component-deep-dives/error-handling-system`.
+For details, see {doc}`developer/system-guide/components`.
 
 ## Development Patterns
 

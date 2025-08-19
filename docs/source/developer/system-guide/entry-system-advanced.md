@@ -521,6 +521,6 @@ def profile_entry_processing(entry, context):
 ## See Also
 
 - {doc}`entry-system-guide` - Basic entry system guide
-- {doc}`component-deep-dives/tag-system-architecture` - Tag processing details
+- {doc}`components` - System components overview (Tag Processing section)
 - {doc}`/user-guide/troubleshooting` - Common entry issues
 - {doc}`/library-reference/api/index` - Entry processor API

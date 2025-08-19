@@ -81,7 +81,7 @@ graph = indexer.export_graph_data()
 
 For detailed implementation information, see:
 - [Omnidexer API Documentation](../developer/api-reference/core-apis.md)
-- [Deep Indexing Implementation Guide](../developer/system-guide/component-deep-dives/deep-indexing.md)
+- [System Components Guide](../developer/system-guide/components.md)
 
 ## Running the Example
 

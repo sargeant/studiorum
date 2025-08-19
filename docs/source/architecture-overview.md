@@ -407,5 +407,5 @@ For detailed implementation guides, see {doc}`component-guides` and {doc}`librar
 developer/system-guide/architecture-overview
 developer/system-guide/service-container
 developer/system-guide/design-patterns
-developer/system-guide/component-deep-dives/index
+developer/system-guide/components
 ```

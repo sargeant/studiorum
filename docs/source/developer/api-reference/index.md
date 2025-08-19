@@ -237,6 +237,6 @@ When APIs need to change:
 
 ## Getting Help
 
-- Check the [implementation guides](../system-guide/component-deep-dives/index.md) for detailed explanations
+- Check the [system components guide](../system-guide/components.md) for detailed explanations
 - Look at [examples](../../examples/index.md) for practical usage patterns
 - Report API issues on [GitHub](https://github.com/sargeant/5e2pdf/issues)

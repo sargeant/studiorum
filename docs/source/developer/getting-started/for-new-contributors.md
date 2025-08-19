@@ -58,7 +58,7 @@ This guide will help you make your first contribution and grow into an independe
 
 #### Understanding the Codebase
 1. **Study Core Components**
-   - Read {doc}`../system-guide/component-deep-dives/content-parsing`
+   - Read {doc}`../system-guide/components` (Entry Processing section)
    - Examine how content models work in `src/dnd5e/core/models/`
    - Understand testing patterns in `tests/unit/models/`
 
