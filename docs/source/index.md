@@ -10,6 +10,7 @@ description: Convert D&D 5e JSON data from 5e.tools to beautifully formatted LaT
 :caption: For Users
 
 quickstart
+user-guide/index
 installation
 basic-usage
 advanced-features
@@ -22,6 +23,7 @@ troubleshooting
 
 getting-started
 architecture-overview
+developer/system-guide/entry-system-guide
 component-guides
 development-workflows
 contributing

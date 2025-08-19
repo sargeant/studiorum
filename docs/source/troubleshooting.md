@@ -232,6 +232,47 @@ ls -la ~/.5e2pdf/logs/
 tail -f ~/.5e2pdf/logs/app.log
 ```
 
+### Environment Variables for Debugging
+
+```bash
+# Enable detailed entry processing debug output
+export DND5E_DEBUG_ENTRY_PROCESSING=1
+
+# Strict mode - fail on unknown entry types
+export DND5E_STRICT_ENTRY_PROCESSING=1
+
+# Disable tag fallback - show raw tags when resolution fails
+export DND5E_DISABLE_TAG_FALLBACK=1
+
+# Set custom data path
+export DND5E_DATA_PATH=/path/to/5etools/data
+
+# Use custom config file
+export DND5E_CONFIG_FILE=test-config.yaml
+
+# Control LaTeX output
+export DND5E_LATEX_QUIET=1  # Suppress LaTeX output
+export DND5E_LATEX_VERBOSE=1  # Show all LaTeX output
+```
+
+### Managing Large Output
+
+When debugging produces excessive output, use truncation:
+
+```bash
+# Limit output to first 100 lines
+uv run 5e2pdf convert creatures --cr 1 | head -100
+
+# Limit output to last 100 lines
+uv run 5e2pdf convert creatures --cr 1 | tail -100
+
+# Save to file for analysis
+uv run 5e2pdf convert creatures --cr 1 > output.tex 2>&1
+
+# Count lines in output
+uv run 5e2pdf convert creatures --cr 1 | wc -l
+```
+
 ### Common Error Patterns
 
 **"ContentType not found" errors**
@@ -352,6 +393,60 @@ tail -50 ~/.5e2pdf/logs/app.log
 - **GitHub Issues**: [5e2pdf Issues](https://github.com/sargeant/5e2pdf/issues)
 - **Bug Reports**: Include system info, error logs, and steps to reproduce
 - **Feature Requests**: Describe use case and expected behavior
+
+## Testing Issues
+
+### Test Environment Problems
+
+**Tests Failing in Parallel**
+```bash
+# Run tests without parallelization
+pytest -n 0  # or --dist=no
+
+# Reset test environment
+python -c "from dnd5e.test_utils import reset_test_environment; reset_test_environment()"
+
+# Clear test cache
+rm -rf .pytest_cache/
+```
+
+**Test Data Not Found**
+```bash
+# Ensure test data is available
+export DND5E_CONFIG_FILE=test-config.yaml
+
+# Check test isolation
+grep "reset_test_environment" tests/**/*.py
+```
+
+**Integration Test Failures**
+```bash
+# Run only unit tests (fast)
+make test
+
+# Run LaTeX integration tests (requires LaTeX)
+make test-latex-integration
+
+# Skip tests requiring 5etools data
+pytest -m "not needs_data"
+```
+
+### Using reset_test_environment()
+
+When developing or debugging tests:
+
+```python
+from dnd5e.test_utils import reset_test_environment
+
+def setup_method(self):
+    """Setup for each test method."""
+    reset_test_environment()
+    # Additional setup...
+
+def teardown_method(self):
+    """Cleanup after each test."""
+    reset_test_environment()
+```
 
 ## Recovery Procedures
 
