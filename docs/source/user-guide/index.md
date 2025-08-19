@@ -6,6 +6,7 @@ Complete guide for users getting started with 5e2pdf.
 :maxdepth: 2
 
 quickstart-tutorial
+configuration-reference
 ```
 
 ## Getting Started

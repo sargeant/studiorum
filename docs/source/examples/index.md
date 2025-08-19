@@ -9,6 +9,7 @@ The Examples section provides practical, runnable code samples that demonstrate 
 ## Available Examples
 
 - [Deep Indexing Examples](deep-indexing.md): Comprehensive omnidexer examples
+- [Cookbook](cookbook.md): Common recipes and practical examples for everyday tasks
 
 ## Table of Contents
 
@@ -16,4 +17,5 @@ The Examples section provides practical, runnable code samples that demonstrate 
 :maxdepth: 1
 
 deep-indexing
+cookbook
 ```
