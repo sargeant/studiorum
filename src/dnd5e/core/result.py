@@ -213,15 +213,13 @@ def collect_results[T, E](results: list[Result[T, E]]) -> Result[list[T], list[E
         Success with list of values if all succeeded, Error with list of errors otherwise.
 
     Examples:
-        ```python
-        results = [Success(1), Success(2), Success(3)]
-        collected = collect_results(results)
-        # Returns Success([1, 2, 3])
-
-        results = [Success(1), Error("fail"), Success(3)]
-        collected = collect_results(results)
-        # Returns Error(["fail"])
-        ```
+        >>> results = [Success(1), Success(2), Success(3)]
+        >>> collected = collect_results(results)
+        >>> # Returns Success([1, 2, 3])
+        >>>
+        >>> results = [Success(1), Error("fail"), Success(3)]
+        >>> collected = collect_results(results)
+        >>> # Returns Error(["fail"])
     """
     successes: list[T] = []
     errors: list[E] = []
@@ -249,13 +247,11 @@ def try_result[T](fn: Callable[[], T]) -> Result[T, Exception]:
         Success with the function result, or Error with the exception.
 
     Examples:
-        ```python
-        result = try_result(lambda: 10 / 0)
-        # Returns Error(ZeroDivisionError("division by zero"))
-
-        result = try_result(lambda: 10 / 2)
-        # Returns Success(5.0)
-        ```
+        >>> result = try_result(lambda: 10 / 0)
+        >>> # Returns Error(ZeroDivisionError("division by zero"))
+        >>>
+        >>> result = try_result(lambda: 10 / 2)
+        >>> # Returns Success(5.0)
     """
     try:
         return Success(fn())

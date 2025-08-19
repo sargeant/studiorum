@@ -10,6 +10,7 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autoclass:: dnd5e.core.result.Result
    :members:
    :show-inheritance:
+   :no-index:
 ```
 
 ### Success[T, E]
@@ -18,6 +19,7 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autoclass:: dnd5e.core.result.Success
    :members:
    :show-inheritance:
+   :no-index:
 ```
 
 ### Error[T, E]
@@ -26,6 +28,7 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autoclass:: dnd5e.core.result.Error
    :members:
    :show-inheritance:
+   :no-index:
 ```
 
 ## Error Types
@@ -36,6 +39,7 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autoclass:: dnd5e.core.error_types.BaseError
    :members:
    :show-inheritance:
+   :no-index:
 ```
 
 ### ValidationError
@@ -44,6 +48,7 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autoclass:: dnd5e.core.error_types.ValidationError
    :members:
    :show-inheritance:
+   :no-index:
 ```
 
 ### ProcessingError
@@ -52,6 +57,7 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autoclass:: dnd5e.core.error_types.ProcessingError
    :members:
    :show-inheritance:
+   :no-index:
 ```
 
 ### UnknownTypeError
@@ -60,14 +66,7 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autoclass:: dnd5e.core.error_types.UnknownTypeError
    :members:
    :show-inheritance:
-```
-
-### IOOperationError
-
-```{eval-rst}
-.. autoclass:: dnd5e.core.error_types.IOOperationError
-   :members:
-   :show-inheritance:
+   :no-index:
 ```
 
 ## Error Context
@@ -78,6 +77,7 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autoclass:: dnd5e.core.error_types.ErrorContext
    :members:
    :show-inheritance:
+   :no-index:
 ```
 
 ## Enumerations
@@ -88,6 +88,7 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autoclass:: dnd5e.core.error_types.ErrorSeverity
    :members:
    :show-inheritance:
+   :no-index:
 ```
 
 ### ErrorCategory
@@ -96,6 +97,7 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autoclass:: dnd5e.core.error_types.ErrorCategory
    :members:
    :show-inheritance:
+   :no-index:
 ```
 
 ## Logging
@@ -106,24 +108,6 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autofunction:: dnd5e.core.logging.get_logger
 
 .. autofunction:: dnd5e.core.logging.setup_logging
-```
-
-## Validation
-
-### Validation Functions
-
-```{eval-rst}
-.. autofunction:: dnd5e.core.validation_result.validate_model
-
-.. autofunction:: dnd5e.core.validation_result.validate_required_field
-```
-
-### StandardizedEntryValidator
-
-```{eval-rst}
-.. autoclass:: dnd5e.core.standardized_validation.StandardizedEntryValidator
-   :members:
-   :show-inheritance:
 ```
 
 ## Utility Functions
@@ -146,16 +130,6 @@ The error handling API provides standardized Result[T, E] patterns and structure
 .. autofunction:: dnd5e.core.error_types.create_unknown_type_error
 ```
 
-
-## Migration Utilities
-
-### Compatibility Functions
-
-```{eval-rst}
-.. autofunction:: dnd5e.core.standardized_validation.migrate_validation_result
-
-.. autofunction:: dnd5e.core.standardized_validation.create_compatibility_wrapper
-```
 
 ## Usage Examples
 
