@@ -114,7 +114,7 @@ class ModernContextualAPI:
                 return result
 
             except Exception as e:
-                error = ProcessingError(f"Content search failed: {e}")
+                error = ProcessingError(message=f"Content search failed: {e}")
                 await ctx.add_async_error(error)
                 return Error(error)
 
@@ -175,8 +175,7 @@ class ModernContextualAPI:
                     ][:5]  # Limit to 5 suggestions
 
                     error = ContentNotFoundError(
-                        f"Adventure '{adventure_name}' not found",
-                        suggestions=[f"Available: {', '.join(available_adventures)}"]
+                        message=f"Adventure '{adventure_name}' not found"
                         if available_adventures
                         else None,
                     )
@@ -194,7 +193,7 @@ class ModernContextualAPI:
                 return Success(adventure)
 
             except Exception as e:
-                error = ProcessingError(f"Adventure resolution failed: {e}")
+                error = ProcessingError(message=f"Adventure resolution failed: {e}")
                 await ctx.add_async_error(error)
                 return Error(error)
 
@@ -283,7 +282,9 @@ class ModernContextualAPI:
                         break
 
                 if not class_data:
-                    error = ContentNotFoundError(f"Class '{character_class}' not found")
+                    error = ContentNotFoundError(
+                        message=f"Class '{character_class}' not found"
+                    )
                     await ctx.add_async_error(error)
                     return Error(error)
 
@@ -301,7 +302,9 @@ class ModernContextualAPI:
                 return Success(progression_data)
 
             except Exception as e:
-                error = ProcessingError(f"Character progression lookup failed: {e}")
+                error = ProcessingError(
+                    message=f"Character progression lookup failed: {e}"
+                )
                 await ctx.add_async_error(error)
                 return Error(error)
 

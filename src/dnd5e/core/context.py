@@ -25,6 +25,7 @@ from typing import (
     Generic,
     Protocol,
     TypeVar,
+    cast,
     runtime_checkable,
 )
 from uuid import UUID, uuid4
@@ -52,14 +53,20 @@ from .services.protocols import (
 )
 
 if TYPE_CHECKING:
-    pass
+    from .config.unified_config import ApplicationConfig as AppConfig
+    from .models.adventures import Adventure
+    from .models.base import Content
+else:
+    AppConfig = Any
+    Adventure = Any
+    Content = Any
 
 # Import ApplicationConfig at runtime for Pydantic model
 try:
     from .config.unified_config import ApplicationConfig
 except ImportError:
-    # Create a dummy class for ApplicationConfig if not available
-    ApplicationConfig = type("ApplicationConfig", (), {})
+    # Forward declare ApplicationConfig when not available
+    ApplicationConfig = None
 
 T = TypeVar("T", bound=ServiceProtocol)
 
@@ -126,7 +133,7 @@ class AsyncRequestContext(BaseModel):
     finished_at: datetime | None = None
 
     # Request configuration
-    user_config: ApplicationConfig | None = None
+    user_config: AppConfig | None = None
     sources: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -136,7 +143,7 @@ class AsyncRequestContext(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     # Private attributes for internal state
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         self._container: ModernServiceContainer | None = None
         self._closed: bool = False
@@ -176,7 +183,17 @@ class AsyncRequestContext(BaseModel):
 
         # Register configuration service (per-request override support)
         if self.user_config:
-            container.register_instance(ConfigurationProtocol, self.user_config)
+            # Create a simple wrapper for the config instance
+            def config_factory() -> AppConfig:
+                return self.user_config  # type: ignore[return-value]
+
+            container.register_service(
+                ConfigurationProtocol,
+                config_factory,
+                lifecycle=ServiceLifecycle.SINGLETON,
+                dependencies=(),
+                hot_reloadable=True,
+            )
         else:
             container.register_service(
                 ConfigurationProtocol,
@@ -341,19 +358,19 @@ class AsyncRequestContext(BaseModel):
     # Modern protocol-based service access with async support
     async def omnidexer(self) -> OmnidexerProtocol:
         """Get request-scoped omnidexer with protocol validation."""
-        return await self.get_service(OmnidexerProtocol)
+        return await self.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
 
     async def tag_resolver(self) -> TagResolverProtocol:
         """Get request-scoped tag resolver with protocol validation."""
-        return await self.get_service(TagResolverProtocol)
+        return await self.get_service(TagResolverProtocol)  # type: ignore[type-abstract]
 
     async def content_factory(self) -> ContentFactoryProtocol:
         """Get request-scoped content factory with async initialization."""
-        return await self.get_service(ContentFactoryProtocol)
+        return await self.get_service(ContentFactoryProtocol)  # type: ignore[type-abstract]
 
     async def config(self) -> ApplicationConfig:
         """Get effective configuration for this request."""
-        config_service = await self.get_service(ConfigurationProtocol)
+        config_service = await self.get_service(ConfigurationProtocol)  # type: ignore[type-abstract]
         return config_service.get_config()
 
     # Hot-reload support from P3
@@ -362,7 +379,7 @@ class AsyncRequestContext(BaseModel):
         self.user_config = new_config
         if self._container:
             # Update configuration service
-            await self._container.register_instance(ConfigurationProtocol, new_config)
+            await self._container.register_instance(ConfigurationProtocol, new_config)  # type: ignore[arg-type]
             # Trigger hot-reload for configurable services
             hot_reloadable_services = (
                 await self._container.get_hot_reloadable_services()
@@ -429,7 +446,7 @@ class AsyncRequestContext(BaseModel):
             # This is a placeholder for the filtering logic
             pass
 
-        return omnidexer
+        return cast(OmnidexerProtocol, omnidexer)
 
 
 # Legacy sync wrapper for CLI backward compatibility
@@ -446,10 +463,10 @@ class RequestContext:
         ...     results = omnidexer.search("fireball")
     """
 
-    def __init__(self, async_context: AsyncRequestContext):
+    def __init__(self, async_context: AsyncRequestContext) -> None:
         """Initialize sync wrapper around async context."""
         self._async_context = async_context
-        self._loop = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     def __enter__(self) -> RequestContext:
         """Sync context manager entry."""
@@ -484,16 +501,22 @@ class RequestContext:
     @property
     def omnidexer(self) -> OmnidexerProtocol:
         """Get omnidexer synchronously."""
+        if self._loop is None:
+            raise RuntimeError("RequestContext must be used as a context manager")
         return self._loop.run_until_complete(self._async_context.omnidexer())
 
     @property
     def tag_resolver(self) -> TagResolverProtocol:
         """Get tag resolver synchronously."""
+        if self._loop is None:
+            raise RuntimeError("RequestContext must be used as a context manager")
         return self._loop.run_until_complete(self._async_context.tag_resolver())
 
     @property
-    def config(self) -> ApplicationConfig:
+    def config(self) -> AppConfig:
         """Get config synchronously."""
+        if self._loop is None:
+            raise RuntimeError("RequestContext must be used as a context manager")
         return self._loop.run_until_complete(self._async_context.config())
 
     def add_error(self, error: MCPError) -> None:

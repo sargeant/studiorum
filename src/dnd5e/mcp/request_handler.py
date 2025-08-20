@@ -61,7 +61,7 @@ class ModernMCPRequestHandler:
         ... )
     """
 
-    def __init__(self, enable_performance_monitoring: bool = True):
+    def __init__(self, enable_performance_monitoring: bool = True) -> None:
         """Initialize MCP request handler.
 
         Args:
@@ -221,7 +221,7 @@ class ModernMCPRequestHandler:
                 "query": query,
             }
         else:
-            error = result.unwrap_err()
+            error = result.error
             await ctx.add_async_error(error)
             ctx.record_cache_miss()
             return {
@@ -268,7 +268,7 @@ class ModernMCPRequestHandler:
                 "query": query,
             }
         else:
-            error = result.unwrap_err()
+            error = result.error
             await ctx.add_async_error(error)
             ctx.record_cache_miss()
             return {
@@ -324,7 +324,7 @@ class ModernMCPRequestHandler:
                 "query": query,
             }
         else:
-            error = result.unwrap_err()
+            error = result.error
             await ctx.add_async_error(error)
             ctx.record_cache_miss()
             return {
@@ -351,7 +351,7 @@ class ModernMCPRequestHandler:
         include_appendices = params.get("include_appendices", False)
 
         if not adventure_name:
-            error = ContentNotFoundError("adventure_name parameter is required")
+            error = ContentNotFoundError(message="adventure_name parameter is required")
             await ctx.add_async_error(error)
             return {
                 "adventure": None,
@@ -395,7 +395,7 @@ class ModernMCPRequestHandler:
             return response_data
 
         else:
-            error = result.unwrap_err()
+            error = result.error
             await ctx.add_async_error(error)
             ctx.record_cache_miss()
             return {
@@ -420,7 +420,7 @@ class ModernMCPRequestHandler:
         book_name = params.get("book_name", "")
 
         if not book_name:
-            error = ContentNotFoundError("book_name parameter is required")
+            error = ContentNotFoundError(message="book_name parameter is required")
             await ctx.add_async_error(error)
             return {
                 "book": None,
@@ -453,7 +453,7 @@ class ModernMCPRequestHandler:
                 "name": book_name,
             }
         else:
-            error = ContentNotFoundError(f"Book '{book_name}' not found")
+            error = ContentNotFoundError(message=f"Book '{book_name}' not found")
             await ctx.add_async_error(error)
             ctx.record_cache_miss()
             return {
@@ -479,7 +479,7 @@ class ModernMCPRequestHandler:
         subclass = params.get("subclass")
 
         if not character_class:
-            error = ContentNotFoundError("class parameter is required")
+            error = ContentNotFoundError(message="class parameter is required")
             await ctx.add_async_error(error)
             return {
                 "progression": None,
@@ -501,7 +501,7 @@ class ModernMCPRequestHandler:
                 "subclass": subclass,
             }
         else:
-            error = result.unwrap_err()
+            error = result.error
             await ctx.add_async_error(error)
             ctx.record_cache_miss()
             return {
