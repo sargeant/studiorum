@@ -1,7 +1,13 @@
 """Item data models."""
 
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from ..error_types import BaseError
+    from ..result import Result
+    from ..text.tag_resolver import TagResolver
+    from .processors import ItemProcessor
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -402,78 +408,15 @@ class Item(BaseContent):
         return str(self.value)
 
     def get_description_text(self) -> str:
-        """Extract text from complex entry structures using proper entry processing."""
-        # Start with item's own entries
-        all_entries = []
+        """
+        Extract text from complex entry structures using proper entry processing.
 
-        if self.entries:
-            all_entries.extend(self.entries)
+        DEPRECATED: This method uses global services. New code should use
+        the processor pattern with explicit service injection.
+        """
+        from .compatibility import get_item_description_legacy
 
-        # Add type-based entries (like standard gemstone description) if item has no entries
-        if not self.entries:
-            type_entries = self.get_type_entries()
-            if type_entries:
-                # Convert string entries to proper entry format for processing
-                for entry_text in type_entries:
-                    # Add as a plain string entry since Entry is a union type that includes str
-                    all_entries.append(entry_text)
-
-        if not all_entries:
-            return ""
-
-        from ...cli.utils import get_tag_resolver
-        from ...renderers.core.interfaces import RenderingContext
-        from ...renderers.latex.entry_processor import RecursiveEntryProcessor
-
-        # Get the tag resolver for proper tag processing
-        tag_resolver = get_tag_resolver()
-
-        # Create a proper rendering context for entry processing
-        context = RenderingContext(
-            output_format="latex",
-            debug_mode=False,
-            tag_resolver=tag_resolver,
-            metadata={
-                "source_name": self.source or "unknown",
-                "tag_resolver": tag_resolver,
-                "content_type": "item",
-            },
-        )
-
-        from ...core.entry_registry import ValidationMode
-
-        processor = RecursiveEntryProcessor(
-            use_dnd_template=True, validation_mode=ValidationMode.SILENT
-        )
-
-        # Convert Pydantic models to dicts for entry processor
-        entries_data = []
-        for entry in all_entries:
-            if hasattr(entry, "model_dump"):
-                entry_data = entry.model_dump()
-            else:
-                entry_data = entry
-
-            entries_data.append(entry_data)
-
-        # Process entries to get proper LaTeX with tag resolution
-        processed_entries = processor.process_entries(entries_data, context)
-
-        if not processed_entries:
-            return ""
-
-        # Format the first paragraph with \noindent and subsequent paragraphs with proper indentation
-        formatted_paragraphs = []
-        for i, entry in enumerate(processed_entries):
-            if i == 0:
-                # First paragraph should not be indented
-                formatted_paragraphs.append(f"\\noindent {entry}")
-            else:
-                # Subsequent paragraphs should use default paragraph indentation
-                formatted_paragraphs.append(entry)
-
-        # Join with double newlines to create proper paragraph breaks for LaTeX
-        return "\n\n".join(formatted_paragraphs)
+        return get_item_description_legacy(self)
 
     def get_item_metadata_line(self) -> str:
         """Get formatted metadata line (category, type, rarity, attunement)."""
@@ -662,3 +605,16 @@ class Item(BaseContent):
         if type_metadata and "entries" in type_metadata and type_metadata["entries"]:
             return [str(entry) for entry in type_metadata["entries"]]
         return []
+
+    def get_processor(self) -> "ItemProcessor":
+        """Get processor for this item that can work with services."""
+        from .processors import ItemProcessor
+
+        return ItemProcessor(self)
+
+    def resolve_tags_with_service(
+        self, tag_resolver: "TagResolver"
+    ) -> "Result[Item, BaseError]":
+        """Resolve tags using provided tag resolver service."""
+        processor = self.get_processor()
+        return processor.resolve_tags(tag_resolver)

@@ -1,0 +1,35 @@
+version: '1.0'
+content_sources:
+- name: test-data
+  type: directory
+  enabled: true
+  priority: 0
+  url: null
+  branch: master
+  path: /Users/sam/Code/5e2pdf/test-data
+  auto_update: true
+  update_interval: daily
+- name: srd
+  type: directory
+  enabled: true
+  priority: 1
+  url: null
+  branch: master
+  path: /Users/sam/Code/5e2pdf/srd-data
+  auto_update: true
+  update_interval: daily
+latex:
+  paper_size: null
+  fonts: null
+  no_outline: null
+  font_size: null
+  background: null
+  high_contrast: null
+  two_column: null
+  justified: null
+cache_dir: /Users/sam/.cache/5e2pdf
+config_dir: /Users/sam/.config/5e2pdf
+auto_update_enabled: true
+update_check_interval: daily
+parallel_downloads: 3
+content_index_ttl: 3600

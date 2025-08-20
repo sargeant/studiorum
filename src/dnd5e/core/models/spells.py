@@ -4,6 +4,10 @@ from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     from ...renderers.core.interfaces import RenderingContext
+    from ..error_types import BaseError
+    from ..result import Result
+    from ..text.tag_resolver import TagResolver
+    from .processors import SpellProcessor
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -299,116 +303,34 @@ class Spell(BaseContent):
         return ", ".join(parts)
 
     def get_description_text(self, context: "RenderingContext | None" = None) -> str:
-        """Extract text from complex entry structures using proper entry processing.
+        """
+        Extract text from complex entry structures using proper entry processing.
+
+        DEPRECATED: This method uses global services. New code should use
+        the processor pattern with explicit service injection.
 
         Args:
             context: Optional rendering context with reference tracking. If None,
                     creates a default context for backward compatibility.
         """
-        from ...renderers.core.interfaces import RenderingContext
-        from ...renderers.latex.entry_processor import RecursiveEntryProcessor
+        from .compatibility import get_spell_description_legacy
 
-        # Use provided context or create default for backward compatibility
-        if context is None:
-            from ...cli.utils import get_tag_resolver
-
-            # Get the tag resolver for proper tag processing
-            tag_resolver = get_tag_resolver()
-
-            # Create a proper rendering context for entry processing
-            context = RenderingContext(
-                output_format="latex",
-                debug_mode=False,
-                tag_resolver=tag_resolver,
-                metadata={
-                    "source_name": self.source or "unknown",
-                    "tag_resolver": tag_resolver,
-                    "content_type": "spell",
-                },
-            )
-
-        from ...core.entry_registry import ValidationMode
-
-        processor = RecursiveEntryProcessor(
-            use_dnd_template=True, validation_mode=ValidationMode.SILENT
-        )
-
-        # Convert Pydantic models to dicts for entry processor
-        entries_data = []
-        for entry in self.entries:
-            if hasattr(entry, "model_dump"):
-                entries_data.append(entry.model_dump())
-            else:
-                entries_data.append(entry)
-
-        # Process entries to get proper LaTeX with tag resolution
-        processed_entries = processor.process_entries(entries_data, context)
-
-        if not processed_entries:
-            return ""
-
-        # Format the first paragraph with \noindent and subsequent paragraphs with proper indentation
-        formatted_paragraphs = []
-        for i, entry in enumerate(processed_entries):
-            if i == 0:
-                # First paragraph should not be indented
-                formatted_paragraphs.append(f"\\noindent {entry}")
-            else:
-                # Subsequent paragraphs should use default paragraph indentation
-                formatted_paragraphs.append(entry)
-
-        # Join with double newlines to create proper paragraph breaks for LaTeX
-        return "\n\n".join(formatted_paragraphs)
+        return get_spell_description_legacy(self, context)
 
     def get_higher_level_text(self, context: "RenderingContext | None" = None) -> str:
-        """Extract text from complex higher level entries using proper entry processing.
+        """
+        Extract text from complex higher level entries using proper entry processing.
+
+        DEPRECATED: This method uses global services. New code should use
+        the processor pattern with explicit service injection.
 
         Args:
             context: Optional rendering context with reference tracking. If None,
                     creates a default context for backward compatibility.
         """
-        if not self.higher_level:
-            return ""
+        from .compatibility import get_spell_higher_level_legacy
 
-        from ...renderers.core.interfaces import RenderingContext
-        from ...renderers.latex.entry_processor import RecursiveEntryProcessor
-
-        # Use provided context or create default for backward compatibility
-        if context is None:
-            from ...cli.utils import get_tag_resolver
-
-            # Get the tag resolver for proper tag processing
-            tag_resolver = get_tag_resolver()
-
-            # Create a proper rendering context for entry processing
-            context = RenderingContext(
-                output_format="latex",
-                debug_mode=False,
-                tag_resolver=tag_resolver,
-                metadata={
-                    "source_name": self.source or "unknown",
-                    "tag_resolver": tag_resolver,
-                    "content_type": "spell",
-                },
-            )
-
-        from ...core.entry_registry import ValidationMode
-
-        processor = RecursiveEntryProcessor(
-            use_dnd_template=True, validation_mode=ValidationMode.SILENT
-        )
-
-        # Convert Pydantic models to dicts for entry processor
-        entries_data = []
-        for entry in self.higher_level:
-            if hasattr(entry, "model_dump"):
-                entries_data.append(entry.model_dump())
-            else:
-                entries_data.append(entry)
-
-        # Process entries to get proper LaTeX with tag resolution
-        processed_entries = processor.process_entries(entries_data, context)
-        return " ".join(processed_entries)
+        return get_spell_higher_level_legacy(self, context)
 
     # Enhanced formatting methods for the new architecture
     def get_spell_attack_text(self) -> str:
@@ -548,3 +470,16 @@ class Spell(BaseContent):
             name = name.replace(char, escape)
 
         return name
+
+    def get_processor(self) -> "SpellProcessor":
+        """Get processor for this spell that can work with services."""
+        from .processors import SpellProcessor
+
+        return SpellProcessor(self)
+
+    def resolve_tags_with_service(
+        self, tag_resolver: "TagResolver"
+    ) -> "Result[Spell, BaseError]":
+        """Resolve tags using provided tag resolver service."""
+        processor = self.get_processor()
+        return processor.resolve_tags(tag_resolver)
