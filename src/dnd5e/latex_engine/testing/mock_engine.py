@@ -2,7 +2,7 @@
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from dnd5e.renderers.core.interfaces import RenderingContext
 
@@ -18,7 +18,7 @@ class MockLaTeXEngine:
     PDF compilation for testing without LaTeX installation.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize with real LaTeX renderer."""
         self.renderer = LaTeXDocumentRenderer()
 
@@ -35,7 +35,9 @@ class MockLaTeXEngine:
             Real LaTeX document as string
         """
         # Use the real renderer for accurate LaTeX output
-        return self.renderer.render_document(content, context)
+        # Type cast needed since mock accepts broader type than renderer
+        result = self.renderer.render_document(content, context)  # type: ignore[arg-type]
+        return str(result) if result else ""
 
     def compile_to_pdf(
         self, latex_content: str, output_path: Path, config: object | None = None
