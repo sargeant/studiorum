@@ -168,8 +168,13 @@ class ServiceDescriptor[T]:
 
         # Check function signature for container parameter
         import inspect
+        from collections.abc import Callable
+        from typing import cast
 
-        sig = inspect.signature(self.factory)
+        # For union types, we need to cast to callable for signature inspection
+        # At this point we know it's not AsyncServiceFactory, so it must be a callable
+        callable_factory = cast(Callable[..., Any], self.factory)
+        sig = inspect.signature(callable_factory)
         return len(sig.parameters) > 0
 
     def validate_lifecycle_compatibility(self) -> list[str]:

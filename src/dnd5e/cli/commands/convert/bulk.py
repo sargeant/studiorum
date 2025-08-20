@@ -3,6 +3,7 @@
 import asyncio
 import os
 from pathlib import Path
+from typing import cast
 
 import typer
 from rich import print as rprint
@@ -16,6 +17,7 @@ from dnd5e.cli.display_manager import display_manager
 from dnd5e.cli.utils import get_omnidexer, get_tag_resolver
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
+from dnd5e.core.services.protocols import OmnidexerProtocol
 from dnd5e.renderers.core.interfaces import RenderingContext
 from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
@@ -69,7 +71,7 @@ def bulk(
                 )
                 omnidexer = get_omnidexer()
                 tag_resolver = get_tag_resolver()
-                resolver = ContentResolver(omnidexer)
+                resolver = ContentResolver(cast(OmnidexerProtocol, omnidexer))
                 display_manager.update_task(init_task, completed=100)
 
             # Perform bulk resolution based on content type

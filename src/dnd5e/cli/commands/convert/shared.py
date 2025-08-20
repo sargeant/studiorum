@@ -15,6 +15,7 @@ from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.core.security import ExecutableNotFoundError, get_platform_file_opener
+from dnd5e.core.services.protocols import OmnidexerProtocol
 from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
 from dnd5e.renderers.latex.compiler import LaTeXCompiler
 
@@ -196,7 +197,7 @@ def resolve_content_or_file(
 
     # Try to resolve as abbreviation using omnidexer
     omnidexer = get_omnidexer()
-    resolver = ContentResolver(omnidexer)
+    resolver = ContentResolver(cast(OmnidexerProtocol, omnidexer))
 
     if content_type == ContentType.ADVENTURE:
         result = resolver.resolve_adventure(source)

@@ -1,5 +1,7 @@
 """Info command for 5e2pdf CLI."""
 
+from typing import cast
+
 import typer
 from rich import print as rprint
 from rich.panel import Panel
@@ -11,6 +13,7 @@ from dnd5e.core.models.creatures import Creature
 from dnd5e.core.models.items import Item
 from dnd5e.core.models.spells import Spell
 from dnd5e.core.resolvers import ContentResolver
+from dnd5e.core.services.protocols import OmnidexerProtocol
 
 app: typer.Typer = typer.Typer(help="Show detailed information about content")
 console = display_manager.console
@@ -63,7 +66,7 @@ def show_content_info(
                 )
 
             # Create resolver for abbreviation lookup
-            resolver = ContentResolver(omnidexer)
+            resolver = ContentResolver(cast(OmnidexerProtocol, omnidexer))
             content_item = None
 
             # First try abbreviation-based lookup for adventures and books

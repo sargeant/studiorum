@@ -18,12 +18,17 @@ import logging
 from typing import Any
 
 from ..core.api import ModernContextualAPI
-from ..core.context import async_request_context, performance_monitored_context
+from ..core.context import (
+    AsyncRequestContext,
+    async_request_context,
+    performance_monitored_context,
+)
 from ..core.error_types import (
     ContentNotFoundError,
     MCPError,
     ProcessingError,
 )
+from ..core.result import Error, Result, Success
 from ..core.services.protocols import OmnidexerProtocol
 
 logger = logging.getLogger(__name__)
@@ -105,10 +110,15 @@ class ModernMCPRequestHandler:
             else async_request_context
         )
 
+        # Build metadata for context
+        context_metadata = {
+            "enable_hot_reload": enable_hot_reload,
+            "performance_tracking": self.performance_monitoring,
+        }
+
         async with context_manager(
             config_override=config,
-            enable_hot_reload=enable_hot_reload,
-            performance_tracking=self.performance_monitoring,
+            metadata=context_metadata,
         ) as ctx:
             try:
                 logger.info(
@@ -169,21 +179,21 @@ class ModernMCPRequestHandler:
 
             except Exception as e:
                 logger.error(f"MCP request {method} failed: {e}", exc_info=True)
-                error_data = {"context_id": str(ctx.request_id)}
+                exception_data: dict[str, Any] = {"context_id": str(ctx.request_id)}
 
-                if self.performance_monitoring:
-                    error_data["performance_metrics"] = ctx.metrics.model_dump()
+                if self.performance_monitoring and ctx.metrics:
+                    exception_data["performance_metrics"] = ctx.metrics.model_dump()
 
                 return {
                     "error": {
                         "code": -32603,
                         "message": f"Internal error: {e}",
-                        "data": error_data,
+                        "data": exception_data,
                     }
                 }
 
     async def _handle_search_spells_async(
-        self, params: dict[str, Any], ctx
+        self, params: dict[str, Any], ctx: AsyncRequestContext
     ) -> dict[str, Any]:
         """Handle spell search with modern async context.
 
@@ -221,7 +231,12 @@ class ModernMCPRequestHandler:
                 "query": query,
             }
         else:
-            error = result.error
+            # Type narrowing: if not success, it must be Error type
+            if not isinstance(result, Error):
+                # This should never happen given the Result[T, E] pattern
+                error = ContentNotFoundError(message="Unexpected result type")
+            else:
+                error = result.error
             await ctx.add_async_error(error)
             ctx.record_cache_miss()
             return {
@@ -232,7 +247,7 @@ class ModernMCPRequestHandler:
             }
 
     async def _handle_search_creatures_async(
-        self, params: dict[str, Any], ctx
+        self, params: dict[str, Any], ctx: AsyncRequestContext
     ) -> dict[str, Any]:
         """Handle creature search with async protocols.
 
@@ -268,7 +283,12 @@ class ModernMCPRequestHandler:
                 "query": query,
             }
         else:
-            error = result.error
+            # Type narrowing: if not success, it must be Error type
+            if not isinstance(result, Error):
+                # This should never happen given the Result[T, E] pattern
+                error = ContentNotFoundError(message="Unexpected result type")
+            else:
+                error = result.error
             await ctx.add_async_error(error)
             ctx.record_cache_miss()
             return {
@@ -279,7 +299,7 @@ class ModernMCPRequestHandler:
             }
 
     async def _handle_search_content_async(
-        self, params: dict[str, Any], ctx
+        self, params: dict[str, Any], ctx: AsyncRequestContext
     ) -> dict[str, Any]:
         """Handle generic content search with protocol validation.
 
@@ -298,7 +318,7 @@ class ModernMCPRequestHandler:
             ctx.sources.extend(sources)
 
         if not content_type:
-            error = ProcessingError(message="content_type parameter is required")
+            error = ContentNotFoundError(message="content_type parameter is required")
             await ctx.add_async_error(error)
             return {
                 "content": [],
@@ -324,7 +344,12 @@ class ModernMCPRequestHandler:
                 "query": query,
             }
         else:
-            error = result.error
+            # Type narrowing: if not success, it must be Error type
+            if not isinstance(result, Error):
+                # This should never happen given the Result[T, E] pattern
+                error = ContentNotFoundError(message="Unexpected result type")
+            else:
+                error = result.error
             await ctx.add_async_error(error)
             ctx.record_cache_miss()
             return {
@@ -336,7 +361,7 @@ class ModernMCPRequestHandler:
             }
 
     async def _handle_resolve_adventure_async(
-        self, params: dict[str, Any], ctx
+        self, params: dict[str, Any], ctx: AsyncRequestContext
     ) -> dict[str, Any]:
         """Handle adventure resolution with async protocols.
 
@@ -395,7 +420,12 @@ class ModernMCPRequestHandler:
             return response_data
 
         else:
-            error = result.error
+            # Type narrowing: if not success, it must be Error type
+            if not isinstance(result, Error):
+                # This should never happen given the Result[T, E] pattern
+                error = ContentNotFoundError(message="Unexpected result type")
+            else:
+                error = result.error
             await ctx.add_async_error(error)
             ctx.record_cache_miss()
             return {
@@ -406,7 +436,7 @@ class ModernMCPRequestHandler:
             }
 
     async def _handle_resolve_book_async(
-        self, params: dict[str, Any], ctx
+        self, params: dict[str, Any], ctx: AsyncRequestContext
     ) -> dict[str, Any]:
         """Handle book resolution with protocol validation.
 
@@ -428,7 +458,7 @@ class ModernMCPRequestHandler:
             }
 
         # Get protocol-validated omnidexer for book lookup
-        omnidexer = await ctx.get_service(OmnidexerProtocol)
+        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
 
         # Search for the book
         ctx.record_async_operation()
@@ -463,7 +493,7 @@ class ModernMCPRequestHandler:
             }
 
     async def _handle_character_progression_async(
-        self, params: dict[str, Any], ctx
+        self, params: dict[str, Any], ctx: AsyncRequestContext
     ) -> dict[str, Any]:
         """Handle character progression queries with protocol validation.
 
@@ -501,7 +531,12 @@ class ModernMCPRequestHandler:
                 "subclass": subclass,
             }
         else:
-            error = result.error
+            # Type narrowing: if not success, it must be Error type
+            if not isinstance(result, Error):
+                # This should never happen given the Result[T, E] pattern
+                error = ContentNotFoundError(message="Unexpected result type")
+            else:
+                error = result.error
             await ctx.add_async_error(error)
             ctx.record_cache_miss()
             return {
@@ -512,7 +547,7 @@ class ModernMCPRequestHandler:
             }
 
     async def _handle_list_adventures_async(
-        self, params: dict[str, Any], ctx
+        self, params: dict[str, Any], ctx: AsyncRequestContext
     ) -> dict[str, Any]:
         """Handle adventure listing with protocol validation.
 
@@ -529,7 +564,7 @@ class ModernMCPRequestHandler:
             ctx.sources.extend(sources)
 
         # Get protocol-validated omnidexer
-        omnidexer = await ctx.get_service(OmnidexerProtocol)
+        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
 
         ctx.record_async_operation()
 
@@ -569,7 +604,7 @@ class ModernMCPRequestHandler:
         }
 
     async def _handle_list_books_async(
-        self, params: dict[str, Any], ctx
+        self, params: dict[str, Any], ctx: AsyncRequestContext
     ) -> dict[str, Any]:
         """Handle book listing with protocol validation.
 
@@ -586,7 +621,7 @@ class ModernMCPRequestHandler:
             ctx.sources.extend(sources)
 
         # Get protocol-validated omnidexer
-        omnidexer = await ctx.get_service(OmnidexerProtocol)
+        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
 
         ctx.record_async_operation()
 

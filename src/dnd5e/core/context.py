@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from datetime import datetime
 from typing import (
@@ -53,20 +54,18 @@ from .services.protocols import (
 )
 
 if TYPE_CHECKING:
-    from .config.unified_config import ApplicationConfig as AppConfig
+    from .config.unified_config import ApplicationConfig
     from .models.adventures import Adventure
     from .models.base import Content
 else:
-    AppConfig = Any
+    # Import ApplicationConfig at runtime for Pydantic model
+    try:
+        from .config.unified_config import ApplicationConfig
+    except ImportError:
+        # Forward declare ApplicationConfig when not available
+        ApplicationConfig = type("ApplicationConfig", (), {})  # type: ignore[misc,assignment]
     Adventure = Any
     Content = Any
-
-# Import ApplicationConfig at runtime for Pydantic model
-try:
-    from .config.unified_config import ApplicationConfig
-except ImportError:
-    # Forward declare ApplicationConfig when not available
-    ApplicationConfig = None
 
 T = TypeVar("T", bound=ServiceProtocol)
 
@@ -133,7 +132,7 @@ class AsyncRequestContext(BaseModel):
     finished_at: datetime | None = None
 
     # Request configuration
-    user_config: AppConfig | None = None
+    user_config: ApplicationConfig | None = None
     sources: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -159,7 +158,12 @@ class AsyncRequestContext(BaseModel):
             await self._initialize_async_resources()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: Any,
+    ) -> None:
         """Async context manager exit with comprehensive cleanup."""
         await self.close()
         if exc_type:
@@ -184,11 +188,11 @@ class AsyncRequestContext(BaseModel):
         # Register configuration service (per-request override support)
         if self.user_config:
             # Create a simple wrapper for the config instance
-            def config_factory() -> AppConfig:
+            def config_factory() -> ApplicationConfig:
                 return self.user_config  # type: ignore[return-value]
 
             container.register_service(
-                ConfigurationProtocol,
+                ConfigurationProtocol,  # type: ignore[type-abstract]
                 config_factory,
                 lifecycle=ServiceLifecycle.SINGLETON,
                 dependencies=(),
@@ -196,7 +200,7 @@ class AsyncRequestContext(BaseModel):
             )
         else:
             container.register_service(
-                ConfigurationProtocol,
+                ConfigurationProtocol,  # type: ignore[type-abstract]
                 create_configuration_service,
                 lifecycle=ServiceLifecycle.SINGLETON,
                 dependencies=(),
@@ -205,7 +209,7 @@ class AsyncRequestContext(BaseModel):
 
         # Register omnidexer with async resource lifecycle
         container.register_service(
-            OmnidexerProtocol,
+            OmnidexerProtocol,  # type: ignore[type-abstract]
             self._omnidexer_factory,
             lifecycle=ServiceLifecycle.ASYNC_RESOURCE,
             dependencies=(ConfigurationProtocol,),
@@ -213,7 +217,7 @@ class AsyncRequestContext(BaseModel):
 
         # Register tag resolver with scoped lifecycle
         container.register_service(
-            TagResolverProtocol,
+            TagResolverProtocol,  # type: ignore[type-abstract]
             create_tag_resolver_service,
             lifecycle=ServiceLifecycle.SCOPED,
             dependencies=(OmnidexerProtocol, ConfigurationProtocol),
@@ -222,7 +226,7 @@ class AsyncRequestContext(BaseModel):
 
         # Register display manager as scoped
         container.register_service(
-            DisplayManagerProtocol,
+            DisplayManagerProtocol,  # type: ignore[type-abstract]
             create_display_manager_service,
             lifecycle=ServiceLifecycle.SCOPED,
             dependencies=(ConfigurationProtocol,),
@@ -231,7 +235,7 @@ class AsyncRequestContext(BaseModel):
 
         # Register reference manager as scoped
         container.register_service(
-            ReferenceManagerProtocol,
+            ReferenceManagerProtocol,  # type: ignore[type-abstract]
             create_reference_manager_service,
             lifecycle=ServiceLifecycle.SCOPED,
             dependencies=(OmnidexerProtocol,),
@@ -239,7 +243,7 @@ class AsyncRequestContext(BaseModel):
 
         # Register content factory as async resource
         container.register_service(
-            ContentFactoryProtocol,
+            ContentFactoryProtocol,  # type: ignore[type-abstract]
             create_content_factory_service,
             lifecycle=ServiceLifecycle.SINGLETON,
             dependencies=(),
@@ -281,6 +285,8 @@ class AsyncRequestContext(BaseModel):
             return service
 
         # Get from container with async support
+        if self._container is None:
+            raise RuntimeError("Container not initialized")
         service = await self._container.get_service(protocol)
 
         # Runtime protocol validation
@@ -481,8 +487,15 @@ class RequestContext:
         self._loop.run_until_complete(self._async_context.__aenter__())
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: Any,
+    ) -> None:
         """Sync context manager exit."""
+        if self._loop is None:
+            raise RuntimeError("Event loop not initialized")
         self._loop.run_until_complete(
             self._async_context.__aexit__(exc_type, exc_val, exc_tb)
         )
@@ -513,7 +526,7 @@ class RequestContext:
         return self._loop.run_until_complete(self._async_context.tag_resolver())
 
     @property
-    def config(self) -> AppConfig:
+    def config(self) -> ApplicationConfig:
         """Get config synchronously."""
         if self._loop is None:
             raise RuntimeError("RequestContext must be used as a context manager")
@@ -559,7 +572,7 @@ async def async_request_context(
     config_override: ApplicationConfig | None = None,
     sources: list[str] | None = None,
     metadata: dict[str, Any] | None = None,
-) -> AsyncRequestContext:
+) -> AsyncIterator[AsyncRequestContext]:
     """Modern async context manager for MCP request execution."""
     context = create_async_request_context(config_override, sources, metadata)
     async with context:
@@ -571,7 +584,7 @@ def request_context(
     config_override: ApplicationConfig | None = None,
     sources: list[str] | None = None,
     metadata: dict[str, Any] | None = None,
-) -> RequestContext:
+) -> Iterator[RequestContext]:
     """Sync context manager for CLI backward compatibility."""
     context = create_sync_request_context(config_override, sources, metadata)
     with context:
@@ -586,7 +599,7 @@ async def performance_monitored_context(
     metadata: dict[str, Any] | None = None,
     enable_hot_reload: bool = False,
     performance_tracking: bool = True,
-) -> AsyncRequestContext:
+) -> AsyncIterator[AsyncRequestContext]:
     """Context manager with advanced performance monitoring and hot-reload support."""
 
     context = create_async_request_context(config_override, sources, metadata)

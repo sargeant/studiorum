@@ -30,7 +30,6 @@ from .error_types import (
     ErrorCategory,
     MCPError,
     MCPErrorCode,
-    ProcessingError,
 )
 from .result import Error, Result, Success
 from .services.protocols import (
@@ -114,7 +113,7 @@ class ModernContextualAPI:
                 return result
 
             except Exception as e:
-                error = ProcessingError(message=f"Content search failed: {e}")
+                error = ContentNotFoundError(message=f"Content search failed: {e}")
                 await ctx.add_async_error(error)
                 return Error(error)
 
@@ -136,19 +135,20 @@ class ModernContextualAPI:
         Returns:
             Result containing resolved adventure or error details
         """
-        context_manager = (
-            performance_monitored_context
-            if enable_performance_monitoring
-            else async_request_context
-        )
+        if enable_performance_monitoring:
+            context_manager = performance_monitored_context(
+                config_override=config_override,
+                performance_tracking=enable_performance_monitoring,
+            )
+        else:
+            context_manager = async_request_context(
+                config_override=config_override,
+            )
 
-        async with context_manager(
-            config_override=config_override,
-            performance_tracking=enable_performance_monitoring,
-        ) as ctx:
+        async with context_manager as ctx:
             try:
                 # Protocol-validated services
-                omnidexer = await ctx.get_service(OmnidexerProtocol)
+                omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
 
                 # Async adventure resolution
                 ctx.record_async_operation()
@@ -177,12 +177,23 @@ class ModernContextualAPI:
                     error = ContentNotFoundError(
                         message=f"Adventure '{adventure_name}' not found"
                         if available_adventures
-                        else None,
+                        else f"Adventure '{adventure_name}' not found - no adventures available",
                     )
                     await ctx.add_async_error(error)
                     return Error(error)
 
                 adventure = adventures[0]  # Take the first match
+
+                # Type safety: ensure it's actually an adventure
+                from .models.adventures import Adventure
+
+                if not isinstance(adventure, Adventure):
+                    # If it's not an Adventure instance, try to create one
+                    error = ContentNotFoundError(
+                        message=f"Adventure '{adventure_name}' found but invalid type"
+                    )
+                    await ctx.add_async_error(error)
+                    return Error(error)
 
                 # Add appendices if requested using protocol-based services
                 if include_appendices:
@@ -193,7 +204,9 @@ class ModernContextualAPI:
                 return Success(adventure)
 
             except Exception as e:
-                error = ProcessingError(message=f"Adventure resolution failed: {e}")
+                error = ContentNotFoundError(
+                    message=f"Adventure resolution failed: {e}"
+                )
                 await ctx.add_async_error(error)
                 return Error(error)
 
@@ -264,7 +277,7 @@ class ModernContextualAPI:
         async with async_request_context(config_override=config_override) as ctx:
             try:
                 # Get protocol-validated omnidexer
-                omnidexer = await ctx.get_service(OmnidexerProtocol)
+                omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
 
                 # Async character progression lookup
                 ctx.record_async_operation()
@@ -289,7 +302,7 @@ class ModernContextualAPI:
                     return Error(error)
 
                 # Extract progression data for the specified level
-                progression_data = {
+                progression_data: dict[str, Any] = {
                     "class": character_class,
                     "level": level,
                     "subclass": subclass,
@@ -302,7 +315,7 @@ class ModernContextualAPI:
                 return Success(progression_data)
 
             except Exception as e:
-                error = ProcessingError(
+                error = ContentNotFoundError(
                     message=f"Character progression lookup failed: {e}"
                 )
                 await ctx.add_async_error(error)

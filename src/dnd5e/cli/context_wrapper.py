@@ -15,8 +15,8 @@ from __future__ import annotations
 import asyncio
 import functools
 import logging
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, TypeVar
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from ..core.config.unified_config import ApplicationConfig
@@ -27,10 +27,8 @@ from ..core.exceptions import DnD5eError
 
 logger = logging.getLogger(__name__)
 
-F = TypeVar("F", bound=Callable[..., Any])
 
-
-def with_request_context[F: Callable[..., Any]](func: F) -> F:
+def with_request_context[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """Decorator to add request context to CLI commands.
 
     This decorator automatically injects a request context into CLI commands,
@@ -62,7 +60,7 @@ def with_request_context[F: Callable[..., Any]](func: F) -> F:
     """
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         # Check if context already provided (for nested calls or testing)
         if "ctx" in kwargs and kwargs["ctx"] is not None:
             return func(*args, **kwargs)
@@ -104,7 +102,9 @@ def with_request_context[F: Callable[..., Any]](func: F) -> F:
     return wrapper
 
 
-def with_async_request_context[F: Callable[..., Any]](func: F) -> F:
+def with_async_request_context[**P, T](
+    func: Callable[P, Awaitable[T]],
+) -> Callable[P, Awaitable[T]]:
     """Decorator for async CLI commands that need request context.
 
     This decorator is for CLI commands that are defined as async functions
@@ -118,7 +118,7 @@ def with_async_request_context[F: Callable[..., Any]](func: F) -> F:
     """
 
     @functools.wraps(func)
-    async def async_wrapper(*args, **kwargs):
+    async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         # Check if context already provided
         if "ctx" in kwargs and kwargs["ctx"] is not None:
             return await func(*args, **kwargs)
@@ -163,9 +163,9 @@ def with_async_request_context[F: Callable[..., Any]](func: F) -> F:
     return async_wrapper
 
 
-def with_performance_context(
+def with_performance_context[**P, T](
     enable_monitoring: bool = True, log_metrics: bool = True
-) -> Callable[[F], F]:
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorator for CLI commands that need performance monitoring.
 
     This decorator wraps CLI commands with performance-monitored request
@@ -179,9 +179,9 @@ def with_performance_context(
         Decorator function
     """
 
-    def decorator(func: F) -> F:
+    def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             # Check if context already provided
             if "ctx" in kwargs and kwargs["ctx"] is not None:
                 return func(*args, **kwargs)
@@ -199,7 +199,7 @@ def with_performance_context(
                 config = None
 
             # Create performance-monitored context
-            async def run_with_performance_context():
+            async def run_with_performance_context() -> T:
                 async with performance_monitored_context(
                     config_override=config,
                     performance_tracking=enable_monitoring,
@@ -285,7 +285,12 @@ class CLIContextManager:
         self._context.__enter__()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: Any,
+    ) -> None:
         """Exit context manager and clean up context."""
         if self._context:
             self._context.__exit__(exc_type, exc_val, exc_tb)
@@ -351,4 +356,4 @@ def ensure_context_in_kwargs(kwargs: dict[str, Any]) -> RequestContext:
     """
     if "ctx" not in kwargs or kwargs["ctx"] is None:
         kwargs["ctx"] = create_cli_context()
-    return kwargs["ctx"]
+    return cast(RequestContext, kwargs["ctx"])

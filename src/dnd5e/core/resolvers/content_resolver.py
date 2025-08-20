@@ -15,7 +15,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from dnd5e.core.error_types import (
     ContentNotFoundError,
     MCPError,
-    ProcessingError,
 )
 from dnd5e.core.loaders.content_merger import ContentMerger
 from dnd5e.core.models.content import BaseContent, ContentType
@@ -24,6 +23,7 @@ from dnd5e.core.services.protocols import OmnidexerProtocol, TagResolverProtocol
 
 if TYPE_CHECKING:
     from dnd5e.core.context import AsyncRequestContext
+    from dnd5e.core.loaders.omnidexer import Omnidexer
     from dnd5e.core.models.item_filters import ItemFilterCriteria
     from dnd5e.core.models.spell_filters import SpellFilterCriteria
 
@@ -134,6 +134,7 @@ class ContentResolver:
         self.context = context
 
         # Initialize content merger if omnidexer has source_manager
+        self.content_merger: ContentMerger | None
         if hasattr(omnidexer, "source_manager"):
             self.content_merger = ContentMerger(omnidexer.source_manager)
         else:
@@ -149,8 +150,8 @@ class ContentResolver:
         Returns:
             ContentResolver instance with protocol-validated services
         """
-        omnidexer = await context.get_service(OmnidexerProtocol)
-        tag_resolver = await context.get_service(TagResolverProtocol)
+        omnidexer = await context.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
+        tag_resolver = await context.get_service(TagResolverProtocol)  # type: ignore[type-abstract]
         return cls(omnidexer, tag_resolver, context)
 
     def resolve_adventure(self, abbreviation: str) -> ContentResolutionResult:
@@ -286,7 +287,10 @@ class ContentResolver:
         Returns:
             List of suggested abbreviations
         """
-        all_content = self.omnidexer.get_all_by_type(content_type)
+        if hasattr(self.omnidexer, "get_all_by_type"):
+            all_content = self.omnidexer.get_all_by_type(content_type)  # type: ignore[attr-defined]
+        else:
+            all_content = []
         if not all_content:
             return []
 
@@ -336,22 +340,29 @@ class ContentResolver:
             )
 
             if result.is_success:
+                if result.content is None:
+                    return Error(
+                        ContentNotFoundError(
+                            message=f"Adventure '{abbreviation}' resolved successfully but content is None"
+                        )
+                    )
                 return Success(result.content)
             else:
                 # Convert resolution result to error
                 if result.status == ResolutionStatus.NO_MATCH:
                     error = ContentNotFoundError(
-                        f"Adventure '{abbreviation}' not found",
+                        message=f"Adventure '{abbreviation}' not found",
                         suggestions=result.suggestions,
                     )
                 elif result.status == ResolutionStatus.MULTIPLE_MATCHES:
                     match_names = [match.name for match in result.matches[:5]]
-                    error = ProcessingError(
-                        message=f"Multiple adventures found for '{abbreviation}'. Found: {', '.join(match_names)}"
+                    error = ContentNotFoundError(
+                        message=f"Multiple adventures found for '{abbreviation}'. Found: {', '.join(match_names)}",
+                        suggestions=match_names,
                     )
                 else:
-                    error = ProcessingError(
-                        f"Adventure resolution failed for '{abbreviation}'"
+                    error = ContentNotFoundError(
+                        message=f"Adventure resolution failed for '{abbreviation}'"
                     )
 
                 if self.context:
@@ -359,7 +370,7 @@ class ContentResolver:
                 return Error(error)
 
         except Exception as e:
-            error = ProcessingError(f"Adventure resolution failed: {e}")
+            error = ContentNotFoundError(message=f"Adventure resolution failed: {e}")
             if self.context:
                 await self.context.add_async_error(error)
             return Error(error)
@@ -384,19 +395,35 @@ class ContentResolver:
             try:
                 ct = ContentType(content_type)
             except ValueError:
-                error = ProcessingError(message=f"Invalid content type: {content_type}")
+                error = ContentNotFoundError(
+                    message=f"Invalid content type: {content_type}"
+                )
                 if self.context:
                     await self.context.add_async_error(error)
                 return Error(error)
 
-            # Perform async search using omnidexer
+            # Perform async search using omnidexer with type casting for extended interface
+            def search_with_type() -> list[BaseContent]:
+                if hasattr(self.omnidexer, "search") and hasattr(
+                    self.omnidexer, "get_all_by_type"
+                ):
+                    # Cast to concrete type for extended search interface
+                    from dnd5e.core.loaders.omnidexer import Omnidexer
+
+                    concrete_omnidexer = cast(Omnidexer, self.omnidexer)
+                    return concrete_omnidexer.search(query, ct)
+                else:
+                    # Fallback to protocol interface
+                    results = self.omnidexer.search(query)
+                    return cast(list[BaseContent], results)
+
             search_results = await asyncio.get_event_loop().run_in_executor(
-                None, self.omnidexer.search, query, ct
+                None, search_with_type
             )
 
             if not search_results:
                 error = ContentNotFoundError(
-                    f"No {content_type} found matching '{query}'"
+                    message=f"No {content_type} found matching '{query}'"
                 )
                 if self.context:
                     await self.context.add_async_error(error)
@@ -417,7 +444,7 @@ class ContentResolver:
             return Success(processed_results)
 
         except Exception as e:
-            error = ProcessingError(message=f"Content search failed: {e}")
+            error = ContentNotFoundError(message=f"Content search failed: {e}")
             if self.context:
                 await self.context.add_async_error(error)
             return Error(error)
@@ -450,7 +477,7 @@ class ContentResolver:
                     suggestions.extend(name_suggestions)
 
                 error = ContentNotFoundError(
-                    f"Spells not found: {', '.join(result.unresolved_names)}",
+                    message=f"Spells not found: {', '.join(result.unresolved_names)}",
                     suggestions=suggestions[:10],  # Limit suggestions
                 )
                 if self.context:
@@ -458,7 +485,7 @@ class ContentResolver:
                 return Error(error)
 
         except Exception as e:
-            error = ProcessingError(message=f"Spell resolution failed: {e}")
+            error = ContentNotFoundError(message=f"Spell resolution failed: {e}")
             if self.context:
                 await self.context.add_async_error(error)
             return Error(error)
@@ -484,22 +511,28 @@ class ContentResolver:
             )
 
             if result.is_success:
+                if result.content is None:
+                    return Error(
+                        ContentNotFoundError(
+                            message=f"Book '{abbreviation}' resolved successfully but content is None"
+                        )
+                    )
                 return Success(result.content)
             else:
                 if result.status == ResolutionStatus.NO_MATCH:
                     error = ContentNotFoundError(
-                        f"Book '{abbreviation}' not found",
+                        message=f"Book '{abbreviation}' not found",
                         suggestions=result.suggestions,
                     )
                 elif result.status == ResolutionStatus.MULTIPLE_MATCHES:
                     matches = [match.name for match in result.matches[:5]]
-                    error = ProcessingError(
-                        f"Multiple books found for '{abbreviation}'",
+                    error = ContentNotFoundError(
+                        message=f"Multiple books found for '{abbreviation}'",
                         suggestions=[f"Be more specific. Found: {', '.join(matches)}"],
                     )
                 else:
-                    error = ProcessingError(
-                        f"Book resolution failed for '{abbreviation}'"
+                    error = ContentNotFoundError(
+                        message=f"Book resolution failed for '{abbreviation}'"
                     )
 
                 if self.context:
@@ -507,7 +540,7 @@ class ContentResolver:
                 return Error(error)
 
         except Exception as e:
-            error = ProcessingError(f"Book resolution failed: {e}")
+            error = ContentNotFoundError(message=f"Book resolution failed: {e}")
             if self.context:
                 await self.context.add_async_error(error)
             return Error(error)
@@ -547,7 +580,10 @@ class ContentResolver:
         norm_abbrev = abbreviation.strip().lower()
 
         # Get all content of this type
-        all_content = self.omnidexer.get_all_by_type(content_type)
+        if hasattr(self.omnidexer, "get_all_by_type"):
+            all_content = self.omnidexer.get_all_by_type(content_type)  # type: ignore[attr-defined]
+        else:
+            all_content = []
         if not all_content:
             return ContentResolutionResult(
                 status=ResolutionStatus.NO_MATCH, query=abbreviation
@@ -590,7 +626,20 @@ class ContentResolver:
             )
 
         # Try fuzzy search by name if no exact abbreviation match
-        search_results = self.omnidexer.search(abbreviation, content_type, limit=10)
+        if hasattr(self.omnidexer, "search") and hasattr(
+            self.omnidexer, "get_all_by_type"
+        ):
+            # Cast to concrete type for extended search interface
+            from dnd5e.core.loaders.omnidexer import Omnidexer
+
+            concrete_omnidexer = cast(Omnidexer, self.omnidexer)
+            search_results = concrete_omnidexer.search(
+                abbreviation, content_type, limit=10
+            )
+        else:
+            # Fallback to protocol interface
+            protocol_results = self.omnidexer.search(abbreviation)
+            search_results = cast(list[BaseContent], protocol_results)[:10]
         if search_results:
             # Check if any search result has a source abbreviation that closely matches
             fuzzy_matches = [
@@ -740,6 +789,9 @@ class ContentResolver:
 
         try:
             # Load the content file
+            if self.content_merger is None:
+                logger.warning("Content merger not available, cannot enrich content")
+                return content
             content_data = self.content_merger.load_content_file(
                 content_type, content_id
             )
@@ -756,6 +808,9 @@ class ContentResolver:
                 metadata_dict = dict(content)
 
             # Merge metadata and content data
+            if self.content_merger is None:
+                logger.warning("Content merger not available, cannot merge content")
+                return content
             merged_data = self.content_merger.merge_metadata_content(
                 metadata_dict, content_data
             )
@@ -793,7 +848,10 @@ class ContentResolver:
 
         for name in names:
             # Try exact match first
-            matches = self.omnidexer.find_all(spell_type, name)
+            if hasattr(self.omnidexer, "find_all"):
+                matches = self.omnidexer.find_all(spell_type, name)  # type: ignore[attr-defined]
+            else:
+                matches = []
 
             if matches:
                 # Add all exact matches
@@ -829,7 +887,7 @@ class ContentResolver:
         # Import here to avoid circular imports
         from ..services.spell_collector import SpellCollector
 
-        collector = SpellCollector(self.omnidexer)
+        collector = SpellCollector(cast("Omnidexer", self.omnidexer))
         result = collector.collect_spells(criteria)
 
         return result.spells
@@ -844,7 +902,10 @@ class ContentResolver:
             List of suggested spell names
         """
         spell_type = ContentType("spell")
-        all_spells = self.omnidexer.get_all_by_type(spell_type)
+        if hasattr(self.omnidexer, "get_all_by_type"):
+            all_spells = self.omnidexer.get_all_by_type(spell_type)  # type: ignore[attr-defined]
+        else:
+            all_spells = []
 
         if not all_spells:
             return []
@@ -873,7 +934,10 @@ class ContentResolver:
 
         for name in names:
             # Try exact match first
-            matches = self.omnidexer.find_all(item_type, name)
+            if hasattr(self.omnidexer, "find_all"):
+                matches = self.omnidexer.find_all(item_type, name)  # type: ignore[attr-defined]
+            else:
+                matches = []
 
             if matches and len(matches) == 1:
                 results.append(
@@ -918,7 +982,7 @@ class ContentResolver:
         # Import here to avoid circular imports
         from ..services.item_collector import ItemCollector
 
-        collector = ItemCollector(self.omnidexer)
+        collector = ItemCollector(cast("Omnidexer", self.omnidexer))
         result = collector.collect_items(criteria)
 
         return result.items
@@ -933,7 +997,10 @@ class ContentResolver:
             List of suggested item names
         """
         item_type = ContentType("item")
-        all_items = self.omnidexer.get_all_by_type(item_type)
+        if hasattr(self.omnidexer, "get_all_by_type"):
+            all_items = self.omnidexer.get_all_by_type(item_type)  # type: ignore[attr-defined]
+        else:
+            all_items = []
 
         if not all_items:
             return []
