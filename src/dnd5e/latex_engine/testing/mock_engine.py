@@ -7,41 +7,35 @@ from typing import Optional
 from dnd5e.renderers.core.interfaces import RenderingContext
 
 from ..config.compilation import CompilationResult, LaTeXEngine
+from ..core.document import LaTeXDocumentRenderer
 from ..core.interfaces import LaTeXEngineProtocol
 
 
 class MockLaTeXEngine:
-    """Mock LaTeX engine that doesn't require LaTeX installation."""
+    """Mock LaTeX engine that doesn't require LaTeX installation.
+
+    This uses the real LaTeX renderer for accurate output but skips
+    PDF compilation for testing without LaTeX installation.
+    """
+
+    def __init__(self):
+        """Initialize with real LaTeX renderer."""
+        self.renderer = LaTeXDocumentRenderer()
 
     def render_document(
         self, content: Sequence[dict | object], context: RenderingContext
     ) -> str:
-        """Render content to mock LaTeX string.
+        """Render content using real LaTeX renderer.
 
         Args:
             content: List of content items to render
             context: Rendering context
 
         Returns:
-            Mock LaTeX document as string
+            Real LaTeX document as string
         """
-        # Generate simple mock LaTeX based on content
-        latex_lines = [
-            "% Mock LaTeX Document",
-            "\\documentclass{article}",
-            "\\begin{document}",
-            f"% Generated for {len(content)} content items",
-        ]
-
-        # Add mock content
-        for i, item in enumerate(content):
-            item_name = getattr(item, "name", f"Item {i}")
-            latex_lines.append(f"\\section{{{item_name}}}")
-            latex_lines.append("% Mock content placeholder")
-
-        latex_lines.extend(["\\end{document}", "% End of mock LaTeX document"])
-
-        return "\n".join(latex_lines)
+        # Use the real renderer for accurate LaTeX output
+        return self.renderer.render_document(content, context)
 
     def compile_to_pdf(
         self, latex_content: str, output_path: Path, config: object | None = None

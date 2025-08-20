@@ -8,8 +8,8 @@ import pytest
 from typer.testing import CliRunner
 
 from dnd5e.cli.commands.convert import app
-from dnd5e.renderers.latex.compilation_config import LaTeXEngine
-from dnd5e.renderers.latex.compiler import LaTeXCompiler
+from dnd5e.latex_engine.config.compilation import LaTeXEngine
+from dnd5e.latex_engine.core.compiler import LaTeXCompiler
 from tests.test_helpers import reset_test_environment
 
 
@@ -42,8 +42,8 @@ class TestLaTeXEngineIntegration:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("dnd5e.cli.commands.convert.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
+    @patch("dnd5e.cli.utils.get_omnidexer")
+    @patch("dnd5e.cli.utils.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.adventure.compile_pdf_async")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_adventure_pdf_uses_latex_compiler_with_config(
@@ -110,8 +110,8 @@ class TestLaTeXEngineIntegration:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("dnd5e.cli.commands.convert.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
+    @patch("dnd5e.cli.utils.get_omnidexer")
+    @patch("dnd5e.cli.utils.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.book.compile_pdf_async")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_book_pdf_uses_configured_engine(
@@ -183,14 +183,12 @@ class TestLaTeXEngineIntegration:
         mock_subprocess.assert_not_called()
 
     def test_latex_compiler_helper_creates_proper_config(self):
-        """Test that _create_latex_compiler helper creates proper configuration."""
-        from dnd5e.cli.commands.convert import _create_latex_compiler
-        from dnd5e.renderers.latex.compilation_config import (
-            CompilationConfig,
-        )
+        """Test that create_latex_compiler helper creates proper configuration."""
+        from dnd5e.cli.commands.convert.shared import create_latex_compiler
+        from dnd5e.latex_engine.config.compilation import CompilationConfig
 
         # Test the helper function creates properly configured compiler
-        compiler = _create_latex_compiler()
+        compiler = create_latex_compiler()
 
         # Verify it's a LaTeXCompiler instance
         assert isinstance(compiler, LaTeXCompiler)

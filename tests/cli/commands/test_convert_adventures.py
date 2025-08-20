@@ -41,7 +41,7 @@ class TestConvertAdventureCommand:
 
     @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.adventure.create_latex_engine")
     @patch("dnd5e.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
@@ -50,7 +50,7 @@ class TestConvertAdventureCommand:
         mock_mkdir,
         mock_builtin_open,
         mock_display,
-        mock_renderer_class,
+        mock_engine_factory,
         mock_tag_resolver,
         mock_omnidexer,
     ):
@@ -66,12 +66,12 @@ class TestConvertAdventureCommand:
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 
-        # Mock renderer
-        mock_renderer = Mock()
-        mock_renderer.render_document.return_value = (
+        # Mock LaTeX engine
+        mock_engine = Mock()
+        mock_engine.render_document.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_renderer_class.return_value = mock_renderer
+        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -109,14 +109,14 @@ class TestConvertAdventureCommand:
     @patch(
         "dnd5e.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
     )
-    @patch("dnd5e.cli.commands.convert.adventure.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.adventure.create_latex_engine")
     @patch("dnd5e.cli.commands.convert.adventure.display_manager")
     @patch("pathlib.Path.mkdir")
     def test_convert_adventure_with_abbreviation(
         self,
         mock_mkdir,
         mock_display,
-        mock_renderer_class,
+        mock_engine_factory,
         mock_enrich_content,
         mock_user_config,
         mock_app_config,
@@ -185,12 +185,12 @@ class TestConvertAdventureCommand:
         # The ContentResolver will be instantiated with our mocked omnidexer
         # and will find the mock_adventure through get_all_by_type
 
-        # Mock renderer
-        mock_renderer = Mock()
-        mock_renderer.render_document.return_value = (
+        # Mock LaTeX engine
+        mock_engine = Mock()
+        mock_engine.render_document.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_renderer_class.return_value = mock_renderer
+        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -264,7 +264,7 @@ class TestConvertAdventureCommand:
     @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.shared.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.adventure.create_latex_engine")
     @patch("dnd5e.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
@@ -275,7 +275,7 @@ class TestConvertAdventureCommand:
         mock_mkdir,
         mock_builtin_open,
         mock_display,
-        mock_renderer_class,
+        mock_engine_factory,
         mock_tag_resolver,
         mock_shared_omnidexer,
         mock_omnidexer,
@@ -295,12 +295,12 @@ class TestConvertAdventureCommand:
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 
-        # Mock renderer
-        mock_renderer = Mock()
-        mock_renderer.render_document.return_value = (
+        # Mock LaTeX engine
+        mock_engine = Mock()
+        mock_engine.render_document.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_renderer_class.return_value = mock_renderer
+        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()

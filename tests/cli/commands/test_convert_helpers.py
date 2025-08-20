@@ -63,10 +63,10 @@ class TestErrorHandlingPaths:
 
     @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.adventure.create_latex_engine")
     @patch("builtins.open")
     def test_renderer_exception(
-        self, mock_builtin_open, mock_renderer_class, mock_tag_resolver, mock_omnidexer
+        self, mock_builtin_open, mock_engine_factory, mock_tag_resolver, mock_omnidexer
     ):
         """Test handling of renderer exceptions."""
         # Mock file operations
@@ -95,10 +95,10 @@ class TestErrorHandlingPaths:
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 
-        # Mock renderer to raise exception
-        mock_renderer = Mock()
-        mock_renderer.render_document.side_effect = Exception("Renderer error")
-        mock_renderer_class.return_value = mock_renderer
+        # Mock engine to raise exception
+        mock_engine = Mock()
+        mock_engine.render_document.side_effect = Exception("Renderer error")
+        mock_engine_factory.return_value = mock_engine
 
         # Create temporary file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -131,7 +131,7 @@ class TestSpecialCases:
     @patch("dnd5e.cli.commands.convert.book.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.shared.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.book.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.book.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.book.create_latex_engine")
     @patch("dnd5e.cli.commands.convert.book.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
@@ -140,7 +140,7 @@ class TestSpecialCases:
         mock_mkdir,
         mock_builtin_open,
         mock_display,
-        mock_renderer_class,
+        mock_engine_factory,
         mock_tag_resolver,
         mock_shared_omnidexer,
         mock_omnidexer,
@@ -173,12 +173,12 @@ class TestSpecialCases:
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 
-        # Mock renderer
-        mock_renderer = Mock()
-        mock_renderer.render_document.return_value = (
+        # Mock LaTeX engine
+        mock_engine = Mock()
+        mock_engine.render_document.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_renderer_class.return_value = mock_renderer
+        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()

@@ -43,7 +43,7 @@ class TestLaTeXDocumentOptions:
     @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
     @patch("dnd5e.cli.commands.convert.get_app_config")
     @patch("dnd5e.core.config.sources.get_content_config")
-    @patch("dnd5e.cli.commands.convert.adventure.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.adventure.create_latex_engine")
     @patch("dnd5e.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
@@ -52,7 +52,7 @@ class TestLaTeXDocumentOptions:
         mock_mkdir,
         mock_builtin_open,
         mock_display,
-        mock_renderer_class,
+        mock_engine_factory,
         mock_user_config,
         mock_app_config,
         mock_tag_resolver,
@@ -96,12 +96,12 @@ class TestLaTeXDocumentOptions:
         mock_user_config_obj.latex.justified = None
         mock_user_config.return_value = mock_user_config_obj
 
-        # Mock renderer
-        mock_renderer = Mock()
-        mock_renderer.render_document.return_value = (
+        # Mock LaTeX engine
+        mock_engine = Mock()
+        mock_engine.render_document.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_renderer_class.return_value = mock_renderer
+        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -140,9 +140,9 @@ class TestLaTeXDocumentOptions:
             assert result.exit_code == 0
             assert "Adventure converted" in result.stdout
 
-            # Verify renderer was called with context containing latex_config
-            mock_renderer.render_document.assert_called_once()
-            call_args = mock_renderer.render_document.call_args
+            # Verify engine was called with context containing latex_config
+            mock_engine.render_document.assert_called_once()
+            call_args = mock_engine.render_document.call_args
             context = call_args[0][1]  # Second argument is the context
 
             # Verify latex_config was passed and has correct values
@@ -161,7 +161,7 @@ class TestLaTeXDocumentOptions:
 
     @patch("dnd5e.cli.commands.convert.book.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.book.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.book.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.book.create_latex_engine")
     @patch("dnd5e.cli.commands.convert.book.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
@@ -170,7 +170,7 @@ class TestLaTeXDocumentOptions:
         mock_mkdir,
         mock_builtin_open,
         mock_display,
-        mock_renderer_class,
+        mock_engine_factory,
         mock_tag_resolver,
         mock_omnidexer,
     ):
@@ -197,12 +197,12 @@ class TestLaTeXDocumentOptions:
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 
-        # Mock renderer
-        mock_renderer = Mock()
-        mock_renderer.render_document.return_value = (
+        # Mock LaTeX engine
+        mock_engine = Mock()
+        mock_engine.render_document.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_renderer_class.return_value = mock_renderer
+        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -224,8 +224,8 @@ class TestLaTeXDocumentOptions:
             assert "Book converted" in result.stdout
 
             # Verify default LaTeX config values
-            mock_renderer.render_document.assert_called_once()
-            call_args = mock_renderer.render_document.call_args
+            mock_engine.render_document.assert_called_once()
+            call_args = mock_engine.render_document.call_args
             context = call_args[0][1]  # Second argument is the context
 
             latex_config = context.metadata.get("latex_config")
@@ -242,7 +242,7 @@ class TestLaTeXDocumentOptions:
 
     @patch("dnd5e.cli.commands.convert.supplement.get_omnidexer")
     @patch("dnd5e.cli.commands.convert.supplement.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.supplement.LaTeXDocumentRenderer")
+    @patch("dnd5e.cli.commands.convert.supplement.create_latex_engine")
     @patch("dnd5e.cli.commands.convert.supplement.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
@@ -255,7 +255,7 @@ class TestLaTeXDocumentOptions:
         mock_mkdir,
         mock_builtin_open,
         mock_display,
-        mock_renderer_class,
+        mock_engine_factory,
         mock_tag_resolver,
         mock_omnidexer,
     ):
@@ -316,12 +316,12 @@ class TestLaTeXDocumentOptions:
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 
-        # Mock renderer
-        mock_renderer = Mock()
-        mock_renderer.render_document.return_value = (
+        # Mock LaTeX engine
+        mock_engine = Mock()
+        mock_engine.render_document.return_value = (
             "\\documentclass{article}\\begin{document}Test\\end{document}"
         )
-        mock_renderer_class.return_value = mock_renderer
+        mock_engine_factory.return_value = mock_engine
 
         # Mock display manager
         mock_display.progress.return_value.__enter__ = Mock()
@@ -343,8 +343,8 @@ class TestLaTeXDocumentOptions:
             assert "Supplement converted" in result.stdout
 
             # Verify settings paper size was used
-            mock_renderer.render_document.assert_called_once()
-            call_args = mock_renderer.render_document.call_args
+            mock_engine.render_document.assert_called_once()
+            call_args = mock_engine.render_document.call_args
             context = call_args[0][1]  # Second argument is the context
 
             latex_config = context.metadata.get("latex_config")

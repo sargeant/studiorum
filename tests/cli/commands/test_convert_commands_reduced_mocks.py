@@ -46,9 +46,9 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("dnd5e.cli.commands.convert.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert._create_latex_compiler")
+    @patch("dnd5e.cli.utils.get_omnidexer")
+    @patch("dnd5e.cli.utils.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.shared.create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_adventure_conversion_with_real_data_latex_only(
         self,
@@ -114,9 +114,9 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("dnd5e.cli.commands.convert.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert._create_latex_compiler")
+    @patch("dnd5e.cli.utils.get_omnidexer")
+    @patch("dnd5e.cli.utils.get_tag_resolver")
+    @patch("dnd5e.cli.commands.convert.shared.create_latex_compiler")
     @patch("dnd5e.cli.commands.convert.display_manager")
     def test_book_conversion_with_real_data_latex_only(
         self,
@@ -255,13 +255,13 @@ class TestConvertCommandsWithReducedMocking:
         assert result.exit_code != 0
 
     def test_compiler_helper_function_creates_proper_config(self):
-        """Test _create_latex_compiler helper function without mocking."""
-        from dnd5e.cli.commands.convert import _create_latex_compiler
-        from dnd5e.renderers.latex.compilation_config import CompilationConfig
-        from dnd5e.renderers.latex.compiler import LaTeXCompiler
+        """Test create_latex_compiler helper function without mocking."""
+        from dnd5e.cli.commands.convert.shared import create_latex_compiler
+        from dnd5e.latex_engine.config.compilation import CompilationConfig
+        from dnd5e.latex_engine.core.compiler import LaTeXCompiler
 
         # Test the helper function creates properly configured compiler
-        compiler = _create_latex_compiler()
+        compiler = create_latex_compiler()
 
         # Verify it's a LaTeXCompiler instance with proper configuration
         assert isinstance(compiler, LaTeXCompiler)
