@@ -15,7 +15,11 @@ from ..types import (
 from .content import BaseContent
 
 if TYPE_CHECKING:
+    from ..error_types import BaseError
     from ..loaders.omnidexer import Omnidexer
+    from ..result import Result
+    from ..text.tag_resolver import TagResolver
+    from .processors import CreatureProcessor
 
 
 class SkillBonus(BaseModel):
@@ -1032,48 +1036,15 @@ class Creature(BaseContent):
         )
 
     def get_processed_senses(self) -> str | None:
-        """Get senses with 5e.tools markup processed for LaTeX."""
-        if not hasattr(self, "senses") or not self.senses:
-            return None
+        """
+        Get senses with 5e.tools markup processed for LaTeX.
 
-        try:
-            from ...cli.utils import get_omnidexer, get_tag_resolver
-            from ...renderers.core.interfaces import RenderingContext
-            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
+        DEPRECATED: This method uses global services. New code should use
+        the processor pattern with explicit service injection.
+        """
+        from .compatibility import process_creature_senses_legacy
 
-            # Get services for proper tag processing
-            omnidexer = get_omnidexer()
-            tag_resolver = get_tag_resolver()
-
-            # Create a proper rendering context for entry processing
-            context = RenderingContext(
-                output_format="latex",
-                debug_mode=False,
-                omnidexer=omnidexer,
-                tag_resolver=tag_resolver,
-                metadata={
-                    "source_name": "unknown",
-                    "tag_resolver": tag_resolver,
-                    "content_type": "creature",
-                },
-            )
-
-            # Use recursive entry processor to handle 5e.tools markup
-            processor = RecursiveEntryProcessor(use_dnd_template=True)
-
-            # Convert senses to entry format and process
-            if isinstance(self.senses, list):
-                senses_text = ", ".join(self.senses)
-            else:
-                senses_text = str(self.senses)
-
-            # Process the senses text
-            processed_entries = processor.process_entries([senses_text], context)
-            return "\n".join(processed_entries)
-
-        except Exception:
-            # Fallback to original formatted senses if processing fails
-            return self.get_formatted_senses()
+        return process_creature_senses_legacy(self)
 
     def get_formatted_languages(self) -> str | None:
         """Get formatted languages list."""
@@ -1421,3 +1392,23 @@ class Creature(BaseContent):
                     return True
 
         return False
+
+    def get_processor(self) -> "CreatureProcessor":
+        """Get processor for this creature that can work with services."""
+        from .processors import CreatureProcessor
+
+        return CreatureProcessor(self)
+
+    def resolve_tags_with_service(
+        self, tag_resolver: "TagResolver"
+    ) -> "Result[Creature, BaseError]":
+        """Resolve tags using provided tag resolver service."""
+        processor = self.get_processor()
+        return processor.resolve_tags(tag_resolver)
+
+    def enrich_with_services(
+        self, omnidexer: "Omnidexer", tag_resolver: "TagResolver"
+    ) -> "Result[Creature, BaseError]":
+        """Enrich creature using provided services."""
+        processor = self.get_processor()
+        return processor.enrich_with_content(omnidexer, tag_resolver)
