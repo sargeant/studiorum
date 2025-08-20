@@ -168,6 +168,55 @@ class OmnidexerProtocol(ServiceProtocol, AsyncResourceProtocol, Protocol):
         """
         ...
 
+    # Enhanced performance methods for P5 optimization
+    async def search_content_async(
+        self,
+        query: str,
+        content_type: str | None = None,
+        context: object | None = None,
+        limit: int = 50,
+    ) -> object:  # Result[List[BaseContent], ContentNotFoundError]
+        """High-performance async search with intelligent caching.
+
+        Args:
+            query: Search query string
+            content_type: Optional content type filter
+            context: Optional request context for performance tracking
+            limit: Maximum results to return
+
+        Returns:
+            Result object containing list of matching content or error
+        """
+        ...
+
+    async def get_content_async(
+        self,
+        content_type: str,
+        name: str,
+        source: str | None = None,
+        context: object | None = None,
+    ) -> object:  # Result[Optional[BaseContent], ContentNotFoundError]
+        """Async content retrieval with intelligent caching.
+
+        Args:
+            content_type: Type of content (e.g., 'spell', 'creature')
+            name: Content name
+            source: Optional source filter
+            context: Optional request context for performance tracking
+
+        Returns:
+            Result object containing content or error
+        """
+        ...
+
+    def get_performance_statistics(self) -> dict[str, object]:
+        """Get comprehensive performance statistics.
+
+        Returns:
+            Dictionary with cache stats, performance metrics, and usage data
+        """
+        ...
+
 
 @runtime_checkable
 class TagResolverProtocol(ServiceProtocol, ConfigurableServiceProtocol, Protocol):

@@ -82,6 +82,27 @@ class TestServiceProtocols:
             async def ensure_sources_ready(self) -> None:
                 pass
 
+            async def search_content_async(
+                self,
+                query: str,
+                content_type: str | None = None,
+                context: object | None = None,
+                limit: int = 50,
+            ) -> object:
+                return {"success": True, "data": []}
+
+            async def get_content_async(
+                self,
+                content_type: str,
+                name: str,
+                source: str | None = None,
+                context: object | None = None,
+            ) -> object:
+                return {"success": True, "data": None}
+
+            def get_performance_statistics(self) -> dict[str, object]:
+                return {"initialized": True}
+
         service = MockOmnidexer()
         assert isinstance(service, ServiceProtocol)
         assert isinstance(service, AsyncResourceProtocol)

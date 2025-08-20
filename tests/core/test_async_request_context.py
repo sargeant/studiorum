@@ -45,7 +45,28 @@ class MockOmnidexer:
         return {"type": content_type, "id": identifier}
 
     def search(self, query: str) -> list[object]:
-        return [{"query": query, "name": f"Mock result for {query}"}]
+        return [{"name": f"mock_result_{query}", "type": "mock"}]
+
+    async def search_content_async(
+        self,
+        query: str,
+        content_type: str | None = None,
+        context: object | None = None,
+        limit: int = 50,
+    ) -> object:
+        return {"success": True, "data": [{"name": f"async_mock_{query}"}]}
+
+    async def get_content_async(
+        self,
+        content_type: str,
+        name: str,
+        source: str | None = None,
+        context: object | None = None,
+    ) -> object:
+        return {"success": True, "data": {"type": content_type, "name": name}}
+
+    def get_performance_statistics(self) -> dict[str, object]:
+        return {"mock": True, "initialized": True}
 
     async def ensure_sources_ready(self) -> None:
         pass
