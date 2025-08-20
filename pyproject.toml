@@ -227,6 +227,7 @@ markers = [
     # Special marks
     "ci_broken: marks tests that fail in CI environment (skipped in CI)",
     "stress: marks tests as stress tests for validation",
+    "xdist_incompatible: marks tests that hang with pytest-xdist (run sequentially)",
     "latex_compilation: marks tests that require LaTeX compilation",
 ]
 filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]

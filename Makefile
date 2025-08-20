@@ -66,6 +66,7 @@ help:
 	@echo "  pyright-errors - Run pyright error checking only"
 	@echo "  security     - Run security scans (pip-audit, bandit)"
 	@echo "  test         - Run tests"
+	@echo "  test-xdist-incompatible - Run tests that fail with xdist (sequential execution)"
 	@echo "  test-latex-integration - Run LaTeX integration tests (requires LaTeX installation)"
 	@echo "  format       - Format code with ruff"
 	@echo "  docs         - Build and open documentation"
