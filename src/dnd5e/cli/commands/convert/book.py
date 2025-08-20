@@ -23,8 +23,8 @@ from dnd5e.cli.utils import get_omnidexer, get_tag_resolver
 from dnd5e.core.config.unified_config import get_app_config
 from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
+from dnd5e.latex_engine import create_latex_engine
 from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
 from .base import BaseConvertCommand
 from .shared import (
@@ -274,12 +274,12 @@ def book(
             )
 
             # Render document
-            renderer = LaTeXDocumentRenderer()
+            engine = create_latex_engine()
             with display_manager.progress("Rendering book") as _:
                 render_task = display_manager.add_task(
                     "[green]Rendering book...", total=None
                 )
-                result = renderer.render_document(content_items, context)
+                result = engine.render_document(content_items, context)
                 display_manager.update_task(render_task, completed=100)
 
             # Write output

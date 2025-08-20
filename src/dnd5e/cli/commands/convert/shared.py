@@ -16,8 +16,8 @@ from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.core.security import ExecutableNotFoundError, get_platform_file_opener
 from dnd5e.core.services.protocols import OmnidexerProtocol
-from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
-from dnd5e.renderers.latex.compiler import LaTeXCompiler
+from dnd5e.latex_engine.config.compilation import CompilationConfig, LaTeXEngine
+from dnd5e.latex_engine.core.compiler import LaTeXCompiler
 
 
 def create_latex_compiler() -> LaTeXCompiler:

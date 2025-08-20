@@ -19,10 +19,10 @@ from dnd5e.core.loaders.omnidexer import Omnidexer
 from dnd5e.core.logging.logger import setup_logging
 from dnd5e.core.models.content import BaseContent
 from dnd5e.core.text.tag_resolver import TagResolver
+from dnd5e.latex_engine import create_latex_engine
+from dnd5e.latex_engine.config import CompilationConfig, LaTeXEngineEnum as LaTeXEngine
+from dnd5e.latex_engine.core.compiler import LaTeXCompiler
 from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex import LaTeXDocumentRenderer
-from dnd5e.renderers.latex.compilation_config import CompilationConfig, LaTeXEngine
-from dnd5e.renderers.latex.compiler import LaTeXCompiler
 
 logger = logging.getLogger(__name__)
 
@@ -286,12 +286,12 @@ def quick_convert(
             )
 
             # Render document
-            renderer = LaTeXDocumentRenderer()
+            engine = create_latex_engine()
             with display_manager.progress("Rendering") as _:
                 render_task = display_manager.add_task(
                     "[green]Rendering document...", total=None
                 )
-                result = renderer.render_document(content_items, context)
+                result = engine.render_document(content_items, context)
                 display_manager.update_task(render_task, completed=100)
 
             # Write output

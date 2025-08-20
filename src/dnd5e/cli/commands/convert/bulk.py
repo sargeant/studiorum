@@ -18,8 +18,8 @@ from dnd5e.cli.utils import get_omnidexer, get_tag_resolver
 from dnd5e.core.models.content import ContentType
 from dnd5e.core.resolvers import ContentResolutionResult, ContentResolver
 from dnd5e.core.services.protocols import OmnidexerProtocol
+from dnd5e.latex_engine import create_latex_engine
 from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
 from .shared import compile_pdf as compile_pdf_async
 
@@ -158,8 +158,8 @@ def bulk(
                         )
 
                         # Render document
-                        renderer = LaTeXDocumentRenderer()
-                        latex_result = renderer.render_document([content], context)
+                        engine = create_latex_engine()
+                        latex_result = engine.render_document([content], context)
 
                         # Write output
                         with open(output_path, "w", encoding="utf-8") as f:

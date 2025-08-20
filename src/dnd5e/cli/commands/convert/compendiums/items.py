@@ -41,7 +41,7 @@ def _render_itemcompendium(
     show_toc: bool,
 ) -> str:
     """Render items using the itemcompendium template with flexible sorting."""
-    from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
+    from dnd5e.latex_engine.core.template_engine import LaTeXTemplateEngine
 
     # Group items based on sort mode for template rendering
     if sort_mode == ItemSortMode.TYPE:

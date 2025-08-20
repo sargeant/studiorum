@@ -16,8 +16,8 @@ from dnd5e.cli.config_factory import (
 )
 from dnd5e.cli.display_manager import display_manager
 from dnd5e.cli.utils import get_omnidexer, get_tag_resolver
+from dnd5e.latex_engine import create_latex_engine
 from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex import LaTeXDocumentRenderer
 
 from .base import BaseConvertCommand
 from .shared import compile_pdf as compile_pdf_async
@@ -225,12 +225,12 @@ def supplement(
             )
 
             # Render document
-            renderer = LaTeXDocumentRenderer()
+            engine = create_latex_engine()
             with display_manager.progress("Rendering supplement") as _:
                 render_task = display_manager.add_task(
                     "[green]Rendering supplement...", total=None
                 )
-                result = renderer.render_document(content_items, context)
+                result = engine.render_document(content_items, context)
                 display_manager.update_task(render_task, completed=100)
 
             # Write output

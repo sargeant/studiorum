@@ -14,6 +14,9 @@ from dnd5e.core.services.item_collector import ItemCollector
 from dnd5e.core.services.spell_collector import SpellCollector
 
 if TYPE_CHECKING:
+    from dnd5e.latex_engine.core.template_engine import (
+        LaTeXTemplateEngine as NewLaTeXTemplateEngine,
+    )
     from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
 
 
@@ -41,7 +44,11 @@ class AppendixSection(BaseModel):
 class AppendixGenerator:
     """Generates appendices from ContentTracker data using collector services."""
 
-    def __init__(self, omnidexer: Omnidexer, template_engine: "LaTeXTemplateEngine"):
+    def __init__(
+        self,
+        omnidexer: Omnidexer,
+        template_engine: "LaTeXTemplateEngine | NewLaTeXTemplateEngine",
+    ):
         """Initialize the appendix generator with required services.
 
         Args:

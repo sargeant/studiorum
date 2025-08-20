@@ -76,7 +76,7 @@ def _render_spellbook(
     show_toc: bool,
 ) -> str:
     """Render spells using the spellbook template with flexible sorting."""
-    from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
+    from dnd5e.latex_engine.core.template_engine import LaTeXTemplateEngine
 
     # Sort levels based on sort mode
     if sort_mode == SpellSortMode.LEVEL:
@@ -669,7 +669,7 @@ def spells(
                     AppendixFlags,
                     AppendixGenerator,
                 )
-                from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
+                from dnd5e.latex_engine.core.template_engine import LaTeXTemplateEngine
 
                 # Generate creature appendix (reference tracking happens automatically during template rendering)
                 appendix_flags = AppendixFlags(

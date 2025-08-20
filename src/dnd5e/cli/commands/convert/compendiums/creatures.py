@@ -135,7 +135,7 @@ def _render_bestiary(
     show_toc: bool,
 ) -> str:
     """Render creatures using the bestiary template with grouping."""
-    from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
+    from dnd5e.latex_engine.core.template_engine import LaTeXTemplateEngine
 
     # Group creatures by sort mode
     creatures_by_group: dict[str, list[Creature]] = {}
@@ -978,7 +978,7 @@ def creatures(
                     AppendixFlags,
                     AppendixGenerator,
                 )
-                from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
+                from dnd5e.latex_engine.core.template_engine import LaTeXTemplateEngine
 
                 # Create template engine for appendix generation
                 template_engine = LaTeXTemplateEngine()
