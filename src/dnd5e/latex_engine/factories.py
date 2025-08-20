@@ -1,5 +1,6 @@
 """Factory functions for creating LaTeX engines."""
 
+import os
 from typing import Optional
 
 from dnd5e.core.types import LaTeXConfig
@@ -10,7 +11,10 @@ from .core.interfaces import LaTeXEngineProtocol
 
 
 def create_latex_engine(config: LaTeXConfig | None = None) -> LaTeXEngineProtocol:
-    """Create a real LaTeX engine.
+    """Create a LaTeX engine.
+
+    In test environments (when DND5E_USE_MOCK_LATEX is set), this creates
+    a mock engine that uses real rendering but skips PDF compilation.
 
     Args:
         config: Optional LaTeX configuration
@@ -18,6 +22,10 @@ def create_latex_engine(config: LaTeXConfig | None = None) -> LaTeXEngineProtoco
     Returns:
         LaTeX engine instance
     """
+    # Use mock engine in test environments
+    if os.environ.get("DND5E_USE_MOCK_LATEX"):
+        return create_mock_latex_engine()
+
     renderer = LaTeXDocumentRenderer(config)
     return DocumentRendererAdapter(renderer)
 

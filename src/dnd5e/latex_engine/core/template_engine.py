@@ -50,8 +50,8 @@ class LaTeXTemplateEngine:
         if templates_dir:
             self.templates_dir = Path(str(templates_dir))
         else:
-            # Use absolute path relative to this module's location
-            self.templates_dir = Path(__file__).parent / "templates"
+            # Use absolute path relative to latex_engine module's location
+            self.templates_dir = Path(__file__).parent.parent / "templates"
         self.debug = self.config.get("debug", False)
 
         # Initialize LaTeX configuration
