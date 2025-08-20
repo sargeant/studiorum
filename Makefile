@@ -387,7 +387,7 @@ ci-install:
 # Outputs: coverage.xml, htmlcov/, test-results.xml
 # Skips tests marked as ci_broken to avoid CI-specific environment issues
 ci-test: ci-install
-	@$(UV) pytest --cov=dnd5e --cov-report=xml --cov-report=html --junitxml=test-results.xml -m "not ci_broken" || (echo "ERROR: CI test suite failed"; exit 1)
+	@pytest --cov=dnd5e --cov-report=xml --cov-report=html --junitxml=test-results.xml -m "not ci_broken" || (echo "ERROR: CI test suite failed"; exit 1)
 
 ## Run CI checks (quality and security)
 # Comprehensive quality and security validation for CI pipelines
