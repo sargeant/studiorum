@@ -547,6 +547,53 @@ class ModernServiceContainer:
         """
         return self._descriptors.copy()
 
+    async def register_instance(self, protocol: type[T], instance: T) -> None:
+        """Register an existing instance for a protocol.
+
+        Args:
+            protocol: Protocol interface the instance implements
+            instance: Pre-created instance to register
+        """
+        if self._is_closed:
+            raise RuntimeError("Cannot register instances on closed container")
+
+        # Register as singleton with identity factory
+        def identity_factory() -> T:
+            return instance
+
+        self.register_service(
+            protocol=protocol,
+            factory=identity_factory,
+            lifecycle=ServiceLifecycle.SINGLETON,
+        )
+
+        # Store the instance directly to avoid re-creation
+        self._singleton_instances[protocol] = instance
+
+        logger.debug(f"Registered instance of {protocol.__name__}")
+
+    async def get_hot_reloadable_services(self) -> list[Any]:
+        """Get all hot-reloadable service instances.
+
+        Returns:
+            List of service instances that support hot-reload
+        """
+        hot_reloadable = []
+
+        # Check singleton instances
+        for service_type, instance in self._singleton_instances.items():
+            descriptor = self._descriptors.get(service_type)
+            if descriptor and descriptor.hot_reloadable:
+                hot_reloadable.append(instance)
+
+        # Check scoped instances
+        for service_type, instance in self._scoped_instances.items():
+            descriptor = self._descriptors.get(service_type)
+            if descriptor and descriptor.hot_reloadable:
+                hot_reloadable.append(instance)
+
+        return hot_reloadable
+
     def __repr__(self) -> str:
         """Return string representation of container."""
         status = "closed" if self._is_closed else "open"

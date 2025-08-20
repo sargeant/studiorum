@@ -1,16 +1,29 @@
-"""Content resolver for mapping user abbreviations to content objects."""
+"""Content resolver for mapping user abbreviations to content objects.
 
+Enhanced with async context integration and protocol-based service access
+for modern MCP and CLI usage patterns.
+"""
+
+import asyncio
 import difflib
 import logging
 from enum import Enum
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Optional, Protocol, cast
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from dnd5e.core.error_types import (
+    ContentNotFoundError,
+    MCPError,
+    ProcessingError,
+)
 from dnd5e.core.loaders.content_merger import ContentMerger
 from dnd5e.core.models.content import BaseContent, ContentType
+from dnd5e.core.result import Error, Result, Success
+from dnd5e.core.services.protocols import OmnidexerProtocol, TagResolverProtocol
 
 if TYPE_CHECKING:
+    from dnd5e.core.context import AsyncRequestContext
     from dnd5e.core.models.item_filters import ItemFilterCriteria
     from dnd5e.core.models.spell_filters import SpellFilterCriteria
 
@@ -97,16 +110,48 @@ class ContentResolutionResult(BaseModel):
 
 
 class ContentResolver:
-    """Resolves user abbreviations to content objects using omnidexer."""
+    """Resolves user abbreviations to content objects using omnidexer.
 
-    def __init__(self, omnidexer: Any) -> None:
-        """Initialize resolver with omnidexer instance.
+    Enhanced with async context integration and protocol-based service access.
+    Supports both legacy sync usage and modern async patterns for MCP integration.
+    """
+
+    def __init__(
+        self,
+        omnidexer: OmnidexerProtocol,
+        tag_resolver: TagResolverProtocol | None = None,
+        context: Optional["AsyncRequestContext"] = None,
+    ) -> None:
+        """Initialize resolver with protocol-validated services.
 
         Args:
-            omnidexer: The Omnidexer instance to use for content lookup
+            omnidexer: Protocol-validated omnidexer service
+            tag_resolver: Optional tag resolver for entry processing
+            context: Optional async request context for performance tracking
         """
         self.omnidexer = omnidexer
-        self.content_merger = ContentMerger(omnidexer.source_manager)
+        self.tag_resolver = tag_resolver
+        self.context = context
+
+        # Initialize content merger if omnidexer has source_manager
+        if hasattr(omnidexer, "source_manager"):
+            self.content_merger = ContentMerger(omnidexer.source_manager)
+        else:
+            self.content_merger = None
+
+    @classmethod
+    async def from_context(cls, context: "AsyncRequestContext") -> "ContentResolver":
+        """Create resolver from context with protocol validation.
+
+        Args:
+            context: Async request context with protocol-based services
+
+        Returns:
+            ContentResolver instance with protocol-validated services
+        """
+        omnidexer = await context.get_service(OmnidexerProtocol)
+        tag_resolver = await context.get_service(TagResolverProtocol)
+        return cls(omnidexer, tag_resolver, context)
 
     def resolve_adventure(self, abbreviation: str) -> ContentResolutionResult:
         """Resolve abbreviation to an adventure.
@@ -260,6 +305,226 @@ class ContentResolver:
         )
 
         return suggestions
+
+    # Modern async methods with protocol validation and Result patterns
+
+    async def resolve_adventure_async(
+        self, abbreviation: str
+    ) -> Result[BaseContent, MCPError]:
+        """Async adventure resolution with protocol validation.
+
+        Args:
+            abbreviation: Adventure abbreviation to resolve
+
+        Returns:
+            Result containing resolved adventure or error details
+        """
+        try:
+            # Performance monitoring
+            if self.context:
+                self.context.record_async_operation()
+
+            # Apply context source filtering
+            if self.context and self.context.sources:
+                # Filter by sources if context specifies them
+                # This would be implemented based on omnidexer's filtering capabilities
+                pass
+
+            # Async adventure lookup using sync method (to be enhanced)
+            result = await asyncio.get_event_loop().run_in_executor(
+                None, self.resolve_adventure, abbreviation
+            )
+
+            if result.is_success:
+                return Success(result.content)
+            else:
+                # Convert resolution result to error
+                if result.status == ResolutionStatus.NO_MATCH:
+                    error = ContentNotFoundError(
+                        f"Adventure '{abbreviation}' not found",
+                        suggestions=result.suggestions,
+                    )
+                elif result.status == ResolutionStatus.MULTIPLE_MATCHES:
+                    match_names = [match.name for match in result.matches[:5]]
+                    error = ProcessingError(
+                        message=f"Multiple adventures found for '{abbreviation}'. Found: {', '.join(match_names)}"
+                    )
+                else:
+                    error = ProcessingError(
+                        f"Adventure resolution failed for '{abbreviation}'"
+                    )
+
+                if self.context:
+                    await self.context.add_async_error(error)
+                return Error(error)
+
+        except Exception as e:
+            error = ProcessingError(f"Adventure resolution failed: {e}")
+            if self.context:
+                await self.context.add_async_error(error)
+            return Error(error)
+
+    async def search_content_async(
+        self, query: str, content_type: str
+    ) -> Result[list[BaseContent], MCPError]:
+        """Async content search with protocol validation.
+
+        Args:
+            query: Search query string
+            content_type: Type of content to search for
+
+        Returns:
+            Result containing matching content list or error details
+        """
+        try:
+            if self.context:
+                self.context.record_async_operation()
+
+            # Convert string content type to ContentType enum
+            try:
+                ct = ContentType(content_type)
+            except ValueError:
+                error = ProcessingError(message=f"Invalid content type: {content_type}")
+                if self.context:
+                    await self.context.add_async_error(error)
+                return Error(error)
+
+            # Perform async search using omnidexer
+            search_results = await asyncio.get_event_loop().run_in_executor(
+                None, self.omnidexer.search, query, ct
+            )
+
+            if not search_results:
+                error = ContentNotFoundError(
+                    f"No {content_type} found matching '{query}'"
+                )
+                if self.context:
+                    await self.context.add_async_error(error)
+                return Error(error)
+
+            # Apply tag resolution if tag resolver is available
+            processed_results = search_results
+            if self.tag_resolver and hasattr(search_results[0], "entries"):
+                processed_results = []
+                for content in search_results:
+                    if hasattr(content, "entries") and content.entries:
+                        # Process entries with tag resolver
+                        # This would be implemented based on tag resolver's async API
+                        processed_results.append(content)
+                    else:
+                        processed_results.append(content)
+
+            return Success(processed_results)
+
+        except Exception as e:
+            error = ProcessingError(message=f"Content search failed: {e}")
+            if self.context:
+                await self.context.add_async_error(error)
+            return Error(error)
+
+    async def resolve_spells_async(
+        self, spell_names: list[str]
+    ) -> Result[list[BaseContent], MCPError]:
+        """Async spell resolution with fuzzy matching.
+
+        Args:
+            spell_names: List of spell names to resolve
+
+        Returns:
+            Result containing resolved spells or error details
+        """
+        try:
+            if self.context:
+                self.context.record_async_operation()
+
+            # Use the existing sync method with async executor
+            result = await asyncio.get_event_loop().run_in_executor(
+                None, self.resolve_spells_by_names, spell_names
+            )
+
+            if result.status == ResolutionStatus.EXACT_MATCH or result.spells:
+                return Success(result.spells)
+            else:
+                suggestions = []
+                for name, name_suggestions in result.suggestions.items():
+                    suggestions.extend(name_suggestions)
+
+                error = ContentNotFoundError(
+                    f"Spells not found: {', '.join(result.unresolved_names)}",
+                    suggestions=suggestions[:10],  # Limit suggestions
+                )
+                if self.context:
+                    await self.context.add_async_error(error)
+                return Error(error)
+
+        except Exception as e:
+            error = ProcessingError(message=f"Spell resolution failed: {e}")
+            if self.context:
+                await self.context.add_async_error(error)
+            return Error(error)
+
+    async def resolve_book_async(
+        self, abbreviation: str
+    ) -> Result[BaseContent, MCPError]:
+        """Async book resolution with protocol validation.
+
+        Args:
+            abbreviation: Book abbreviation to resolve
+
+        Returns:
+            Result containing resolved book or error details
+        """
+        try:
+            if self.context:
+                self.context.record_async_operation()
+
+            # Use sync method with async executor
+            result = await asyncio.get_event_loop().run_in_executor(
+                None, self.resolve_book, abbreviation
+            )
+
+            if result.is_success:
+                return Success(result.content)
+            else:
+                if result.status == ResolutionStatus.NO_MATCH:
+                    error = ContentNotFoundError(
+                        f"Book '{abbreviation}' not found",
+                        suggestions=result.suggestions,
+                    )
+                elif result.status == ResolutionStatus.MULTIPLE_MATCHES:
+                    matches = [match.name for match in result.matches[:5]]
+                    error = ProcessingError(
+                        f"Multiple books found for '{abbreviation}'",
+                        suggestions=[f"Be more specific. Found: {', '.join(matches)}"],
+                    )
+                else:
+                    error = ProcessingError(
+                        f"Book resolution failed for '{abbreviation}'"
+                    )
+
+                if self.context:
+                    await self.context.add_async_error(error)
+                return Error(error)
+
+        except Exception as e:
+            error = ProcessingError(f"Book resolution failed: {e}")
+            if self.context:
+                await self.context.add_async_error(error)
+            return Error(error)
+
+    # Legacy sync wrapper methods for backward compatibility
+
+    def resolve_adventure_sync(
+        self, abbreviation: str
+    ) -> Result[BaseContent, MCPError]:
+        """Sync wrapper for adventure resolution."""
+        return asyncio.run(self.resolve_adventure_async(abbreviation))
+
+    def search_content_sync(
+        self, query: str, content_type: str
+    ) -> Result[list[BaseContent], MCPError]:
+        """Sync wrapper for content search."""
+        return asyncio.run(self.search_content_async(query, content_type))
 
     def _resolve_content(
         self, content_type: ContentType, abbreviation: str
