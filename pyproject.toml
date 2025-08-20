@@ -47,6 +47,8 @@ dependencies = [
     "diskcache>=5.6.3,<6.0.0",
     "pillow>=11.3.0",
     "aiohttp>=3.12.15",
+    "watchdog>=6.0.0,<7.0.0",
+    "fastmcp>=2.11.3",
 ]
 
 [project.urls]
@@ -209,6 +211,7 @@ markers = [
     "core: marks tests for core models, loaders, and registry",
     "rendering: marks tests for LaTeX rendering and template processing",
     "cli: marks tests for command-line interface",
+    "mcp: marks tests for Model Context Protocol (MCP) server functionality",
     "integration: marks tests as integration tests (cross-component)",
 
     # Data dependency marks (for environment handling)

@@ -165,6 +165,7 @@ try:
     from dnd5e.cli.commands.convert import app as convert_app
     from dnd5e.cli.commands.info import app as info_app
     from dnd5e.cli.commands.list_content import app as list_app
+    from dnd5e.cli.commands.mcp import mcp_app
     from dnd5e.cli.commands.setup import app as setup_app
     from dnd5e.cli.commands.sources import app as sources_app
     from dnd5e.cli.commands.stats import app as stats_app
@@ -173,6 +174,7 @@ try:
     app.add_typer(cache_app, name="cache")
     app.add_typer(convert_app, name="convert")
     app.add_typer(list_app, name="list")
+    app.add_typer(mcp_app, name="mcp")
     app.add_typer(info_app, name="info")
     app.add_typer(setup_app, name="setup")
     app.add_typer(sources_app, name="sources")

@@ -217,6 +217,15 @@ class ContentNotFoundError(MCPError):
     category: ErrorCategory = ErrorCategory.USER_ERROR
 
 
+class ContentNotFoundExceptionError(Exception):
+    """Exception wrapper for ContentNotFoundError model."""
+
+    def __init__(self, content_error: ContentNotFoundError):
+        """Initialize with a ContentNotFoundError model."""
+        self.content_error = content_error
+        super().__init__(content_error.message)
+
+
 class ConfigurationError(MCPError):
     """Configuration validation or loading failed."""
 
@@ -360,6 +369,23 @@ def create_processing_error(
         parent_name=parent_name,
         context=context,
     )
+
+
+class MCPException(Exception):
+    """Exception wrapper for MCPError models.
+
+    This allows MCPError models to be raised as exceptions while
+    maintaining their structured data format.
+    """
+
+    def __init__(self, mcp_error: MCPError):
+        """Initialize with an MCPError model."""
+        self.mcp_error = mcp_error
+        super().__init__(mcp_error.message)
+
+    def to_json_rpc_error(self) -> dict[str, Any]:
+        """Convert to JSON-RPC error format."""
+        return self.mcp_error.to_json_rpc_error()
 
 
 def create_unknown_type_error(
