@@ -74,7 +74,7 @@ class TestRulesIntelligence:
     @pytest.fixture
     def sample_action(self) -> Action:
         """Create a sample action for testing."""
-        from dnd5e.core.models.sources import Source
+        from dnd5e.core.models.content import Source
 
         return Action(
             name="Attack",
@@ -86,7 +86,7 @@ class TestRulesIntelligence:
     @pytest.fixture
     def sample_condition(self) -> Condition:
         """Create a sample condition for testing."""
-        from dnd5e.core.models.sources import Source
+        from dnd5e.core.models.content import Source
 
         return Condition(
             name="Blinded",
