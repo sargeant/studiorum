@@ -293,7 +293,7 @@ def test_data_omnidexer() -> Omnidexer:
     reset_global_container()
 
     # Set test configuration environment variable
-    os.environ["DND5E_CONFIG_FILE"] = "test-config.yaml"
+    os.environ["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
 
     # Get omnidexer from the DI container
     from studiorum.core.container import get_global_container

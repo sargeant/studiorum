@@ -50,7 +50,7 @@ class TestBookConversion:
         import os
 
         env = os.environ.copy()
-        env["DND5E_CONFIG_FILE"] = "test-config.yaml"
+        env["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
         return env
 
     def test_book_conversion_produces_content(self):

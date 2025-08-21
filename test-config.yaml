@@ -6,7 +6,7 @@ content_sources:
   priority: 0
   url: null
   branch: master
-  path: /Users/sam/Code/studiorum/test-data
+  path: ./test-data
   auto_update: true
   update_interval: daily
 - name: srd
@@ -15,7 +15,7 @@ content_sources:
   priority: 1
   url: null
   branch: master
-  path: /Users/sam/Code/studiorum/srd-data
+  path: ./srd-data
   auto_update: true
   update_interval: daily
 latex:
@@ -27,8 +27,8 @@ latex:
   high_contrast: null
   two_column: null
   justified: null
-cache_dir: /Users/sam/.cache/studiorum
-config_dir: /Users/sam/.config/studiorum
+cache_dir: ./.cache/studiorum
+config_dir: ./.config/studiorum
 auto_update_enabled: true
 update_check_interval: daily
 parallel_downloads: 3

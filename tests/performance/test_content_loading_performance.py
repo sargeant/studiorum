@@ -29,7 +29,7 @@ class TestContentLoadingPerformance:
     @pytest.mark.slow
     @pytest.mark.requires_data
     @pytest.mark.skipif(
-        os.getenv("DND5E_CONFIG_FILE") == "test-config.yaml",
+        os.getenv("STUDIORUM_CONFIG_FILE") == "test-config.yaml",
         reason="Performance tests require full 5etools dataset, not test data",
     )
     def test_omnidexer_loading_performance(self):
@@ -58,7 +58,7 @@ class TestContentLoadingPerformance:
     @pytest.mark.slow
     @pytest.mark.requires_data
     @pytest.mark.skipif(
-        os.getenv("DND5E_CONFIG_FILE") == "test-config.yaml",
+        os.getenv("STUDIORUM_CONFIG_FILE") == "test-config.yaml",
         reason="Performance tests require full 5etools dataset, not test data",
     )
     def test_content_resolution_performance(self):
@@ -109,7 +109,7 @@ class TestContentLoadingPerformance:
 
     @pytest.mark.requires_data
     @pytest.mark.skipif(
-        os.getenv("DND5E_CONFIG_FILE") == "test-config.yaml",
+        os.getenv("STUDIORUM_CONFIG_FILE") == "test-config.yaml",
         reason="Performance tests require full 5etools dataset, not test data",
     )
     def test_repeated_resolution_consistency(self):
