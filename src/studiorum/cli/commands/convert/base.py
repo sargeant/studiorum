@@ -31,9 +31,9 @@ class BaseConvertCommand:
 
     def __init__(self) -> None:
         """Initialize the base convert command."""
-        from studiorum.cli.async_bridge import get_omnidexer_sync
+        from studiorum.cli.utils import get_omnidexer
 
-        omnidexer = get_omnidexer_sync()
+        omnidexer = get_omnidexer()
         self._content_reference_manager = ContentReferenceManager(omnidexer)
 
     def _safe_getattr(self, obj: Any, attr_path: str) -> Any:
@@ -196,7 +196,7 @@ class BaseConvertCommand:
         use_stdin: bool = False,
     ) -> ContentLoader:
         """Get a content loader configured with the specified sources."""
-        from studiorum.cli.async_bridge import get_omnidexer_sync
+        from studiorum.cli.utils import get_omnidexer as get_omnidexer_sync
 
         loader = ContentLoader()
 
@@ -502,7 +502,7 @@ class AppendixMixin:
 
     def __init__(self) -> None:
         """Initialize the appendix mixin."""
-        from studiorum.cli.async_bridge import get_omnidexer_sync
+        from studiorum.cli.utils import get_omnidexer as get_omnidexer_sync
 
         if not hasattr(self, "_content_reference_manager"):
             omnidexer = get_omnidexer_sync()

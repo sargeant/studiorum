@@ -612,30 +612,24 @@ def reset_entry_registry() -> None:
     pass
 
 
+# Global singleton instance
+_global_registry: EntryTypeRegistry | None = None
+
+
 def get_registry() -> EntryTypeRegistry:
     """Get the global entry type registry instance."""
-    import asyncio
+    global _global_registry
 
-    from studiorum.core.config.unified_config import get_app_config
-    from studiorum.core.services.container import create_mcp_request_container
+    if _global_registry is None:
+        _global_registry = EntryTypeRegistry()
 
-    try:
-        # Try to get existing loop to check if we're in async context
-        asyncio.get_running_loop()
+    return _global_registry
 
-        # If we're in an async context, create a task
-        async def _get_async_registry() -> EntryTypeRegistry:
-            # For backward compatibility, just return a new registry instance
-            # The service container approach was causing circular imports
-            return EntryTypeRegistry()
 
-        # Create future and run it
-        # This is a compatibility hack - in practice this function should be made async
-        # For now, we'll use the simple direct creation approach
-        return EntryTypeRegistry()
-    except RuntimeError:
-        # No running loop, use sync approach
-        return EntryTypeRegistry()
+def reset_global_registry() -> None:
+    """Reset the global registry for testing."""
+    global _global_registry
+    _global_registry = None
 
 
 def set_validation_mode(mode: ValidationMode) -> None:

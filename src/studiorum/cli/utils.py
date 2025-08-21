@@ -1,8 +1,8 @@
 """
 CLI utility functions for accessing shared services.
 
-This module provides access to commonly used services in CLI commands
-using the modern async service container with sync bridge utilities.
+This module provides direct instantiation of services for CLI commands,
+ensuring test compatibility and avoiding complex async/sync bridging.
 """
 
 from studiorum.core.loaders.omnidexer import Omnidexer
@@ -10,22 +10,26 @@ from studiorum.core.text.tag_resolver import TagResolver
 
 
 def get_omnidexer() -> Omnidexer:
-    """Get the omnidexer instance from the modern service container.
+    """Get omnidexer instance for CLI commands.
 
-    Uses async/sync bridge to maintain backward compatibility while
-    leveraging the modern async service infrastructure.
+    Uses direct instantiation for simplicity and test compatibility.
+
+    Returns:
+        Omnidexer instance ready for use
     """
-    from studiorum.cli.async_bridge import get_omnidexer_sync
-
-    return get_omnidexer_sync()
+    # Direct instantiation for CLI simplicity and test compatibility
+    omnidexer = Omnidexer()
+    omnidexer.load_all_data()
+    return omnidexer
 
 
 def get_tag_resolver() -> TagResolver:
-    """Get the tag resolver instance from the modern service container.
+    """Get tag resolver instance for CLI commands.
 
-    Uses async/sync bridge to maintain backward compatibility while
-    leveraging the modern async service infrastructure.
+    Uses direct instantiation for simplicity and test compatibility.
+
+    Returns:
+        TagResolver instance ready for use
     """
-    from studiorum.cli.async_bridge import get_tag_resolver_sync
-
-    return get_tag_resolver_sync()
+    # Direct instantiation for CLI simplicity and test compatibility
+    return TagResolver()

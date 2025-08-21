@@ -156,11 +156,11 @@ class TestBaseConvertCommand:
         )  # App config fallback (user config is None)
         assert config["main_font"] is None  # main_font not in config structures
 
-    @patch("studiorum.core.loaders.omnidexer.Omnidexer")
-    def test_get_content_loader_omnidexer_source(self, mock_omnidexer_class):
+    @patch("studiorum.cli.utils.get_omnidexer")
+    def test_get_content_loader_omnidexer_source(self, mock_get_omnidexer):
         """Test content loader with omnidexer source."""
         mock_omnidexer = Mock()
-        mock_omnidexer_class.return_value = mock_omnidexer
+        mock_get_omnidexer.return_value = mock_omnidexer
 
         command = BaseConvertCommand()
 
@@ -183,9 +183,9 @@ class TestBaseConvertCommand:
                 from studiorum.core.models.content import ContentType
 
                 expected_content_type = ContentType.SPELL
-                # The method receives the Success result, not the unwrapped omnidexer
+                # The method directly passes the omnidexer now, not a Success result
                 actual_call = mock_create_source.call_args[0]
-                assert actual_call[0].unwrap() == mock_omnidexer
+                assert actual_call[0] == mock_omnidexer
                 assert actual_call[1] == expected_content_type
                 mock_loader.add_source.assert_called_once_with(mock_source)
 
@@ -213,11 +213,11 @@ class TestBaseConvertCommand:
                 assert mock_create_source.call_count == 2
                 assert mock_loader.add_source.call_count == 2
 
-    @patch("studiorum.core.loaders.omnidexer.Omnidexer")
-    def test_get_content_reference_manager(self, mock_omnidexer_class):
+    @patch("studiorum.cli.utils.get_omnidexer")
+    def test_get_content_reference_manager(self, mock_get_omnidexer):
         """Test getting content reference manager."""
         mock_omnidexer = Mock()
-        mock_omnidexer_class.return_value = mock_omnidexer
+        mock_get_omnidexer.return_value = mock_omnidexer
 
         command = BaseConvertCommand()
 
@@ -368,11 +368,11 @@ class TestAppendixMixin:
         # Should have content reference manager
         assert hasattr(mixin, "_content_reference_manager")
 
-    @patch("studiorum.core.loaders.omnidexer.Omnidexer")
-    def test_get_content_reference_manager(self, mock_omnidexer_class):
+    @patch("studiorum.cli.utils.get_omnidexer")
+    def test_get_content_reference_manager(self, mock_get_omnidexer):
         """Test getting content reference manager."""
         mock_omnidexer = Mock()
-        mock_omnidexer_class.return_value = mock_omnidexer
+        mock_get_omnidexer.return_value = mock_omnidexer
 
         mixin = AppendixMixin()
 
@@ -455,9 +455,9 @@ class TestBaseConvertCommandIntegration:
 
     @patch("studiorum.cli.commands.convert.base.get_app_config")
     @patch("studiorum.core.config.sources.get_content_config")
-    @patch("studiorum.cli.async_bridge.get_omnidexer_sync")
+    @patch("studiorum.cli.utils.get_omnidexer")
     def test_full_command_workflow(
-        self, mock_get_omnidexer_sync, mock_get_content_config, mock_get_app_config
+        self, mock_get_omnidexer, mock_get_content_config, mock_get_app_config
     ):
         """Test complete command workflow."""
         # Mock configurations matching actual config structure
@@ -478,7 +478,7 @@ class TestBaseConvertCommandIntegration:
         mock_get_content_config.return_value = mock_user_config
 
         mock_omnidexer = Mock()
-        mock_get_omnidexer_sync.return_value = mock_omnidexer
+        mock_get_omnidexer.return_value = mock_omnidexer
 
         # Create command with all mixins for full workflow test
         class TestCommand(BaseConvertCommand, LaTeXMixin, AppendixMixin):

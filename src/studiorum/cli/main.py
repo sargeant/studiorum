@@ -387,11 +387,9 @@ def reset_cli_globals() -> None:
     This function clears the global state maintained by the CLI module
     to ensure clean test isolation.
     """
-    from studiorum.cli.async_bridge import reset_global_async_container
     from studiorum.core.container import reset_global_container
 
-    # Reset both the new async container and legacy container for full compatibility
-    reset_global_async_container()
+    # Reset the legacy container for compatibility
     reset_global_container()
 
 

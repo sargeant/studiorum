@@ -26,16 +26,9 @@ def reset_all_containers() -> None:
     except Exception as e:
         logger.warning(f"Failed to reset legacy container: {e}")
 
-    try:
-        # Reset modern async container system
-        from studiorum.cli.async_bridge import reset_global_async_container
-
-        reset_global_async_container()
-        logger.debug("Modern async service container reset")
-    except ImportError:
-        logger.debug("Modern async container system not available")
-    except Exception as e:
-        logger.warning(f"Failed to reset async container: {e}")
+    # Note: Modern async container system was removed in favor of direct instantiation
+    # No longer need to reset async container for test isolation
+    logger.debug("Modern async container system no longer used")
 
 
 def reset_test_environment() -> None:
@@ -65,6 +58,12 @@ def reset_test_environment() -> None:
 
         reset_content_type_registry()
         logger.debug("Content type registry reset (preserving decorator registrations)")
+
+        # 2.1. Reset the entry type registry global instance
+        from studiorum.core.entry_registry import reset_global_registry
+
+        reset_global_registry()
+        logger.debug("Entry type registry global instance reset")
 
         # 3. ContentFactory is now managed by the DI container
         # It gets reset when the container is reset, so no manual reset needed
