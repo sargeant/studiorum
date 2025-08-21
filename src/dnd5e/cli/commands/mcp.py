@@ -21,8 +21,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import signal
 import sys
+from pathlib import Path
 from typing import Any, Optional
 
 import typer
@@ -30,7 +32,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from dnd5e.core.logging import get_logger
+from dnd5e.core.logging import DND5ELogger, get_logger
 
 from ...core.config.unified_config import get_app_config
 from ...mcp.server import create_mcp_server, get_mcp_app, list_registered_tools
@@ -215,7 +217,38 @@ def list_tools() -> None:
 
 
 @mcp_app.command(name="run")
-def run_mcp_stdio() -> None:
+def run_mcp_stdio(
+    # Debug logging options
+    debug: bool = typer.Option(
+        False, "--debug", help="Enable detailed debug logging for MCP operations"
+    ),
+    log_protocol: bool = typer.Option(
+        False, "--log-protocol", help="Log full JSON-RPC protocol messages (verbose)"
+    ),
+    debug_log_file: str | None = typer.Option(
+        None, "--debug-log-file", help="Custom debug log file location"
+    ),
+    debug_level: str = typer.Option(
+        "INFO",
+        "--debug-level",
+        help="Debug logging level (DEBUG, INFO, WARNING, ERROR)",
+    ),
+    # Logfire observability options
+    logfire_dev: bool = typer.Option(
+        False,
+        "--logfire-dev",
+        help="Enable Logfire development token (requires LOGFIRE_TOKEN)",
+    ),
+    observability: bool = typer.Option(
+        False, "--observability", help="Enable Logfire observability platform"
+    ),
+    telemetry: bool = typer.Option(
+        False, "--telemetry", help="Enable telemetry and system metrics collection"
+    ),
+    environment: str = typer.Option(
+        "local", "--environment", help="Deployment environment (local, dev, prod)"
+    ),
+) -> None:
     """Start the dnd5e MCP server with stdio transport for Claude Desktop.
 
     This command starts the MCP server using stdio transport, which is the
@@ -226,13 +259,89 @@ def run_mcp_stdio() -> None:
     specifically designed for local client integration like Claude Desktop.
 
     Examples:
-        # Start MCP server for Claude Desktop
+        # Basic MCP server for Claude Desktop
         dnd5e mcp run
+
+        # Enable comprehensive debugging
+        dnd5e mcp run --debug --log-protocol
+
+        # Custom debug log location
+        dnd5e mcp run --debug --debug-log-file ./mcp-debug.log
+
+        # Enable Logfire observability (requires LOGFIRE_TOKEN)
+        dnd5e mcp run --observability --environment dev
+
+        # Development mode with full debugging
+        dnd5e mcp run --logfire-dev --debug --log-protocol --telemetry
 
     Note: This command is meant to be called by MCP clients (like Claude Desktop)
     rather than run directly by users. The client manages the server lifecycle.
+
+    Environment Variables:
+        LOGFIRE_TOKEN: Required for --observability, --telemetry, and --logfire-dev
+        DND5E_DEBUG: Set to 'true' to enable debug logging by default
+        DND5E_ENVIRONMENT: Default environment name (overridden by --environment)
     """
-    # Configure basic logging to stderr (not stdout, which is used for MCP protocol)
+    # Determine effective debug settings
+    effective_debug = debug or os.getenv("DND5E_DEBUG", "false").lower() == "true"
+    effective_environment = (
+        environment
+        if environment != "local"
+        else os.getenv("DND5E_ENVIRONMENT", "local")
+    )
+
+    # Enable telemetry for Logfire options
+    enable_telemetry = observability or telemetry or logfire_dev
+
+    # Check for LOGFIRE_TOKEN if telemetry is enabled
+    if enable_telemetry:
+        logfire_token = os.getenv("LOGFIRE_TOKEN")
+        if not logfire_token:
+            # Write warning to stderr (not stdout which is used for MCP protocol)
+            import warnings
+
+            warnings.warn(
+                "\n⚠️  Logfire observability enabled but LOGFIRE_TOKEN not set.\n"
+                "   Set LOGFIRE_TOKEN environment variable to enable cloud logging.\n"
+                "   See .env.example for setup instructions.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+    # Initialize enhanced Logfire logging
+    DND5ELogger.initialize(
+        debug=effective_debug,
+        environment=effective_environment,
+        enable_telemetry=enable_telemetry,
+        console_min_level="debug" if effective_debug else "info",
+        mcp_debug=effective_debug or log_protocol,
+        mcp_debug_file=Path(debug_log_file) if debug_log_file else None,
+    )
+
+    # Log enhanced startup information
+    mcp_debug_logger = DND5ELogger.get_mcp_debug_logger()
+    if effective_debug:
+        logger.info(
+            "MCP Debug logging enabled",
+            debug_file=str(
+                mcp_debug_logger.log_file if mcp_debug_logger else "default"
+            ),
+            log_protocol=log_protocol,
+            debug_level=debug_level,
+            _tags=["mcp", "debug", "startup"],
+        )
+
+    if enable_telemetry:
+        logger.info(
+            "Logfire observability enabled",
+            environment=effective_environment,
+            telemetry=telemetry,
+            observability=observability,
+            logfire_dev=logfire_dev,
+            _tags=["logfire", "observability", "startup"],
+        )
+
+    # Configure minimal stderr logging (stdout reserved for MCP protocol)
     logging.basicConfig(
         level=logging.WARNING,  # Keep quiet for stdio transport
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -248,9 +357,28 @@ def run_mcp_stdio() -> None:
             logger.error("MCP configuration not found in config")
             sys.exit(1)
 
-        # Log startup to stderr for debugging (if needed)
-        logger.info("Starting dnd5e MCP server with stdio transport")
-        logger.info(f"Registered {len(list_registered_tools())} tools")
+        # Log comprehensive startup information to stderr for debugging
+        tools_count = len(list_registered_tools())
+        logger.info(
+            "Starting dnd5e MCP server with stdio transport",
+            tools_count=tools_count,
+            debug_enabled=effective_debug,
+            protocol_logging=log_protocol,
+            logfire_enabled=enable_telemetry,
+            environment=effective_environment,
+            _tags=["mcp", "server", "startup"],
+        )
+
+        # Log startup details to MCP debug logger if available
+        if mcp_debug_logger:
+            config_summary = {
+                "debug_enabled": effective_debug,
+                "protocol_logging": log_protocol,
+                "logfire_enabled": enable_telemetry,
+                "environment": effective_environment,
+                "debug_level": debug_level,
+            }
+            mcp_debug_logger.log_startup(tools_count, config_summary)
 
         # Start the server with stdio transport (default)
         # This will block until the client closes the connection
