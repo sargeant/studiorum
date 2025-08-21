@@ -13,11 +13,13 @@ from typing import Any
 import pytest
 from logfire.testing import CaptureLogfire
 
-from dnd5e.core.loaders.json_loader import JsonDataLoader  # type: ignore
-from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
-from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
-from dnd5e.core.logging import get_logger  # type: ignore
-from dnd5e.core.models.content import ContentType  # type: ignore
+from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
+from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
+from studiorum.core.loaders.source_manager import (
+    FileSystemSourceManager,  # type: ignore
+)
+from studiorum.core.logging import get_logger  # type: ignore
+from studiorum.core.models.content import ContentType  # type: ignore
 
 
 class ValidationReport:

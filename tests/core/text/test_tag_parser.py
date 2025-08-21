@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.text.tag_ast import (  # type: ignore
+from studiorum.core.text.tag_ast import (  # type: ignore
     AdventureTagNode,
     BackgroundTagNode,
     BoldTagNode,
@@ -30,7 +30,7 @@ from dnd5e.core.text.tag_ast import (  # type: ignore
     TagNode,
     TextNode,
 )
-from dnd5e.core.text.tag_parser import (  # type: ignore
+from studiorum.core.text.tag_parser import (  # type: ignore
     TagASTTransformer,
     TagParseError,
     TagParser,
@@ -375,7 +375,7 @@ class TestTagParser:
 
         result = self.parser.parse("{@unknown test}")
         assert len(result.children) == 1
-        if os.getenv("DND5E_DISABLE_TAG_FALLBACK"):
+        if os.getenv("STUDIORUM_DISABLE_TAG_FALLBACK"):
             # When fallback is disabled, unknown tags become TextNode
             assert isinstance(result.children[0], TextNode)
         else:
@@ -489,7 +489,7 @@ class TestTagParser:
         """Test that grammar file exists."""
         grammar_path = (
             Path(__file__).parent.parent.parent.parent
-            / "src/dnd5e/core/text/tag_grammar.lark"
+            / "src/studiorum/core/text/tag_grammar.lark"
         )
         assert grammar_path.exists(), f"Grammar file not found at {grammar_path}"
 
@@ -500,9 +500,9 @@ class TestTagParser:
         def mock_lark(*args: Any, **kwargs: Any) -> None:
             raise Exception("Lark parser error")
 
-        import dnd5e.core.text.tag_parser  # type: ignore
+        import studiorum.core.text.tag_parser  # type: ignore
 
-        monkeypatch.setattr(dnd5e.core.text.tag_parser, "Lark", mock_lark)
+        monkeypatch.setattr(studiorum.core.text.tag_parser, "Lark", mock_lark)
 
         with pytest.raises(TagParseError, match="Failed to initialize parser"):
             TagParser()

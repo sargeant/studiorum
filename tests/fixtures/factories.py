@@ -262,7 +262,7 @@ def make_options_entry():
 @pytest.fixture
 def make_spell_object(make_spell):
     """Factory for creating Spell model objects."""
-    from dnd5e.core.models.spells import Spell
+    from studiorum.core.models.spells import Spell
 
     def _make_spell_object(**kwargs) -> Spell:
         """Create a Spell object with custom attributes."""
@@ -275,7 +275,7 @@ def make_spell_object(make_spell):
 @pytest.fixture
 def make_creature_object(make_creature):
     """Factory for creating Creature model objects."""
-    from dnd5e.core.models.creatures import Creature
+    from studiorum.core.models.creatures import Creature
 
     def _make_creature_object(**kwargs) -> Creature:
         """Create a Creature object with custom attributes."""
@@ -288,7 +288,7 @@ def make_creature_object(make_creature):
 @pytest.fixture
 def make_item_object(make_item):
     """Factory for creating Item model objects."""
-    from dnd5e.core.models.items import Item
+    from studiorum.core.models.items import Item
 
     def _make_item_object(**kwargs) -> Item:
         """Create an Item object with custom attributes."""
@@ -362,7 +362,7 @@ def make_test_data_dir(tmp_path: Path):
 @pytest.fixture
 def make_omnidexer(make_test_data_dir):
     """Factory for creating configured Omnidexer instances."""
-    from dnd5e.core.loaders.omnidexer import Omnidexer
+    from studiorum.core.loaders.omnidexer import Omnidexer
     from tests.test_helpers import reset_test_environment
 
     def _make_omnidexer(
@@ -393,12 +393,12 @@ def make_tag_resolver():
     """Factory for creating TagResolver instances."""
     from unittest.mock import Mock
 
-    from dnd5e.core.text.tag_resolver import TagResolver
+    from studiorum.core.text.tag_resolver import TagResolver
 
     def _make_tag_resolver(omnidexer=None) -> TagResolver:
         """Create a TagResolver with optional omnidexer."""
         if omnidexer is None:
-            from dnd5e.core.loaders.omnidexer import Omnidexer
+            from studiorum.core.loaders.omnidexer import Omnidexer
 
             omnidexer = Mock(spec=Omnidexer)
         return TagResolver(omnidexer)
@@ -414,7 +414,7 @@ def make_tag_resolver():
 @pytest.fixture
 def make_latex_context():
     """Factory for creating LaTeX rendering contexts."""
-    from dnd5e.renderers.latex.context import LaTeXContext
+    from studiorum.renderers.latex.context import LaTeXContext
 
     def _make_latex_context(
         document_type: str = "book", images: bool = True, **overrides: Any

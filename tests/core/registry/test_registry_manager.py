@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent, ContentType
-from dnd5e.core.registry.content_type_registry import ContentTypeMetadata
-from dnd5e.core.registry.registry_manager import RegistryManager
+from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.registry.content_type_registry import ContentTypeMetadata
+from studiorum.core.registry.registry_manager import RegistryManager
 
 
 class MockBaseContent(BaseContent):
@@ -64,7 +64,7 @@ class TestRegistryManager:
         mock_source_manager_class.content_patterns = {}
 
         with patch(
-            "dnd5e.core.loaders.configurable_source_manager.ConfigurableSourceManager",
+            "studiorum.core.loaders.configurable_source_manager.ConfigurableSourceManager",
             mock_source_manager_class,
         ):
             manager._update_source_manager(metadata)
@@ -83,7 +83,7 @@ class TestRegistryManager:
 
         # Patch the actual import location to raise ImportError
         with patch(
-            "dnd5e.core.loaders.configurable_source_manager.ConfigurableSourceManager",
+            "studiorum.core.loaders.configurable_source_manager.ConfigurableSourceManager",
             side_effect=ImportError,
         ):
             # Should not raise, just log warning
@@ -111,7 +111,9 @@ class TestRegistryManager:
 
         # In the dynamic system, omnidexer update should complete without errors
         # and not modify any static attributes (since dynamic resolution is used)
-        with patch("dnd5e.core.loaders.omnidexer.Omnidexer") as mock_omnidexer_class:
+        with patch(
+            "studiorum.core.loaders.omnidexer.Omnidexer"
+        ) as mock_omnidexer_class:
             manager._update_omnidexer(metadata)
 
             # The update should complete successfully - no static updates needed
@@ -123,7 +125,9 @@ class TestRegistryManager:
         manager = RegistryManager()
 
         # Patch the actual import location to raise ImportError
-        with patch("dnd5e.core.loaders.omnidexer.Omnidexer", side_effect=ImportError):
+        with patch(
+            "studiorum.core.loaders.omnidexer.Omnidexer", side_effect=ImportError
+        ):
             # Should not raise, just log warning
             manager._update_omnidexer({})
 
@@ -145,7 +149,7 @@ class TestRegistryManager:
         mock_factory_class._class_map = {}
 
         with patch(
-            "dnd5e.core.loaders.content_factory.ContentFactory", mock_factory_class
+            "studiorum.core.loaders.content_factory.ContentFactory", mock_factory_class
         ):
             manager._update_content_factory(metadata)
 
@@ -162,7 +166,7 @@ class TestRegistryManager:
 
         # Patch the actual import location to raise ImportError
         with patch(
-            "dnd5e.core.loaders.content_factory.ContentFactory",
+            "studiorum.core.loaders.content_factory.ContentFactory",
             side_effect=ImportError,
         ):
             # Should not raise, just log warning
@@ -186,7 +190,7 @@ class TestRegistryManager:
         mock_interface_registry.register = Mock()
 
         with patch(
-            "dnd5e.core.interfaces.get_content_type_registry",
+            "studiorum.core.interfaces.get_content_type_registry",
             return_value=mock_interface_registry,
         ):
             manager._update_content_type_resolver(metadata)
@@ -215,7 +219,7 @@ class TestRegistryManager:
         mock_interface_registry.register = Mock()
 
         with patch(
-            "dnd5e.core.interfaces.get_content_type_registry",
+            "studiorum.core.interfaces.get_content_type_registry",
             return_value=mock_interface_registry,
         ):
             manager._update_content_type_resolver(metadata)
@@ -232,7 +236,7 @@ class TestRegistryManager:
 
         # Patch the interface import to raise ImportError
         with patch(
-            "dnd5e.core.interfaces.get_content_type_registry",
+            "studiorum.core.interfaces.get_content_type_registry",
             side_effect=ImportError,
         ):
             # Should not raise, just log warning
@@ -257,7 +261,7 @@ class TestRegistryManager:
         mock_processor_class.statblock_tags = {}
 
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor",
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor",
             mock_processor_class,
         ):
             manager._update_entry_processor(metadata)
@@ -292,7 +296,7 @@ class TestRegistryManager:
         mock_processor_class._statblock_tags = {}
 
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor",
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor",
             mock_processor_class,
         ):
             manager._update_entry_processor(metadata)
@@ -324,7 +328,7 @@ class TestRegistryManager:
         ) else None
 
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor",
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor",
             mock_processor_class,
         ):
             manager._update_entry_processor(metadata)
@@ -352,7 +356,7 @@ class TestRegistryManager:
         mock_processor_class.statblock_tags = {"existing": "tag"}
 
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor",
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor",
             mock_processor_class,
         ):
             manager._update_entry_processor(metadata)
@@ -366,7 +370,7 @@ class TestRegistryManager:
 
         # Patch the actual import location to raise ImportError
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor",
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor",
             side_effect=ImportError,
         ):
             # Should not raise, just log warning

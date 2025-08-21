@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.text.tag_resolver import TagResolver
+from studiorum.core.text.tag_resolver import TagResolver
 
 
 class TestTagSystemPerformance:

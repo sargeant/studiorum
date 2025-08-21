@@ -7,9 +7,9 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.commands.convert import app
-from dnd5e.latex_engine.config.compilation import LaTeXEngine
-from dnd5e.latex_engine.core.compiler import LaTeXCompiler
+from studiorum.cli.commands.convert import app
+from studiorum.latex_engine.config.compilation import LaTeXEngine
+from studiorum.latex_engine.core.compiler import LaTeXCompiler
 from tests.test_helpers import reset_test_environment
 
 
@@ -33,19 +33,19 @@ class TestLaTeXEngineIntegration:
             logging.basicConfig(level=logging.DEBUG)
             # Enable specific loggers
             for logger_name in [
-                "dnd5e.renderers.latex.dnd_template",
-                "dnd5e.renderers.latex.template_engine",
-                "dnd5e.cli.commands.convert",
+                "studiorum.renderers.latex.dnd_template",
+                "studiorum.renderers.latex.template_engine",
+                "studiorum.cli.commands.convert",
             ]:
                 logger = logging.getLogger(logger_name)
                 logger.setLevel(logging.DEBUG)
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("dnd5e.cli.utils.get_omnidexer")
-    @patch("dnd5e.cli.utils.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.compile_pdf_async")
-    @patch("dnd5e.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.adventure.compile_pdf_async")
+    @patch("studiorum.cli.commands.convert.display_manager")
     def test_adventure_pdf_uses_latex_compiler_with_config(
         self,
         mock_display,
@@ -110,10 +110,10 @@ class TestLaTeXEngineIntegration:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("dnd5e.cli.utils.get_omnidexer")
-    @patch("dnd5e.cli.utils.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.book.compile_pdf_async")
-    @patch("dnd5e.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.book.compile_pdf_async")
+    @patch("studiorum.cli.commands.convert.display_manager")
     def test_book_pdf_uses_configured_engine(
         self,
         mock_display,
@@ -184,8 +184,8 @@ class TestLaTeXEngineIntegration:
 
     def test_latex_compiler_helper_creates_proper_config(self):
         """Test that create_latex_compiler helper creates proper configuration."""
-        from dnd5e.cli.commands.convert.shared import create_latex_compiler
-        from dnd5e.latex_engine.config.compilation import CompilationConfig
+        from studiorum.cli.commands.convert.shared import create_latex_compiler
+        from studiorum.latex_engine.config.compilation import CompilationConfig
 
         # Test the helper function creates properly configured compiler
         compiler = create_latex_compiler()

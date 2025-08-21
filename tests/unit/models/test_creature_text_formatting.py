@@ -6,7 +6,7 @@ including alignment processing, size abbreviations, and complex text structures.
 
 import pytest
 
-from dnd5e.core.models.creatures import Creature, CreatureType
+from studiorum.core.models.creatures import Creature, CreatureType
 from tests.test_helpers import reset_test_environment
 
 

@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from dnd5e.core.config.sources import ContentSource, SourceType
-from dnd5e.core.sources.github import GitHubSourceManager
+from studiorum.core.config.sources import ContentSource, SourceType
+from studiorum.core.sources.github import GitHubSourceManager
 from tests.test_helpers import reset_test_environment
 
 
@@ -272,7 +272,7 @@ class TestGitHubSourceManager:
         """Test git availability check when git is available."""
         with (
             patch("subprocess.run") as mock_run,
-            patch("dnd5e.core.sources.github.get_git_executable") as mock_get_git,
+            patch("studiorum.core.sources.github.get_git_executable") as mock_get_git,
         ):
             mock_get_git.return_value = "git"
             mock_run.return_value = None  # Successful completion

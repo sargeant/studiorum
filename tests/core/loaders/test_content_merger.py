@@ -7,8 +7,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from dnd5e.core.loaders.content_merger import ContentMerger
-from dnd5e.core.models.content import ContentType
+from studiorum.core.loaders.content_merger import ContentMerger
+from studiorum.core.models.content import ContentType
 
 # Tests converted to sync after async removal migration
 

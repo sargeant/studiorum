@@ -8,7 +8,7 @@ import pytest
 from hypothesis import assume, example, given, settings, strategies as st
 from hypothesis.strategies import composite
 
-from dnd5e.core.models.spells import (
+from studiorum.core.models.spells import (
     ClassReference,
     DistanceDetails,
     DurationDetails,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Circular import detection tool for 5e2pdf project.
+Circular import detection tool for studiorum project.
 
 This script analyzes Python import dependencies to detect potential circular
 import chains that could cause runtime errors or make the code harder to maintain.
@@ -61,7 +61,7 @@ class ImportAnalyzer(ast.NodeVisitor):
         if module_parts[-1] == "__init__":
             module_parts = module_parts[:-1]
 
-        # Prepend base package name (dnd5e)
+        # Prepend base package name (studiorum)
         base_package = self.base_path.name
         if module_parts:
             return f"{base_package}." + ".".join(module_parts)
@@ -71,8 +71,8 @@ class ImportAnalyzer(ast.NodeVisitor):
     def visit_Import(self, node: ast.Import) -> None:
         """Visit import statements."""
         for alias in node.names:
-            # Only track imports within the project (starting with 'dnd5e.')
-            if alias.name.startswith("dnd5e."):
+            # Only track imports within the project (starting with 'studiorum.')
+            if alias.name.startswith("studiorum."):
                 self.imports.append(
                     ImportInfo(
                         module=alias.name, line_number=node.lineno, is_from_import=False
@@ -81,7 +81,7 @@ class ImportAnalyzer(ast.NodeVisitor):
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         """Visit from...import statements."""
-        if node.module and node.module.startswith("dnd5e."):
+        if node.module and node.module.startswith("studiorum."):
             # Handle relative imports
             if node.module.startswith(".."):
                 # Convert relative import to absolute

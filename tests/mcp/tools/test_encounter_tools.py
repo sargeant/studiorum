@@ -14,15 +14,15 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.error_types import ContentNotFoundError, MCPException
-from dnd5e.core.models.encounter_types import (
+from studiorum.core.error_types import ContentNotFoundError, MCPException
+from studiorum.core.models.encounter_types import (
     XP,
     EncounterConstraints,
     EnvironmentalModifiers,
     PartyComposition,
 )
-from dnd5e.mcp.tools.encounter.budget import calculate_encounter_budget
-from dnd5e.mcp.tools.encounter.tools import (
+from studiorum.mcp.tools.encounter.budget import calculate_encounter_budget
+from studiorum.mcp.tools.encounter.tools import (
     build_balanced_encounter_mcp,
     calculate_encounter_budget_mcp,
     get_encounter_tool_definitions,
@@ -41,7 +41,7 @@ class TestEncounterBudgetCalculation:
         reset_test_environment()
 
         # Extra isolation for parallel execution
-        from dnd5e.core.container import reset_global_container
+        from studiorum.core.container import reset_global_container
 
         reset_global_container()
 
@@ -182,7 +182,7 @@ class TestEncounterConstraints:
         reset_test_environment()
 
         # Extra isolation for parallel execution
-        from dnd5e.core.container import reset_global_container
+        from studiorum.core.container import reset_global_container
 
         reset_global_container()
 
@@ -252,13 +252,13 @@ class TestEnvironmentalProfiles:
         reset_test_environment()
 
         # Extra isolation for parallel execution
-        from dnd5e.core.container import reset_global_container
+        from studiorum.core.container import reset_global_container
 
         reset_global_container()
 
     def test_environmental_profile_creation(self) -> None:
         """Test creating environmental profiles."""
-        from dnd5e.mcp.tools.encounter.themes import create_environmental_profile
+        from studiorum.mcp.tools.encounter.themes import create_environmental_profile
 
         profile = create_environmental_profile(
             "forest", climate="temperate", lighting="dim", weather="rain"
@@ -272,8 +272,8 @@ class TestEnvironmentalProfiles:
 
     def test_creature_suitability_calculation(self) -> None:
         """Test creature suitability scoring."""
-        from dnd5e.core.models.creatures import Creature
-        from dnd5e.mcp.tools.encounter.themes import create_environmental_profile
+        from studiorum.core.models.creatures import Creature
+        from studiorum.mcp.tools.encounter.themes import create_environmental_profile
 
         forest_profile = create_environmental_profile("forest")
 
@@ -291,7 +291,7 @@ class TestEnvironmentalProfiles:
 
     def test_invalid_environment_type(self) -> None:
         """Test handling of invalid environment types."""
-        from dnd5e.mcp.tools.encounter.themes import create_environmental_profile
+        from studiorum.mcp.tools.encounter.themes import create_environmental_profile
 
         with pytest.raises(ValueError, match="Invalid environment type"):
             create_environmental_profile("atlantis")
@@ -307,13 +307,13 @@ class TestThematicProfiles:
         reset_test_environment()
 
         # Extra isolation for parallel execution
-        from dnd5e.core.container import reset_global_container
+        from studiorum.core.container import reset_global_container
 
         reset_global_container()
 
     def test_thematic_profile_creation(self) -> None:
         """Test creating thematic profiles."""
-        from dnd5e.mcp.tools.encounter.themes import create_thematic_profile
+        from studiorum.mcp.tools.encounter.themes import create_thematic_profile
 
         profile = create_thematic_profile(
             "undead_horror", intensity=1.5, allow_mixed=True
@@ -325,8 +325,8 @@ class TestThematicProfiles:
 
     def test_thematic_fit_calculation(self) -> None:
         """Test thematic fit scoring."""
-        from dnd5e.core.models.creatures import Creature
-        from dnd5e.mcp.tools.encounter.themes import create_thematic_profile
+        from studiorum.core.models.creatures import Creature
+        from studiorum.mcp.tools.encounter.themes import create_thematic_profile
 
         undead_profile = create_thematic_profile("undead_horror", intensity=1.0)
 
@@ -342,7 +342,7 @@ class TestThematicProfiles:
 
     def test_invalid_theme_type(self) -> None:
         """Test handling of invalid theme types."""
-        from dnd5e.mcp.tools.encounter.themes import create_thematic_profile
+        from studiorum.mcp.tools.encounter.themes import create_thematic_profile
 
         with pytest.raises(ValueError, match="Invalid theme"):
             create_thematic_profile("rainbow_unicorns")
@@ -358,7 +358,7 @@ class TestMCPToolIntegration:
         reset_test_environment()
 
         # Extra isolation for parallel execution
-        from dnd5e.core.container import reset_global_container
+        from studiorum.core.container import reset_global_container
 
         reset_global_container()
 
@@ -464,7 +464,7 @@ class TestPartyComposition:
         reset_test_environment()
 
         # Extra isolation for parallel execution
-        from dnd5e.core.container import reset_global_container
+        from studiorum.core.container import reset_global_container
 
         reset_global_container()
 
@@ -506,7 +506,7 @@ class TestEncounterServiceIntegration:
 
     def setup_method(self) -> None:
         """Set up test environment for each test method."""
-        from dnd5e.core.container import reset_global_container
+        from studiorum.core.container import reset_global_container
         from tests.test_helpers import reset_test_environment
 
         reset_test_environment()
@@ -518,7 +518,7 @@ class TestEncounterServiceIntegration:
 
     def test_service_registration(self) -> None:
         """Test encounter service registration in container."""
-        from dnd5e.core.services.encounter_services import (
+        from studiorum.core.services.encounter_services import (
             get_encounter_service_lifecycle_summary,
             validate_encounter_service_registration,
         )
@@ -540,10 +540,10 @@ class TestEncounterServiceIntegration:
             assert service in summary
             assert summary[service]["lifecycle"] == "SCOPED"
 
-    @patch("dnd5e.core.services.encounter_services.EncounterCollector")
+    @patch("studiorum.core.services.encounter_services.EncounterCollector")
     def test_encounter_collector_service_creation(self, mock_collector) -> None:
         """Test encounter collector service creation."""
-        from dnd5e.core.services.encounter_services import (
+        from studiorum.core.services.encounter_services import (
             create_encounter_collector_service,
         )
 
@@ -557,10 +557,10 @@ class TestEncounterServiceIntegration:
         # Should return the collector instance
         assert result is not None
 
-    @patch("dnd5e.core.container.get_global_container")
+    @patch("studiorum.core.container.get_global_container")
     def test_container_integration(self, mock_container) -> None:
         """Test integration with service container."""
-        from dnd5e.core.services.encounter_services import (
+        from studiorum.core.services.encounter_services import (
             get_encounter_collector_from_container,
         )
 
@@ -576,7 +576,7 @@ class TestEncounterServiceIntegration:
 
         # Should successfully create encounter collector
         with patch(
-            "dnd5e.core.services.encounter_collector.EncounterCollector"
+            "studiorum.core.services.encounter_collector.EncounterCollector"
         ) as mock_ec:
             # Make the mock return itself when called (so result is not None)
             mock_ec.return_value = mock_ec

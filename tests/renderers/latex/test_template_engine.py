@@ -6,7 +6,9 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine  # type: ignore
+from studiorum.renderers.latex.template_engine import (
+    LaTeXTemplateEngine,  # type: ignore
+)
 from tests.test_helpers import reset_test_environment
 
 
@@ -22,7 +24,9 @@ class TestLaTeXTemplateEngine:
         assert engine.debug is False
         # Path should now be absolute and point to the templates directory
         assert engine.templates_dir.name == "templates"
-        assert str(engine.templates_dir).endswith("src/dnd5e/renderers/latex/templates")
+        assert str(engine.templates_dir).endswith(
+            "src/studiorum/renderers/latex/templates"
+        )
         assert engine.env is not None
 
     def test_init_custom_config(self) -> None:
@@ -250,7 +254,7 @@ class TestLaTeXTemplateEngine:
         assert "\\begin{itemize}" in result
         assert "\\end{itemize}" in result
 
-    @patch("dnd5e.renderers.latex.template_engine.FileSystemLoader")
+    @patch("studiorum.renderers.latex.template_engine.FileSystemLoader")
     def test_jinja_environment_configuration(self, mock_loader: Any) -> None:
         """Test Jinja2 environment configuration."""
         engine: Any = LaTeXTemplateEngine()

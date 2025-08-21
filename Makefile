@@ -1,4 +1,4 @@
-# Makefile for 5e2pdf project
+# Makefile for studiorum project
 # Local targets use direct python commands (requires activate-5e)
 # CI targets use uv run for isolated environment
 
@@ -164,11 +164,11 @@ typecheck-full: mypy pyright-errors
 
 ## Check for circular imports
 imports: uv
-	@python $(SCRIPTS_DIR)/check_circular_imports.py $(SRC_DIR)/dnd5e/ --fail-on-cycles || (echo "ERROR: imports: circular imports detected"; exit 1)
+	@python $(SCRIPTS_DIR)/check_circular_imports.py $(SRC_DIR)/studiorum/ --fail-on-cycles || (echo "ERROR: imports: circular imports detected"; exit 1)
 
 ## Check architectural boundaries
 boundaries: uv
-	@python $(SCRIPTS_DIR)/check_architectural_boundaries.py $(SRC_DIR)/dnd5e/ --fail-on-violations || (echo "ERROR: boundaries: architectural violations found"; exit 1)
+	@python $(SCRIPTS_DIR)/check_architectural_boundaries.py $(SRC_DIR)/studiorum/ --fail-on-violations || (echo "ERROR: boundaries: architectural violations found"; exit 1)
 
 # Security checks
 ## Security vulnerability scan
@@ -387,7 +387,7 @@ ci-install:
 # Outputs: coverage.xml, htmlcov/, test-results.xml
 # Skips tests marked as ci_broken to avoid CI-specific environment issues
 ci-test: ci-install
-	@pytest --cov=dnd5e --cov-report=xml --cov-report=html --junitxml=test-results.xml -m "not ci_broken" || (echo "ERROR: CI test suite failed"; exit 1)
+	@pytest --cov=studiorum --cov-report=xml --cov-report=html --junitxml=test-results.xml -m "not ci_broken" || (echo "ERROR: CI test suite failed"; exit 1)
 
 ## Run CI checks (quality and security)
 # Comprehensive quality and security validation for CI pipelines

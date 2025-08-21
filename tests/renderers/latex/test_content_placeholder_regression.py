@@ -6,12 +6,12 @@ where string placeholders were globally replaced does not recur.
 
 import pytest
 
-from dnd5e.core.models.books import Book, Chapter
-from dnd5e.core.models.content import Source
-from dnd5e.core.models.document_metadata import DocumentMetadata, DocumentType
-from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex.document import LaTeXDocumentRenderer
-from dnd5e.renderers.latex.document_structure import (
+from studiorum.core.models.books import Book, Chapter
+from studiorum.core.models.content import Source
+from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
+from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.latex.document import LaTeXDocumentRenderer
+from studiorum.renderers.latex.document_structure import (
     ContentSection,
     DocumentStructureBuilder,
     SectionLevel,

@@ -6,8 +6,8 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.models.content import ContentType
+from studiorum.core.loaders.json_loader import JsonDataLoader
+from studiorum.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment
 
 

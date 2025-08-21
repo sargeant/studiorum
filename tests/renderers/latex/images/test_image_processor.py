@@ -6,8 +6,8 @@ from unittest.mock import Mock, patch
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex.images.image_processor import (
+from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.latex.images.image_processor import (
     ImageProcessingConfig,
     ImageProcessor,
     ProcessedImage,

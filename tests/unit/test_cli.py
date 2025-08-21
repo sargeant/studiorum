@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.main import app  # type: ignore
+from studiorum.cli.main import app  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 
@@ -25,14 +25,14 @@ class TestCLIMain:
         """Test CLI help command."""
         result = self.runner.invoke(app, ["--help"])
         assert result.exit_code == 0
-        assert "5e2pdf" in result.stdout
+        assert "studiorum" in result.stdout
         assert "Convert D&D 5e JSON data" in result.stdout
 
     def test_cli_version(self) -> None:
         """Test CLI version command."""
         result = self.runner.invoke(app, ["version"])
         assert result.exit_code == 0
-        assert "5e2pdf" in result.stdout
+        assert "studiorum" in result.stdout
         assert "v2.0.0" in result.stdout
 
     def test_cli_no_args(self) -> None:
@@ -125,8 +125,8 @@ class TestCLIIntegration:
 
         # Mock the omnidexer and dependencies
         with (
-            patch("dnd5e.cli.main.get_omnidexer") as mock_omnidexer,
-            patch("dnd5e.cli.main.get_tag_resolver") as mock_tag_resolver,
+            patch("studiorum.cli.main.get_omnidexer") as mock_omnidexer,
+            patch("studiorum.cli.main.get_tag_resolver") as mock_tag_resolver,
         ):
             mock_omni: Any = Mock()
             mock_tag: Any = Mock()
@@ -196,7 +196,7 @@ class TestCLIErrorHandling:
 
     def test_info_content_not_found(self) -> None:
         """Test info content command with non-existent content."""
-        with patch("dnd5e.cli.main.get_omnidexer") as mock_omnidexer:
+        with patch("studiorum.cli.main.get_omnidexer") as mock_omnidexer:
             mock_omni: Any = Mock()
             mock_omni.find.return_value = None
             mock_omnidexer.return_value = mock_omni
@@ -214,26 +214,26 @@ class TestCacheSystem:
         # Reset global state for complete isolation
         reset_test_environment()
 
-        from dnd5e.core.cache import CacheManager
+        from studiorum.core.cache import CacheManager
 
         CacheManager.clear()
 
     def teardown_method(self) -> None:
         """Tear down test fixtures and clear the cache."""
-        from dnd5e.core.cache import CacheManager
+        from studiorum.core.cache import CacheManager
 
         CacheManager.clear()
 
     def test_cache_creation(self) -> None:
         """Test that the cache directory is created."""
-        from dnd5e.core.cache import CACHE_DIR, get_cache
+        from studiorum.core.cache import CACHE_DIR, get_cache
 
         get_cache()
         assert CACHE_DIR.exists()
 
     def test_cache_set_get(self) -> None:
         """Test basic cache operations."""
-        from dnd5e.core.cache import get_cache
+        from studiorum.core.cache import get_cache
 
         cache = get_cache()
         cache.set("test_key", "test_value")
@@ -244,7 +244,7 @@ class TestCacheSystem:
 
     def test_cache_clear(self) -> None:
         """Test cache clearing."""
-        from dnd5e.core.cache import get_cache
+        from studiorum.core.cache import get_cache
 
         cache = get_cache()
         cache.set("key1", "value1")
@@ -255,7 +255,7 @@ class TestCacheSystem:
 
     def test_cache_stats(self) -> None:
         """Test cache statistics."""
-        from dnd5e.core.cache import CacheManager, get_cache
+        from studiorum.core.cache import CacheManager, get_cache
 
         cache = get_cache()
         cache.set("test_key", "test_value")
@@ -266,7 +266,7 @@ class TestCacheSystem:
 
     def test_cached_decorator(self) -> None:
         """Test cached function decorator."""
-        from dnd5e.core.cache import cached
+        from studiorum.core.cache import cached
 
         call_count = 0
 

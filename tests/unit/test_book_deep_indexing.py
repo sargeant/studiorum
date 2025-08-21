@@ -2,11 +2,11 @@
 
 import pytest
 
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.books import Book
-from dnd5e.core.models.chapter import Chapter
-from dnd5e.core.models.content import Source
-from dnd5e.core.models.nested_content import (
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.books import Book
+from studiorum.core.models.chapter import Chapter
+from studiorum.core.models.content import Source
+from studiorum.core.models.nested_content import (
     Inset,
     Section,
     Table,

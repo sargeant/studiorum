@@ -6,14 +6,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from dnd5e.cli.commands.convert.compendiums.creatures import (
+from studiorum.cli.commands.convert.compendiums.creatures import (
     _combine_bestiary_and_appendix,
     creatures as convert_creatures,
 )
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.models.spells import Spell
-from dnd5e.core.references.content_tracker import ContentTracker
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.creatures import Creature
+from studiorum.core.models.spells import Spell
+from studiorum.core.references.content_tracker import ContentTracker
 from tests.test_helpers import reset_test_environment
 
 
@@ -105,9 +105,9 @@ Some spell content here."""
         test_content_tracker = ContentTracker() if spells_flag else None
         assert test_content_tracker is None
 
-    @patch("dnd5e.cli.utils.get_omnidexer")
-    @patch("dnd5e.cli.utils.get_tag_resolver")
-    @patch("dnd5e.core.services.creature_collector.CreatureCollector")
+    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.core.services.creature_collector.CreatureCollector")
     def test_creatures_command_without_spells_flag(
         self, mock_creature_collector, mock_tag_resolver, mock_omnidexer
     ):
@@ -134,7 +134,7 @@ Some spell content here."""
             # Test the function call without spells flag
             # This should not raise any exceptions and should not create ContentTracker
             with patch(
-                "dnd5e.cli.commands.convert.compendiums.creatures._render_bestiary"
+                "studiorum.cli.commands.convert.compendiums.creatures._render_bestiary"
             ) as mock_render:
                 mock_render.return_value = "\\section{Test} Mock bestiary content"
 
@@ -163,10 +163,10 @@ Some spell content here."""
             if output_path.exists():
                 output_path.unlink()
 
-    @patch("dnd5e.cli.utils.get_omnidexer")
-    @patch("dnd5e.cli.utils.get_tag_resolver")
-    @patch("dnd5e.core.services.creature_collector.CreatureCollector")
-    @patch("dnd5e.core.services.appendix_generator.AppendixGenerator")
+    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.core.services.creature_collector.CreatureCollector")
+    @patch("studiorum.core.services.appendix_generator.AppendixGenerator")
     def test_creatures_command_with_spells_flag(
         self,
         mock_appendix_generator,
@@ -205,14 +205,14 @@ Some spell content here."""
         try:
             # Test the function call with spells flag
             with patch(
-                "dnd5e.cli.commands.convert.compendiums.creatures._render_bestiary"
+                "studiorum.cli.commands.convert.compendiums.creatures._render_bestiary"
             ) as mock_render:
                 mock_render.return_value = (
                     "\\section{Test}\\nMock bestiary content\\n\\end{document}"
                 )
 
                 with patch(
-                    "dnd5e.cli.commands.convert.compendiums.creatures._combine_bestiary_and_appendix"
+                    "studiorum.cli.commands.convert.compendiums.creatures._combine_bestiary_and_appendix"
                 ) as mock_combine:
                     expected_combined = "\\section{Test}\\nMock bestiary content\\n\\appendix\\nMock spell appendix\\n\\end{document}"
                     mock_combine.return_value = expected_combined

@@ -2,10 +2,10 @@
 
 import pytest
 
-from dnd5e.core.interfaces import DeepIndexable
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.references import SpellReferenceParser
+from studiorum.core.interfaces import DeepIndexable
+from studiorum.core.models.content import ContentType
+from studiorum.core.models.creatures import Creature
+from studiorum.core.references import SpellReferenceParser
 
 
 @pytest.mark.integration
@@ -253,7 +253,7 @@ class TestCreatureDeepIndexingIntegration:
         """Test that creature deep indexing works with a mock omnidexer."""
         from unittest.mock import MagicMock
 
-        from dnd5e.core.models.spells import Spell
+        from studiorum.core.models.spells import Spell
 
         # Create mock spell objects
         mock_fireball = Spell.model_validate(

@@ -4,15 +4,15 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.interfaces import DeepIndexable
-from dnd5e.core.models.content import BaseContent, ContentType
-from dnd5e.core.references.content_reference_manager import (
+from studiorum.core.interfaces import DeepIndexable
+from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.references.content_reference_manager import (
     ContentReference,
     ContentReferenceManager,
     ReferenceSource,
     ReferenceTrackingTagResolver,
 )
-from dnd5e.core.references.content_tracker import TrackedContent
+from studiorum.core.references.content_tracker import TrackedContent
 from tests.test_helpers import reset_test_environment
 
 
@@ -236,7 +236,7 @@ class TestContentReferenceManager:
         mock_content.get_deep_index_entries.side_effect = Exception("Deep index failed")
 
         # Should not raise exception, but log warning
-        with patch("dnd5e.core.logging.logger.get_logger") as mock_logger:
+        with patch("studiorum.core.logging.logger.get_logger") as mock_logger:
             mock_log = Mock()
             mock_logger.return_value = mock_log
 

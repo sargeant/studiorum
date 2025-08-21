@@ -7,8 +7,8 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.commands.cache import app
-from dnd5e.core.cache import CacheManager
+from studiorum.cli.commands.cache import app
+from studiorum.core.cache import CacheManager
 
 
 @pytest.fixture

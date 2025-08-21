@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pytest
 
-from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.resolvers.content_resolver import ContentResolver
+from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.resolvers.content_resolver import ContentResolver
 from tests.test_helpers import reset_test_environment
 
 
@@ -41,7 +41,7 @@ class TestBookConversion:
         reset_test_environment()
 
         # Extra isolation for parallel execution
-        from dnd5e.core.container import reset_global_container
+        from studiorum.core.container import reset_global_container
 
         reset_global_container()
 
@@ -64,7 +64,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "test",
@@ -134,7 +134,7 @@ class TestBookConversion:
                     [
                         "uv",
                         "run",
-                        "5e2pdf",
+                        "studiorum",
                         "convert",
                         "book",
                         book_id,
@@ -184,7 +184,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "test",
@@ -326,7 +326,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "test",
@@ -425,7 +425,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "test",
@@ -478,7 +478,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "nonexistent",
@@ -520,7 +520,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "test",

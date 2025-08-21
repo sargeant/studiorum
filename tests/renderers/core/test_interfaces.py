@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 
-from dnd5e.renderers.core.interfaces import (
+from studiorum.renderers.core.interfaces import (
     ContentReferenceInfo,
     EnhancementPipeline,
     FormatStyle,
@@ -34,7 +34,7 @@ class TestContentReferenceInfo:
 
     def test_content_reference_info_with_all_fields(self):
         """Test creating ContentReferenceInfo with all fields."""
-        from dnd5e.core.models.content import ContentType
+        from studiorum.core.models.content import ContentType
 
         info = ContentReferenceInfo(
             name="Adult Red Dragon",

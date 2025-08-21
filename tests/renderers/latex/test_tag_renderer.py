@@ -4,16 +4,16 @@ from unittest.mock import Mock
 
 import pytest
 
-from dnd5e.core.models.content import ContentType, Source
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.models.spells import Spell
-from dnd5e.core.text.tag_types import (
+from studiorum.core.models.content import ContentType, Source
+from studiorum.core.models.creatures import Creature
+from studiorum.core.models.spells import Spell
+from studiorum.core.text.tag_types import (
     ContentReference,
     FormattingNode,
     FormatType,
     SpecialTag,
 )
-from dnd5e.renderers.latex.tag_renderer import (
+from studiorum.renderers.latex.tag_renderer import (
     ConfigurableLaTeXTagRenderer,
     ContentTypeStyleConfig,
     LaTeXTagRenderer,

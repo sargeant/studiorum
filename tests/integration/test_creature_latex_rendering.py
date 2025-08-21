@@ -10,8 +10,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.creatures import Creature
-from dnd5e.renderers.latex.document import LaTeXDocumentRenderer
+from studiorum.core.models.creatures import Creature
+from studiorum.renderers.latex.document import LaTeXDocumentRenderer
 from tests.test_helpers import reset_test_environment
 
 
@@ -103,8 +103,8 @@ class TestCreatureLaTeXRendering:
             ],
         }
 
-    @patch("dnd5e.cli.main.get_tag_resolver")
-    @patch("dnd5e.cli.main.get_omnidexer")
+    @patch("studiorum.cli.main.get_tag_resolver")
+    @patch("studiorum.cli.main.get_omnidexer")
     def test_creature_stat_block_latex_generation(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -133,7 +133,7 @@ class TestCreatureLaTeXRendering:
 
         # Test LaTeX rendering
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.side_effect = lambda entries: [
@@ -159,8 +159,8 @@ class TestCreatureLaTeXRendering:
             assert "Large dragon (chromatic)" in creature.get_size_type_alignment()
             assert "chaotic evil" in creature.get_size_type_alignment()
 
-    @patch("dnd5e.cli.main.get_tag_resolver")
-    @patch("dnd5e.cli.main.get_omnidexer")
+    @patch("studiorum.cli.main.get_tag_resolver")
+    @patch("studiorum.cli.main.get_omnidexer")
     def test_creature_abilities_latex_processing(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -175,7 +175,7 @@ class TestCreatureLaTeXRendering:
 
         # Test trait processing
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
@@ -193,7 +193,7 @@ class TestCreatureLaTeXRendering:
 
         # Test action processing
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
@@ -241,8 +241,8 @@ class TestCreatureLaTeXRendering:
         simple_creature = Creature.model_validate(simple_creature_data)
         assert simple_creature.requires_full_width_layout() is False
 
-    @patch("dnd5e.cli.main.get_tag_resolver")
-    @patch("dnd5e.cli.main.get_omnidexer")
+    @patch("studiorum.cli.main.get_tag_resolver")
+    @patch("studiorum.cli.main.get_omnidexer")
     def test_creature_document_rendering_integration(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -258,10 +258,10 @@ class TestCreatureLaTeXRendering:
         # Test with document renderer
         with (
             patch(
-                "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
+                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
             patch(
-                "dnd5e.renderers.core.interfaces.RenderingContext"
+                "studiorum.renderers.core.interfaces.RenderingContext"
             ) as mock_context_class,
         ):
             mock_processor = Mock()
@@ -275,7 +275,7 @@ class TestCreatureLaTeXRendering:
 
             # Mock renderer and test basic rendering call structure
             with patch(
-                "dnd5e.renderers.latex.document.LaTeXDocumentRenderer"
+                "studiorum.renderers.latex.document.LaTeXDocumentRenderer"
             ) as mock_renderer_class:
                 mock_renderer = Mock()
                 mock_renderer.render.return_value = "\\documentclass{article}\\begin{document}Dragon stat block\\end{document}"
@@ -342,8 +342,8 @@ class TestCreatureLaTeXRendering:
             else spellcasting_data.get("headerEntries", [""])[0]
         )
 
-    @patch("dnd5e.cli.main.get_tag_resolver")
-    @patch("dnd5e.cli.main.get_omnidexer")
+    @patch("studiorum.cli.main.get_tag_resolver")
+    @patch("studiorum.cli.main.get_omnidexer")
     def test_creature_complex_markup_integration(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -365,7 +365,7 @@ class TestCreatureLaTeXRendering:
 
         # Test complex ability with multiple markup tags
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [

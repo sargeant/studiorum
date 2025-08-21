@@ -7,8 +7,8 @@ to prevent LaTeX code injection attacks.
 import pytest
 from hypothesis import given, strategies as st
 
-from dnd5e.core.latex_utils import escape_latex_text
-from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
+from studiorum.core.latex_utils import escape_latex_text
+from studiorum.renderers.latex.template_engine import LaTeXTemplateEngine
 from tests.test_helpers import reset_test_environment
 
 

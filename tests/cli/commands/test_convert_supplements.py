@@ -8,9 +8,9 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.main import app
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.text.tag_resolver import TagResolver
+from studiorum.cli.main import app
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.text.tag_resolver import TagResolver
 from tests.test_helpers import reset_test_environment
 
 
@@ -43,10 +43,10 @@ class TestConvertSupplementCommand:
             ]
         }
 
-    @patch("dnd5e.cli.commands.convert.supplement.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.supplement.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.supplement.create_latex_engine")
-    @patch("dnd5e.cli.commands.convert.supplement.display_manager")
+    @patch("studiorum.cli.commands.convert.supplement.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.supplement.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.supplement.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.supplement.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_supplement_with_spells(
@@ -109,9 +109,9 @@ class TestConvertSupplementCommand:
         assert result.exit_code == 1
         assert "Error:" in result.stdout
 
-    @patch("dnd5e.cli.commands.convert.supplement.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.supplement.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.supplement.display_manager")
+    @patch("studiorum.cli.commands.convert.supplement.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.supplement.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.supplement.display_manager")
     @patch("builtins.open")
     def test_convert_supplement_empty_content(
         self,

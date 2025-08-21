@@ -5,8 +5,8 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.models.content import Source  # type: ignore
-from dnd5e.core.models.creatures import (  # type: ignore
+from studiorum.core.models.content import Source  # type: ignore
+from studiorum.core.models.creatures import (  # type: ignore
     Ability,
     ArmorClass,
     Creature,
@@ -14,7 +14,7 @@ from dnd5e.core.models.creatures import (  # type: ignore
     HitPoints,
     Speed,
 )
-from dnd5e.core.models.spells import Spell, SpellComponent  # type: ignore
+from studiorum.core.models.spells import Spell, SpellComponent  # type: ignore
 
 
 class TestSource:

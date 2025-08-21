@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.commands.convert import app
+from studiorum.cli.commands.convert import app
 from tests.test_helpers import reset_test_environment
 
 
@@ -46,10 +46,10 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("dnd5e.cli.utils.get_omnidexer")
-    @patch("dnd5e.cli.utils.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.shared.create_latex_compiler")
-    @patch("dnd5e.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.shared.create_latex_compiler")
+    @patch("studiorum.cli.commands.convert.display_manager")
     def test_adventure_conversion_with_real_data_latex_only(
         self,
         mock_display,
@@ -114,10 +114,10 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("dnd5e.cli.utils.get_omnidexer")
-    @patch("dnd5e.cli.utils.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.shared.create_latex_compiler")
-    @patch("dnd5e.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.shared.create_latex_compiler")
+    @patch("studiorum.cli.commands.convert.display_manager")
     def test_book_conversion_with_real_data_latex_only(
         self,
         mock_display,
@@ -181,10 +181,10 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.slow
     @pytest.mark.ci_broken
     @pytest.mark.latex_required
-    @patch("dnd5e.cli.commands.convert.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.compile_pdf_async")
-    @patch("dnd5e.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.commands.convert.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.adventure.compile_pdf_async")
+    @patch("studiorum.cli.commands.convert.display_manager")
     def test_pdf_compilation_uses_configured_compiler(
         self,
         mock_display,
@@ -256,9 +256,9 @@ class TestConvertCommandsWithReducedMocking:
 
     def test_compiler_helper_function_creates_proper_config(self):
         """Test create_latex_compiler helper function without mocking."""
-        from dnd5e.cli.commands.convert.shared import create_latex_compiler
-        from dnd5e.latex_engine.config.compilation import CompilationConfig
-        from dnd5e.latex_engine.core.compiler import LaTeXCompiler
+        from studiorum.cli.commands.convert.shared import create_latex_compiler
+        from studiorum.latex_engine.config.compilation import CompilationConfig
+        from studiorum.latex_engine.core.compiler import LaTeXCompiler
 
         # Test the helper function creates properly configured compiler
         compiler = create_latex_compiler()

@@ -21,19 +21,19 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from dnd5e.mcp.registry import (
+from studiorum.mcp.registry import (
     ToolRegistry,
     get_tool_registry,
     list_registered_tools as registry_list_tools,
     validate_tool_registry,
 )
-from dnd5e.mcp.server import (
+from studiorum.mcp.server import (
     create_mcp_server,
     get_mcp_app,
     list_registered_tools,
     mcp,
 )
-from dnd5e.mcp.tools.content import (
+from studiorum.mcp.tools.content import (
     PerformantContentSearcher,
     get_content_searcher,
     search_content_performant,
@@ -145,7 +145,7 @@ class TestContentSearchPerformance:
         """Test that search_content meets <200ms performance target."""
         # Mock the underlying search to return quickly
         with patch(
-            "dnd5e.mcp.tools.content.ModernContextualAPI.search_spells_async"
+            "studiorum.mcp.tools.content.ModernContextualAPI.search_spells_async"
         ) as mock_search:
             mock_result = MagicMock()
             mock_result.is_success.return_value = True
@@ -379,7 +379,7 @@ class TestPerformanceMonitoring:
     async def test_performance_metrics_collection(self):
         """Test that performance metrics are collected correctly."""
         with patch(
-            "dnd5e.mcp.tools.content.ModernContextualAPI.search_spells_async"
+            "studiorum.mcp.tools.content.ModernContextualAPI.search_spells_async"
         ) as mock_search:
             mock_result = MagicMock()
             mock_result.is_success.return_value = True

@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from dnd5e.core.services.lifecycle import (
+from studiorum.core.services.lifecycle import (
     AsyncServiceFactory,
     CleanupPriority,
     ServiceDescriptor,
@@ -13,7 +13,7 @@ from dnd5e.core.services.lifecycle import (
     optimize_lifecycle_for_service,
     validate_service_descriptor,
 )
-from dnd5e.core.services.protocols import ServiceProtocol
+from studiorum.core.services.protocols import ServiceProtocol
 
 
 class MockProtocol(ServiceProtocol):

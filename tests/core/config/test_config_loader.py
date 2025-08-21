@@ -8,8 +8,8 @@ from typing import Any
 import pytest
 import yaml
 
-from dnd5e.core.config.loader import ConfigLoader, ConfigValidationError
-from dnd5e.core.config.unified_config import ApplicationConfig, MCPConfig
+from studiorum.core.config.loader import ConfigLoader, ConfigValidationError
+from studiorum.core.config.unified_config import ApplicationConfig, MCPConfig
 
 
 class TestConfigLoader:
@@ -243,11 +243,11 @@ class TestConfigLoader:
 
     def test_load_with_overrides_env_variables(self) -> None:
         """Test loading with environment variable overrides."""
-        # Set environment variables with DND5E_ prefix
+        # Set environment variables with STUDIORUM_ prefix
         test_env = {
-            "DND5E_MCP__ENABLED": "true",
-            "DND5E_MCP__PORT": "7777",
-            "DND5E_LOGGING__LEVEL": "WARNING",
+            "STUDIORUM_MCP__ENABLED": "true",
+            "STUDIORUM_MCP__PORT": "7777",
+            "STUDIORUM_LOGGING__LEVEL": "WARNING",
         }
 
         original_env = {}
@@ -282,10 +282,10 @@ class TestConfigLoader:
 
         # Set environment variables (should override file)
         env_vars = {
-            "DND5E_MCP__ENABLED": "true",  # Override file enabled to test precedence
-            "DND5E_MCP__PORT": "8888",
-            "DND5E_MCP__MAX_CONCURRENT_REQUESTS": "25",
-            "DND5E_MCP__HOST": "env-host",  # Override file host to test precedence
+            "STUDIORUM_MCP__ENABLED": "true",  # Override file enabled to test precedence
+            "STUDIORUM_MCP__PORT": "8888",
+            "STUDIORUM_MCP__MAX_CONCURRENT_REQUESTS": "25",
+            "STUDIORUM_MCP__HOST": "env-host",  # Override file host to test precedence
         }
 
         original_env = {}

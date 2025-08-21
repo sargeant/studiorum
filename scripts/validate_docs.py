@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Documentation validation script for 5e2pdf.
+Documentation validation script for studiorum.
 
 Validates documentation for:
 - Broken links
@@ -28,7 +28,7 @@ class DocValidator:
 
     def validate_all(self) -> bool:
         """Run all validation checks."""
-        print("🔍 Validating 5e2pdf documentation...")
+        print("🔍 Validating studiorum documentation...")
 
         success = True
 
@@ -410,7 +410,7 @@ class DocValidator:
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Validate 5e2pdf documentation")
+    parser = argparse.ArgumentParser(description="Validate studiorum documentation")
     parser.add_argument(
         "--docs-dir",
         type=Path,

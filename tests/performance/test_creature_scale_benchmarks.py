@@ -13,11 +13,11 @@ from unittest.mock import Mock, patch
 import psutil
 import pytest
 
-from dnd5e.core.models.creature_filters import CreatureFilterCriteria
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.services.creature_collector import CreatureCollector
-from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex.document import LaTeXDocumentRenderer
+from studiorum.core.models.creature_filters import CreatureFilterCriteria
+from studiorum.core.models.creatures import Creature
+from studiorum.core.services.creature_collector import CreatureCollector
+from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.latex.document import LaTeXDocumentRenderer
 from tests.test_helpers import reset_test_environment
 
 
@@ -792,7 +792,7 @@ class TestRenderingPerformanceScale:
 
         # Test rendering performance
         with patch(
-            "dnd5e.renderers.latex.document.LaTeXDocumentRenderer"
+            "studiorum.renderers.latex.document.LaTeXDocumentRenderer"
         ) as mock_renderer_class:
             mock_renderer = Mock()
             mock_renderer.render_document.return_value = (

@@ -19,7 +19,7 @@ def find_latest_draft():
             [
                 "gh",
                 "api",
-                "repos/sargeant/5e2pdf/releases",
+                "repos/sargeant/studiorum/releases",
                 "--jq",
                 ".[] | select(.draft == true)",
             ],
@@ -85,7 +85,7 @@ def update_release_draft(version_str: str, dry_run: bool = False):
             [
                 "gh",
                 "api",
-                f"repos/sargeant/5e2pdf/releases/{draft['id']}",
+                f"repos/sargeant/studiorum/releases/{draft['id']}",
                 "--method",
                 "PATCH",
                 "--input",
@@ -119,7 +119,7 @@ def bump_version(part: str, update_draft: bool = False, dry_run: bool = False):
         str: New version string
     """
     pyproject_path = Path("pyproject.toml")
-    init_py_path = Path("src/dnd5e/__init__.py")
+    init_py_path = Path("src/studiorum/__init__.py")
 
     # Read pyproject.toml
     pyproject_content = pyproject_path.read_text()
@@ -159,7 +159,7 @@ def bump_version(part: str, update_draft: bool = False, dry_run: bool = False):
     )
     pyproject_path.write_text(new_pyproject_content)
 
-    # Update src/dnd5e/__init__.py
+    # Update src/studiorum/__init__.py
     init_py_content = init_py_path.read_text()
     new_init_py_content = re.sub(
         r'__version__ = "\d+\.\d+\.\d+"',

@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.renderers.latex.compilation_config import (  # type: ignore
+from studiorum.renderers.latex.compilation_config import (  # type: ignore
     ENGINE_PACKAGE_COMPATIBILITY,
     CompilationConfig,
     CompilationMode,
@@ -88,7 +88,7 @@ class TestCompilationConfig:
             assert "-file-line-error" in options
             assert "-synctex=1" in options
 
-    @patch("dnd5e.renderers.latex.compilation_config.get_latex_executable")
+    @patch("studiorum.renderers.latex.compilation_config.get_latex_executable")
     def test_get_engine_command(self, mock_get_executable: Any) -> None:
         """Test engine command generation."""
 
@@ -120,7 +120,7 @@ class TestCompilationConfig:
             "-shell-escape" not in cmd
         )  # PDFLaTeX doesn't get shell-escape by default
 
-    @patch("dnd5e.renderers.latex.compilation_config.get_latex_executable")
+    @patch("studiorum.renderers.latex.compilation_config.get_latex_executable")
     def test_get_engine_command_draft_mode(self, mock_get_executable: Any) -> None:
         """Test engine command generation in draft mode."""
         # Mock get_latex_executable to return engine names directly

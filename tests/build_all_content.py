@@ -30,7 +30,7 @@ OPTIONS:
     --adventures-only    Build only adventures
     --books-only        Build only books
     --limit N           Build only first N items of each type
-    --output-dir PATH   Directory to save output files (default: /tmp/5e2pdf-test-*)
+    --output-dir PATH   Directory to save output files (default: /tmp/studiorum-test-*)
     --images            Enable image processing (default: disabled for speed)
     --stop-on-error     Stop building after first error (default: continue)
     --verbose           Show detailed progress and error output
@@ -59,11 +59,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from dnd5e.cli.commands.convert import resolve_content_or_file
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.content import ContentType
-from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex import LaTeXDocumentRenderer
+from studiorum.cli.commands.convert import resolve_content_or_file
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
+from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.latex import LaTeXDocumentRenderer
 
 
 class ContentBuilder:
@@ -77,7 +77,7 @@ class ContentBuilder:
         verbose: bool = False,
         summary_only: bool = False,
     ):
-        self.output_dir = output_dir or Path(tempfile.mkdtemp(prefix="5e2pdf-test-"))
+        self.output_dir = output_dir or Path(tempfile.mkdtemp(prefix="studiorum-test-"))
         self.no_images = no_images
         self.continue_on_error = continue_on_error
         self.verbose = verbose
@@ -172,7 +172,7 @@ class ContentBuilder:
                 return False
 
             # Create a simple render context (minimal requirements)
-            from dnd5e.cli.main import get_omnidexer, get_tag_resolver
+            from studiorum.cli.main import get_omnidexer, get_tag_resolver
 
             omnidexer = get_omnidexer()
             tag_resolver = get_tag_resolver()

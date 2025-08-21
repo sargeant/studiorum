@@ -8,9 +8,9 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.main import app
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.text.tag_resolver import TagResolver
+from studiorum.cli.main import app
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.text.tag_resolver import TagResolver
 from tests.test_helpers import reset_test_environment
 
 
@@ -39,12 +39,12 @@ class TestLaTeXDocumentOptions:
             ]
         }
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.get_app_config")
-    @patch("dnd5e.core.config.sources.get_content_config")
-    @patch("dnd5e.cli.commands.convert.adventure.create_latex_engine")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.get_app_config")
+    @patch("studiorum.core.config.sources.get_content_config")
+    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_adventure_with_latex_options(
@@ -159,10 +159,10 @@ class TestLaTeXDocumentOptions:
         finally:
             Path(file_path).unlink()
 
-    @patch("dnd5e.cli.commands.convert.book.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.book.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.book.create_latex_engine")
-    @patch("dnd5e.cli.commands.convert.book.display_manager")
+    @patch("studiorum.cli.commands.convert.book.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.book.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.book.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.book.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_book_with_default_latex_options(
@@ -240,14 +240,16 @@ class TestLaTeXDocumentOptions:
         finally:
             Path(file_path).unlink()
 
-    @patch("dnd5e.cli.commands.convert.supplement.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.supplement.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.supplement.create_latex_engine")
-    @patch("dnd5e.cli.commands.convert.supplement.display_manager")
+    @patch("studiorum.cli.commands.convert.supplement.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.supplement.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.supplement.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.supplement.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
-    @patch("dnd5e.core.config.sources.get_content_config")
-    @patch("dnd5e.cli.commands.convert.base.BaseConvertCommand.apply_config_hierarchy")
+    @patch("studiorum.core.config.sources.get_content_config")
+    @patch(
+        "studiorum.cli.commands.convert.base.BaseConvertCommand.apply_config_hierarchy"
+    )
     def test_supplement_with_paper_size_from_settings(
         self,
         mock_apply_config_hierarchy,

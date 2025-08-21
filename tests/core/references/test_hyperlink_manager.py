@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.references.hyperlink_manager import (  # type: ignore
+from studiorum.core.references.hyperlink_manager import (  # type: ignore
     HyperlinkManager,
     HyperlinkStyle,
 )

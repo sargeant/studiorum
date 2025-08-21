@@ -6,13 +6,13 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent, Source  # type: ignore
-from dnd5e.renderers.core.interfaces import RenderingContext  # type: ignore
-from dnd5e.renderers.latex.compilation_config import (  # type: ignore
+from studiorum.core.models.content import BaseContent, Source  # type: ignore
+from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
+from studiorum.renderers.latex.compilation_config import (  # type: ignore
     CompilationResult,
     LaTeXEngine,
 )
-from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
+from studiorum.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 # Apply async mark to the entire module
@@ -396,7 +396,7 @@ class TestLaTeXDocumentRendererIntegration:
 
     async def test_render_with_structured_document(self) -> None:
         """Test rendering with structured document metadata."""
-        from dnd5e.core.models.document_metadata import (  # type: ignore
+        from studiorum.core.models.document_metadata import (  # type: ignore
             DocumentMetadata,
             DocumentType,
         )

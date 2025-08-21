@@ -14,8 +14,8 @@ class TestPhase4Migration:
 
     def test_trap_content_type_registration(self) -> None:
         """Test that Trap content type is registered."""
-        from dnd5e.core.models.content import ContentType
-        from dnd5e.core.registry import initialize_content_types
+        from studiorum.core.models.content import ContentType
+        from studiorum.core.registry import initialize_content_types
 
         initialize_content_types()
 
@@ -24,7 +24,7 @@ class TestPhase4Migration:
         assert ContentType.TRAP == "trap"
 
         # Verify content creation works
-        from dnd5e.core.loaders.content_factory import ContentFactory
+        from studiorum.core.loaders.content_factory import ContentFactory
 
         factory = ContentFactory()
 
@@ -44,8 +44,8 @@ class TestPhase4Migration:
 
     def test_object_content_type_registration(self) -> None:
         """Test that Object content type is registered."""
-        from dnd5e.core.models.content import ContentType
-        from dnd5e.core.registry import initialize_content_types
+        from studiorum.core.models.content import ContentType
+        from studiorum.core.registry import initialize_content_types
 
         initialize_content_types()
 
@@ -54,7 +54,7 @@ class TestPhase4Migration:
         assert ContentType.OBJECT == "object"
 
         # Verify content creation works
-        from dnd5e.core.loaders.content_factory import ContentFactory
+        from studiorum.core.loaders.content_factory import ContentFactory
 
         factory = ContentFactory()
 
@@ -84,8 +84,8 @@ class TestPhase4Migration:
 
     def test_cult_content_type_registration(self) -> None:
         """Test that Cult content type is registered."""
-        from dnd5e.core.models.content import ContentType
-        from dnd5e.core.registry import initialize_content_types
+        from studiorum.core.models.content import ContentType
+        from studiorum.core.registry import initialize_content_types
 
         initialize_content_types()
 
@@ -94,7 +94,7 @@ class TestPhase4Migration:
         assert ContentType.CULT == "cult"
 
         # Verify content creation works
-        from dnd5e.core.loaders.content_factory import ContentFactory
+        from studiorum.core.loaders.content_factory import ContentFactory
 
         factory = ContentFactory()
 
@@ -113,8 +113,8 @@ class TestPhase4Migration:
 
     def test_boon_content_type_registration(self) -> None:
         """Test that Boon content type is registered."""
-        from dnd5e.core.models.content import ContentType
-        from dnd5e.core.registry import initialize_content_types
+        from studiorum.core.models.content import ContentType
+        from studiorum.core.registry import initialize_content_types
 
         initialize_content_types()
 
@@ -123,7 +123,7 @@ class TestPhase4Migration:
         assert ContentType.BOON == "boon"
 
         # Verify content creation works
-        from dnd5e.core.loaders.content_factory import ContentFactory
+        from studiorum.core.loaders.content_factory import ContentFactory
 
         factory = ContentFactory()
 
@@ -139,8 +139,8 @@ class TestPhase4Migration:
 
     def test_recipe_content_type_registration(self) -> None:
         """Test that Recipe content type is registered."""
-        from dnd5e.core.models.content import ContentType
-        from dnd5e.core.registry import initialize_content_types
+        from studiorum.core.models.content import ContentType
+        from studiorum.core.registry import initialize_content_types
 
         initialize_content_types()
 
@@ -149,7 +149,7 @@ class TestPhase4Migration:
         assert ContentType.RECIPE == "recipe"
 
         # Verify content creation works
-        from dnd5e.core.loaders.content_factory import ContentFactory
+        from studiorum.core.loaders.content_factory import ContentFactory
 
         factory = ContentFactory()
 
@@ -175,8 +175,8 @@ class TestPhase4Migration:
 
     def test_facility_content_type_registration(self) -> None:
         """Test that Facility content type is registered."""
-        from dnd5e.core.models.content import ContentType
-        from dnd5e.core.registry import initialize_content_types
+        from studiorum.core.models.content import ContentType
+        from studiorum.core.registry import initialize_content_types
 
         initialize_content_types()
 
@@ -185,7 +185,7 @@ class TestPhase4Migration:
         assert ContentType.FACILITY == "facility"
 
         # Verify content creation works
-        from dnd5e.core.loaders.content_factory import ContentFactory
+        from studiorum.core.loaders.content_factory import ContentFactory
 
         factory = ContentFactory()
 
@@ -212,8 +212,8 @@ class TestPhase4Migration:
 
     def test_all_phase4_content_types_registered(self) -> None:
         """Test that all Phase 4 content types are registered."""
-        from dnd5e.core.models.content import ContentType
-        from dnd5e.core.registry import initialize_content_types
+        from studiorum.core.models.content import ContentType
+        from studiorum.core.registry import initialize_content_types
 
         initialize_content_types()
 
@@ -227,9 +227,9 @@ class TestPhase4Migration:
 
     def test_content_factory_supports_all_phase4_types(self) -> None:
         """Test that ContentFactory supports all Phase 4 content types."""
-        from dnd5e.core.loaders.content_factory import ContentFactory
-        from dnd5e.core.models.content import ContentType
-        from dnd5e.core.registry import initialize_content_types
+        from studiorum.core.loaders.content_factory import ContentFactory
+        from studiorum.core.models.content import ContentType
+        from studiorum.core.registry import initialize_content_types
 
         initialize_content_types()
 

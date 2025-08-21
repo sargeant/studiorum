@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.creatures import Creature
+from studiorum.core.models.creatures import Creature
 from tests.test_helpers import reset_test_environment
 
 
@@ -256,8 +256,8 @@ class TestCreatureRealDataIntegration:
         assert "0" in spells_dict  # Cantrips
         assert "9" in spells_dict  # 9th level spells
 
-    @patch("dnd5e.cli.main.get_tag_resolver")
-    @patch("dnd5e.cli.main.get_omnidexer")
+    @patch("studiorum.cli.main.get_tag_resolver")
+    @patch("studiorum.cli.main.get_omnidexer")
     def test_real_data_markup_processing(
         self, mock_get_omnidexer, mock_get_tag_resolver
     ):
@@ -322,7 +322,7 @@ class TestCreatureRealDataIntegration:
 
         # Test markup processing in actions
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [

@@ -5,8 +5,11 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent  # type: ignore
-from dnd5e.renderers.base.renderer import BaseRenderer, RenderingError  # type: ignore
+from studiorum.core.models.content import BaseContent  # type: ignore
+from studiorum.renderers.base.renderer import (  # type: ignore
+    BaseRenderer,
+    RenderingError,
+)
 
 
 class TestRenderingError:

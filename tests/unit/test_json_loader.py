@@ -5,8 +5,8 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.models.content import ContentType, Source
+from studiorum.core.loaders.json_loader import JsonDataLoader
+from studiorum.core.models.content import ContentType, Source
 from tests.test_helpers import reset_test_environment
 
 
@@ -249,7 +249,7 @@ class TestJsonDataLoaderBookIntegration:
         assert book_item["data"][1]["name"] == "Character Creation"
 
         # Create the actual Book object
-        from dnd5e.core.container import get_global_container
+        from studiorum.core.container import get_global_container
 
         factory_result = get_global_container().get_content_factory()
         if factory_result.is_error():

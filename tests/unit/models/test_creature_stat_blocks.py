@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.creatures import (
+from studiorum.core.models.creatures import (
     Ability,
     ArmorClass,
     Creature,
@@ -394,7 +394,7 @@ class TestCreatureAbilities:
 
         # Test fallback text extraction (without tag processing)
         with patch(
-            "dnd5e.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
+            "studiorum.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
         ):
             text = simple_ability.get_description_text()
             assert "advantage on Wisdom (Perception)" in text
@@ -407,7 +407,7 @@ class TestCreatureAbilities:
 
         # Test fallback name processing (without tag processing)
         with patch(
-            "dnd5e.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
+            "studiorum.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
         ):
             name = ability.get_processed_name()
             assert name == "Multiattack"
@@ -433,7 +433,7 @@ class TestCreatureAbilities:
 
         # Test fallback text extraction
         with patch(
-            "dnd5e.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
+            "studiorum.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
         ):
             text = complex_ability.get_description_text()
             assert "18th-level spellcaster" in text

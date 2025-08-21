@@ -2,7 +2,7 @@
 
 import pytest
 
-from dnd5e.core.services.protocols import (
+from studiorum.core.services.protocols import (
     AsyncResourceProtocol,
     ConfigurableServiceProtocol,
     ConfigurationProtocol,

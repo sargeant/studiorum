@@ -8,9 +8,9 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.main import app
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.text.tag_resolver import TagResolver
+from studiorum.cli.main import app
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.text.tag_resolver import TagResolver
 from tests.test_helpers import reset_test_environment
 
 
@@ -39,10 +39,10 @@ class TestConvertAdventureCommand:
             ]
         }
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.create_latex_engine")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_adventure_with_file_path(
@@ -102,15 +102,15 @@ class TestConvertAdventureCommand:
         finally:
             Path(file_path).unlink()
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.get_app_config")
-    @patch("dnd5e.core.config.sources.get_content_config")
+    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.adventure.get_app_config")
+    @patch("studiorum.core.config.sources.get_content_config")
     @patch(
-        "dnd5e.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
+        "studiorum.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
     )
-    @patch("dnd5e.cli.commands.convert.adventure.create_latex_engine")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("pathlib.Path.mkdir")
     def test_convert_adventure_with_abbreviation(
         self,
@@ -125,8 +125,8 @@ class TestConvertAdventureCommand:
     ):
         """Test converting adventure from abbreviation."""
         # Create a proper Adventure instance instead of Mock
-        from dnd5e.core.models.adventures import Adventure
-        from dnd5e.core.models.content import Source
+        from studiorum.core.models.adventures import Adventure
+        from studiorum.core.models.content import Source
 
         mock_adventure = Adventure(
             name="Test Adventure",
@@ -230,8 +230,8 @@ class TestConvertAdventureCommand:
         assert result.exit_code == 1
         assert "Error:" in result.stdout
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.core.resolvers.ContentResolver")
+    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
+    @patch("studiorum.core.resolvers.ContentResolver")
     def test_convert_adventure_resolution_failure(
         self, mock_resolver_class, mock_omnidexer
     ):
@@ -242,7 +242,7 @@ class TestConvertAdventureCommand:
 
         # Mock failed resolution
         mock_resolver = Mock()
-        from dnd5e.core.resolvers.content_resolver import (
+        from studiorum.core.resolvers.content_resolver import (
             ContentResolutionResult,
             ResolutionStatus,
         )
@@ -261,14 +261,14 @@ class TestConvertAdventureCommand:
         assert result.exit_code == 1
         assert "Error:" in result.stdout
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.shared.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.create_latex_engine")
-    @patch("dnd5e.cli.commands.convert.adventure.display_manager")
+    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.shared.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
-    @patch("dnd5e.cli.commands.convert.adventure.compile_pdf_async")
+    @patch("studiorum.cli.commands.convert.adventure.compile_pdf_async")
     def test_convert_adventure_with_pdf_compilation(
         self,
         mock_compile_pdf,

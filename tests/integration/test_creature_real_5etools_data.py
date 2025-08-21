@@ -12,10 +12,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.services.creature_collector import CreatureCollector
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
+from studiorum.core.models.creatures import Creature
+from studiorum.core.services.creature_collector import CreatureCollector
 from tests.test_helpers import reset_test_environment
 
 
@@ -57,7 +57,7 @@ class TestCreatureReal5etoolsDataIntegration:
                 pytest.skip("No creatures loaded from 5etools data")
 
             # Filter to creatures from default sources for compatibility with CreatureCollector
-            from dnd5e.cli.config_factory import get_default_sources
+            from studiorum.cli.config_factory import get_default_sources
 
             default_sources = get_default_sources()
             self.default_source_creatures = [
@@ -466,7 +466,7 @@ class TestCreatureOutputQualityValidation:
         """Validate that generated LaTeX is syntactically correct."""
         # Mock LaTeX rendering components
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = ["Processed entry text"]

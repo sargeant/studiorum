@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Security scanning script for 5e2pdf project.
+Security scanning script for studiorum project.
 
 This script runs comprehensive security checks including:
 - Dependency vulnerability scanning with pip-audit
@@ -188,7 +188,7 @@ def generate_report(results: dict[str, Any], output_file: str = "security-report
 def main():
     """Main security scanning function."""
     parser = argparse.ArgumentParser(
-        description="Run security scans on the 5e2pdf project"
+        description="Run security scans on the studiorum project"
     )
     parser.add_argument("--report", action="store_true", help="Generate JSON report")
     parser.add_argument(
@@ -196,7 +196,7 @@ def main():
     )
     args = parser.parse_args()
 
-    print("🛡️  Starting security scan for 5e2pdf project\n")
+    print("🛡️  Starting security scan for studiorum project\n")
 
     results = {}
     exit_code = 0

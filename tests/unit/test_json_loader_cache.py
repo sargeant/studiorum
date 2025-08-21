@@ -6,9 +6,9 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.core.cache import CacheManager, get_cache
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.models.content import ContentType
+from studiorum.core.cache import CacheManager, get_cache
+from studiorum.core.loaders.json_loader import JsonDataLoader
+from studiorum.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment
 
 
@@ -85,7 +85,7 @@ class TestJsonLoaderCache:
         loader = JsonDataLoader(self._get_content_type("spell"))
 
         # Mock logger to track cache hits
-        with patch("dnd5e.core.loaders.json_loader.logger") as mock_logger:
+        with patch("studiorum.core.loaders.json_loader.logger") as mock_logger:
             # First load - should miss cache
             result1 = loader.load(test_file)
             assert len(result1) == 1

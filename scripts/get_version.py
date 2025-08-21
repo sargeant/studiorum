@@ -22,7 +22,7 @@ def get_version() -> str:
         SystemExit: If versions don't match or files are missing/malformed
     """
     pyproject_path = Path("pyproject.toml")
-    init_py_path = Path("src/dnd5e/__init__.py")
+    init_py_path = Path("src/studiorum/__init__.py")
 
     # Check files exist
     if not pyproject_path.exists():
@@ -30,7 +30,7 @@ def get_version() -> str:
         sys.exit(1)
 
     if not init_py_path.exists():
-        print("Error: src/dnd5e/__init__.py not found", file=sys.stderr)
+        print("Error: src/studiorum/__init__.py not found", file=sys.stderr)
         sys.exit(1)
 
     # Read version from pyproject.toml
@@ -52,7 +52,9 @@ def get_version() -> str:
     )
 
     if not init_py_version_match:
-        print("Error: __version__ not found in src/dnd5e/__init__.py", file=sys.stderr)
+        print(
+            "Error: __version__ not found in src/studiorum/__init__.py", file=sys.stderr
+        )
         sys.exit(1)
 
     init_py_version = init_py_version_match.group(1)

@@ -5,10 +5,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.entry_registry import ValidationMode
-from dnd5e.core.exceptions import EntryProcessingError, EntryProcessingWarning
-from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
+from studiorum.core.entry_registry import ValidationMode
+from studiorum.core.exceptions import EntryProcessingError, EntryProcessingWarning
+from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.latex.entry_processor import RecursiveEntryProcessor
 from tests.test_helpers import reset_test_environment
 
 
@@ -174,7 +174,7 @@ class TestRecursiveEntryProcessorEnhanced:
         stats = self.processor.get_processing_statistics()
         assert stats["errors_encountered"] == 1
 
-    @patch("dnd5e.renderers.latex.entry_processor.logger")
+    @patch("studiorum.renderers.latex.entry_processor.logger")
     def test_log_processing_summary(self, mock_logger):
         """Test processing summary logging."""
         entries = [
@@ -225,7 +225,7 @@ class TestRecursiveEntryProcessorEnhanced:
         with pytest.raises(EntryProcessingError):
             strict_processor.process_entry_dict(entry, self.context)
 
-    @patch("dnd5e.renderers.latex.entry_processor.logger")
+    @patch("studiorum.renderers.latex.entry_processor.logger")
     def test_debug_logging_enabled(self, mock_logger):
         """Test that debug logging provides useful information."""
         entries = [
@@ -249,7 +249,7 @@ class TestRecursiveEntryProcessorEnhanced:
         """Test that generic entry processing is logged."""
         entry = {"type": "unknownType", "name": "Test", "entries": []}
 
-        with patch("dnd5e.renderers.latex.entry_processor.logger") as mock_logger:
+        with patch("studiorum.renderers.latex.entry_processor.logger") as mock_logger:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 self.processor.process_entry_dict(entry, self.context)

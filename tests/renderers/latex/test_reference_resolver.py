@@ -4,7 +4,10 @@ from unittest.mock import Mock
 
 import pytest
 
-from dnd5e.renderers.latex.reference_resolver import ReferenceContext, ReferenceResolver
+from studiorum.renderers.latex.reference_resolver import (
+    ReferenceContext,
+    ReferenceResolver,
+)
 from tests.test_helpers import reset_test_environment
 
 

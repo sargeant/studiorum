@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.errors.architecture_errors import (
+from studiorum.core.errors.architecture_errors import (
     ArchitectureError,
     ConfigurationError,
     ContentLoadingError,
@@ -438,7 +438,7 @@ class TestErrorLogging:
         """Set up test fixtures."""
         reset_test_environment()
 
-    @patch("dnd5e.core.errors.architecture_errors.get_logger")
+    @patch("studiorum.core.errors.architecture_errors.get_logger")
     def test_log_architecture_error_basic(self, mock_get_logger):
         """Test basic error logging."""
         mock_logger = Mock()
@@ -453,7 +453,7 @@ class TestErrorLogging:
         call_args = mock_logger.error.call_args_list
         assert any("ArchitectureError: Test error" in str(call) for call in call_args)
 
-    @patch("dnd5e.core.errors.architecture_errors.get_logger")
+    @patch("studiorum.core.errors.architecture_errors.get_logger")
     def test_log_architecture_error_with_context(self, mock_get_logger):
         """Test error logging with context."""
         mock_logger = Mock()
@@ -472,7 +472,7 @@ class TestErrorLogging:
         context_logged = any("Error context:" in str(call) for call in call_args)
         assert context_logged
 
-    @patch("dnd5e.core.errors.architecture_errors.get_logger")
+    @patch("studiorum.core.errors.architecture_errors.get_logger")
     def test_log_architecture_error_with_cause(self, mock_get_logger):
         """Test error logging with original cause."""
         mock_logger = Mock()
@@ -545,7 +545,7 @@ class TestArchitectureErrorsIntegration:
 
         # Test logging works for all types
         with patch(
-            "dnd5e.core.errors.architecture_errors.get_logger"
+            "studiorum.core.errors.architecture_errors.get_logger"
         ) as mock_get_logger:
             mock_logger = Mock()
             mock_get_logger.return_value = mock_logger
@@ -584,7 +584,7 @@ class TestArchitectureErrorsIntegration:
 
         # Test logging the resulting error
         with patch(
-            "dnd5e.core.errors.architecture_errors.get_logger"
+            "studiorum.core.errors.architecture_errors.get_logger"
         ) as mock_get_logger:
             mock_logger = Mock()
             mock_get_logger.return_value = mock_logger

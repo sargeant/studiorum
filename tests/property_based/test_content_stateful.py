@@ -8,8 +8,8 @@ import pytest
 from hypothesis import assume, given, strategies as st
 from hypothesis.stateful import Bundle, RuleBasedStateMachine, initialize, rule
 
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.content import ContentType
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
 
 
 class OmnidexerStateMachine(RuleBasedStateMachine):
@@ -30,7 +30,7 @@ class OmnidexerStateMachine(RuleBasedStateMachine):
     def setup_omnidexer(self):
         """Initialize omnidexer for testing."""
         # Create a fresh omnidexer instance
-        from dnd5e.core.loaders.configurable_source_manager import (
+        from studiorum.core.loaders.configurable_source_manager import (
             ConfigurableSourceManager,
         )
 

@@ -1,6 +1,6 @@
 """Tests for spell reference parsing."""
 
-from dnd5e.core.references import SpellReference, SpellReferenceParser
+from studiorum.core.references import SpellReference, SpellReferenceParser
 
 
 class TestSpellReferenceParser:

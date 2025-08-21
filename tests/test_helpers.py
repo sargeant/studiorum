@@ -25,13 +25,13 @@ def reset_test_environment() -> None:
     try:
         # 1. Reset the service container (handles most singletons)
         # Do this first to create fresh instances
-        from dnd5e.core.container import reset_global_container
+        from studiorum.core.container import reset_global_container
 
         reset_global_container()
         logger.debug("Service container reset")
 
         # 2. Reset the content type registry instance (preserves decorator registrations)
-        from dnd5e.core.registry.content_type_registry import (
+        from studiorum.core.registry.content_type_registry import (
             reset_content_type_registry,
         )
 
@@ -42,24 +42,24 @@ def reset_test_environment() -> None:
         # It gets reset when the container is reset, so no manual reset needed
 
         # 4. Reset disk-based cache
-        from dnd5e.core.cache import CacheManager
+        from studiorum.core.cache import CacheManager
 
         CacheManager.reset()
 
         # 5. Reset CLI-specific globals
-        from dnd5e.cli.main import reset_cli_globals
+        from studiorum.cli.main import reset_cli_globals
 
         reset_cli_globals()
 
         # 6. Reset content configuration manager to use temporary config
-        from dnd5e.core.config.sources import reset_config_manager
+        from studiorum.core.config.sources import reset_config_manager
 
         reset_config_manager()
         logger.debug("Configuration manager reset to use temporary config")
 
         # 7. Initialize the content type registry (critical for all systems)
         # This MUST happen LAST to ensure the interface registry is populated after all resets
-        from dnd5e.core.registry import initialize_content_types
+        from studiorum.core.registry import initialize_content_types
 
         initialize_content_types()
         logger.debug("Content type registry initialized")
@@ -83,7 +83,7 @@ def setup_test_with_registry() -> None:
     need the full environment reset (e.g., unit tests with mocks).
     """
     try:
-        from dnd5e.core.registry import initialize_content_types
+        from studiorum.core.registry import initialize_content_types
 
         initialize_content_types()
         logger.debug("Registry-only test setup completed")

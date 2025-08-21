@@ -10,7 +10,7 @@ from unittest.mock import patch
 import pytest
 from logfire import LogfireLoggingHandler
 
-from dnd5e.core.logging.logger import get_logger, setup_logging  # type: ignore
+from studiorum.core.logging.logger import get_logger, setup_logging  # type: ignore
 
 
 @pytest.fixture(autouse=True)
@@ -20,11 +20,11 @@ def reset_logging() -> Generator[None, None, None]:
     original_handlers = root_logger.handlers[:]
     original_level = root_logger.level
 
-    # Reset the DND5ELogger state for testing
-    from dnd5e.core.logging.logger import DND5ELogger
+    # Reset the StudiorumLogger state for testing
+    from studiorum.core.logging.logger import StudiorumLogger
 
-    original_initialized = DND5ELogger._initialized
-    DND5ELogger._initialized = False
+    original_initialized = StudiorumLogger._initialized
+    StudiorumLogger._initialized = False
 
     # Clear handlers for the test
     root_logger.handlers.clear()
@@ -34,7 +34,7 @@ def reset_logging() -> Generator[None, None, None]:
     # Restore original state
     root_logger.handlers = original_handlers
     root_logger.setLevel(original_level)
-    DND5ELogger._initialized = original_initialized
+    StudiorumLogger._initialized = original_initialized
 
 
 def test_setup_logging_configures_handler() -> None:
@@ -55,9 +55,9 @@ def test_setup_logging_sets_level() -> None:
     assert logging.getLogger().level == logging.DEBUG
 
     # Reset for the next test
-    from dnd5e.core.logging.logger import DND5ELogger
+    from studiorum.core.logging.logger import StudiorumLogger
 
-    DND5ELogger._initialized = False
+    StudiorumLogger._initialized = False
     logging.getLogger().handlers.clear()
 
     setup_logging(debug=False)  # debug=False sets INFO level

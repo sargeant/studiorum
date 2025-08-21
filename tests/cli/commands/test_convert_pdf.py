@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 import typer
 
-from dnd5e.cli.commands.convert.shared import compile_pdf as _compile_pdf
+from studiorum.cli.commands.convert.shared import compile_pdf as _compile_pdf
 
 
 @pytest.mark.cli
@@ -15,8 +15,8 @@ class TestPDFCompilation:
 
     @pytest.mark.asyncio
     @patch("builtins.open")
-    @patch("dnd5e.cli.commands.convert.shared.create_latex_compiler")
-    @patch("dnd5e.cli.commands.convert.shared.display_manager")
+    @patch("studiorum.cli.commands.convert.shared.create_latex_compiler")
+    @patch("studiorum.cli.commands.convert.shared.display_manager")
     async def test_compile_pdf_success(
         self, mock_display, mock_create_latex_compiler, mock_builtin_open
     ):
@@ -58,8 +58,8 @@ class TestPDFCompilation:
 
     @pytest.mark.asyncio
     @patch("builtins.open")
-    @patch("dnd5e.cli.commands.convert.shared.create_latex_compiler")
-    @patch("dnd5e.cli.commands.convert.shared.display_manager")
+    @patch("studiorum.cli.commands.convert.shared.create_latex_compiler")
+    @patch("studiorum.cli.commands.convert.shared.display_manager")
     async def test_compile_pdf_failure(
         self, mock_display, mock_create_latex_compiler, mock_builtin_open
     ):
@@ -97,8 +97,8 @@ class TestPDFCompilation:
 
     @pytest.mark.asyncio
     @patch("builtins.open")
-    @patch("dnd5e.cli.commands.convert.shared.create_latex_compiler")
-    @patch("dnd5e.cli.commands.convert.shared.display_manager")
+    @patch("studiorum.cli.commands.convert.shared.create_latex_compiler")
+    @patch("studiorum.cli.commands.convert.shared.display_manager")
     async def test_compile_pdf_latex_not_found(
         self, mock_display, mock_create_latex_compiler, mock_builtin_open
     ):

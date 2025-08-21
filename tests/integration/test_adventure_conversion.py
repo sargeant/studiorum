@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pytest
 
-from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.resolvers.content_resolver import ContentResolver
+from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.resolvers.content_resolver import ContentResolver
 from tests.test_helpers import reset_test_environment
 
 
@@ -41,7 +41,7 @@ class TestAdventureConversion:
         reset_test_environment()
 
         # Extra isolation for parallel execution
-        from dnd5e.core.container import reset_global_container
+        from studiorum.core.container import reset_global_container
 
         reset_global_container()
 
@@ -64,7 +64,7 @@ class TestAdventureConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "adventure",
                     "test",
@@ -130,7 +130,7 @@ class TestAdventureConversion:
                     [
                         "uv",
                         "run",
-                        "5e2pdf",
+                        "studiorum",
                         "convert",
                         "adventure",
                         adventure_id,
@@ -184,7 +184,7 @@ class TestAdventureConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "adventure",
                     "test",
@@ -322,7 +322,7 @@ class TestAdventureConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "adventure",
                     "test",
@@ -412,7 +412,7 @@ class TestAdventureConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "adventure",
                     "nonexistent",
@@ -454,7 +454,7 @@ class TestAdventureConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "adventure",
                     "test",

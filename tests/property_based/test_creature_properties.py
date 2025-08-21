@@ -8,7 +8,7 @@ import pytest
 from hypothesis import HealthCheck, example, given, settings, strategies as st
 from hypothesis.strategies import composite
 
-from dnd5e.core.models.creatures import Creature
+from studiorum.core.models.creatures import Creature
 
 # ==== Hypothesis Strategies for D&D Creature Objects ====
 

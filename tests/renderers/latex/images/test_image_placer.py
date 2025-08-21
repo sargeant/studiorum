@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from dnd5e.renderers.latex.images.image_placer import (
+from studiorum.renderers.latex.images.image_placer import (
     ImagePlacement,
     ImagePlacer,
     ImageSize,
