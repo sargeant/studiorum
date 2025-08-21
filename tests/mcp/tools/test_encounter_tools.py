@@ -210,16 +210,15 @@ class TestEncounterConstraints:
 
         # Invalid constraint combinations should raise
         with pytest.raises(
-            ValueError, match="Cannot require boss and prefer multiple weaker"
+            ValueError, match="Cannot require boss and prefer multiple weaker creatures"
         ):
             invalid = EncounterConstraints(
                 require_boss=True, prefer_multiple_weaker=True
             )
             invalid.validate_for_encounter()
 
-        with pytest.raises(ValueError, match="max_creatures must be at least 1"):
-            invalid = EncounterConstraints(max_creatures=0)
-            invalid.validate_for_encounter()
+        with pytest.raises(ValidationError):
+            EncounterConstraints(max_creatures=0)
 
     def test_xp_constraints(self) -> None:
         """Test XP-based constraints."""
@@ -568,6 +567,7 @@ class TestEncounterServiceIntegration:
         # Mock container and omnidexer
         mock_container_instance = Mock()
         mock_omnidexer_result = Mock()
+        # The function calls is_success() as a method, not as a property
         mock_omnidexer_result.is_success.return_value = True
         mock_omnidexer_result.unwrap.return_value = Mock()
 
@@ -576,8 +576,10 @@ class TestEncounterServiceIntegration:
 
         # Should successfully create encounter collector
         with patch(
-            "dnd5e.core.services.encounter_services.EncounterCollector"
+            "dnd5e.core.services.encounter_collector.EncounterCollector"
         ) as mock_ec:
+            # Make the mock return itself when called (so result is not None)
+            mock_ec.return_value = mock_ec
             result = get_encounter_collector_from_container(mock_container_instance)
             assert result is not None
             mock_ec.assert_called_once()

@@ -238,6 +238,93 @@ class EncounterConstraints(CreatureFilterCriteria):
         default=False, description="Mix different creature types"
     )
 
+    def model_post_init(self, __context: dict | None = None) -> None:
+        """Validate logical consistency of filter criteria including encounter-specific ones."""
+        # Check CR range consistency
+        if (
+            self.min_cr is not None
+            and self.max_cr is not None
+            and self.min_cr > self.max_cr
+        ):
+            raise ValueError("min_cr cannot be greater than max_cr")
+
+        # Check AC range consistency
+        if (
+            self.min_ac is not None
+            and self.max_ac is not None
+            and self.min_ac > self.max_ac
+        ):
+            raise ValueError("min_ac cannot be greater than max_ac")
+
+        # Check HP range consistency
+        if (
+            self.min_hp is not None
+            and self.max_hp is not None
+            and self.min_hp > self.max_hp
+        ):
+            raise ValueError("min_hp cannot be greater than max_hp")
+
+        # Validate that at least one filtering criterion is provided
+        # Include both base criteria and encounter-specific criteria
+        has_base_criteria = any(
+            [
+                self.min_cr is not None,
+                self.max_cr is not None,
+                self.cr_range is not None,
+                self.creature_types is not None,
+                self.creature_tags is not None,
+                self.sizes is not None,
+                self.alignments is not None,
+                self.min_ac is not None,
+                self.max_ac is not None,
+                self.min_hp is not None,
+                self.max_hp is not None,
+                self.damage_immunities is not None,
+                self.damage_resistances is not None,
+                self.damage_vulnerabilities is not None,
+                self.condition_immunities is not None,
+                self.has_spellcasting is not None,
+                self.has_innate_spellcasting is not None,
+                self.has_legendary_actions is not None,
+                self.has_multiattack is not None,
+                self.has_reactions is not None,
+                self.has_bonus_actions is not None,
+                self.has_fly_speed is not None,
+                self.has_swim_speed is not None,
+                self.has_climb_speed is not None,
+                self.has_burrow_speed is not None,
+                self.has_darkvision is not None,
+                self.has_blindsight is not None,
+                self.has_tremorsense is not None,
+                self.has_truesight is not None,
+                self.speaks_language is not None,
+                self.has_skill is not None,
+                self.sources is not None,
+                self.creature_names is not None,
+            ]
+        )
+
+        # Check encounter-specific criteria
+        has_encounter_criteria = any(
+            [
+                self.no_legendary,
+                self.no_lair_actions,
+                self.environment is not None,
+                self.max_creatures is not None,
+                self.encounter_theme is not None,
+                self.min_xp_per_creature is not None,
+                self.max_xp_per_creature is not None,
+                not self.allow_single_powerful,  # Only count when explicitly disabled
+                self.prefer_multiple_weaker,
+                self.require_minions,
+                self.require_boss,
+                self.mixed_creature_types,
+            ]
+        )
+
+        if not (has_base_criteria or has_encounter_criteria):
+            raise ValueError("At least one filtering criterion must be provided")
+
     def validate_for_encounter(self) -> None:
         """Validate constraint combination for encounter building.
 
