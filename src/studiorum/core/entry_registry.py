@@ -618,7 +618,6 @@ def get_registry() -> EntryTypeRegistry:
 
     from studiorum.core.config.unified_config import get_app_config
     from studiorum.core.services.container import create_mcp_request_container
-    from studiorum.core.services.protocols import EntryTypeRegistryProtocol
 
     try:
         # Try to get existing loop to check if we're in async context
@@ -626,13 +625,9 @@ def get_registry() -> EntryTypeRegistry:
 
         # If we're in an async context, create a task
         async def _get_async_registry() -> EntryTypeRegistry:
-            app_config = get_app_config()
-            async with await create_mcp_request_container(app_config) as container:
-                from typing import cast
-
-                return await container.get_service(
-                    cast(type, EntryTypeRegistryProtocol)
-                )
+            # For backward compatibility, just return a new registry instance
+            # The service container approach was causing circular imports
+            return EntryTypeRegistry()
 
         # Create future and run it
         # This is a compatibility hack - in practice this function should be made async
