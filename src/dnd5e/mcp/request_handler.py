@@ -625,14 +625,10 @@ class ModernMCPRequestHandler:
 
         ctx.record_async_operation()
 
-        # Get all content and filter for books
-        all_content = omnidexer.search("")  # Get all content
-        books = [
-            content
-            for content in all_content
-            if hasattr(content, "book")
-            or (hasattr(content, "type") and content.type == "book")
-        ]
+        # Get books directly by content type
+        from dnd5e.core.models.content import ContentType
+
+        books = omnidexer.get_all_by_type(ContentType.BOOK)
 
         # Apply source filtering if specified
         if ctx.sources:
@@ -644,7 +640,7 @@ class ModernMCPRequestHandler:
 
         ctx.record_cache_hit()
         return {
-            "books": [
+            "content": [
                 {
                     "name": book.name if hasattr(book, "name") else str(book),
                     "source": book.source.abbreviation

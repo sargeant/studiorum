@@ -183,7 +183,7 @@ async def create_omnidexer_service(
         Omnidexer service implementing OmnidexerProtocol
     """
 
-    class AsyncOmnidexerService:
+    class AsyncOmnidexerService(OmnidexerProtocol):
         """Async omnidexer service with resource management."""
 
         def __init__(self, config: ApplicationConfig) -> None:
@@ -208,8 +208,10 @@ async def create_omnidexer_service(
                 self._omnidexer = Omnidexer()
 
                 # Async source preparation (GitHub cloning, etc)
-                if hasattr(self._omnidexer, "ensure_sources_ready"):
-                    await self._omnidexer.ensure_sources_ready()
+                if hasattr(
+                    self._omnidexer.source_manager, "_ensure_sources_ready_async"
+                ):
+                    await self._omnidexer.source_manager._ensure_sources_ready_async()
 
                 # Load all data
                 self._omnidexer.load_all_data()
@@ -260,7 +262,15 @@ async def create_omnidexer_service(
             if not self._omnidexer:
                 raise RuntimeError("Omnidexer not initialized")
             # Use actual omnidexer search methods
-            results = self._omnidexer.get_all_by_type(query) if query else []
+            results = self._omnidexer.search(query, limit=50)
+            return list(results)
+
+        def get_all_by_type(self, content_type: str | object) -> list[object]:
+            """Get all content of a specific type."""
+            if not self._omnidexer:
+                raise RuntimeError("Omnidexer not initialized")
+            # Delegate to underlying omnidexer
+            results = self._omnidexer.get_all_by_type(content_type)
             return list(results)
 
         async def ensure_sources_ready(self) -> None:
