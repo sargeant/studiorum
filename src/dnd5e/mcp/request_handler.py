@@ -142,6 +142,16 @@ class ModernMCPRequestHandler:
                     result = await self._handle_list_adventures_async(params, ctx)
                 elif method == "list_books":
                     result = await self._handle_list_books_async(params, ctx)
+                elif method == "analyze_level_progression":
+                    result = await self._handle_analyze_level_progression_async(
+                        params, ctx
+                    )
+                elif method == "compare_feat_options":
+                    result = await self._handle_compare_feat_options_async(params, ctx)
+                elif method == "analyze_multiclass_options":
+                    result = await self._handle_analyze_multiclass_options_async(
+                        params, ctx
+                    )
                 else:
                     raise ValueError(f"Unknown method: {method}")
 
@@ -655,6 +665,183 @@ class ModernMCPRequestHandler:
             "total": len(books),
             "sources_used": ctx.sources,
         }
+
+    async def _handle_analyze_level_progression_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle character level progression analysis.
+
+        Args:
+            params: Progression analysis parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Character progression analysis results
+        """
+        character_class = params.get("class", "")
+        level = params.get("level", 1)
+        subclass = params.get("subclass")
+        analysis_type = params.get("analysis_type", "basic")
+        include_feat_analysis = params.get("include_feat_analysis", False)
+        include_multiclass_options = params.get("include_multiclass_options", False)
+        optimization_focus = params.get("optimization_focus")
+        sources = params.get("sources", [])
+
+        if not character_class:
+            error = ContentNotFoundError(message="class parameter is required")
+            await ctx.add_async_error(error)
+            return {
+                "progression": None,
+                "error": error.message,
+            }
+
+        if sources:
+            ctx.sources.extend(sources)
+
+        try:
+            # Import character progression tools
+            from .tools.character.progression import analyze_level_progression
+
+            # Perform progression analysis
+            ctx.record_async_operation()
+            result = await analyze_level_progression(
+                character_class=character_class,
+                level=level,
+                subclass=subclass,
+                analysis_type=analysis_type,
+                include_feat_analysis=include_feat_analysis,
+                include_multiclass_options=include_multiclass_options,
+                optimization_focus=optimization_focus,
+                sources=ctx.sources if ctx.sources else None,
+            )
+
+            ctx.record_cache_hit()
+            return result  # type: ignore[no-any-return]
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Character progression analysis failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "progression": None,
+                "error": error.message,
+                "class": character_class,
+                "level": level,
+            }
+
+    async def _handle_compare_feat_options_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle feat options comparison.
+
+        Args:
+            params: Feat comparison parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Feat comparison results
+        """
+        character_class = params.get("class", "")
+        level = params.get("level", 1)
+        subclass = params.get("subclass")
+        optimization_focus = params.get("optimization_focus")
+        sources = params.get("sources", [])
+        limit = params.get("limit", 10)
+
+        if not character_class:
+            error = ContentNotFoundError(message="class parameter is required")
+            await ctx.add_async_error(error)
+            return {
+                "feat_analysis": [],
+                "error": error.message,
+            }
+
+        if sources:
+            ctx.sources.extend(sources)
+
+        try:
+            # Import character progression tools
+            from .tools.character.progression import compare_feat_options
+
+            # Perform feat comparison
+            ctx.record_async_operation()
+            result = await compare_feat_options(
+                character_class=character_class,
+                level=level,
+                subclass=subclass,
+                optimization_focus=optimization_focus,
+                sources=ctx.sources if ctx.sources else None,
+                limit=limit,
+            )
+
+            ctx.record_cache_hit()
+            return result  # type: ignore[no-any-return]
+
+        except Exception as e:
+            error = ContentNotFoundError(message=f"Feat comparison failed: {e}")
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "feat_analysis": [],
+                "error": error.message,
+                "class": character_class,
+                "level": level,
+            }
+
+    async def _handle_analyze_multiclass_options_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle multiclass options analysis.
+
+        Args:
+            params: Multiclass analysis parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Multiclass analysis results
+        """
+        current_class = params.get("current_class", "")
+        level = params.get("level", 1)
+        sources = params.get("sources", [])
+
+        if not current_class:
+            error = ContentNotFoundError(message="current_class parameter is required")
+            await ctx.add_async_error(error)
+            return {
+                "multiclass_options": [],
+                "error": error.message,
+            }
+
+        if sources:
+            ctx.sources.extend(sources)
+
+        try:
+            # Import character progression tools
+            from .tools.character.progression import analyze_multiclass_options
+
+            # Perform multiclass analysis
+            ctx.record_async_operation()
+            result = await analyze_multiclass_options(
+                current_class=current_class,
+                level=level,
+                sources=ctx.sources if ctx.sources else None,
+            )
+
+            ctx.record_cache_hit()
+            return result  # type: ignore[no-any-return]
+
+        except Exception as e:
+            error = ContentNotFoundError(message=f"Multiclass analysis failed: {e}")
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "multiclass_options": [],
+                "error": error.message,
+                "current_class": current_class,
+                "level": level,
+            }
 
 
 # Legacy handler for backward compatibility

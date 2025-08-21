@@ -29,6 +29,7 @@ from dnd5e.core.error_types import (
     ErrorSeverity,
     MCPErrorCode,
 )
+from dnd5e.core.models.content import BaseContent
 from dnd5e.core.result import Error, Result, Success
 
 from .protocols import (
@@ -257,7 +258,7 @@ async def create_omnidexer_service(
             results = self._omnidexer.search_by_name_prefix(identifier)
             return results[0] if results else None
 
-        def search(self, query: str) -> list[object]:
+        def search(self, query: str) -> list[BaseContent]:
             """Search for content matching the query."""
             if not self._omnidexer:
                 raise RuntimeError("Omnidexer not initialized")
@@ -265,12 +266,22 @@ async def create_omnidexer_service(
             results = self._omnidexer.search(query, limit=50)
             return list(results)
 
-        def get_all_by_type(self, content_type: str | object) -> list[object]:
+        def get_all_by_type(self, content_type: str | object) -> list[BaseContent]:
             """Get all content of a specific type."""
             if not self._omnidexer:
                 raise RuntimeError("Omnidexer not initialized")
             # Delegate to underlying omnidexer
-            results = self._omnidexer.get_all_by_type(content_type)
+            from dnd5e.core.models.content import ContentType
+
+            if isinstance(content_type, str):
+                try:
+                    content_type_enum = ContentType(content_type)
+                    results = self._omnidexer.get_all_by_type(content_type_enum)
+                except ValueError:
+                    results = []
+            else:
+                # Assume it's already a ContentType or compatible
+                results = self._omnidexer.get_all_by_type(content_type)  # type: ignore[arg-type]
             return list(results)
 
         async def ensure_sources_ready(self) -> None:

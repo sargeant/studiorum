@@ -44,7 +44,7 @@ class MockOmnidexer:
     def get_content(self, content_type: str, identifier: str) -> object:
         return {"type": content_type, "id": identifier}
 
-    def search(self, query: str) -> list[object]:
+    def search(self, query: str) -> list:  # BaseContent not accessible in test
         return [{"name": f"mock_result_{query}", "type": "mock"}]
 
     async def search_content_async(
@@ -70,6 +70,11 @@ class MockOmnidexer:
 
     async def ensure_sources_ready(self) -> None:
         pass
+
+    def get_all_by_type(
+        self, content_type: object
+    ) -> list:  # BaseContent not accessible in test
+        return [{"type": str(content_type), "mock": True}]
 
 
 class MockTagResolver:
