@@ -32,7 +32,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from studiorum.core.logging import STUDIORUMLogger, get_logger
+from studiorum.core.logging import StudiorumLogger, get_logger
 
 from ...core.config.unified_config import get_app_config
 from ...mcp.server import create_mcp_server, get_mcp_app, list_registered_tools
@@ -309,7 +309,7 @@ def run_mcp_stdio(
             )
 
     # Initialize enhanced Logfire logging
-    STUDIORUMLogger.initialize(
+    StudiorumLogger.initialize(
         debug=effective_debug,
         environment=effective_environment,
         enable_telemetry=enable_telemetry,
@@ -319,7 +319,7 @@ def run_mcp_stdio(
     )
 
     # Log enhanced startup information
-    mcp_debug_logger = STUDIORUMLogger.get_mcp_debug_logger()
+    mcp_debug_logger = StudiorumLogger.get_mcp_debug_logger()
     if effective_debug:
         logger.info(
             "MCP Debug logging enabled",

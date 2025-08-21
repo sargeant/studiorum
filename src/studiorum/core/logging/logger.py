@@ -97,7 +97,7 @@ class StudiorumLogger:
 
         cls._initialized = True
         logfire.info(
-            "studiorum logging initialized", debug=debug, environment=environment
+            "Studiorum logging initialized", debug=debug, environment=environment
         )
 
     @classmethod
