@@ -124,8 +124,9 @@ class PerformantContentSearcher:
                 cached_result.cached = True
                 return cached_result
 
-            # Perform search with timeout (5 seconds default)
-            timeout_seconds = 5.0
+            # Perform search with timeout (60 seconds for initial cold start)
+            # The first search may take longer while the omnidexer loads all data
+            timeout_seconds = 60.0
 
             async def perform_search() -> list[BaseContent]:
                 async with async_request_context() as ctx:

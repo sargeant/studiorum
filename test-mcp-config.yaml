@@ -1,0 +1,24 @@
+version: '1.0'
+content_sources:
+  - name: 'local-5etools'
+    type: 'directory'
+    path: '/Users/sam/Code/5etools-src/data'
+    enabled: true
+    priority: 0
+    auto_update: false
+    update_interval: 'never'
+latex:
+  paper_size: 'letter'
+  fonts: 'wotc'
+  no_outline: true
+  font_size: '10pt'
+  background: 'print'
+  high_contrast: null
+  two_column: true
+  justified: false
+cache_dir: '/Users/sam/.cache/5e2pdf'
+config_dir: '/Users/sam/.config/5e2pdf'
+auto_update_enabled: false
+update_check_interval: 'never'
+parallel_downloads: 3
+content_index_ttl: 3600
