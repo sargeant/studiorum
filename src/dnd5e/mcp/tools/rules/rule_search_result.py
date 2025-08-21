@@ -239,7 +239,7 @@ class RuleSearchResult(ContentSearchResult):
             connection_counts[target] = connection_counts.get(target, 0) + 1
 
         if connection_counts:
-            return max(connection_counts, key=connection_counts.get)
+            return max(connection_counts, key=lambda x: connection_counts[x])
         return None
 
     def _calculate_interaction_density(self) -> float:
@@ -333,12 +333,15 @@ def create_rule_search_result(
                 analysis = RuleAnalysis(
                     complexity_score=rule_ref.complexity_score,
                     rule_category=rule_ref.rule_type,
-                    interaction_count=len(result.get_related_rules(rule_id)),
+                    interaction_count=len(result.get_related_rules(rule_id))
+                    if rule_id
+                    else 0,
                     tag_references=rule_ref.tags_found,
                     related_concepts=_extract_related_concepts(rule),
                 )
 
-                result.add_rule_analysis(rule_id, analysis)
+                if rule_id:
+                    result.add_rule_analysis(rule_id, analysis)
 
         # Generate complexity distribution
         complexity_ranges = {"low": 0, "medium": 0, "high": 0, "very_high": 0}

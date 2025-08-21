@@ -13,6 +13,7 @@ from typing import Any
 from ....core.context import AsyncRequestContext
 from ....core.error_types import (
     ContentNotFoundError,
+    ErrorCategory,
     MCPError,
     MCPErrorCode,
     MCPException,
@@ -38,7 +39,7 @@ async def _get_rule_intelligence_service(
 
     if _rule_intelligence_service is None:
         # Get required services from context
-        omnidexer = await ctx.get_service(OmnidexerProtocol)
+        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
 
         # Create tag resolver (assuming it's available as a singleton or can be created)
         # In a real implementation, this would also come from the service container
@@ -46,8 +47,12 @@ async def _get_rule_intelligence_service(
 
         # Create service with default config
         config = RuleIntelligenceConfig()
+        from typing import cast
+
+        from dnd5e.core.loaders.omnidexer import Omnidexer
+
         _rule_intelligence_service = RuleIntelligenceService(
-            omnidexer=omnidexer,
+            omnidexer=omnidexer,  # type: ignore[arg-type]
             tag_resolver=tag_resolver,
             config=config,
         )
@@ -88,7 +93,7 @@ async def find_rule_cross_references(
                 MCPError(
                     message="Request context is required",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -98,7 +103,7 @@ async def find_rule_cross_references(
                 MCPError(
                     message="rule_id parameter is required and cannot be empty",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -107,7 +112,7 @@ async def find_rule_cross_references(
                 MCPError(
                     message="max_depth must be between 1 and 5",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -128,7 +133,7 @@ async def find_rule_cross_references(
                     MCPError(
                         message=error.message,
                         error_code=MCPErrorCode.CONTENT_NOT_FOUND,
-                        category="user_error",
+                        category=ErrorCategory.USER_ERROR,
                     )
                 )
             else:
@@ -136,7 +141,7 @@ async def find_rule_cross_references(
                     MCPError(
                         message=f"Cross-reference lookup failed: {error}",
                         error_code=MCPErrorCode.PROCESSING_ERROR,
-                        category="processing",
+                        category=ErrorCategory.PROCESSING,
                     )
                 )
 
@@ -180,7 +185,7 @@ async def find_rule_cross_references(
             MCPError(
                 message=f"Unexpected error finding cross-references: {e}",
                 error_code=MCPErrorCode.INTERNAL_ERROR,
-                category="system_error",
+                category=ErrorCategory.SYSTEM_ERROR,
                 data={"request_duration_ms": duration_ms},
             )
         )
@@ -215,7 +220,7 @@ async def validate_rule_combination(
                 MCPError(
                     message="Request context is required",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -225,7 +230,7 @@ async def validate_rule_combination(
                 MCPError(
                     message="rule_ids parameter must be a non-empty list",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -234,7 +239,7 @@ async def validate_rule_combination(
                 MCPError(
                     message="At least 2 rule IDs are required for combination validation",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -243,7 +248,7 @@ async def validate_rule_combination(
                 MCPError(
                     message="Maximum of 10 rules can be validated at once",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -256,7 +261,7 @@ async def validate_rule_combination(
                 MCPError(
                     message="All rule IDs must be non-empty strings",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -276,7 +281,7 @@ async def validate_rule_combination(
                     MCPError(
                         message=error.message,
                         error_code=MCPErrorCode.CONTENT_NOT_FOUND,
-                        category="user_error",
+                        category=ErrorCategory.USER_ERROR,
                     )
                 )
             else:
@@ -284,7 +289,7 @@ async def validate_rule_combination(
                     MCPError(
                         message=f"Rule combination validation failed: {error}",
                         error_code=MCPErrorCode.PROCESSING_ERROR,
-                        category="processing",
+                        category=ErrorCategory.PROCESSING,
                     )
                 )
 
@@ -328,7 +333,7 @@ async def validate_rule_combination(
             MCPError(
                 message=f"Unexpected error validating rule combination: {e}",
                 error_code=MCPErrorCode.INTERNAL_ERROR,
-                category="system_error",
+                category=ErrorCategory.SYSTEM_ERROR,
                 data={"request_duration_ms": duration_ms},
             )
         )
@@ -371,7 +376,7 @@ async def search_rules_intelligent(
                 MCPError(
                     message="Request context is required",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -381,7 +386,7 @@ async def search_rules_intelligent(
                 MCPError(
                     message="query parameter is required and cannot be empty",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -390,7 +395,7 @@ async def search_rules_intelligent(
                 MCPError(
                     message="limit must be between 1 and 50",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -405,7 +410,7 @@ async def search_rules_intelligent(
                     MCPError(
                         message=f"Invalid rule types: {invalid_types}. Valid types: {list(valid_rule_types)}",
                         error_code=MCPErrorCode.INVALID_PARAMS,
-                        category="user_error",
+                        category=ErrorCategory.USER_ERROR,
                     )
                 )
 
@@ -433,7 +438,7 @@ async def search_rules_intelligent(
                     MCPError(
                         message=f"Invalid complexity_filter format: {e}",
                         error_code=MCPErrorCode.INVALID_PARAMS,
-                        category="user_error",
+                        category=ErrorCategory.USER_ERROR,
                     )
                 )
 
@@ -457,7 +462,7 @@ async def search_rules_intelligent(
                     MCPError(
                         message=error.message,
                         error_code=MCPErrorCode.CONTENT_NOT_FOUND,
-                        category="user_error",
+                        category=ErrorCategory.USER_ERROR,
                     )
                 )
             else:
@@ -465,7 +470,7 @@ async def search_rules_intelligent(
                     MCPError(
                         message=f"Intelligent rule search failed: {error}",
                         error_code=MCPErrorCode.PROCESSING_ERROR,
-                        category="processing",
+                        category=ErrorCategory.PROCESSING,
                     )
                 )
 
@@ -518,7 +523,7 @@ async def search_rules_intelligent(
             MCPError(
                 message=f"Unexpected error performing intelligent rule search: {e}",
                 error_code=MCPErrorCode.INTERNAL_ERROR,
-                category="system_error",
+                category=ErrorCategory.SYSTEM_ERROR,
                 data={"request_duration_ms": duration_ms},
             )
         )
@@ -553,7 +558,7 @@ async def get_rule_suggestions(
                 MCPError(
                     message="Request context is required",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -563,7 +568,7 @@ async def get_rule_suggestions(
                 MCPError(
                     message="context parameter must be a non-empty dictionary",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -572,7 +577,7 @@ async def get_rule_suggestions(
                 MCPError(
                     message="limit must be between 1 and 20",
                     error_code=MCPErrorCode.INVALID_PARAMS,
-                    category="user_error",
+                    category=ErrorCategory.USER_ERROR,
                 )
             )
 
@@ -589,7 +594,7 @@ async def get_rule_suggestions(
                     MCPError(
                         message=error.message,
                         error_code=MCPErrorCode.CONTENT_NOT_FOUND,
-                        category="user_error",
+                        category=ErrorCategory.USER_ERROR,
                     )
                 )
             else:
@@ -597,7 +602,7 @@ async def get_rule_suggestions(
                     MCPError(
                         message=f"Rule suggestion generation failed: {error}",
                         error_code=MCPErrorCode.PROCESSING_ERROR,
-                        category="processing",
+                        category=ErrorCategory.PROCESSING,
                     )
                 )
 
@@ -647,7 +652,7 @@ async def get_rule_suggestions(
             MCPError(
                 message=f"Unexpected error generating rule suggestions: {e}",
                 error_code=MCPErrorCode.INTERNAL_ERROR,
-                category="system_error",
+                category=ErrorCategory.SYSTEM_ERROR,
                 data={"request_duration_ms": duration_ms},
             )
         )

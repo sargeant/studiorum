@@ -25,7 +25,11 @@ from ..core.context import (
 )
 from ..core.error_types import (
     ContentNotFoundError,
+    ErrorCategory,
+    ErrorSeverity,
     MCPError,
+    MCPErrorCode,
+    MCPException,
     ProcessingError,
 )
 from ..core.result import Error, Result, Success
@@ -167,6 +171,21 @@ class ModernMCPRequestHandler:
                     )
                 elif method == "get_rule_suggestions":
                     result = await self._handle_get_rule_suggestions_async(params, ctx)
+                # Encounter Building Tools (Package 2.3)
+                elif method == "calculate_encounter_budget":
+                    result = await self._handle_calculate_encounter_budget_async(
+                        params, ctx
+                    )
+                elif method == "search_creatures_for_encounter":
+                    result = await self._handle_search_creatures_for_encounter_async(
+                        params, ctx
+                    )
+                elif method == "build_balanced_encounter":
+                    result = await self._handle_build_balanced_encounter_async(
+                        params, ctx
+                    )
+                elif method == "rebalance_encounter":
+                    result = await self._handle_rebalance_encounter_async(params, ctx)
                 else:
                     raise ValueError(f"Unknown method: {method}")
 
@@ -1014,6 +1033,193 @@ class ModernMCPRequestHandler:
                 "suggestions": [],
                 "error": error.message,
                 "context": context,
+            }
+
+    # Encounter Building Tools Handlers (Package 2.3)
+
+    async def _handle_calculate_encounter_budget_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle encounter budget calculation.
+
+        Args:
+            params: Budget calculation parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Encounter budget details with recommendations
+        """
+        from .tools.encounter.tools import calculate_encounter_budget_mcp
+
+        try:
+            party_size = params.get("party_size")
+            party_level = params.get("party_level")
+            if party_size is None or party_level is None:
+                error = MCPError(
+                    message="party_size and party_level are required",
+                    error_code=MCPErrorCode.INVALID_PARAMS,
+                    category=ErrorCategory.VALIDATION,
+                )
+                raise MCPException(error)
+
+            result = await calculate_encounter_budget_mcp(
+                party_size=int(party_size),
+                party_level=int(party_level),
+                difficulty=str(params.get("difficulty", "medium")),
+                individual_levels=params.get("individual_levels"),
+            )
+            ctx.record_cache_hit()
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Encounter budget calculation failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "budget": None,
+                "error": error.message,
+                "party_size": params.get("party_size"),
+                "party_level": params.get("party_level"),
+            }
+
+    async def _handle_search_creatures_for_encounter_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle creature search for encounters.
+
+        Args:
+            params: Search parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Matching creatures with encounter metadata
+        """
+        from .tools.encounter.tools import search_creatures_for_encounter_mcp
+
+        try:
+            result = await search_creatures_for_encounter_mcp(
+                constraints=params.get("constraints", {}),
+                xp_budget=params.get("xp_budget"),
+                environment=params.get("environment"),
+                theme=params.get("theme"),
+                sources=params.get("sources"),
+            )
+            ctx.record_cache_hit()
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Creature search for encounter failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "creatures": [],
+                "error": error.message,
+                "constraints": params.get("constraints", {}),
+            }
+
+    async def _handle_build_balanced_encounter_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle balanced encounter building.
+
+        Args:
+            params: Encounter building parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Complete balanced encounter with analysis
+        """
+        from .tools.encounter.tools import build_balanced_encounter_mcp
+
+        try:
+            party_size = params.get("party_size")
+            party_level = params.get("party_level")
+            difficulty = params.get("difficulty")
+            if party_size is None or party_level is None or difficulty is None:
+                error = MCPError(
+                    message="party_size, party_level, and difficulty are required",
+                    error_code=MCPErrorCode.INVALID_PARAMS,
+                    category=ErrorCategory.VALIDATION,
+                )
+                raise MCPException(error)
+
+            result = await build_balanced_encounter_mcp(
+                party_size=int(party_size),
+                party_level=int(party_level),
+                difficulty=str(difficulty),
+                constraints=params.get("constraints"),
+                environment=params.get("environment"),
+                theme=params.get("theme"),
+                individual_levels=params.get("individual_levels"),
+            )
+            ctx.record_cache_hit()
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Balanced encounter building failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "encounter": None,
+                "error": error.message,
+                "party_size": params.get("party_size"),
+                "party_level": params.get("party_level"),
+                "difficulty": params.get("difficulty"),
+            }
+
+    async def _handle_rebalance_encounter_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle encounter rebalancing.
+
+        Args:
+            params: Rebalancing parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Rebalanced encounter with analysis
+        """
+        from .tools.encounter.tools import rebalance_encounter_mcp
+
+        try:
+            target_difficulty = params.get("target_difficulty")
+            party_size = params.get("party_size")
+            party_level = params.get("party_level")
+            if target_difficulty is None or party_size is None or party_level is None:
+                error = MCPError(
+                    message="target_difficulty, party_size, and party_level are required",
+                    error_code=MCPErrorCode.INVALID_PARAMS,
+                    category=ErrorCategory.VALIDATION,
+                )
+                raise MCPException(error)
+
+            result = await rebalance_encounter_mcp(
+                encounter_data=params.get("encounter_data", {}),
+                target_difficulty=str(target_difficulty),
+                party_size=int(party_size),
+                party_level=int(party_level),
+                strategy=params.get("strategy", "precise"),
+                max_iterations=params.get("max_iterations", 5),
+            )
+            ctx.record_cache_hit()
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(message=f"Encounter rebalancing failed: {e}")
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "rebalanced_encounter": None,
+                "error": error.message,
+                "target_difficulty": params.get("target_difficulty"),
+                "party_size": params.get("party_size"),
+                "party_level": params.get("party_level"),
             }
 
 

@@ -308,7 +308,7 @@ class RuleIntelligenceService:
             actual_limit = min(limit, self.config.max_search_results)
 
             # Search for rule content using omnidexer
-            rule_content = []
+            rule_content: list[Any] = []
 
             # Search for each supported rule type or specific types
             search_types = rule_types or self._supported_rule_types
@@ -322,7 +322,9 @@ class RuleIntelligenceService:
                         limit=actual_limit,
                     )
 
-                    if hasattr(search_result, "unwrap"):
+                    if hasattr(search_result, "unwrap") and hasattr(
+                        search_result, "is_success"
+                    ):
                         content = (
                             search_result.unwrap() if search_result.is_success() else []
                         )
@@ -572,7 +574,16 @@ class RuleIntelligenceService:
             result = await self.discover_rule_relationships()
 
             if result.is_error():
-                return Error(result.error)
+                error_msg = (
+                    str(result) if hasattr(result, "__str__") else "Unknown error"
+                )
+                return Error(
+                    ProcessingError(
+                        message=error_msg,
+                        category=ErrorCategory.PROCESSING,
+                        severity=ErrorSeverity.ERROR,
+                    )
+                )
 
             relationships = result.unwrap()
             self._last_rebuild_time = time.time()
@@ -603,19 +614,22 @@ class RuleIntelligenceService:
         self, rule_ids: list[str], context: dict[str, Any]
     ) -> dict[str, Any]:
         """Analyze how rule combination fits with provided context."""
-        analysis = {
+        context_factors: list[str] = []
+        recommended_modifications: list[str] = []
+
+        analysis: dict[str, Any] = {
             "context_compatibility": "neutral",
-            "context_factors": [],
-            "recommended_modifications": [],
+            "context_factors": context_factors,
+            "recommended_modifications": recommended_modifications,
         }
 
         # Analyze based on character level
         if "level" in context:
             level = context["level"]
             if level < 5:
-                analysis["context_factors"].append("low_level_character")
+                context_factors.append("low_level_character")
             elif level > 15:
-                analysis["context_factors"].append("high_level_character")
+                context_factors.append("high_level_character")
 
         # Analyze based on character class
         if "character_class" in context:
@@ -626,9 +640,7 @@ class RuleIntelligenceService:
                 if rule_id in self.cross_ref_manager.rule_references:
                     rule_ref = self.cross_ref_manager.rule_references[rule_id]
                     if char_class in rule_ref.base_reference.name.lower():
-                        analysis["context_factors"].append(
-                            f"class_synergy_{char_class}"
-                        )
+                        context_factors.append(f"class_synergy_{char_class}")
 
         return analysis
 
@@ -638,7 +650,7 @@ class RuleIntelligenceService:
             return 0.0
 
         total_confidence = sum(rel.get("confidence", 0.0) for rel in relationships)
-        return total_confidence / len(relationships)
+        return float(total_confidence / len(relationships))
 
     def _record_operation_time(self, operation: str, duration_ms: float) -> None:
         """Record operation time for performance tracking."""
