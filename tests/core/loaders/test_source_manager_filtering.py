@@ -3,7 +3,7 @@
 from pathlib import Path
 from unittest import TestCase
 
-from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
+from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
 
 
 class TestSourceManagerFiltering(TestCase):

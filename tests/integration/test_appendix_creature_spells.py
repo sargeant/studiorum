@@ -4,12 +4,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.models.spells import Spell
-from dnd5e.core.references.content_tracker import ContentTracker
-from dnd5e.core.services.appendix_generator import AppendixFlags, AppendixGenerator
-from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.creatures import Creature
+from studiorum.core.models.spells import Spell
+from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.core.services.appendix_generator import AppendixFlags, AppendixGenerator
+from studiorum.renderers.latex.template_engine import LaTeXTemplateEngine
 
 
 @pytest.mark.integration

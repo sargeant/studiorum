@@ -9,13 +9,13 @@ from unittest.mock import Mock
 
 import pytest
 
-from dnd5e.core.models.creature_filters import (
+from studiorum.core.models.creature_filters import (
     CreatureCollectionResult,
     CreatureFilterCriteria,
     CreatureSortMode,
 )
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.services.creature_collector import CreatureCollector
+from studiorum.core.models.creatures import Creature
+from studiorum.core.services.creature_collector import CreatureCollector
 from tests.test_helpers import reset_test_environment
 
 

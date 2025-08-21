@@ -5,10 +5,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.entry_registry import ValidationMode
-from dnd5e.core.exceptions import EntryProcessingError, EntryProcessingWarning
-from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
+from studiorum.core.entry_registry import ValidationMode
+from studiorum.core.exceptions import EntryProcessingError, EntryProcessingWarning
+from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.latex.entry_processor import RecursiveEntryProcessor
 from tests.test_helpers import reset_test_environment
 
 

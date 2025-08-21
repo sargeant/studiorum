@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.text.tag_ast import (  # type: ignore
+from studiorum.core.text.tag_ast import (  # type: ignore
     AdventureTagNode,
     BackgroundTagNode,
     BoldTagNode,
@@ -30,7 +30,7 @@ from dnd5e.core.text.tag_ast import (  # type: ignore
     TagNode,
     TextNode,
 )
-from dnd5e.core.text.tag_parser import (  # type: ignore
+from studiorum.core.text.tag_parser import (  # type: ignore
     TagASTTransformer,
     TagParseError,
     TagParser,
@@ -500,9 +500,9 @@ class TestTagParser:
         def mock_lark(*args: Any, **kwargs: Any) -> None:
             raise Exception("Lark parser error")
 
-        import dnd5e.core.text.tag_parser  # type: ignore
+        import studiorum.core.text.tag_parser  # type: ignore
 
-        monkeypatch.setattr(dnd5e.core.text.tag_parser, "Lark", mock_lark)
+        monkeypatch.setattr(studiorum.core.text.tag_parser, "Lark", mock_lark)
 
         with pytest.raises(TagParseError, match="Failed to initialize parser"):
             TagParser()

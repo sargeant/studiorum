@@ -7,9 +7,9 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.commands.convert import app
-from dnd5e.latex_engine.config.compilation import LaTeXEngine
-from dnd5e.latex_engine.core.compiler import LaTeXCompiler
+from studiorum.cli.commands.convert import app
+from studiorum.latex_engine.config.compilation import LaTeXEngine
+from studiorum.latex_engine.core.compiler import LaTeXCompiler
 from tests.test_helpers import reset_test_environment
 
 
@@ -184,8 +184,8 @@ class TestLaTeXEngineIntegration:
 
     def test_latex_compiler_helper_creates_proper_config(self):
         """Test that create_latex_compiler helper creates proper configuration."""
-        from dnd5e.cli.commands.convert.shared import create_latex_compiler
-        from dnd5e.latex_engine.config.compilation import CompilationConfig
+        from studiorum.cli.commands.convert.shared import create_latex_compiler
+        from studiorum.latex_engine.config.compilation import CompilationConfig
 
         # Test the helper function creates properly configured compiler
         compiler = create_latex_compiler()

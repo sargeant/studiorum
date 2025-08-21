@@ -6,8 +6,8 @@ from unittest.mock import Mock
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.models.content import BaseContent, ContentType, Source
-from dnd5e.core.text.tag_types import (
+from studiorum.core.models.content import BaseContent, ContentType, Source
+from studiorum.core.text.tag_types import (
     ContentReference,
     FormattingNode,
     FormatType,
@@ -440,7 +440,7 @@ class TestTagContext:
 
     def test_tag_context_creation(self) -> None:
         """Test creating TagContext."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         mock_omnidexer = Mock(spec=Omnidexer)
         context = TagContext(omnidexer=mock_omnidexer)
@@ -449,7 +449,7 @@ class TestTagContext:
 
     def test_tag_context_find_content_method(self) -> None:
         """Test find_content method."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         mock_omnidexer = Mock(spec=Omnidexer)
         mock_content = Mock(spec=BaseContent)
@@ -465,7 +465,7 @@ class TestTagContext:
 
     def test_tag_context_find_content_without_source(self) -> None:
         """Test find_content method without source."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         mock_omnidexer = Mock(spec=Omnidexer)
         mock_content = Mock(spec=BaseContent)
@@ -481,7 +481,7 @@ class TestTagContext:
 
     def test_tag_context_find_content_returns_none(self) -> None:
         """Test find_content method when content not found."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         mock_omnidexer = Mock(spec=Omnidexer)
         mock_omnidexer.find.return_value = None
@@ -495,7 +495,7 @@ class TestTagContext:
 
     def test_tag_context_mutable_config(self) -> None:
         """Test that TagContext allows field updates (needed for layout engine)."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         mock_omnidexer = Mock(spec=Omnidexer)
         context = TagContext(omnidexer=mock_omnidexer)
@@ -507,7 +507,7 @@ class TestTagContext:
 
     def test_tag_context_arbitrary_types_allowed(self) -> None:
         """Test that arbitrary types are allowed for omnidexer."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         # For this test, we need to create a proper mock that passes validation
         mock_omnidexer = Mock(spec=Omnidexer)

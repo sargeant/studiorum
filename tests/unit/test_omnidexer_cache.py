@@ -1,8 +1,8 @@
 """Tests for Omnidexer caching functionality."""
 
-from dnd5e.core.cache import CacheManager, get_cache
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.content import ContentType
+from studiorum.core.cache import CacheManager, get_cache
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment
 
 

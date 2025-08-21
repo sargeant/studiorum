@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.renderers.latex.compilation_config import (  # type: ignore
+from studiorum.renderers.latex.compilation_config import (  # type: ignore
     ENGINE_PACKAGE_COMPATIBILITY,
     CompilationConfig,
     CompilationMode,

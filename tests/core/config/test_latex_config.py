@@ -2,7 +2,7 @@
 
 import pytest
 
-from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
+from studiorum.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
 
 
 class TestLaTeXDocumentConfig:

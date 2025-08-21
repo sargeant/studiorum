@@ -2,9 +2,9 @@
 
 import pytest
 
-from dnd5e.cli.main import get_omnidexer
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from studiorum.cli.main import get_omnidexer
+from studiorum.core.models.content import ContentType
+from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 from tests.test_helpers import reset_test_environment
 
 # Tests converted to sync after async removal migration
@@ -19,7 +19,7 @@ class TestBookResolution:
         reset_test_environment()
 
         # Extra isolation for parallel execution
-        from dnd5e.core.container import reset_global_container
+        from studiorum.core.container import reset_global_container
 
         reset_global_container()
 

@@ -6,10 +6,10 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.core.models.content import ContentType  # type: ignore
-from dnd5e.renderers.base import RenderingError  # type: ignore
-from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex import (  # type: ignore
+from studiorum.core.models.content import ContentType  # type: ignore
+from studiorum.renderers.base import RenderingError  # type: ignore
+from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.latex import (  # type: ignore
     LaTeXDocumentRenderer,
     LaTeXTemplateEngine,
 )
@@ -342,7 +342,7 @@ class TestRendererIntegration:
         omnidexer = loaded_omnidexer
 
         # Create a mock content object of unknown type
-        from dnd5e.core.models.content import BaseContent, Source  # type: ignore
+        from studiorum.core.models.content import BaseContent, Source  # type: ignore
 
         unknown_content: Any = BaseContent(
             name="Unknown Content",

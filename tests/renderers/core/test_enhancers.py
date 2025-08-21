@@ -7,8 +7,8 @@ from unittest.mock import Mock, create_autospec
 
 import pytest
 
-from dnd5e.core.models.content import ContentType
-from dnd5e.renderers.core.enhancers import (
+from studiorum.core.models.content import ContentType
+from studiorum.renderers.core.enhancers import (
     CompositeEnhancer,
     ContentTrackerEnhancer,
     HyperlinkEnhancer,
@@ -17,7 +17,7 @@ from dnd5e.renderers.core.enhancers import (
     create_latex_enhancement_pipeline,
     create_plain_text_enhancement_pipeline,
 )
-from dnd5e.renderers.core.interfaces import (
+from studiorum.renderers.core.interfaces import (
     ContentReferenceInfo,
     FormatStyle,
     RenderingContext,

@@ -10,25 +10,25 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from dnd5e.core.context import AsyncRequestContext
-from dnd5e.core.error_types import ContentNotFoundError, ProcessingError
-from dnd5e.core.models.rule_types import Action, Condition
-from dnd5e.core.result import Error, Success
-from dnd5e.mcp.tools.rules import (
+from studiorum.core.context import AsyncRequestContext
+from studiorum.core.error_types import ContentNotFoundError, ProcessingError
+from studiorum.core.models.rule_types import Action, Condition
+from studiorum.core.result import Error, Success
+from studiorum.mcp.tools.rules import (
     find_rule_cross_references,
     get_rule_suggestions,
     search_rules_intelligent,
     validate_rule_combination,
 )
-from dnd5e.mcp.tools.rules.enhanced_cross_reference_manager import (
+from studiorum.mcp.tools.rules.enhanced_cross_reference_manager import (
     EnhancedCrossReferenceManager,
     RuleRelationship,
 )
-from dnd5e.mcp.tools.rules.rule_intelligence_service import (
+from studiorum.mcp.tools.rules.rule_intelligence_service import (
     RuleIntelligenceConfig,
     RuleIntelligenceService,
 )
-from dnd5e.mcp.tools.rules.rule_search_result import RuleSearchResult
+from studiorum.mcp.tools.rules.rule_search_result import RuleSearchResult
 
 
 class TestRulesIntelligence:
@@ -74,7 +74,7 @@ class TestRulesIntelligence:
     @pytest.fixture
     def sample_action(self) -> Action:
         """Create a sample action for testing."""
-        from dnd5e.core.models.content import Source
+        from studiorum.core.models.content import Source
 
         return Action(
             name="Attack",
@@ -86,7 +86,7 @@ class TestRulesIntelligence:
     @pytest.fixture
     def sample_condition(self) -> Condition:
         """Create a sample condition for testing."""
-        from dnd5e.core.models.content import Source
+        from studiorum.core.models.content import Source
 
         return Condition(
             name="Blinded",
@@ -227,7 +227,7 @@ class TestRulesIntelligence:
         self, mock_context: MagicMock
     ) -> None:
         """Test rule cross-reference discovery with invalid parameters."""
-        from dnd5e.core.error_types import MCPException
+        from studiorum.core.error_types import MCPException
 
         # Test empty rule_id
         with pytest.raises(MCPException) as exc_info:
@@ -283,7 +283,7 @@ class TestRulesIntelligence:
         self, mock_context: MagicMock
     ) -> None:
         """Test rule combination validation with invalid parameters."""
-        from dnd5e.core.error_types import MCPException
+        from studiorum.core.error_types import MCPException
 
         # Test empty rule_ids
         with pytest.raises(MCPException) as exc_info:
@@ -350,7 +350,7 @@ class TestRulesIntelligence:
         self, mock_context: MagicMock
     ) -> None:
         """Test intelligent rule search with invalid parameters."""
-        from dnd5e.core.error_types import MCPException
+        from studiorum.core.error_types import MCPException
 
         # Test empty query
         with pytest.raises(MCPException) as exc_info:
@@ -405,7 +405,7 @@ class TestRulesIntelligence:
         self, mock_context: MagicMock
     ) -> None:
         """Test rule suggestion generation with invalid parameters."""
-        from dnd5e.core.error_types import MCPException
+        from studiorum.core.error_types import MCPException
 
         # Test empty context
         with pytest.raises(MCPException) as exc_info:
@@ -482,7 +482,9 @@ class TestRulesIntelligence:
 
     def test_rule_search_result_creation(self) -> None:
         """Test RuleSearchResult creation and methods."""
-        from dnd5e.mcp.tools.rules.rule_search_result import create_rule_search_result
+        from studiorum.mcp.tools.rules.rule_search_result import (
+            create_rule_search_result,
+        )
 
         # Create sample content
         content = []
@@ -513,7 +515,7 @@ class TestRulesIntelligence:
     @pytest.mark.asyncio
     async def test_error_handling_in_tools(self, mock_context: MagicMock) -> None:
         """Test error handling in MCP tools."""
-        from dnd5e.core.error_types import MCPException
+        from studiorum.core.error_types import MCPException
 
         # Mock service to raise an exception
         with patch(

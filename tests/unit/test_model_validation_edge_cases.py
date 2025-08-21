@@ -6,15 +6,15 @@ that might cause validation issues.
 
 from typing import Any, cast
 
-from dnd5e.core.models.creatures import (  # type: ignore
+from studiorum.core.models.creatures import (  # type: ignore
     Ability,
     ArmorClass,
     Creature,
     CreatureType,
     HitPoints,
 )
-from dnd5e.core.models.items import Item  # type: ignore
-from dnd5e.core.models.spells import Spell  # type: ignore
+from studiorum.core.models.items import Item  # type: ignore
+from studiorum.core.models.spells import Spell  # type: ignore
 
 
 class TestModelValidationEdgeCases:
@@ -427,7 +427,7 @@ class TestModelValidationEdgeCases:
 
     def test_source_format_variations(self) -> None:
         """Test that various source formats are handled correctly."""
-        from dnd5e.core.models.content import Source  # type: ignore
+        from studiorum.core.models.content import Source  # type: ignore
 
         test_cases = [
             # String source

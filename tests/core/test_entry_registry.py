@@ -5,14 +5,14 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.core.entry_registry import (
+from studiorum.core.entry_registry import (
     EntryTypeCategory,
     EntryTypeRegistry,
     ValidationMode,
     get_registry,
     set_validation_mode,
 )
-from dnd5e.core.exceptions import (
+from studiorum.core.exceptions import (
     EntryProcessingWarning,
     EntryValidationError,
     MalformedEntryError,
@@ -102,7 +102,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_type_known(self):
         """Test validation of known entry types."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         # Test with ValidationContext (modern interface)
         context1 = ValidationContext(entry_data={}, entry_type="section")
@@ -117,7 +117,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_type_unknown_strict(self):
         """Test validation of unknown entry types in strict mode."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         strict_registry = EntryTypeRegistry(ValidationMode.STRICT)
 
@@ -131,7 +131,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_type_unknown_permissive(self):
         """Test validation of unknown entry types in permissive mode."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         context = ValidationContext(entry_data={}, entry_type="unknownType")
 
@@ -143,7 +143,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_type_unknown_silent(self):
         """Test validation of unknown entry types in silent mode."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         silent_registry = EntryTypeRegistry(ValidationMode.SILENT)
 
@@ -158,7 +158,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_type_with_context(self):
         """Test validation with full context information."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         entry = {"type": "unknownType", "name": "Test"}
 
@@ -179,7 +179,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_structure_string(self):
         """Test validation of string entries."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         context = ValidationContext(entry_data="Plain text entry")
         result = self.registry.validate_entry_structure(context)
@@ -190,7 +190,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_structure_dict(self):
         """Test validation of dict entries."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         entry = {"type": "section", "name": "Test Section"}
         context = ValidationContext(entry_data=entry)
@@ -202,7 +202,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_structure_invalid(self):
         """Test validation of invalid entry structures."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         context = ValidationContext(entry_data=123)
         result = self.registry.validate_entry_structure(context)
@@ -213,7 +213,7 @@ class TestEntryTypeRegistry:
 
     def test_reset_statistics(self):
         """Test statistics reset functionality."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         # Generate some statistics
         context1 = ValidationContext(entry_data={}, entry_type="section")
@@ -235,7 +235,7 @@ class TestEntryTypeRegistry:
     @patch("dnd5e.core.entry_registry.logger")
     def test_log_statistics(self, mock_logger):
         """Test statistics logging."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         # Generate some statistics
         context1 = ValidationContext(entry_data={}, entry_type="section")

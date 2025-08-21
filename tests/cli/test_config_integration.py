@@ -10,8 +10,8 @@ import typer
 import yaml
 from typer.testing import CliRunner
 
-from dnd5e.cli.main import app
-from dnd5e.core.config.unified_config import get_app_config, reset_app_config
+from studiorum.cli.main import app
+from studiorum.core.config.unified_config import get_app_config, reset_app_config
 
 
 class TestCLIConfigIntegration:

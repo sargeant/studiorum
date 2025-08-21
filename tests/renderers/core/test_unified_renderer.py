@@ -6,8 +6,8 @@ from unittest.mock import Mock, create_autospec
 
 import pytest
 
-from dnd5e.core.models.content import ContentType
-from dnd5e.renderers.core.interfaces import (
+from studiorum.core.models.content import ContentType
+from studiorum.renderers.core.interfaces import (
     ContentReferenceInfo,
     EnhancementConfiguration,
     EnhancementPipeline,
@@ -16,7 +16,7 @@ from dnd5e.renderers.core.interfaces import (
     TagHandler,
     UnifiedTagRenderer,
 )
-from dnd5e.renderers.core.unified_renderer import (
+from studiorum.renderers.core.unified_renderer import (
     AdaptiveRenderer,
     EnhancementPipelineBuilder,
     StandardUnifiedRenderer,
@@ -400,7 +400,7 @@ class TestEnhancementPipelineBuilder:
 
         composite = builder.build_composite()
 
-        from dnd5e.renderers.core.enhancers import CompositeEnhancer
+        from studiorum.renderers.core.enhancers import CompositeEnhancer
 
         assert isinstance(composite, CompositeEnhancer)
         assert composite.get_enhancement_priority() == 100  # Lowest priority

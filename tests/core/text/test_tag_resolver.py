@@ -3,16 +3,16 @@
 # Import the new tag system components
 from typing import Any
 
-from dnd5e.core.references.content_tracker import (  # type: ignore
+from studiorum.core.references.content_tracker import (  # type: ignore
     ContentTracker,
     TrackedContent,
 )
-from dnd5e.core.text.tag_ast import (  # type: ignore
+from studiorum.core.text.tag_ast import (  # type: ignore
     CreatureTagNode,
     TextNode,
 )
-from dnd5e.core.text.tag_parser import TagParser  # type: ignore
-from dnd5e.core.text.tag_resolver import TagResolver  # type: ignore
+from studiorum.core.text.tag_parser import TagParser  # type: ignore
+from studiorum.core.text.tag_resolver import TagResolver  # type: ignore
 
 
 class MockTagNode:
@@ -131,7 +131,7 @@ class TestTagParser:
         assert isinstance(ast.children[0], TextNode)
         assert ast.children[0].text == "Cast "
 
-        from dnd5e.core.text.tag_ast import SpellTagNode
+        from studiorum.core.text.tag_ast import SpellTagNode
 
         assert isinstance(ast.children[1], SpellTagNode)
         assert ast.children[1].name == "Fireball"

@@ -7,13 +7,13 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.cli.commands.convert import (
+from studiorum.cli.commands.convert import (
     _handle_resolution_result,
     resolve_content_or_file,
 )
-from dnd5e.core.models.adventures import Adventure
-from dnd5e.core.models.content import ContentType, Source
-from dnd5e.core.resolvers.content_resolver import (
+from studiorum.core.models.adventures import Adventure
+from studiorum.core.models.content import ContentType, Source
+from studiorum.core.resolvers.content_resolver import (
     ContentResolutionResult,
     ResolutionStatus,
 )

@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent, ContentType
-from dnd5e.core.registry.content_type_registry import ContentTypeMetadata
-from dnd5e.core.registry.registry_manager import RegistryManager
+from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.registry.content_type_registry import ContentTypeMetadata
+from studiorum.core.registry.registry_manager import RegistryManager
 
 
 class MockBaseContent(BaseContent):

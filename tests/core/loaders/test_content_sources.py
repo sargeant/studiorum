@@ -9,12 +9,12 @@ from unittest.mock import Mock, patch
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.errors.architecture_errors import (
+from studiorum.core.errors.architecture_errors import (
     ContentLoadingError,
     ContentSourceError,
     ContentValidationError,
 )
-from dnd5e.core.loaders.content_sources import (
+from studiorum.core.loaders.content_sources import (
     ContentLoader,
     ContentSource,
     ContentSourceMetadata,
@@ -28,7 +28,7 @@ from dnd5e.core.loaders.content_sources import (
     create_omnidexer_source,
     create_stdin_source,
 )
-from dnd5e.core.models.content import ContentType
+from studiorum.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment
 
 

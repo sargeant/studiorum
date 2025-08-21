@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from dnd5e.renderers.latex.error_parser import (  # type: ignore
+from studiorum.renderers.latex.error_parser import (  # type: ignore
     ErrorCategory,
     ErrorSeverity,
     LaTeXError,

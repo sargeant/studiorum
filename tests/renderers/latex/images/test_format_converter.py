@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.renderers.latex.images.format_converter import (
+from studiorum.renderers.latex.images.format_converter import (
     ConversionResult,
     FormatConverter,
 )

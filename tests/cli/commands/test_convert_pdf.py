@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 import typer
 
-from dnd5e.cli.commands.convert.shared import compile_pdf as _compile_pdf
+from studiorum.cli.commands.convert.shared import compile_pdf as _compile_pdf
 
 
 @pytest.mark.cli

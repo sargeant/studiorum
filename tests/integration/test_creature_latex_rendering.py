@@ -10,8 +10,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.creatures import Creature
-from dnd5e.renderers.latex.document import LaTeXDocumentRenderer
+from studiorum.core.models.creatures import Creature
+from studiorum.renderers.latex.document import LaTeXDocumentRenderer
 from tests.test_helpers import reset_test_environment
 
 

@@ -2,7 +2,7 @@
 
 import pytest
 
-from dnd5e.core.exceptions import (
+from studiorum.core.exceptions import (
     DnD5eError,
     EntryProcessingError,
     EntryProcessingWarning,

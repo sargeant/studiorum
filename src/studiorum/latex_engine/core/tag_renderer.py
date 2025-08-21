@@ -1,0 +1,340 @@
+"""LaTeX-specific tag rendering - handles formatting structured tag results."""
+
+from studiorum.core.latex_utils import escape_latex_text
+from studiorum.core.logging import get_logger
+from studiorum.core.models.content import ContentType
+from studiorum.core.text.tag_types import (
+    ContentReference,
+    FormattingNode,
+    FormatType,
+    SpecialTag,
+    TagResolutionResult,
+)
+
+logger = get_logger(__name__)
+
+
+class LaTeXTagRenderer:
+    """Renders structured tag resolution results to LaTeX-formatted strings.
+
+    This class handles the presentation layer - converting structured
+    objects into LaTeX commands and properly escaping text for LaTeX.
+    It knows nothing about content resolution or semantic meaning.
+    """
+
+    def __init__(self) -> None:
+        """Initialize the LaTeX renderer."""
+        pass
+
+    def render(self, result: TagResolutionResult) -> str:
+        """Render a tag resolution result to LaTeX-formatted string.
+
+        Args:
+            result: The structured result from semantic resolution
+
+        Returns:
+            LaTeX-formatted string
+        """
+        if isinstance(result, str):
+            return self._escape_latex(result)
+        elif isinstance(result, ContentReference):
+            return self._render_content_reference(result)
+        elif isinstance(result, FormattingNode):
+            return self._render_formatting_node(result)
+        elif isinstance(result, SpecialTag):
+            return self._render_special_tag(result)
+        else:
+            logger.warning(f"Unknown tag result type: {type(result)}")
+            return str(result)  # type: ignore[no-any-return]
+
+    def _render_content_reference(self, ref: ContentReference) -> str:
+        """Render a content reference with appropriate LaTeX formatting.
+
+        Different content types get different visual treatment:
+        - Creatures, classes, feats: bold
+        - Spells, items, conditions: italic
+        - Others: plain text with LaTeX escaping
+
+        For backward compatibility, only apply formatting if content was resolved.
+        """
+        display_text = ref.effective_name
+
+        # For backward compatibility: only format if content was actually resolved
+        if ref.is_resolved:
+            # Apply content-type specific formatting using string comparison (Phase 3 migration)
+            content_type_str = ref.content_type.value if ref.content_type else "unknown"
+            if content_type_str in ("creature", "class", "feat"):
+                formatted = f"\\textbf{{{self._escape_latex(display_text)}}}"
+            elif content_type_str in ("spell", "item"):
+                formatted = f"\\textit{{{self._escape_latex(display_text)}}}"
+            elif content_type_str in ("variantrule", "condition"):
+                # Use plain text for variantrule and condition - no italics
+                formatted = self._escape_latex(display_text)
+            else:
+                formatted = self._escape_latex(display_text)
+        else:
+            # Unresolved content: just return plain text (original behavior)
+            formatted = self._escape_latex(display_text)
+
+        # Add page reference if available (string-based comparison)
+        if ref.page:
+            content_type_str = ref.content_type.value if ref.content_type else "unknown"
+            if content_type_str == "adventure":
+                formatted += f" (p. {ref.page})"
+            elif content_type_str == "book":
+                formatted += f", p. {ref.page}"
+
+        return formatted
+
+    def _render_formatting_node(self, node: FormattingNode) -> str:
+        """Render a formatting node with appropriate LaTeX commands."""
+        # Special handling for bold D&D text - use small-caps instead
+        if node.format_type == FormatType.BOLD and self._is_dnd_text(node.content):
+            # Format D&D text for small-caps and escape manually without auto-transformation
+            formatted_text = self._format_dnd_text(node.content)
+            # Use basic LaTeX escaping without the D&D small-caps transformation
+            escaped_text = self._escape_latex_basic(formatted_text)
+            return f"\\textsc{{{escaped_text}}}"
+
+        # Check if content already contains LaTeX commands (from nested processing)
+        # If so, don't escape it to avoid double-escaping
+        if "\\" in node.content and any(
+            cmd in node.content
+            for cmd in ["\\textbf", "\\textit", "\\texttt", "\\emph"]
+        ):
+            # Content already contains LaTeX commands, use as-is
+            content = node.content
+        else:
+            # Regular text content, escape it
+            content = self._escape_latex(node.content)
+
+        if node.format_type == FormatType.BOLD:
+            return f"\\textbf{{{content}}}"
+        elif node.format_type == FormatType.ITALIC:
+            return f"\\textit{{{content}}}"
+        elif node.format_type == FormatType.MONOSPACE:
+            return f"\\texttt{{{content}}}"
+        elif node.format_type == FormatType.EMPHASIS:
+            return f"\\emph{{{content}}}"
+        else:
+            logger.warning(f"Unknown format type: {node.format_type}")
+            return content
+
+    def _render_special_tag(self, tag: SpecialTag) -> str:
+        """Render special tags with custom LaTeX formatting."""
+        if tag.tag_type == "hit":
+            # Attack bonus: +5
+            return f"+{tag.effective_value}"
+        elif tag.tag_type == "dc":
+            # Difficulty class: DC 15
+            return f"DC {tag.effective_value}"
+        elif tag.tag_type == "note":
+            # Notes in parentheses
+            return f"({self._escape_latex(tag.effective_value)})"
+        elif tag.tag_type == "chance":
+            # Percentage with escaped %
+            return f"{tag.effective_value}\\%"
+        elif tag.tag_type == "coinflip":
+            # Always 50%
+            return "50\\%"
+        elif tag.tag_type == "recharge":
+            # Recharge notation
+            return f"(Recharge {tag.effective_value})"
+        elif tag.tag_type == "dice":
+            # Dice expression: 1d8 + 2
+            return self._escape_latex(tag.effective_value)
+        elif tag.tag_type == "filter":
+            # Filter tags should render their display text in print documents
+            return self._escape_latex(tag.effective_value)
+        elif tag.tag_type == "loader":
+            # Loader tags are UI elements - omitted in print
+            return ""
+        else:
+            logger.debug(f"Unknown special tag type: {tag.tag_type}")
+            return self._escape_latex(tag.effective_value)
+
+    def _escape_latex(self, text: str) -> str:
+        """Escape special LaTeX characters and Unicode characters in text."""
+        return escape_latex_text(text)
+
+    def _escape_latex_basic(self, text: str) -> str:
+        """Escape LaTeX special characters without D&D small-caps transformation."""
+        if not text:
+            return ""
+
+        # LaTeX special characters (same as in latex_utils.py but without D&D transformation)
+        latex_chars = {
+            "{": "\\{",
+            "}": "\\}",
+            "$": "\\$",
+            "&": "\\&",
+            "%": "\\%",
+            "#": "\\#",
+            "^": "\\textasciicircum{}",
+            "_": "\\_",
+            "~": "\\textasciitilde{}",
+        }
+
+        result = text
+        for char, escape in latex_chars.items():
+            result = result.replace(char, escape)
+
+        # Unicode characters that need special handling in LaTeX
+        unicode_replacements = {
+            "—": "---",  # Em dash
+            "–": "--",  # En dash
+            """: "``",   # Left double quote
+            """: "''",  # Right double quote
+            "…": "\\ldots{}",  # Ellipsis
+            "°": "\\textdegree{}",  # Degree symbol
+            "©": "\\copyright{}",  # Copyright symbol
+            "®": "\\textregistered{}",  # Registered trademark
+            "™": "\\texttrademark{}",  # Trademark symbol
+        }
+
+        # Apply Unicode character replacements
+        for char, replacement in unicode_replacements.items():
+            result = result.replace(char, replacement)
+
+        return result
+
+    def _is_dnd_text(self, text: str) -> bool:
+        """Check if text is ONLY D&D references that should use small-caps."""
+        import re
+
+        # Strip and normalize whitespace
+        text = text.strip()
+
+        # Check if the ENTIRE text is just D&D references (case insensitive)
+        # Handle both escaped and unescaped ampersands
+        exact_patterns = [
+            r"^Dungeons\s*\\?&\s*Dragons$",  # Exactly "Dungeons & Dragons" or "Dungeons \& Dragons"
+            r"^D\\?&D$",  # Exactly "D&D" or "D\&D"
+        ]
+
+        for pattern in exact_patterns:
+            if re.search(pattern, text, flags=re.IGNORECASE):
+                return True
+
+        return False
+
+    def _format_dnd_text(self, text: str) -> str:
+        """Format D&D text for small-caps, ensuring proper case."""
+        import re
+
+        # Replace "Dungeons & Dragons" variants with proper case for small-caps
+        # Don't escape the ampersand here - let _escape_latex_basic handle it
+        text = re.sub(
+            r"^Dungeons\s*\\?&\s*Dragons$",
+            "Dungeons & Dragons",
+            text,
+            flags=re.IGNORECASE,
+        )
+
+        # Replace "D&D" variants with lowercase for better small-caps appearance
+        text = re.sub(r"^D\\?&D$", "d&d", text, flags=re.IGNORECASE)
+
+        return text
+
+
+class ContentTypeStyleConfig:
+    """Configuration for content type styling in LaTeX.
+
+    This allows customization of how different content types are rendered
+    without modifying the core renderer logic.
+    """
+
+    def __init__(self) -> None:
+        self.styles = self._build_dynamic_styles()
+
+    def _build_dynamic_styles(self) -> dict[ContentType, str]:
+        """Build style mappings from registry metadata (Phase 3 migration).
+
+        Returns:
+            Dictionary mapping ContentType enum instances to style strings
+        """
+        from studiorum.core.models.content import ContentType
+        from studiorum.core.registry.content_type_registry import (
+            get_content_type_registry,
+        )
+
+        # Default styles for known content types
+        default_styles = {
+            "creature": "bold",
+            "class": "bold",
+            "feat": "bold",
+            "spell": "italic",
+            "item": "italic",
+            "background": "plain",
+            "race": "plain",
+            "adventure": "plain",
+            "book": "plain",
+        }
+
+        # Build style mapping with ContentType keys
+        styles: dict[ContentType, str] = {}
+
+        try:
+            registry = get_content_type_registry()
+            for enum_value, metadata in registry.get_all().items():
+                try:
+                    # Use ContentType constructor for safe validation (Phase 3 pattern)
+                    content_type = ContentType(enum_value)
+                    style = default_styles.get(enum_value, "plain")
+                    styles[content_type] = style
+
+                except ValueError:
+                    # Skip test-only registrations that aren't valid enum members
+                    continue
+
+        except ImportError:
+            # Registry not available, use defaults with enum conversion
+            for content_type_str, style in default_styles.items():
+                try:
+                    content_type = ContentType(content_type_str)
+                    styles[content_type] = style
+                except ValueError:
+                    continue
+
+        return styles
+
+    def get_style(self, content_type: ContentType) -> str:
+        """Get the style for a content type."""
+        return self.styles.get(content_type, "plain")
+
+    def set_style(self, content_type: ContentType, style: str) -> None:
+        """Set the style for a content type."""
+        if style not in ("bold", "italic", "plain"):
+            raise ValueError(f"Unknown style: {style}")
+        self.styles[content_type] = style
+
+
+class ConfigurableLaTeXTagRenderer(LaTeXTagRenderer):
+    """LaTeX renderer with configurable content type styling."""
+
+    def __init__(self, style_config: ContentTypeStyleConfig | None = None):
+        super().__init__()
+        self.style_config = style_config or ContentTypeStyleConfig()
+
+    def _render_content_reference(self, ref: ContentReference) -> str:
+        """Render content reference using configurable styling."""
+        display_text = ref.effective_name
+        style = self.style_config.get_style(ref.content_type)
+
+        # Apply style based on configuration
+        if style == "bold":
+            formatted = f"\\textbf{{{self._escape_latex(display_text)}}}"
+        elif style == "italic":
+            formatted = f"\\textit{{{self._escape_latex(display_text)}}}"
+        else:  # plain
+            formatted = self._escape_latex(display_text)
+
+        # Add page reference if available, and not 1 (string-based comparison)
+        if ref.page and ref.page != "1":
+            content_type_str = ref.content_type.value if ref.content_type else "unknown"
+            if content_type_str == "adventure":
+                formatted += f" (p. {ref.page})"
+            elif content_type_str == "book":
+                formatted += f", p. {ref.page}"
+
+        return formatted

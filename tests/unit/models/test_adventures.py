@@ -6,9 +6,9 @@ import pytest
 from logfire.testing import CaptureLogfire
 from pydantic import ValidationError
 
-from dnd5e.core.models.adventures import Adventure, AdventureMetadata
-from dnd5e.core.models.chapter import Chapter
-from dnd5e.core.models.content import Source
+from studiorum.core.models.adventures import Adventure, AdventureMetadata
+from studiorum.core.models.chapter import Chapter
+from studiorum.core.models.content import Source
 
 
 class TestAdventureMetadata:

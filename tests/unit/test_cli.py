@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.main import app  # type: ignore
+from studiorum.cli.main import app  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 
@@ -214,26 +214,26 @@ class TestCacheSystem:
         # Reset global state for complete isolation
         reset_test_environment()
 
-        from dnd5e.core.cache import CacheManager
+        from studiorum.core.cache import CacheManager
 
         CacheManager.clear()
 
     def teardown_method(self) -> None:
         """Tear down test fixtures and clear the cache."""
-        from dnd5e.core.cache import CacheManager
+        from studiorum.core.cache import CacheManager
 
         CacheManager.clear()
 
     def test_cache_creation(self) -> None:
         """Test that the cache directory is created."""
-        from dnd5e.core.cache import CACHE_DIR, get_cache
+        from studiorum.core.cache import CACHE_DIR, get_cache
 
         get_cache()
         assert CACHE_DIR.exists()
 
     def test_cache_set_get(self) -> None:
         """Test basic cache operations."""
-        from dnd5e.core.cache import get_cache
+        from studiorum.core.cache import get_cache
 
         cache = get_cache()
         cache.set("test_key", "test_value")
@@ -244,7 +244,7 @@ class TestCacheSystem:
 
     def test_cache_clear(self) -> None:
         """Test cache clearing."""
-        from dnd5e.core.cache import get_cache
+        from studiorum.core.cache import get_cache
 
         cache = get_cache()
         cache.set("key1", "value1")
@@ -255,7 +255,7 @@ class TestCacheSystem:
 
     def test_cache_stats(self) -> None:
         """Test cache statistics."""
-        from dnd5e.core.cache import CacheManager, get_cache
+        from studiorum.core.cache import CacheManager, get_cache
 
         cache = get_cache()
         cache.set("test_key", "test_value")
@@ -266,7 +266,7 @@ class TestCacheSystem:
 
     def test_cached_decorator(self) -> None:
         """Test cached function decorator."""
-        from dnd5e.core.cache import cached
+        from studiorum.core.cache import cached
 
         call_count = 0
 

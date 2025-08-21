@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.main import app
+from studiorum.cli.main import app
 from tests.test_helpers import reset_test_environment
 
 

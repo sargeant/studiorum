@@ -5,12 +5,12 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent, Source  # type: ignore
-from dnd5e.core.models.document_metadata import (  # type: ignore
+from studiorum.core.models.content import BaseContent, Source  # type: ignore
+from studiorum.core.models.document_metadata import (  # type: ignore
     DocumentType,
     SectionLevel,
 )
-from dnd5e.renderers.latex.content_organizer import ContentOrganizer  # type: ignore
+from studiorum.renderers.latex.content_organizer import ContentOrganizer  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 
@@ -190,15 +190,21 @@ class TestContentOrganizer:
 
             def side_effect(content: Any) -> Any:
                 if isinstance(content, MockSpell):
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
                     return ContentType("spell")
                 elif isinstance(content, MockCreature):
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
                     return ContentType("creature")
                 elif isinstance(content, MockItem):
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
                     return ContentType("item")
                 else:
@@ -241,7 +247,7 @@ class TestContentOrganizer:
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
-                from dnd5e.core.models.content import ContentType  # type: ignore
+                from studiorum.core.models.content import ContentType  # type: ignore
 
                 return ContentType(content._content_type)
 
@@ -415,7 +421,7 @@ class TestContentOrganizer:
 
     def test_create_table_of_contents_data(self) -> None:
         """Test creation of table of contents data."""
-        from dnd5e.core.models.document_metadata import (  # type: ignore
+        from studiorum.core.models.document_metadata import (  # type: ignore
             ContentSection,
             SectionLevel,
         )
@@ -482,7 +488,7 @@ class TestContentOrganizerIntegration:
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
-                from dnd5e.core.models.content import ContentType  # type: ignore
+                from studiorum.core.models.content import ContentType  # type: ignore
 
                 if isinstance(content, MockSpell):
                     return ContentType("spell")
@@ -528,7 +534,7 @@ class TestContentOrganizerIntegration:
         with patch(
             "dnd5e.renderers.latex.content_organizer.ContentType.from_content"
         ) as mock_from_content:
-            from dnd5e.core.models.content import ContentType  # type: ignore
+            from studiorum.core.models.content import ContentType  # type: ignore
 
             mock_from_content.return_value = ContentType("spell")
 

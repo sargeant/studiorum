@@ -8,9 +8,9 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.main import app
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.text.tag_resolver import TagResolver
+from studiorum.cli.main import app
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.text.tag_resolver import TagResolver
 from tests.test_helpers import reset_test_environment
 
 
@@ -125,8 +125,8 @@ class TestConvertAdventureCommand:
     ):
         """Test converting adventure from abbreviation."""
         # Create a proper Adventure instance instead of Mock
-        from dnd5e.core.models.adventures import Adventure
-        from dnd5e.core.models.content import Source
+        from studiorum.core.models.adventures import Adventure
+        from studiorum.core.models.content import Source
 
         mock_adventure = Adventure(
             name="Test Adventure",
@@ -242,7 +242,7 @@ class TestConvertAdventureCommand:
 
         # Mock failed resolution
         mock_resolver = Mock()
-        from dnd5e.core.resolvers.content_resolver import (
+        from studiorum.core.resolvers.content_resolver import (
             ContentResolutionResult,
             ResolutionStatus,
         )

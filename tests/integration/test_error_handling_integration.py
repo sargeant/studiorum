@@ -11,8 +11,8 @@ import pytest
 from logfire.testing import CaptureLogfire
 from pydantic import BaseModel, Field
 
-from dnd5e.core.entry_validation import StandardizedEntryValidator
-from dnd5e.core.error_types import (
+from studiorum.core.entry_validation import StandardizedEntryValidator
+from studiorum.core.error_types import (
     ErrorCategory,
     ErrorSeverity,
     ProcessingError,
@@ -20,9 +20,9 @@ from dnd5e.core.error_types import (
     create_processing_error,
     create_validation_error,
 )
-from dnd5e.core.logging import get_logger
-from dnd5e.core.model_validation import validate_model, validate_required_field
-from dnd5e.core.result import Error, Result, Success, collect_results, try_result
+from studiorum.core.logging import get_logger
+from studiorum.core.model_validation import validate_model, validate_required_field
+from studiorum.core.result import Error, Result, Success, collect_results, try_result
 from tests.test_helpers import reset_test_environment
 
 

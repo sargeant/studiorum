@@ -8,11 +8,11 @@ from unittest.mock import Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.main import app
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.books import Book
-from dnd5e.core.models.content import Source
-from dnd5e.core.text.tag_resolver import TagResolver
+from studiorum.cli.main import app
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.books import Book
+from studiorum.core.models.content import Source
+from studiorum.core.text.tag_resolver import TagResolver
 from tests.test_helpers import reset_test_environment
 
 

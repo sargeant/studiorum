@@ -6,14 +6,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from dnd5e.cli.commands.convert.compendiums.creatures import (
+from studiorum.cli.commands.convert.compendiums.creatures import (
     _combine_bestiary_and_appendix,
     creatures as convert_creatures,
 )
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.models.spells import Spell
-from dnd5e.core.references.content_tracker import ContentTracker
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.creatures import Creature
+from studiorum.core.models.spells import Spell
+from studiorum.core.references.content_tracker import ContentTracker
 from tests.test_helpers import reset_test_environment
 
 

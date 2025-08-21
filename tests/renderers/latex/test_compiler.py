@@ -7,13 +7,13 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.renderers.latex.compilation_config import (  # type: ignore
+from studiorum.renderers.latex.compilation_config import (  # type: ignore
     CompilationConfig,
     CompilationMode,
     CompilationResult,
     LaTeXEngine,
 )
-from dnd5e.renderers.latex.compiler import LaTeXCompiler  # type: ignore
+from studiorum.renderers.latex.compiler import LaTeXCompiler  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 # Ensure async tests work properly
@@ -362,7 +362,7 @@ Hello World
 
     def test_analyze_compilation_errors(self) -> None:
         """Test compilation error analysis."""
-        from dnd5e.renderers.latex.compilation_config import (
+        from studiorum.renderers.latex.compilation_config import (
             CompilationPass,  # type: ignore
         )
 
@@ -386,7 +386,7 @@ Hello World
 
     def test_analyze_compilation_errors_timeout(self) -> None:
         """Test compilation error analysis for timeout."""
-        from dnd5e.renderers.latex.compilation_config import (
+        from studiorum.renderers.latex.compilation_config import (
             CompilationPass,  # type: ignore
         )
 
@@ -406,7 +406,7 @@ Hello World
 
         # Should detect timeout
         error_categories = [error.category for error in errors]
-        from dnd5e.renderers.latex.error_parser import ErrorCategory  # type: ignore
+        from studiorum.renderers.latex.error_parser import ErrorCategory  # type: ignore
 
         assert ErrorCategory.TIMEOUT_ERROR in error_categories
 

@@ -5,8 +5,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent, Source  # type: ignore
-from dnd5e.core.models.document_metadata import (  # type: ignore
+from studiorum.core.models.content import BaseContent, Source  # type: ignore
+from studiorum.core.models.document_metadata import (  # type: ignore
     ContentSection,
     DocumentAuthor,
     DocumentMetadata,
@@ -14,8 +14,8 @@ from dnd5e.core.models.document_metadata import (  # type: ignore
     DocumentType,
     SectionLevel,
 )
-from dnd5e.renderers.core.interfaces import RenderingContext  # type: ignore
-from dnd5e.renderers.latex.document_structure import (
+from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
+from studiorum.renderers.latex.document_structure import (
     DocumentStructureBuilder,  # type: ignore
 )
 from tests.test_helpers import reset_test_environment
@@ -237,15 +237,21 @@ class TestDocumentStructureBuilder:
 
             def side_effect(content: Any) -> Any:
                 if content._content_type == "spell":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
                     return ContentType("spell")
                 elif content._content_type == "creature":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
                     return ContentType("creature")
                 elif content._content_type == "item":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
                     return ContentType("item")
                 else:
@@ -306,15 +312,21 @@ class TestDocumentStructureBuilder:
 
             def side_effect(content: Any) -> Any:
                 if content._content_type == "spell":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
                     return ContentType("spell")
                 elif content._content_type == "creature":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
                     return ContentType("creature")
                 elif content._content_type == "item":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
                     return ContentType("item")
                 else:

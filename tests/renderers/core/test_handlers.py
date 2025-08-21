@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 
-from dnd5e.core.models.content import ContentType
-from dnd5e.renderers.core.handlers import (
+from studiorum.core.models.content import ContentType
+from studiorum.renderers.core.handlers import (
     AdventureTagHandler,
     BackgroundTagHandler,
     BaseTagHandler,
@@ -19,7 +19,7 @@ from dnd5e.renderers.core.handlers import (
     SpellTagHandler,
     get_default_core_handlers,
 )
-from dnd5e.renderers.core.interfaces import (
+from studiorum.renderers.core.interfaces import (
     FormatStyle,
     RenderingContext,
     TagValidationError,

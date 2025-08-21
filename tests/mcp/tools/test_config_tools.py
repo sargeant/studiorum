@@ -26,7 +26,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.config.unified_config import (
+from studiorum.core.config.unified_config import (
     ApplicationConfig,
     CompilationConfig,
     ContentConfig,
@@ -40,16 +40,16 @@ from dnd5e.core.config.unified_config import (
     RenderingConfig,
     ValidationConfig,
 )
-from dnd5e.core.context import AsyncRequestContext
-from dnd5e.core.error_types import (
+from studiorum.core.context import AsyncRequestContext
+from studiorum.core.error_types import (
     ConfigurationError,
     ErrorCategory,
     MCPError,
     MCPErrorCode,
     ValidationError as DnDValidationError,
 )
-from dnd5e.core.result import Error, Result, Success
-from dnd5e.mcp.tools.config import (
+from studiorum.core.result import Error, Result, Success
+from studiorum.mcp.tools.config import (
     ConfigurationResponse,
     PresetInfo,
     _ensure_presets_dir,

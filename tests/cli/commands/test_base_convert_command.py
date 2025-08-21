@@ -5,13 +5,13 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.cli.commands.convert.base import (
+from studiorum.cli.commands.convert.base import (
     AppendixMixin,
     BaseConvertCommand,
     LaTeXMixin,
 )
-from dnd5e.core.errors.architecture_errors import ConfigurationError
-from dnd5e.core.result import Success
+from studiorum.core.errors.architecture_errors import ConfigurationError
+from studiorum.core.result import Success
 from tests.test_helpers import reset_test_environment
 
 
@@ -182,7 +182,7 @@ class TestBaseConvertCommand:
 
                 assert loader == mock_loader
                 # Check that the content type is converted to ContentType enum
-                from dnd5e.core.models.content import ContentType
+                from studiorum.core.models.content import ContentType
 
                 expected_content_type = ContentType.SPELL
                 # The method receives the Success result, not the unwrapped omnidexer

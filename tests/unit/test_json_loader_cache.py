@@ -6,9 +6,9 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.core.cache import CacheManager, get_cache
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.models.content import ContentType
+from studiorum.core.cache import CacheManager, get_cache
+from studiorum.core.loaders.json_loader import JsonDataLoader
+from studiorum.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment
 
 

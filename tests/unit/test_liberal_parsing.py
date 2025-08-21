@@ -11,12 +11,12 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.loaders.fluff_loader import FluffDataLoader  # type: ignore
-from dnd5e.core.loaders.json_loader import JsonDataLoader  # type: ignore
-from dnd5e.core.models.content import ContentType  # type: ignore
-from dnd5e.core.models.creatures import Creature  # type: ignore
-from dnd5e.core.models.items import Item  # type: ignore
-from dnd5e.core.models.spells import Spell  # type: ignore
+from studiorum.core.loaders.fluff_loader import FluffDataLoader  # type: ignore
+from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
+from studiorum.core.models.content import ContentType  # type: ignore
+from studiorum.core.models.creatures import Creature  # type: ignore
+from studiorum.core.models.items import Item  # type: ignore
+from studiorum.core.models.spells import Spell  # type: ignore
 
 # Import test helpers
 from tests.test_helpers import reset_test_environment
@@ -379,7 +379,7 @@ class TestLiberalParsing:
             ],
         }
 
-        from dnd5e.core.models.creatures import Ability  # type: ignore
+        from studiorum.core.models.creatures import Ability  # type: ignore
 
         ability = Ability.model_validate(complex_ability_data)
 
@@ -456,7 +456,7 @@ class TestLiberalParsing:
             "tags": None,
         }
 
-        from dnd5e.core.models.creatures import CreatureType  # type: ignore
+        from studiorum.core.models.creatures import CreatureType  # type: ignore
 
         creature_type = CreatureType.model_validate(choice_type_data)
 
@@ -506,7 +506,7 @@ class TestLiberalParsing:
             "special": "5 + five times your level (the homunculus has a number of Hit Dice equal to your level)"
         }
 
-        from dnd5e.core.models.creatures import HitPoints  # type: ignore
+        from studiorum.core.models.creatures import HitPoints  # type: ignore
 
         hp = HitPoints.model_validate(special_hp_data)
         assert "5 + five times your level" in str(hp)
@@ -514,7 +514,7 @@ class TestLiberalParsing:
         # Test special AC format
         special_ac_data = {"special": "11 + the level of the spell (natural armor)"}
 
-        from dnd5e.core.models.creatures import ArmorClass  # type: ignore
+        from studiorum.core.models.creatures import ArmorClass  # type: ignore
 
         ac = ArmorClass.model_validate(special_ac_data)
         assert "11 + the level of the spell" in str(ac)

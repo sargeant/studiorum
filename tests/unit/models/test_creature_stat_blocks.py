@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.creatures import (
+from studiorum.core.models.creatures import (
     Ability,
     ArmorClass,
     Creature,

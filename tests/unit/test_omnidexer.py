@@ -5,15 +5,17 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.loaders.json_loader import JsonDataLoader  # type: ignore
-from dnd5e.core.loaders.omnidexer import IndexEntry, Omnidexer  # type: ignore
-from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
-from dnd5e.core.models.classes import (  # type: ignore
+from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
+from studiorum.core.loaders.omnidexer import IndexEntry, Omnidexer  # type: ignore
+from studiorum.core.loaders.source_manager import (
+    FileSystemSourceManager,  # type: ignore
+)
+from studiorum.core.models.classes import (  # type: ignore
     Class,
     ClassFeature,
     SubclassFeature,
 )
-from dnd5e.core.models.content import ContentType  # type: ignore
+from studiorum.core.models.content import ContentType  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 
@@ -425,10 +427,10 @@ class TestOmnidexerMetadataOnlyLoading:
         """Test that omnidexer only loads metadata files, not content files."""
         from unittest.mock import Mock, patch
 
-        from dnd5e.core.loaders.configurable_source_manager import (
+        from studiorum.core.loaders.configurable_source_manager import (
             ConfigurableSourceManager,
         )
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         # Create test files
         files = [
@@ -478,7 +480,7 @@ class TestOmnidexerMetadataOnlyLoading:
         """Test that omnidexer can distinguish between metadata and content files."""
         from unittest.mock import Mock, patch
 
-        from dnd5e.core.loaders.configurable_source_manager import (
+        from studiorum.core.loaders.configurable_source_manager import (
             ConfigurableSourceManager,
         )
 
@@ -493,7 +495,7 @@ class TestOmnidexerMetadataOnlyLoading:
 
         with patch.object(ConfigurableSourceManager, "__init__", return_value=None):
             # Mock content patterns to prevent initialization requirement
-            from dnd5e.core.models.content import ContentType
+            from studiorum.core.models.content import ContentType
 
             mock_content_patterns = {
                 self._get_content_type("adventure"): ["adventures", "adventure-"],

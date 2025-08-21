@@ -9,9 +9,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.config.unified_config import ApplicationConfig
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.models.content import ContentType
+from studiorum.core.config.unified_config import ApplicationConfig
+from studiorum.core.loaders.json_loader import JsonDataLoader
+from studiorum.core.models.content import ContentType
 
 
 class TestValidationErrorDeduplication:
@@ -52,7 +52,7 @@ class TestValidationErrorDeduplication:
         self, sample_validation_error: ValidationError
     ) -> None:
         """Test that identical validation errors are deduplicated."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
         context = {"file": "test.json", "item_name": "test_item"}
@@ -68,7 +68,7 @@ class TestValidationErrorDeduplication:
         self, sample_validation_error: ValidationError
     ) -> None:
         """Test that identical errors from different files are still deduplicated."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
         context1 = {"file": "test1.json", "item_name": "test_item"}
@@ -95,7 +95,7 @@ class TestValidationErrorDeduplication:
         self, sample_validation_error: ValidationError
     ) -> None:
         """Test that different validation errors are not deduplicated."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
         context = {"file": "test.json", "item_name": "test_item"}
@@ -128,7 +128,7 @@ class TestValidationErrorDeduplication:
         self, sample_validation_error: ValidationError
     ) -> None:
         """Test that error summary includes occurrence counts."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
         context = {"file": "test.json", "item_name": "test_item"}
@@ -160,7 +160,7 @@ class TestValidationStrictnessConfiguration:
 
     def test_validation_strictness_levels(self) -> None:
         """Test different validation strictness levels."""
-        from dnd5e.core.validation.strictness import ValidationStrictness
+        from studiorum.core.validation.strictness import ValidationStrictness
 
         # Test that all expected levels exist
         assert ValidationStrictness.STRICT in ValidationStrictness
@@ -326,7 +326,7 @@ class TestValidationErrorMessages:
 
     def test_error_message_includes_context(self) -> None:
         """Test that error messages include contextual information."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
 
@@ -358,7 +358,7 @@ class TestValidationErrorMessages:
 
     def test_error_message_includes_suggested_fixes(self) -> None:
         """Test that error messages include suggested fixes for common issues."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
 
@@ -384,7 +384,7 @@ class TestValidationErrorMessages:
 
     def test_error_categorization(self) -> None:
         """Test that errors are properly categorized."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
 
@@ -426,7 +426,7 @@ class TestPerformanceImpact:
         """Test that error tracker performs well with many duplicate errors."""
         import time
 
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
 
@@ -470,7 +470,7 @@ class TestPerformanceImpact:
 
     def test_hash_collision_handling(self) -> None:
         """Test that the system handles potential hash collisions gracefully."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
 

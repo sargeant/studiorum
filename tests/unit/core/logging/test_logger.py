@@ -10,7 +10,7 @@ from unittest.mock import patch
 import pytest
 from logfire import LogfireLoggingHandler
 
-from dnd5e.core.logging.logger import get_logger, setup_logging  # type: ignore
+from studiorum.core.logging.logger import get_logger, setup_logging  # type: ignore
 
 
 @pytest.fixture(autouse=True)
@@ -21,7 +21,7 @@ def reset_logging() -> Generator[None, None, None]:
     original_level = root_logger.level
 
     # Reset the DND5ELogger state for testing
-    from dnd5e.core.logging.logger import DND5ELogger
+    from studiorum.core.logging.logger import DND5ELogger
 
     original_initialized = DND5ELogger._initialized
     DND5ELogger._initialized = False
@@ -55,7 +55,7 @@ def test_setup_logging_sets_level() -> None:
     assert logging.getLogger().level == logging.DEBUG
 
     # Reset for the next test
-    from dnd5e.core.logging.logger import DND5ELogger
+    from studiorum.core.logging.logger import DND5ELogger
 
     DND5ELogger._initialized = False
     logging.getLogger().handlers.clear()

@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.renderers.latex.dnd_template import (  # type: ignore
+from studiorum.renderers.latex.dnd_template import (  # type: ignore
     DNDTemplateManager,
     check_dnd_template_status,
     get_dnd_document_class_options,

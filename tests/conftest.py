@@ -6,19 +6,21 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.config.sources import (  # type: ignore
+from studiorum.core.config.sources import (  # type: ignore
     ContentConfiguration,
     ContentSource,
     SourceType,
 )
-from dnd5e.core.loaders.configurable_source_manager import (
+from studiorum.core.loaders.configurable_source_manager import (
     ConfigurableSourceManager,  # type: ignore
 )
-from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
-from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
-from dnd5e.core.models.creatures import Creature  # type: ignore
-from dnd5e.core.models.spells import Spell  # type: ignore
-from dnd5e.core.text.tag_resolver import TagResolver  # type: ignore
+from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
+from studiorum.core.loaders.source_manager import (
+    FileSystemSourceManager,  # type: ignore
+)
+from studiorum.core.models.creatures import Creature  # type: ignore
+from studiorum.core.models.spells import Spell  # type: ignore
+from studiorum.core.text.tag_resolver import TagResolver  # type: ignore
 
 # Import the test helper for consistent setup
 from tests.test_helpers import reset_test_environment, setup_test_with_registry
@@ -286,7 +288,7 @@ def test_data_omnidexer() -> Omnidexer:
     reset_test_environment()
 
     # CRITICAL: Force a fresh service container for each test to avoid parallel contamination
-    from dnd5e.core.container import reset_global_container
+    from studiorum.core.container import reset_global_container
 
     reset_global_container()
 
@@ -294,7 +296,7 @@ def test_data_omnidexer() -> Omnidexer:
     os.environ["DND5E_CONFIG_FILE"] = "test-config.yaml"
 
     # Get omnidexer from the DI container
-    from dnd5e.core.container import get_global_container
+    from studiorum.core.container import get_global_container
 
     container = get_global_container()
     omnidexer_result = container.get_omnidexer()

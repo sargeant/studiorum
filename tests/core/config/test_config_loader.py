@@ -8,8 +8,8 @@ from typing import Any
 import pytest
 import yaml
 
-from dnd5e.core.config.loader import ConfigLoader, ConfigValidationError
-from dnd5e.core.config.unified_config import ApplicationConfig, MCPConfig
+from studiorum.core.config.loader import ConfigLoader, ConfigValidationError
+from studiorum.core.config.unified_config import ApplicationConfig, MCPConfig
 
 
 class TestConfigLoader:

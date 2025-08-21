@@ -11,10 +11,10 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.services.creature_collector import CreatureCollector
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
+from studiorum.core.models.creatures import Creature
+from studiorum.core.services.creature_collector import CreatureCollector
 from tests.test_helpers import reset_test_environment
 
 
@@ -345,7 +345,7 @@ class TestCreatureRealDataPerformanceBenchmarks:
 
     def test_real_data_filtering_performance_by_complexity(self):
         """Test filtering performance based on creature complexity."""
-        from dnd5e.core.models.creature_filters import CreatureFilterCriteria
+        from studiorum.core.models.creature_filters import CreatureFilterCriteria
 
         collector = CreatureCollector(self.omnidexer)
 

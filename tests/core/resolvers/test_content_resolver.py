@@ -4,10 +4,10 @@ from unittest.mock import Mock
 
 import pytest
 
-from dnd5e.core.models.adventures import Adventure
-from dnd5e.core.models.books import Book
-from dnd5e.core.models.content import ContentType, Source
-from dnd5e.core.resolvers.content_resolver import (
+from studiorum.core.models.adventures import Adventure
+from studiorum.core.models.books import Book
+from studiorum.core.models.content import ContentType, Source
+from studiorum.core.resolvers.content_resolver import (
     ContentResolutionResult,
     ContentResolver,
     ResolutionStatus,

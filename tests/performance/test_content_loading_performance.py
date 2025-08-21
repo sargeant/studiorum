@@ -10,9 +10,9 @@ import time
 
 import pytest
 
-from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.resolvers.content_resolver import ContentResolver
+from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.resolvers.content_resolver import ContentResolver
 
 # Tests converted to sync after async removal migration
 

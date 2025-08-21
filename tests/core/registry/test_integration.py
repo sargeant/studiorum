@@ -4,8 +4,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent, ContentType
-from dnd5e.core.registry import content_type, initialize_content_types
+from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.registry import content_type, initialize_content_types
 
 
 class TestRegistryIntegration:
@@ -20,7 +20,7 @@ class TestRegistryIntegration:
     def test_content_type_decorator_registers_successfully(self):
         """Test that content type decorator works end-to-end."""
         # Test the decorator mechanism without polluting the global registry
-        from dnd5e.core.registry.content_type_registry import ContentTypeMetadata
+        from studiorum.core.registry.content_type_registry import ContentTypeMetadata
 
         class TestIntegrationContent(BaseContent):
             description: str = "Test content for integration"
@@ -58,7 +58,9 @@ class TestRegistryIntegration:
         """Test that registry finalization works without errors."""
         # Test finalization using the real registry with real content types
         # This avoids polluting the global registry with fake test types
-        from dnd5e.core.registry.content_type_registry import get_content_type_registry
+        from studiorum.core.registry.content_type_registry import (
+            get_content_type_registry,
+        )
 
         registry = get_content_type_registry()
 
@@ -73,7 +75,7 @@ class TestRegistryIntegration:
 
     def test_fallback_behavior_when_registry_not_finalized(self):
         """Test that systems work with fallback behavior when registry not finalized."""
-        from dnd5e.core.loaders.configurable_source_manager import (
+        from studiorum.core.loaders.configurable_source_manager import (
             ConfigurableSourceManager,
         )
 
@@ -89,7 +91,7 @@ class TestRegistryIntegration:
     def test_multiple_content_types_registration(self):
         """Test registering multiple content types simultaneously."""
         # Instead of creating fake registrations, let's test with a mock registry
-        from dnd5e.core.registry.content_type_registry import ContentTypeMetadata
+        from studiorum.core.registry.content_type_registry import ContentTypeMetadata
 
         class TestMulti1Content(BaseContent):
             pass

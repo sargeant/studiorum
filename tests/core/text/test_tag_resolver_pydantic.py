@@ -7,9 +7,9 @@ from unittest.mock import Mock, patch
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.text.tag_parser import TagParseError, TagParser
-from dnd5e.core.text.tag_resolver import TagResolver
-from dnd5e.renderers.core.unified_renderer import StandardUnifiedRenderer
+from studiorum.core.text.tag_parser import TagParseError, TagParser
+from studiorum.core.text.tag_resolver import TagResolver
+from studiorum.renderers.core.unified_renderer import StandardUnifiedRenderer
 
 
 class TestTagResolver:

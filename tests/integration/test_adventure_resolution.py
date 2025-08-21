@@ -8,11 +8,11 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.loaders import FileSystemSourceManager, Omnidexer
-from dnd5e.core.loaders.base import SourceManager
-from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from studiorum.core.loaders import FileSystemSourceManager, Omnidexer
+from studiorum.core.loaders.base import SourceManager
+from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
+from studiorum.core.models.content import ContentType
+from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 from tests.test_helpers import reset_test_environment
 
 # Test uses sync methods only
@@ -27,7 +27,7 @@ class TestSourceManager(SourceManager):
     def get_data_paths(self) -> dict[ContentType, list[Path]]:
         """Return paths to metadata files only."""
         # Ensure registry is initialized before using ContentType
-        from dnd5e.core.registry import initialize_content_types
+        from studiorum.core.registry import initialize_content_types
 
         initialize_content_types()
 

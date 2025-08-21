@@ -58,7 +58,7 @@ Repository = "https://github.com/sargeant/studiorum"
 "Bug Tracker" = "https://github.com/sargeant/studiorum/issues"
 
 [project.scripts]
-studiorum = "dnd5e.cli.main:app"
+studiorum = "studiorum.cli.main:app"
 
 [project.optional-dependencies]
 docs = [

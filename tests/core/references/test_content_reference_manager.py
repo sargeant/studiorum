@@ -4,15 +4,15 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.interfaces import DeepIndexable
-from dnd5e.core.models.content import BaseContent, ContentType
-from dnd5e.core.references.content_reference_manager import (
+from studiorum.core.interfaces import DeepIndexable
+from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.references.content_reference_manager import (
     ContentReference,
     ContentReferenceManager,
     ReferenceSource,
     ReferenceTrackingTagResolver,
 )
-from dnd5e.core.references.content_tracker import TrackedContent
+from studiorum.core.references.content_tracker import TrackedContent
 from tests.test_helpers import reset_test_environment
 
 

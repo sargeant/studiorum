@@ -11,11 +11,13 @@ from typing import Any
 import pytest
 from logfire.testing import CaptureLogfire
 
-from dnd5e.core.loaders.json_loader import JsonDataLoader  # type: ignore
-from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
-from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
-from dnd5e.core.logging import get_logger  # type: ignore
-from dnd5e.core.models.content import ContentType  # type: ignore
+from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
+from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
+from studiorum.core.loaders.source_manager import (
+    FileSystemSourceManager,  # type: ignore
+)
+from studiorum.core.logging import get_logger  # type: ignore
+from studiorum.core.models.content import ContentType  # type: ignore
 
 
 class TestDataValidationStress:
@@ -276,7 +278,7 @@ class TestDataValidationStress:
         }
 
         # Test spell validation
-        from dnd5e.core.models.spells import Spell  # type: ignore
+        from studiorum.core.models.spells import Spell  # type: ignore
 
         spell = Spell.model_validate(complex_spell_data)
         assert spell.name == "Complex Test Spell"
@@ -288,7 +290,7 @@ class TestDataValidationStress:
         )  # Should extract text from complex structure
 
         # Test creature validation
-        from dnd5e.core.models.creatures import Creature  # type: ignore
+        from studiorum.core.models.creatures import Creature  # type: ignore
 
         creature = Creature.model_validate(complex_creature_data)
         assert creature.name == "Complex Test Creature"
@@ -358,9 +360,9 @@ class TestDataValidationStress:
 
     def test_edge_case_data_structures(self) -> None:
         """Test validation of edge case data structures."""
-        from dnd5e.core.models.creatures import Creature  # type: ignore
-        from dnd5e.core.models.items import Item  # type: ignore
-        from dnd5e.core.models.spells import Spell  # type: ignore
+        from studiorum.core.models.creatures import Creature  # type: ignore
+        from studiorum.core.models.items import Item  # type: ignore
+        from studiorum.core.models.spells import Spell  # type: ignore
 
         # Test spell with minimal data
         minimal_spell = {

@@ -6,7 +6,9 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine  # type: ignore
+from studiorum.renderers.latex.template_engine import (
+    LaTeXTemplateEngine,  # type: ignore
+)
 from tests.test_helpers import reset_test_environment
 
 

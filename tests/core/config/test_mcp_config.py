@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.config.unified_config import MCPConfig
+from studiorum.core.config.unified_config import MCPConfig
 
 
 class TestMCPConfig:

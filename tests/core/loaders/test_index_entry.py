@@ -5,10 +5,10 @@ from unittest.mock import Mock
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.loaders.omnidexer import IndexEntry
-from dnd5e.core.models.content import BaseContent, ContentType, Source
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.models.spells import Spell
+from studiorum.core.loaders.omnidexer import IndexEntry
+from studiorum.core.models.content import BaseContent, ContentType, Source
+from studiorum.core.models.creatures import Creature
+from studiorum.core.models.spells import Spell
 
 
 class TestIndexEntry:

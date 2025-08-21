@@ -59,11 +59,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from dnd5e.cli.commands.convert import resolve_content_or_file
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.content import ContentType
-from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex import LaTeXDocumentRenderer
+from studiorum.cli.commands.convert import resolve_content_or_file
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
+from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.latex import LaTeXDocumentRenderer
 
 
 class ContentBuilder:
@@ -172,7 +172,7 @@ class ContentBuilder:
                 return False
 
             # Create a simple render context (minimal requirements)
-            from dnd5e.cli.main import get_omnidexer, get_tag_resolver
+            from studiorum.cli.main import get_omnidexer, get_tag_resolver
 
             omnidexer = get_omnidexer()
             tag_resolver = get_tag_resolver()

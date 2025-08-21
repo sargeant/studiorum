@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent
-from dnd5e.core.registry.content_type_registry import (
+from studiorum.core.models.content import BaseContent
+from studiorum.core.registry.content_type_registry import (
     ContentTypeMetadata,
     ContentTypeRegistry,
     _registry_instance,
@@ -262,7 +262,7 @@ class TestContentTypeDecorator:
         """Reset registry for each test."""
         # For decorator tests, we need a fresh registry that's not finalized
         # so that decorators can register new content types
-        from dnd5e.core.registry.content_type_registry import (
+        from studiorum.core.registry.content_type_registry import (
             reset_content_type_registry,
         )
 

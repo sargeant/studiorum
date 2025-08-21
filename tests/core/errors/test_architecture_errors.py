@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.errors.architecture_errors import (
+from studiorum.core.errors.architecture_errors import (
     ArchitectureError,
     ConfigurationError,
     ContentLoadingError,

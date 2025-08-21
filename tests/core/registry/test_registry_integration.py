@@ -2,8 +2,8 @@
 
 import pytest
 
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.registry import initialize_content_types
+from studiorum.core.models.content import ContentType
+from studiorum.core.registry import initialize_content_types
 from tests.test_helpers import reset_test_environment
 
 
@@ -30,10 +30,10 @@ class TestRegistryIntegration:
         """Test that registry manager properly updates all target systems."""
         # Import all content modules before initialization to trigger decorators
         # This ensures decorator registration happens before we test
-        from dnd5e.core.loaders.content_factory import ContentFactory
-        from dnd5e.core.models.creatures import Creature
-        from dnd5e.core.models.items import Item
-        from dnd5e.core.models.spells import Spell
+        from studiorum.core.loaders.content_factory import ContentFactory
+        from studiorum.core.models.creatures import Creature
+        from studiorum.core.models.items import Item
+        from studiorum.core.models.spells import Spell
 
         # Initialize the system
         initialize_content_types()
@@ -54,7 +54,7 @@ class TestRegistryIntegration:
         """Test that content can be created through the factory after initialization."""
         initialize_content_types()
 
-        from dnd5e.core.loaders.content_factory import ContentFactory
+        from studiorum.core.loaders.content_factory import ContentFactory
 
         factory = ContentFactory()
 
@@ -79,7 +79,7 @@ class TestRegistryIntegration:
         """Test that Omnidexer has proper content types after initialization."""
         initialize_content_types()
 
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         omnidexer = Omnidexer()
 
@@ -93,7 +93,9 @@ class TestRegistryIntegration:
         # Fluff content types are registered in the registry but cannot be resolved to enum instances
         # This is by design - fluff types exist as registry metadata but not as accessible enum members
         # We test that the registry contains the fluff type metadata instead
-        from dnd5e.core.registry.content_type_registry import get_content_type_registry
+        from studiorum.core.registry.content_type_registry import (
+            get_content_type_registry,
+        )
 
         registry = get_content_type_registry()
 
@@ -109,7 +111,7 @@ class TestRegistryIntegration:
         """Test that ConfigurableSourceManager has file patterns after initialization."""
         initialize_content_types()
 
-        from dnd5e.core.loaders.configurable_source_manager import (
+        from studiorum.core.loaders.configurable_source_manager import (
             ConfigurableSourceManager,
         )
 
@@ -124,7 +126,7 @@ class TestRegistryIntegration:
         """Test that RecursiveEntryProcessor has statblock tags after initialization."""
         initialize_content_types()
 
-        from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
+        from studiorum.renderers.latex.entry_processor import RecursiveEntryProcessor
 
         # Check that statblock tags are populated
         tags = getattr(RecursiveEntryProcessor, "_statblock_tags", {})
@@ -136,7 +138,9 @@ class TestRegistryIntegration:
         """Test that all migrated content types are properly registered."""
         initialize_content_types()
 
-        from dnd5e.core.registry.content_type_registry import get_content_type_registry
+        from studiorum.core.registry.content_type_registry import (
+            get_content_type_registry,
+        )
 
         registry = get_content_type_registry()
         all_metadata = registry.get_all()
@@ -176,7 +180,9 @@ class TestRegistryIntegration:
         """Test that registry metadata is complete and valid."""
         initialize_content_types()
 
-        from dnd5e.core.registry.content_type_registry import get_content_type_registry
+        from studiorum.core.registry.content_type_registry import (
+            get_content_type_registry,
+        )
 
         registry = get_content_type_registry()
         all_metadata = registry.get_all()
@@ -193,7 +199,9 @@ class TestRegistryIntegration:
 
     def test_decorator_based_registration_works(self):
         """Test that decorator-based registration works by importing a module."""
-        from dnd5e.core.registry.content_type_registry import get_content_type_registry
+        from studiorum.core.registry.content_type_registry import (
+            get_content_type_registry,
+        )
 
         # The setup_method already called reset_test_environment() which imports
         # all model modules and triggers decorator registrations
@@ -208,20 +216,22 @@ class TestRegistryIntegration:
     def test_system_consistency(self):
         """Test that all systems are consistent with registry data."""
         # Import content modules to trigger decorator registrations
-        from dnd5e.core.models.adventures import Adventure
-        from dnd5e.core.models.books import Book
-        from dnd5e.core.models.creatures import Creature
-        from dnd5e.core.models.items import Item
-        from dnd5e.core.models.spells import Spell
+        from studiorum.core.models.adventures import Adventure
+        from studiorum.core.models.books import Book
+        from studiorum.core.models.creatures import Creature
+        from studiorum.core.models.items import Item
+        from studiorum.core.models.spells import Spell
 
         initialize_content_types()
 
-        from dnd5e.core.loaders.configurable_source_manager import (
+        from studiorum.core.loaders.configurable_source_manager import (
             ConfigurableSourceManager,
         )
-        from dnd5e.core.loaders.content_factory import ContentFactory
-        from dnd5e.core.loaders.omnidexer import Omnidexer
-        from dnd5e.core.registry.content_type_registry import get_content_type_registry
+        from studiorum.core.loaders.content_factory import ContentFactory
+        from studiorum.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.registry.content_type_registry import (
+            get_content_type_registry,
+        )
 
         registry = get_content_type_registry()
         all_metadata = registry.get_all()
@@ -293,10 +303,10 @@ class TestRegistryIntegration:
         # Test error handling by mocking the initialization method to raise the expected error
         from unittest.mock import patch
 
-        from dnd5e.core.loaders.configurable_source_manager import (
+        from studiorum.core.loaders.configurable_source_manager import (
             ConfigurableSourceManager,
         )
-        from dnd5e.core.loaders.content_factory import ContentFactory
+        from studiorum.core.loaders.content_factory import ContentFactory
 
         # Mock the _initialize_class_map method to raise the expected error
         # This simulates the case where registry manager hasn't populated the class map
@@ -342,7 +352,7 @@ class TestRegistryIntegration:
         initialize_content_types()
 
         # System should still work correctly
-        from dnd5e.core.loaders.content_factory import ContentFactory
+        from studiorum.core.loaders.content_factory import ContentFactory
 
         factory = ContentFactory()
         factory.get_supported_types()  # Trigger initialization

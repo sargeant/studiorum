@@ -7,13 +7,13 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from dnd5e.core.config.sources import (  # type: ignore
+from studiorum.core.config.sources import (  # type: ignore
     ContentConfiguration,
     ContentSource,
     SourceType,
 )
-from dnd5e.core.sources.github import GitHubSourceManager  # type: ignore
-from dnd5e.core.sources.manager import ContentSourceManager  # type: ignore
+from studiorum.core.sources.github import GitHubSourceManager  # type: ignore
+from studiorum.core.sources.manager import ContentSourceManager  # type: ignore
 
 
 class TestContentSourceManager:

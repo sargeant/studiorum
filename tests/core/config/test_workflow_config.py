@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from dnd5e.core.config.workflow_config import (
+from studiorum.core.config.workflow_config import (
     get_adventure_creation_workflow_config,
     get_available_workflows,
     get_character_sheet_workflow_config,
@@ -313,7 +313,7 @@ class TestWorkflowConfigStructure:
 
     def test_config_override_application(self) -> None:
         """Test that workflow configs can be applied as overrides."""
-        from dnd5e.core.config.unified_config import ApplicationConfig
+        from studiorum.core.config.unified_config import ApplicationConfig
 
         # Create base config
         base_config = ApplicationConfig()

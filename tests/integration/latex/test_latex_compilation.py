@@ -17,13 +17,13 @@ from typing import Optional
 
 import pytest
 
-from dnd5e.cli.main import get_tag_resolver
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.document_metadata import DocumentMetadata, DocumentType
-from dnd5e.core.references.content_tracker import ContentTracker
-from dnd5e.core.resolvers.content_resolver import ContentResolver
-from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.latex.document import LaTeXDocumentRenderer
+from studiorum.cli.main import get_tag_resolver
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
+from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.core.resolvers.content_resolver import ContentResolver
+from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.latex.document import LaTeXDocumentRenderer
 
 
 def check_latex_available() -> bool:

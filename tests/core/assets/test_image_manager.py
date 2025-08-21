@@ -6,9 +6,9 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from dnd5e.core.assets.image_manager import ImageAsset, ImageManager, ImageSource
-from dnd5e.core.config.unified_config import PathsConfig
-from dnd5e.renderers.core.interfaces import RenderingContext
+from studiorum.core.assets.image_manager import ImageAsset, ImageManager, ImageSource
+from studiorum.core.config.unified_config import PathsConfig
+from studiorum.renderers.core.interfaces import RenderingContext
 from tests.test_helpers import reset_test_environment
 
 

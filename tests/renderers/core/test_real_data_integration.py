@@ -14,13 +14,13 @@ from unittest.mock import Mock, create_autospec
 
 import pytest
 
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.references.content_tracker import ContentTracker
-from dnd5e.core.text.tag_ast import TagNode
-from dnd5e.renderers.core.handlers import get_default_core_handlers
-from dnd5e.renderers.core.interfaces import RenderingContext
-from dnd5e.renderers.core.unified_renderer import StandardUnifiedRenderer
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
+from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.core.text.tag_ast import TagNode
+from studiorum.renderers.core.handlers import get_default_core_handlers
+from studiorum.renderers.core.interfaces import RenderingContext
+from studiorum.renderers.core.unified_renderer import StandardUnifiedRenderer
 from tests.test_helpers import reset_test_environment
 
 

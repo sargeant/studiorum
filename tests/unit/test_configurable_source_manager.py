@@ -5,9 +5,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
-from dnd5e.core.loaders.source_manager import FileSystemSourceManager
-from dnd5e.core.models.content import ContentType
+from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
+from studiorum.core.loaders.source_manager import FileSystemSourceManager
+from studiorum.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment
 
 

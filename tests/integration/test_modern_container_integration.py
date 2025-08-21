@@ -9,9 +9,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from dnd5e.core.services.container import ModernServiceContainer, RequestScopedContainer
-from dnd5e.core.services.lifecycle import ServiceLifecycle
-from dnd5e.core.services.protocols import (
+from studiorum.core.services.container import (
+    ModernServiceContainer,
+    RequestScopedContainer,
+)
+from studiorum.core.services.lifecycle import ServiceLifecycle
+from studiorum.core.services.protocols import (
     AsyncResourceProtocol,
     ConfigurableServiceProtocol,
     OmnidexerProtocol,

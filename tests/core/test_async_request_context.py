@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from dnd5e.core.context import (
+from studiorum.core.context import (
     AsyncRequestContext,
     RequestContext,
     async_request_context,
@@ -15,8 +15,8 @@ from dnd5e.core.context import (
     performance_monitored_context,
     request_context,
 )
-from dnd5e.core.error_types import ContentNotFoundError
-from dnd5e.core.services.protocols import (
+from studiorum.core.error_types import ContentNotFoundError
+from studiorum.core.services.protocols import (
     ConfigurationProtocol,
     OmnidexerProtocol,
     TagResolverProtocol,
@@ -129,7 +129,7 @@ class TestAsyncRequestContext:
 
     async def test_context_with_config(self):
         """Test context creation with configuration override."""
-        from dnd5e.core.config.unified_config import ApplicationConfig
+        from studiorum.core.config.unified_config import ApplicationConfig
 
         # Create a mock config
         mock_config = MagicMock(spec=ApplicationConfig)
@@ -254,7 +254,7 @@ class TestAsyncRequestContext:
 
     async def test_hot_reload_configuration(self):
         """Test hot-reload configuration functionality."""
-        from dnd5e.core.config.unified_config import ApplicationConfig
+        from studiorum.core.config.unified_config import ApplicationConfig
 
         context = create_async_request_context()
 

@@ -5,12 +5,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import ContentType  # type: ignore
-from dnd5e.core.models.creatures import Creature  # type: ignore
-from dnd5e.core.models.items import Item  # type: ignore
-from dnd5e.core.models.spells import Spell  # type: ignore
-from dnd5e.renderers.core.interfaces import RenderingContext  # type: ignore
-from dnd5e.renderers.latex.content_processor import (  # type: ignore
+from studiorum.core.models.content import ContentType  # type: ignore
+from studiorum.core.models.creatures import Creature  # type: ignore
+from studiorum.core.models.items import Item  # type: ignore
+from studiorum.core.models.spells import Spell  # type: ignore
+from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
+from studiorum.renderers.latex.content_processor import (  # type: ignore
     ContentProcessor,
     ContentProcessorRegistry,
     CreatureProcessor,

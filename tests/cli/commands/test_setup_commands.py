@@ -7,8 +7,12 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from typer.testing import CliRunner
 
-from dnd5e.cli.commands.setup import app
-from dnd5e.core.config.sources import ContentConfiguration, ContentSource, SourceType
+from studiorum.cli.commands.setup import app
+from studiorum.core.config.sources import (
+    ContentConfiguration,
+    ContentSource,
+    SourceType,
+)
 from tests.test_helpers import reset_test_environment
 
 
@@ -200,7 +204,7 @@ class TestSetupHelperFunctions:
     @patch("dnd5e.cli.commands.setup.console")
     def test_setup_defaults(self, mock_console):
         """Test _setup_defaults function."""
-        from dnd5e.cli.commands.setup import _setup_defaults
+        from studiorum.cli.commands.setup import _setup_defaults
 
         # Add a test source to the config that reset_to_defaults returns
         test_source = ContentSource(
@@ -217,7 +221,7 @@ class TestSetupHelperFunctions:
     @patch("dnd5e.cli.commands.setup.Confirm")
     def test_setup_custom_with_defaults(self, mock_confirm, mock_console):
         """Test _setup_custom function including defaults."""
-        from dnd5e.cli.commands.setup import _setup_custom
+        from studiorum.cli.commands.setup import _setup_custom
 
         mock_confirm.ask.side_effect = [True, False]  # Include defaults, don't add more
 
@@ -235,7 +239,7 @@ class TestSetupHelperFunctions:
         self, mock_add_source, mock_confirm, mock_console
     ):
         """Test _setup_custom function with additional sources."""
-        from dnd5e.cli.commands.setup import _setup_custom
+        from studiorum.cli.commands.setup import _setup_custom
 
         mock_confirm.ask.side_effect = [
             False,
@@ -253,7 +257,7 @@ class TestSetupHelperFunctions:
     @patch("dnd5e.cli.commands.setup.Prompt")
     def test_setup_local_valid_directory(self, mock_prompt, mock_console):
         """Test _setup_local function with valid directory."""
-        from dnd5e.cli.commands.setup import _setup_local
+        from studiorum.cli.commands.setup import _setup_local
 
         # Create test directory
         test_dir = self.temp_dir / "test_content"
@@ -272,7 +276,7 @@ class TestSetupHelperFunctions:
     @patch("dnd5e.cli.commands.setup.Prompt")
     def test_setup_local_invalid_path(self, mock_prompt, mock_console):
         """Test _setup_local function with invalid path."""
-        from dnd5e.cli.commands.setup import _setup_local
+        from studiorum.cli.commands.setup import _setup_local
 
         mock_prompt.ask.side_effect = ["/nonexistent/path", "done"]
 
@@ -286,7 +290,7 @@ class TestSetupHelperFunctions:
     @patch("dnd5e.cli.commands.setup.Prompt")
     def test_setup_local_not_directory(self, mock_prompt, mock_console):
         """Test _setup_local function with file instead of directory."""
-        from dnd5e.cli.commands.setup import _setup_local
+        from studiorum.cli.commands.setup import _setup_local
 
         # Create test file
         test_file = self.temp_dir / "test_file.txt"
@@ -307,7 +311,7 @@ class TestSetupHelperFunctions:
     @patch("dnd5e.cli.commands.setup.Prompt")
     def test_add_source_interactive_github_success(self, mock_prompt, mock_console):
         """Test _add_source_interactive function with GitHub source."""
-        from dnd5e.cli.commands.setup import _add_source_interactive
+        from studiorum.cli.commands.setup import _add_source_interactive
 
         mock_prompt.ask.side_effect = [
             "test-github",  # name
@@ -332,7 +336,7 @@ class TestSetupHelperFunctions:
         self, mock_prompt, mock_console
     ):
         """Test _add_source_interactive function with duplicate name."""
-        from dnd5e.cli.commands.setup import _add_source_interactive
+        from studiorum.cli.commands.setup import _add_source_interactive
 
         # Add existing source
         existing_source = ContentSource(
@@ -357,7 +361,7 @@ class TestSetupHelperFunctions:
     @patch("dnd5e.cli.commands.setup.Prompt")
     def test_add_source_interactive_directory_success(self, mock_prompt, mock_console):
         """Test _add_source_interactive function with directory source."""
-        from dnd5e.cli.commands.setup import _add_source_interactive
+        from studiorum.cli.commands.setup import _add_source_interactive
 
         # Create test directory
         test_dir = self.temp_dir / "test_content"
@@ -385,7 +389,7 @@ class TestSetupHelperFunctions:
         self, mock_prompt, mock_console
     ):
         """Test _add_source_interactive function with invalid directory."""
-        from dnd5e.cli.commands.setup import _add_source_interactive
+        from studiorum.cli.commands.setup import _add_source_interactive
 
         mock_prompt.ask.side_effect = [
             "test-dir",  # name
@@ -431,7 +435,7 @@ class TestScanContentFunction:
         self, mock_console, mock_manager_class, mock_get_config
     ):
         """Test successful content scan."""
-        from dnd5e.cli.commands.setup import _scan_content
+        from studiorum.cli.commands.setup import _scan_content
 
         mock_get_config.return_value = self.mock_config
 
@@ -466,7 +470,7 @@ class TestScanContentFunction:
         self, mock_console, mock_manager_class, mock_get_config
     ):
         """Test content scan with error."""
-        from dnd5e.cli.commands.setup import _scan_content
+        from studiorum.cli.commands.setup import _scan_content
 
         mock_get_config.return_value = self.mock_config
 
@@ -644,7 +648,7 @@ class TestSetupEdgeCases:
         self, mock_prompt, mock_console
     ):
         """Test _add_source_interactive with ContentSource validation error."""
-        from dnd5e.cli.commands.setup import _add_source_interactive
+        from studiorum.cli.commands.setup import _add_source_interactive
 
         mock_prompt.ask.side_effect = [
             "test-github",  # name
@@ -665,7 +669,7 @@ class TestSetupEdgeCases:
         self, mock_prompt, mock_console
     ):
         """Test _add_source_interactive with directory source validation error."""
-        from dnd5e.cli.commands.setup import _add_source_interactive
+        from studiorum.cli.commands.setup import _add_source_interactive
 
         # Create test file instead of directory
         test_file = self.temp_dir / "test_file.txt"
@@ -689,7 +693,7 @@ class TestSetupEdgeCases:
 
     def test_setup_local_with_exception_handling(self):
         """Test _setup_local handles exceptions during source addition."""
-        from dnd5e.cli.commands.setup import _setup_local
+        from studiorum.cli.commands.setup import _setup_local
 
         mock_config_manager = Mock()
         mock_config = Mock()

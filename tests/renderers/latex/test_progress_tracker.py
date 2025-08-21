@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.renderers.latex.progress_tracker import (  # type: ignore
+from studiorum.renderers.latex.progress_tracker import (  # type: ignore
     CompilationProgress,
     NoProgressReporter,
     ProgressTracker,
@@ -13,7 +13,7 @@ from dnd5e.renderers.latex.progress_tracker import (  # type: ignore
 )
 
 try:
-    from dnd5e.renderers.latex.progress_tracker import (
+    from studiorum.renderers.latex.progress_tracker import (
         RichProgressReporter,  # type: ignore
     )
 

@@ -21,19 +21,19 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from dnd5e.mcp.registry import (
+from studiorum.mcp.registry import (
     ToolRegistry,
     get_tool_registry,
     list_registered_tools as registry_list_tools,
     validate_tool_registry,
 )
-from dnd5e.mcp.server import (
+from studiorum.mcp.server import (
     create_mcp_server,
     get_mcp_app,
     list_registered_tools,
     mcp,
 )
-from dnd5e.mcp.tools.content import (
+from studiorum.mcp.tools.content import (
     PerformantContentSearcher,
     get_content_searcher,
     search_content_performant,

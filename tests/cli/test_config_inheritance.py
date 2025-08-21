@@ -2,7 +2,7 @@
 
 import pytest
 
-from dnd5e.cli.config_factory import (
+from studiorum.cli.config_factory import (
     get_appendix_creatures_default,
     get_appendix_items_default,
     get_appendix_spells_default,
@@ -18,7 +18,7 @@ from dnd5e.cli.config_factory import (
     get_with_images_default,
     get_with_index_default,
 )
-from dnd5e.core.config.unified_config import get_app_config, reset_app_config
+from studiorum.core.config.unified_config import get_app_config, reset_app_config
 from tests.test_helpers import reset_test_environment
 
 
@@ -169,7 +169,7 @@ class TestCliConfigInheritance:
     def test_config_factory_imports(self) -> None:
         """Test that all factory functions can be imported and called."""
         # This tests that our imports work correctly in CLI modules
-        from dnd5e.cli.config_factory import (
+        from studiorum.cli.config_factory import (
             get_appendix_creatures_default,
             get_appendix_items_default,
             get_appendix_spells_default,

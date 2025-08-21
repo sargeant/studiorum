@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from dnd5e.core.models.creatures import Ability, ArmorClass, Creature
+from studiorum.core.models.creatures import Ability, ArmorClass, Creature
 from tests.test_helpers import reset_test_environment
 
 

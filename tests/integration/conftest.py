@@ -2,8 +2,8 @@
 
 import pytest
 
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.content import ContentType
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
 
 
 @pytest.fixture
