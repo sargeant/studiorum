@@ -1,4 +1,4 @@
-# Makefile for 5e2pdf project
+# Makefile for studiorum project
 # Local targets use direct python commands (requires activate-5e)
 # CI targets use uv run for isolated environment
 

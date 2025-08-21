@@ -19,7 +19,7 @@ def find_latest_draft():
             [
                 "gh",
                 "api",
-                "repos/sargeant/5e2pdf/releases",
+                "repos/sargeant/studiorum/releases",
                 "--jq",
                 ".[] | select(.draft == true)",
             ],
@@ -85,7 +85,7 @@ def update_release_draft(version_str: str, dry_run: bool = False):
             [
                 "gh",
                 "api",
-                f"repos/sargeant/5e2pdf/releases/{draft['id']}",
+                f"repos/sargeant/studiorum/releases/{draft['id']}",
                 "--method",
                 "PATCH",
                 "--input",

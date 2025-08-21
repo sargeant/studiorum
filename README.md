@@ -1,9 +1,9 @@
 # 5e2pdf: D&D 5e to PDF Converter
 
-[![Test Status](https://img.shields.io/github/actions/workflow/status/sargeant/5e2pdf/tests.yml)](https://github.com/sargeant/5e2pdf/actions)
+[![Test Status](https://img.shields.io/github/actions/workflow/status/sargeant/studiorum/tests.yml)](https://github.com/sargeant/studiorum/actions)
 [![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![codecov](https://codecov.io/gh/sargeant/5e2pdf/graph/badge.svg?token=2BXDX48UO8)](https://codecov.io/gh/sargeant/5e2pdf)
+[![codecov](https://codecov.io/gh/sargeant/studiorum/graph/badge.svg?token=2BXDX48UO8)](https://codecov.io/gh/sargeant/studiorum)
 
 > [!CAUTION]
 > This project is under development. Some features are buggy; some don't work at at all. Check back for v1.0 soon.
@@ -65,7 +65,7 @@ for other packaging methods.
 Clone the repository and install the required packages:
 
 ```bash
-git clone https://github.com/sargeant/5e2pdf.git
+git clone https://github.com/sargeant/studiorum.git
 cd 5e2pdf
 uv sync
 ```

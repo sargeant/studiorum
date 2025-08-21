@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "5e2pdf"
+name = "studiorum"
 version = "0.5.0"
 description = "Convert D&D 5e JSON data to beautifully formatted LaTeX/PDF documents"
 readme = "README.md"
@@ -53,12 +53,12 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/sargeant/5e2pdf"
-Repository = "https://github.com/sargeant/5e2pdf"
-"Bug Tracker" = "https://github.com/sargeant/5e2pdf/issues"
+Homepage = "https://github.com/sargeant/studiorum"
+Repository = "https://github.com/sargeant/studiorum"
+"Bug Tracker" = "https://github.com/sargeant/studiorum/issues"
 
 [project.scripts]
-5e2pdf = "dnd5e.cli.main:app"
+studiorum = "dnd5e.cli.main:app"
 
 [project.optional-dependencies]
 docs = [
@@ -110,7 +110,7 @@ images = ["Pillow>=9.0.0"]
 xml = ["lxml>=4.9.0"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/dnd5e"]
+packages = ["src/studiorum"]
 
 [tool.ruff]
 line-length = 88
@@ -170,7 +170,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["dnd5e"]
+known-first-party = ["studiorum"]
 section-order = [
     "future",
     "standard-library",
@@ -198,7 +198,7 @@ addopts = [
     "-ra",
     "--strict-markers",
     "--strict-config",
-    "--cov=dnd5e",
+    "--cov=studiorum",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",

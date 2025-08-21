@@ -90,8 +90,8 @@ jobs:
         kpsewhich DND-5e.cls
         echo "=== Test Data Verification ==="
         export DND5E_CONFIG_FILE=test-config.yaml
-        uv run 5e2pdf list books
-        uv run 5e2pdf list adventures
+        uv run studiorum list books
+        uv run studiorum list adventures
 
     - name: Run LaTeX integration tests
       run: make test-latex-integration
