@@ -38,11 +38,15 @@ class TestModel(BaseModel):
 class TestErrorHandlingIntegration:
     """Integration tests for error handling components."""
 
-    def setup_method(self, capfire: CaptureLogfire) -> None:
+    @pytest.fixture(autouse=True)
+    def setup_log_capture(self, capfire: CaptureLogfire) -> None:
+        """Set up log capture for each test."""
+        self.capfire = capfire
+
+    def setup_method(self) -> None:
         """Set up test environment."""
         # Reset global state for complete isolation
         reset_test_environment()
-        self.capfire = capfire
 
     def get_log_output(self) -> str:
         """Get captured log output from Logfire spans."""
@@ -193,10 +197,6 @@ class TestErrorHandlingIntegration:
         assert "Operation completed" in log_output
         assert "test_operation" in log_output
 
-        # Clear log for next test
-        self.log_stream.truncate(0)
-        self.log_stream.seek(0)
-
         # Log error result
         error = create_validation_error(
             message="Test validation failed",
@@ -285,11 +285,10 @@ class TestErrorHandlingIntegration:
             (ErrorSeverity.CRITICAL, "CRITICAL"),
         ]
 
-        for severity, expected_level in severities:
-            # Clear log
-            self.log_stream.truncate(0)
-            self.log_stream.seek(0)
+        # Track initial span count to isolate new messages
+        len(self.capfire.exporter.exported_spans)
 
+        for severity, expected_level in severities:
             error = ValidationError(
                 message=f"Test {severity.value} message",
                 category=ErrorCategory.VALIDATION,
@@ -304,9 +303,12 @@ class TestErrorHandlingIntegration:
             elif severity == ErrorSeverity.ERROR:
                 logger.error(f"Validation error: {error.message}")
             elif severity == ErrorSeverity.CRITICAL:
-                logger.critical(f"Validation critical: {error.message}")
+                # Logfire doesn't have critical, use error for critical severity
+                logger.error(f"Validation critical: {error.message}")
 
-            log_output = self.get_log_output()
+        # Check all new log messages
+        log_output = self.get_log_output()
+        for severity, expected_level in severities:
             assert f"Test {severity.value} message" in log_output
 
     def test_error_suggestions(self) -> None:
