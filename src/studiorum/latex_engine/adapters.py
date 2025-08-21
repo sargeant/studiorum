@@ -22,12 +22,27 @@ class DocumentRendererAdapter:
     ) -> str:
         """Render content to LaTeX string.
 
-        This is a simplified adapter that focuses on the core interface.
+        This adapter delegates to the wrapped LaTeX document renderer.
         """
-        # For now, return a simple rendered document
-        # This would need proper conversion from dicts to content objects
-        # in a real implementation
-        return f"% LaTeX Document\\n\\documentclass{{article}}\\n\\begin{{document}}\\n% {len(content)} items\\n\\end{{document}}"
+        # Convert content to the proper format expected by the renderer
+        from typing import cast
+
+        from studiorum.core.models.content import BaseContent
+
+        # Ensure content is in the right format
+        content_items: list[BaseContent] = []
+        for item in content:
+            if isinstance(item, BaseContent):
+                content_items.append(item)
+            elif hasattr(item, "__dict__"):
+                # If it's an object but not BaseContent, cast it (assume compatibility)
+                content_items.append(cast(BaseContent, item))
+            else:
+                # Skip invalid items (dicts, primitives, etc.)
+                continue
+
+        # Delegate to the actual renderer
+        return self._renderer.render_document(content_items, context)
 
     def compile_to_pdf(
         self, latex_content: str, output_path: Path, config: object | None = None
