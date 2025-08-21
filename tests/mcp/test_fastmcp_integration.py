@@ -145,7 +145,7 @@ class TestContentSearchPerformance:
         """Test that search_content meets <200ms performance target."""
         # Mock the underlying search to return quickly
         with patch(
-            "dnd5e.mcp.tools.content.ModernContextualAPI.search_spells_async"
+            "studiorum.mcp.tools.content.ModernContextualAPI.search_spells_async"
         ) as mock_search:
             mock_result = MagicMock()
             mock_result.is_success.return_value = True
@@ -379,7 +379,7 @@ class TestPerformanceMonitoring:
     async def test_performance_metrics_collection(self):
         """Test that performance metrics are collected correctly."""
         with patch(
-            "dnd5e.mcp.tools.content.ModernContextualAPI.search_spells_async"
+            "studiorum.mcp.tools.content.ModernContextualAPI.search_spells_async"
         ) as mock_search:
             mock_result = MagicMock()
             mock_result.is_success.return_value = True

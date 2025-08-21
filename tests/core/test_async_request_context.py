@@ -195,7 +195,7 @@ class TestAsyncRequestContext:
 
         assert context.metrics.async_operations_count == 2
 
-    @patch("dnd5e.core.context.ModernServiceContainer")
+    @patch("studiorum.core.context.ModernServiceContainer")
     async def test_service_access_caching(self, mock_container_class):
         """Test service access with caching."""
         # Setup mock container and services
@@ -324,7 +324,9 @@ class TestContextFactories:
     @pytest.mark.asyncio
     async def test_async_request_context_manager(self):
         """Test async_request_context factory function."""
-        with patch("dnd5e.core.context.create_async_request_context") as mock_create:
+        with patch(
+            "studiorum.core.context.create_async_request_context"
+        ) as mock_create:
             mock_context = AsyncMock()
             mock_create.return_value = mock_context
 
@@ -336,7 +338,7 @@ class TestContextFactories:
 
     def test_sync_request_context_manager(self):
         """Test request_context factory function."""
-        with patch("dnd5e.core.context.create_sync_request_context") as mock_create:
+        with patch("studiorum.core.context.create_sync_request_context") as mock_create:
             mock_context = MagicMock()
             mock_create.return_value = mock_context
 
@@ -349,7 +351,9 @@ class TestContextFactories:
     @pytest.mark.asyncio
     async def test_performance_monitored_context(self):
         """Test performance_monitored_context factory."""
-        with patch("dnd5e.core.context.create_async_request_context") as mock_create:
+        with patch(
+            "studiorum.core.context.create_async_request_context"
+        ) as mock_create:
             mock_context = AsyncMock()
             mock_context.metrics = MagicMock()
             # Mock metadata as a dict to properly handle the assertion

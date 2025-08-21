@@ -25,7 +25,7 @@ Examples:
     With custom error types:
 
     ```python
-    from dnd5e.core.exceptions import ValidationError
+    from studiorum.core.exceptions import ValidationError
 
     def validate_content(data: dict) -> Result[Content, ValidationError]:
         try:

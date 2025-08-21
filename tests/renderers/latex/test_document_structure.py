@@ -232,7 +232,7 @@ class TestDocumentStructureBuilder:
         from unittest.mock import patch
 
         with patch(
-            "dnd5e.renderers.latex.document_structure.ContentType.from_content"
+            "studiorum.renderers.latex.document_structure.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
@@ -307,7 +307,7 @@ class TestDocumentStructureBuilder:
         from unittest.mock import patch
 
         with patch(
-            "dnd5e.renderers.latex.document_structure.ContentType.from_content"
+            "studiorum.renderers.latex.document_structure.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:

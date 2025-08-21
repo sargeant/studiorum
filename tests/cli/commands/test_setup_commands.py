@@ -46,10 +46,10 @@ class TestSetupWizardCommand:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
 
-    @patch("dnd5e.cli.commands.setup.get_config_manager")
-    @patch("dnd5e.cli.commands.setup.Confirm")
-    @patch("dnd5e.cli.commands.setup.Prompt")
-    @patch("dnd5e.cli.commands.setup._scan_content")
+    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.Confirm")
+    @patch("studiorum.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup._scan_content")
     def test_wizard_defaults_with_scan(
         self, mock_scan, mock_prompt, mock_confirm, mock_get_manager
     ):
@@ -61,15 +61,15 @@ class TestSetupWizardCommand:
         result = self.runner.invoke(app, ["wizard"])
 
         assert result.exit_code == 0
-        assert "Welcome to 5e2pdf Setup!" in result.stdout
+        assert "Welcome to studiorum Setup!" in result.stdout
         assert "Configuration complete!" in result.stdout
 
         self.mock_config_manager.reset_to_defaults.assert_called_once()
         mock_scan.assert_called_once()
 
-    @patch("dnd5e.cli.commands.setup.get_config_manager")
-    @patch("dnd5e.cli.commands.setup.Confirm")
-    @patch("dnd5e.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.Confirm")
+    @patch("studiorum.cli.commands.setup.Prompt")
     def test_wizard_defaults_without_scan(
         self, mock_prompt, mock_confirm, mock_get_manager
     ):
@@ -81,13 +81,13 @@ class TestSetupWizardCommand:
         result = self.runner.invoke(app, ["wizard"])
 
         assert result.exit_code == 0
-        assert "5e2pdf sources scan" in result.stdout
+        assert "studiorum sources scan" in result.stdout
         self.mock_config_manager.reset_to_defaults.assert_called_once()
 
-    @patch("dnd5e.cli.commands.setup.get_config_manager")
-    @patch("dnd5e.cli.commands.setup.Confirm")
-    @patch("dnd5e.cli.commands.setup.Prompt")
-    @patch("dnd5e.cli.commands.setup._setup_custom")
+    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.Confirm")
+    @patch("studiorum.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup._setup_custom")
     def test_wizard_custom_setup(
         self, mock_setup_custom, mock_prompt, mock_confirm, mock_get_manager
     ):
@@ -101,10 +101,10 @@ class TestSetupWizardCommand:
         assert result.exit_code == 0
         mock_setup_custom.assert_called_once_with(self.mock_config_manager)
 
-    @patch("dnd5e.cli.commands.setup.get_config_manager")
-    @patch("dnd5e.cli.commands.setup.Confirm")
-    @patch("dnd5e.cli.commands.setup.Prompt")
-    @patch("dnd5e.cli.commands.setup._setup_local")
+    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.Confirm")
+    @patch("studiorum.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup._setup_local")
     def test_wizard_local_setup(
         self, mock_setup_local, mock_prompt, mock_confirm, mock_get_manager
     ):
@@ -118,8 +118,8 @@ class TestSetupWizardCommand:
         assert result.exit_code == 0
         mock_setup_local.assert_called_once_with(self.mock_config_manager)
 
-    @patch("dnd5e.cli.commands.setup.get_config_manager")
-    @patch("dnd5e.cli.commands.setup.Confirm")
+    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.Confirm")
     def test_wizard_existing_sources_cancel(self, mock_confirm, mock_get_manager):
         """Test setup wizard with existing sources - user cancels."""
         # Add existing source
@@ -140,9 +140,9 @@ class TestSetupWizardCommand:
         assert "1 content sources configured" in result.stdout
         assert "Setup cancelled" in result.stdout
 
-    @patch("dnd5e.cli.commands.setup.get_config_manager")
-    @patch("dnd5e.cli.commands.setup.Confirm")
-    @patch("dnd5e.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.Confirm")
+    @patch("studiorum.cli.commands.setup.Prompt")
     def test_wizard_existing_sources_remove_and_reconfigure(
         self, mock_prompt, mock_confirm, mock_get_manager
     ):
@@ -201,7 +201,7 @@ class TestSetupHelperFunctions:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
 
-    @patch("dnd5e.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.console")
     def test_setup_defaults(self, mock_console):
         """Test _setup_defaults function."""
         from studiorum.cli.commands.setup import _setup_defaults
@@ -217,8 +217,8 @@ class TestSetupHelperFunctions:
         self.mock_config_manager.reset_to_defaults.assert_called_once()
         mock_console.print.assert_called()
 
-    @patch("dnd5e.cli.commands.setup.console")
-    @patch("dnd5e.cli.commands.setup.Confirm")
+    @patch("studiorum.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.Confirm")
     def test_setup_custom_with_defaults(self, mock_confirm, mock_console):
         """Test _setup_custom function including defaults."""
         from studiorum.cli.commands.setup import _setup_custom
@@ -232,9 +232,9 @@ class TestSetupHelperFunctions:
         assert self.mock_config.content_sources[0].name == "srd"
         self.mock_config_manager.update_config.assert_called_once()
 
-    @patch("dnd5e.cli.commands.setup.console")
-    @patch("dnd5e.cli.commands.setup.Confirm")
-    @patch("dnd5e.cli.commands.setup._add_source_interactive")
+    @patch("studiorum.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.Confirm")
+    @patch("studiorum.cli.commands.setup._add_source_interactive")
     def test_setup_custom_with_additional_sources(
         self, mock_add_source, mock_confirm, mock_console
     ):
@@ -253,8 +253,8 @@ class TestSetupHelperFunctions:
         mock_add_source.assert_called_once_with(self.mock_config)
         self.mock_config_manager.update_config.assert_called_once()
 
-    @patch("dnd5e.cli.commands.setup.console")
-    @patch("dnd5e.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.Prompt")
     def test_setup_local_valid_directory(self, mock_prompt, mock_console):
         """Test _setup_local function with valid directory."""
         from studiorum.cli.commands.setup import _setup_local
@@ -272,8 +272,8 @@ class TestSetupHelperFunctions:
         assert self.mock_config.content_sources[0].type == SourceType.DIRECTORY
         self.mock_config_manager.update_config.assert_called_once()
 
-    @patch("dnd5e.cli.commands.setup.console")
-    @patch("dnd5e.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.Prompt")
     def test_setup_local_invalid_path(self, mock_prompt, mock_console):
         """Test _setup_local function with invalid path."""
         from studiorum.cli.commands.setup import _setup_local
@@ -286,8 +286,8 @@ class TestSetupHelperFunctions:
         # Should not update config since no sources added
         mock_console.print.assert_any_call("[yellow]No sources configured![/yellow]")
 
-    @patch("dnd5e.cli.commands.setup.console")
-    @patch("dnd5e.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.Prompt")
     def test_setup_local_not_directory(self, mock_prompt, mock_console):
         """Test _setup_local function with file instead of directory."""
         from studiorum.cli.commands.setup import _setup_local
@@ -307,8 +307,8 @@ class TestSetupHelperFunctions:
             "[red]Error:[/red] Path is not a directory:" in str(call) for call in calls
         )
 
-    @patch("dnd5e.cli.commands.setup.console")
-    @patch("dnd5e.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.Prompt")
     def test_add_source_interactive_github_success(self, mock_prompt, mock_console):
         """Test _add_source_interactive function with GitHub source."""
         from studiorum.cli.commands.setup import _add_source_interactive
@@ -330,8 +330,8 @@ class TestSetupHelperFunctions:
         assert source.url == "https://github.com/test/repo.git"
         assert source.branch == "main"
 
-    @patch("dnd5e.cli.commands.setup.console")
-    @patch("dnd5e.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.Prompt")
     def test_add_source_interactive_github_duplicate_name(
         self, mock_prompt, mock_console
     ):
@@ -357,8 +357,8 @@ class TestSetupHelperFunctions:
             "[red]Error:[/red] Source 'existing' already exists"
         )
 
-    @patch("dnd5e.cli.commands.setup.console")
-    @patch("dnd5e.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.Prompt")
     def test_add_source_interactive_directory_success(self, mock_prompt, mock_console):
         """Test _add_source_interactive function with directory source."""
         from studiorum.cli.commands.setup import _add_source_interactive
@@ -383,8 +383,8 @@ class TestSetupHelperFunctions:
         # Compare resolved paths to handle symlink differences
         assert source.path.resolve() == test_dir.resolve()
 
-    @patch("dnd5e.cli.commands.setup.console")
-    @patch("dnd5e.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.Prompt")
     def test_add_source_interactive_directory_invalid_path(
         self, mock_prompt, mock_console
     ):
@@ -428,9 +428,9 @@ class TestScanContentFunction:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
 
-    @patch("dnd5e.cli.commands.setup.get_content_config")
-    @patch("dnd5e.cli.commands.setup.ContentSourceManager")
-    @patch("dnd5e.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.get_content_config")
+    @patch("studiorum.cli.commands.setup.ContentSourceManager")
+    @patch("studiorum.cli.commands.setup.console")
     def test_scan_content_success(
         self, mock_console, mock_manager_class, mock_get_config
     ):
@@ -463,9 +463,9 @@ class TestScanContentFunction:
         calls = [str(call) for call in mock_console.print.call_args_list]
         assert any("Downloading and scanning content" in str(call) for call in calls)
 
-    @patch("dnd5e.cli.commands.setup.get_content_config")
-    @patch("dnd5e.cli.commands.setup.ContentSourceManager")
-    @patch("dnd5e.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.get_content_config")
+    @patch("studiorum.cli.commands.setup.ContentSourceManager")
+    @patch("studiorum.cli.commands.setup.console")
     def test_scan_content_error(
         self, mock_console, mock_manager_class, mock_get_config
     ):
@@ -509,7 +509,7 @@ class TestCheckSetupCommand:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
 
-    @patch("dnd5e.cli.commands.setup.get_content_config")
+    @patch("studiorum.cli.commands.setup.get_content_config")
     def test_check_setup_no_sources(self, mock_get_config):
         """Test check setup with no sources configured."""
         self.mock_config.content_sources = []
@@ -519,10 +519,10 @@ class TestCheckSetupCommand:
 
         assert result.exit_code == 1
         assert "No content sources configured" in result.stdout
-        assert "5e2pdf setup wizard" in result.stdout
+        assert "studiorum setup wizard" in result.stdout
 
-    @patch("dnd5e.cli.commands.setup.get_content_config")
-    @patch("dnd5e.cli.commands.setup.ContentSourceManager")
+    @patch("studiorum.cli.commands.setup.get_content_config")
+    @patch("studiorum.cli.commands.setup.ContentSourceManager")
     def test_check_setup_success(self, mock_manager_class, mock_get_config):
         """Test successful setup check."""
         # Add test source
@@ -556,8 +556,8 @@ class TestCheckSetupCommand:
         assert "1 content sources configured" in result.stdout
         assert "25 content files available" in result.stdout
 
-    @patch("dnd5e.cli.commands.setup.get_content_config")
-    @patch("dnd5e.cli.commands.setup.ContentSourceManager")
+    @patch("studiorum.cli.commands.setup.get_content_config")
+    @patch("studiorum.cli.commands.setup.ContentSourceManager")
     def test_check_setup_error(self, mock_manager_class, mock_get_config):
         """Test setup check with error."""
         # Add test source
@@ -579,7 +579,7 @@ class TestCheckSetupCommand:
 
         assert result.exit_code == 1
         assert "Setup check failed: Source error" in result.stdout
-        assert "5e2pdf setup wizard" in result.stdout
+        assert "studiorum setup wizard" in result.stdout
 
 
 @pytest.mark.cli
@@ -594,8 +594,8 @@ class TestResetSetupCommand:
         self.runner = CliRunner()
         self.mock_config_manager = Mock()
 
-    @patch("dnd5e.cli.commands.setup.get_config_manager")
-    @patch("dnd5e.cli.commands.setup.Confirm")
+    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.Confirm")
     def test_reset_setup_confirmed(self, mock_confirm, mock_get_manager):
         """Test reset setup when user confirms."""
         mock_get_manager.return_value = self.mock_config_manager
@@ -605,11 +605,11 @@ class TestResetSetupCommand:
 
         assert result.exit_code == 0
         assert "Configuration reset to defaults" in result.stdout
-        assert "5e2pdf sources scan" in result.stdout
+        assert "studiorum sources scan" in result.stdout
         self.mock_config_manager.reset_to_defaults.assert_called_once()
 
-    @patch("dnd5e.cli.commands.setup.get_config_manager")
-    @patch("dnd5e.cli.commands.setup.Confirm")
+    @patch("studiorum.cli.commands.setup.get_config_manager")
+    @patch("studiorum.cli.commands.setup.Confirm")
     def test_reset_setup_cancelled(self, mock_confirm, mock_get_manager):
         """Test reset setup when user cancels."""
         mock_get_manager.return_value = self.mock_config_manager
@@ -642,8 +642,8 @@ class TestSetupEdgeCases:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
 
-    @patch("dnd5e.cli.commands.setup.console")
-    @patch("dnd5e.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.Prompt")
     def test_add_source_interactive_github_validation_error(
         self, mock_prompt, mock_console
     ):
@@ -663,8 +663,8 @@ class TestSetupEdgeCases:
         assert len(self.mock_config.content_sources) == 0
         # Should print error message about validation failure
 
-    @patch("dnd5e.cli.commands.setup.console")
-    @patch("dnd5e.cli.commands.setup.Prompt")
+    @patch("studiorum.cli.commands.setup.console")
+    @patch("studiorum.cli.commands.setup.Prompt")
     def test_add_source_interactive_directory_validation_error(
         self, mock_prompt, mock_console
     ):
@@ -706,8 +706,8 @@ class TestSetupEdgeCases:
         test_dir.mkdir()
 
         with (
-            patch("dnd5e.cli.commands.setup.Prompt") as mock_prompt,
-            patch("dnd5e.cli.commands.setup.console") as mock_console,
+            patch("studiorum.cli.commands.setup.Prompt") as mock_prompt,
+            patch("studiorum.cli.commands.setup.console") as mock_console,
         ):
             mock_prompt.ask.side_effect = [str(test_dir), "test-local", "done"]
 

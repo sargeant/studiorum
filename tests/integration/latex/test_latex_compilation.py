@@ -310,7 +310,7 @@ class TestCLILaTeXIntegration:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "test",
@@ -357,7 +357,7 @@ class TestCLILaTeXIntegration:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "adventure",
                     "test",

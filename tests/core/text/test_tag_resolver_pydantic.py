@@ -331,7 +331,7 @@ class TestTagResolver:
     def test_tag_resolver_error_logging(self, mock_omnidexer: Mock) -> None:
         """Test that errors are properly logged."""
         with (
-            patch("dnd5e.core.text.tag_resolver.logger") as mock_logger,
+            patch("studiorum.core.text.tag_resolver.logger") as mock_logger,
             patch.object(TagParser, "parse") as mock_parse,
         ):
             mock_parse.side_effect = TagParseError("Test parse error")

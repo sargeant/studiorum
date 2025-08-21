@@ -125,7 +125,7 @@ class TestUtilityFunctions:
         """Test preset directory creation."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             with patch(
-                "dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir) / "presets"
+                "studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir) / "presets"
             ):
                 presets_dir = _ensure_presets_dir()
 
@@ -196,7 +196,8 @@ class TestGetConfiguration:
     async def test_get_configuration_exception_handling(self) -> None:
         """Test exception handling in get_configuration."""
         with patch(
-            "dnd5e.mcp.tools.config.get_app_config", side_effect=Exception("Test error")
+            "studiorum.mcp.tools.config.get_app_config",
+            side_effect=Exception("Test error"),
         ):
             result = await get_configuration()
 
@@ -294,7 +295,8 @@ class TestUpdateConfiguration:
     async def test_update_configuration_exception_handling(self) -> None:
         """Test exception handling in update_configuration."""
         with patch(
-            "dnd5e.mcp.tools.config.get_app_config", side_effect=Exception("Test error")
+            "studiorum.mcp.tools.config.get_app_config",
+            side_effect=Exception("Test error"),
         ):
             result = await update_configuration({"logging.level": "DEBUG"})
 
@@ -429,7 +431,7 @@ class TestConfigurePaperLayout:
     async def test_configure_paper_layout_exception_handling(self) -> None:
         """Test exception handling in configure_paper_layout."""
         with patch(
-            "dnd5e.mcp.tools.config.update_configuration",
+            "studiorum.mcp.tools.config.update_configuration",
             side_effect=Exception("Test error"),
         ):
             result = await configure_paper_layout()
@@ -522,7 +524,7 @@ class TestConfigureSpellbookGeneration:
     async def test_configure_spellbook_generation_exception_handling(self) -> None:
         """Test exception handling in configure_spellbook_generation."""
         with patch(
-            "dnd5e.mcp.tools.config.update_configuration",
+            "studiorum.mcp.tools.config.update_configuration",
             side_effect=Exception("Test error"),
         ):
             result = await configure_spellbook_generation()
@@ -628,7 +630,7 @@ class TestConfigureEncounterPrinting:
     async def test_configure_encounter_printing_exception_handling(self) -> None:
         """Test exception handling in configure_encounter_printing."""
         with patch(
-            "dnd5e.mcp.tools.config.update_configuration",
+            "studiorum.mcp.tools.config.update_configuration",
             side_effect=Exception("Test error"),
         ):
             result = await configure_encounter_printing()
@@ -740,7 +742,8 @@ class TestAddContentSource:
     async def test_add_content_source_exception_handling(self) -> None:
         """Test exception handling in add_content_source."""
         with patch(
-            "dnd5e.mcp.tools.config.get_app_config", side_effect=Exception("Test error")
+            "studiorum.mcp.tools.config.get_app_config",
+            side_effect=Exception("Test error"),
         ):
             result = await add_content_source(["phb"])
 
@@ -763,7 +766,7 @@ class TestSaveUserPreferences:
     async def test_save_user_preferences_success(self) -> None:
         """Test successful preset saving."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 result = await save_user_preferences(
                     preset_name="Test Preset",
                     description="A test configuration",
@@ -793,7 +796,7 @@ class TestSaveUserPreferences:
     async def test_save_user_preferences_special_characters(self) -> None:
         """Test preset saving with special characters in name."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 result = await save_user_preferences(
                     preset_name="Test/Preset: Special!@#",
                     description="Special chars test",
@@ -824,7 +827,7 @@ class TestSaveUserPreferences:
     async def test_save_user_preferences_with_context(self) -> None:
         """Test preset saving with custom context configuration."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 # Create context with custom config
                 custom_config = ApplicationConfig()
                 custom_config.logging.level = "DEBUG"
@@ -849,7 +852,7 @@ class TestSaveUserPreferences:
     async def test_save_user_preferences_file_error(self) -> None:
         """Test handling of file system errors."""
         with patch(
-            "dnd5e.mcp.tools.config._ensure_presets_dir",
+            "studiorum.mcp.tools.config._ensure_presets_dir",
             side_effect=Exception("Disk full"),
         ):
             result = await save_user_preferences("Test", "Test description")
@@ -873,7 +876,7 @@ class TestLoadUserPreferences:
     async def test_load_user_preferences_success(self) -> None:
         """Test successful preset loading."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 # Create a test preset file
                 preset_data = {
                     "name": "Test Preset",
@@ -911,7 +914,7 @@ class TestLoadUserPreferences:
     async def test_load_user_preferences_not_found(self) -> None:
         """Test loading non-existent preset."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 result = await load_user_preferences("Nonexistent Preset")
 
                 assert result.is_error()
@@ -925,7 +928,7 @@ class TestLoadUserPreferences:
     async def test_load_user_preferences_with_suggestions(self) -> None:
         """Test loading non-existent preset with available suggestions."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 # Create some test preset files
                 for name in ["Preset One", "Preset Two"]:
                     preset_data = {
@@ -949,7 +952,7 @@ class TestLoadUserPreferences:
     async def test_load_user_preferences_invalid_config(self) -> None:
         """Test loading preset with invalid configuration."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 # Create preset with invalid configuration
                 preset_data = {
                     "name": "Invalid Preset",
@@ -977,7 +980,7 @@ class TestLoadUserPreferences:
     async def test_load_user_preferences_with_context(self) -> None:
         """Test loading preset with context."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 # Create test preset
                 preset_data = {
                     "name": "Context Test",
@@ -1003,7 +1006,7 @@ class TestLoadUserPreferences:
     async def test_load_user_preferences_malformed_json(self) -> None:
         """Test loading preset with malformed JSON."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 # Create malformed JSON file
                 preset_file = Path(tmp_dir) / "Malformed.json"
                 preset_file.write_text("{ invalid json }")
@@ -1114,7 +1117,7 @@ class TestNaturalLanguageScenarios:
     async def test_scenario_save_current_settings_as_print_setup(self) -> None:
         """Test 'Save current settings as Print Setup' scenario."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 # First configure some settings
                 await configure_paper_layout(paper_size="a4", background="print")
 
@@ -1133,7 +1136,7 @@ class TestNaturalLanguageScenarios:
     async def test_scenario_load_print_setup_preferences(self) -> None:
         """Test 'Load my Print Setup preferences' scenario."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 # Create a preset first
                 preset_data = {
                     "name": "Print Setup",
@@ -1296,7 +1299,7 @@ class TestErrorHandlingAndValidation:
     async def test_configuration_exception_propagation(self) -> None:
         """Test that exceptions are properly converted to MCPErrors."""
         with patch(
-            "dnd5e.mcp.tools.config.ApplicationConfig",
+            "studiorum.mcp.tools.config.ApplicationConfig",
             side_effect=Exception("Config error"),
         ):
             result = await update_configuration({"logging.level": "DEBUG"})
@@ -1311,7 +1314,7 @@ class TestErrorHandlingAndValidation:
         """Test file system error handling in preset operations."""
         # Test save operation failure by mocking the directory creation
         with patch(
-            "dnd5e.mcp.tools.config._ensure_presets_dir",
+            "studiorum.mcp.tools.config._ensure_presets_dir",
             side_effect=PermissionError("Access denied"),
         ):
             result = await save_user_preferences("Test", "Test description")
@@ -1345,7 +1348,7 @@ class TestErrorHandlingAndValidation:
 
         # Valid name with spaces
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("dnd5e.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
+            with patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir)):
                 result = await save_user_preferences("Valid Name", "Description")
                 assert result.is_success()
 

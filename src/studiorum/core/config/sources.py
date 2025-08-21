@@ -109,11 +109,11 @@ class ContentConfiguration(BaseModel):
 
     # Cache and storage settings
     cache_dir: Path = Field(
-        default_factory=lambda: Path.home() / ".cache" / "5e2pdf",
+        default_factory=lambda: Path.home() / ".cache" / "studiorum",
         description="Cache directory",
     )
     config_dir: Path = Field(
-        default_factory=lambda: Path.home() / ".config" / "5e2pdf",
+        default_factory=lambda: Path.home() / ".config" / "studiorum",
         description="Config directory",
     )
 
@@ -180,7 +180,7 @@ class ContentConfigManager:
     def _get_default_config_path(self) -> Path:
         """Get the default configuration file path."""
         # Check for environment variable override first
-        config_file = os.environ.get("DND5E_CONFIG_FILE")
+        config_file = os.environ.get("STUDIORUM_CONFIG_FILE")
         if config_file:
             return Path(config_file)
 
@@ -188,12 +188,12 @@ class ContentConfigManager:
         if os.name == "nt":  # Windows
             config_dir = (
                 Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
-                / "5e2pdf"
+                / "studiorum"
             )
         else:  # Unix-like (macOS, Linux)
             config_dir = (
                 Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
-                / "5e2pdf"
+                / "studiorum"
             )
 
         config_dir.mkdir(parents=True, exist_ok=True)

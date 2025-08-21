@@ -1,4 +1,4 @@
-"""Stats command for 5e2pdf CLI."""
+"""Stats command for studiorum CLI."""
 
 import typer
 from rich import print as rprint

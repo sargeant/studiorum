@@ -25,14 +25,14 @@ class TestCLIMain:
         """Test CLI help command."""
         result = self.runner.invoke(app, ["--help"])
         assert result.exit_code == 0
-        assert "5e2pdf" in result.stdout
+        assert "studiorum" in result.stdout
         assert "Convert D&D 5e JSON data" in result.stdout
 
     def test_cli_version(self) -> None:
         """Test CLI version command."""
         result = self.runner.invoke(app, ["version"])
         assert result.exit_code == 0
-        assert "5e2pdf" in result.stdout
+        assert "studiorum" in result.stdout
         assert "v2.0.0" in result.stdout
 
     def test_cli_no_args(self) -> None:
@@ -125,8 +125,8 @@ class TestCLIIntegration:
 
         # Mock the omnidexer and dependencies
         with (
-            patch("dnd5e.cli.main.get_omnidexer") as mock_omnidexer,
-            patch("dnd5e.cli.main.get_tag_resolver") as mock_tag_resolver,
+            patch("studiorum.cli.main.get_omnidexer") as mock_omnidexer,
+            patch("studiorum.cli.main.get_tag_resolver") as mock_tag_resolver,
         ):
             mock_omni: Any = Mock()
             mock_tag: Any = Mock()
@@ -196,7 +196,7 @@ class TestCLIErrorHandling:
 
     def test_info_content_not_found(self) -> None:
         """Test info content command with non-existent content."""
-        with patch("dnd5e.cli.main.get_omnidexer") as mock_omnidexer:
+        with patch("studiorum.cli.main.get_omnidexer") as mock_omnidexer:
             mock_omni: Any = Mock()
             mock_omni.find.return_value = None
             mock_omnidexer.return_value = mock_omni

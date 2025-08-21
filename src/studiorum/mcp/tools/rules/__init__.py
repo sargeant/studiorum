@@ -1,4 +1,4 @@
-"""Rules intelligence tools for the dnd5e MCP server.
+"""Rules intelligence tools for the Studiorum MCP server.
 
 This package provides intelligent analysis of D&D 5e rules including:
 - Cross-reference discovery and relationship analysis

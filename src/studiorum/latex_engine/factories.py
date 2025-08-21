@@ -13,7 +13,7 @@ from .core.interfaces import LaTeXEngineProtocol
 def create_latex_engine(config: LaTeXConfig | None = None) -> LaTeXEngineProtocol:
     """Create a LaTeX engine.
 
-    In test environments (when DND5E_USE_MOCK_LATEX is set), this creates
+    In test environments (when STUDIORUM_USE_MOCK_LATEX is set), this creates
     a mock engine that uses real rendering but skips PDF compilation.
 
     Args:
@@ -23,7 +23,7 @@ def create_latex_engine(config: LaTeXConfig | None = None) -> LaTeXEngineProtoco
         LaTeX engine instance
     """
     # Use mock engine in test environments
-    if os.environ.get("DND5E_USE_MOCK_LATEX"):
+    if os.environ.get("STUDIORUM_USE_MOCK_LATEX"):
         return create_mock_latex_engine()
 
     renderer = LaTeXDocumentRenderer(config)

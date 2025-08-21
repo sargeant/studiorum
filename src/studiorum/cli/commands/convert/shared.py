@@ -1,6 +1,6 @@
 """Shared utility functions for convert commands."""
 
-# Using subprocess securely with validated paths via dnd5e.core.security
+# Using subprocess securely with validated paths via studiorum.core.security
 import subprocess  # nosec B404
 import sys
 from pathlib import Path
@@ -53,7 +53,7 @@ def create_latex_compiler() -> LaTeXCompiler:
         rprint("\n[yellow]Suggestions:[/yellow]")
         rprint("  • Use XeLaTeX or LuaLaTeX for fontspec package support")
         rprint("  • Remove fontspec from required packages if using PDFLaTeX")
-        rprint("  • Check your configuration in ~/.5e2pdf/config.yaml")
+        rprint("  • Check your configuration in ~/.studiorum/config.yaml")
         raise typer.Exit(1)
 
     return LaTeXCompiler(compilation_config)
@@ -223,7 +223,7 @@ def handle_resolution_result(
         for suggestion in result.suggestions[:5]:
             rprint(f"  • {suggestion}")
         rprint(
-            f"Run [bold]5e2pdf list {content_name}s[/bold] to see all available content."
+            f"Run [bold]studiorum list {content_name}s[/bold] to see all available content."
         )
         raise typer.Exit(1)
 
@@ -231,6 +231,6 @@ def handle_resolution_result(
         content_name = content_type.value
         rprint(f"[red]Error:[/red] {content_name.title()} '{query}' not found.")
         rprint(
-            f"Run [bold]5e2pdf list {content_name}s[/bold] to see available content."
+            f"Run [bold]studiorum list {content_name}s[/bold] to see available content."
         )
         raise typer.Exit(1)

@@ -126,7 +126,7 @@ class ConfigurationManager:
 
         Args:
             config_path: Optional path to configuration file.
-                        Defaults to ~/.config/dnd5e/config.yaml
+                        Defaults to ~/.config/studiorum/config.yaml
             enable_file_watcher: Whether to watch config file for changes
         """
         self._lock = asyncio.Lock()  # Async lock for config updates
@@ -135,7 +135,7 @@ class ConfigurationManager:
         # Configuration file path
         if config_path is None:
             home = Path.home()
-            config_dir = home / ".config" / "dnd5e"
+            config_dir = home / ".config" / "studiorum"
             config_dir.mkdir(parents=True, exist_ok=True)
             self._config_path = config_dir / "config.yaml"
         else:

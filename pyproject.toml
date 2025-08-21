@@ -74,7 +74,7 @@ docs = [
 ]
 observability = [
     "logfire[system-metrics]>=0.54.0",
-    "structlog>=25.0.0", # For structured logging compatibility
+    "structlog>=25.0.0",               # For structured logging compatibility
 ]
 
 [dependency-groups]
@@ -88,7 +88,7 @@ dev = [
     "pytest-cov>=6.0.0,<7.0.0",
     "pytest-xdist>=3.0.0,<4.0.0",
     "pytest-json-report>=1.5.0,<2.0.0", # JSON test reports for performance monitoring
-    "hypothesis>=6.98.0,<7.0.0", # Property-based testing
+    "hypothesis>=6.98.0,<7.0.0",        # Property-based testing
     "psutil>=5.9.0,<8.0.0",
     "types-pyyaml>=6.0.12.20250516",
     "types-psutil>=7.0.0.20250601",
@@ -96,7 +96,7 @@ dev = [
     "certifi>=2025.7.14",
     "coverage>=7.10.1,<8.0.0",
     "starlette>=0.47.2,<1.0.0",
-    "pip-audit>=2.6.0,<3.0.0", # Alternative to safety - compatible with Pydantic 2.11+
+    "pip-audit>=2.6.0,<3.0.0",          # Alternative to safety - compatible with Pydantic 2.11+
     # "safety>=3.6.0,<4.0.0",  # Disabled: requires pydantic<2.10.0
     "bandit>=1.8.6,<2.0.0",
     "pylint>=3.3.8",
@@ -188,9 +188,7 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
-exclude = [
-    "tests/.*\\.py$"
-]
+exclude = ["tests/.*\\.py$"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -203,9 +201,12 @@ addopts = [
     "--cov-report=html",
     "--cov-report=xml",
     "--tb=short",
-    "-n", "auto",  # Enable parallel test execution
-    "--dist", "loadscope",  # Group tests by module for better isolation
-    "--max-worker-restart", "1",  # Force new processes to avoid contamination
+    "-n",
+    "auto",                      # Enable parallel test execution
+    "--dist",
+    "loadscope",                 # Group tests by module for better isolation
+    "--max-worker-restart",
+    "1",                         # Force new processes to avoid contamination
     # Note: Enhanced isolation for parallel execution
 ]
 testpaths = ["tests"]
@@ -265,6 +266,6 @@ skips = ["B603"]
 # - B101: assert for type narrowing (4 occurrences) - not security assertions
 # - B105: "CS" enum value (1 occurrence) - not a password
 # - B110: try-except-pass (9 occurrences) - intentional graceful degradation
-# - B607: Already resolved via dnd5e.core.security module (0 remaining)
+# - B607: Already resolved via studiorum.core.security module (0 remaining)
 
 exclude_dirs = ["/tests/", "/scripts/"]

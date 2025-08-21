@@ -1,4 +1,4 @@
-"""Common type definitions for the dnd5e package.
+"""Common type definitions for the studiorum package.
 
 This module defines reusable TypedDict schemas to replace dict[str, Any] usage
 throughout the codebase. These provide better type safety while maintaining

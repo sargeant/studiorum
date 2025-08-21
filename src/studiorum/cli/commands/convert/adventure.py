@@ -155,9 +155,9 @@ def adventure(
 
     \\b
     Examples:
-      5e2pdf convert adventure cos              # Use abbreviation
-      5e2pdf convert adventure /path/to/cos.json  # Use file path
-      5e2pdf list adventures                    # See available content
+      studiorum convert adventure cos              # Use abbreviation
+      studiorum convert adventure /path/to/cos.json  # Use file path
+      studiorum list adventures                    # See available content
     """
 
     def _convert() -> None:

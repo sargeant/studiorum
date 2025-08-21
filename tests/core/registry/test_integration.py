@@ -29,7 +29,7 @@ class TestRegistryIntegration:
         mock_registry = Mock()
 
         with patch(
-            "dnd5e.core.registry.content_type_registry.get_content_type_registry",
+            "studiorum.core.registry.content_type_registry.get_content_type_registry",
             return_value=mock_registry,
         ):
 

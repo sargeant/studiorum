@@ -272,7 +272,7 @@ class TestGitHubSourceManager:
         """Test git availability check when git is available."""
         with (
             patch("subprocess.run") as mock_run,
-            patch("dnd5e.core.sources.github.get_git_executable") as mock_get_git,
+            patch("studiorum.core.sources.github.get_git_executable") as mock_get_git,
         ):
             mock_get_git.return_value = "git"
             mock_run.return_value = None  # Successful completion

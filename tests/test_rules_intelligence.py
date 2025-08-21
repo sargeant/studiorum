@@ -198,7 +198,7 @@ class TestRulesIntelligence:
 
         # Mock the service creation and method calls
         with patch(
-            "dnd5e.mcp.tools.rules.tools._get_rule_intelligence_service"
+            "studiorum.mcp.tools.rules.tools._get_rule_intelligence_service"
         ) as mock_get_service:
             mock_service = AsyncMock()
             mock_service.find_rule_cross_references.return_value = Success(
@@ -254,7 +254,7 @@ class TestRulesIntelligence:
         mock_context.get_service.return_value = MagicMock()
 
         with patch(
-            "dnd5e.mcp.tools.rules.tools._get_rule_intelligence_service"
+            "studiorum.mcp.tools.rules.tools._get_rule_intelligence_service"
         ) as mock_get_service:
             mock_service = AsyncMock()
             mock_service.validate_rule_combination.return_value = Success(
@@ -309,7 +309,7 @@ class TestRulesIntelligence:
         mock_context.get_service.return_value = MagicMock()
 
         with patch(
-            "dnd5e.mcp.tools.rules.tools._get_rule_intelligence_service"
+            "studiorum.mcp.tools.rules.tools._get_rule_intelligence_service"
         ) as mock_get_service:
             mock_service = AsyncMock()
 
@@ -375,7 +375,7 @@ class TestRulesIntelligence:
         mock_context.get_service.return_value = MagicMock()
 
         with patch(
-            "dnd5e.mcp.tools.rules.tools._get_rule_intelligence_service"
+            "studiorum.mcp.tools.rules.tools._get_rule_intelligence_service"
         ) as mock_get_service:
             mock_service = AsyncMock()
             mock_service.get_rule_suggestions.return_value = Success(
@@ -519,7 +519,7 @@ class TestRulesIntelligence:
 
         # Mock service to raise an exception
         with patch(
-            "dnd5e.mcp.tools.rules.tools._get_rule_intelligence_service"
+            "studiorum.mcp.tools.rules.tools._get_rule_intelligence_service"
         ) as mock_get_service:
             mock_service = AsyncMock()
             mock_service.find_rule_cross_references.return_value = Error(
@@ -562,7 +562,7 @@ class TestRulesIntelligence:
         mock_context.get_service.return_value = MagicMock()
 
         with patch(
-            "dnd5e.mcp.tools.rules.tools._get_rule_intelligence_service"
+            "studiorum.mcp.tools.rules.tools._get_rule_intelligence_service"
         ) as mock_get_service:
             mock_service = AsyncMock()
             mock_service.find_rule_cross_references.return_value = Success(

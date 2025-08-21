@@ -792,7 +792,7 @@ class TestRenderingPerformanceScale:
 
         # Test rendering performance
         with patch(
-            "dnd5e.renderers.latex.document.LaTeXDocumentRenderer"
+            "studiorum.renderers.latex.document.LaTeXDocumentRenderer"
         ) as mock_renderer_class:
             mock_renderer = Mock()
             mock_renderer.render_document.return_value = (

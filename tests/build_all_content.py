@@ -30,7 +30,7 @@ OPTIONS:
     --adventures-only    Build only adventures
     --books-only        Build only books
     --limit N           Build only first N items of each type
-    --output-dir PATH   Directory to save output files (default: /tmp/5e2pdf-test-*)
+    --output-dir PATH   Directory to save output files (default: /tmp/studiorum-test-*)
     --images            Enable image processing (default: disabled for speed)
     --stop-on-error     Stop building after first error (default: continue)
     --verbose           Show detailed progress and error output
@@ -77,7 +77,7 @@ class ContentBuilder:
         verbose: bool = False,
         summary_only: bool = False,
     ):
-        self.output_dir = output_dir or Path(tempfile.mkdtemp(prefix="5e2pdf-test-"))
+        self.output_dir = output_dir or Path(tempfile.mkdtemp(prefix="studiorum-test-"))
         self.no_images = no_images
         self.continue_on_error = continue_on_error
         self.verbose = verbose

@@ -1,4 +1,4 @@
-"""Tool registration system for the dnd5e MCP server.
+"""Tool registration system for the Studiorum MCP server.
 
 This module provides utilities for registering and managing MCP tools,
 including dynamic tool discovery and registration validation.

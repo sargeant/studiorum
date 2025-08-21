@@ -1,4 +1,4 @@
-"""Main CLI application for 5e2pdf."""
+"""Main CLI application for studiorum."""
 
 import asyncio
 import json
@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 
 # Create the main Typer app
 app: typer.Typer = typer.Typer(
-    name="5e2pdf",
+    name="studiorum",
     help="Convert D&D 5e JSON data to beautifully formatted LaTeX/PDF documents",
     rich_markup_mode="rich",
 )
@@ -70,7 +70,9 @@ def _create_latex_compiler() -> LaTeXCompiler:
 @app.command("version")
 def show_version() -> None:
     """Show version information."""
-    rprint("[bold blue]5e2pdf[/bold blue] [green]v2.0.0[/green] - Modern Architecture")
+    rprint(
+        "[bold blue]studiorum[/bold blue] [green]v2.0.0[/green] - Modern Architecture"
+    )
     rprint("Convert D&D 5e JSON → LaTeX → PDF")
 
 
@@ -89,7 +91,7 @@ def main(
     ),
 ) -> None:
     """
-    🎲 **5e2pdf** - Modern D&D 5e content converter
+    🎲 **studiorum** - Modern D&D 5e content converter
 
     Convert structured JSON data from 5e.tools into professional LaTeX documents
     that match the style of official D&D 5th edition books.
@@ -361,7 +363,7 @@ def get_omnidexer() -> Omnidexer:
     """Get the omnidexer instance from the service container.
 
     This function provides backward compatibility for tests that expect
-    these functions to be available from dnd5e.cli.main.
+    these functions to be available from studiorum.cli.main.
     """
     from studiorum.cli.utils import get_omnidexer as _get_omnidexer
 
@@ -372,7 +374,7 @@ def get_tag_resolver() -> TagResolver:
     """Get the tag resolver instance from the service container.
 
     This function provides backward compatibility for tests that expect
-    these functions to be available from dnd5e.cli.main.
+    these functions to be available from studiorum.cli.main.
     """
     from studiorum.cli.utils import get_tag_resolver as _get_tag_resolver
 

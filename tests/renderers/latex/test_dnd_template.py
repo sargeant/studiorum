@@ -29,7 +29,7 @@ class TestDNDTemplateManager:
         assert "expl3" in manager.required_packages
 
     @patch("subprocess.run")
-    @patch("dnd5e.renderers.latex.dnd_template.get_latex_utility")
+    @patch("studiorum.renderers.latex.dnd_template.get_latex_utility")
     def test_find_template_file_found(
         self, mock_get_utility: Any, mock_run: Any
     ) -> None:

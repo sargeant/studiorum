@@ -57,9 +57,9 @@ def bulk(
 
     \\b
     Examples:
-      5e2pdf convert bulk cos lmop hotdq --type adventure
-      5e2pdf convert bulk phb mm dmg --type book
-      5e2pdf convert bulk cos phb mm --type mixed
+      studiorum convert bulk cos lmop hotdq --type adventure
+      studiorum convert bulk phb mm dmg --type book
+      studiorum convert bulk cos phb mm --type mixed
     """
 
     def _bulk_convert() -> None:

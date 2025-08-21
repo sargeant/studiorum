@@ -56,7 +56,7 @@ class TestLaTeXCompiler:
             LaTeXCompiler(invalid_config)
 
     @patch("subprocess.run")
-    @patch("dnd5e.renderers.latex.compiler.get_latex_executable")
+    @patch("studiorum.renderers.latex.compiler.get_latex_executable")
     def test_check_engine_availability_success(
         self, mock_get_executable: Any, mock_run: Any
     ) -> None:
@@ -183,7 +183,7 @@ class TestLaTeXCompiler:
         assert self.compiler._get_pass_description(5, 5) == "Additional pass 5"
 
     @patch("subprocess.run")
-    @patch("dnd5e.renderers.latex.compiler.get_latex_executable")
+    @patch("studiorum.renderers.latex.compiler.get_latex_executable")
     def test_get_available_engines(
         self, mock_get_executable: Any, mock_run: Any
     ) -> None:
@@ -214,8 +214,8 @@ class TestLaTeXCompiler:
         assert LaTeXEngine.PDFLATEX not in available
 
     @patch("subprocess.run")
-    @patch("dnd5e.renderers.latex.compiler.get_latex_executable")
-    @patch("dnd5e.renderers.latex.compiler.get_latex_utility")
+    @patch("studiorum.renderers.latex.compiler.get_latex_executable")
+    @patch("studiorum.renderers.latex.compiler.get_latex_utility")
     def test_validate_environment(
         self, mock_get_utility: Any, mock_get_executable: Any, mock_run: Any
     ) -> None:

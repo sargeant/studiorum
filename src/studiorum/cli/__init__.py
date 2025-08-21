@@ -1,4 +1,4 @@
-"""Modern CLI interface for 5e2pdf."""
+"""Modern CLI interface for studiorum."""
 
 from .main import app
 

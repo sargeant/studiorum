@@ -1,4 +1,4 @@
-"""MCP server commands for the dnd5e CLI.
+"""MCP server commands for the studiorum CLI.
 
 This module provides MCP server commands that start the FastMCP server
 with D&D 5e content tools and configuration capabilities.
@@ -32,7 +32,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from studiorum.core.logging import DND5ELogger, get_logger
+from studiorum.core.logging import STUDIORUMLogger, get_logger
 
 from ...core.config.unified_config import get_app_config
 from ...mcp.server import create_mcp_server, get_mcp_app, list_registered_tools
@@ -74,7 +74,7 @@ def serve_mcp(
         False, "--reload", help="Enable auto-reload for development"
     ),
 ) -> None:
-    """Start the dnd5e MCP server.
+    """Start the studiorum MCP server.
 
     The MCP server provides D&D 5e content search and configuration tools
     through the Model Context Protocol, enabling LLMs to access structured
@@ -82,16 +82,16 @@ def serve_mcp(
 
     Examples:
         # Start server on default port
-        dnd5e mcp serve
+        studiorum mcp serve
 
         # Start on specific host and port
-        dnd5e mcp serve --host 0.0.0.0 --port 9000
+        studiorum mcp serve --host 0.0.0.0 --port 9000
 
         # Start with custom configuration
-        dnd5e mcp serve --config custom-config.yaml
+        studiorum mcp serve --config custom-config.yaml
 
         # Start in development mode with auto-reload
-        dnd5e mcp serve --reload --log-level DEBUG
+        studiorum mcp serve --reload --log-level DEBUG
     """
     # Configure logging
     numeric_level = getattr(logging, log_level.upper(), None)
@@ -132,7 +132,7 @@ def serve_mcp(
     console.print()
     console.print(
         Panel.fit(
-            Text("🎲 dnd5e MCP Server", style="bold blue", justify="center"),
+            Text("🎲 Studiorum MCP Server", style="bold blue", justify="center"),
             border_style="blue",
         )
     )
@@ -172,7 +172,7 @@ def serve_mcp(
 def list_tools() -> None:
     """List all available MCP tools.
 
-    Shows the complete list of tools registered with the dnd5e MCP server,
+    Shows the complete list of tools registered with the studiorum MCP server,
     including content search tools and configuration tools.
     """
     console.print()
@@ -249,7 +249,7 @@ def run_mcp_stdio(
         "local", "--environment", help="Deployment environment (local, dev, prod)"
     ),
 ) -> None:
-    """Start the dnd5e MCP server with stdio transport for Claude Desktop.
+    """Start the studiorum MCP server with stdio transport for Claude Desktop.
 
     This command starts the MCP server using stdio transport, which is the
     standard protocol for Claude Desktop integration. The server will run
@@ -260,34 +260,34 @@ def run_mcp_stdio(
 
     Examples:
         # Basic MCP server for Claude Desktop
-        dnd5e mcp run
+        studiorum mcp run
 
         # Enable comprehensive debugging
-        dnd5e mcp run --debug --log-protocol
+        studiorum mcp run --debug --log-protocol
 
         # Custom debug log location
-        dnd5e mcp run --debug --debug-log-file ./mcp-debug.log
+        studiorum mcp run --debug --debug-log-file ./mcp-debug.log
 
         # Enable Logfire observability (requires LOGFIRE_TOKEN)
-        dnd5e mcp run --observability --environment dev
+        studiorum mcp run --observability --environment dev
 
         # Development mode with full debugging
-        dnd5e mcp run --logfire-dev --debug --log-protocol --telemetry
+        studiorum mcp run --logfire-dev --debug --log-protocol --telemetry
 
     Note: This command is meant to be called by MCP clients (like Claude Desktop)
     rather than run directly by users. The client manages the server lifecycle.
 
     Environment Variables:
         LOGFIRE_TOKEN: Required for --observability, --telemetry, and --logfire-dev
-        DND5E_DEBUG: Set to 'true' to enable debug logging by default
-        DND5E_ENVIRONMENT: Default environment name (overridden by --environment)
+        STUDIORUM_DEBUG: Set to 'true' to enable debug logging by default
+        STUDIORUM_ENVIRONMENT: Default environment name (overridden by --environment)
     """
     # Determine effective debug settings
-    effective_debug = debug or os.getenv("DND5E_DEBUG", "false").lower() == "true"
+    effective_debug = debug or os.getenv("STUDIORUM_DEBUG", "false").lower() == "true"
     effective_environment = (
         environment
         if environment != "local"
-        else os.getenv("DND5E_ENVIRONMENT", "local")
+        else os.getenv("STUDIORUM_ENVIRONMENT", "local")
     )
 
     # Enable telemetry for Logfire options
@@ -309,7 +309,7 @@ def run_mcp_stdio(
             )
 
     # Initialize enhanced Logfire logging
-    DND5ELogger.initialize(
+    STUDIORUMLogger.initialize(
         debug=effective_debug,
         environment=effective_environment,
         enable_telemetry=enable_telemetry,
@@ -319,7 +319,7 @@ def run_mcp_stdio(
     )
 
     # Log enhanced startup information
-    mcp_debug_logger = DND5ELogger.get_mcp_debug_logger()
+    mcp_debug_logger = STUDIORUMLogger.get_mcp_debug_logger()
     if effective_debug:
         logger.info(
             "MCP Debug logging enabled",
@@ -360,7 +360,7 @@ def run_mcp_stdio(
         # Log comprehensive startup information to stderr for debugging
         tools_count = len(list_registered_tools())
         logger.info(
-            "Starting dnd5e MCP server with stdio transport",
+            "Starting studiorum MCP server with stdio transport",
             tools_count=tools_count,
             debug_enabled=effective_debug,
             protocol_logging=log_protocol,

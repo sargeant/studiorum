@@ -43,10 +43,10 @@ class TestConvertSupplementCommand:
             ]
         }
 
-    @patch("dnd5e.cli.commands.convert.supplement.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.supplement.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.supplement.create_latex_engine")
-    @patch("dnd5e.cli.commands.convert.supplement.display_manager")
+    @patch("studiorum.cli.commands.convert.supplement.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.supplement.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.supplement.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.supplement.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_supplement_with_spells(
@@ -109,9 +109,9 @@ class TestConvertSupplementCommand:
         assert result.exit_code == 1
         assert "Error:" in result.stdout
 
-    @patch("dnd5e.cli.commands.convert.supplement.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.supplement.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.supplement.display_manager")
+    @patch("studiorum.cli.commands.convert.supplement.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.supplement.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.supplement.display_manager")
     @patch("builtins.open")
     def test_convert_supplement_empty_content(
         self,

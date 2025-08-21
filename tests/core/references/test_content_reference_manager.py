@@ -236,7 +236,7 @@ class TestContentReferenceManager:
         mock_content.get_deep_index_entries.side_effect = Exception("Deep index failed")
 
         # Should not raise exception, but log warning
-        with patch("dnd5e.core.logging.logger.get_logger") as mock_logger:
+        with patch("studiorum.core.logging.logger.get_logger") as mock_logger:
             mock_log = Mock()
             mock_logger.return_value = mock_log
 

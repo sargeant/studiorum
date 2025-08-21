@@ -27,8 +27,8 @@ class TestErrorHandlingPaths:
 
         self.runner = CliRunner()
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
     @patch("builtins.open")
     def test_json_decode_error(
         self, mock_builtin_open, mock_tag_resolver, mock_omnidexer
@@ -61,9 +61,9 @@ class TestErrorHandlingPaths:
         finally:
             Path(file_path).unlink()
 
-    @patch("dnd5e.cli.commands.convert.adventure.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.adventure.create_latex_engine")
     @patch("builtins.open")
     def test_renderer_exception(
         self, mock_builtin_open, mock_engine_factory, mock_tag_resolver, mock_omnidexer
@@ -128,11 +128,11 @@ class TestSpecialCases:
 
         self.runner = CliRunner()
 
-    @patch("dnd5e.cli.commands.convert.book.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.shared.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.book.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.book.create_latex_engine")
-    @patch("dnd5e.cli.commands.convert.book.display_manager")
+    @patch("studiorum.cli.commands.convert.book.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.shared.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.book.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.book.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.book.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_phb_abbreviation_fallback(

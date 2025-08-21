@@ -167,7 +167,7 @@ class ConfigLoader:
         """
         Load configuration from environment variables.
 
-        Uses the existing pydantic-settings support with DND5E_ prefix.
+        Uses the existing pydantic-settings support with STUDIORUM_ prefix.
 
         Returns:
             ApplicationConfig instance with environment variable overrides

@@ -1,4 +1,4 @@
-"""Configuration management for 5e2pdf."""
+"""Configuration management for studiorum."""
 
 from .dynamic_manager import (
     ConfigurationManager,

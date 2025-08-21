@@ -193,7 +193,7 @@ class TestFileContentSource:
 
             # Mock the ContentFactory to return mock objects
             with patch(
-                "dnd5e.core.loaders.content_factory.ContentFactory"
+                "studiorum.core.loaders.content_factory.ContentFactory"
             ) as mock_factory_class:
                 mock_factory = Mock()
                 mock_factory_class.return_value = mock_factory
@@ -232,7 +232,7 @@ class TestFileContentSource:
             source = FileContentSource(file_path)  # No content type specified
 
             with patch(
-                "dnd5e.core.loaders.content_factory.ContentFactory"
+                "studiorum.core.loaders.content_factory.ContentFactory"
             ) as mock_factory_class:
                 mock_factory = Mock()
                 mock_factory_class.return_value = mock_factory
@@ -265,7 +265,7 @@ class TestFileContentSource:
 
             # First load should populate cache
             with patch(
-                "dnd5e.core.loaders.content_factory.ContentFactory"
+                "studiorum.core.loaders.content_factory.ContentFactory"
             ) as mock_factory_class:
                 mock_factory = Mock()
                 mock_factory_class.return_value = mock_factory
@@ -278,7 +278,7 @@ class TestFileContentSource:
 
             # Second load should use cache (no additional create_content calls)
             with patch(
-                "dnd5e.core.loaders.content_factory.ContentFactory"
+                "studiorum.core.loaders.content_factory.ContentFactory"
             ) as mock_factory_class:
                 mock_factory = Mock()
                 mock_factory_class.return_value = mock_factory
@@ -559,7 +559,7 @@ class TestContentSourceIntegration:
 
             # Load content
             with patch(
-                "dnd5e.core.loaders.content_factory.ContentFactory"
+                "studiorum.core.loaders.content_factory.ContentFactory"
             ) as mock_factory_class:
                 mock_factory = Mock()
                 mock_factory_class.return_value = mock_factory
@@ -601,7 +601,7 @@ class TestContentSourceIntegration:
 
             # Load all content
             with patch(
-                "dnd5e.core.loaders.content_factory.ContentFactory"
+                "studiorum.core.loaders.content_factory.ContentFactory"
             ) as mock_factory_class:
                 mock_factory = Mock()
                 mock_factory_class.return_value = mock_factory

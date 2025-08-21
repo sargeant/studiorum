@@ -1,4 +1,4 @@
-"""Cache management commands for the 5e2pdf CLI."""
+"""Cache management commands for the studiorum CLI."""
 
 import os
 from pathlib import Path
@@ -53,7 +53,7 @@ def show() -> None:
     # Recommendations
     if usage_pct > 80:
         console.print(
-            "\n[yellow]💡 Recommendation:[/yellow] Cache is nearly full. Consider running [cyan]5e2pdf cache clear[/cyan] to free space."
+            "\n[yellow]💡 Recommendation:[/yellow] Cache is nearly full. Consider running [cyan]studiorum cache clear[/cyan] to free space."
         )
     elif usage_pct < 10:
         console.print(

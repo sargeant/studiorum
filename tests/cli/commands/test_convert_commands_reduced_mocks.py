@@ -46,10 +46,10 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("dnd5e.cli.utils.get_omnidexer")
-    @patch("dnd5e.cli.utils.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.shared.create_latex_compiler")
-    @patch("dnd5e.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.shared.create_latex_compiler")
+    @patch("studiorum.cli.commands.convert.display_manager")
     def test_adventure_conversion_with_real_data_latex_only(
         self,
         mock_display,
@@ -114,10 +114,10 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @patch("dnd5e.cli.utils.get_omnidexer")
-    @patch("dnd5e.cli.utils.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.shared.create_latex_compiler")
-    @patch("dnd5e.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.utils.get_omnidexer")
+    @patch("studiorum.cli.utils.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.shared.create_latex_compiler")
+    @patch("studiorum.cli.commands.convert.display_manager")
     def test_book_conversion_with_real_data_latex_only(
         self,
         mock_display,
@@ -181,10 +181,10 @@ class TestConvertCommandsWithReducedMocking:
     @pytest.mark.slow
     @pytest.mark.ci_broken
     @pytest.mark.latex_required
-    @patch("dnd5e.cli.commands.convert.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.adventure.compile_pdf_async")
-    @patch("dnd5e.cli.commands.convert.display_manager")
+    @patch("studiorum.cli.commands.convert.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.adventure.compile_pdf_async")
+    @patch("studiorum.cli.commands.convert.display_manager")
     def test_pdf_compilation_uses_configured_compiler(
         self,
         mock_display,

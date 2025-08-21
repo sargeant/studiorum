@@ -295,7 +295,7 @@ class TestFormatConverterWithoutPIL:
         """Test initialization when PIL is not available."""
         with patch.dict("sys.modules", {"PIL": None}):
             with patch(
-                "dnd5e.renderers.latex.images.format_converter.PIL_AVAILABLE", False
+                "studiorum.renderers.latex.images.format_converter.PIL_AVAILABLE", False
             ):
                 with pytest.raises(ImportError, match="Pillow is required"):
                     FormatConverter()

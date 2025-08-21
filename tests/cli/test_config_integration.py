@@ -49,8 +49,8 @@ class TestCLIConfigIntegration:
 
         try:
             # Mock the commands to avoid full execution
-            with patch("dnd5e.cli.main.reset_cli_globals"):
-                with patch("dnd5e.core.loaders.omnidexer.Omnidexer"):
+            with patch("studiorum.cli.main.reset_cli_globals"):
+                with patch("studiorum.core.loaders.omnidexer.Omnidexer"):
                     result = self.runner.invoke(
                         app,
                         [
@@ -124,9 +124,9 @@ class TestCLIConfigIntegration:
         """Test CLI with environment variable configuration."""
         # Set environment variables
         env_vars = {
-            "DND5E_MCP__ENABLED": "true",
-            "DND5E_MCP__PORT": "7777",
-            "DND5E_LOGGING__LEVEL": "WARNING",
+            "STUDIORUM_MCP__ENABLED": "true",
+            "STUDIORUM_MCP__PORT": "7777",
+            "STUDIORUM_LOGGING__LEVEL": "WARNING",
         }
 
         original_env = {}
@@ -136,8 +136,8 @@ class TestCLIConfigIntegration:
 
         try:
             # Mock to avoid full command execution
-            with patch("dnd5e.cli.main.reset_cli_globals"):
-                with patch("dnd5e.core.loaders.omnidexer.Omnidexer"):
+            with patch("studiorum.cli.main.reset_cli_globals"):
+                with patch("studiorum.core.loaders.omnidexer.Omnidexer"):
                     result = self.runner.invoke(app, ["--debug", "list", "adventures"])
 
                     # Should execute successfully with env config
@@ -159,7 +159,7 @@ class TestCLIConfigIntegration:
             config_path = Path(f.name)
 
         try:
-            with patch("dnd5e.cli.main.reset_cli_globals"):
+            with patch("studiorum.cli.main.reset_cli_globals"):
                 result = self.runner.invoke(
                     app,
                     [
@@ -196,7 +196,7 @@ class TestCLIConfigIntegration:
             config_path = Path(f.name)
 
         try:
-            with patch("dnd5e.cli.main.reset_cli_globals"):
+            with patch("studiorum.cli.main.reset_cli_globals"):
                 result = self.runner.invoke(
                     app,
                     [
@@ -234,14 +234,14 @@ class TestCLIConfigIntegration:
 
         try:
             # First call
-            with patch("dnd5e.cli.main.reset_cli_globals"):
+            with patch("studiorum.cli.main.reset_cli_globals"):
                 result1 = self.runner.invoke(
                     app, ["--config-file", str(config_path1), "--help"]
                 )
                 assert result1.exit_code == 0
 
             # Second call should not be affected by first call's config
-            with patch("dnd5e.cli.main.reset_cli_globals"):
+            with patch("studiorum.cli.main.reset_cli_globals"):
                 result2 = self.runner.invoke(
                     app, ["--config-file", str(config_path2), "--help"]
                 )
@@ -256,11 +256,11 @@ class TestCLIConfigIntegration:
 
     def test_config_backward_compatibility(self) -> None:
         """Test that existing CLI usage still works without config file."""
-        with patch("dnd5e.cli.main.reset_cli_globals"):
+        with patch("studiorum.cli.main.reset_cli_globals"):
             # Standard CLI usage without config file should still work
             result = self.runner.invoke(app, ["--help"])
             assert result.exit_code == 0
-            assert "5e2pdf" in result.stdout
+            assert "studiorum" in result.stdout
 
             # Verbose and debug flags should still work
             result = self.runner.invoke(app, ["--verbose", "--help"])

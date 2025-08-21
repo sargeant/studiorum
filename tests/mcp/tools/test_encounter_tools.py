@@ -540,7 +540,7 @@ class TestEncounterServiceIntegration:
             assert service in summary
             assert summary[service]["lifecycle"] == "SCOPED"
 
-    @patch("dnd5e.core.services.encounter_services.EncounterCollector")
+    @patch("studiorum.core.services.encounter_services.EncounterCollector")
     def test_encounter_collector_service_creation(self, mock_collector) -> None:
         """Test encounter collector service creation."""
         from studiorum.core.services.encounter_services import (
@@ -557,7 +557,7 @@ class TestEncounterServiceIntegration:
         # Should return the collector instance
         assert result is not None
 
-    @patch("dnd5e.core.container.get_global_container")
+    @patch("studiorum.core.container.get_global_container")
     def test_container_integration(self, mock_container) -> None:
         """Test integration with service container."""
         from studiorum.core.services.encounter_services import (
@@ -576,7 +576,7 @@ class TestEncounterServiceIntegration:
 
         # Should successfully create encounter collector
         with patch(
-            "dnd5e.core.services.encounter_collector.EncounterCollector"
+            "studiorum.core.services.encounter_collector.EncounterCollector"
         ) as mock_ec:
             # Make the mock return itself when called (so result is not None)
             mock_ec.return_value = mock_ec

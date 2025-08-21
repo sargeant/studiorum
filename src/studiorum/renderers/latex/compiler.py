@@ -3,7 +3,7 @@
 import re
 import shutil
 
-# Using subprocess securely with validated LaTeX paths via dnd5e.core.security
+# Using subprocess securely with validated LaTeX paths via studiorum.core.security
 import subprocess  # nosec B404
 import tempfile
 import time

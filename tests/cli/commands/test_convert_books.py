@@ -34,10 +34,10 @@ class TestConvertBookCommand:
             ]
         }
 
-    @patch("dnd5e.cli.commands.convert.book.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.book.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.book.create_latex_engine")
-    @patch("dnd5e.cli.commands.convert.book.display_manager")
+    @patch("studiorum.cli.commands.convert.book.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.book.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.book.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.book.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_book_with_file_path(
@@ -90,12 +90,12 @@ class TestConvertBookCommand:
         finally:
             Path(file_path).unlink()
 
-    @patch("dnd5e.cli.commands.convert.book.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.book.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.book.get_app_config")
-    @patch("dnd5e.core.config.sources.get_content_config")
-    @patch("dnd5e.cli.commands.convert.book.create_latex_engine")
-    @patch("dnd5e.cli.commands.convert.book.display_manager")
+    @patch("studiorum.cli.commands.convert.book.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.book.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.book.get_app_config")
+    @patch("studiorum.core.config.sources.get_content_config")
+    @patch("studiorum.cli.commands.convert.book.create_latex_engine")
+    @patch("studiorum.cli.commands.convert.book.display_manager")
     @patch("builtins.open")
     @patch("pathlib.Path.mkdir")
     def test_convert_book_with_custom_options(

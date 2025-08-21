@@ -643,7 +643,7 @@ class TestContentProcessorRegistry:
 
         # Mock the content type detection
         with patch(
-            "dnd5e.renderers.latex.content_processor.ContentType.from_content"
+            "studiorum.renderers.latex.content_processor.ContentType.from_content"
         ) as mock_from_content:
             mock_from_content.return_value = ContentType("spell")
 
@@ -660,7 +660,7 @@ class TestContentProcessorRegistry:
 
         # Mock the content type detection to return unknown type
         with patch(
-            "dnd5e.renderers.latex.content_processor.ContentType.from_content"
+            "studiorum.renderers.latex.content_processor.ContentType.from_content"
         ) as mock_from_content:
             fake_content_type: Any = Mock()
             mock_from_content.return_value = fake_content_type

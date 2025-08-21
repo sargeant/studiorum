@@ -375,7 +375,7 @@ class TestTagParser:
 
         result = self.parser.parse("{@unknown test}")
         assert len(result.children) == 1
-        if os.getenv("DND5E_DISABLE_TAG_FALLBACK"):
+        if os.getenv("STUDIORUM_DISABLE_TAG_FALLBACK"):
             # When fallback is disabled, unknown tags become TextNode
             assert isinstance(result.children[0], TextNode)
         else:
@@ -489,7 +489,7 @@ class TestTagParser:
         """Test that grammar file exists."""
         grammar_path = (
             Path(__file__).parent.parent.parent.parent
-            / "src/dnd5e/core/text/tag_grammar.lark"
+            / "src/studiorum/core/text/tag_grammar.lark"
         )
         assert grammar_path.exists(), f"Grammar file not found at {grammar_path}"
 

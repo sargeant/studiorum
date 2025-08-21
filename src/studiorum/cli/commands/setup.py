@@ -26,8 +26,8 @@ def setup_wizard() -> None:
     """Interactive setup wizard for first-time configuration."""
     console.print(
         Panel.fit(
-            "[bold blue]🎲 Welcome to 5e2pdf Setup![/bold blue]\n\n"
-            "This wizard will help you configure content sources for 5e2pdf.\n"
+            "[bold blue]🎲 Welcome to studiorum Setup![/bold blue]\n\n"
+            "This wizard will help you configure content sources for studiorum.\n"
             "You can add GitHub repositories, local directories, or use defaults.",
             title="Setup Wizard",
             border_style="blue",
@@ -56,7 +56,7 @@ def setup_wizard() -> None:
 
         if not Confirm.ask("\nDo you want to reconfigure sources?"):
             console.print(
-                "Setup cancelled. Use [bold]5e2pdf sources[/bold] to manage sources."
+                "Setup cancelled. Use [bold]studiorum sources[/bold] to manage sources."
             )
             return
 
@@ -85,7 +85,7 @@ def setup_wizard() -> None:
         _scan_content()
     else:
         console.print("\nTo download and scan content later, run:")
-        console.print("[bold]5e2pdf sources scan[/bold]")
+        console.print("[bold]studiorum sources scan[/bold]")
 
 
 def _setup_defaults(config_manager: Any) -> None:
@@ -287,7 +287,7 @@ def check_setup() -> None:
 
     if not config.content_sources:
         console.print("[red]❌ No content sources configured[/red]")
-        console.print("Run [bold]5e2pdf setup wizard[/bold] to get started.")
+        console.print("Run [bold]studiorum setup wizard[/bold] to get started.")
         raise typer.Exit(1)
 
     console.print(
@@ -330,7 +330,7 @@ def check_setup() -> None:
 
         except Exception as e:
             console.print(f"[red]❌ Setup check failed: {e}[/red]")
-            console.print("Run [bold]5e2pdf setup wizard[/bold] to reconfigure.")
+            console.print("Run [bold]studiorum setup wizard[/bold] to reconfigure.")
             raise typer.Exit(1)
 
     _check()
@@ -347,4 +347,4 @@ def reset_setup() -> None:
     config_manager.reset_to_defaults()
 
     console.print("[green]✅ Configuration reset to defaults[/green]")
-    console.print("Run [bold]5e2pdf sources scan[/bold] to download content.")
+    console.print("Run [bold]studiorum sources scan[/bold] to download content.")

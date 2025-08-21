@@ -466,7 +466,7 @@ class TestCreatureOutputQualityValidation:
         """Validate that generated LaTeX is syntactically correct."""
         # Mock LaTeX rendering components
         with patch(
-            "dnd5e.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = ["Processed entry text"]

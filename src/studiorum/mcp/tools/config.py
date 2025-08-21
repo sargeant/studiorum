@@ -83,7 +83,7 @@ class PresetInfo(BaseModel):
 
 
 # Preset storage location
-_PRESETS_DIR = Path.home() / ".config" / "dnd5e" / "presets"
+_PRESETS_DIR = Path.home() / ".config" / "studiorum" / "presets"
 
 
 def _ensure_presets_dir() -> Path:

@@ -59,7 +59,7 @@ class TestHybridParameterDetection:
         finally:
             Path(file_path).unlink()  # Clean up
 
-    @patch("dnd5e.cli.commands.convert.shared.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.shared.get_omnidexer")
     def test_resolve_content_or_file_with_abbreviation(self, mock_get_omnidexer):
         """Test that non-file strings are treated as abbreviations."""
         # Create a proper Adventure instance instead of Mock
@@ -78,7 +78,7 @@ class TestHybridParameterDetection:
 
         # Mock successful resolution
         with patch(
-            "dnd5e.cli.commands.convert.shared.ContentResolver"
+            "studiorum.cli.commands.convert.shared.ContentResolver"
         ) as mock_resolver_class:
             mock_resolver = Mock()
             mock_resolver_class.return_value = mock_resolver

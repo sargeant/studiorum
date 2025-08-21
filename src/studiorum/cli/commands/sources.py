@@ -27,7 +27,7 @@ def list_sources() -> None:
 
     if not config.content_sources:
         console.print("[yellow]No content sources configured.[/yellow]")
-        console.print("Use [bold]5e2pdf sources add[/bold] to add sources.")
+        console.print("Use [bold]studiorum sources add[/bold] to add sources.")
         return
 
     table = Table(title="Content Sources")
@@ -336,7 +336,7 @@ def setup_defaults() -> None:
 
         console.print(table)
         console.print(
-            "\nRun [bold]5e2pdf sources scan[/bold] to download and index content."
+            "\nRun [bold]studiorum sources scan[/bold] to download and index content."
         )
     else:
         console.print("Operation cancelled.")

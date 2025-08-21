@@ -608,10 +608,10 @@ class TagASTTransformer(Transformer):
             # Check if fallback should be disabled for development/debugging
             import os
 
-            if os.getenv("DND5E_DISABLE_TAG_FALLBACK"):
+            if os.getenv("STUDIORUM_DISABLE_TAG_FALLBACK"):
                 raise TagParseError(
                     f"Unknown tag type '@{tag_type}' with content '{name}' - "
-                    f"no specific handler found (fallback disabled by DND5E_DISABLE_TAG_FALLBACK)"
+                    f"no specific handler found (fallback disabled by STUDIORUM_DISABLE_TAG_FALLBACK)"
                 )
 
             node = TagNode(tag_type)

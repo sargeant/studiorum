@@ -93,7 +93,7 @@ class TestContentResolverOnDemand:
         )
         assert result is adventure  # Should return original if no ID
 
-    @patch("dnd5e.core.resolvers.content_resolver.logger")
+    @patch("studiorum.core.resolvers.content_resolver.logger")
     def test_enrich_content_adventure_success(
         self, mock_logger, content_resolver, mock_adventure_metadata, mock_content_data
     ):
@@ -136,7 +136,7 @@ class TestContentResolverOnDemand:
         # Verify model_validate was called to create enriched content
         adventure_class.model_validate.assert_called_once()
 
-    @patch("dnd5e.core.resolvers.content_resolver.logger")
+    @patch("studiorum.core.resolvers.content_resolver.logger")
     def test_enrich_content_merger_failure(
         self, mock_logger, content_resolver, mock_adventure_metadata
     ):

@@ -207,7 +207,7 @@ class TestEntryParserEnhanced:
         stats = self.parser.get_processing_statistics()
         assert stats["errors_encountered"] == 1
 
-    @patch("dnd5e.core.parsers.entry_parser.logger")
+    @patch("studiorum.core.parsers.entry_parser.logger")
     def test_log_processing_summary(self, mock_logger):
         """Test processing summary logging."""
         entries = [
@@ -270,7 +270,7 @@ class TestEntryParserEnhanced:
             {"type": "unknownType", "data": "test"},
         ]
 
-        with patch("dnd5e.core.parsers.entry_parser.logger") as mock_logger:
+        with patch("studiorum.core.parsers.entry_parser.logger") as mock_logger:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 list(self.parser.parse_entries(entries))

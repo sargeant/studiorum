@@ -351,21 +351,21 @@ def items(
     \\b
     Examples:
       # Specific items (treasure hoard use case)
-      5e2pdf convert items "bag of holding" "sword of sharpness" "potion of healing"
-      5e2pdf convert items --from-file treasure-hoard.txt
+      studiorum convert items "bag of holding" "sword of sharpness" "potion of healing"
+      studiorum convert items --from-file treasure-hoard.txt
 
       # Type-based filtering (shop use case)
-      5e2pdf convert items --type weapon --rarity common,uncommon
-      5e2pdf convert items --type "adventuring gear" --max-value 10
+      studiorum convert items --type weapon --rarity common,uncommon
+      studiorum convert items --type "adventuring gear" --max-value 10
 
       # Magic item filtering
-      5e2pdf convert items --magic --attunement --sources DMG,XGE
-      5e2pdf convert items --rarity rare,very rare --charges
+      studiorum convert items --magic --attunement --sources DMG,XGE
+      studiorum convert items --rarity rare,very rare --charges
 
       # Sorting options
-      5e2pdf convert items --type weapon --sort type     # Group by type (default)
-      5e2pdf convert items --type armor --sort rarity    # Group by rarity
-      5e2pdf convert items --magic --sort value          # Sort by value
+      studiorum convert items --type weapon --sort type     # Group by type (default)
+      studiorum convert items --type armor --sort rarity    # Group by rarity
+      studiorum convert items --magic --sort value          # Sort by value
     """
 
     def _convert() -> None:

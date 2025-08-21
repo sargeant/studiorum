@@ -1,4 +1,4 @@
-# 5e2pdf: D&D 5e to PDF Converter
+# studiorum: D&D 5e to PDF Converter
 
 [![Test Status](https://img.shields.io/github/actions/workflow/status/sargeant/studiorum/tests.yml)](https://github.com/sargeant/studiorum/actions)
 [![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
@@ -10,11 +10,11 @@
 
 ## What is this?
 
-5e2pdf is a powerful command-line tool for D&D players and Dungeon Masters who want to create high-quality, printable documents from digital source files. Whether you're compiling a custom spellbook, a bestiary for your campaign, or a full adventure module, this tool gives you the power to turn JSON data into professional-looking PDFs.
+studiorum is a powerful command-line tool for D&D players and Dungeon Masters who want to create high-quality, printable documents from digital source files. Whether you're compiling a custom spellbook, a bestiary for your campaign, or a full adventure module, this tool gives you the power to turn JSON data into professional-looking PDFs.
 
 The JSON data uses the same format as 5e.tools – which means you can still load your homebrew and use their dynamic website with the interactive features.
 
-For full usage, check out the [documentation](http://5e2pdf.sargeant.net.nz/).
+For full usage, check out the [documentation](http://studiorum.sargeant.net.nz/).
 
 ## Features
 
@@ -38,7 +38,7 @@ This tool is able to produce print-ready PDFs, but has a few rough edges and cha
 
 ## Getting data
 
-This repository contains only content available under the [System Reference Document](https://www.dndbeyond.com/srd) (SRD). If you need additional data, you should look for a github source to add with `5e2pdf sources add 5etools --type github --url X`.
+This repository contains only content available under the [System Reference Document](https://www.dndbeyond.com/srd) (SRD). If you need additional data, you should look for a github source to add with `studiorum sources add 5etools --type github --url X`.
 
 ## Acknowledgements
 
@@ -66,7 +66,7 @@ Clone the repository and install the required packages:
 
 ```bash
 git clone https://github.com/sargeant/studiorum.git
-cd 5e2pdf
+cd studiorum
 uv sync
 ```
 
@@ -75,7 +75,7 @@ uv sync
 Run the interactive setup wizard (no relation) to configure the default content sources:
 
 ```bash
-uv run 5e2pdf setup wizard
+uv run studiorum setup wizard
 ```
 
 ### 4. Make the SRD spellbook
@@ -84,7 +84,7 @@ Assuming you added the SRD datasource, you can now use the `5ep2df onvert spells
 
 ```bash
 # This assumes you have added the SRD datasource
-uv run 5e2pdf convert spells --sources SRD --pdf
+uv run studiorum convert spells --sources SRD --pdf
 ```
 
 ## License
@@ -93,4 +93,4 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 ## More Information
 
-For more detailed technical information about the project's architecture, directory structure, and development workflow, please see our [**Developer Documentation**](http://5e2pdf.sargeant.net.nz/developer/index.html).
+For more detailed technical information about the project's architecture, directory structure, and development workflow, please see our [**Developer Documentation**](http://studiorum.sargeant.net.nz/developer/index.html).

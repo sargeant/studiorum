@@ -1,4 +1,4 @@
-"""MCP tools for dnd5e configuration management."""
+"""MCP tools for Studiorum configuration management."""
 
 from .config import (
     add_content_source,

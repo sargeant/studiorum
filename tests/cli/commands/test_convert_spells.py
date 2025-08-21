@@ -90,13 +90,13 @@ class TestConvertSpellsCommand:
             },
         ]
 
-    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
-    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_app_config")
-    @patch("dnd5e.core.config.sources.get_content_config")
-    @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert.compendiums.spells._render_spellbook")
-    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
+    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.cli.commands.convert.compendiums.spells.get_app_config")
+    @patch("studiorum.core.config.sources.get_content_config")
+    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.cli.commands.convert.compendiums.spells._render_spellbook")
+    @patch("studiorum.cli.commands.convert.compendiums.spells.display_manager")
     @patch("pathlib.Path.mkdir")
     def test_convert_spells_with_spell_names(
         self,
@@ -212,10 +212,10 @@ class TestConvertSpellsCommand:
         assert result.exit_code == 1
         assert "File does not exist" in result.stdout
 
-    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_omnidexer")
-    @patch("dnd5e.cli.commands.convert.compendiums.spells.get_tag_resolver")
-    @patch("dnd5e.core.services.spell_collector.SpellCollector")
-    @patch("dnd5e.cli.commands.convert.compendiums.spells.display_manager")
+    @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.core.services.spell_collector.SpellCollector")
+    @patch("studiorum.cli.commands.convert.compendiums.spells.display_manager")
     def test_convert_spells_no_spells_found(
         self,
         mock_display,

@@ -64,7 +64,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "test",
@@ -134,7 +134,7 @@ class TestBookConversion:
                     [
                         "uv",
                         "run",
-                        "5e2pdf",
+                        "studiorum",
                         "convert",
                         "book",
                         book_id,
@@ -184,7 +184,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "test",
@@ -326,7 +326,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "test",
@@ -425,7 +425,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "test",
@@ -478,7 +478,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "nonexistent",
@@ -520,7 +520,7 @@ class TestBookConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "book",
                     "test",

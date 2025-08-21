@@ -6,7 +6,7 @@ This package provides character progression analysis tools including:
 - Multiclass option analysis
 - Character optimization guidance
 
-Built on the existing 5e2pdf infrastructure with <200ms performance targets.
+Built on the existing studiorum infrastructure with <200ms performance targets.
 """
 
 from .models import (

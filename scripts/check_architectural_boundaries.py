@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Architectural boundary checker for 5e2pdf project.
+Architectural boundary checker for studiorum project.
 
 This script enforces architectural layering rules to prevent violations of
 dependency boundaries and maintain clean architecture.
@@ -49,29 +49,29 @@ class ArchitecturalBoundaryChecker:
         self.violations: list[Violation] = []
 
     def _define_layers(self) -> list[Layer]:
-        """Define the architectural layers for 5e2pdf."""
+        """Define the architectural layers for studiorum."""
         return [
             Layer(
                 name="cli",
-                path_patterns=["dnd5e.cli"],
+                path_patterns=["studiorum.cli"],
                 allowed_dependencies=["core", "renderers", "processors"],
                 description="Command-line interface layer",
             ),
             Layer(
                 name="renderers",
-                path_patterns=["dnd5e.renderers"],
+                path_patterns=["studiorum.renderers"],
                 allowed_dependencies=["core"],
                 description="Output rendering layer",
             ),
             Layer(
                 name="processors",
-                path_patterns=["dnd5e.processors"],
+                path_patterns=["studiorum.processors"],
                 allowed_dependencies=["core"],
                 description="Data processing layer",
             ),
             Layer(
                 name="core",
-                path_patterns=["dnd5e.core"],
+                path_patterns=["studiorum.core"],
                 allowed_dependencies=[],
                 description="Core business logic layer",
             ),
@@ -130,7 +130,7 @@ class ArchitecturalBoundaryChecker:
         """Check an import statement for boundary violations."""
         if isinstance(node, ast.Import):
             for alias in node.names:
-                if alias.name.startswith("dnd5e."):
+                if alias.name.startswith("studiorum."):
                     to_layer = self._get_module_layer(alias.name)
                     if to_layer and not self._is_dependency_allowed(
                         from_layer, to_layer
@@ -147,7 +147,7 @@ class ArchitecturalBoundaryChecker:
                         )
 
         elif isinstance(node, ast.ImportFrom):
-            if node.module and node.module.startswith("dnd5e."):
+            if node.module and node.module.startswith("studiorum."):
                 to_layer = self._get_module_layer(node.module)
                 if to_layer and not self._is_dependency_allowed(from_layer, to_layer):
                     for alias in node.names:

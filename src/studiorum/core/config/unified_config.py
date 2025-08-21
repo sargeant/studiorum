@@ -1,5 +1,5 @@
 """
-Unified configuration system for 5e2pdf.
+Unified configuration system for studiorum.
 
 This module consolidates the various configuration patterns throughout the codebase
 into a single, cohesive Pydantic-based configuration system. It replaces the
@@ -302,7 +302,7 @@ class ApplicationConfig(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        env_prefix="DND5E_",
+        env_prefix="STUDIORUM_",
         env_nested_delimiter="__",
     )
 

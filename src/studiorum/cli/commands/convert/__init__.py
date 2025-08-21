@@ -1,4 +1,4 @@
-"""Convert command for 5e2pdf CLI - modular version."""
+"""Convert command for studiorum CLI - modular version."""
 
 import typer
 

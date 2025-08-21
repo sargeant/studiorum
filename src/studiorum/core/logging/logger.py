@@ -2,7 +2,7 @@
 Unified logging interface using Pydantic Logfire.
 
 This module provides a single point of entry for all logging throughout
-the dnd5e application, using Logfire for structured observability.
+the Studiorum application, using Logfire for structured observability.
 """
 
 from __future__ import annotations
@@ -20,8 +20,8 @@ import logfire
 from logfire import LogfireLoggingHandler
 
 
-class DND5ELogger:
-    """Wrapper for Logfire that provides dnd5e-specific configuration."""
+class StudiorumLogger:
+    """Wrapper for Logfire that provides Studiorum-specific configuration."""
 
     _initialized = False
     _debug_mode = False
@@ -37,7 +37,7 @@ class DND5ELogger:
         mcp_debug: bool = False,
         mcp_debug_file: Path | None = None,
     ) -> None:
-        """Initialize Logfire with dnd5e-specific configuration."""
+        """Initialize Logfire with Studiorum-specific configuration."""
         if cls._initialized:
             return
 
@@ -96,7 +96,9 @@ class DND5ELogger:
             logfire.instrument_system_metrics()
 
         cls._initialized = True
-        logfire.info("dnd5e logging initialized", debug=debug, environment=environment)
+        logfire.info(
+            "studiorum logging initialized", debug=debug, environment=environment
+        )
 
     @classmethod
     def get_mcp_debug_logger(cls) -> MCPDebugLogger | None:
@@ -110,15 +112,15 @@ class DND5ELogger:
 
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 
-        # Try ~/.dnd5e/logs/ first
-        home_logs = Path.home() / ".dnd5e" / "logs"
+        # Try ~/.studiorum/logs/ first
+        home_logs = Path.home() / ".studiorum" / "logs"
         try:
             home_logs.mkdir(parents=True, exist_ok=True)
             return home_logs / f"mcp-debug-{timestamp}.log"
         except (OSError, PermissionError):
             # Secure fallback using system temp directory
             temp_dir = Path(tempfile.gettempdir())
-            return temp_dir / f"dnd5e-mcp-debug-{timestamp}.log"
+            return temp_dir / f"studiorum-mcp-debug-{timestamp}.log"
 
 
 def get_logger(name: str) -> Any:
@@ -135,10 +137,10 @@ def get_logger(name: str) -> Any:
         logfire logger: A Logfire logger instance with structured logging.
     """
     # Ensure Logfire is initialized with sensible defaults
-    if not DND5ELogger._initialized:
-        debug = os.getenv("DND5E_DEBUG", "false").lower() == "true"
-        environment = os.getenv("DND5E_ENVIRONMENT", "local")
-        DND5ELogger.initialize(debug=debug, environment=environment)
+    if not StudiorumLogger._initialized:
+        debug = os.getenv("STUDIORUM_DEBUG", "false").lower() == "true"
+        environment = os.getenv("STUDIORUM_ENVIRONMENT", "local")
+        StudiorumLogger.initialize(debug=debug, environment=environment)
 
     # Return Logfire's logger - it handles module naming internally
     return logfire
@@ -152,11 +154,11 @@ def setup_logging(
     **kwargs: Any,
 ) -> None:
     """
-    Set up logging for the dnd5e application.
+    Set up logging for the Studiorum application.
 
     This is the main entry point for configuring logging across the application.
     """
-    DND5ELogger.initialize(
+    StudiorumLogger.initialize(
         debug=debug,
         environment=environment,
         enable_telemetry=enable_telemetry,

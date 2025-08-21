@@ -33,7 +33,7 @@ class SpellClassLookupService:
             ).expanduser(),
             # Cache location
             Path(
-                "~/.cache/5e2pdf/5etools/data/generated/gendata-spell-source-lookup.json"
+                "~/.cache/studiorum/5etools/data/generated/gendata-spell-source-lookup.json"
             ).expanduser(),
         ]
 

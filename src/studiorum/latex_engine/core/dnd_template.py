@@ -1,10 +1,10 @@
 """DND-5e-LaTeX-Template integration utilities.
 
 This module provides functionality to detect, validate, and configure
-the DND-5e-LaTeX-Template for use with 5e2pdf.
+the DND-5e-LaTeX-Template for use with studiorum.
 """
 
-# Using subprocess securely with validated LaTeX paths via dnd5e.core.security
+# Using subprocess securely with validated LaTeX paths via studiorum.core.security
 import subprocess  # nosec B404
 import sys
 from pathlib import Path

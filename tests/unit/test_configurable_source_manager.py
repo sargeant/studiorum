@@ -461,7 +461,7 @@ class TestFileSystemSourceManager:
 
     def test_new_interface_methods_exist(self):
         """Test that FileSystemSourceManager implements new interface methods."""
-        with patch("dnd5e.core.loaders.source_manager.get_path_config"):
+        with patch("studiorum.core.loaders.source_manager.get_path_config"):
             manager = FileSystemSourceManager()
 
             # Should have the new methods
@@ -472,7 +472,7 @@ class TestFileSystemSourceManager:
 
     def test_filesystem_manager_dual_file_methods(self):
         """Test that FileSystemSourceManager dual-file methods return empty results."""
-        with patch("dnd5e.core.loaders.source_manager.get_path_config"):
+        with patch("studiorum.core.loaders.source_manager.get_path_config"):
             manager = FileSystemSourceManager()
 
             # Should return empty dicts since filesystem manager doesn't use dual-file pattern

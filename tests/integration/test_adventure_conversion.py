@@ -64,7 +64,7 @@ class TestAdventureConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "adventure",
                     "test",
@@ -130,7 +130,7 @@ class TestAdventureConversion:
                     [
                         "uv",
                         "run",
-                        "5e2pdf",
+                        "studiorum",
                         "convert",
                         "adventure",
                         adventure_id,
@@ -184,7 +184,7 @@ class TestAdventureConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "adventure",
                     "test",
@@ -322,7 +322,7 @@ class TestAdventureConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "adventure",
                     "test",
@@ -412,7 +412,7 @@ class TestAdventureConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "adventure",
                     "nonexistent",
@@ -454,7 +454,7 @@ class TestAdventureConversion:
                 [
                     "uv",
                     "run",
-                    "5e2pdf",
+                    "studiorum",
                     "convert",
                     "adventure",
                     "test",

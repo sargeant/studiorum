@@ -1,4 +1,4 @@
-"""FastMCP server implementation for dnd5e.
+"""FastMCP server implementation for Studiorum.
 
 This module implements the FastMCP server that provides D&D 5e content tools
 with <200ms performance targets. It integrates with existing AsyncRequestContext
@@ -43,9 +43,9 @@ from .tools.config import (
 
 logger = get_logger(__name__)
 
-# Initialize FastMCP server with dnd5e branding
+# Initialize FastMCP server with Studiorum branding
 mcp = FastMCP(
-    name="dnd5e-server",
+    name="studiorum-server",
     instructions="Deterministic D&D 5e data interface with natural language configuration",
     version="0.5.0",
 )
@@ -724,12 +724,12 @@ async def resolve_book(book_name: str) -> dict[str, Any]:
 
 # Server Management Functions
 async def create_mcp_server() -> FastMCP:
-    """Create and configure the dnd5e MCP server.
+    """Create and configure the Studiorum MCP server.
 
     Returns:
         Configured FastMCP server instance
     """
-    logger.info("Creating dnd5e MCP server with FastMCP integration")
+    logger.info("Creating Studiorum MCP server with FastMCP integration")
 
     # Count registered tools
     tool_count = len(list_registered_tools())

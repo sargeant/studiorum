@@ -281,7 +281,7 @@ class TestContentTypeDecorator:
         """Test that decorator properly registers content types."""
         # Mock the registry registration to avoid conflicts with system registrations
         with patch(
-            "dnd5e.core.registry.content_type_registry.get_content_type_registry"
+            "studiorum.core.registry.content_type_registry.get_content_type_registry"
         ) as mock_get_registry:
             mock_registry = MagicMock()
             mock_get_registry.return_value = mock_registry
@@ -331,7 +331,7 @@ class TestContentTypeDecorator:
         """Test that decorator returns the original class."""
         # Mock the registry registration to avoid conflicts with system registrations
         with patch(
-            "dnd5e.core.registry.content_type_registry.get_content_type_registry"
+            "studiorum.core.registry.content_type_registry.get_content_type_registry"
         ) as mock_get_registry:
             mock_registry = MagicMock()
             mock_get_registry.return_value = mock_registry
@@ -354,7 +354,7 @@ class TestContentTypeDecorator:
         """Test decorator with optional parameters."""
         # Mock the registry registration to avoid conflicts with system registrations
         with patch(
-            "dnd5e.core.registry.content_type_registry.get_content_type_registry"
+            "studiorum.core.registry.content_type_registry.get_content_type_registry"
         ) as mock_get_registry:
             mock_registry = MagicMock()
             mock_get_registry.return_value = mock_registry
@@ -378,7 +378,7 @@ class TestContentTypeDecorator:
         """Test decorator error handling during registration."""
         # Test that decorator handles registration errors gracefully
         with patch(
-            "dnd5e.core.registry.content_type_registry.get_content_type_registry"
+            "studiorum.core.registry.content_type_registry.get_content_type_registry"
         ) as mock_get_registry:
             mock_registry = MagicMock()
             mock_registry.register.side_effect = ValueError("Test registration error")

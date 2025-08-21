@@ -1,4 +1,4 @@
-"""LaTeX-specific configuration for 5e2pdf."""
+"""LaTeX-specific configuration for studiorum."""
 
 from pathlib import Path
 

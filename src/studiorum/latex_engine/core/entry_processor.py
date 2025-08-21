@@ -78,7 +78,7 @@ class RecursiveEntryProcessor:
                 import os
 
                 # Debug logging for entry processing issues
-                if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+                if os.getenv("STUDIORUM_DEBUG_ENTRY_PROCESSING"):
                     logger.warning(
                         f"Entry processing fallback triggered for type {type(entry).__name__}: {entry}"
                     )
@@ -86,7 +86,7 @@ class RecursiveEntryProcessor:
                 try:
                     # Check if it's a Pydantic model with model_dump method
                     if hasattr(entry, "model_dump"):
-                        if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+                        if os.getenv("STUDIORUM_DEBUG_ENTRY_PROCESSING"):
                             logger.info(
                                 f"Converting Pydantic model {type(entry).__name__} to dict"
                             )
@@ -96,7 +96,7 @@ class RecursiveEntryProcessor:
                     elif hasattr(entry, "__dataclass_fields__"):
                         import dataclasses
 
-                        if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+                        if os.getenv("STUDIORUM_DEBUG_ENTRY_PROCESSING"):
                             logger.info(
                                 f"Converting dataclass {type(entry).__name__} to dict"
                             )
@@ -104,7 +104,9 @@ class RecursiveEntryProcessor:
                         processed.append(self.process_entry_dict(entry_dict, context))
                     else:
                         # Check if strict mode is enabled
-                        if os.getenv("DND5E_STRICT_ENTRY_PROCESSING", "").lower() in (
+                        if os.getenv(
+                            "STUDIORUM_STRICT_ENTRY_PROCESSING", ""
+                        ).lower() in (
                             "1",
                             "true",
                             "yes",
@@ -115,14 +117,14 @@ class RecursiveEntryProcessor:
                             )
 
                         # Fallback for other types with logging
-                        if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+                        if os.getenv("STUDIORUM_DEBUG_ENTRY_PROCESSING"):
                             logger.warning(
                                 f"Using str() fallback for unknown entry type {type(entry).__name__}: {entry}"
                             )
                         processed.append(str(entry))
                 except Exception as e:
                     # Check if strict mode is enabled
-                    if os.getenv("DND5E_STRICT_ENTRY_PROCESSING", "").lower() in (
+                    if os.getenv("STUDIORUM_STRICT_ENTRY_PROCESSING", "").lower() in (
                         "1",
                         "true",
                         "yes",
@@ -133,7 +135,7 @@ class RecursiveEntryProcessor:
                         ) from e
 
                     # If conversion fails, fallback to string with logging
-                    if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+                    if os.getenv("STUDIORUM_DEBUG_ENTRY_PROCESSING"):
                         logger.error(
                             f"Entry conversion failed for {type(entry).__name__}, using str() fallback: {e}"
                         )
@@ -612,7 +614,7 @@ class RecursiveEntryProcessor:
             # Debug logging for wide table handling
             import os
 
-            if os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+            if os.getenv("STUDIORUM_DEBUG_ENTRY_PROCESSING"):
                 logger.info(
                     f"Table '{caption}': col_styles={col_styles}, col_count={col_count}, col_spec='{col_spec}'"
                 )
@@ -854,7 +856,7 @@ class RecursiveEntryProcessor:
         # Debug logging for generic entries that produce no output
         import os
 
-        if not result and os.getenv("DND5E_DEBUG_ENTRY_PROCESSING"):
+        if not result and os.getenv("STUDIORUM_DEBUG_ENTRY_PROCESSING"):
             entry_type = entry.get("type", "")
             logger.warning(
                 f"Generic entry processing produced no output for type '{entry_type}', keys: {list(entry.keys())}"

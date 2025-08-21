@@ -30,8 +30,8 @@ class TestBaseConvertCommand:
         assert hasattr(command, "_content_reference_manager")
         assert command._content_reference_manager is not None
 
-    @patch("dnd5e.cli.commands.convert.base.get_app_config")
-    @patch("dnd5e.core.config.sources.get_content_config")
+    @patch("studiorum.cli.commands.convert.base.get_app_config")
+    @patch("studiorum.core.config.sources.get_content_config")
     def test_apply_config_hierarchy_basic(
         self, mock_get_content_config, mock_get_app_config
     ):
@@ -67,8 +67,8 @@ class TestBaseConvertCommand:
         assert config["main_font"] is None  # main_font not in config structures
         assert config["title"] is None  # No title in config structures
 
-    @patch("dnd5e.cli.commands.convert.base.get_app_config")
-    @patch("dnd5e.core.config.sources.get_content_config")
+    @patch("studiorum.cli.commands.convert.base.get_app_config")
+    @patch("studiorum.core.config.sources.get_content_config")
     def test_apply_config_hierarchy_all_cli_args(
         self, mock_get_content_config, mock_get_app_config
     ):
@@ -116,8 +116,8 @@ class TestBaseConvertCommand:
         assert config["author"] == "CLI Author"
         assert config["output_directory"] == Path("cli_output")
 
-    @patch("dnd5e.cli.commands.convert.base.get_app_config")
-    @patch("dnd5e.core.config.sources.get_content_config")
+    @patch("studiorum.cli.commands.convert.base.get_app_config")
+    @patch("studiorum.core.config.sources.get_content_config")
     def test_apply_config_hierarchy_none_values(
         self, mock_get_content_config, mock_get_app_config
     ):
@@ -156,7 +156,7 @@ class TestBaseConvertCommand:
         )  # App config fallback (user config is None)
         assert config["main_font"] is None  # main_font not in config structures
 
-    @patch("dnd5e.core.container.get_global_container")
+    @patch("studiorum.core.container.get_global_container")
     def test_get_content_loader_omnidexer_source(self, mock_get_container):
         """Test content loader with omnidexer source."""
         mock_omnidexer = Mock()
@@ -167,13 +167,13 @@ class TestBaseConvertCommand:
         command = BaseConvertCommand()
 
         with patch(
-            "dnd5e.cli.commands.convert.base.ContentLoader"
+            "studiorum.cli.commands.convert.base.ContentLoader"
         ) as mock_loader_class:
             mock_loader = Mock()
             mock_loader_class.return_value = mock_loader
 
             with patch(
-                "dnd5e.cli.commands.convert.base.create_omnidexer_source"
+                "studiorum.cli.commands.convert.base.create_omnidexer_source"
             ) as mock_create_source:
                 mock_source = Mock()
                 mock_create_source.return_value = mock_source
@@ -196,13 +196,13 @@ class TestBaseConvertCommand:
         command = BaseConvertCommand()
 
         with patch(
-            "dnd5e.cli.commands.convert.base.ContentLoader"
+            "studiorum.cli.commands.convert.base.ContentLoader"
         ) as mock_loader_class:
             mock_loader = Mock()
             mock_loader_class.return_value = mock_loader
 
             with patch(
-                "dnd5e.cli.commands.convert.base.create_file_source"
+                "studiorum.cli.commands.convert.base.create_file_source"
             ) as mock_create_source:
                 mock_source1 = Mock()
                 mock_source2 = Mock()
@@ -215,7 +215,7 @@ class TestBaseConvertCommand:
                 assert mock_create_source.call_count == 2
                 assert mock_loader.add_source.call_count == 2
 
-    @patch("dnd5e.core.container.get_global_container")
+    @patch("studiorum.core.container.get_global_container")
     def test_get_content_reference_manager(self, mock_get_container):
         """Test getting content reference manager."""
         mock_omnidexer = Mock()
@@ -372,7 +372,7 @@ class TestAppendixMixin:
         # Should have content reference manager
         assert hasattr(mixin, "_content_reference_manager")
 
-    @patch("dnd5e.core.container.get_global_container")
+    @patch("studiorum.core.container.get_global_container")
     def test_get_content_reference_manager(self, mock_get_container):
         """Test getting content reference manager."""
         mock_omnidexer = Mock()
@@ -459,9 +459,9 @@ class TestBaseConvertCommandIntegration:
         """Set up test fixtures."""
         reset_test_environment()
 
-    @patch("dnd5e.cli.commands.convert.base.get_app_config")
-    @patch("dnd5e.core.config.sources.get_content_config")
-    @patch("dnd5e.core.container.get_global_container")
+    @patch("studiorum.cli.commands.convert.base.get_app_config")
+    @patch("studiorum.core.config.sources.get_content_config")
+    @patch("studiorum.core.container.get_global_container")
     def test_full_command_workflow(
         self, mock_get_container, mock_get_content_config, mock_get_app_config
     ):
@@ -503,7 +503,7 @@ class TestBaseConvertCommandIntegration:
 
         # 2. Get content loader
         with patch(
-            "dnd5e.cli.commands.convert.base.ContentLoader"
+            "studiorum.cli.commands.convert.base.ContentLoader"
         ) as mock_loader_class:
             mock_loader = Mock()
             mock_loader_class.return_value = mock_loader
@@ -551,8 +551,8 @@ class TestBaseConvertCommandIntegration:
         config = {"paper_size": "a4paper", "title": "Test"}
         content = [Mock()]
 
-        with patch("dnd5e.cli.commands.convert.base.get_app_config"):
-            with patch("dnd5e.core.config.sources.get_content_config"):
+        with patch("studiorum.cli.commands.convert.base.get_app_config"):
+            with patch("studiorum.core.config.sources.get_content_config"):
                 # Should not raise any method resolution conflicts
                 latex_params = command.get_latex_parameters(config)
                 latex_context = command.prepare_latex_context(config, content)

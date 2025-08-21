@@ -232,7 +232,7 @@ class TestEntryTypeRegistry:
         assert self.registry.statistics.total_entries == 0
         assert len(self.registry.unknown_types) == 0
 
-    @patch("dnd5e.core.entry_registry.logger")
+    @patch("studiorum.core.entry_registry.logger")
     def test_log_statistics(self, mock_logger):
         """Test statistics logging."""
         from studiorum.core.entry_registry import ValidationContext
@@ -253,7 +253,7 @@ class TestEntryTypeRegistry:
         assert mock_logger.info.call_count >= 2  # Total + known types
         assert mock_logger.warning.call_count >= 1  # Unknown types
 
-    @patch("dnd5e.core.entry_registry.logger")
+    @patch("studiorum.core.entry_registry.logger")
     def test_log_statistics_empty(self, mock_logger):
         """Test statistics logging with no data."""
         self.registry.log_statistics()

@@ -45,7 +45,7 @@ def validate_model[T: BaseModel](
 
     Examples:
         ```python
-        from dnd5e.core.models.spells import Spell
+        from studiorum.core.models.spells import Spell
 
         result = validate_model(Spell, spell_data, source="phb.json")
         if result.is_success():

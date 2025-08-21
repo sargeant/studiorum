@@ -85,7 +85,7 @@ class TestJsonLoaderCache:
         loader = JsonDataLoader(self._get_content_type("spell"))
 
         # Mock logger to track cache hits
-        with patch("dnd5e.core.loaders.json_loader.logger") as mock_logger:
+        with patch("studiorum.core.loaders.json_loader.logger") as mock_logger:
             # First load - should miss cache
             result1 = loader.load(test_file)
             assert len(result1) == 1

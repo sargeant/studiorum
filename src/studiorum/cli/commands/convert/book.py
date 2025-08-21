@@ -162,9 +162,9 @@ def book(
 
     \\b
     Examples:
-      5e2pdf convert book phb                   # Use abbreviation
-      5e2pdf convert book /path/to/phb.json     # Use file path
-      5e2pdf list books                         # See available content
+      studiorum convert book phb                   # Use abbreviation
+      studiorum convert book /path/to/phb.json     # Use file path
+      studiorum list books                         # See available content
     """
 
     def _convert() -> None:

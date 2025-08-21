@@ -1,4 +1,4 @@
-"""Info command for 5e2pdf CLI."""
+"""Info command for studiorum CLI."""
 
 from typing import cast
 
@@ -47,10 +47,10 @@ def show_content_info(
 
     \b
     Examples:
-      5e2pdf info content cos                    # Adventure by abbreviation
-      5e2pdf info content phb                    # Book by abbreviation
-      5e2pdf info content "Curse of Strahd"     # Adventure by name
-      5e2pdf info content fireball --type spell # Spell by name
+      studiorum info content cos                    # Adventure by abbreviation
+      studiorum info content phb                    # Book by abbreviation
+      studiorum info content "Curse of Strahd"     # Adventure by name
+      studiorum info content fireball --type spell # Spell by name
     """
 
     def _show_info() -> None:
@@ -119,8 +119,8 @@ def show_content_info(
                     rprint(
                         "\n[yellow]Try one of these commands to see available content:[/yellow]"
                     )
-                    rprint("  5e2pdf list adventures    # Show available adventures")
-                    rprint("  5e2pdf list books         # Show available books")
+                    rprint("  studiorum list adventures    # Show available adventures")
+                    rprint("  studiorum list books         # Show available books")
                 return
 
             # Display detailed information

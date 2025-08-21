@@ -518,26 +518,26 @@ def creatures(
     \\b
     Examples:
       # Specific creatures (encounter building)
-      5e2pdf convert creatures "Ancient Red Dragon" "Kobold" "Fire Elemental"
-      5e2pdf convert creatures --from-file encounter-creatures.txt
+      studiorum convert creatures "Ancient Red Dragon" "Kobold" "Fire Elemental"
+      studiorum convert creatures --from-file encounter-creatures.txt
 
       # CR-based filtering (DM reference)
-      5e2pdf convert creatures --cr 1-5
-      5e2pdf convert creatures --min-cr 10
+      studiorum convert creatures --cr 1-5
+      studiorum convert creatures --min-cr 10
 
       # Type-based filtering (adventure appendices)
-      5e2pdf convert creatures --type dragon,fiend --cr 5-15
-      5e2pdf convert creatures --type humanoid
+      studiorum convert creatures --type dragon,fiend --cr 5-15
+      studiorum convert creatures --type humanoid
 
       # Advanced filtering (combat and abilities)
-      5e2pdf convert creatures --legendary --min-cr 15
-      5e2pdf convert creatures --fly --darkvision --type beast
-      5e2pdf convert creatures --spellcasting --type humanoid
+      studiorum convert creatures --legendary --min-cr 15
+      studiorum convert creatures --fly --darkvision --type beast
+      studiorum convert creatures --spellcasting --type humanoid
 
       # Sorting options
-      5e2pdf convert creatures --type dragon --sort cr     # Group by CR (default)
-      5e2pdf convert creatures --cr 1-5 --sort type       # Group by creature type
-      5e2pdf convert creatures --legendary --sort name     # Alphabetical
+      studiorum convert creatures --type dragon --sort cr     # Group by CR (default)
+      studiorum convert creatures --cr 1-5 --sort type       # Group by creature type
+      studiorum convert creatures --legendary --sort name     # Alphabetical
     """
 
     def _convert() -> None:

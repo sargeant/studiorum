@@ -1,4 +1,4 @@
-"""List command for 5e2pdf CLI."""
+"""List command for studiorum CLI."""
 
 from pathlib import Path
 from typing import Any
@@ -233,7 +233,7 @@ def list_adventures() -> None:
                 table.add_row(abbrev, name, source)
 
             console.print(table)
-            rprint("\n[dim]Use: 5e2pdf convert adventure <abbreviation>[/dim]")
+            rprint("\n[dim]Use: studiorum convert adventure <abbreviation>[/dim]")
 
         except Exception as e:
             rprint(f"[red]Error:[/red] {e}")
@@ -277,7 +277,7 @@ def list_books() -> None:
                 table.add_row(abbrev, name, source)
 
             console.print(table)
-            rprint("\n[dim]Use: 5e2pdf convert book <abbreviation>[/dim]")
+            rprint("\n[dim]Use: studiorum convert book <abbreviation>[/dim]")
 
         except Exception as e:
             rprint(f"[red]Error:[/red] {e}")

@@ -119,7 +119,7 @@ def bump_version(part: str, update_draft: bool = False, dry_run: bool = False):
         str: New version string
     """
     pyproject_path = Path("pyproject.toml")
-    init_py_path = Path("src/dnd5e/__init__.py")
+    init_py_path = Path("src/studiorum/__init__.py")
 
     # Read pyproject.toml
     pyproject_content = pyproject_path.read_text()
@@ -159,7 +159,7 @@ def bump_version(part: str, update_draft: bool = False, dry_run: bool = False):
     )
     pyproject_path.write_text(new_pyproject_content)
 
-    # Update src/dnd5e/__init__.py
+    # Update src/studiorum/__init__.py
     init_py_content = init_py_path.read_text()
     new_init_py_content = re.sub(
         r'__version__ = "\d+\.\d+\.\d+"',

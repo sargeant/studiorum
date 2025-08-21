@@ -1,4 +1,4 @@
-"""Content search tools for the dnd5e MCP server.
+"""Content search tools for the Studiorum MCP server.
 
 This module provides content search functionality with <200ms performance targets,
 leveraging the PerformanceOptimizedOmnidexer and AsyncRequestContext infrastructure.

@@ -3,7 +3,7 @@
 import asyncio
 import shutil
 
-# Using subprocess securely with validated Git paths via dnd5e.core.security
+# Using subprocess securely with validated Git paths via studiorum.core.security
 import subprocess  # nosec B404
 from pathlib import Path
 

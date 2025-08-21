@@ -352,21 +352,21 @@ def spells(
     \\b
     Examples:
       # Specific spells (wizard use case)
-      5e2pdf convert spells "fireball" "magic missile" "counterspell"
-      5e2pdf convert spells --from-file my-spells.txt
+      studiorum convert spells "fireball" "magic missile" "counterspell"
+      studiorum convert spells --from-file my-spells.txt
 
       # Class-based filtering (cleric use case)
-      5e2pdf convert spells --class cleric --level 1-5
-      5e2pdf convert spells --class wizard,sorcerer --max-level 3
+      studiorum convert spells --class cleric --level 1-5
+      studiorum convert spells --class wizard,sorcerer --max-level 3
 
       # Advanced filtering
-      5e2pdf convert spells --class wizard --school evocation --level 1-9
-      5e2pdf convert spells --damage-type fire --no-material
-      5e2pdf convert spells --concentration --sources PHB,XGE
+      studiorum convert spells --class wizard --school evocation --level 1-9
+      studiorum convert spells --damage-type fire --no-material
+      studiorum convert spells --concentration --sources PHB,XGE
 
       # Sorting options
-      5e2pdf convert spells --class wizard --sort level   # Group by level (default)
-      5e2pdf convert spells --class wizard --sort name    # Alphabetical order
+      studiorum convert spells --class wizard --sort level   # Group by level (default)
+      studiorum convert spells --class wizard --sort name    # Alphabetical order
     """
 
     def _convert() -> None:
