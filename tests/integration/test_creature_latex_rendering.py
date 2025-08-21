@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from studiorum.core.models.creatures import Creature
-from studiorum.renderers.latex.document import LaTeXDocumentRenderer
+from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
 from tests.test_helpers import reset_test_environment
 
 
@@ -133,7 +133,7 @@ class TestCreatureLaTeXRendering:
 
         # Test LaTeX rendering
         with patch(
-            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.side_effect = lambda entries: [
@@ -175,7 +175,7 @@ class TestCreatureLaTeXRendering:
 
         # Test trait processing
         with patch(
-            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
@@ -193,7 +193,7 @@ class TestCreatureLaTeXRendering:
 
         # Test action processing
         with patch(
-            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
@@ -258,7 +258,7 @@ class TestCreatureLaTeXRendering:
         # Test with document renderer
         with (
             patch(
-                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
             patch(
                 "studiorum.renderers.core.interfaces.RenderingContext"
@@ -275,7 +275,7 @@ class TestCreatureLaTeXRendering:
 
             # Mock renderer and test basic rendering call structure
             with patch(
-                "studiorum.renderers.latex.document.LaTeXDocumentRenderer"
+                "studiorum.latex_engine.core.document.LaTeXDocumentRenderer"
             ) as mock_renderer_class:
                 mock_renderer = Mock()
                 mock_renderer.render.return_value = "\\documentclass{article}\\begin{document}Dragon stat block\\end{document}"
@@ -365,7 +365,7 @@ class TestCreatureLaTeXRendering:
 
         # Test complex ability with multiple markup tags
         with patch(
-            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [

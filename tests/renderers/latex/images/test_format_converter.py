@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from studiorum.renderers.latex.images.format_converter import (
+from studiorum.latex_engine.core.images.format_converter import (
     ConversionResult,
     FormatConverter,
 )
@@ -295,7 +295,8 @@ class TestFormatConverterWithoutPIL:
         """Test initialization when PIL is not available."""
         with patch.dict("sys.modules", {"PIL": None}):
             with patch(
-                "studiorum.renderers.latex.images.format_converter.PIL_AVAILABLE", False
+                "studiorum.latex_engine.core.images.format_converter.PIL_AVAILABLE",
+                False,
             ):
                 with pytest.raises(ImportError, match="Pillow is required"):
                     FormatConverter()

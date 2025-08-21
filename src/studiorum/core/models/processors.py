@@ -75,8 +75,8 @@ class CreatureProcessor:
         self, senses: list[str], tag_resolver: "TagResolver"
     ) -> str:
         """Process senses with tag resolution."""
+        from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
         from ...renderers.core.interfaces import RenderingContext
-        from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
         # Create a proper rendering context for entry processing
         context = RenderingContext(
@@ -235,8 +235,8 @@ class SpellProcessor:
     ) -> Result[str, BaseError]:
         """Get spell description with tag resolution using provided services."""
         try:
+            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
             # Use provided context or create one with injected services
             if context is None:
@@ -303,8 +303,8 @@ class SpellProcessor:
             if not self.spell.higher_level:
                 return Success("")
 
+            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
             # Use provided context or create one with injected services
             if context is None:
@@ -405,8 +405,8 @@ class ItemProcessor:
             if not all_entries:
                 return Success("")
 
+            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
             # Use provided context or create one with injected services
             if context is None:

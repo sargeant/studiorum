@@ -159,7 +159,7 @@ class RegistryManager:
         """Replace entry processor statblock mappings with registry-based ones."""
         try:
             # The correct class name is RecursiveEntryProcessor, not EntryProcessor
-            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
+            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
 
             # Replace the entire statblock mappings
             # Maps statblock tag -> ContentType enum name string (as expected by entry processor)

@@ -9,7 +9,7 @@ from studiorum.core.models.creatures import Creature
 from studiorum.core.models.spells import Spell
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.services.appendix_generator import AppendixFlags, AppendixGenerator
-from studiorum.renderers.latex.template_engine import LaTeXTemplateEngine
+from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
 
 @pytest.mark.integration

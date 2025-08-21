@@ -358,7 +358,9 @@ class UnifiedTagRenderer:
                 from studiorum.core.text.tag_types import FormattingNode, SpecialTag
 
                 if isinstance(result, FormattingNode | SpecialTag):
-                    from studiorum.renderers.latex.tag_renderer import LaTeXTagRenderer
+                    from studiorum.latex_engine.core.tag_renderer import (
+                        LaTeXTagRenderer,
+                    )
 
                     latex_renderer = LaTeXTagRenderer()
                     return latex_renderer.render(result)

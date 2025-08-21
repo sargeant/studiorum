@@ -37,7 +37,7 @@ class TestCreatureMarkupProcessing:
             ),
             patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
-                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
             mock_processor = Mock()
@@ -67,7 +67,7 @@ class TestCreatureMarkupProcessing:
             ),
             patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
-                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
             mock_processor = Mock()
@@ -140,7 +140,7 @@ class TestCreatureMarkupProcessing:
             ),
             patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
-                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
             mock_processor = Mock()
@@ -211,7 +211,7 @@ class TestCreatureMarkupProcessing:
             ),
             patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
-                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
             mock_processor = Mock()
@@ -242,7 +242,7 @@ class TestCreatureMarkupProcessing:
             ),
             patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
-                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
             patch(
                 "studiorum.renderers.core.interfaces.RenderingContext"
@@ -286,7 +286,7 @@ class TestCreatureMarkupProcessing:
             ),
             patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
-                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
             mock_processor = Mock()
@@ -323,7 +323,7 @@ class TestCreatureMarkupProcessing:
             ),
             patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
-                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
             mock_processor = Mock()
@@ -361,7 +361,7 @@ class TestCreatureMarkupProcessing:
             ),
             patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
-                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
             mock_processor = Mock()
@@ -394,7 +394,7 @@ class TestCreatureMarkupProcessing:
             ),
             patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
-                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
             mock_processor = Mock()
@@ -495,7 +495,7 @@ class TestCreatureMarkupEdgeCases:
             ),
             patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
             patch(
-                "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor",
+                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
                 side_effect=Exception("Construction failed"),
             ),
         ):

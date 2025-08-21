@@ -62,8 +62,8 @@ from typing import Any, Optional
 from studiorum.cli.commands.convert import resolve_content_or_file
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import ContentType
+from studiorum.latex_engine.core import LaTeXDocumentRenderer
 from studiorum.renderers.core.interfaces import RenderingContext
-from studiorum.renderers.latex import LaTeXDocumentRenderer
 
 
 class ContentBuilder:

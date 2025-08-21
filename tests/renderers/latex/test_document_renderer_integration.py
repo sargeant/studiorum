@@ -7,12 +7,12 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from studiorum.core.models.content import BaseContent, Source  # type: ignore
-from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
-from studiorum.renderers.latex.compilation_config import (  # type: ignore
+from studiorum.latex_engine.config.compilation import (  # type: ignore
     CompilationResult,
     LaTeXEngine,
 )
-from studiorum.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
+from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: ignore
+from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 # Apply async mark to the entire module

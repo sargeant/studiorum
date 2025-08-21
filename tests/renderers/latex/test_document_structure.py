@@ -14,10 +14,10 @@ from studiorum.core.models.document_metadata import (  # type: ignore
     DocumentType,
     SectionLevel,
 )
-from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
-from studiorum.renderers.latex.document_structure import (
+from studiorum.latex_engine.core.document_structure import (
     DocumentStructureBuilder,  # type: ignore
 )
+from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 
@@ -232,7 +232,7 @@ class TestDocumentStructureBuilder:
         from unittest.mock import patch
 
         with patch(
-            "studiorum.renderers.latex.document_structure.ContentType.from_content"
+            "studiorum.latex_engine.core.document_structure.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
@@ -307,7 +307,7 @@ class TestDocumentStructureBuilder:
         from unittest.mock import patch
 
         with patch(
-            "studiorum.renderers.latex.document_structure.ContentType.from_content"
+            "studiorum.latex_engine.core.document_structure.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:

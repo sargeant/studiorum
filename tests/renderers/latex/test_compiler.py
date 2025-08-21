@@ -7,13 +7,13 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from studiorum.renderers.latex.compilation_config import (  # type: ignore
+from studiorum.latex_engine.config.compilation import (  # type: ignore
     CompilationConfig,
     CompilationMode,
     CompilationResult,
     LaTeXEngine,
 )
-from studiorum.renderers.latex.compiler import LaTeXCompiler  # type: ignore
+from studiorum.latex_engine.core.compiler import LaTeXCompiler  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 # Ensure async tests work properly
@@ -56,7 +56,7 @@ class TestLaTeXCompiler:
             LaTeXCompiler(invalid_config)
 
     @patch("subprocess.run")
-    @patch("studiorum.renderers.latex.compiler.get_latex_executable")
+    @patch("studiorum.latex_engine.core.compiler.get_latex_executable")
     def test_check_engine_availability_success(
         self, mock_get_executable: Any, mock_run: Any
     ) -> None:
@@ -183,7 +183,7 @@ class TestLaTeXCompiler:
         assert self.compiler._get_pass_description(5, 5) == "Additional pass 5"
 
     @patch("subprocess.run")
-    @patch("studiorum.renderers.latex.compiler.get_latex_executable")
+    @patch("studiorum.latex_engine.core.compiler.get_latex_executable")
     def test_get_available_engines(
         self, mock_get_executable: Any, mock_run: Any
     ) -> None:
@@ -214,8 +214,8 @@ class TestLaTeXCompiler:
         assert LaTeXEngine.PDFLATEX not in available
 
     @patch("subprocess.run")
-    @patch("studiorum.renderers.latex.compiler.get_latex_executable")
-    @patch("studiorum.renderers.latex.compiler.get_latex_utility")
+    @patch("studiorum.latex_engine.core.compiler.get_latex_executable")
+    @patch("studiorum.latex_engine.core.compiler.get_latex_utility")
     def test_validate_environment(
         self, mock_get_utility: Any, mock_get_executable: Any, mock_run: Any
     ) -> None:
@@ -362,7 +362,7 @@ Hello World
 
     def test_analyze_compilation_errors(self) -> None:
         """Test compilation error analysis."""
-        from studiorum.renderers.latex.compilation_config import (
+        from studiorum.latex_engine.config.compilation import (
             CompilationPass,  # type: ignore
         )
 
@@ -386,7 +386,7 @@ Hello World
 
     def test_analyze_compilation_errors_timeout(self) -> None:
         """Test compilation error analysis for timeout."""
-        from studiorum.renderers.latex.compilation_config import (
+        from studiorum.latex_engine.config.compilation import (
             CompilationPass,  # type: ignore
         )
 
@@ -406,7 +406,9 @@ Hello World
 
         # Should detect timeout
         error_categories = [error.category for error in errors]
-        from studiorum.renderers.latex.error_parser import ErrorCategory  # type: ignore
+        from studiorum.latex_engine.utils.error_parser import (
+            ErrorCategory,  # type: ignore
+        )
 
         assert ErrorCategory.TIMEOUT_ERROR in error_categories
 

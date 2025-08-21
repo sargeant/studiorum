@@ -33,8 +33,8 @@ class TestLaTeXEngineIntegration:
             logging.basicConfig(level=logging.DEBUG)
             # Enable specific loggers
             for logger_name in [
-                "studiorum.renderers.latex.dnd_template",
-                "studiorum.renderers.latex.template_engine",
+                "studiorum.latex_engine.core.dnd_template",
+                "studiorum.latex_engine.core.template_engine",
                 "studiorum.cli.commands.convert",
             ]:
                 logger = logging.getLogger(logger_name)

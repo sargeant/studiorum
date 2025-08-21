@@ -261,7 +261,7 @@ class TestRegistryManager:
         mock_processor_class.statblock_tags = {}
 
         with patch(
-            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor",
+            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
             mock_processor_class,
         ):
             manager._update_entry_processor(metadata)
@@ -296,7 +296,7 @@ class TestRegistryManager:
         mock_processor_class._statblock_tags = {}
 
         with patch(
-            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor",
+            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
             mock_processor_class,
         ):
             manager._update_entry_processor(metadata)
@@ -328,7 +328,7 @@ class TestRegistryManager:
         ) else None
 
         with patch(
-            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor",
+            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
             mock_processor_class,
         ):
             manager._update_entry_processor(metadata)
@@ -356,7 +356,7 @@ class TestRegistryManager:
         mock_processor_class.statblock_tags = {"existing": "tag"}
 
         with patch(
-            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor",
+            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
             mock_processor_class,
         ):
             manager._update_entry_processor(metadata)
@@ -370,7 +370,7 @@ class TestRegistryManager:
 
         # Patch the actual import location to raise ImportError
         with patch(
-            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor",
+            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
             side_effect=ImportError,
         ):
             # Should not raise, just log warning

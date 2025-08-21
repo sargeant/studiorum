@@ -8,13 +8,13 @@ import pytest
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
-from studiorum.renderers.core.interfaces import RenderingContext
-from studiorum.renderers.latex.entry_renderers import (
+from studiorum.latex_engine.core.entry_renderers import (
     BaseEntryRenderer,
     CreatureEntryRenderer,
     ItemEntryRenderer,
     SpellEntryRenderer,
 )
+from studiorum.renderers.core.interfaces import RenderingContext
 
 
 @pytest.fixture
@@ -351,7 +351,7 @@ class TestEntryRendererRegistry:
 
     def test_renderer_registration(self) -> None:
         """Test that renderers are properly registered."""
-        from studiorum.renderers.latex.entry_renderers import EntryRendererRegistry
+        from studiorum.latex_engine.core.entry_renderers import EntryRendererRegistry
 
         registry = EntryRendererRegistry()
 
@@ -369,7 +369,7 @@ class TestEntryRendererRegistry:
 
     def test_unknown_content_type(self) -> None:
         """Test handling of unknown content types."""
-        from studiorum.renderers.latex.entry_renderers import EntryRendererRegistry
+        from studiorum.latex_engine.core.entry_renderers import EntryRendererRegistry
 
         registry = EntryRendererRegistry()
 
@@ -378,7 +378,7 @@ class TestEntryRendererRegistry:
 
     def test_custom_renderer_registration(self) -> None:
         """Test registration of custom renderers."""
-        from studiorum.renderers.latex.entry_renderers import EntryRendererRegistry
+        from studiorum.latex_engine.core.entry_renderers import EntryRendererRegistry
 
         class CustomRenderer(BaseEntryRenderer):
             def get_template_name(self) -> str:
@@ -404,7 +404,7 @@ class TestRendererPerformance:
 
     def test_renderer_reuse(self) -> None:
         """Test that renderers can be reused efficiently."""
-        from studiorum.renderers.latex.entry_renderers import EntryRendererRegistry
+        from studiorum.latex_engine.core.entry_renderers import EntryRendererRegistry
 
         registry = EntryRendererRegistry()
 

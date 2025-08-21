@@ -126,7 +126,7 @@ class TestRegistryIntegration:
         """Test that RecursiveEntryProcessor has statblock tags after initialization."""
         initialize_content_types()
 
-        from studiorum.renderers.latex.entry_processor import RecursiveEntryProcessor
+        from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
 
         # Check that statblock tags are populated
         tags = getattr(RecursiveEntryProcessor, "_statblock_tags", {})

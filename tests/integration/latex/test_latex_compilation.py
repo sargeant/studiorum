@@ -22,8 +22,8 @@ from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.resolvers.content_resolver import ContentResolver
+from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
 from studiorum.renderers.core.interfaces import RenderingContext
-from studiorum.renderers.latex.document import LaTeXDocumentRenderer
 
 
 def check_latex_available() -> bool:

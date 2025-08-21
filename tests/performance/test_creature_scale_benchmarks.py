@@ -16,8 +16,8 @@ import pytest
 from studiorum.core.models.creature_filters import CreatureFilterCriteria
 from studiorum.core.models.creatures import Creature
 from studiorum.core.services.creature_collector import CreatureCollector
+from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
 from studiorum.renderers.core.interfaces import RenderingContext
-from studiorum.renderers.latex.document import LaTeXDocumentRenderer
 from tests.test_helpers import reset_test_environment
 
 
@@ -792,7 +792,7 @@ class TestRenderingPerformanceScale:
 
         # Test rendering performance
         with patch(
-            "studiorum.renderers.latex.document.LaTeXDocumentRenderer"
+            "studiorum.latex_engine.core.document.LaTeXDocumentRenderer"
         ) as mock_renderer_class:
             mock_renderer = Mock()
             mock_renderer.render_document.return_value = (

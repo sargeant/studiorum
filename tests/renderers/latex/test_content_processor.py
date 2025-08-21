@@ -9,14 +9,14 @@ from studiorum.core.models.content import ContentType  # type: ignore
 from studiorum.core.models.creatures import Creature  # type: ignore
 from studiorum.core.models.items import Item  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
-from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
-from studiorum.renderers.latex.content_processor import (  # type: ignore
+from studiorum.latex_engine.core.content_processor import (  # type: ignore
     ContentProcessor,
     ContentProcessorRegistry,
     CreatureProcessor,
     ItemProcessor,
     SpellProcessor,
 )
+from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 
@@ -643,7 +643,7 @@ class TestContentProcessorRegistry:
 
         # Mock the content type detection
         with patch(
-            "studiorum.renderers.latex.content_processor.ContentType.from_content"
+            "studiorum.latex_engine.core.content_processor.ContentType.from_content"
         ) as mock_from_content:
             mock_from_content.return_value = ContentType("spell")
 
@@ -660,7 +660,7 @@ class TestContentProcessorRegistry:
 
         # Mock the content type detection to return unknown type
         with patch(
-            "studiorum.renderers.latex.content_processor.ContentType.from_content"
+            "studiorum.latex_engine.core.content_processor.ContentType.from_content"
         ) as mock_from_content:
             fake_content_type: Any = Mock()
             mock_from_content.return_value = fake_content_type

@@ -11,8 +11,8 @@ from studiorum.core.models.books import Book  # type: ignore
 from studiorum.core.models.chapter import Chapter  # type: ignore
 from studiorum.core.models.content import Source  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
+from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: ignore
 from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
-from studiorum.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 
@@ -411,7 +411,7 @@ class TestRenderingPerformance:
     @pytest.mark.slow
     def test_compilation_performance_integration(self, sample_spell: Any) -> None:
         """Test end-to-end performance including compilation."""
-        from studiorum.renderers.latex.compilation_config import (  # type: ignore
+        from studiorum.latex_engine.config.compilation import (  # type: ignore
             CompilationResult,
             LaTeXEngine,
         )

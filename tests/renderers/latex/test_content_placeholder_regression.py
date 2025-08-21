@@ -9,13 +9,13 @@ import pytest
 from studiorum.core.models.books import Book, Chapter
 from studiorum.core.models.content import Source
 from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
-from studiorum.renderers.core.interfaces import RenderingContext
-from studiorum.renderers.latex.document import LaTeXDocumentRenderer
-from studiorum.renderers.latex.document_structure import (
+from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
+from studiorum.latex_engine.core.document_structure import (
     ContentSection,
     DocumentStructureBuilder,
     SectionLevel,
 )
+from studiorum.renderers.core.interfaces import RenderingContext
 from tests.test_helpers import reset_test_environment
 
 

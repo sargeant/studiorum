@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from studiorum.renderers.latex.dnd_template import (  # type: ignore
+from studiorum.latex_engine.core.dnd_template import (  # type: ignore
     DNDTemplateManager,
     check_dnd_template_status,
     get_dnd_document_class_options,
@@ -29,7 +29,7 @@ class TestDNDTemplateManager:
         assert "expl3" in manager.required_packages
 
     @patch("subprocess.run")
-    @patch("studiorum.renderers.latex.dnd_template.get_latex_utility")
+    @patch("studiorum.latex_engine.core.dnd_template.get_latex_utility")
     def test_find_template_file_found(
         self, mock_get_utility: Any, mock_run: Any
     ) -> None:

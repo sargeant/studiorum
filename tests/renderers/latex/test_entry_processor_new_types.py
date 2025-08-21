@@ -4,8 +4,8 @@ from unittest.mock import Mock
 
 import pytest
 
+from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
 from studiorum.renderers.core.interfaces import RenderingContext
-from studiorum.renderers.latex.entry_processor import RecursiveEntryProcessor
 from tests.test_helpers import reset_test_environment
 
 

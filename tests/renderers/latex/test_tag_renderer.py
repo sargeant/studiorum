@@ -13,7 +13,7 @@ from studiorum.core.text.tag_types import (
     FormatType,
     SpecialTag,
 )
-from studiorum.renderers.latex.tag_renderer import (
+from studiorum.latex_engine.core.tag_renderer import (
     ConfigurableLaTeXTagRenderer,
     ContentTypeStyleConfig,
     LaTeXTagRenderer,

@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from studiorum.renderers.latex.reference_resolver import (
+from studiorum.latex_engine.core.reference_resolver import (
     ReferenceContext,
     ReferenceResolver,
 )

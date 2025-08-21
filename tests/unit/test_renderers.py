@@ -7,12 +7,12 @@ from unittest.mock import patch
 import pytest
 
 from studiorum.core.models.content import ContentType  # type: ignore
-from studiorum.renderers.base import RenderingError  # type: ignore
-from studiorum.renderers.core.interfaces import RenderingContext
-from studiorum.renderers.latex import (  # type: ignore
+from studiorum.latex_engine.core import (  # type: ignore
     LaTeXDocumentRenderer,
     LaTeXTemplateEngine,
 )
+from studiorum.renderers.base import RenderingError  # type: ignore
+from studiorum.renderers.core.interfaces import RenderingContext
 
 
 class TestRenderingContext:

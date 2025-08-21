@@ -6,8 +6,8 @@ from typing import Any
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
+from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 from studiorum.renderers.core.interfaces import RenderingContext
-from studiorum.renderers.latex.template_engine import LaTeXTemplateEngine
 
 
 class BaseEntryRenderer(ABC):

@@ -10,7 +10,9 @@ from studiorum.core.models.document_metadata import (  # type: ignore
     DocumentType,
     SectionLevel,
 )
-from studiorum.renderers.latex.content_organizer import ContentOrganizer  # type: ignore
+from studiorum.latex_engine.core.content_organizer import (
+    ContentOrganizer,  # type: ignore
+)
 from tests.test_helpers import reset_test_environment
 
 
@@ -185,7 +187,7 @@ class TestContentOrganizer:
         from unittest.mock import patch
 
         with patch(
-            "studiorum.renderers.latex.content_organizer.ContentType.from_content"
+            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
@@ -243,7 +245,7 @@ class TestContentOrganizer:
         ]
 
         with patch(
-            "studiorum.renderers.latex.content_organizer.ContentType.from_content"
+            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
@@ -484,7 +486,7 @@ class TestContentOrganizerIntegration:
         ]
 
         with patch(
-            "studiorum.renderers.latex.content_organizer.ContentType.from_content"
+            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
@@ -532,7 +534,7 @@ class TestContentOrganizerIntegration:
         )
 
         with patch(
-            "studiorum.renderers.latex.content_organizer.ContentType.from_content"
+            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
         ) as mock_from_content:
             from studiorum.core.models.content import ContentType  # type: ignore
 

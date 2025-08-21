@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from studiorum.renderers.latex.error_parser import (  # type: ignore
+from studiorum.latex_engine.utils.error_parser import (  # type: ignore
     ErrorCategory,
     ErrorSeverity,
     LaTeXError,

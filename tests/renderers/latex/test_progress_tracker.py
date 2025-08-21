@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from studiorum.renderers.latex.progress_tracker import (  # type: ignore
+from studiorum.latex_engine.utils.progress_tracker import (  # type: ignore
     CompilationProgress,
     NoProgressReporter,
     ProgressTracker,
@@ -13,7 +13,7 @@ from studiorum.renderers.latex.progress_tracker import (  # type: ignore
 )
 
 try:
-    from studiorum.renderers.latex.progress_tracker import (
+    from studiorum.latex_engine.utils.progress_tracker import (
         RichProgressReporter,  # type: ignore
     )
 
@@ -171,9 +171,9 @@ class TestRichProgressReporter:
     def test_rich_reporter_initialization(self) -> None:
         """Test rich reporter initialization."""
         with (
-            patch("studiorum.renderers.latex.progress_tracker.Console"),
+            patch("studiorum.latex_engine.utils.progress_tracker.Console"),
             patch(
-                "studiorum.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
+                "studiorum.latex_engine.utils.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
                 False,
             ),
         ):
@@ -187,7 +187,7 @@ class TestRichProgressReporter:
         """Test rich reporter with custom console."""
         mock_console: Any = Mock()
         with patch(
-            "studiorum.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
+            "studiorum.latex_engine.utils.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
             False,
         ):
             reporter: Any = RichProgressReporter(mock_console)
@@ -199,7 +199,7 @@ class TestRichProgressReporter:
         mock_console: Any = Mock()
 
         with patch(
-            "studiorum.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
+            "studiorum.latex_engine.utils.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
             False,
         ):
             reporter: Any = RichProgressReporter(mock_console)
@@ -229,7 +229,7 @@ class TestRichProgressReporter:
         """Test error display in rich reporter."""
         mock_console: Any = Mock()
         with patch(
-            "studiorum.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
+            "studiorum.latex_engine.utils.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
             False,
         ):
             reporter: Any = RichProgressReporter(mock_console)
@@ -250,11 +250,11 @@ class TestRichProgressReporter:
 
         with (
             patch(
-                "studiorum.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
+                "studiorum.latex_engine.utils.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
                 True,
             ),
             patch(
-                "studiorum.renderers.latex.progress_tracker.display_manager",
+                "studiorum.latex_engine.utils.progress_tracker.display_manager",
                 mock_display_manager,
             ),
         ):
@@ -280,7 +280,9 @@ class TestRichProgressReporter:
 
     def test_rich_reporter_unavailable(self) -> None:
         """Test rich reporter when rich is not available."""
-        with patch("studiorum.renderers.latex.progress_tracker.RICH_AVAILABLE", False):
+        with patch(
+            "studiorum.latex_engine.utils.progress_tracker.RICH_AVAILABLE", False
+        ):
             with pytest.raises(ImportError, match="Rich library not available"):
                 RichProgressReporter()
 
@@ -312,7 +314,9 @@ class TestProgressTracker:
 
     def test_progress_tracker_rich_fallback(self) -> None:
         """Test progress tracker falls back when rich unavailable."""
-        with patch("studiorum.renderers.latex.progress_tracker.RICH_AVAILABLE", False):
+        with patch(
+            "studiorum.latex_engine.utils.progress_tracker.RICH_AVAILABLE", False
+        ):
             tracker: Any = ProgressTracker(style="rich")
 
             # Should fall back to no-op reporter

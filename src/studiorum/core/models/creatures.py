@@ -295,8 +295,8 @@ class Ability(BaseModel):
         """Get ability name with 5e.tools markup processed for LaTeX."""
         try:
             from ...cli.utils import get_omnidexer, get_tag_resolver
+            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
             # Get services for proper tag processing
             omnidexer = get_omnidexer()
@@ -334,8 +334,8 @@ class Ability(BaseModel):
         """Extract text from complex entry structures using proper entry processing."""
         try:
             from ...cli.utils import get_omnidexer, get_tag_resolver
+            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
             # Get services for proper tag processing
             omnidexer = get_omnidexer()
@@ -477,8 +477,8 @@ class Spellcasting(BaseModel):
         """Get spellcasting name with 5e.tools markup processed for LaTeX."""
         try:
             from ...cli.utils import get_omnidexer, get_tag_resolver
+            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
             # Get services for proper tag processing
             omnidexer = get_omnidexer()
@@ -516,8 +516,8 @@ class Spellcasting(BaseModel):
         """Generate formatted spellcasting description with all spell information."""
         try:
             from ...cli.utils import get_omnidexer, get_tag_resolver
+            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ...renderers.latex.entry_processor import RecursiveEntryProcessor
 
             # Get services for proper tag processing
             omnidexer = get_omnidexer()

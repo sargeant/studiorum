@@ -414,7 +414,7 @@ def make_tag_resolver():
 @pytest.fixture
 def make_latex_context():
     """Factory for creating LaTeX rendering contexts."""
-    from studiorum.renderers.latex.context import LaTeXContext
+    from studiorum.latex_engine.core.context import LaTeXContext
 
     def _make_latex_context(
         document_type: str = "book", images: bool = True, **overrides: Any

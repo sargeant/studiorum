@@ -14,10 +14,7 @@ from studiorum.core.services.item_collector import ItemCollector
 from studiorum.core.services.spell_collector import SpellCollector
 
 if TYPE_CHECKING:
-    from studiorum.latex_engine.core.template_engine import (
-        LaTeXTemplateEngine as NewLaTeXTemplateEngine,
-    )
-    from studiorum.renderers.latex.template_engine import LaTeXTemplateEngine
+    from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
 
 class AppendixFlags(BaseModel):
@@ -47,7 +44,7 @@ class AppendixGenerator:
     def __init__(
         self,
         omnidexer: Omnidexer,
-        template_engine: "LaTeXTemplateEngine | NewLaTeXTemplateEngine",
+        template_engine: "LaTeXTemplateEngine",
     ):
         """Initialize the appendix generator with required services.
 
@@ -62,7 +59,7 @@ class AppendixGenerator:
         self.creature_collector = CreatureCollector(omnidexer)
 
         # Use existing entry renderer system for consistent rendering
-        from studiorum.renderers.latex.entry_renderers import EntryRendererRegistry
+        from studiorum.latex_engine.core.entry_renderers import EntryRendererRegistry
 
         self.entry_registry = EntryRendererRegistry()
 

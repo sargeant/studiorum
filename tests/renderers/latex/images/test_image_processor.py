@@ -6,12 +6,12 @@ from unittest.mock import Mock, patch
 import pytest
 from pydantic import ValidationError
 
-from studiorum.renderers.core.interfaces import RenderingContext
-from studiorum.renderers.latex.images.image_processor import (
+from studiorum.latex_engine.core.images.image_processor import (
     ImageProcessingConfig,
     ImageProcessor,
     ProcessedImage,
 )
+from studiorum.renderers.core.interfaces import RenderingContext
 from tests.test_helpers import reset_test_environment
 
 

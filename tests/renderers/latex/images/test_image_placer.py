@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from studiorum.renderers.latex.images.image_placer import (
+from studiorum.latex_engine.core.images.image_placer import (
     ImagePlacement,
     ImagePlacer,
     ImageSize,

@@ -322,7 +322,7 @@ class TestCreatureRealDataIntegration:
 
         # Test markup processing in actions
         with patch(
-            "studiorum.renderers.latex.entry_processor.RecursiveEntryProcessor"
+            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
         ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [

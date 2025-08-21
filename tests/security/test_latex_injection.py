@@ -8,7 +8,7 @@ import pytest
 from hypothesis import given, strategies as st
 
 from studiorum.core.latex_utils import escape_latex_text
-from studiorum.renderers.latex.template_engine import LaTeXTemplateEngine
+from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 from tests.test_helpers import reset_test_environment
 
 
