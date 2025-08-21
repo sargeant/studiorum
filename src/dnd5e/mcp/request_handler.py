@@ -152,6 +152,21 @@ class ModernMCPRequestHandler:
                     result = await self._handle_analyze_multiclass_options_async(
                         params, ctx
                     )
+                # Rules Intelligence Tools
+                elif method == "find_rule_cross_references":
+                    result = await self._handle_find_rule_cross_references_async(
+                        params, ctx
+                    )
+                elif method == "validate_rule_combination":
+                    result = await self._handle_validate_rule_combination_async(
+                        params, ctx
+                    )
+                elif method == "search_rules_intelligent":
+                    result = await self._handle_search_rules_intelligent_async(
+                        params, ctx
+                    )
+                elif method == "get_rule_suggestions":
+                    result = await self._handle_get_rule_suggestions_async(params, ctx)
                 else:
                     raise ValueError(f"Unknown method: {method}")
 
@@ -841,6 +856,164 @@ class ModernMCPRequestHandler:
                 "error": error.message,
                 "current_class": current_class,
                 "level": level,
+            }
+
+    # Rules Intelligence Tools Handlers
+
+    async def _handle_find_rule_cross_references_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle rule cross-reference discovery.
+
+        Args:
+            params: Cross-reference parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Cross-reference data with relationships and analysis
+        """
+        from .tools.rules import find_rule_cross_references
+
+        rule_id = params.get("rule_id", "")
+        max_depth = params.get("max_depth", 2)
+        include_analysis = params.get("include_analysis", True)
+
+        try:
+            result = await find_rule_cross_references(
+                rule_id=rule_id,
+                max_depth=max_depth,
+                include_analysis=include_analysis,
+                ctx=ctx,
+            )
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Rule cross-reference discovery failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "cross_references": {},
+                "error": error.message,
+                "rule_id": rule_id,
+            }
+
+    async def _handle_validate_rule_combination_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle rule combination validation.
+
+        Args:
+            params: Validation parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Validation results with conflicts and synergies
+        """
+        from .tools.rules import validate_rule_combination
+
+        rule_ids = params.get("rule_ids", [])
+        context = params.get("context", {})
+
+        try:
+            result = await validate_rule_combination(
+                rule_ids=rule_ids,
+                context=context,
+                ctx=ctx,
+            )
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Rule combination validation failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "validation": {},
+                "error": error.message,
+                "rule_ids": rule_ids,
+            }
+
+    async def _handle_search_rules_intelligent_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle intelligent rule search.
+
+        Args:
+            params: Search parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Enhanced search results with relationship analysis
+        """
+        from .tools.rules import search_rules_intelligent
+
+        query = params.get("query", "")
+        rule_types = params.get("rule_types", None)
+        sources = params.get("sources", None)
+        complexity_filter = params.get("complexity_filter", None)
+        include_relationships = params.get("include_relationships", True)
+        limit = params.get("limit", 20)
+
+        try:
+            result = await search_rules_intelligent(
+                query=query,
+                rule_types=rule_types,
+                sources=sources,
+                complexity_filter=complexity_filter,
+                include_relationships=include_relationships,
+                limit=limit,
+                ctx=ctx,
+            )
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(message=f"Intelligent rule search failed: {e}")
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "search_results": {},
+                "error": error.message,
+                "query": query,
+            }
+
+    async def _handle_get_rule_suggestions_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle rule suggestion generation.
+
+        Args:
+            params: Suggestion parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Intelligent rule suggestions based on context
+        """
+        from .tools.rules import get_rule_suggestions
+
+        context = params.get("context", {})
+        limit = params.get("limit", 10)
+
+        try:
+            result = await get_rule_suggestions(
+                context=context,
+                limit=limit,
+                ctx=ctx,
+            )
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Rule suggestion generation failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "suggestions": [],
+                "error": error.message,
+                "context": context,
             }
 
 
