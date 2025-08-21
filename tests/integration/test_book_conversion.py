@@ -40,10 +40,8 @@ class TestBookConversion:
         """Reset global state for complete isolation using service container."""
         reset_test_environment()
 
-        # Extra isolation for parallel execution
-        from studiorum.core.container import reset_global_container
-
-        reset_global_container()
+        # Note: reset_test_environment() now handles both container systems
+        # via reset_all_containers() for proper parallel execution isolation
 
     def _get_test_env(self) -> dict[str, str]:
         """Get environment with test configuration override."""

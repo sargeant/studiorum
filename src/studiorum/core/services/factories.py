@@ -173,12 +173,12 @@ async def create_configuration_service(
 
 
 async def create_omnidexer_service(
-    container: ModernServiceContainer,
+    config_service: ConfigurationProtocol,
 ) -> OmnidexerProtocol:
     """Factory for async omnidexer with proper resource management.
 
     Args:
-        container: Service container for dependency resolution
+        config_service: Configuration service for accessing app config
 
     Returns:
         Omnidexer service implementing OmnidexerProtocol
@@ -348,10 +348,7 @@ async def create_omnidexer_service(
             except Exception as e:
                 logger.warning(f"Failed to resolve copy references: {e}")
 
-    # Get configuration from container
-    config_service = cast(
-        ConfigurationProtocol, await container.get_service(ConfigurationProtocol)
-    )
+    # Get configuration from injected service
     config = config_service.get_config()
 
     # Create and initialize service
@@ -365,12 +362,14 @@ async def create_omnidexer_service(
 
 
 async def create_tag_resolver_service(
-    container: ModernServiceContainer,
+    omnidexer: OmnidexerProtocol,
+    config_service: ConfigurationProtocol,
 ) -> TagResolverProtocol:
     """Factory for configurable tag resolver service.
 
     Args:
-        container: Service container for dependency resolution
+        omnidexer: Omnidexer service for content resolution
+        config_service: Configuration service for accessing app config
 
     Returns:
         Tag resolver service implementing TagResolverProtocol
@@ -432,9 +431,7 @@ async def create_tag_resolver_service(
             supported_types = self._tag_resolver.get_supported_tag_types()
             return tag_type in supported_types
 
-    # Get dependencies from container
-    omnidexer = await container.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
-    config_service = await container.get_service(ConfigurationProtocol)  # type: ignore[type-abstract]
+    # Get configuration from injected service
     config = config_service.get_config()
 
     return ConfigurableTagResolverService(omnidexer, config)

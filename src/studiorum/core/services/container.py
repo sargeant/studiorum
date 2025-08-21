@@ -723,9 +723,14 @@ async def create_mcp_request_container(
         config_with_overrides = base_config.model_copy(update=request_overrides)
 
         # Override configuration service for this request
+        async def config_factory() -> ConfigurationProtocol:
+            return await create_configuration_service(config_with_overrides)
+
+        from typing import cast
+
         request_container.register_service(
-            ConfigurationProtocol,
-            lambda: create_configuration_service(config_with_overrides),
+            cast(type, ConfigurationProtocol),
+            config_factory,
             lifecycle=ServiceLifecycle.SINGLETON,
         )
 

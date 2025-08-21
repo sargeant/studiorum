@@ -8,6 +8,36 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def reset_all_containers() -> None:
+    """Reset all container systems (legacy and modern) for complete test isolation.
+
+    This function handles the transition period where both old and new container
+    systems may be in use. It ensures all container state is properly cleaned up
+    for parallel test execution.
+    """
+    try:
+        # Reset legacy container system
+        from studiorum.core.container import reset_global_container
+
+        reset_global_container()
+        logger.debug("Legacy service container reset")
+    except ImportError:
+        logger.debug("Legacy container system not available")
+    except Exception as e:
+        logger.warning(f"Failed to reset legacy container: {e}")
+
+    try:
+        # Reset modern async container system
+        from studiorum.cli.async_bridge import reset_global_async_container
+
+        reset_global_async_container()
+        logger.debug("Modern async service container reset")
+    except ImportError:
+        logger.debug("Modern async container system not available")
+    except Exception as e:
+        logger.warning(f"Failed to reset async container: {e}")
+
+
 def reset_test_environment() -> None:
     """Reset the entire test environment for complete isolation.
 
@@ -23,12 +53,10 @@ def reset_test_environment() -> None:
     - Tests that load actual data files
     """
     try:
-        # 1. Reset the service container (handles most singletons)
+        # 1. Reset both container systems (legacy and modern)
         # Do this first to create fresh instances
-        from studiorum.core.container import reset_global_container
-
-        reset_global_container()
-        logger.debug("Service container reset")
+        reset_all_containers()
+        logger.debug("All service containers reset")
 
         # 2. Reset the content type registry instance (preserves decorator registrations)
         from studiorum.core.registry.content_type_registry import (

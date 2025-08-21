@@ -1,26 +1,23 @@
 """Content factory for creating content instances without tight coupling."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
-from ..interfaces import ContentTypeRegistry
+if TYPE_CHECKING:
+    from ..interfaces import ContentTypeRegistry
 from ..models.content import BaseContent, ContentType
 
 
 class ContentFactory:
     """Factory for creating content instances based on content type."""
 
-    def __init__(self, registry: ContentTypeRegistry | None = None) -> None:
+    def __init__(self, registry: "ContentTypeRegistry | None" = None) -> None:
         if registry is None:
-            # Get from service container when not provided
-            from ..container import get_global_container
+            # For backward compatibility, create registry directly
+            from ..registry import get_content_type_registry
 
-            registry_result = get_global_container().get_content_type_registry()
-            if registry_result.is_error():
-                raise RuntimeError(
-                    f"Failed to get content type registry: {registry_result.error.message}"  # type: ignore[attr-defined]
-                )
-            registry = registry_result.unwrap()
-        self._registry = registry
+            self._registry = cast("ContentTypeRegistry", get_content_type_registry())
+        else:
+            self._registry = registry
         self._class_map: dict[ContentType, type[BaseContent]] = {}
         self._initialized = False
 
@@ -100,5 +97,6 @@ class ContentFactory:
             content_class: Content class to register
         """
         self._class_map[content_type] = content_class
-        # Also register in the type registry
-        self._registry.register(content_class, content_type)
+        # Note: Registry registration is handled elsewhere in the initialization process
+        # The ContentTypeRegistry.register() method expects ContentTypeMetadata objects
+        # which are created during the content type discovery process

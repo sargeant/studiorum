@@ -287,22 +287,15 @@ def test_data_omnidexer() -> Omnidexer:
     # Use full reset sequence for complete isolation
     reset_test_environment()
 
-    # CRITICAL: Force a fresh service container for each test to avoid parallel contamination
-    from studiorum.core.container import reset_global_container
-
-    reset_global_container()
+    # Note: reset_test_environment() now handles both container systems via reset_all_containers()
+    # No need for additional container resets here
 
     # Set test configuration environment variable
     os.environ["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
 
-    # Get omnidexer from the DI container
-    from studiorum.core.container import get_global_container
-
-    container = get_global_container()
-    omnidexer_result = container.get_omnidexer()
-    if omnidexer_result.is_error():
-        raise RuntimeError(f"Failed to get omnidexer: {omnidexer_result.error.message}")  # type: ignore[attr-defined]
-    omnidexer = omnidexer_result.unwrap()
+    # Get omnidexer - create directly for test compatibility
+    omnidexer = Omnidexer()
+    omnidexer.load_all_data()
 
     # The container already calls load_all_data() when creating the omnidexer
     # No need to call it again - doing so triggers duplicate detection

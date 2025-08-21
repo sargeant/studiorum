@@ -249,14 +249,9 @@ class TestJsonDataLoaderBookIntegration:
         assert book_item["data"][1]["name"] == "Character Creation"
 
         # Create the actual Book object
-        from studiorum.core.container import get_global_container
+        from studiorum.core.loaders.content_factory import ContentFactory
 
-        factory_result = get_global_container().get_content_factory()
-        if factory_result.is_error():
-            raise RuntimeError(
-                f"Failed to get content factory: {factory_result.error.message}"
-            )  # type: ignore[attr-defined]
-        factory = factory_result.unwrap()
+        factory = ContentFactory()
         book = factory.create_content(book_item, self._get_content_type("book"))
 
         # Verify the book structure

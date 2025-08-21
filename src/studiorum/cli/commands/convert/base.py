@@ -31,14 +31,9 @@ class BaseConvertCommand:
 
     def __init__(self) -> None:
         """Initialize the base convert command."""
-        from studiorum.core.container import get_global_container
+        from studiorum.cli.async_bridge import get_omnidexer_sync
 
-        omnidexer_result = get_global_container().get_omnidexer()
-        if omnidexer_result.is_error():
-            raise RuntimeError(
-                f"Failed to get omnidexer: {omnidexer_result.error.message}"  # type: ignore[attr-defined]
-            )
-        omnidexer = omnidexer_result.unwrap()
+        omnidexer = get_omnidexer_sync()
         self._content_reference_manager = ContentReferenceManager(omnidexer)
 
     def _safe_getattr(self, obj: Any, attr_path: str) -> Any:
@@ -201,14 +196,14 @@ class BaseConvertCommand:
         use_stdin: bool = False,
     ) -> ContentLoader:
         """Get a content loader configured with the specified sources."""
-        from studiorum.core.container import get_global_container
+        from studiorum.cli.async_bridge import get_omnidexer_sync
 
         loader = ContentLoader()
 
         if use_omnidexer:
             from studiorum.core.models.content import ContentType
 
-            omnidexer = get_global_container().get_omnidexer()
+            omnidexer = get_omnidexer_sync()
             # Convert string to ContentType enum
             content_type_enum = ContentType(content_type.lower())
             source = create_omnidexer_source(omnidexer, content_type_enum)
@@ -507,15 +502,10 @@ class AppendixMixin:
 
     def __init__(self) -> None:
         """Initialize the appendix mixin."""
-        from studiorum.core.container import get_global_container
+        from studiorum.cli.async_bridge import get_omnidexer_sync
 
         if not hasattr(self, "_content_reference_manager"):
-            omnidexer_result = get_global_container().get_omnidexer()
-            if omnidexer_result.is_error():
-                raise RuntimeError(
-                    f"Failed to get omnidexer: {omnidexer_result.error.message}"  # type: ignore[attr-defined]
-                )
-            omnidexer = omnidexer_result.unwrap()
+            omnidexer = get_omnidexer_sync()
             self._content_reference_manager = ContentReferenceManager(omnidexer)
 
         self.logger = get_logger(self.__class__.__name__)

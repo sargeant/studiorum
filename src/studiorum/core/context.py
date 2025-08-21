@@ -448,7 +448,11 @@ class AsyncRequestContext(BaseModel):
         # We need to pass the container, not the config service
         if self._container is None:
             raise RuntimeError("Container not initialized")
-        return await create_omnidexer_service(self._container)
+
+        config_service = await self._container.get_service(
+            cast(type, ConfigurationProtocol)
+        )
+        return await create_omnidexer_service(config_service)
 
 
 # Legacy sync wrapper for CLI backward compatibility

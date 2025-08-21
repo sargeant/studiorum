@@ -40,10 +40,8 @@ class TestEncounterBudgetCalculation:
 
         reset_test_environment()
 
-        # Extra isolation for parallel execution
-        from studiorum.core.container import reset_global_container
-
-        reset_global_container()
+        # Note: reset_test_environment() now handles both container systems
+        # via reset_all_containers() for proper parallel execution isolation
 
     def test_basic_budget_calculation(self) -> None:
         """Test basic encounter budget calculation."""
@@ -181,10 +179,8 @@ class TestEncounterConstraints:
 
         reset_test_environment()
 
-        # Extra isolation for parallel execution
-        from studiorum.core.container import reset_global_container
-
-        reset_global_container()
+        # Note: reset_test_environment() now handles both container systems
+        # via reset_all_containers() for proper parallel execution isolation
 
     def test_basic_constraints(self) -> None:
         """Test basic encounter constraint creation."""
@@ -251,10 +247,8 @@ class TestEnvironmentalProfiles:
 
         reset_test_environment()
 
-        # Extra isolation for parallel execution
-        from studiorum.core.container import reset_global_container
-
-        reset_global_container()
+        # Note: reset_test_environment() now handles both container systems
+        # via reset_all_containers() for proper parallel execution isolation
 
     def test_environmental_profile_creation(self) -> None:
         """Test creating environmental profiles."""
@@ -306,10 +300,8 @@ class TestThematicProfiles:
 
         reset_test_environment()
 
-        # Extra isolation for parallel execution
-        from studiorum.core.container import reset_global_container
-
-        reset_global_container()
+        # Note: reset_test_environment() now handles both container systems
+        # via reset_all_containers() for proper parallel execution isolation
 
     def test_thematic_profile_creation(self) -> None:
         """Test creating thematic profiles."""
@@ -357,10 +349,8 @@ class TestMCPToolIntegration:
 
         reset_test_environment()
 
-        # Extra isolation for parallel execution
-        from studiorum.core.container import reset_global_container
-
-        reset_global_container()
+        # Note: reset_test_environment() now handles both container systems
+        # via reset_all_containers() for proper parallel execution isolation
 
     @pytest.mark.asyncio
     async def test_creature_search_placeholder(self) -> None:
@@ -463,10 +453,8 @@ class TestPartyComposition:
 
         reset_test_environment()
 
-        # Extra isolation for parallel execution
-        from studiorum.core.container import reset_global_container
-
-        reset_global_container()
+        # Note: reset_test_environment() now handles both container systems
+        # via reset_all_containers() for proper parallel execution isolation
 
     def test_basic_party_composition(self) -> None:
         """Test basic party composition creation."""
@@ -506,15 +494,12 @@ class TestEncounterServiceIntegration:
 
     def setup_method(self) -> None:
         """Set up test environment for each test method."""
-        from studiorum.core.container import reset_global_container
         from tests.test_helpers import reset_test_environment
 
         reset_test_environment()
 
-        # Extra isolation for parallel execution
-
-        reset_global_container()
-        reset_global_container()  # Extra isolation for parallel execution
+        # Note: reset_test_environment() now handles both container systems
+        # via reset_all_containers() for proper parallel execution isolation
 
     def test_service_registration(self) -> None:
         """Test encounter service registration in container."""
@@ -557,22 +542,18 @@ class TestEncounterServiceIntegration:
         # Should return the collector instance
         assert result is not None
 
-    @patch("studiorum.core.container.get_global_container")
-    def test_container_integration(self, mock_container) -> None:
+    def test_container_integration(self) -> None:
         """Test integration with service container."""
         from studiorum.core.services.encounter_services import (
             get_encounter_collector_from_container,
         )
 
-        # Mock container and omnidexer
+        # Mock container and omnidexer result
         mock_container_instance = Mock()
         mock_omnidexer_result = Mock()
-        # The function calls is_success() as a method, not as a property
         mock_omnidexer_result.is_success.return_value = True
         mock_omnidexer_result.unwrap.return_value = Mock()
-
         mock_container_instance.get_omnidexer.return_value = mock_omnidexer_result
-        mock_container.return_value = mock_container_instance
 
         # Should successfully create encounter collector
         with patch(
