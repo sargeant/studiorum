@@ -106,6 +106,8 @@ class DND5ELogger:
     @staticmethod
     def _default_mcp_debug_file() -> Path:
         """Get default MCP debug log file location."""
+        import tempfile
+
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 
         # Try ~/.dnd5e/logs/ first
@@ -114,8 +116,9 @@ class DND5ELogger:
             home_logs.mkdir(parents=True, exist_ok=True)
             return home_logs / f"mcp-debug-{timestamp}.log"
         except (OSError, PermissionError):
-            # Fallback to /tmp
-            return Path(f"/tmp/dnd5e-mcp-debug-{timestamp}.log")
+            # Secure fallback using system temp directory
+            temp_dir = Path(tempfile.gettempdir())
+            return temp_dir / f"dnd5e-mcp-debug-{timestamp}.log"
 
 
 def get_logger(name: str) -> Any:
