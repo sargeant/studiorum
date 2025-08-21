@@ -100,6 +100,9 @@ dev = [
     # "safety>=3.6.0,<4.0.0",  # Disabled: requires pydantic<2.10.0
     "bandit>=1.8.6,<2.0.0",
     "pylint>=3.3.8",
+    "libcst>=1.8.2",
+    "bowler>=0.9.0",
+    "rope>=1.14.0",
 ]
 docs = ["shibuya>=2025.7.24"]
 
