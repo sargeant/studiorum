@@ -205,6 +205,9 @@ class TestJsonLoaderValidationIntegration:
             # Setup tracker mock
             mock_tracker_class.return_value = mock_validation_tracker
             mock_validation_tracker.should_log_error.return_value = True
+            mock_validation_tracker.format_error_message.return_value = (
+                "Test validation error message"
+            )
 
             # Setup settings mock to ensure normal (not strict) mode
             mock_settings = MagicMock()
