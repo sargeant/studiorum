@@ -1,15 +1,16 @@
 """Creature collection service for advanced creature filtering and gathering."""
 
 import difflib
-import logging
 from typing import Any
+
+from dnd5e.core.logging import get_logger
 
 from ..loaders.omnidexer import Omnidexer
 from ..models.content import ContentType
 from ..models.creature_filters import CreatureCollectionResult, CreatureFilterCriteria
 from ..models.creatures import Creature
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CreatureCollector:

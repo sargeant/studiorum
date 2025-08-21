@@ -672,7 +672,7 @@ class TagParser:
             assert isinstance(ast, DocumentNode)  # nosec B101
             return ast
         except Exception as e:
-            logger.warning("Tag parsing failed: %s. Falling back to TextNode.", e)
+            logger.warning(f"Tag parsing failed: {e}. Falling back to TextNode.")
             doc = DocumentNode()
             doc.add_child(TextNode(text))
             return doc

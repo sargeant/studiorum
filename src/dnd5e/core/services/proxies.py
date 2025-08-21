@@ -9,13 +9,14 @@ complex async/sync bridging to avoid event loop conflicts.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
+
+from dnd5e.core.logging import get_logger
 
 if TYPE_CHECKING:
     from dnd5e.core.services.container import ModernServiceContainer
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def create_omnidexer_proxy(modern_container: ModernServiceContainer) -> Any:

@@ -10,12 +10,13 @@ Enhanced in P3 with modern async DI container while maintaining full backward co
 from __future__ import annotations
 
 import asyncio
-import logging
 from collections.abc import Iterator
 from contextlib import contextmanager
 
 # Lazy imports to avoid circular dependencies
 from typing import TYPE_CHECKING, Any, Protocol
+
+from dnd5e.core.logging import get_logger
 
 if TYPE_CHECKING:
     from dnd5e.cli.display_manager import DisplayManager
@@ -52,7 +53,7 @@ if TYPE_CHECKING:
         TagResolverProtocol,
     )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ServiceContainer(Protocol):

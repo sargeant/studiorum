@@ -14,9 +14,10 @@ from __future__ import annotations
 
 import asyncio
 import functools
-import logging
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any, cast
+
+from dnd5e.core.logging import get_logger
 
 if TYPE_CHECKING:
     from ..core.config.unified_config import ApplicationConfig
@@ -25,7 +26,7 @@ from ..core.context import RequestContext, create_sync_request_context
 from ..core.error_types import ErrorCategory, MCPError, MCPErrorCode
 from ..core.exceptions import DnD5eError
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def with_request_context[**P, T](func: Callable[P, T]) -> Callable[P, T]:

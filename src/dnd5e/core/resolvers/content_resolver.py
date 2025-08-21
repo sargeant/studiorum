@@ -6,7 +6,6 @@ for modern MCP and CLI usage patterns.
 
 import asyncio
 import difflib
-import logging
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Optional, Protocol, cast
 
@@ -17,6 +16,7 @@ from dnd5e.core.error_types import (
     MCPError,
 )
 from dnd5e.core.loaders.content_merger import ContentMerger
+from dnd5e.core.logging import get_logger
 from dnd5e.core.models.content import BaseContent, ContentType
 from dnd5e.core.result import Error, Result, Success
 from dnd5e.core.services.protocols import OmnidexerProtocol, TagResolverProtocol
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from dnd5e.core.models.item_filters import ItemFilterCriteria
     from dnd5e.core.models.spell_filters import SpellFilterCriteria
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ResolutionStatus(Enum):

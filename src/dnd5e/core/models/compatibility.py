@@ -6,8 +6,9 @@ for CLI and existing code while enabling gradual migration to the
 new processor-based architecture.
 """
 
-import logging
 from typing import TYPE_CHECKING, Any
+
+from dnd5e.core.logging import get_logger
 
 if TYPE_CHECKING:
     from ..loaders.omnidexer import Omnidexer
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
     from .spells import Spell
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def process_creature_senses_legacy(creature: "Creature") -> str | None:

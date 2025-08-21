@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
+
+from dnd5e.core.logging import get_logger
 
 from ..models.content import BaseContent, ContentType
 from .content_type_registry import ContentTypeMetadata
@@ -11,7 +12,7 @@ from .content_type_registry import ContentTypeMetadata
 if TYPE_CHECKING:
     from ..loaders.configurable_source_manager import ConfigurableSourceManager
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class RegistryManager:

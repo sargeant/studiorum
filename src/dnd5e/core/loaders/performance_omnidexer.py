@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
+from dnd5e.core.logging import get_logger
+
 from ..cache import get_cache
 from ..error_types import ContentNotFoundError
 from ..models.content import BaseContent, ContentType
@@ -17,6 +19,8 @@ from ..result import Error, Result, Success
 from ..services.protocols import AsyncResourceProtocol, OmnidexerProtocol
 from .content_index import ContentMetadata, FastContentIndex
 from .omnidexer import Omnidexer  # For compatibility and fallback
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -416,6 +420,249 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
         if context and hasattr(context, "record_cache_miss"):
             context.record_cache_miss()
 
+    # Character Progression Methods (Package 2.1 Extension)
+
+    async def get_eligible_feats_async(
+        self,
+        character_class: str,
+        level: int,
+        subclass: str | None = None,
+        context: Any | None = None,
+    ) -> list[object]:
+        """Get feats eligible for character with validation."""
+        if not self._is_initialized:
+            await self.initialize()
+
+        try:
+            # Generate cache key for feat eligibility
+            cache_key = f"feats_eligible:{character_class}:{level}:{subclass or 'none'}"
+
+            # Check cache first
+            cached_feats = self.cache.get(cache_key)
+            if cached_feats is not None:
+                self._record_cache_hit(cache_key, context)
+                return cached_feats  # type: ignore[no-any-return]
+
+            # Search for feats in the content index
+            feat_results = self.content_index.search("feat", "feat", limit=100)
+
+            # Load feat content
+            eligible_feats: list[object] = []
+            for metadata in feat_results:
+                try:
+                    feat = await self._lazy_load_content(metadata)
+                    if feat is not None:
+                        # Simple eligibility check (would be more sophisticated in full implementation)
+                        # For now, all feats are considered eligible unless they have obvious prerequisites
+                        eligible = True
+
+                        # Check level requirements
+                        if hasattr(feat, "prerequisite") and feat.prerequisite:
+                            # Basic prerequisite parsing - would be more complex in full implementation
+                            prereq_text = str(feat.prerequisite).lower()
+                            if (
+                                "level" in prereq_text and level < 4
+                            ):  # Most feat levels are 4+
+                                eligible = False
+
+                        if eligible:
+                            eligible_feats.append(feat)
+
+                except Exception as e:
+                    # Log and skip feats that fail to load
+                    feat_name = (
+                        metadata.name if hasattr(metadata, "name") else "unknown feat"
+                    )
+                    logger.debug(f"Failed to process feat {feat_name}: {e}")
+                    continue  # nosec B112 - intentional exception handling
+
+            # Cache results
+            ttl_seconds = self.config.cache_ttl_hours * 3600
+            self.cache.set(cache_key, eligible_feats, expire=ttl_seconds)
+            self._record_cache_miss(cache_key, context)
+
+            return eligible_feats
+
+        except Exception:
+            # Fallback to empty list on error
+            return []
+
+    async def get_class_progression_data_async(
+        self,
+        character_class: str,
+        level: int,
+        subclass: str | None = None,
+        context: Any | None = None,
+    ) -> object | None:
+        """Get complete class progression data."""
+        if not self._is_initialized:
+            await self.initialize()
+
+        try:
+            # Generate cache key for class progression
+            cache_key = (
+                f"class_progression:{character_class}:{level}:{subclass or 'none'}"
+            )
+
+            # Check cache first
+            cached_progression = self.cache.get(cache_key)
+            if cached_progression is not None:
+                self._record_cache_hit(cache_key, context)
+                return cached_progression  # type: ignore[no-any-return]
+
+            # Get class data
+            class_result = await self.get_content_async(
+                "class", character_class, context=context
+            )
+            if not class_result.is_success():
+                return None
+
+            class_data = class_result.unwrap()
+            if not class_data:
+                return None
+
+            # Build progression data structure
+            progression_data: dict[str, Any] = {
+                "class_name": character_class,
+                "level": level,
+                "subclass": subclass,
+                "hit_dice": getattr(class_data, "hd", {"faces": 8, "number": 1}),
+                "proficiency_bonus": (level - 1) // 4 + 2,
+                "features": [],
+                "spellcasting": None,
+            }
+
+            # Extract class features up to current level
+            features_list = progression_data.get("features")
+            if (
+                hasattr(class_data, "class_features")
+                and class_data.class_features
+                and isinstance(features_list, list)
+            ):
+                for feature_ref in class_data.class_features:
+                    if isinstance(feature_ref, str):
+                        # Parse class feature reference
+                        parts = feature_ref.split("|")
+                        if len(parts) >= 4:
+                            try:
+                                feature_level = int(parts[3])
+                                if feature_level <= level:
+                                    features_list.append(
+                                        {
+                                            "name": parts[0],
+                                            "level": feature_level,
+                                            "source": "class",
+                                        }
+                                    )
+                            except ValueError:
+                                continue
+
+            # Add spellcasting progression if applicable
+            if (
+                hasattr(class_data, "spellcasting_ability")
+                and class_data.spellcasting_ability
+            ):
+                progression_data["spellcasting"] = {
+                    "ability": class_data.spellcasting_ability,
+                    "progression": getattr(class_data, "caster_progression", "none"),
+                    "cantrips": getattr(class_data, "cantrip_progression", []),
+                    "spells_known": getattr(class_data, "spells_known_progression", []),
+                }
+
+            # Cache results
+            ttl_seconds = self.config.cache_ttl_hours * 3600
+            self.cache.set(cache_key, progression_data, expire=ttl_seconds)
+            self._record_cache_miss(cache_key, context)
+
+            return progression_data
+
+        except Exception:
+            return None
+
+    async def analyze_multiclass_eligibility_async(
+        self,
+        current_class: str,
+        level: int,
+        context: Any | None = None,
+    ) -> list[object]:
+        """Analyze multiclass options for character."""
+        if not self._is_initialized:
+            await self.initialize()
+
+        try:
+            # Generate cache key for multiclass analysis
+            cache_key = f"multiclass:{current_class}:{level}"
+
+            # Check cache first
+            cached_options = self.cache.get(cache_key)
+            if cached_options is not None:
+                self._record_cache_hit(cache_key, context)
+                return cached_options  # type: ignore[no-any-return]
+
+            # Search for all classes
+            class_results = self.content_index.search("", "class", limit=50)
+
+            multiclass_options: list[object] = []
+            for metadata in class_results:
+                if metadata.name.lower() == current_class.lower():
+                    continue  # Skip current class
+
+                try:
+                    class_data = await self._lazy_load_content(metadata)
+                    if class_data is not None:
+                        # Basic multiclass option analysis
+                        option = {
+                            "class_name": class_data.name,
+                            "source": metadata.source,
+                            "requirements_met": True,  # Would calculate based on ability scores
+                            "requirements": [],  # Would extract from multiclassing data
+                            "synergy_rating": 5.0,  # Would calculate based on class combinations
+                            "recommended_levels": [
+                                1,
+                                2,
+                                3,
+                            ],  # Standard multiclass dip levels
+                            "benefits": [
+                                "Access to new features",
+                                "Increased versatility",
+                            ],
+                            "drawbacks": [
+                                "Delayed progression",
+                                "Ability score requirements",
+                            ],
+                        }
+
+                        # Extract multiclassing requirements if available
+                        if (
+                            hasattr(class_data, "multiclassing")
+                            and class_data.multiclassing
+                        ):
+                            # Would parse multiclassing requirements here
+                            pass
+
+                        multiclass_options.append(option)
+
+                except Exception as e:
+                    # Log and skip classes that fail to load
+                    class_name = (
+                        metadata.name if hasattr(metadata, "name") else "unknown class"
+                    )
+                    logger.debug(f"Failed to process class {class_name}: {e}")
+                    continue  # nosec B112 - intentional exception handling
+
+            # Limit results for performance
+            multiclass_options = multiclass_options[:10]
+
+            # Cache results
+            ttl_seconds = self.config.cache_ttl_hours * 3600
+            self.cache.set(cache_key, multiclass_options, expire=ttl_seconds)
+            self._record_cache_miss(cache_key, context)
+
+            return multiclass_options
+
+        except Exception:
+            return []
+
     # OmnidexerProtocol implementation
     async def load_content_sources(self, sources: list[str]) -> None:
         """Load content from specified sources."""
@@ -438,16 +685,16 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
         except Exception:
             return None
 
-    def search(self, query: str) -> list[object]:
+    def search(self, query: str) -> list[BaseContent]:
         """Synchronous wrapper for async search_content_async."""
         try:
             import asyncio
 
             loop = asyncio.get_event_loop()
             result = loop.run_until_complete(self.search_content_async(query))
-            # Convert BaseContent list to object list for protocol compatibility
+            # Return BaseContent list directly
             base_content_list = result.unwrap() if result.is_success() else []
-            return list(base_content_list)  # type: ignore[misc]
+            return list(base_content_list)
         except Exception:
             return []
 

@@ -1,15 +1,16 @@
 """Item collection service for advanced item filtering and gathering."""
 
 import difflib
-import logging
 from typing import Any
+
+from dnd5e.core.logging import get_logger
 
 from ..loaders.omnidexer import Omnidexer
 from ..models.content import ContentType
 from ..models.item_filters import ItemCollectionResult, ItemFilterCriteria
 from ..models.items import Item, ItemRarity, ItemType
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ItemCollector:

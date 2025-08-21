@@ -76,7 +76,7 @@ class TestServiceProtocols:
             def get_content(self, content_type: str, identifier: str) -> object:
                 return {}
 
-            def search(self, query: str) -> list[object]:
+            def search(self, query: str) -> list:  # BaseContent not accessible in test
                 return []
 
             async def ensure_sources_ready(self) -> None:
@@ -102,6 +102,11 @@ class TestServiceProtocols:
 
             def get_performance_statistics(self) -> dict[str, object]:
                 return {"initialized": True}
+
+            def get_all_by_type(
+                self, content_type: object
+            ) -> list:  # BaseContent not accessible in test
+                return []
 
         service = MockOmnidexer()
         assert isinstance(service, ServiceProtocol)

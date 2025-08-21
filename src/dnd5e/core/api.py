@@ -15,8 +15,9 @@ Key Features:
 from __future__ import annotations
 
 import asyncio
-import logging
 from typing import TYPE_CHECKING, Any
+
+from dnd5e.core.logging import get_logger
 
 from .context import (
     AsyncRequestContext,
@@ -43,7 +44,7 @@ if TYPE_CHECKING:
     from .models.adventures import Adventure
     from .models.base import Content
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ModernContextualAPI:
@@ -262,17 +263,25 @@ class ModernContextualAPI:
         level: int,
         subclass: str | None = None,
         config_override: ApplicationConfig | None = None,
+        analysis_type: str = "basic",
+        include_feat_analysis: bool = False,
+        include_multiclass_options: bool = False,
+        optimization_focus: str | None = None,
     ) -> Result[dict[str, Any], MCPError]:
-        """Async character progression lookup.
+        """Async character progression lookup with enhanced analysis.
 
         Args:
             character_class: Name of the character class
             level: Character level
             subclass: Optional subclass name
             config_override: Optional configuration override
+            analysis_type: Type of analysis ("basic", "detailed", "optimization")
+            include_feat_analysis: Whether to include eligible feat analysis
+            include_multiclass_options: Whether to include multiclass options
+            optimization_focus: Focus for optimization analysis ("damage", "survivability", "utility", etc.)
 
         Returns:
-            Result containing progression data or error details
+            Result containing progression data with optional analysis or error details
         """
         async with async_request_context(config_override=config_override) as ctx:
             try:
@@ -301,7 +310,7 @@ class ModernContextualAPI:
                     await ctx.add_async_error(error)
                     return Error(error)
 
-                # Extract progression data for the specified level
+                # Extract basic progression data
                 progression_data: dict[str, Any] = {
                     "class": character_class,
                     "level": level,
@@ -310,6 +319,55 @@ class ModernContextualAPI:
                     "hit_dice": getattr(class_data, "hit_dice", "d8"),
                     "proficiency_bonus": (level - 1) // 4
                     + 2,  # Standard 5e progression
+                }
+
+                # Enhanced analysis based on requested type
+                if analysis_type in ("detailed", "optimization"):
+                    # Get class progression data using enhanced omnidexer methods
+                    if hasattr(omnidexer, "get_class_progression_data_async"):
+                        class_progression = (
+                            await omnidexer.get_class_progression_data_async(
+                                character_class, level, subclass
+                            )
+                        )
+                        if class_progression:
+                            progression_data["class_progression"] = class_progression
+
+                # Include feat analysis if requested
+                if include_feat_analysis:
+                    if hasattr(omnidexer, "get_eligible_feats_async"):
+                        eligible_feats = await omnidexer.get_eligible_feats_async(
+                            character_class, level, subclass
+                        )
+                        progression_data["eligible_feats"] = eligible_feats
+                    else:
+                        progression_data["eligible_feats"] = []
+
+                # Include multiclass options if requested
+                if include_multiclass_options:
+                    if hasattr(omnidexer, "analyze_multiclass_eligibility_async"):
+                        multiclass_options = (
+                            await omnidexer.analyze_multiclass_eligibility_async(
+                                character_class, level
+                            )
+                        )
+                        progression_data["multiclass_options"] = multiclass_options
+                    else:
+                        progression_data["multiclass_options"] = []
+
+                # Add optimization focus data if provided
+                if optimization_focus and analysis_type == "optimization":
+                    progression_data["optimization"] = {
+                        "focus": optimization_focus,
+                        "recommendations": f"Optimization recommendations for {optimization_focus} would be generated here",
+                    }
+
+                # Add analysis metadata
+                progression_data["analysis"] = {
+                    "type": analysis_type,
+                    "feat_analysis": include_feat_analysis,
+                    "multiclass_analysis": include_multiclass_options,
+                    "optimization_focus": optimization_focus,
                 }
 
                 return Success(progression_data)
@@ -377,11 +435,22 @@ class ModernContextualAPI:
         level: int,
         subclass: str | None = None,
         config_override: ApplicationConfig | None = None,
+        analysis_type: str = "basic",
+        include_feat_analysis: bool = False,
+        include_multiclass_options: bool = False,
+        optimization_focus: str | None = None,
     ) -> Result[dict[str, Any], MCPError]:
         """Sync wrapper for character progression."""
         return asyncio.run(
             ModernContextualAPI.get_character_progression_async(
-                character_class, level, subclass, config_override
+                character_class,
+                level,
+                subclass,
+                config_override,
+                analysis_type,
+                include_feat_analysis,
+                include_multiclass_options,
+                optimization_focus,
             )
         )
 

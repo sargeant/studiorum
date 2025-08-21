@@ -8,7 +8,6 @@ standardized error reporting and type safety.
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from dnd5e.core.entry_registry import (
@@ -25,10 +24,11 @@ from dnd5e.core.error_types import (
     create_unknown_type_error,
     create_validation_error,
 )
+from dnd5e.core.logging import get_logger
 from dnd5e.core.model_validation import validate_required_field
 from dnd5e.core.result import Error, Result, Success, collect_results
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class StandardizedEntryValidator:

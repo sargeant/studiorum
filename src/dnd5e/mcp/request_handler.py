@@ -14,8 +14,9 @@ Key Features:
 
 from __future__ import annotations
 
-import logging
 from typing import Any
+
+from dnd5e.core.logging import get_logger
 
 from ..core.api import ModernContextualAPI
 from ..core.context import (
@@ -25,13 +26,17 @@ from ..core.context import (
 )
 from ..core.error_types import (
     ContentNotFoundError,
+    ErrorCategory,
+    ErrorSeverity,
     MCPError,
+    MCPErrorCode,
+    MCPException,
     ProcessingError,
 )
 from ..core.result import Error, Result, Success
 from ..core.services.protocols import OmnidexerProtocol
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ModernMCPRequestHandler:
@@ -142,6 +147,46 @@ class ModernMCPRequestHandler:
                     result = await self._handle_list_adventures_async(params, ctx)
                 elif method == "list_books":
                     result = await self._handle_list_books_async(params, ctx)
+                elif method == "analyze_level_progression":
+                    result = await self._handle_analyze_level_progression_async(
+                        params, ctx
+                    )
+                elif method == "compare_feat_options":
+                    result = await self._handle_compare_feat_options_async(params, ctx)
+                elif method == "analyze_multiclass_options":
+                    result = await self._handle_analyze_multiclass_options_async(
+                        params, ctx
+                    )
+                # Rules Intelligence Tools
+                elif method == "find_rule_cross_references":
+                    result = await self._handle_find_rule_cross_references_async(
+                        params, ctx
+                    )
+                elif method == "validate_rule_combination":
+                    result = await self._handle_validate_rule_combination_async(
+                        params, ctx
+                    )
+                elif method == "search_rules_intelligent":
+                    result = await self._handle_search_rules_intelligent_async(
+                        params, ctx
+                    )
+                elif method == "get_rule_suggestions":
+                    result = await self._handle_get_rule_suggestions_async(params, ctx)
+                # Encounter Building Tools (Package 2.3)
+                elif method == "calculate_encounter_budget":
+                    result = await self._handle_calculate_encounter_budget_async(
+                        params, ctx
+                    )
+                elif method == "search_creatures_for_encounter":
+                    result = await self._handle_search_creatures_for_encounter_async(
+                        params, ctx
+                    )
+                elif method == "build_balanced_encounter":
+                    result = await self._handle_build_balanced_encounter_async(
+                        params, ctx
+                    )
+                elif method == "rebalance_encounter":
+                    result = await self._handle_rebalance_encounter_async(params, ctx)
                 else:
                     raise ValueError(f"Unknown method: {method}")
 
@@ -625,14 +670,10 @@ class ModernMCPRequestHandler:
 
         ctx.record_async_operation()
 
-        # Get all content and filter for books
-        all_content = omnidexer.search("")  # Get all content
-        books = [
-            content
-            for content in all_content
-            if hasattr(content, "book")
-            or (hasattr(content, "type") and content.type == "book")
-        ]
+        # Get books directly by content type
+        from dnd5e.core.models.content import ContentType
+
+        books = omnidexer.get_all_by_type(ContentType.BOOK)
 
         # Apply source filtering if specified
         if ctx.sources:
@@ -644,7 +685,7 @@ class ModernMCPRequestHandler:
 
         ctx.record_cache_hit()
         return {
-            "books": [
+            "content": [
                 {
                     "name": book.name if hasattr(book, "name") else str(book),
                     "source": book.source.abbreviation
@@ -659,6 +700,528 @@ class ModernMCPRequestHandler:
             "total": len(books),
             "sources_used": ctx.sources,
         }
+
+    async def _handle_analyze_level_progression_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle character level progression analysis.
+
+        Args:
+            params: Progression analysis parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Character progression analysis results
+        """
+        character_class = params.get("class", "")
+        level = params.get("level", 1)
+        subclass = params.get("subclass")
+        analysis_type = params.get("analysis_type", "basic")
+        include_feat_analysis = params.get("include_feat_analysis", False)
+        include_multiclass_options = params.get("include_multiclass_options", False)
+        optimization_focus = params.get("optimization_focus")
+        sources = params.get("sources", [])
+
+        if not character_class:
+            error = ContentNotFoundError(message="class parameter is required")
+            await ctx.add_async_error(error)
+            return {
+                "progression": None,
+                "error": error.message,
+            }
+
+        if sources:
+            ctx.sources.extend(sources)
+
+        try:
+            # Import character progression tools
+            from .tools.character.progression import analyze_level_progression
+
+            # Perform progression analysis
+            ctx.record_async_operation()
+            result = await analyze_level_progression(
+                character_class=character_class,
+                level=level,
+                subclass=subclass,
+                analysis_type=analysis_type,
+                include_feat_analysis=include_feat_analysis,
+                include_multiclass_options=include_multiclass_options,
+                optimization_focus=optimization_focus,
+                sources=ctx.sources if ctx.sources else None,
+            )
+
+            ctx.record_cache_hit()
+            return result  # type: ignore[no-any-return]
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Character progression analysis failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "progression": None,
+                "error": error.message,
+                "class": character_class,
+                "level": level,
+            }
+
+    async def _handle_compare_feat_options_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle feat options comparison.
+
+        Args:
+            params: Feat comparison parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Feat comparison results
+        """
+        character_class = params.get("class", "")
+        level = params.get("level", 1)
+        subclass = params.get("subclass")
+        optimization_focus = params.get("optimization_focus")
+        sources = params.get("sources", [])
+        limit = params.get("limit", 10)
+
+        if not character_class:
+            error = ContentNotFoundError(message="class parameter is required")
+            await ctx.add_async_error(error)
+            return {
+                "feat_analysis": [],
+                "error": error.message,
+            }
+
+        if sources:
+            ctx.sources.extend(sources)
+
+        try:
+            # Import character progression tools
+            from .tools.character.progression import compare_feat_options
+
+            # Perform feat comparison
+            ctx.record_async_operation()
+            result = await compare_feat_options(
+                character_class=character_class,
+                level=level,
+                subclass=subclass,
+                optimization_focus=optimization_focus,
+                sources=ctx.sources if ctx.sources else None,
+                limit=limit,
+            )
+
+            ctx.record_cache_hit()
+            return result  # type: ignore[no-any-return]
+
+        except Exception as e:
+            error = ContentNotFoundError(message=f"Feat comparison failed: {e}")
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "feat_analysis": [],
+                "error": error.message,
+                "class": character_class,
+                "level": level,
+            }
+
+    async def _handle_analyze_multiclass_options_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle multiclass options analysis.
+
+        Args:
+            params: Multiclass analysis parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Multiclass analysis results
+        """
+        current_class = params.get("current_class", "")
+        level = params.get("level", 1)
+        sources = params.get("sources", [])
+
+        if not current_class:
+            error = ContentNotFoundError(message="current_class parameter is required")
+            await ctx.add_async_error(error)
+            return {
+                "multiclass_options": [],
+                "error": error.message,
+            }
+
+        if sources:
+            ctx.sources.extend(sources)
+
+        try:
+            # Import character progression tools
+            from .tools.character.progression import analyze_multiclass_options
+
+            # Perform multiclass analysis
+            ctx.record_async_operation()
+            result = await analyze_multiclass_options(
+                current_class=current_class,
+                level=level,
+                sources=ctx.sources if ctx.sources else None,
+            )
+
+            ctx.record_cache_hit()
+            return result  # type: ignore[no-any-return]
+
+        except Exception as e:
+            error = ContentNotFoundError(message=f"Multiclass analysis failed: {e}")
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "multiclass_options": [],
+                "error": error.message,
+                "current_class": current_class,
+                "level": level,
+            }
+
+    # Rules Intelligence Tools Handlers
+
+    async def _handle_find_rule_cross_references_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle rule cross-reference discovery.
+
+        Args:
+            params: Cross-reference parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Cross-reference data with relationships and analysis
+        """
+        from .tools.rules import find_rule_cross_references
+
+        rule_id = params.get("rule_id", "")
+        max_depth = params.get("max_depth", 2)
+        include_analysis = params.get("include_analysis", True)
+
+        try:
+            result = await find_rule_cross_references(
+                rule_id=rule_id,
+                max_depth=max_depth,
+                include_analysis=include_analysis,
+                ctx=ctx,
+            )
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Rule cross-reference discovery failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "cross_references": {},
+                "error": error.message,
+                "rule_id": rule_id,
+            }
+
+    async def _handle_validate_rule_combination_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle rule combination validation.
+
+        Args:
+            params: Validation parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Validation results with conflicts and synergies
+        """
+        from .tools.rules import validate_rule_combination
+
+        rule_ids = params.get("rule_ids", [])
+        context = params.get("context", {})
+
+        try:
+            result = await validate_rule_combination(
+                rule_ids=rule_ids,
+                context=context,
+                ctx=ctx,
+            )
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Rule combination validation failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "validation": {},
+                "error": error.message,
+                "rule_ids": rule_ids,
+            }
+
+    async def _handle_search_rules_intelligent_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle intelligent rule search.
+
+        Args:
+            params: Search parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Enhanced search results with relationship analysis
+        """
+        from .tools.rules import search_rules_intelligent
+
+        query = params.get("query", "")
+        rule_types = params.get("rule_types", None)
+        sources = params.get("sources", None)
+        complexity_filter = params.get("complexity_filter", None)
+        include_relationships = params.get("include_relationships", True)
+        limit = params.get("limit", 20)
+
+        try:
+            result = await search_rules_intelligent(
+                query=query,
+                rule_types=rule_types,
+                sources=sources,
+                complexity_filter=complexity_filter,
+                include_relationships=include_relationships,
+                limit=limit,
+                ctx=ctx,
+            )
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(message=f"Intelligent rule search failed: {e}")
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "search_results": {},
+                "error": error.message,
+                "query": query,
+            }
+
+    async def _handle_get_rule_suggestions_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle rule suggestion generation.
+
+        Args:
+            params: Suggestion parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Intelligent rule suggestions based on context
+        """
+        from .tools.rules import get_rule_suggestions
+
+        context = params.get("context", {})
+        limit = params.get("limit", 10)
+
+        try:
+            result = await get_rule_suggestions(
+                context=context,
+                limit=limit,
+                ctx=ctx,
+            )
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Rule suggestion generation failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "suggestions": [],
+                "error": error.message,
+                "context": context,
+            }
+
+    # Encounter Building Tools Handlers (Package 2.3)
+
+    async def _handle_calculate_encounter_budget_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle encounter budget calculation.
+
+        Args:
+            params: Budget calculation parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Encounter budget details with recommendations
+        """
+        from .tools.encounter.tools import calculate_encounter_budget_mcp
+
+        try:
+            party_size = params.get("party_size")
+            party_level = params.get("party_level")
+            if party_size is None or party_level is None:
+                error = MCPError(
+                    message="party_size and party_level are required",
+                    error_code=MCPErrorCode.INVALID_PARAMS,
+                    category=ErrorCategory.VALIDATION,
+                )
+                raise MCPException(error)
+
+            result = await calculate_encounter_budget_mcp(
+                party_size=int(party_size),
+                party_level=int(party_level),
+                difficulty=str(params.get("difficulty", "medium")),
+                individual_levels=params.get("individual_levels"),
+            )
+            ctx.record_cache_hit()
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Encounter budget calculation failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "budget": None,
+                "error": error.message,
+                "party_size": params.get("party_size"),
+                "party_level": params.get("party_level"),
+            }
+
+    async def _handle_search_creatures_for_encounter_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle creature search for encounters.
+
+        Args:
+            params: Search parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Matching creatures with encounter metadata
+        """
+        from .tools.encounter.tools import search_creatures_for_encounter_mcp
+
+        try:
+            result = await search_creatures_for_encounter_mcp(
+                constraints=params.get("constraints", {}),
+                xp_budget=params.get("xp_budget"),
+                environment=params.get("environment"),
+                theme=params.get("theme"),
+                sources=params.get("sources"),
+            )
+            ctx.record_cache_hit()
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Creature search for encounter failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "creatures": [],
+                "error": error.message,
+                "constraints": params.get("constraints", {}),
+            }
+
+    async def _handle_build_balanced_encounter_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle balanced encounter building.
+
+        Args:
+            params: Encounter building parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Complete balanced encounter with analysis
+        """
+        from .tools.encounter.tools import build_balanced_encounter_mcp
+
+        try:
+            party_size = params.get("party_size")
+            party_level = params.get("party_level")
+            difficulty = params.get("difficulty")
+            if party_size is None or party_level is None or difficulty is None:
+                error = MCPError(
+                    message="party_size, party_level, and difficulty are required",
+                    error_code=MCPErrorCode.INVALID_PARAMS,
+                    category=ErrorCategory.VALIDATION,
+                )
+                raise MCPException(error)
+
+            result = await build_balanced_encounter_mcp(
+                party_size=int(party_size),
+                party_level=int(party_level),
+                difficulty=str(difficulty),
+                constraints=params.get("constraints"),
+                environment=params.get("environment"),
+                theme=params.get("theme"),
+                individual_levels=params.get("individual_levels"),
+            )
+            ctx.record_cache_hit()
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(
+                message=f"Balanced encounter building failed: {e}"
+            )
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "encounter": None,
+                "error": error.message,
+                "party_size": params.get("party_size"),
+                "party_level": params.get("party_level"),
+                "difficulty": params.get("difficulty"),
+            }
+
+    async def _handle_rebalance_encounter_async(
+        self, params: dict[str, Any], ctx: AsyncRequestContext
+    ) -> dict[str, Any]:
+        """Handle encounter rebalancing.
+
+        Args:
+            params: Rebalancing parameters from MCP request
+            ctx: Async request context
+
+        Returns:
+            Rebalanced encounter with analysis
+        """
+        from .tools.encounter.tools import rebalance_encounter_mcp
+
+        try:
+            target_difficulty = params.get("target_difficulty")
+            party_size = params.get("party_size")
+            party_level = params.get("party_level")
+            if target_difficulty is None or party_size is None or party_level is None:
+                error = MCPError(
+                    message="target_difficulty, party_size, and party_level are required",
+                    error_code=MCPErrorCode.INVALID_PARAMS,
+                    category=ErrorCategory.VALIDATION,
+                )
+                raise MCPException(error)
+
+            result = await rebalance_encounter_mcp(
+                encounter_data=params.get("encounter_data", {}),
+                target_difficulty=str(target_difficulty),
+                party_size=int(party_size),
+                party_level=int(party_level),
+                strategy=params.get("strategy", "precise"),
+                max_iterations=params.get("max_iterations", 5),
+            )
+            ctx.record_cache_hit()
+            return result
+
+        except Exception as e:
+            error = ContentNotFoundError(message=f"Encounter rebalancing failed: {e}")
+            await ctx.add_async_error(error)
+            ctx.record_cache_miss()
+            return {
+                "rebalanced_encounter": None,
+                "error": error.message,
+                "target_difficulty": params.get("target_difficulty"),
+                "party_size": params.get("party_size"),
+                "party_level": params.get("party_level"),
+            }
 
 
 # Legacy handler for backward compatibility

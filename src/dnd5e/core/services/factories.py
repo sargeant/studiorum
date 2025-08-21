@@ -19,7 +19,6 @@ Service Factories:
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, cast
 
@@ -29,6 +28,8 @@ from dnd5e.core.error_types import (
     ErrorSeverity,
     MCPErrorCode,
 )
+from dnd5e.core.logging import get_logger
+from dnd5e.core.models.content import BaseContent
 from dnd5e.core.result import Error, Result, Success
 
 from .protocols import (
@@ -59,7 +60,7 @@ if TYPE_CHECKING:
     from dnd5e.core.unified_references import ReferenceManager
     from dnd5e.renderers.core.interfaces import RenderingContext
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # Configuration Services
@@ -183,7 +184,7 @@ async def create_omnidexer_service(
         Omnidexer service implementing OmnidexerProtocol
     """
 
-    class AsyncOmnidexerService:
+    class AsyncOmnidexerService(OmnidexerProtocol):
         """Async omnidexer service with resource management."""
 
         def __init__(self, config: ApplicationConfig) -> None:
@@ -208,8 +209,10 @@ async def create_omnidexer_service(
                 self._omnidexer = Omnidexer()
 
                 # Async source preparation (GitHub cloning, etc)
-                if hasattr(self._omnidexer, "ensure_sources_ready"):
-                    await self._omnidexer.ensure_sources_ready()
+                if hasattr(
+                    self._omnidexer.source_manager, "_ensure_sources_ready_async"
+                ):
+                    await self._omnidexer.source_manager._ensure_sources_ready_async()
 
                 # Load all data
                 self._omnidexer.load_all_data()
@@ -255,12 +258,30 @@ async def create_omnidexer_service(
             results = self._omnidexer.search_by_name_prefix(identifier)
             return results[0] if results else None
 
-        def search(self, query: str) -> list[object]:
+        def search(self, query: str) -> list[BaseContent]:
             """Search for content matching the query."""
             if not self._omnidexer:
                 raise RuntimeError("Omnidexer not initialized")
             # Use actual omnidexer search methods
-            results = self._omnidexer.get_all_by_type(query) if query else []
+            results = self._omnidexer.search(query, limit=50)
+            return list(results)
+
+        def get_all_by_type(self, content_type: str | object) -> list[BaseContent]:
+            """Get all content of a specific type."""
+            if not self._omnidexer:
+                raise RuntimeError("Omnidexer not initialized")
+            # Delegate to underlying omnidexer
+            from dnd5e.core.models.content import ContentType
+
+            if isinstance(content_type, str):
+                try:
+                    content_type_enum = ContentType(content_type)
+                    results = self._omnidexer.get_all_by_type(content_type_enum)
+                except ValueError:
+                    results = []
+            else:
+                # Assume it's already a ContentType or compatible
+                results = self._omnidexer.get_all_by_type(content_type)  # type: ignore[arg-type]
             return list(results)
 
         async def ensure_sources_ready(self) -> None:

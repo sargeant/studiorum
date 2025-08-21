@@ -2,7 +2,6 @@
 
 import asyncio
 import json
-import logging
 from pathlib import Path
 
 import typer
@@ -16,6 +15,7 @@ from dnd5e.core.config.unified_config import (
     set_app_config,
 )
 from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.logging import get_logger
 from dnd5e.core.logging.logger import setup_logging
 from dnd5e.core.models.content import BaseContent
 from dnd5e.core.text.tag_resolver import TagResolver
@@ -24,7 +24,7 @@ from dnd5e.latex_engine.config import CompilationConfig, LaTeXEngineEnum as LaTe
 from dnd5e.latex_engine.core.compiler import LaTeXCompiler
 from dnd5e.renderers.core.interfaces import RenderingContext
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Create the main Typer app
 app: typer.Typer = typer.Typer(
@@ -125,7 +125,7 @@ def main(
         # This will trigger Pydantic validation and create directories
         _ = config.model_dump()
         if verbose or debug:
-            logger = logging.getLogger(__name__)
+            logger = get_logger(__name__)
             logger.info("Configuration loaded successfully")
             logger.info(f"LaTeX engine: {config.rendering.latex.engine.primary_engine}")
             logger.info(f"Output path: {config.paths.output_path}")
@@ -151,12 +151,15 @@ def main(
     else:
         log_level = config.logging.level
 
-    setup_logging(level=log_level)
+    # Convert log level to debug flag for new logging system
+    debug_mode = log_level in ["DEBUG", "INFO"]
+    setup_logging(debug=debug_mode, console_min_level=log_level.lower())
 
+    logger = get_logger(__name__)
     if debug:
-        logging.info("Enabled debug mode")
+        logger.info("Enabled debug mode")
     elif verbose:
-        logging.info("Enabled verbose mode")
+        logger.info("Enabled verbose mode")
 
 
 # Import and mount CLI command modules
@@ -165,6 +168,7 @@ try:
     from dnd5e.cli.commands.convert import app as convert_app
     from dnd5e.cli.commands.info import app as info_app
     from dnd5e.cli.commands.list_content import app as list_app
+    from dnd5e.cli.commands.mcp import mcp_app
     from dnd5e.cli.commands.setup import app as setup_app
     from dnd5e.cli.commands.sources import app as sources_app
     from dnd5e.cli.commands.stats import app as stats_app
@@ -173,6 +177,7 @@ try:
     app.add_typer(cache_app, name="cache")
     app.add_typer(convert_app, name="convert")
     app.add_typer(list_app, name="list")
+    app.add_typer(mcp_app, name="mcp")
     app.add_typer(info_app, name="info")
     app.add_typer(setup_app, name="setup")
     app.add_typer(sources_app, name="sources")

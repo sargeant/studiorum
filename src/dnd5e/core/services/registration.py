@@ -13,8 +13,9 @@ Registration includes:
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
+
+from dnd5e.core.logging import get_logger
 
 from .container import ModernServiceContainer
 from .factories import (
@@ -42,7 +43,7 @@ from .protocols import (
 if TYPE_CHECKING:
     pass
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 async def register_modern_services(container: ModernServiceContainer) -> None:
@@ -156,6 +157,12 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
     )
     logger.debug("Registered ReferenceManagerProtocol as scoped")
 
+    # Encounter building services (Package 2.3)
+    # Register after core services are available
+    from .encounter_services import register_encounter_services
+
+    register_encounter_services(container)
+
     logger.info("Modern service registration completed successfully")
 
 
@@ -167,7 +174,10 @@ def get_service_lifecycle_summary() -> dict[str, dict]:
 
     Useful for debugging, documentation, and configuration validation.
     """
-    return {
+    from .encounter_services import get_encounter_service_lifecycle_summary
+
+    # Base services
+    base_services = {
         "ConfigurationProtocol": {
             "lifecycle": "SINGLETON",
             "hot_reloadable": True,
@@ -226,6 +236,10 @@ def get_service_lifecycle_summary() -> dict[str, dict]:
         },
     }
 
+    # Combine base services with encounter services
+    encounter_services = get_encounter_service_lifecycle_summary()
+    return {**base_services, **encounter_services}
+
 
 def validate_service_registration() -> list[str]:
     """Validate service registration configuration for consistency.
@@ -233,8 +247,14 @@ def validate_service_registration() -> list[str]:
     Returns:
         List of validation warnings/errors (empty if all valid)
     """
+    from .encounter_services import validate_encounter_service_registration
+
     issues = []
     summary = get_service_lifecycle_summary()
+
+    # Add encounter service validation
+    encounter_issues = validate_encounter_service_registration()
+    issues.extend(encounter_issues)
 
     # Check dependency order vs cleanup priority
     for service_name, info in summary.items():

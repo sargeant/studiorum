@@ -16,7 +16,6 @@ Key Features:
 from __future__ import annotations
 
 import asyncio
-import logging
 from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from datetime import datetime
@@ -33,6 +32,8 @@ from uuid import UUID, uuid4
 from weakref import WeakSet
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from dnd5e.core.logging import get_logger
 
 from .error_types import (
     ContentNotFoundError,
@@ -69,7 +70,7 @@ else:
 
 T = TypeVar("T", bound=ServiceProtocol)
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class RequestMetrics(BaseModel):
@@ -437,22 +438,17 @@ class AsyncRequestContext(BaseModel):
             raise RuntimeError(f"AsyncRequestContext {self.request_id} is closed")
 
     # Service factory functions (using P3 patterns)
-    async def _omnidexer_factory(self, config: ApplicationConfig) -> OmnidexerProtocol:
-        """Factory for request-scoped omnidexer."""
-        from .loaders.omnidexer import Omnidexer
+    async def _omnidexer_factory(
+        self, config_service: ConfigurationProtocol
+    ) -> OmnidexerProtocol:
+        """Factory for request-scoped omnidexer using proper service wrapper."""
+        from .services.factories import create_omnidexer_service
 
-        omnidexer = Omnidexer()
-
-        # Load all data asynchronously
-        await asyncio.get_event_loop().run_in_executor(None, omnidexer.load_all_data)
-
-        # Apply source filtering if specified
-        if self.sources:
-            # Filter by sources would be implemented on the omnidexer
-            # This is a placeholder for the filtering logic
-            pass
-
-        return cast(OmnidexerProtocol, omnidexer)
+        # Use the proper factory that returns AsyncOmnidexerService
+        # We need to pass the container, not the config service
+        if self._container is None:
+            raise RuntimeError("Container not initialized")
+        return await create_omnidexer_service(self._container)
 
 
 # Legacy sync wrapper for CLI backward compatibility

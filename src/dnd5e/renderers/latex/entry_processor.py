@@ -1,8 +1,9 @@
 """Recursive entry processor for LaTeX rendering of 5etools entry structures."""
 
 import asyncio
-import logging
 from typing import Any
+
+from dnd5e.core.logging import get_logger
 
 from ...core.entry_registry import ValidationMode, get_registry
 from ...core.exceptions import EntryProcessingError
@@ -16,7 +17,7 @@ from .unicode_mappings import (
     get_unmapped_unicode_chars,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class RecursiveEntryProcessor:
@@ -1064,7 +1065,7 @@ class RecursiveEntryProcessor:
         # Log any unmapped Unicode characters for debugging
         unmapped_chars = get_unmapped_unicode_chars(result)
         if unmapped_chars:
-            logging.debug(
+            logger.debug(
                 "Found unmapped Unicode characters in text: %s",
                 ", ".join(f"'{char}' (U+{ord(char):04X})" for char in unmapped_chars),
             )

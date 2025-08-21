@@ -1,12 +1,13 @@
 """Content merger for combining metadata and content files."""
 
 import json
-import logging
 import re
 import time
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any, cast
+
+from dnd5e.core.logging import get_logger
 
 from ..config.settings import get_settings
 from ..models.content import ContentType
@@ -19,7 +20,7 @@ from ..types import (
     MetadataEntry,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ContentMerger:

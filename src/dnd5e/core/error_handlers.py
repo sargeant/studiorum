@@ -18,9 +18,10 @@ from dnd5e.core.error_types import (
     MCPError,
     MCPErrorCode,
 )
+from dnd5e.core.logging import get_logger
 from dnd5e.core.result import Error, Result
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ErrorAggregator:

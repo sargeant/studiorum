@@ -1,15 +1,16 @@
 """Spell collection service for advanced spell filtering and gathering."""
 
 import difflib
-import logging
 from typing import Any
+
+from dnd5e.core.logging import get_logger
 
 from ..loaders.omnidexer import Omnidexer
 from ..models.content import ContentType
 from ..models.spell_filters import SpellCollectionResult, SpellFilterCriteria
 from ..models.spells import Spell
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SpellCollector:

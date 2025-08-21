@@ -15,7 +15,6 @@ Key components:
 from __future__ import annotations
 
 import asyncio
-import logging
 import weakref
 from collections.abc import Awaitable
 from contextlib import asynccontextmanager
@@ -29,6 +28,7 @@ from dnd5e.core.error_types import (
     MCPErrorCode,
     ServiceError,
 )
+from dnd5e.core.logging import get_logger
 from dnd5e.core.result import Error, Result, Success
 
 from .lifecycle import AsyncServiceFactory, ServiceDescriptor, ServiceLifecycle
@@ -37,7 +37,7 @@ from .protocols import AsyncResourceProtocol, ConfigurableServiceProtocol
 if TYPE_CHECKING:
     from dnd5e.core.config.unified_config import ApplicationConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 T = TypeVar("T")
 
@@ -106,6 +106,7 @@ class ModernServiceContainer:
         self._scoped_instances: dict[type[Any], Any] = {}
         self._async_resources: set[Any] = set()
         self._initialization_lock: asyncio.Lock | None = None
+        self._protocol_locks: dict[type[Any], asyncio.Lock] = {}
         self._cleanup_tasks: set[asyncio.Task] = set()
         self._resolution_stack: list[
             type[Any]
@@ -225,24 +226,26 @@ class ModernServiceContainer:
         if protocol in self._singleton_instances:
             return self._singleton_instances[protocol]  # type: ignore[return-value,no-any-return]
 
-        # Create lock lazily to ensure it's associated with the current event loop
-        if self._initialization_lock is None:
-            self._initialization_lock = asyncio.Lock()
+        # Use per-protocol locks to avoid deadlock during dependency resolution
+        if protocol not in self._protocol_locks:
+            self._protocol_locks[protocol] = asyncio.Lock()
 
-        # Resolve dependencies outside the lock to avoid deadlock
-        dependencies = await self._resolve_dependencies(descriptor.dependencies)
+        protocol_lock = self._protocol_locks[protocol]
 
-        async with self._initialization_lock:
-            # Double-check after acquiring lock
+        async with protocol_lock:
+            # Double-check after acquiring protocol-specific lock
             if protocol in self._singleton_instances:
                 return self._singleton_instances[protocol]  # type: ignore[return-value,no-any-return]
 
-            # Create instance with pre-resolved dependencies
+            # Resolve dependencies outside the global lock to prevent deadlock
+            dependencies = await self._resolve_dependencies(descriptor.dependencies)
+
+            # Create instance with resolved dependencies
             instance: T = await self._create_instance_with_dependencies(
                 descriptor, dependencies
             )
             self._singleton_instances[protocol] = instance
-            return instance  # type: ignore[return-value,no-any-return]  # type: ignore[return-value,no-any-return]
+            return instance  # type: ignore[return-value,no-any-return]
 
     async def _get_scoped_instance(
         self, protocol: type[T], descriptor: ServiceDescriptor

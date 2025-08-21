@@ -205,6 +205,9 @@ class TestJsonLoaderValidationIntegration:
             # Setup tracker mock
             mock_tracker_class.return_value = mock_validation_tracker
             mock_validation_tracker.should_log_error.return_value = True
+            mock_validation_tracker.format_error_message.return_value = (
+                "Test validation error message"
+            )
 
             # Setup settings mock to ensure normal (not strict) mode
             mock_settings = MagicMock()
@@ -280,7 +283,7 @@ class TestJsonLoaderValidationIntegration:
 
     @patch("dnd5e.core.loaders.json_loader.ValidationErrorTracker")
     def test_json_loader_logs_summary_when_enabled(
-        self, mock_tracker_class: MagicMock, mock_validation_tracker: MagicMock
+        self, mock_tracker_class: MagicMock, mock_validation_tracker: MagicMock, capfire
     ) -> None:
         """Test that JsonDataLoader logs validation summary when enabled."""
         mock_tracker_class.return_value = mock_validation_tracker
@@ -301,18 +304,21 @@ class TestJsonLoaderValidationIntegration:
 
             loader = JsonDataLoader(ContentType("spell"))
 
-            with patch("dnd5e.core.loaders.json_loader.logger") as mock_logger:
-                # Call summary logging method
-                loader._log_validation_summary()
+            # Call summary logging method
+            loader._log_validation_summary()
 
-                # Verify summary was logged
-                mock_logger.info.assert_called()
-                # Check that summary information was logged
-                calls = mock_logger.info.call_args_list
-                summary_calls = [
-                    call for call in calls if "Validation Summary" in str(call)
-                ]
-                assert len(summary_calls) > 0
+            # Verify summary was logged by checking spans
+            messages = []
+            for span in capfire.exporter.exported_spans:
+                if hasattr(span, "attributes") and span.attributes:
+                    msg = span.attributes.get("logfire.msg", "")
+                    if msg:
+                        messages.append(msg)
+
+            log_output = "\n".join(messages)
+
+            # Check that summary information was logged
+            assert "Validation Summary" in log_output
 
 
 class TestValidationErrorMessages:

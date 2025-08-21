@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import logging
+from dnd5e.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def initialize_content_types() -> None:

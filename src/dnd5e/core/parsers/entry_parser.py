@@ -1,8 +1,9 @@
 """Parsers for extracting nested content from adventure and book entries."""
 
-import logging
 from collections.abc import Iterator
 from typing import Any, Union
+
+from dnd5e.core.logging import get_logger
 
 from ..entry_registry import ValidationMode, get_registry
 from ..exceptions import EntryProcessingError
@@ -23,7 +24,7 @@ from ..types import (
     TableEntry,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class EntryParser:

@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from dnd5e.core.interfaces import ContentTypeRegistry
     from dnd5e.core.loaders.content_factory import ContentFactory
     from dnd5e.core.loaders.omnidexer import Omnidexer
+    from dnd5e.core.models.content import BaseContent
     from dnd5e.core.result import Result
     from dnd5e.core.text.tag_resolver import TagResolver
     from dnd5e.core.unified_references import ReferenceManager
@@ -149,7 +150,7 @@ class OmnidexerProtocol(ServiceProtocol, AsyncResourceProtocol, Protocol):
         """
         ...
 
-    def search(self, query: str) -> list[object]:
+    def search(self, query: str) -> list[BaseContent]:
         """Search for content matching the query.
 
         Args:
@@ -214,6 +215,17 @@ class OmnidexerProtocol(ServiceProtocol, AsyncResourceProtocol, Protocol):
 
         Returns:
             Dictionary with cache stats, performance metrics, and usage data
+        """
+        ...
+
+    def get_all_by_type(self, content_type: object) -> list[BaseContent]:
+        """Get all content of a specific type.
+
+        Args:
+            content_type: Content type enum or string identifier
+
+        Returns:
+            List of all content matching the specified type
         """
         ...
 

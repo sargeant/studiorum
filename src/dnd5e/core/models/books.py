@@ -243,9 +243,9 @@ class Book(BaseContent):
                     nested_content.append(content_item)
             except Exception as e:
                 # Log error but continue processing other chapters
-                import logging
+                from dnd5e.core.logging import get_logger
 
-                logger = logging.getLogger(__name__)
+                logger = get_logger(__name__)
                 logger.warning(
                     f"Error parsing entries in {self.name} chapter '{chapter.name}': {e}"
                 )
