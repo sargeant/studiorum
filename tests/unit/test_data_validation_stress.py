@@ -5,11 +5,11 @@ can handle all available data without warnings or unknown data structures.
 """
 
 import asyncio
-import logging
 from collections.abc import Generator
 from typing import Any
 
 import pytest
+from logfire.testing import CaptureLogfire
 
 from dnd5e.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
@@ -18,71 +18,44 @@ from dnd5e.core.logging import get_logger  # type: ignore
 from dnd5e.core.models.content import ContentType  # type: ignore
 
 
-class LogCapture:
-    """Capture logging output for analysis."""
-
-    def __init__(self, level: Any = logging.WARNING) -> None:
-        self.records: list[Any] = []
-        self.level = level
-
-    def filter(self, record: Any) -> bool:
-        if record.levelno >= self.level:
-            self.records.append(record)
-        return False  # Don't actually log
-
-
 class TestDataValidationStress:
     """Stress tests for data validation across all available content."""
 
     @pytest.fixture(autouse=True)
-    def setup_log_capture(self) -> Generator[None, None, None]:
+    def setup_log_capture(self, capfire: CaptureLogfire) -> Generator[None, None, None]:
         """Set up log capture for each test."""
-        self.log_capture = LogCapture()
-        self.handler = logging.StreamHandler()
-        self.handler.addFilter(self.log_capture)
-
-        # Add handler to relevant loggers
-        loggers = [
-            get_logger("src.core.loaders.json_loader"),
-            get_logger("src.core.loaders.omnidexer"),
-            get_logger("src.core.loaders.source_manager"),
-        ]
-
-        for logger in loggers:
-            logger.addHandler(self.handler)
-
+        self.capfire = capfire
         yield
-
-        # Clean up
-        for logger in loggers:
-            logger.removeHandler(self.handler)
 
     def get_validation_warnings(self) -> list[str]:
         """Extract validation warning messages."""
-        warnings: list[Any] = []
-        for record in self.log_capture.records:
-            if "Validation failed" in record.getMessage():
-                warnings.append(record.getMessage())
+        warnings: list[str] = []
+        for span in self.capfire.exporter.exported_spans:
+            if hasattr(span, "attributes") and span.attributes:
+                msg = span.attributes.get("logfire.msg", "")
+                if "Validation failed" in msg:
+                    warnings.append(msg)
         return warnings
 
     def get_unknown_data_warnings(self) -> list[str]:
         """Extract warnings about unknown or unhandled data."""
-        unknown_warnings: list[Any] = []
-        for record in self.log_capture.records:
-            message = record.getMessage()
-            if any(
-                keyword in message.lower()
-                for keyword in [
-                    "unknown",
-                    "unrecognized",
-                    "unexpected",
-                    "not supported",
-                    "skipping",
-                    "failed to parse",
-                    "unable to handle",
-                ]
-            ):
-                unknown_warnings.append(message)
+        unknown_warnings: list[str] = []
+        for span in self.capfire.exporter.exported_spans:
+            if hasattr(span, "attributes") and span.attributes:
+                message = span.attributes.get("logfire.msg", "")
+                if any(
+                    keyword in message.lower()
+                    for keyword in [
+                        "unknown",
+                        "unrecognized",
+                        "unexpected",
+                        "not supported",
+                        "skipping",
+                        "failed to parse",
+                        "unable to handle",
+                    ]
+                ):
+                    unknown_warnings.append(message)
         return unknown_warnings
 
     def test_load_all_spells_no_validation_errors(self) -> None:

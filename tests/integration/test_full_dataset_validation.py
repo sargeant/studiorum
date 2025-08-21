@@ -4,7 +4,6 @@ This module runs comprehensive validation tests against the entire
 real 5etools dataset to ensure data loading works correctly.
 """
 
-import logging
 import time
 from collections import defaultdict
 from collections.abc import Generator
@@ -12,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from logfire.testing import CaptureLogfire
 
 from dnd5e.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
@@ -102,66 +102,44 @@ class TestFullDatasetValidation:
     """Integration tests for full dataset validation."""
 
     @pytest.fixture(autouse=True)
-    def setup_logging_capture(self) -> Generator[None, None, None]:
+    def setup_logging_capture(
+        self, capfire: CaptureLogfire
+    ) -> Generator[None, None, None]:
         """Set up logging capture for validation analysis."""
-        self.log_records: list[Any] = []
-
-        class TestHandler(logging.Handler):
-            def __init__(self, records_list: list) -> None:
-                super().__init__()
-                self.records_list = records_list
-
-            def emit(self, record: Any) -> None:
-                self.records_list.append(record)
-
-        self.handler = TestHandler(self.log_records)
-
-        # Add to relevant loggers
-        loggers = [
-            get_logger("src.core.loaders.json_loader"),
-            get_logger("src.core.loaders.omnidexer"),
-        ]
-
-        for logger in loggers:
-            logger.addHandler(self.handler)
-            logger.setLevel(logging.DEBUG)
-
+        self.capfire = capfire
         yield
-
-        # Clean up
-        for logger in loggers:
-            logger.removeHandler(self.handler)
 
     def extract_validation_warnings(self) -> list[str]:
         """Extract validation warnings from log records."""
-        warnings: list[Any] = []
-        for record in self.log_records:
-            if (
-                record.levelno >= logging.WARNING
-                and "Validation failed" in record.getMessage()
-            ):
-                warnings.append(record.getMessage())
+        warnings: list[str] = []
+        for span in self.capfire.exporter.exported_spans:
+            if hasattr(span, "attributes") and span.attributes:
+                msg = span.attributes.get("logfire.msg", "")
+                level_num = span.attributes.get("logfire.level_num", 0)
+                if level_num >= 30 and "Validation failed" in msg:  # WARNING = 30
+                    warnings.append(msg)
         return warnings
 
     def extract_file_skips(self) -> dict[str, int]:
         """Extract file skip information from log records."""
-        skips: Any = defaultdict(int)
-        for record in self.log_records:
-            message = record.getMessage()
-            if "Skipping index/list file" in message:
-                skips["index_list"] += 1
-            elif "Skipping malformed index file" in message:
-                skips["malformed_index"] += 1
-            elif "Skipping metadata/sources file" in message:
-                skips["metadata"] += 1
-            elif "Skipping Foundry VTT" in message:
-                skips["foundry"] += 1
-            elif "Skipping template" in message:
-                skips["template"] += 1
-            elif "Skipping copy-template" in message:
-                skips["copy_template"] += 1
-            elif "No content found" in message:
-                skips["empty_content"] += 1
+        skips: dict[str, int] = defaultdict(int)
+        for span in self.capfire.exporter.exported_spans:
+            if hasattr(span, "attributes") and span.attributes:
+                message = span.attributes.get("logfire.msg", "")
+                if "Skipping index/list file" in message:
+                    skips["index_list"] += 1
+                elif "Skipping malformed index file" in message:
+                    skips["malformed_index"] += 1
+                elif "Skipping metadata/sources file" in message:
+                    skips["metadata"] += 1
+                elif "Skipping Foundry VTT" in message:
+                    skips["foundry"] += 1
+                elif "Skipping template" in message:
+                    skips["template"] += 1
+                elif "Skipping copy-template" in message:
+                    skips["copy_template"] += 1
+                elif "No content found" in message:
+                    skips["empty_content"] += 1
         return dict(skips)
 
     @pytest.mark.slow

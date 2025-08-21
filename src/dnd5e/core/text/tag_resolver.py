@@ -116,12 +116,10 @@ class TagResolver(BaseModel):
             return "".join(result_parts)
 
         except TagParseError as e:
-            logger.warning("Tag parsing failed for text '%s': %s", text[:50], e)
+            logger.warning(f"Tag parsing failed for text '{text[:50]}': {e}")
             return text
         except Exception as e:
-            logger.error(
-                "Unexpected error processing tags in text '%s': %s", text[:50], e
-            )
+            logger.error(f"Unexpected error processing tags in text '{text[:50]}': {e}")
             return text
 
     def register_handler(self, handler: TagHandler) -> None:

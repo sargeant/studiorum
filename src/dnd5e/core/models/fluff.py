@@ -134,12 +134,10 @@ class BaseFluff(BaseContent):
                         # Treat as raw content - set content directly
                         parsed_entries.append(FluffEntry(content=str(entry)))
                 except (ValidationError, TypeError, KeyError) as e:
-                    logger.debug("Skipping invalid fluff entry: %s - %s", entry, e)
+                    logger.debug(f"Skipping invalid fluff entry: {entry} - {e}")
                     continue
                 except Exception as e:
-                    logger.warning(
-                        "Unexpected error parsing fluff entry %s: %s", entry, e
-                    )
+                    logger.warning(f"Unexpected error parsing fluff entry {entry}: {e}")
                     continue
             return parsed_entries
         else:
@@ -147,7 +145,7 @@ class BaseFluff(BaseContent):
             try:
                 return [FluffEntry(content=v)]
             except (ValidationError, TypeError) as e:
-                logger.debug("Failed to parse single fluff entry '%s': %s", v, e)
+                logger.debug(f"Failed to parse single fluff entry '{v}': {e}")
                 return []
 
     @field_validator("images", mode="before")
@@ -164,10 +162,10 @@ class BaseFluff(BaseContent):
                     if isinstance(img, dict):
                         parsed_images.append(FluffImage(**img))
                 except (ValidationError, TypeError, KeyError) as e:
-                    logger.debug("Skipping invalid image entry: %s - %s", img, e)
+                    logger.debug(f"Skipping invalid image entry: {img} - {e}")
                     continue
                 except Exception as e:
-                    logger.warning("Unexpected error parsing image %s: %s", img, e)
+                    logger.warning(f"Unexpected error parsing image {img}: {e}")
                     continue
             return parsed_images
         return []

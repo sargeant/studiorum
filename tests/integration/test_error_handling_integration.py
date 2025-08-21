@@ -5,11 +5,10 @@ Tests the complete error handling pipeline from Result pattern through
 logging and backward compatibility.
 """
 
-import logging
-from io import StringIO
 from typing import Any
 
 import pytest
+from logfire.testing import CaptureLogfire
 from pydantic import BaseModel, Field
 
 from dnd5e.core.entry_validation import StandardizedEntryValidator
@@ -39,24 +38,21 @@ class TestModel(BaseModel):
 class TestErrorHandlingIntegration:
     """Integration tests for error handling components."""
 
-    def setup_method(self) -> None:
+    def setup_method(self, capfire: CaptureLogfire) -> None:
         """Set up test environment."""
         # Reset global state for complete isolation
         reset_test_environment()
-
-        # Configure logging to capture output
-        self.log_stream = StringIO()
-        handler = logging.StreamHandler(self.log_stream)
-        handler.setLevel(logging.DEBUG)
-
-        # Clear any existing handlers and add our test handler
-        logging.getLogger().handlers.clear()
-        logging.getLogger().addHandler(handler)
-        logging.getLogger().setLevel(logging.DEBUG)
+        self.capfire = capfire
 
     def get_log_output(self) -> str:
-        """Get captured log output."""
-        return self.log_stream.getvalue()
+        """Get captured log output from Logfire spans."""
+        messages = []
+        for span in self.capfire.exporter.exported_spans:
+            if hasattr(span, "attributes") and span.attributes:
+                msg = span.attributes.get("logfire.msg", "")
+                if msg:
+                    messages.append(msg)
+        return "\n".join(messages)
 
     def test_result_pattern_basic_usage(self) -> None:
         """Test basic Result pattern usage."""
