@@ -19,7 +19,6 @@ Service Factories:
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, cast
 
@@ -29,6 +28,7 @@ from dnd5e.core.error_types import (
     ErrorSeverity,
     MCPErrorCode,
 )
+from dnd5e.core.logging import get_logger
 from dnd5e.core.models.content import BaseContent
 from dnd5e.core.result import Error, Result, Success
 
@@ -60,7 +60,7 @@ if TYPE_CHECKING:
     from dnd5e.core.unified_references import ReferenceManager
     from dnd5e.renderers.core.interfaces import RenderingContext
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # Configuration Services

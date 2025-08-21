@@ -13,8 +13,9 @@ Registration includes:
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
+
+from dnd5e.core.logging import get_logger
 
 from .container import ModernServiceContainer
 from .factories import (
@@ -42,7 +43,7 @@ from .protocols import (
 if TYPE_CHECKING:
     pass
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 async def register_modern_services(container: ModernServiceContainer) -> None:

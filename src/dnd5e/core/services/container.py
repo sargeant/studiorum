@@ -15,7 +15,6 @@ Key components:
 from __future__ import annotations
 
 import asyncio
-import logging
 import weakref
 from collections.abc import Awaitable
 from contextlib import asynccontextmanager
@@ -29,6 +28,7 @@ from dnd5e.core.error_types import (
     MCPErrorCode,
     ServiceError,
 )
+from dnd5e.core.logging import get_logger
 from dnd5e.core.result import Error, Result, Success
 
 from .lifecycle import AsyncServiceFactory, ServiceDescriptor, ServiceLifecycle
@@ -37,7 +37,7 @@ from .protocols import AsyncResourceProtocol, ConfigurableServiceProtocol
 if TYPE_CHECKING:
     from dnd5e.core.config.unified_config import ApplicationConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 T = TypeVar("T")
 

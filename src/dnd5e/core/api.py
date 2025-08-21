@@ -15,8 +15,9 @@ Key Features:
 from __future__ import annotations
 
 import asyncio
-import logging
 from typing import TYPE_CHECKING, Any
+
+from dnd5e.core.logging import get_logger
 
 from .context import (
     AsyncRequestContext,
@@ -43,7 +44,7 @@ if TYPE_CHECKING:
     from .models.adventures import Adventure
     from .models.base import Content
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ModernContextualAPI:

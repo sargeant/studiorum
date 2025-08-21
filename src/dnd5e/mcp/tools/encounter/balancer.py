@@ -7,12 +7,12 @@ Uses advanced algorithms for encounter difficulty assessment and dynamic
 adjustment while maintaining performance targets and DMG compliance.
 """
 
-import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, cast
 
+from dnd5e.core.logging import get_logger
 from dnd5e.core.models.creatures import Creature
 from dnd5e.core.models.encounter_types import (
     XP,
@@ -28,7 +28,7 @@ from dnd5e.core.services.encounter_collector import (
 )
 from dnd5e.mcp.tools.encounter.budget import EncounterBudgetCalculator
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class BalanceStrategy(Enum):

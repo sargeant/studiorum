@@ -13,7 +13,6 @@ Key Features:
 
 from __future__ import annotations
 
-import logging
 import time
 from typing import Any, Literal
 
@@ -28,6 +27,7 @@ from dnd5e.core.error_types import (
     MCPException,
     ProcessingError,
 )
+from dnd5e.core.logging import get_logger
 from dnd5e.core.models.content import Source
 from dnd5e.core.result import Result
 from dnd5e.core.services.protocols import OmnidexerProtocol
@@ -43,7 +43,7 @@ from .models import (
     SpellProgressionData,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CharacterProgressionTools:

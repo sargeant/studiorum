@@ -16,7 +16,6 @@ Key Features:
 from __future__ import annotations
 
 import asyncio
-import logging
 from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from datetime import datetime
@@ -33,6 +32,8 @@ from uuid import UUID, uuid4
 from weakref import WeakSet
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from dnd5e.core.logging import get_logger
 
 from .error_types import (
     ContentNotFoundError,
@@ -69,7 +70,7 @@ else:
 
 T = TypeVar("T", bound=ServiceProtocol)
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class RequestMetrics(BaseModel):

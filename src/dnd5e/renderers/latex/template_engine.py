@@ -146,9 +146,9 @@ class LaTeXTemplateEngine:
             if contains_dangerous_latex(value):
                 # Log security issue but don't fail rendering
                 # In production, this might trigger security alerts
-                import logging
+                from dnd5e.core.logging import get_logger
 
-                logger = logging.getLogger(__name__)
+                logger = get_logger(__name__)
                 logger.warning(
                     "Potentially dangerous LaTeX content detected: %s",
                     value[:100] + "..." if len(value) > 100 else value,

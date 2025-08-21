@@ -10,8 +10,9 @@ performance targets and proper dependency management.
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any, Protocol, cast, runtime_checkable
+
+from dnd5e.core.logging import get_logger
 
 if TYPE_CHECKING:
     from dnd5e.core.models.encounter_types import (
@@ -41,7 +42,7 @@ from dnd5e.core.services.protocols import OmnidexerProtocol
 from dnd5e.mcp.tools.encounter.balancer import EncounterBalancer
 from dnd5e.mcp.tools.encounter.themes import ThematicEncounterGenerator
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @runtime_checkable

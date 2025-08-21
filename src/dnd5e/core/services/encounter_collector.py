@@ -7,11 +7,11 @@ Maintains <200ms performance targets through optimized queries and caching while
 providing sophisticated encounter generation capabilities.
 """
 
-import logging
 from dataclasses import dataclass
 from typing import Any, cast
 
 from dnd5e.core.loaders.omnidexer import Omnidexer
+from dnd5e.core.logging import get_logger
 from dnd5e.core.models.creatures import Creature
 from dnd5e.core.models.encounter_types import (
     XP,
@@ -27,7 +27,7 @@ from dnd5e.core.services.creature_collector import (
 )
 from dnd5e.mcp.tools.encounter.budget import EncounterBudgetCalculator
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

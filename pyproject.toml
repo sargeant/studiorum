@@ -49,6 +49,7 @@ dependencies = [
     "aiohttp>=3.12.15",
     "watchdog>=6.0.0,<7.0.0",
     "fastmcp>=2.11.3",
+    "logfire>=0.54.0",
 ]
 
 [project.urls]
@@ -70,6 +71,10 @@ docs = [
     "packaging",
     "shibuya>=2025.7.24",
     "sphinx-design>=0.6.1",
+]
+observability = [
+    "logfire[system-metrics]>=0.54.0",
+    "structlog>=25.0.0", # For structured logging compatibility
 ]
 
 [dependency-groups]

@@ -1,7 +1,6 @@
 """High-performance async omnidexer with intelligent caching and lazy loading."""
 
 import asyncio
-import logging
 import time
 import weakref
 from collections import defaultdict
@@ -9,6 +8,8 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
+
+from dnd5e.core.logging import get_logger
 
 from ..cache import get_cache
 from ..error_types import ContentNotFoundError
@@ -19,7 +20,7 @@ from ..services.protocols import AsyncResourceProtocol, OmnidexerProtocol
 from .content_index import ContentMetadata, FastContentIndex
 from .omnidexer import Omnidexer  # For compatibility and fallback
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

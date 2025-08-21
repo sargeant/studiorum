@@ -30,10 +30,12 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
+from dnd5e.core.logging import get_logger
+
 from ...core.config.unified_config import get_app_config
 from ...mcp.server import create_mcp_server, get_mcp_app, list_registered_tools
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 console = Console()
 
 # Create the MCP command group

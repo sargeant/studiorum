@@ -5,13 +5,14 @@ the 5etools implementation, along with validation infrastructure to handle
 unknown entry types and validation modes.
 """
 
-import logging
 import warnings
 from collections import defaultdict
 from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from dnd5e.core.logging import get_logger
 
 from .base_context import ProcessingContext
 from .exceptions import (
@@ -21,7 +22,7 @@ from .exceptions import (
     UnknownEntryTypeError,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ValidationMode(Enum):

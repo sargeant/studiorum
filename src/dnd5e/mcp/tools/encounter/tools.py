@@ -8,7 +8,6 @@ All tools maintain <500ms performance targets and provide comprehensive
 error handling with meaningful suggestions.
 """
 
-import logging
 from typing import Any, cast
 
 from dnd5e.core.error_types import (
@@ -19,6 +18,7 @@ from dnd5e.core.error_types import (
     MCPErrorCode,
     MCPException,
 )
+from dnd5e.core.logging import get_logger
 from dnd5e.core.models.encounter_types import (
     XP,
     EncounterConstraints,
@@ -33,7 +33,7 @@ from dnd5e.mcp.tools.encounter.themes import (
     create_thematic_profile,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 async def calculate_encounter_budget_mcp(

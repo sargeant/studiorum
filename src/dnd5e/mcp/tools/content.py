@@ -13,9 +13,10 @@ Key Features:
 from __future__ import annotations
 
 import asyncio
-import logging
 import time
 from typing import Any, Literal
+
+from dnd5e.core.logging import get_logger
 
 from ...core.api import ModernContextualAPI
 from ...core.context import AsyncRequestContext, async_request_context
@@ -32,7 +33,7 @@ from ...core.models.content import BaseContent
 from ...core.result import Result
 from ...core.services.protocols import OmnidexerProtocol
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ContentSearchResult:

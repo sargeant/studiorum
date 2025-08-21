@@ -14,8 +14,9 @@ Key Features:
 
 from __future__ import annotations
 
-import logging
 from typing import Any
+
+from dnd5e.core.logging import get_logger
 
 from ..core.api import ModernContextualAPI
 from ..core.context import (
@@ -35,7 +36,7 @@ from ..core.error_types import (
 from ..core.result import Error, Result, Success
 from ..core.services.protocols import OmnidexerProtocol
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ModernMCPRequestHandler:

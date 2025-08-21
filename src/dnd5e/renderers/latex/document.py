@@ -1,11 +1,11 @@
 """LaTeX document renderer implementation."""
 
-import logging
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
 from dnd5e.core.latex_utils import escape_latex_text
+from dnd5e.core.logging import get_logger
 
 from ...core.models.content import BaseContent, ContentType
 from ...core.models.document_metadata import (
@@ -24,7 +24,7 @@ from .document_structure import DocumentStructureBuilder
 from .entry_renderers import EntryRendererRegistry
 from .template_engine import LaTeXTemplateEngine
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class LaTeXDocumentRenderer(DocumentRenderer):

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -10,7 +9,9 @@ from typing import Any, Literal, TypeVar
 
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+from dnd5e.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 

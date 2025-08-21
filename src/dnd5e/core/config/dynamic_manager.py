@@ -56,7 +56,6 @@ Examples:
 from __future__ import annotations
 
 import asyncio
-import logging
 import threading
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
@@ -67,6 +66,8 @@ from uuid import uuid4
 import yaml
 from pydantic import ValidationError
 from watchdog.events import FileSystemEventHandler
+
+from dnd5e.core.logging import get_logger
 
 if TYPE_CHECKING:
     from watchdog.observers import Observer
@@ -79,7 +80,7 @@ from .unified_config import ApplicationConfig, get_app_config, set_app_config
 T = TypeVar("T")
 ConfigChangeCallback = Callable[[ApplicationConfig, ApplicationConfig], None]
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ConfigFileWatcher(FileSystemEventHandler):
@@ -379,7 +380,7 @@ class ConfigurationManager:
             ```python
             def on_log_level_changed(old_config, new_config):
                 if old_config.logging.level != new_config.logging.level:
-                    logging.getLogger().setLevel(new_config.logging.level)
+                    get_logger().setLevel(new_config.logging.level)
 
             await manager.register_config_watcher(on_log_level_changed)
             ```

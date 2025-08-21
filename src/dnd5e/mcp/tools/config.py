@@ -16,11 +16,12 @@ Key Features:
 from __future__ import annotations
 
 import json
-import logging
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError
+
+from dnd5e.core.logging import get_logger
 
 from ...core.config.unified_config import (
     ApplicationConfig,
@@ -48,7 +49,7 @@ from ...core.error_types import (
 )
 from ...core.result import Error, Result, Success
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # Response models for structured MCP tool returns

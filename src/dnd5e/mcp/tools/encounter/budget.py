@@ -10,9 +10,9 @@ Provides mathematical precision for encounter balancing with full support for:
 - Environmental and tactical modifiers
 """
 
-import logging
 from typing import Any
 
+from dnd5e.core.logging import get_logger
 from dnd5e.core.models.creatures import Creature
 from dnd5e.core.models.encounter_types import (
     XP,
@@ -23,7 +23,7 @@ from dnd5e.core.models.encounter_types import (
     PartyLevel,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class EncounterBudgetCalculator:

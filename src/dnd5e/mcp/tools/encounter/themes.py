@@ -8,11 +8,11 @@ Leverages existing creature type/tag filtering with advanced environmental
 modeling and thematic coherence scoring.
 """
 
-import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, cast
 
+from dnd5e.core.logging import get_logger
 from dnd5e.core.models.creatures import Creature
 from dnd5e.core.models.encounter_types import (
     EncounterConstraints,
@@ -23,7 +23,7 @@ from dnd5e.core.services.encounter_collector import (
     EncounterCreature,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class EnvironmentType(Enum):

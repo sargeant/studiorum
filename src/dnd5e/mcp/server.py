@@ -14,10 +14,11 @@ Key Features:
 
 from __future__ import annotations
 
-import logging
 from typing import Any, Literal
 
 from fastmcp import FastMCP
+
+from dnd5e.core.logging import get_logger
 
 from ..core.context import AsyncRequestContext, async_request_context
 from ..core.error_types import (
@@ -40,7 +41,7 @@ from .tools.config import (
     update_configuration,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Initialize FastMCP server with dnd5e branding
 mcp = FastMCP(

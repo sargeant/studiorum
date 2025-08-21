@@ -13,13 +13,14 @@ Key Features:
 from __future__ import annotations
 
 import inspect
-import logging
 from collections.abc import Callable
 from typing import Any
 
 from fastmcp import FastMCP
 
-logger = logging.getLogger(__name__)
+from dnd5e.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class ToolMetadata:
