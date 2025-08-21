@@ -269,22 +269,20 @@ class Adventure(BaseContent):
     @model_validator(mode="after")
     def validate_adventure_structure(self) -> "Adventure":
         """Validate overall adventure structure and metadata consistency."""
+        from dnd5e.core.logging import get_logger
+
+        logger = get_logger(__name__)
+
         # Validate metadata consistency
         if self.metadata:
             # Check for conflicting ID values
             if self.id and self.metadata.id and self.id != self.metadata.id:
-                from dnd5e.core.logging import get_logger
-
-                logger = get_logger(__name__)
                 logger.warning(
                     f"Adventure ID mismatch: field={self.id}, metadata={self.metadata.id}. Using field value."
                 )
 
         # Validate that adventure has either content or proper metadata
         if not self.has_content() and not self._has_meaningful_metadata():
-            import logging
-
-            logger = get_logger(__name__)
             logger.warning(
                 f"Adventure '{self.name}' has no content and minimal metadata. "
                 f"This may indicate incomplete data loading."
