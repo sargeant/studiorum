@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 
@@ -19,22 +19,6 @@ class TestJsonLoaderCache:
         """Clear cache before each test."""
         # Reset global state for complete isolation
         reset_test_environment()
-
-    def _get_content_type(self, type_name: str) -> ContentType:
-        """Get ContentType safely, falling back to static enum members."""
-        try:
-            return ContentType(type_name)
-        except ValueError:
-            # Fall back to known static enum members
-            fallback_map = {
-                "spell": ContentType.SPELL,
-                "creature": ContentType.CREATURE,
-                "item": ContentType.ITEM,
-                "adventure": ContentType.ADVENTURE,
-                "book": ContentType.BOOK,
-                "feat": ContentType.CREATURE,  # Fall back to CREATURE for feat tests
-            }
-            return fallback_map.get(type_name, ContentType.SPELL)  # Default fallback
 
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""
@@ -91,8 +75,14 @@ class TestJsonLoaderCache:
             assert len(result1) == 1
             assert result1[0].name == "Test Spell"
 
-            # Check that cache miss occurred (no debug message)
-            mock_logger.debug.assert_not_called()
+            # Check that no cache hit occurred (cache hit message should not be present)
+            # Note: File loading debug messages are expected during first load
+            cache_hit_calls = [
+                call
+                for call in mock_logger.debug.call_args_list
+                if "Cache hit for" in str(call)
+            ]
+            assert len(cache_hit_calls) == 0
 
             # Second load - should hit cache
             result2 = loader.load(test_file)

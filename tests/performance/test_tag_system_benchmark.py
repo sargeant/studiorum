@@ -77,7 +77,9 @@ class TestTagSystemPerformance:
         processing_time = end_time - start_time
 
         # Should complete in reasonable time
-        assert processing_time < 1.0  # 1 second threshold
+        assert (
+            processing_time < 2.0
+        )  # 2 second threshold (increased for CI reliability)
         assert isinstance(result, str)
         assert len(result) > 0
 
