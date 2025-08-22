@@ -31,6 +31,7 @@ from ....core.references.cross_reference_manager import (
     CrossReferenceManager,
 )
 from ....core.result import Error, Result, Success
+from ....core.text.tag_resolver import TagResolver
 
 logger = get_logger(__name__)
 
@@ -378,44 +379,98 @@ class EnhancedCrossReferenceManager(CrossReferenceManager):
             return Error(error)
 
     def _extract_tags_from_entries(self, entries: list[Any]) -> list[str]:
-        """Extract {@tag} references from rule entries."""
+        """Extract {@tag} references from rule entries using TagResolver."""
         tags = []
+
+        # Create TagResolver for proper tag parsing
+        tag_resolver = TagResolver()
 
         for entry in entries:
             if isinstance(entry, str):
-                # Simple regex-based tag extraction
-                import re
-
-                tag_pattern = r"\{@(\w+)(?:\s+([^}]+))?\}"
-                matches = re.findall(tag_pattern, entry)
-                for match in matches:
-                    tag_type = match[0]
-                    tags.append(tag_type)
+                # Use TagResolver parser for proper nested tag handling
+                tags.extend(self._extract_tags_from_text(entry, tag_resolver))
             elif isinstance(entry, dict):
                 # Recursive search in dict entries
-                tags.extend(self._extract_tags_from_dict(entry))
+                tags.extend(self._extract_tags_from_dict(entry, tag_resolver))
 
         return list(set(tags))  # Remove duplicates
 
-    def _extract_tags_from_dict(self, entry_dict: dict[str, Any]) -> list[str]:
-        """Recursively extract tags from dictionary entries."""
+    def _extract_tags_from_dict(
+        self, entry_dict: dict[str, Any], tag_resolver: TagResolver | None = None
+    ) -> list[str]:
+        """Recursively extract tags from dictionary entries using TagResolver."""
         tags = []
+
+        # Create TagResolver if not provided
+        if tag_resolver is None:
+            tag_resolver = TagResolver()
 
         for value in entry_dict.values():
             if isinstance(value, str):
-                import re
-
-                tag_pattern = r"\{@(\w+)(?:\s+([^}]+))?\}"
-                matches = re.findall(tag_pattern, value)
-                for match in matches:
-                    tag_type = match[0]
-                    tags.append(tag_type)
+                # Use TagResolver parser for proper nested tag handling
+                tags.extend(self._extract_tags_from_text(value, tag_resolver))
             elif isinstance(value, list):
-                tags.extend(self._extract_tags_from_entries(value))
+                # For list values, create a new entries extraction with the resolver
+                for item in value:
+                    if isinstance(item, str):
+                        tags.extend(self._extract_tags_from_text(item, tag_resolver))
+                    elif isinstance(item, dict):
+                        tags.extend(self._extract_tags_from_dict(item, tag_resolver))
             elif isinstance(value, dict):
-                tags.extend(self._extract_tags_from_dict(value))
+                tags.extend(self._extract_tags_from_dict(value, tag_resolver))
 
         return tags
+
+    def _extract_tags_from_text(
+        self, text: str, tag_resolver: TagResolver
+    ) -> list[str]:
+        """Extract tag types from text using TagResolver's parser.
+
+        Args:
+            text: Text content that may contain {@tag} references
+            tag_resolver: TagResolver instance for parsing
+
+        Returns:
+            List of tag types found in the text
+        """
+        if not text or not text.strip():
+            return []
+
+        try:
+            # Parse the text using TagResolver's parser
+            document = tag_resolver.parser.parse(text)
+
+            # Walk the AST to collect tag types
+            tag_types: list[str] = []
+            self._collect_tag_types_from_ast(document, tag_types)
+
+            return tag_types
+
+        except Exception as e:
+            # If parsing fails, fall back to empty list
+            # Log the error but don't break the flow
+            logger.debug(f"Failed to parse text for tags: {e}")
+            return []
+
+    def _collect_tag_types_from_ast(self, node: Any, tag_types: list[str]) -> None:
+        """Recursively collect tag types from AST nodes.
+
+        Args:
+            node: AST node to traverse
+            tag_types: List to collect tag types into
+        """
+        # Import here to avoid circular imports
+        from ....core.text.tag_ast import TagNode
+
+        if isinstance(node, TagNode):
+            # Extract tag type from TagNode
+            if hasattr(node, "tag_type"):
+                tag_types.append(node.tag_type)
+
+        # Recursively traverse child nodes
+        if hasattr(node, "children"):
+            for child in node.children:
+                self._collect_tag_types_from_ast(child, tag_types)
 
     def _calculate_complexity_score(
         self, rule_content: Action | Condition | Sense | Hazard | Status
