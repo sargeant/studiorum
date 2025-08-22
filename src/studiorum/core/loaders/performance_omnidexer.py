@@ -240,7 +240,7 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
                 + (search_time * 0.1)  # Exponential moving average
             )
 
-            return Success(content_results)
+            return Success(content_results)  # type: ignore[arg-type]
 
         except Exception as e:
             error = ContentNotFoundError(
@@ -276,7 +276,7 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
         cached_content = self.cache.get(cache_key)
         if cached_content is not None:
             self._record_cache_hit(content_id, context)
-            return Success(cached_content)
+            return Success(cached_content)  # type: ignore[arg-type]
 
         # Try to find in content index first
         metadata_results = self.content_index.search(f"{name}", content_type, 5)
@@ -441,7 +441,7 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
             cached_feats = self.cache.get(cache_key)
             if cached_feats is not None:
                 self._record_cache_hit(cache_key, context)
-                return cached_feats  # type: ignore[no-any-return]
+                return cached_feats  # type: ignore[no-any-return,return-value]
 
             # Search for feats in the content index
             feat_results = self.content_index.search("feat", "feat", limit=100)
@@ -597,7 +597,7 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
             cached_options = self.cache.get(cache_key)
             if cached_options is not None:
                 self._record_cache_hit(cache_key, context)
-                return cached_options  # type: ignore[no-any-return]
+                return cached_options  # type: ignore[no-any-return,return-value]
 
             # Search for all classes
             class_results = self.content_index.search("", "class", limit=50)

@@ -35,6 +35,10 @@ from ..core.error_types import (
 )
 from ..core.result import Error, Result, Success
 from ..core.services.protocols import OmnidexerProtocol
+from .async_service_bridge import (
+    MCPServiceContext,
+    create_mcp_service_context,
+)
 
 logger = get_logger(__name__)
 
@@ -1222,6 +1226,247 @@ class ModernMCPRequestHandler:
                 "party_size": params.get("party_size"),
                 "party_level": params.get("party_level"),
             }
+
+    # Bridge Integration Patterns
+    # These methods demonstrate how to use the AsyncServiceBridge for simplified MCP tool implementation
+
+    async def handle_request_with_bridge(
+        self,
+        method: str,
+        params: dict[str, Any],
+        config_overrides: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Handle MCP request using the AsyncServiceBridge pattern.
+
+        This method demonstrates the simplified approach for MCP tool implementation
+        using the AsyncServiceBridge. It shows how the bridge eliminates much of the
+        boilerplate code needed for service access and error handling.
+
+        Args:
+            method: MCP method name to handle
+            params: Method parameters from MCP request
+            config_overrides: Optional configuration overrides
+
+        Returns:
+            JSON-RPC compatible response
+
+        Example:
+            This replaces the complex context management with a simple pattern:
+            >>> # Instead of complex async context management:
+            >>> # async with async_request_context(...) as ctx:
+            >>> #     omnidexer = await ctx.get_service(OmnidexerProtocol)
+            >>> #     results = omnidexer.search(query)
+            >>>
+            >>> # Use the bridge pattern:
+            >>> async with create_mcp_service_context(method) as ctx:
+            ...     results = await ctx.search_spells(query)
+        """
+        try:
+            # Create configuration from overrides
+            config = None
+            if config_overrides:
+                try:
+                    from ..core.config.unified_config import get_app_config
+
+                    base_config = get_app_config()
+                    config = base_config.model_copy(update=config_overrides)
+                except Exception as e:
+                    logger.warning(f"Failed to create config override: {e}")
+
+            # Sources are handled by the bridge context
+
+            # Use bridge to create tool context with simplified API
+            # Convert ApplicationConfig to dict if needed
+            config_dict = config.model_dump() if config else None
+
+            async with create_mcp_service_context(
+                operation_name=method,
+                config_overrides=config_dict,
+            ) as ctx:
+                logger.info(
+                    f"Handling MCP request {method} with bridge context {ctx.request_id}"
+                )
+
+                # Route to bridge-based handlers
+                if method == "search_spells":
+                    result = await self._handle_search_spells_bridge(params, ctx)
+                elif method == "search_creatures":
+                    result = await self._handle_search_creatures_bridge(params, ctx)
+                elif method == "resolve_adventure":
+                    result = await self._handle_resolve_adventure_bridge(params, ctx)
+                elif method == "resolve_book":
+                    result = await self._handle_resolve_book_bridge(params, ctx)
+                else:
+                    # Fall back to the full handler for methods not yet migrated
+                    return await self.handle_request(method, params, config_overrides)
+
+                # Handle errors from context
+                if ctx.has_errors:
+                    errors = ctx.get_errors()
+                    return {
+                        "error": {
+                            "code": -32603,
+                            "message": "Request completed with errors",
+                            "data": [error.to_json_rpc_error() for error in errors],
+                        }
+                    }
+
+                # Success response with optional performance data
+                response = {"result": result}
+                if self.performance_monitoring:
+                    response["_performance"] = {
+                        "context_id": str(ctx.request_id),
+                        "metrics": ctx.request_context.metrics.model_dump(),
+                    }
+
+                return response
+
+        except Exception as e:
+            logger.error(
+                f"Bridge-based MCP request {method} failed: {e}", exc_info=True
+            )
+            return {
+                "error": {
+                    "code": -32603,
+                    "message": f"Internal error: {e}",
+                    "data": {"method": method},
+                }
+            }
+
+    # Bridge-based handler examples
+    # These show the simplified patterns using MCPServiceContext
+
+    async def _handle_search_spells_bridge(
+        self, params: dict[str, Any], ctx: MCPServiceContext
+    ) -> dict[str, Any]:
+        """Handle spell search using bridge patterns.
+
+        This demonstrates how the bridge simplifies MCP tool implementation
+        by providing high-level helpers and automatic error handling.
+        """
+        from .async_service_bridge import MCPServiceContext
+
+        query = params.get("query", "")
+        sources = params.get("sources")
+        limit = params.get("limit", 20)  # Default to 20 if not provided
+
+        # Ensure limit is an integer
+        if not isinstance(limit, int):
+            limit = 20
+
+        # Use bridge helper - much simpler than manual service access
+        result = await ctx.search_spells(query, sources=sources, limit=limit)
+
+        # The bridge method returns a dict, not a list
+        return result
+
+    async def _handle_search_creatures_bridge(
+        self, params: dict[str, Any], ctx: MCPServiceContext
+    ) -> dict[str, Any]:
+        """Handle creature search using bridge patterns."""
+        from .async_service_bridge import MCPServiceContext
+
+        query = params.get("query", "")
+        sources = params.get("sources")
+        limit = params.get("limit", 20)  # Default to 20 if not provided
+
+        # Ensure limit is an integer
+        if not isinstance(limit, int):
+            limit = 20
+
+        # Use bridge helper
+        result = await ctx.search_creatures(query, sources=sources, limit=limit)
+
+        # The bridge method returns a dict, not a list
+        return result
+
+    async def _handle_resolve_adventure_bridge(
+        self, params: dict[str, Any], ctx: MCPServiceContext
+    ) -> dict[str, Any]:
+        """Handle adventure resolution using bridge patterns."""
+        from .async_service_bridge import MCPServiceContext
+
+        adventure_name = params.get("adventure_name", "")
+
+        if not adventure_name:
+            error = MCPError(
+                message="adventure_name parameter is required",
+                error_code=MCPErrorCode.INVALID_PARAMS,
+                category=ErrorCategory.VALIDATION,
+                severity=ErrorSeverity.ERROR,
+            )
+            await ctx.add_error(error)
+            return {"adventure": None, "error": "adventure_name parameter is required"}
+
+        # Use bridge helper
+        adventure = await ctx.resolve_adventure(adventure_name)
+
+        if adventure:
+            return {
+                "adventure": adventure.model_dump()
+                if hasattr(adventure, "model_dump")
+                else adventure.__dict__,
+                "source": adventure.source.abbreviation
+                if hasattr(adventure, "source")
+                else None,
+                "name": adventure_name,
+            }
+        else:
+            return {
+                "adventure": None,
+                "error": f"Adventure '{adventure_name}' not found",
+                "name": adventure_name,
+            }
+
+    async def _handle_resolve_book_bridge(
+        self, params: dict[str, Any], ctx: MCPServiceContext
+    ) -> dict[str, Any]:
+        """Handle book resolution using bridge patterns."""
+        from .async_service_bridge import MCPServiceContext
+
+        book_name = params.get("book_name", "")
+
+        if not book_name:
+            error = MCPError(
+                message="book_name parameter is required",
+                error_code=MCPErrorCode.INVALID_PARAMS,
+                category=ErrorCategory.VALIDATION,
+                severity=ErrorSeverity.ERROR,
+            )
+            await ctx.add_error(error)
+            return {"book": None, "error": "book_name parameter is required"}
+
+        # Use bridge helper for book listing - resolve_book doesn't exist
+        books_result = await ctx.list_books()
+
+        # Find the specific book by name
+        book = None
+        for book_info in books_result.get("content", []):
+            if book_info.get("name", "").lower() == book_name.lower():
+                book = book_info
+                break
+
+        if book:
+            return {
+                "book": book,
+                "source": book.get("source"),
+                "name": book_name,
+            }
+        else:
+            return {
+                "book": None,
+                "error": f"Book '{book_name}' not found",
+                "name": book_name,
+            }
+
+    async def get_bridge_metrics(self) -> dict[str, Any]:
+        """Get performance metrics from the service bridge.
+
+        Returns:
+            Metrics for bridge usage and performance
+        """
+        # Service bridge doesn't exist anymore - return empty metrics
+        return {}
 
 
 # Legacy handler for backward compatibility

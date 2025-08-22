@@ -176,22 +176,18 @@ class AsyncRequestContext(BaseModel):
         """Create and configure request-scoped service container."""
         container = ModernServiceContainer()
 
-        # Import factory functions from P3
-        from .services.factories import (
-            create_configuration_service,
-            create_content_factory_service,
-            create_display_manager_service,
-            create_omnidexer_service,
-            create_reference_manager_service,
-            create_tag_resolver_service,
-        )
+        # Register all modern services using the standard registration function
+        from .services.registration import register_modern_services
 
-        # Register configuration service (per-request override support)
+        await register_modern_services(container)
+
+        # Override configuration service if per-request config is provided
         if self.user_config:
             # Create a simple wrapper for the config instance
             def config_factory() -> ApplicationConfig:
                 return self.user_config  # type: ignore[return-value]
 
+            # Re-register configuration service with the override
             container.register_service(
                 ConfigurationProtocol,  # type: ignore[type-abstract]
                 config_factory,
@@ -199,56 +195,6 @@ class AsyncRequestContext(BaseModel):
                 dependencies=(),
                 hot_reloadable=True,
             )
-        else:
-            container.register_service(
-                ConfigurationProtocol,  # type: ignore[type-abstract]
-                create_configuration_service,
-                lifecycle=ServiceLifecycle.SINGLETON,
-                dependencies=(),
-                hot_reloadable=True,
-            )
-
-        # Register omnidexer with async resource lifecycle
-        container.register_service(
-            OmnidexerProtocol,  # type: ignore[type-abstract]
-            self._omnidexer_factory,
-            lifecycle=ServiceLifecycle.ASYNC_RESOURCE,
-            dependencies=(ConfigurationProtocol,),
-        )
-
-        # Register tag resolver with scoped lifecycle
-        container.register_service(
-            TagResolverProtocol,  # type: ignore[type-abstract]
-            create_tag_resolver_service,
-            lifecycle=ServiceLifecycle.SCOPED,
-            dependencies=(OmnidexerProtocol, ConfigurationProtocol),
-            hot_reloadable=True,
-        )
-
-        # Register display manager as scoped
-        container.register_service(
-            DisplayManagerProtocol,  # type: ignore[type-abstract]
-            create_display_manager_service,
-            lifecycle=ServiceLifecycle.SCOPED,
-            dependencies=(ConfigurationProtocol,),
-            hot_reloadable=True,
-        )
-
-        # Register reference manager as scoped
-        container.register_service(
-            ReferenceManagerProtocol,  # type: ignore[type-abstract]
-            create_reference_manager_service,
-            lifecycle=ServiceLifecycle.SCOPED,
-            dependencies=(OmnidexerProtocol,),
-        )
-
-        # Register content factory as async resource
-        container.register_service(
-            ContentFactoryProtocol,  # type: ignore[type-abstract]
-            create_content_factory_service,
-            lifecycle=ServiceLifecycle.SINGLETON,
-            dependencies=(),
-        )
 
         return container
 

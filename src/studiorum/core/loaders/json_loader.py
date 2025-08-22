@@ -70,7 +70,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
         cached_result = cache.get(cache_key)
         if cached_result is not None:
             logger.debug(f"Cache hit for {path}")
-            return cached_result  # type: ignore[no-any-return]
+            return cached_result  # type: ignore[no-any-return,return-value]
 
         # Load from file if not in cache
         result = self._load_from_file(path)

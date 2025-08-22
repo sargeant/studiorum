@@ -337,6 +337,14 @@ class ContentTypeRegistryProtocol(ServiceProtocol, Protocol):
         """
         ...
 
+    def get_legacy_registry(self) -> ContentTypeRegistry:
+        """Get the underlying ContentTypeRegistry for legacy compatibility.
+
+        Returns:
+            Legacy content type registry instance
+        """
+        ...
+
 
 @runtime_checkable
 class DisplayManagerProtocol(ServiceProtocol, ConfigurableServiceProtocol, Protocol):

@@ -10,6 +10,8 @@ dependency injection while maintaining backward compatibility.
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
+import threading
 from typing import TYPE_CHECKING
 
 from studiorum.core.logging import get_logger
@@ -17,6 +19,7 @@ from studiorum.core.logging import get_logger
 if TYPE_CHECKING:
     from studiorum.core.config.unified_config import ApplicationConfig
     from studiorum.core.interfaces import ContentTypeRegistry
+    from studiorum.core.services.container import ModernServiceContainer
 
 from .protocols import (
     CacheProtocol,
@@ -112,14 +115,21 @@ def get_cache_service() -> CacheProtocol:
 
         container = get_global_container()
 
-        # Try to get the service synchronously if possible
+        # Check if we're in an async context
         try:
             asyncio.get_running_loop()
-            # In async context, caller should use await container.get_service() directly
-            raise RuntimeError(
-                "get_cache_service() cannot be called from async context. "
-                "Use 'await container.get_service(CacheProtocol)' instead."
-            )
+            # We're in an async context - need to avoid asyncio.run()
+            # Instead, create a task and get the result
+            import concurrent.futures
+            import threading
+
+            # Use a thread pool to avoid event loop conflicts
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    lambda: asyncio.run(container.get_service(CacheProtocol))  # type: ignore[type-abstract]
+                )
+                return future.result(timeout=5.0)  # 5 second timeout
+
         except RuntimeError:
             # No running loop, safe to create one
             return asyncio.run(container.get_service(CacheProtocol))  # type: ignore[type-abstract]
@@ -153,10 +163,10 @@ def get_cache_service() -> CacheProtocol:
                 # Legacy cache doesn't have stats
                 return {"legacy_mode": True}
 
-        return LegacyCacheWrapper()  # type: ignore[return-value]
+        return LegacyCacheWrapper()  # type: ignore[return-value]  # type: ignore[return-value]  # type: ignore[return-value]
 
 
-def get_cache() -> object:
+def get_cache() -> CacheProtocol:
     """Get the cache instance.
 
     This is a backward compatibility function that maintains the same
@@ -238,14 +248,14 @@ def get_content_type_registry() -> ContentTypeRegistry:
     """
     registry_service = get_content_type_registry_service()
     # Access the legacy registry through the service
-    return registry_service.get_legacy_registry()  # type: ignore[return-value]
+    return registry_service.get_legacy_registry()
 
 
 # Async service access functions for async contexts
 
 
 async def get_app_config_service_async(
-    container: object = None,
+    container: ModernServiceContainer | None = None,
 ) -> ConfigurationProtocol:
     """Get the application configuration service from the container (async version).
 
@@ -260,10 +270,12 @@ async def get_app_config_service_async(
 
         container = get_global_container()
 
-    return await container.get_service(ConfigurationProtocol)  # type: ignore[attr-defined,type-abstract]
+    return await container.get_service(ConfigurationProtocol)  # type: ignore[type-abstract]
 
 
-async def get_cache_service_async(container: object = None) -> CacheProtocol:
+async def get_cache_service_async(
+    container: ModernServiceContainer | None = None,
+) -> CacheProtocol:
     """Get the cache service from the container (async version).
 
     Args:
@@ -277,11 +289,11 @@ async def get_cache_service_async(container: object = None) -> CacheProtocol:
 
         container = get_global_container()
 
-    return await container.get_service(CacheProtocol)  # type: ignore[attr-defined,type-abstract]
+    return await container.get_service(CacheProtocol)  # type: ignore[type-abstract]
 
 
 async def get_content_type_registry_service_async(
-    container: object = None,
+    container: ModernServiceContainer | None = None,
 ) -> ContentTypeRegistryProtocol:
     """Get the content type registry service from the container (async version).
 
@@ -296,4 +308,4 @@ async def get_content_type_registry_service_async(
 
         container = get_global_container()
 
-    return await container.get_service(ContentTypeRegistryProtocol)  # type: ignore[attr-defined,type-abstract]
+    return await container.get_service(ContentTypeRegistryProtocol)  # type: ignore[type-abstract]

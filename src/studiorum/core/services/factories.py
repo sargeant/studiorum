@@ -29,7 +29,7 @@ from studiorum.core.error_types import (
     MCPErrorCode,
 )
 from studiorum.core.logging import get_logger
-from studiorum.core.models.content import BaseContent
+from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.result import Error, Result, Success
 
 from .protocols import (
@@ -51,6 +51,7 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable
 
     from studiorum.cli.display_manager import DisplayManager
+    from studiorum.core.cache import CacheManager
     from studiorum.core.config.unified_config import ApplicationConfig
     from studiorum.core.entry_registry import EntryTypeRegistry
     from studiorum.core.interfaces import ContentTypeRegistry
@@ -255,12 +256,14 @@ async def create_omnidexer_service(
             results = self._omnidexer.search_by_name_prefix(identifier)
             return results[0] if results else None
 
-        def search(self, query: str) -> list[BaseContent]:
+        def search(
+            self, query: str, content_type: ContentType | None = None, limit: int = 50
+        ) -> list[BaseContent]:
             """Search for content matching the query."""
             if not self._omnidexer:
                 raise RuntimeError("Omnidexer not initialized")
-            # Use actual omnidexer search methods
-            results = self._omnidexer.search(query, limit=50)
+            # Use actual omnidexer search methods with matching signature
+            results = self._omnidexer.search(query, content_type, limit)
             return list(results)
 
         def get_all_by_type(self, content_type: str | object) -> list[BaseContent]:
@@ -489,7 +492,7 @@ async def create_content_type_registry_service() -> ContentTypeRegistryProtocol:
             return [ct.value for ct in content_types]
 
         # Provide access to the underlying registry for legacy code
-        def get_legacy_registry(self) -> object:
+        def get_legacy_registry(self) -> ContentTypeRegistry:
             """Get the underlying ContentTypeRegistry for legacy compatibility."""
             return self._legacy_registry
 
@@ -767,7 +770,7 @@ async def create_cache_service() -> CacheProtocol:
         """Cache service wrapping diskcache with protocol interface."""
 
         def __init__(self) -> None:
-            self._cache_manager = None
+            self._cache_manager: type[CacheManager] | None = None
             self._initialize_cache()
 
         def get_service_name(self) -> str:
