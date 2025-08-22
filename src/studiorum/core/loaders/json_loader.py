@@ -10,10 +10,10 @@ if TYPE_CHECKING:
 
 from pydantic import ValidationError
 
-from ..cache import get_cache
 from ..config.settings import get_settings
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
+from ..services.access import get_cache
 from ..validation.error_tracker import ValidationErrorTracker
 from .base import DataLoader
 from .content_factory import ContentFactory

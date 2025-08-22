@@ -175,7 +175,21 @@ class ServiceDescriptor[T]:
         # At this point we know it's not AsyncServiceFactory, so it must be a callable
         callable_factory = cast(Callable[..., Any], self.factory)
         sig = inspect.signature(callable_factory)
-        return len(sig.parameters) > 0
+
+        # Only return True if there's a parameter named 'container'
+        # or if the factory is one of the specific ones that needs the container
+        for param_name, param in sig.parameters.items():
+            if param_name == "container":
+                return True
+
+        # Special case for display manager and reference manager factories that need container
+        factory_name = getattr(callable_factory, "__name__", "")
+        container_requiring_factories = [
+            "create_display_manager_service",
+            "create_reference_manager_service",
+        ]
+
+        return factory_name in container_requiring_factories
 
     def validate_lifecycle_compatibility(self) -> list[str]:
         """Validate that lifecycle and other settings are compatible.

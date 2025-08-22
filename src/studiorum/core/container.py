@@ -48,7 +48,53 @@ def get_global_container() -> ModernServiceContainer:
         from studiorum.core.services.container import ModernServiceContainer
 
         _global_container = ModernServiceContainer()
+
+        # Try to register services automatically when possible
+        _try_register_services(_global_container)
+
     return _global_container
+
+
+def _try_register_services(container: ModernServiceContainer) -> None:
+    """Try to register services automatically if possible."""
+    try:
+        import asyncio
+
+        from studiorum.core.services.registration import register_modern_services
+
+        # Only register if no services are registered yet
+        if len(container.get_registered_services()) > 0:
+            return
+
+        try:
+            # Try without an event loop first
+            asyncio.get_running_loop()
+            logger.debug(
+                "Event loop running, services must be registered manually with ensure_services_registered()"
+            )
+        except RuntimeError:
+            # No running loop, safe to create one
+            asyncio.run(register_modern_services(container))
+            logger.debug("Global container services registered successfully")
+    except Exception as e:
+        logger.warning(f"Failed to register services in global container: {e}")
+
+
+async def ensure_services_registered() -> None:
+    """Ensure services are registered in the global container.
+
+    This should be called in async contexts to ensure services are available.
+    """
+    global _global_container
+    if _global_container is None:
+        _global_container = get_global_container()
+
+    # Register services if not already registered
+    if len(_global_container.get_registered_services()) == 0:
+        from studiorum.core.services.registration import register_modern_services
+
+        await register_modern_services(_global_container)
+        logger.debug("Services registered in async context")
 
 
 def reset_global_container() -> None:
@@ -102,12 +148,10 @@ def reset_all_services() -> None:
 
     # Reset any other global state
     try:
-        from studiorum.core.cache import get_cache
+        from studiorum.core.cache import CacheManager
 
-        # Try to reset cache if it has a reset method
-        cache = get_cache()
-        if hasattr(cache, "clear"):
-            cache.clear()
+        # Reset the cache manager completely
+        CacheManager.reset()
     except (ImportError, AttributeError):
         # Cache system may not exist in all configurations
         pass

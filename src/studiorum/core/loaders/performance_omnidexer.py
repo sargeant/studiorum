@@ -11,11 +11,11 @@ from typing import Any
 
 from studiorum.core.logging import get_logger
 
-from ..cache import get_cache
 from ..error_types import ContentNotFoundError
 from ..models.content import BaseContent, ContentType
 from ..optimization.memory_manager import AdaptiveMemoryManager, MemoryConfiguration
 from ..result import Error, Result, Success
+from ..services.access import get_cache
 from ..services.protocols import AsyncResourceProtocol, OmnidexerProtocol
 from .content_index import ContentMetadata, FastContentIndex
 from .omnidexer import Omnidexer  # For compatibility and fallback

@@ -34,6 +34,7 @@ from studiorum.core.result import Error, Result, Success
 
 from .protocols import (
     AsyncResourceProtocol,
+    CacheProtocol,
     ConfigurableServiceProtocol,
     ConfigurationProtocol,
     ContentFactoryProtocol,
@@ -113,14 +114,10 @@ async def create_configuration_service(
         ) -> Result[ApplicationConfig, ConfigurationError]:
             """Reload configuration from source."""
             try:
-                # Use unified config system for reloading
-                from studiorum.core.config.unified_config import get_app_config
-
                 # For now, return current config as placeholder
-                # TODO: Implement proper config file reloading
-                current_config = get_app_config()
-                await self.reload_config(current_config)
-                return Success(current_config)
+                # TODO: Implement proper config file reloading from source
+                await self.reload_config(self._config)
+                return Success(self._config)
 
             except Exception as e:
                 return Error(
@@ -162,9 +159,9 @@ async def create_configuration_service(
     if config_override is not None:
         config = config_override
     else:
-        from studiorum.core.config.unified_config import get_app_config
+        from studiorum.core.config.unified_config import ApplicationConfig
 
-        config = get_app_config()
+        config = ApplicationConfig()
 
     return ConfigurationService(config)
 
@@ -448,41 +445,55 @@ async def create_content_type_registry_service() -> ContentTypeRegistryProtocol:
     """
 
     class ContentTypeRegistryService:
-        """Content type registry service."""
+        """Content type registry service wrapping the legacy ContentTypeRegistry."""
 
         def __init__(self) -> None:
-            self._registry: dict[str, type] = {}
+            from studiorum.core.interfaces import ContentTypeRegistry
+            from studiorum.core.models.content import ContentType
+
+            self._legacy_registry = ContentTypeRegistry()
+            # Register default content types
+            self._initialize_default_types()
 
         def get_service_name(self) -> str:
             return "ContentTypeRegistryService"
 
+        def _initialize_default_types(self) -> None:
+            """Initialize default content type registrations."""
+            try:
+                from studiorum.core.models.content import ContentType
+
+                # The legacy registry will be populated by the system initialization
+                # This service provides protocol compliance without duplicating state
+                logger.debug("ContentTypeRegistry service initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize default content types: {e}")
+
         def register_content_type(self, content_type: str, handler: type) -> None:
             """Register a content type handler."""
-            self._registry[content_type] = handler
-            logger.debug(f"Registered content type: {content_type}")
+            # For now, this is a no-op since the legacy registry doesn't support dynamic registration
+            # In the future, this could be enhanced to support runtime registration
+            logger.debug(
+                f"Content type registration requested: {content_type} -> {handler}"
+            )
 
         def get_content_handler(self, content_type: str) -> type | None:
             """Get handler for a content type."""
-            return self._registry.get(content_type)
+            # Return None for now - the legacy registry doesn't provide handler lookup
+            return None
 
         def get_registered_types(self) -> list[str]:
             """Get list of registered content types."""
-            return list(self._registry.keys())
+            # Return the content types from the legacy registry
+            content_types = self._legacy_registry.get_all_types()
+            return [ct.value for ct in content_types]
 
-    # Initialize with basic registry
-    try:
-        from studiorum.core.interfaces import ContentTypeRegistry
+        # Provide access to the underlying registry for legacy code
+        def get_legacy_registry(self) -> object:
+            """Get the underlying ContentTypeRegistry for legacy compatibility."""
+            return self._legacy_registry
 
-        # Create wrapper around existing registry
-        class ProtocolWrapper(ContentTypeRegistryService):
-            def __init__(self) -> None:
-                super().__init__()
-                self._legacy_registry = ContentTypeRegistry()
-
-        return ProtocolWrapper()
-    except Exception as e:
-        logger.warning(f"Failed to create legacy registry wrapper: {e}")
-        return ContentTypeRegistryService()
+    return ContentTypeRegistryService()
 
 
 async def create_display_manager_service(
@@ -743,3 +754,67 @@ async def create_reference_manager_service(
     omnidexer = await container.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
 
     return ReferenceManagerService(omnidexer)
+
+
+async def create_cache_service() -> CacheProtocol:
+    """Factory for cache service.
+
+    Returns:
+        Cache service implementing CacheProtocol
+    """
+
+    class CacheService:
+        """Cache service wrapping diskcache with protocol interface."""
+
+        def __init__(self) -> None:
+            self._cache_manager = None
+            self._initialize_cache()
+
+        def get_service_name(self) -> str:
+            return "CacheService"
+
+        def _initialize_cache(self) -> None:
+            """Initialize cache manager."""
+            try:
+                from studiorum.core.cache import CacheManager
+
+                self._cache_manager = CacheManager
+                logger.debug("Cache service initialized")
+            except Exception:
+                logger.exception("Failed to initialize cache service")
+                raise
+
+        def get(self, key: str, default: object = None) -> object:
+            """Get value from cache."""
+            if not self._cache_manager:
+                raise RuntimeError("Cache not initialized")
+            cache = self._cache_manager.get_instance()
+            return cache.get(key, default)
+
+        def set(self, key: str, value: object, expire: float | None = None) -> None:
+            """Set value in cache."""
+            if not self._cache_manager:
+                raise RuntimeError("Cache not initialized")
+            cache = self._cache_manager.get_instance()
+            cache.set(key, value, expire=expire)
+
+        def delete(self, key: str) -> bool:
+            """Delete key from cache."""
+            if not self._cache_manager:
+                raise RuntimeError("Cache not initialized")
+            cache = self._cache_manager.get_instance()
+            return cache.delete(key)
+
+        def clear(self) -> None:
+            """Clear entire cache."""
+            if not self._cache_manager:
+                raise RuntimeError("Cache not initialized")
+            self._cache_manager.clear()
+
+        def get_stats(self) -> dict[str, object]:
+            """Get cache statistics."""
+            if not self._cache_manager:
+                return {}
+            return self._cache_manager.get_stats()
+
+    return CacheService()

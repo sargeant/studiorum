@@ -10,7 +10,6 @@ from rich import print as rprint
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.config.loader import ConfigLoader, ConfigValidationError
 from studiorum.core.config.unified_config import (
-    get_app_config,
     reset_app_config,
     set_app_config,
 )
@@ -18,6 +17,7 @@ from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.logging import get_logger
 from studiorum.core.logging.logger import setup_logging
 from studiorum.core.models.content import BaseContent
+from studiorum.core.services.access import get_app_config
 from studiorum.core.text.tag_resolver import TagResolver
 from studiorum.latex_engine import create_latex_engine
 from studiorum.latex_engine.config import (

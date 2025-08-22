@@ -96,7 +96,7 @@ class ContentType(str, Enum):
             ValueError: If content type cannot be determined
         """
         # Use the registry directly to avoid circular imports
-        from ..interfaces import get_content_type_registry
+        from ..services.access import get_content_type_registry
 
         registry = get_content_type_registry()
         result: ContentType = registry.get_type(content)

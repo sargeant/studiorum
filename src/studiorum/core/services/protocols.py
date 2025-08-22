@@ -483,3 +483,57 @@ class ReferenceManagerProtocol(ServiceProtocol, Protocol):
             List of (source, ref_type) tuples
         """
         ...
+
+
+@runtime_checkable
+class CacheProtocol(ServiceProtocol, Protocol):
+    """Protocol for cache management services.
+
+    Provides unified caching interface for improved performance
+    across the application.
+    """
+
+    def get(self, key: str, default: object = None) -> object:
+        """Get value from cache.
+
+        Args:
+            key: Cache key
+            default: Default value if key not found
+
+        Returns:
+            Cached value or default
+        """
+        ...
+
+    def set(self, key: str, value: object, expire: float | None = None) -> None:
+        """Set value in cache.
+
+        Args:
+            key: Cache key
+            value: Value to cache
+            expire: Expiration time in seconds
+        """
+        ...
+
+    def delete(self, key: str) -> bool:
+        """Delete key from cache.
+
+        Args:
+            key: Cache key to delete
+
+        Returns:
+            True if key was deleted, False if not found
+        """
+        ...
+
+    def clear(self) -> None:
+        """Clear entire cache."""
+        ...
+
+    def get_stats(self) -> dict[str, object]:
+        """Get cache statistics.
+
+        Returns:
+            Dictionary with cache statistics and metrics
+        """
+        ...

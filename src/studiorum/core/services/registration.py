@@ -19,6 +19,7 @@ from studiorum.core.logging import get_logger
 
 from .container import ModernServiceContainer
 from .factories import (
+    create_cache_service,
     create_configuration_service,
     create_content_factory_service,
     create_content_type_registry_service,
@@ -30,6 +31,7 @@ from .factories import (
 )
 from .lifecycle import CleanupPriority, ServiceLifecycle
 from .protocols import (
+    CacheProtocol,
     ConfigurationProtocol,
     ContentFactoryProtocol,
     ContentTypeRegistryProtocol,
@@ -124,6 +126,16 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
         cleanup_priority=CleanupPriority.INFRASTRUCTURE,
     )
     logger.debug("Registered EntryTypeRegistryProtocol as singleton")
+
+    container.register_service(
+        CacheProtocol,  # type: ignore[type-abstract]
+        create_cache_service,
+        lifecycle=ServiceLifecycle.SINGLETON,
+        dependencies=(),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+    )
+    logger.debug("Registered CacheProtocol as singleton")
 
     # Request-scoped services (MCP isolation required)
     # Later cleanup priority to ensure dependencies are available
@@ -234,6 +246,13 @@ def get_service_lifecycle_summary() -> dict[str, dict]:
             "rationale": "Static entry type registry, sharing is optimal",
             "dependencies": [],
         },
+        "CacheProtocol": {
+            "lifecycle": "SINGLETON",
+            "hot_reloadable": False,
+            "cleanup_priority": CleanupPriority.INFRASTRUCTURE,
+            "rationale": "Shared cache for performance optimization, singleton for efficiency",
+            "dependencies": [],
+        },
     }
 
     # Combine base services with encounter services
@@ -321,6 +340,7 @@ def validate_all_factories() -> list[str]:
         ContentTypeRegistryProtocol,
         ContentFactoryProtocol,
         EntryTypeRegistryProtocol,
+        CacheProtocol,
     ]
 
     factory_functions = [
@@ -332,6 +352,7 @@ def validate_all_factories() -> list[str]:
         create_content_type_registry_service,
         create_content_factory_service,
         create_entry_registry_service,
+        create_cache_service,
     ]
 
     if len(protocol_classes) != len(factory_functions):
