@@ -237,12 +237,16 @@ class ContentConfigManager:
         """Create default configuration with recommended sources."""
         config = ContentConfiguration()
 
+        # Determine the project root directory (where data directories are located)
+        # Look for the directory containing both test-data and srd-data
+        project_root = self._find_project_root()
+
         # Add test-data source (highest priority for testing)
         config.add_source(
             ContentSource(
                 name="test-data",
                 type=SourceType.DIRECTORY,
-                path=Path("test-data"),
+                path=project_root / "test-data",
                 enabled=True,
                 priority=0,  # Highest priority
                 url=None,
@@ -254,7 +258,7 @@ class ContentConfigManager:
             ContentSource(
                 name="srd",
                 type=SourceType.DIRECTORY,
-                path=Path("srd-data"),
+                path=project_root / "srd-data",
                 enabled=True,
                 priority=1,
                 url=None,
@@ -262,6 +266,30 @@ class ContentConfigManager:
         )
 
         return config
+
+    def _find_project_root(self) -> Path:
+        """Find the project root directory containing data sources."""
+        # Start from the current working directory
+        current = Path.cwd()
+
+        # Check if current directory has the data directories
+        if (current / "test-data").exists() and (current / "srd-data").exists():
+            return current
+
+        # If not, look for common project indicators and data directories
+        # Check parent directories up to a reasonable limit
+        for parent in current.parents:
+            if (parent / "test-data").exists() and (parent / "srd-data").exists():
+                return parent
+            # Also check if this looks like the studiorum project root
+            if (parent / "pyproject.toml").exists() and "studiorum" in str(parent):
+                data_dirs = [parent / "test-data", parent / "srd-data"]
+                if all(d.exists() for d in data_dirs):
+                    return parent
+
+        # If we can't find the project root, fall back to current directory
+        # This maintains backward compatibility but may result in missing data
+        return Path.cwd()
 
     def get_config(self) -> ContentConfiguration:
         """Get current configuration."""
