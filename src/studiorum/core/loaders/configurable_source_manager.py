@@ -164,7 +164,7 @@ class ConfigurableSourceManager(SourceManager):
                             # Fluff bestiary files go only to creatureFluff
                             shared_files[file_name] = [creature_fluff_type]
 
-                logger.info(
+                logger.debug(
                     f"Configured bestiary file sharing between {len([f for f in shared_files.values() if creature_type in f])} files"
                 )
             else:
@@ -301,9 +301,9 @@ class ConfigurableSourceManager(SourceManager):
 
         self._data_paths_cache = data_paths
 
-        logger.info("Discovered data files (metadata for adventures/books):")
+        logger.debug("Discovered data files (metadata for adventures/books):")
         for content_type, paths in data_paths.items():
-            logger.info(f"  {content_type.value}: {len(paths)} files")
+            logger.debug(f"  {content_type.value}: {len(paths)} files")
 
         return data_paths
 
@@ -591,9 +591,9 @@ class ConfigurableSourceManager(SourceManager):
                                 "Book content type not found, skipping books.json"
                             )
 
-        logger.info("Discovered metadata files:")
+        logger.debug("Discovered metadata files:")
         for content_type, paths in metadata_paths.items():
-            logger.info(f"  {content_type.value}: {len(paths)} files")
+            logger.debug(f"  {content_type.value}: {len(paths)} files")
 
         return metadata_paths
 
@@ -641,9 +641,9 @@ class ConfigurableSourceManager(SourceManager):
                                 "Book content type not found, skipping book files"
                             )
 
-        logger.info("Discovered content files:")
+        logger.debug("Discovered content files:")
         for content_type, paths in content_paths.items():
-            logger.info(f"  {content_type.value}: {len(paths)} files")
+            logger.debug(f"  {content_type.value}: {len(paths)} files")
 
         return content_paths
 

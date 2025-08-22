@@ -131,11 +131,13 @@ def main(
         _ = config.model_dump()
         if verbose or debug:
             logger = get_logger(__name__)
-            logger.info("Configuration loaded successfully")
-            logger.info(f"LaTeX engine: {config.rendering.latex.engine.primary_engine}")
-            logger.info(f"Output path: {config.paths.output_path}")
+            logger.debug("Configuration loaded successfully")
+            logger.debug(
+                f"LaTeX engine: {config.rendering.latex.engine.primary_engine}"
+            )
+            logger.debug(f"Output path: {config.paths.output_path}")
             if config.mcp.enabled:
-                logger.info(
+                logger.debug(
                     f"MCP server enabled on {config.mcp.host}:{config.mcp.port}"
                 )
     except ConfigValidationError as e:

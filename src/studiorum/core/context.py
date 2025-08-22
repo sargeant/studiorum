@@ -310,7 +310,7 @@ class AsyncRequestContext(BaseModel):
         if self._closed:
             return
 
-        logger.info(f"Closing request context {self.request_id}")
+        logger.debug(f"Closing request context {self.request_id}")
 
         try:
             # Cancel any running cleanup tasks
@@ -394,7 +394,7 @@ class AsyncRequestContext(BaseModel):
             for service in hot_reloadable_services:
                 if hasattr(service, "reload_config"):
                     await service.reload_config(new_config)
-        logger.info(f"Configuration reloaded for request {self.request_id}")
+        logger.debug(f"Configuration reloaded for request {self.request_id}")
 
     # Error handling integration with P2 (enhanced)
     def add_error(self, error: MCPError) -> None:
@@ -618,7 +618,7 @@ async def performance_monitored_context(
         finally:
             # Log performance metrics
             if performance_tracking and context.metrics:
-                logger.info(
+                logger.debug(
                     f"Request {context.request_id} performance metrics: {context.metrics}"
                 )
 

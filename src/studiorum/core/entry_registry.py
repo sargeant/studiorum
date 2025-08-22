@@ -560,10 +560,10 @@ class EntryTypeRegistry:
         stats = self._statistics
 
         if stats.total_entries == 0:
-            logger.info("No entry processing statistics available")
+            logger.debug("No entry processing statistics available")
             return
 
-        logger.info(
+        logger.debug(
             f"Entry processing statistics: {stats.total_entries} total entries processed"
         )
 

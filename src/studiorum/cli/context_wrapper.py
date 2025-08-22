@@ -216,7 +216,7 @@ def with_performance_context[**P, T](
 
                         # Log performance metrics if enabled
                         if log_metrics and ctx.metrics:
-                            logger.info(
+                            logger.debug(
                                 f"Performance metrics for {func.__name__}: {ctx.metrics}"
                             )
 

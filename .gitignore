@@ -125,3 +125,4 @@ docs/_build/
 # Performance monitoring files
 .test-performance-*.json
 test*.tex
+debug-loading.tex

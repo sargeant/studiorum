@@ -48,7 +48,7 @@ class FluffDataLoader(DataLoader[BaseFluff]):
     def load(self, path: Path) -> list[BaseFluff]:
         """Load fluff data with liberal parsing."""
         try:
-            logger.info(f"Loading {self._content_type.value} fluff data from {path}")
+            logger.debug(f"Loading {self._content_type.value} fluff data from {path}")
 
             # Read JSON file synchronously
             with open(path, encoding="utf-8") as f:
@@ -79,7 +79,7 @@ class FluffDataLoader(DataLoader[BaseFluff]):
                         f"Skipping fluff item {item.get('name', 'unknown')} in {path}: {e}"
                     )
 
-            logger.info(
+            logger.debug(
                 f"Successfully loaded {len(parsed_fluff)} {self._content_type.value} fluff items from {path}"
             )
             return parsed_fluff

@@ -83,7 +83,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
     def _load_from_file(self, path: Path) -> list[BaseContent]:
         """Load JSON file from disk."""
         try:
-            logger.info(f"Loading {self._content_type.value} data from {path}")
+            logger.debug(f"Loading {self._content_type.value} data from {path}")
 
             # Read JSON file synchronously
             with open(path, encoding="utf-8") as f:
@@ -109,7 +109,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             # Validate each item sequentially
             validated_content = self._validate_items_sequentially(content_list, path)
 
-            logger.info(
+            logger.debug(
                 f"Successfully loaded {len(validated_content)} {self._content_type.value} items from {path}"
             )
             return validated_content
@@ -1327,18 +1327,20 @@ class JsonDataLoader(DataLoader[BaseContent]):
         summary = self._error_tracker.get_summary()
 
         if not summary:
-            logger.info("Validation Summary: No validation errors encountered")
+            logger.debug("Validation Summary: No validation errors encountered")
             return
 
         total_errors = sum(data["count"] for data in summary.values())
         total_types = len(summary)
 
-        logger.info(f"Validation Summary: {total_errors} errors of {total_types} types")
+        logger.debug(
+            f"Validation Summary: {total_errors} errors of {total_types} types"
+        )
 
         # Log details for each error type
         for error_sig, data in summary.items():
             files_count = len(data["files"])
-            logger.info(
+            logger.debug(
                 f"  {data['error_type']}: {data['count']} occurrences "
                 f"across {files_count} files"
             )

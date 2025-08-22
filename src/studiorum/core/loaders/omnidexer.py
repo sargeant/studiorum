@@ -228,11 +228,11 @@ class Omnidexer:
     def register_loader(self, content_type: ContentType, loader: DataLoader) -> None:
         """Register a data loader for a specific content type."""
         self._loaders[content_type] = loader
-        logger.info(f"Registered loader for {content_type.value}")
+        logger.debug(f"Registered loader for {content_type.value}")
 
     def load_all_data(self, data_path: Path | None = None) -> dict[str, int]:
         """Load all available data and build comprehensive index."""
-        logger.info("Starting omnidexer data loading...")
+        logger.debug("Starting omnidexer data loading...")
 
         # Ensure sources are ready if using configurable source manager
         if isinstance(self.source_manager, ConfigurableSourceManager):
@@ -263,7 +263,7 @@ class Omnidexer:
         if total_loaded == 0:
             logger.warning("No data files found to load")
 
-        logger.info(
+        logger.debug(
             f"Omnidexer loaded {total_loaded} total items across {len(load_stats)} content types"
         )
         self._log_index_stats()
@@ -625,14 +625,14 @@ class Omnidexer:
         """Log statistics about the loaded index."""
         stats = self.get_statistics()
 
-        logger.info("Omnidexer Index Statistics:")
-        logger.info(f"  Total items: {stats['total_items']}")
+        logger.debug("Omnidexer Index Statistics:")
+        logger.debug(f"  Total items: {stats['total_items']}")
 
         for content_type, count in stats["by_type"].items():
-            logger.info(f"  {content_type}: {count} items")
+            logger.debug(f"  {content_type}: {count} items")
 
-        logger.info(f"  Sources: {len(stats['by_source'])}")
+        logger.debug(f"  Sources: {len(stats['by_source'])}")
         for source, count in list(stats["by_source"].items())[
             :10
         ]:  # Show top 10 sources
-            logger.info(f"    {source}: {count} items")
+            logger.debug(f"    {source}: {count} items")
