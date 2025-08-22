@@ -389,10 +389,14 @@ def reset_cli_globals() -> None:
     This function clears the global state maintained by the CLI module
     to ensure clean test isolation.
     """
+    from studiorum.cli.utils import reset_cli_services
     from studiorum.core.container import reset_global_container
 
     # Reset the legacy container for compatibility
     reset_global_container()
+
+    # Reset CLI service singletons to ensure clean state per command
+    reset_cli_services()
 
 
 if __name__ == "__main__":
