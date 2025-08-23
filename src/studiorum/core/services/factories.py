@@ -266,23 +266,42 @@ async def create_omnidexer_service(
             results = self._omnidexer.search(query, content_type, limit)
             return list(results)
 
-        def get_all_by_type(self, content_type: str | object) -> list[BaseContent]:
+        def get_all_by_type(self, content_type: object) -> list[BaseContent]:
             """Get all content of a specific type."""
             if not self._omnidexer:
                 raise RuntimeError("Omnidexer not initialized")
-            # Delegate to underlying omnidexer
+            # Import ContentType for type annotation
             from studiorum.core.models.content import ContentType
 
+            # Ensure content_type is compatible with omnidexer expectations
+            if isinstance(content_type, str | ContentType):
+                results = self._omnidexer.get_all_by_type(content_type)
+            else:
+                # If it's not a supported type, return empty list
+                results = []
+            return list(results)
+
+        def find_all(self, content_type: object, name: str) -> list[BaseContent]:
+            """Find all content matching type and name across all sources."""
+            if not self._initialized:
+                logger.warning("Omnidexer not initialized - returning empty results")
+                return []
+
+            # Convert content_type to ContentType enum if needed
             if isinstance(content_type, str):
                 try:
-                    content_type_enum = ContentType(content_type)
-                    results = self._omnidexer.get_all_by_type(content_type_enum)
+                    content_type = ContentType(content_type)
                 except ValueError:
-                    results = []
+                    logger.warning(f"Invalid content type: {content_type}")
+                    return []
+
+            # Delegate to the concrete omnidexer
+            if self._omnidexer is not None and hasattr(self._omnidexer, "find_all"):
+                # Cast since we know content_type is ContentType at this point
+                return self._omnidexer.find_all(cast(ContentType, content_type), name)
             else:
-                # Assume it's already a ContentType or compatible
-                results = self._omnidexer.get_all_by_type(content_type)  # type: ignore[arg-type]
-            return list(results)
+                # Fallback implementation
+                return []
 
         async def ensure_sources_ready(self) -> None:
             """Ensure all content sources are loaded and ready."""

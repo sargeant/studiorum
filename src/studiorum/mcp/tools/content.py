@@ -80,7 +80,7 @@ class PerformantContentSearcher:
     """High-performance content search with <200ms targets."""
 
     def __init__(self) -> None:
-        self._cache: dict[str, Any] = {}
+        self._cache: dict[str, ContentSearchResult] = {}
         self._cache_ttl: dict[str, float] = {}
         self.cache_duration = 300  # 5 minutes
 
@@ -572,7 +572,7 @@ class PerformantContentSearcher:
         if cache_key in self._cache:
             cache_time = self._cache_ttl.get(cache_key, 0)
             if time.time() - cache_time < self.cache_duration:
-                return self._cache[cache_key]  # type: ignore[no-any-return]
+                return self._cache[cache_key]
             else:
                 # Remove expired entry
                 self._cache.pop(cache_key, None)

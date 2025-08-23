@@ -1,8 +1,58 @@
 """AST nodes for the tag resolution system."""
 
-from typing import Any
+from typing import Any, Protocol, TypeGuard, cast
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+class SourceTrackingNode(Protocol):
+    """Protocol for AST nodes that can track source information.
+
+    This protocol enables type-safe dynamic attribute assignment for
+    source metadata without breaking mypy type checking.
+    """
+
+    source: str | None
+    page: str | None
+
+    def add_source_info(
+        self, source: str | None = None, page: str | None = None
+    ) -> None:
+        """Add source tracking information to this node."""
+        ...
+
+
+def can_track_source(node: Any) -> TypeGuard[SourceTrackingNode]:
+    """Type guard to check if a node can track source information."""
+    return (
+        hasattr(node, "source")
+        and hasattr(node, "page")
+        and hasattr(node, "add_source_info")
+        and callable(node.add_source_info)
+    )
+
+
+def enhance_for_source_tracking(node: Any) -> SourceTrackingNode:
+    """Safely enhance any AST node with source tracking capability.
+
+    This function adds source tracking attributes to nodes that don't have them
+    and returns a properly typed node that conforms to SourceTrackingNode protocol.
+    """
+    if not hasattr(node, "source"):
+        node.source = None
+    if not hasattr(node, "page"):
+        node.page = None
+    if not hasattr(node, "add_source_info"):
+
+        def add_source_info(source: str | None = None, page: str | None = None) -> None:
+            if source is not None:
+                node.source = source
+            if page is not None:
+                node.page = page
+
+        node.add_source_info = add_source_info
+
+    return cast(SourceTrackingNode, node)
 
 
 class TextSpan(BaseModel):
@@ -64,7 +114,7 @@ class TextNode(ASTNode):
 
 
 class TagNode(ASTNode):
-    """Base class for all tag nodes."""
+    """Base class for all tag nodes that supports source tracking."""
 
     def __init__(self, tag_type: str, original_text_span: TextSpan | None = None):
         super().__init__(original_text_span)
@@ -74,6 +124,18 @@ class TagNode(ASTNode):
         self.display_text_nodes: list[ASTNode] = []
         # Flag support - many tags use flags in final parameter for behavior modification
         self.flags: str = ""
+        # Source tracking attributes (implements SourceTrackingNode protocol)
+        self.source: str | None = None
+        self.page: str | None = None
+
+    def add_source_info(
+        self, source: str | None = None, page: str | None = None
+    ) -> None:
+        """Add source tracking information to this node."""
+        if source is not None:
+            self.source = source
+        if page is not None:
+            self.page = page
 
     def __repr__(self) -> str:
         return f"TagNode(tag_type={self.tag_type!r})"

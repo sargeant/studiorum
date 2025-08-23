@@ -507,7 +507,7 @@ class ModernMCPRequestHandler:
             }
 
         # Get protocol-validated omnidexer for book lookup
-        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
+        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
 
         # Search for the book
         ctx.record_async_operation()
@@ -613,7 +613,7 @@ class ModernMCPRequestHandler:
             ctx.sources.extend(sources)
 
         # Get protocol-validated omnidexer
-        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
+        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
 
         ctx.record_async_operation()
 
@@ -670,7 +670,7 @@ class ModernMCPRequestHandler:
             ctx.sources.extend(sources)
 
         # Get protocol-validated omnidexer
-        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
+        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
 
         ctx.record_async_operation()
 
@@ -755,7 +755,7 @@ class ModernMCPRequestHandler:
             )
 
             ctx.record_cache_hit()
-            return result  # type: ignore[no-any-return]
+            return result
 
         except Exception as e:
             error = ContentNotFoundError(
@@ -816,7 +816,7 @@ class ModernMCPRequestHandler:
             )
 
             ctx.record_cache_hit()
-            return result  # type: ignore[no-any-return]
+            return result
 
         except Exception as e:
             error = ContentNotFoundError(message=f"Feat comparison failed: {e}")
@@ -869,7 +869,7 @@ class ModernMCPRequestHandler:
             )
 
             ctx.record_cache_hit()
-            return result  # type: ignore[no-any-return]
+            return result
 
         except Exception as e:
             error = ContentNotFoundError(message=f"Multiclass analysis failed: {e}")

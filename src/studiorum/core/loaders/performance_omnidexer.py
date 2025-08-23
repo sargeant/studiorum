@@ -7,7 +7,7 @@ from collections import defaultdict
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, cast
 
 from studiorum.core.logging import get_logger
 
@@ -184,7 +184,7 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
             metadata_results = self.content_index.search(query, content_type, limit)
 
             # Lazy load actual content for results
-            content_results = []
+            content_results: list[BaseContent] = []
             load_tasks = []
 
             for metadata in metadata_results:
@@ -194,8 +194,18 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
                 # Check cache first
                 cached_content = self.cache.get(cache_key)
                 if cached_content is not None:
-                    content_results.append(cached_content)
-                    self._record_cache_hit(content_id, context)
+                    # Validate cache content at runtime
+                    if isinstance(cached_content, BaseContent):
+                        content_results.append(cached_content)
+                        self._record_cache_hit(content_id, context)
+                    else:
+                        # Cache corruption - invalidate and schedule load
+                        self.cache.delete(cache_key)
+                        load_task = asyncio.create_task(
+                            self._lazy_load_content(metadata)
+                        )
+                        load_tasks.append((content_id, cache_key, load_task))
+                        self._record_cache_miss(content_id, context)
                 else:
                     # Schedule async lazy load
                     load_task = asyncio.create_task(self._lazy_load_content(metadata))
@@ -240,7 +250,7 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
                 + (search_time * 0.1)  # Exponential moving average
             )
 
-            return Success(content_results)  # type: ignore[arg-type]
+            return Success(content_results)
 
         except Exception as e:
             error = ContentNotFoundError(
@@ -276,7 +286,13 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
         cached_content = self.cache.get(cache_key)
         if cached_content is not None:
             self._record_cache_hit(content_id, context)
-            return Success(cached_content)  # type: ignore[arg-type]
+            # Cache stores BaseContent objects - validate at runtime
+            if isinstance(cached_content, BaseContent):
+                return Success(cached_content)
+            else:
+                # Cache corruption - invalidate entry
+                self.cache.delete(cache_key)
+                logger.warning(f"Invalid cache entry for {cache_key}, removed")
 
         # Try to find in content index first
         metadata_results = self.content_index.search(f"{name}", content_type, 5)
@@ -336,7 +352,7 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
         # Check if already loading (deduplication)
         if content_id in self._loading_tasks:
             result = await self._loading_tasks[content_id]
-            return result  # type: ignore[no-any-return]
+            return cast(BaseContent | None, result)
 
         # Create loading task
         async def load_task() -> BaseContent | None:
@@ -362,7 +378,7 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
 
         try:
             result = await task
-            return result  # type: ignore[no-any-return]
+            return cast(BaseContent | None, result)
         finally:
             # Cleanup completed task
             self._loading_tasks.pop(content_id, None)
@@ -441,7 +457,7 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
             cached_feats = self.cache.get(cache_key)
             if cached_feats is not None:
                 self._record_cache_hit(cache_key, context)
-                return cached_feats  # type: ignore[no-any-return,return-value]
+                return cast(list[object], cached_feats)
 
             # Search for feats in the content index
             feat_results = self.content_index.search("feat", "feat", limit=100)
@@ -508,7 +524,7 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
             cached_progression = self.cache.get(cache_key)
             if cached_progression is not None:
                 self._record_cache_hit(cache_key, context)
-                return cached_progression  # type: ignore[no-any-return]
+                return cast(object | None, cached_progression)
 
             # Get class data
             class_result = await self.get_content_async(
@@ -597,7 +613,7 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
             cached_options = self.cache.get(cache_key)
             if cached_options is not None:
                 self._record_cache_hit(cache_key, context)
-                return cached_options  # type: ignore[no-any-return,return-value]
+                return cast(list[object], cached_options)
 
             # Search for all classes
             class_results = self.content_index.search("", "class", limit=50)

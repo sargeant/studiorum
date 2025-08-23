@@ -26,7 +26,13 @@ from studiorum.core.error_types import (
 )
 from studiorum.core.logging import get_logger
 from studiorum.core.model_validation import validate_required_field
-from studiorum.core.result import Error, Result, Success, collect_results
+from studiorum.core.result import (
+    Error,
+    Result,
+    Success,
+    collect_results,
+    is_error_result,
+)
 
 logger = get_logger(__name__)
 
@@ -227,8 +233,9 @@ class StandardizedEntryValidator:
         """Validate a dictionary entry."""
         # Extract entry type
         type_result = validate_required_field(entry_data, "type", source, parent_name)
-        if type_result.is_error():
-            return type_result  # type: ignore[return-value]
+        if is_error_result(type_result):
+            # Return an Error with proper type by creating new Error instance
+            return Error(type_result.error)
 
         entry_type = str(type_result.unwrap())
 
@@ -237,8 +244,8 @@ class StandardizedEntryValidator:
             entry_type, source, parent_name, validation_mode
         )
 
-        if type_validation.is_error():
-            error = type_validation.error  # type: ignore[attr-defined]
+        if is_error_result(type_validation):
+            error = type_validation.error
 
             # Handle based on validation mode
             if validation_mode == ValidationMode.STRICT:
@@ -265,7 +272,7 @@ class StandardizedEntryValidator:
             return Success(validated_entry)
 
         except Exception as e:
-            error = create_validation_error(
+            validation_error = create_validation_error(
                 message=f"Failed to create ValidatedEntry: {e}",
                 entry_type=entry_type,
                 source=source,
@@ -273,7 +280,7 @@ class StandardizedEntryValidator:
                 severity=ErrorSeverity.ERROR,
                 suggestions=["Check entry structure and required fields"],
             )
-            return Error(error)
+            return Error(validation_error)
 
     def _validate_other_entry(
         self,
@@ -410,8 +417,8 @@ def create_compatibility_wrapper(
                     errors=[],
                     context=context,
                 )
-            else:
-                error = result.error  # type: ignore[attr-defined]
+            elif is_error_result(result):
+                error = result.error
                 return ValidationResult(
                     success=False,
                     entry=ValidatedEntry(type="error", content=error.message),
@@ -421,6 +428,17 @@ def create_compatibility_wrapper(
                     errors=[error.message]
                     if error.severity == ErrorSeverity.ERROR
                     else [],
+                    context=context,
+                )
+            else:
+                # This should not happen, but provide a fallback
+                return ValidationResult(
+                    success=False,
+                    entry=ValidatedEntry(
+                        type="error", content="Unknown validation error"
+                    ),
+                    warnings=[],
+                    errors=["Unknown validation error"],
                     context=context,
                 )
 
@@ -452,8 +470,8 @@ def example_usage() -> None:
     if result.is_success():
         entry = result.unwrap()
         print(f"Successfully validated {entry.type} entry: {entry.name}")
-    else:
-        error = result.error  # type: ignore[attr-defined]
+    elif is_error_result(result):
+        error = result.error
         print(f"Validation failed: {error.message}")
         if error.suggestions:
             for suggestion in error.suggestions:
@@ -475,8 +493,8 @@ def example_usage() -> None:
     if batch_result.is_success():
         validated_entries = batch_result.unwrap()
         print(f"Successfully validated {len(validated_entries)} entries")
-    else:
-        errors = batch_result.error  # type: ignore[attr-defined]
+    elif is_error_result(batch_result):
+        errors = batch_result.error
         print(f"Batch validation had {len(errors)} errors")
 
     # Example 3: Migration from legacy code

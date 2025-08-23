@@ -19,7 +19,7 @@ from studiorum.core.error_types import (
     MCPErrorCode,
 )
 from studiorum.core.logging import get_logger
-from studiorum.core.result import Error, Result
+from studiorum.core.result import Error, Result, is_error_result
 
 logger = get_logger(__name__)
 
@@ -67,8 +67,8 @@ class ErrorAggregator:
 
     def add_result_error(self, result: Result[Any, BaseError]) -> None:
         """Add an error from a Result if it's an error."""
-        if result.is_error():
-            self.add_error(result.error)  # type: ignore[attr-defined]
+        if is_error_result(result):
+            self.add_error(result.error)
 
     def has_errors(self) -> bool:
         """Check if any errors were collected."""
@@ -345,7 +345,10 @@ def handle_result_error(
     if result.is_success():
         return None
 
-    error = result.error  # type: ignore[attr-defined]
+    if not is_error_result(result):
+        return None
+
+    error = result.error
 
     try:
         return create_mcp_compatible_error(error)
@@ -384,10 +387,12 @@ def log_error_context(error: BaseError, operation: str) -> None:
     }
 
     # Add error-specific context
-    if hasattr(error, "field_name") and error.field_name:  # type: ignore[attr-defined]
-        extra_context["field_name"] = error.field_name  # type: ignore[attr-defined]
-    if hasattr(error, "entry_type") and error.entry_type:  # type: ignore[attr-defined]
-        extra_context["entry_type"] = error.entry_type  # type: ignore[attr-defined]
+    field_name = getattr(error, "field_name", None)
+    if field_name:
+        extra_context["field_name"] = field_name
+    entry_type = getattr(error, "entry_type", None)
+    if entry_type:
+        extra_context["entry_type"] = entry_type
 
     logger.log(log_level, error.message, extra=extra_context)
 

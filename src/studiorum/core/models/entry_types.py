@@ -119,6 +119,26 @@ class ImageEntry(BaseEntry):
     altText: str | None = Field(None, description="Image alt text")
 
 
+class GalleryEntry(BaseEntry):
+    """Gallery entry for multiple images with layout control."""
+
+    type: Literal["gallery"] = "gallery"
+    images: list[dict[str, Any]] = Field(
+        default_factory=list, description="List of image entries in the gallery"
+    )
+    layout: str | None = Field(
+        None, description="Gallery layout: grid, showcase, sequential, comparison"
+    )
+    caption: str | None = Field(None, description="Overall gallery caption")
+    title: str | None = Field(None, description="Gallery title")
+    columns: int | None = Field(
+        None, ge=1, le=6, description="Number of columns for grid layouts"
+    )
+    maxWidth: str | None = Field(
+        None, description="Maximum width specification for the gallery"
+    )
+
+
 class ItemEntry(BaseEntry):
     """Item reference entry."""
 

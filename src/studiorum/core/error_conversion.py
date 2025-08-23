@@ -30,7 +30,7 @@ from studiorum.core.exceptions import (
     EntryValidationError,
     UnknownEntryTypeError,
 )
-from studiorum.core.result import Error, Result, Success
+from studiorum.core.result import Error, Result, Success, is_error_result
 
 T = TypeVar("T")
 E = TypeVar("E", bound=BaseError)
@@ -160,8 +160,12 @@ def unwrap_or_raise[T](result: Result[T, BaseError]) -> T:
     if result.is_success():
         return result.unwrap()
     else:
-        error = result.error  # type: ignore[attr-defined]
-        raise error.to_exception()
+        if is_error_result(result):
+            error = result.error
+            raise error.to_exception()
+        else:
+            # This should not happen, but handle gracefully
+            raise RuntimeError("Result is neither success nor error")
 
 
 class ResultMode:
@@ -263,8 +267,8 @@ def collect_errors_and_warnings[T](
     for result in results:
         if result.is_success():
             successes.append(result.unwrap())
-        else:
-            error = result.error  # type: ignore[attr-defined]
+        elif is_error_result(result):
+            error = result.error
             if error.severity == ErrorSeverity.WARNING:
                 warnings.append(error)
             else:

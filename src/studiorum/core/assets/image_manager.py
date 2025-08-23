@@ -1,4 +1,9 @@
-"""Image asset management and caching system."""
+"""Image asset management and caching system.
+
+This module provides backward-compatible image management while integrating
+with the new enhanced image source registry system. The ImageManager class
+now delegates to ImageSourceRegistry for multi-source image resolution.
+"""
 
 from __future__ import annotations
 
@@ -11,12 +16,23 @@ from urllib.parse import urlparse
 import aiohttp
 from pydantic import BaseModel, Field
 
+from studiorum.core.assets.image_sources import (
+    GitImageSourceConfig,
+    HttpApiImageSourceConfig,
+    ImageAssetInfo,
+    ImageSourceRegistry,
+    ImageSourceType,
+)
 from studiorum.core.config.unified_config import PathsConfig
+from studiorum.core.logging import get_logger
 from studiorum.renderers.core.interfaces import RenderingContext
 
+logger = get_logger(__name__)
 
+
+# Legacy classes for backward compatibility
 class ImageSource(BaseModel):
-    """Configuration for an image source."""
+    """Legacy configuration for an image source (backward compatibility)."""
 
     name: str = Field(description="Source name")
     base_url: str = Field(description="Base URL for images")
@@ -27,7 +43,7 @@ class ImageSource(BaseModel):
 
 
 class ImageAsset(BaseModel):
-    """Represents a managed image asset."""
+    """Legacy representation of a managed image asset (backward compatibility)."""
 
     original_url: str
     local_path: Path
@@ -38,14 +54,16 @@ class ImageAsset(BaseModel):
 
 
 class ImageManager:
-    """Manages image assets, caching, and source resolution.
+    """Legacy image manager with enhanced multi-source support.
 
-    Handles downloading images from various sources (5etools-img, user directories)
-    and maintains a local cache for efficient access.
+    This class maintains backward compatibility while delegating to the new
+    ImageSourceRegistry for enhanced image resolution capabilities. It handles
+    migration from the old system and provides seamless integration with the
+    enhanced image source system.
     """
 
     def __init__(self, paths_config: PathsConfig | None = None) -> None:
-        """Initialize the image manager.
+        """Initialise the image manager.
 
         Args:
             paths_config: Path configuration
@@ -54,22 +72,67 @@ class ImageManager:
         self.cache_dir = self.paths_config.build_path / "images"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-        # Initialize image sources
-        self.sources: list[ImageSource] = [
+        # Initialize new registry system
+        self._registry = ImageSourceRegistry(cache_dir=self.cache_dir)
+
+        # Legacy sources list for backward compatibility
+        self.sources: list[ImageSource] = []
+
+        # Legacy asset cache for backward compatibility
+        self._asset_cache: dict[str, ImageAsset] = {}
+
+        # Auto-configure default sources
+        self._configure_default_sources()
+
+        logger.info(
+            f"Initialised ImageManager with enhanced registry (cache: {self.cache_dir})"
+        )
+
+    def _configure_default_sources(self) -> None:
+        """Configure default 5etools image sources."""
+        # Add Git-based 5etools-img source (primary)
+        git_config = GitImageSourceConfig(
+            name="5etools-img-git",
+            repository_url="https://github.com/5etools-mirror-3/5etools-img.git",
+            branch="main",
+            priority=10,
+            sync_interval_hours=12,
+            shallow_clone=True,
+        )
+        self._registry.add_source(git_config)
+
+        # Add HTTP API fallback sources
+        api_configs = [
+            HttpApiImageSourceConfig(
+                name="5etools-official",
+                base_url="https://5e.tools/img",
+                priority=20,
+                path_template="{image_path}",
+            ),
+            HttpApiImageSourceConfig(
+                name="5etools-mirror",
+                base_url="https://raw.githubusercontent.com/5etools-mirror-3/5etools-img/main",
+                priority=30,
+                path_template="{image_path}",
+            ),
+        ]
+
+        for config in api_configs:
+            self._registry.add_source(config)
+
+        # Create legacy ImageSource objects for backward compatibility
+        self.sources = [
             ImageSource(
                 name="5etools-official",
                 base_url="https://5e.tools/img",
-                priority=10,
+                priority=20,
             ),
             ImageSource(
                 name="5etools-mirror",
                 base_url="https://raw.githubusercontent.com/5etools-mirror-3/5etools-img/main",
-                priority=20,
+                priority=30,
             ),
         ]
-
-        # Asset cache (in-memory)
-        self._asset_cache: dict[str, ImageAsset] = {}
 
     async def resolve_image(
         self, image_path: str, context: RenderingContext
@@ -83,20 +146,50 @@ class ImageManager:
         Returns:
             Local path to image file, or None if not found
         """
-        # Check if it's already a local path
+        logger.debug(f"Resolving image: {image_path}")
+
+        # First try the enhanced registry system
+        registry_result = await self._registry.resolve_image(image_path)
+        if registry_result.is_success():
+            if not hasattr(registry_result, "value"):
+                logger.error("Success result missing value attribute")
+                return None
+            asset_info: ImageAssetInfo = registry_result.value
+
+            # Update legacy cache for backward compatibility
+            legacy_asset = ImageAsset(
+                original_url=asset_info.original_path,
+                local_path=asset_info.local_path,
+                cache_key=asset_info.cache_key,
+                file_size=asset_info.file_size,
+                last_accessed=asset_info.last_accessed,
+                source_name=asset_info.source_name,
+            )
+            self._asset_cache[asset_info.cache_key] = legacy_asset
+
+            logger.debug(
+                f"Resolved image '{image_path}' from source '{asset_info.source_name}'"
+            )
+            resolved_path: Path = asset_info.local_path
+            return resolved_path
+
+        # Fallback to legacy resolution for local paths
         if not image_path.startswith(("http://", "https://")):
-            return await self._resolve_local_path(image_path, context)
+            legacy_path = await self._resolve_local_path(image_path, context)
+            if legacy_path:
+                logger.debug(
+                    f"Resolved image '{image_path}' via legacy local resolution"
+                )
+                return legacy_path
 
-        # Handle URL - check cache first
-        cache_key = self._generate_cache_key(image_path)
+        # Fallback to legacy download and cache
+        legacy_path = await self._download_and_cache(image_path)
+        if legacy_path:
+            logger.debug(f"Resolved image '{image_path}' via legacy download")
+            return legacy_path
 
-        if cache_key in self._asset_cache:
-            asset = self._asset_cache[cache_key]
-            if asset.local_path.exists():
-                return asset.local_path
-
-        # Download and cache the image
-        return await self._download_and_cache(image_path)
+        logger.warning(f"Could not resolve image: {image_path}")
+        return None
 
     async def _resolve_local_path(
         self, image_path: str, context: RenderingContext
@@ -253,14 +346,33 @@ class ImageManager:
         return hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()
 
     def add_source(self, source: ImageSource) -> None:
-        """Add an image source.
+        """Add an image source (legacy method).
 
         Args:
-            source: Image source to add
+            source: Legacy image source to add
         """
         self.sources.append(source)
         # Re-sort by priority
         self.sources.sort(key=lambda s: s.priority)
+
+        # Convert to new format and add to registry
+        if source.base_url.startswith("https://") or source.base_url.startswith(
+            "http://"
+        ):
+            api_config = HttpApiImageSourceConfig(
+                name=source.name,
+                base_url=source.base_url,
+                priority=source.priority,
+                path_template="{image_path}",
+            )
+            result = self._registry.add_source(api_config)
+            if result.is_error():
+                error_msg = (
+                    result.error.message
+                    if hasattr(result, "error")
+                    else "Unknown error"
+                )
+                logger.warning(f"Failed to add legacy source to registry: {error_msg}")
 
     def add_local_source(self, name: str, path: Path, priority: int = 50) -> None:
         """Add a local directory as an image source.
@@ -270,6 +382,7 @@ class ImageManager:
             path: Local directory path
             priority: Source priority
         """
+        # Add to legacy sources
         source = ImageSource(
             name=name,
             base_url="file://" + str(path),
@@ -278,52 +391,116 @@ class ImageManager:
         )
         self.add_source(source)
 
+        # Also add to new registry (this is done in add_source above for HTTP sources)
+        # For local sources, we need a different approach
+        from studiorum.core.assets.image_sources import LocalDirectoryImageSourceConfig
+
+        local_config = LocalDirectoryImageSourceConfig(
+            name=name,
+            directory_path=path,
+            priority=priority,
+        )
+        result = self._registry.add_source(local_config)
+        if result.is_error():
+            error_msg = (
+                result.error.message if hasattr(result, "error") else "Unknown error"
+            )
+            logger.warning(f"Failed to add local source to registry: {error_msg}")
+
+    # New methods that delegate to registry
+    async def sync_sources(self) -> None:
+        """Sync all image sources."""
+        logger.info("Syncing all image sources")
+        for source_info in self._registry.list_sources():
+            if source_info.config.enabled:
+                result = await self._registry.sync_source(source_info.config.name)
+                if result.is_error():
+                    error_msg = (
+                        result.error.message
+                        if hasattr(result, "error")
+                        else "Unknown error"
+                    )
+                    logger.error(
+                        f"Failed to sync source '{source_info.config.name}': {error_msg}"
+                    )
+
+    async def sync_source(self, name: str) -> bool:
+        """Sync a specific image source.
+
+        Args:
+            name: Name of the source to sync
+
+        Returns:
+            True if sync was successful
+        """
+        result = await self._registry.sync_source(name)
+        return result.is_success()
+
+    def get_registry(self) -> ImageSourceRegistry:
+        """Get the underlying image source registry.
+
+        Returns:
+            The ImageSourceRegistry instance
+        """
+        return self._registry
+
     async def cleanup_cache(self, max_age_days: int = 30) -> None:
-        """Clean up old cached images.
+        """Clean up old cached images (delegates to registry).
 
         Args:
             max_age_days: Maximum age in days for cached images
         """
+        max_age_hours = max_age_days * 24
+        result = await self._registry.cleanup_cache(max_age_hours=max_age_hours)
+
+        if result.is_success():
+            if not hasattr(result, "value"):
+                logger.error("Success result missing value attribute in cleanup")
+                return
+            stats = result.value
+            logger.info(
+                f"Cache cleanup completed: removed {stats['removed_old']} old items, {stats['removed_oversized']} oversized items"
+            )
+        else:
+            error_msg = (
+                result.error.message if hasattr(result, "error") else "Unknown error"
+            )
+            logger.error(f"Cache cleanup failed: {error_msg}")
+
+        # Also clean up legacy cache
         import time
 
         current_time = time.time()
         max_age_seconds = max_age_days * 24 * 60 * 60
 
-        # Clean up cache files
-        for cache_file in self.cache_dir.glob("*"):
-            if cache_file.is_file():
-                file_age = current_time - cache_file.stat().st_mtime
-                if file_age > max_age_seconds:
-                    try:
-                        cache_file.unlink()
-                    except OSError:
-                        pass
-
-        # Clean up asset cache
+        # Clean up legacy asset cache
         to_remove = []
         for key, asset in self._asset_cache.items():
-            if not asset.local_path.exists():
+            age = current_time - asset.last_accessed
+            if age > max_age_seconds or not asset.local_path.exists():
                 to_remove.append(key)
 
         for key in to_remove:
             del self._asset_cache[key]
 
     def get_cache_info(self) -> dict[str, Any]:
-        """Get information about the image cache.
+        """Get information about the image cache (enhanced with registry stats).
 
         Returns:
             Dictionary with cache statistics
         """
-        total_files = len(list(self.cache_dir.glob("*")))
-        total_size = sum(
-            f.stat().st_size for f in self.cache_dir.glob("*") if f.is_file()
-        )
+        # Get stats from new registry
+        registry_stats = self._registry.get_cache_stats()
+
+        # Add legacy compatibility info
+        legacy_stats = {
+            "legacy_assets_in_memory": len(self._asset_cache),
+            "legacy_sources": [
+                {"name": s.name, "priority": s.priority} for s in self.sources
+            ],
+        }
 
         return {
-            "cache_directory": str(self.cache_dir),
-            "total_files": total_files,
-            "total_size_bytes": total_size,
-            "total_size_mb": total_size / (1024 * 1024),
-            "assets_in_memory": len(self._asset_cache),
-            "sources": [{"name": s.name, "priority": s.priority} for s in self.sources],
+            **registry_stats,
+            **legacy_stats,
         }

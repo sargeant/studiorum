@@ -39,7 +39,7 @@ async def _get_rule_intelligence_service(
 
     if _rule_intelligence_service is None:
         # Get required services from context
-        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
+        omnidexer = await ctx.get_service(OmnidexerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
 
         # Create tag resolver (assuming it's available as a singleton or can be created)
         # In a real implementation, this would also come from the service container
@@ -52,7 +52,7 @@ async def _get_rule_intelligence_service(
         from studiorum.core.loaders.omnidexer import Omnidexer
 
         _rule_intelligence_service = RuleIntelligenceService(
-            omnidexer=omnidexer,  # type: ignore[arg-type]
+            omnidexer=omnidexer,
             tag_resolver=tag_resolver,
             config=config,
         )

@@ -108,6 +108,10 @@ class TestServiceProtocols:
             ) -> list:  # BaseContent not accessible in test
                 return []
 
+            def find_all(self, content_type: object, name: str) -> list:
+                """Find all content matching type and name - mock implementation."""
+                return []
+
         service = MockOmnidexer()
         assert isinstance(service, ServiceProtocol)
         assert isinstance(service, AsyncResourceProtocol)

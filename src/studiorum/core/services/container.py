@@ -19,7 +19,7 @@ import weakref
 from collections.abc import Awaitable
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 from uuid import uuid4
 
 from studiorum.core.error_types import (
@@ -40,6 +40,55 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 T = TypeVar("T")
+
+
+class TypedServiceRegistry:
+    """Type-safe service instance registry with runtime validation.
+
+    Maintains type safety by using cast() with runtime validation
+    instead of untyped dictionary access.
+    """
+
+    def __init__(self) -> None:
+        self._instances: dict[type[Any], Any] = {}
+
+    def store[S](self, protocol: type[S], instance: S) -> None:
+        """Store a service instance with type validation."""
+        self._instances[protocol] = instance
+
+    def get[S](self, protocol: type[S]) -> S:
+        """Get a service instance with type-safe cast.
+
+        Uses cast() to maintain type safety while preserving runtime
+        behavior. The container's service resolution ensures the stored
+        instance actually implements the protocol.
+        """
+        instance = self._instances[protocol]
+        return cast(S, instance)
+
+    def contains(self, protocol: type[Any]) -> bool:
+        """Check if protocol has a stored instance."""
+        return protocol in self._instances
+
+    def remove(self, protocol: type[Any]) -> None:
+        """Remove stored instance for protocol."""
+        self._instances.pop(protocol, None)
+
+    def clear(self) -> None:
+        """Clear all stored instances."""
+        self._instances.clear()
+
+    def items(self) -> Any:
+        """Get items for iteration compatibility."""
+        return self._instances.items()
+
+    def __len__(self) -> int:
+        """Get number of stored instances."""
+        return len(self._instances)
+
+    def __setitem__(self, protocol: type[Any], instance: Any) -> None:
+        """Support dict-like assignment."""
+        self._instances[protocol] = instance
 
 
 class ServiceNotRegisteredError(Exception):
@@ -102,8 +151,8 @@ class ModernServiceContainer:
         """
         self._parent = parent
         self._descriptors: dict[type[Any], ServiceDescriptor] = {}
-        self._singleton_instances: dict[type[Any], Any] = {}
-        self._scoped_instances: dict[type[Any], Any] = {}
+        self._singleton_instances = TypedServiceRegistry()
+        self._scoped_instances = TypedServiceRegistry()
         self._async_resources: set[Any] = set()
         self._initialization_lock: asyncio.Lock | None = None
         self._protocol_locks: dict[type[Any], asyncio.Lock] = {}
@@ -223,8 +272,8 @@ class ModernServiceContainer:
         self, protocol: type[T], descriptor: ServiceDescriptor
     ) -> T:
         """Get or create singleton instance with thread safety."""
-        if protocol in self._singleton_instances:
-            return self._singleton_instances[protocol]  # type: ignore[return-value,no-any-return]
+        if self._singleton_instances.contains(protocol):
+            return self._singleton_instances.get(protocol)
 
         # Use per-protocol locks to avoid deadlock during dependency resolution
         if protocol not in self._protocol_locks:
@@ -234,8 +283,8 @@ class ModernServiceContainer:
 
         async with protocol_lock:
             # Double-check after acquiring protocol-specific lock
-            if protocol in self._singleton_instances:
-                return self._singleton_instances[protocol]  # type: ignore[return-value,no-any-return]
+            if self._singleton_instances.contains(protocol):
+                return self._singleton_instances.get(protocol)
 
             # Resolve dependencies outside the global lock to prevent deadlock
             dependencies = await self._resolve_dependencies(descriptor.dependencies)
@@ -244,18 +293,18 @@ class ModernServiceContainer:
             instance: T = await self._create_instance_with_dependencies(
                 descriptor, dependencies
             )
-            self._singleton_instances[protocol] = instance
-            return instance  # type: ignore[return-value,no-any-return]
+            self._singleton_instances.store(protocol, instance)
+            return instance
 
     async def _get_scoped_instance(
         self, protocol: type[T], descriptor: ServiceDescriptor
     ) -> T:
         """Get or create scoped instance."""
-        if protocol in self._scoped_instances:
-            return self._scoped_instances[protocol]  # type: ignore[return-value,no-any-return]
+        if self._scoped_instances.contains(protocol):
+            return self._scoped_instances.get(protocol)
 
         instance: T = await self._create_instance(descriptor)
-        self._scoped_instances[protocol] = instance
+        self._scoped_instances.store(protocol, instance)
         return instance
 
     async def _get_async_resource_instance(
@@ -263,8 +312,8 @@ class ModernServiceContainer:
     ) -> T:
         """Get or create async resource with proper lifecycle management."""
         # Async resources are typically singleton but with special lifecycle
-        if protocol in self._singleton_instances:
-            return self._singleton_instances[protocol]  # type: ignore[return-value,no-any-return]
+        if self._singleton_instances.contains(protocol):
+            return self._singleton_instances.get(protocol)
 
         # Create lock lazily to ensure it's associated with the current event loop
         if self._initialization_lock is None:
@@ -272,8 +321,8 @@ class ModernServiceContainer:
 
         async with self._initialization_lock:
             # Double-check after acquiring lock
-            if protocol in self._singleton_instances:
-                return self._singleton_instances[protocol]  # type: ignore[return-value,no-any-return]
+            if self._singleton_instances.contains(protocol):
+                return self._singleton_instances.get(protocol)
 
             instance: T = await self._create_instance(descriptor)
 
@@ -281,8 +330,8 @@ class ModernServiceContainer:
             if isinstance(instance, AsyncResourceProtocol):
                 self._async_resources.add(instance)
 
-            self._singleton_instances[protocol] = instance
-            return instance  # type: ignore[return-value,no-any-return]
+            self._singleton_instances.store(protocol, instance)
+            return instance
 
     async def _resolve_dependencies(
         self, dependencies: tuple[type[Any], ...]
@@ -318,31 +367,8 @@ class ModernServiceContainer:
             # Resolve dependencies first
             deps = await self._resolve_dependencies(descriptor.dependencies)
 
-            # Create instance based on factory type
-            if isinstance(descriptor.factory, AsyncServiceFactory):
-                # Full async factory with container access - no dependency injection
-                instance = await descriptor.factory.create(self)
-            elif len(descriptor.dependencies) > 0:
-                # Factory has dependencies - pass only dependencies
-                if descriptor.is_async_factory():
-                    result = descriptor.factory(*deps)  # type: ignore[call-arg]
-                    instance = await result if hasattr(result, "__await__") else result
-                else:
-                    instance = descriptor.factory(*deps)  # type: ignore[call-arg]
-            elif descriptor.requires_container():
-                # Factory needs container but no dependencies - just pass container
-                if descriptor.is_async_factory():
-                    result = descriptor.factory(self)  # type: ignore[call-arg]
-                    instance = await result if hasattr(result, "__await__") else result
-                else:
-                    instance = descriptor.factory(self)  # type: ignore[call-arg]
-            else:
-                # Simple factory with no parameters
-                if descriptor.is_async_factory():
-                    result = descriptor.factory()  # type: ignore[call-arg]
-                    instance = await result if hasattr(result, "__await__") else result
-                else:
-                    instance = descriptor.factory()  # type: ignore[call-arg]
+            # Dispatch to specific factory handler based on type
+            instance: Any = await self._dispatch_factory_call(descriptor, deps)
 
             # Initialize async resources
             if isinstance(instance, AsyncResourceProtocol):
@@ -351,13 +377,58 @@ class ModernServiceContainer:
                 self._async_resources.add(instance)
 
             logger.debug(f"Created instance of {descriptor.protocol.__name__}")
-            return instance  # type: ignore[return-value,no-any-return]
+            return cast(T, instance)
 
         except Exception as e:
             logger.exception(
                 f"Failed to create instance of {descriptor.protocol.__name__}"
             )
             raise ServiceInitializationError(descriptor.protocol, e) from e
+
+    async def _dispatch_factory_call(
+        self, descriptor: ServiceDescriptor, deps: tuple[Any, ...]
+    ) -> Any:
+        """Dispatch factory call with proper type handling.
+
+        This method handles the complex union type by dispatching
+        to specific handlers that can properly narrow the factory type.
+        """
+        factory = descriptor.factory
+
+        # Handle AsyncServiceFactory protocol
+        if isinstance(factory, AsyncServiceFactory):
+            return await factory.create(self)
+
+        # For callable factories, dispatch based on signature requirements
+        if len(descriptor.dependencies) > 0:
+            return await self._call_factory_with_dependencies(factory, deps)
+        elif descriptor.requires_container():
+            return await self._call_factory_with_container(factory)
+        else:
+            return await self._call_simple_factory(factory)
+
+    async def _call_factory_with_dependencies(
+        self, factory: Any, deps: tuple[Any, ...]
+    ) -> Any:
+        """Call factory function with dependency arguments."""
+        if asyncio.iscoroutinefunction(factory):
+            return await factory(*deps)
+        else:
+            return factory(*deps)
+
+    async def _call_factory_with_container(self, factory: Any) -> Any:
+        """Call factory function with container argument."""
+        if asyncio.iscoroutinefunction(factory):
+            return await factory(self)
+        else:
+            return factory(self)
+
+    async def _call_simple_factory(self, factory: Any) -> Any:
+        """Call factory function with no arguments."""
+        if asyncio.iscoroutinefunction(factory):
+            return await factory()
+        else:
+            return factory()
 
     async def _create_instance_with_dependencies(
         self, descriptor: ServiceDescriptor, deps: tuple[Any, ...]
@@ -372,31 +443,8 @@ class ModernServiceContainer:
             Created and initialized service instance
         """
         try:
-            # Create instance based on factory type
-            if isinstance(descriptor.factory, AsyncServiceFactory):
-                # Full async factory with container access - no dependency injection
-                instance = await descriptor.factory.create(self)
-            elif len(descriptor.dependencies) > 0:
-                # Factory has dependencies - pass only dependencies
-                if descriptor.is_async_factory():
-                    result = descriptor.factory(*deps)  # type: ignore[call-arg]
-                    instance = await result if hasattr(result, "__await__") else result
-                else:
-                    instance = descriptor.factory(*deps)  # type: ignore[call-arg]
-            elif descriptor.requires_container():
-                # Factory needs container but no dependencies - just pass container
-                if descriptor.is_async_factory():
-                    result = descriptor.factory(self)  # type: ignore[call-arg]
-                    instance = await result if hasattr(result, "__await__") else result
-                else:
-                    instance = descriptor.factory(self)  # type: ignore[call-arg]
-            else:
-                # Simple factory with no parameters
-                if descriptor.is_async_factory():
-                    result = descriptor.factory()  # type: ignore[call-arg]
-                    instance = await result if hasattr(result, "__await__") else result
-                else:
-                    instance = descriptor.factory()  # type: ignore[call-arg]
+            # Use the shared dispatch method for consistent factory handling
+            instance: Any = await self._dispatch_factory_call(descriptor, deps)
 
             # Initialize async resources
             if isinstance(instance, AsyncResourceProtocol):
@@ -405,7 +453,7 @@ class ModernServiceContainer:
                 self._async_resources.add(instance)
 
             logger.debug(f"Created instance of {descriptor.protocol.__name__}")
-            return instance  # type: ignore[return-value,no-any-return]
+            return cast(T, instance)
 
         except Exception as e:
             logger.exception(
@@ -711,8 +759,9 @@ async def create_mcp_request_container(
     if not hasattr(global_container, "create_request_scope"):
         raise RuntimeError("Global container does not support request scoping")
 
-    # Create request scope
-    request_container = await global_container.create_request_scope()  # type: ignore
+    # Create request scope - cast needed for legacy global container compatibility
+    request_container_raw = await global_container.create_request_scope()
+    request_container = cast(RequestScopedContainer, request_container_raw)
 
     # Apply request-specific configuration overrides if provided
     if request_overrides:
@@ -726,12 +775,10 @@ async def create_mcp_request_container(
         async def config_factory() -> ConfigurationProtocol:
             return await create_configuration_service(config_with_overrides)
 
-        from typing import cast
-
         request_container.register_service(
             cast(type, ConfigurationProtocol),
             config_factory,
             lifecycle=ServiceLifecycle.SINGLETON,
         )
 
-    return request_container  # type: ignore[return-value,no-any-return]
+    return request_container

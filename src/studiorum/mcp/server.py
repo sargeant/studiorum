@@ -14,7 +14,7 @@ Key Features:
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from fastmcp import FastMCP
 
@@ -556,7 +556,8 @@ async def search_creatures(
             )
             raise MCPException(mcp_error)
 
-        return result["result"]  # type: ignore[no-any-return]
+        # result["result"] is dict[str, Any] based on request handler return type
+        return cast(dict[str, Any], result["result"])
 
     except Exception as e:
         logger.error(f"Creature search failed: {e}")
@@ -593,7 +594,8 @@ async def list_adventures(sources: list[str] | None = None) -> dict[str, Any]:
             )
             raise MCPException(mcp_error)
 
-        return result["result"]  # type: ignore[no-any-return]
+        # result["result"] is dict[str, Any] based on request handler return type
+        return cast(dict[str, Any], result["result"])
 
     except Exception as e:
         logger.error(f"Adventure listing failed: {e}")
@@ -630,7 +632,8 @@ async def list_books(sources: list[str] | None = None) -> dict[str, Any]:
             )
             raise MCPException(mcp_error)
 
-        return result["result"]  # type: ignore[no-any-return]
+        # result["result"] is dict[str, Any] based on request handler return type
+        return cast(dict[str, Any], result["result"])
 
     except Exception as e:
         logger.error(f"Book listing failed: {e}")
@@ -673,7 +676,8 @@ async def resolve_adventure(
             )
             raise MCPException(mcp_error)
 
-        return result["result"]  # type: ignore[no-any-return]
+        # result["result"] is dict[str, Any] based on request handler return type
+        return cast(dict[str, Any], result["result"])
 
     except Exception as e:
         logger.error(f"Adventure resolution failed: {e}")
@@ -710,7 +714,8 @@ async def resolve_book(book_name: str) -> dict[str, Any]:
             )
             raise MCPException(mcp_error)
 
-        return result["result"]  # type: ignore[no-any-return]
+        # result["result"] is dict[str, Any] based on request handler return type
+        return cast(dict[str, Any], result["result"])
 
     except Exception as e:
         logger.error(f"Book resolution failed: {e}")

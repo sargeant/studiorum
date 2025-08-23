@@ -229,6 +229,18 @@ class OmnidexerProtocol(ServiceProtocol, AsyncResourceProtocol, Protocol):
         """
         ...
 
+    def find_all(self, content_type: object, name: str) -> list[BaseContent]:
+        """Find all content matching type and name across all sources.
+
+        Args:
+            content_type: Content type enum or string identifier
+            name: Content name to search for
+
+        Returns:
+            List of all content matching the specified type and name
+        """
+        ...
+
 
 @runtime_checkable
 class TagResolverProtocol(ServiceProtocol, ConfigurableServiceProtocol, Protocol):
@@ -545,3 +557,384 @@ class CacheProtocol(ServiceProtocol, Protocol):
             Dictionary with cache statistics and metrics
         """
         ...
+
+
+# Image Service Protocols (Phase 4)
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any
+
+    from studiorum.core.assets.image_sources import ImageSourceRegistry
+    from studiorum.core.models.entry_types import GalleryEntry
+    from studiorum.latex_engine.core.images.enhanced_image_placer import (
+        EnhancedImagePlacer,
+    )
+    from studiorum.latex_engine.core.images.gallery_processor import GalleryProcessor
+    from studiorum.latex_engine.core.images.integration.adventure import (
+        AdventureImageIntegration,
+    )
+    from studiorum.latex_engine.core.images.integration.bestiary import (
+        BestiaryImageIntegration,
+    )
+    from studiorum.latex_engine.core.images.integration.items import (
+        ItemImageIntegration,
+    )
+    from studiorum.latex_engine.core.images.layout_analyzer import LayoutAnalyzer
+    from studiorum.latex_engine.core.images.output_optimizer import OutputOptimizer
+    from studiorum.latex_engine.core.images.placement_models import (
+        ContentContext,
+        DocumentContext,
+        ImageMetadata,
+        OptimizationConfig,
+        PageContext,
+        PlacementDecision,
+        ProcessedImage,
+    )
+    from studiorum.latex_engine.core.images.registry.adventure_registry import (
+        AdventureImageRegistry,
+    )
+
+
+@runtime_checkable
+class ImageSourceRegistryProtocol(ServiceProtocol, Protocol):
+    """Protocol for image source registry service."""
+
+    async def add_source(
+        self,
+        source_config: Any,  # ImageSourceConfig - avoiding circular import
+    ) -> None:
+        """Add a new image source to the registry."""
+        ...
+
+    async def remove_source(self, source_name: str) -> None:
+        """Remove a source from the registry."""
+        ...
+
+    async def resolve_image_path(
+        self,
+        image_hint: str,
+        content_context: dict[str, Any] | None = None,
+    ) -> Path | None:
+        """Resolve image path using source priority and content context."""
+        ...
+
+    async def sync_sources(self) -> None:
+        """Sync all configured sources (Git repos, etc.)."""
+        ...
+
+    def get_source_count(self) -> int:
+        """Get number of configured sources."""
+        ...
+
+
+@runtime_checkable
+class EnhancedImagePlacerProtocol(ServiceProtocol, Protocol):
+    """Protocol for enhanced image placer service."""
+
+    async def determine_placement(
+        self,
+        image_metadata: ImageMetadata,
+        content_context: ContentContext,
+        document_context: DocumentContext,
+    ) -> PlacementDecision:
+        """Determine optimal placement for an image."""
+        ...
+
+    def generate_latex(
+        self,
+        image_path: Path,
+        placement_decision: PlacementDecision,
+    ) -> str:
+        """Generate LaTeX code for image placement."""
+        ...
+
+
+@runtime_checkable
+class LayoutAnalyzerProtocol(ServiceProtocol, Protocol):
+    """Protocol for layout analysis service."""
+
+    async def analyze_page_space(self, page_context: PageContext) -> Any:
+        """Analyze available space on current page."""
+        ...
+
+    async def predict_page_breaks(self, content_flow: Any) -> list[Any]:
+        """Predict where page breaks will occur."""
+        ...
+
+    async def optimize_image_sequence(
+        self,
+        images: list[Any],
+    ) -> list[Any]:
+        """Optimize sequence of images to avoid layout problems."""
+        ...
+
+
+@runtime_checkable
+class OutputOptimizerProtocol(ServiceProtocol, Protocol):
+    """Protocol for output optimization service."""
+
+    async def optimize_for_target(
+        self,
+        image: ProcessedImage,
+        config: OptimizationConfig,
+    ) -> ProcessedImage:
+        """Optimize image for specific target (digital/print)."""
+        ...
+
+    def get_optimization_config(self, target: str) -> OptimizationConfig:
+        """Get optimization configuration for target."""
+        ...
+
+
+@runtime_checkable
+class GalleryProcessorProtocol(ServiceProtocol, Protocol):
+    """Protocol for gallery processing service."""
+
+    async def process_gallery(
+        self,
+        gallery_entry: GalleryEntry,
+        context: ContentContext,
+    ) -> str:
+        """Process gallery entry and return LaTeX."""
+        ...
+
+    async def create_gallery_layout(
+        self,
+        images: list[ImageMetadata],
+        layout_type: str,
+    ) -> str:
+        """Create specific gallery layout."""
+        ...
+
+
+@runtime_checkable
+class BestiaryImageIntegrationProtocol(ServiceProtocol, Protocol):
+    """Protocol for bestiary image integration service."""
+
+    async def enhance_creature_entry(
+        self,
+        creature_data: dict[str, Any],
+        context: ContentContext,
+    ) -> dict[str, Any]:
+        """Add image information to creature entry."""
+        ...
+
+    async def discover_creature_images(
+        self,
+        creature_name: str,
+        source: str,
+    ) -> list[ImageMetadata]:
+        """Discover available images for creature."""
+        ...
+
+
+@runtime_checkable
+class ItemImageIntegrationProtocol(ServiceProtocol, Protocol):
+    """Protocol for item image integration service."""
+
+    async def enhance_item_collection(
+        self,
+        items: list[dict[str, Any]],
+        context: ContentContext,
+    ) -> list[dict[str, Any]]:
+        """Add image information to item collection."""
+        ...
+
+    async def create_item_showcase_layout(
+        self,
+        featured_items: list[dict[str, Any]],
+    ) -> str:
+        """Create visually appealing layout for featured items."""
+        ...
+
+
+@runtime_checkable
+class AdventureImageIntegrationProtocol(ServiceProtocol, Protocol):
+    """Protocol for adventure image integration service."""
+
+    async def process_adventure_chapter(
+        self,
+        chapter_data: dict[str, Any],
+        context: ContentContext,
+    ) -> dict[str, Any]:
+        """Process adventure chapter with full image integration."""
+        ...
+
+    async def discover_adventure_images(
+        self,
+        adventure_metadata: dict[str, Any],
+    ) -> dict[str, list[ImageMetadata]]:
+        """Discover all available images for adventure."""
+        ...
+
+
+@runtime_checkable
+class AdventureImageRegistryProtocol(ServiceProtocol, Protocol):
+    """Protocol for adventure image registry service."""
+
+    async def register_adventure(
+        self,
+        adventure_id: str,
+        metadata: dict[str, Any],
+    ) -> None:
+        """Register adventure for image management."""
+        ...
+
+    async def batch_preprocess_images(
+        self,
+        adventure_id: str,
+        optimization_config: OptimizationConfig,
+    ) -> dict[str, Any]:
+        """Preprocess images for entire adventure."""
+        ...
+
+    async def get_adventure_images(
+        self,
+        adventure_id: str,
+    ) -> dict[str, list[ImageMetadata]]:
+        """Get all images for adventure."""
+        ...
+
+
+@runtime_checkable
+class ImageServiceFactoryProtocol(ServiceProtocol, Protocol):
+    """Protocol for creating image service instances."""
+
+    def create_source_registry(self) -> ImageSourceRegistry:
+        """Create image source registry."""
+        ...
+
+    def create_enhanced_placer(self) -> EnhancedImagePlacer:
+        """Create enhanced image placer."""
+        ...
+
+    def create_layout_analyzer(self) -> LayoutAnalyzer:
+        """Create layout analyzer."""
+        ...
+
+    def create_output_optimizer(self) -> OutputOptimizer:
+        """Create output optimizer."""
+        ...
+
+    def create_gallery_processor(self) -> GalleryProcessor:
+        """Create gallery processor."""
+        ...
+
+    def create_bestiary_integration(self) -> BestiaryImageIntegration:
+        """Create bestiary image integration."""
+        ...
+
+    def create_item_integration(self) -> ItemImageIntegration:
+        """Create item image integration."""
+        ...
+
+    def create_adventure_integration(self) -> AdventureImageIntegration:
+        """Create adventure image integration."""
+        ...
+
+    def create_adventure_registry(self) -> AdventureImageRegistry:
+        """Create adventure image registry."""
+        ...
+
+
+@runtime_checkable
+class ImageObservabilityProtocol(ServiceProtocol, Protocol):
+    """Protocol for image processing observability service."""
+
+    def start_operation(
+        self,
+        stage: str,
+        content_type: str,
+        *,
+        operation_id: str | None = None,
+        content_id: str | None = None,
+        source_name: str | None = None,
+        image_count: int = 1,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
+        """Start tracking an image processing operation."""
+        ...
+
+    def complete_operation(
+        self,
+        operation_id: str,
+        result: str,
+        *,
+        confidence_score: float | None = None,
+        fallback_used: bool = False,
+        memory_usage_mb: float | None = None,
+        cpu_usage_percent: float | None = None,
+        error: Exception | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        """Complete tracking of an image processing operation."""
+        ...
+
+    def record_cache_operation(
+        self,
+        cache_name: str,
+        operation: str,
+        key: str,
+        *,
+        lookup_duration_ms: float | None = None,
+        size_bytes: int | None = None,
+        content_type: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        """Record a cache operation."""
+        ...
+
+    def get_statistics(self) -> dict[str, Any]:
+        """Get current processing statistics."""
+        ...
+
+    def reset_statistics(self) -> None:
+        """Reset all statistics."""
+        ...
+
+
+@runtime_checkable
+class AsyncResourceMonitorProtocol(ServiceProtocol, Protocol):
+    """Protocol for async resource monitoring service."""
+
+    async def start_monitoring(self, operation_id: str) -> None:
+        """Start monitoring resources for an operation."""
+        ...
+
+    async def stop_monitoring(self, operation_id: str) -> dict[str, float]:
+        """Stop monitoring and return resource usage metrics."""
+        ...
+
+
+# Export all protocols
+__all__ = [
+    # Base protocols
+    "ServiceProtocol",
+    "AsyncResourceProtocol",
+    "ConfigurableServiceProtocol",
+    # Core service protocols
+    "OmnidexerProtocol",
+    "TagResolverProtocol",
+    "ConfigurationProtocol",
+    "ContentTypeRegistryProtocol",
+    "DisplayManagerProtocol",
+    "ContentFactoryProtocol",
+    "EntryTypeRegistryProtocol",
+    "ReferenceManagerProtocol",
+    "CacheProtocol",
+    # Image service protocols
+    "ImageSourceRegistryProtocol",
+    "EnhancedImagePlacerProtocol",
+    "LayoutAnalyzerProtocol",
+    "OutputOptimizerProtocol",
+    "GalleryProcessorProtocol",
+    "BestiaryImageIntegrationProtocol",
+    "ItemImageIntegrationProtocol",
+    "AdventureImageIntegrationProtocol",
+    "AdventureImageRegistryProtocol",
+    "ImageServiceFactoryProtocol",
+    "ImageObservabilityProtocol",
+    "AsyncResourceMonitorProtocol",
+]

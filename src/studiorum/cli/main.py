@@ -17,6 +17,7 @@ from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.logging import get_logger
 from studiorum.core.logging.logger import setup_logging
 from studiorum.core.models.content import BaseContent
+from studiorum.core.result import is_error_result
 from studiorum.core.services.access import get_app_config
 from studiorum.core.text.tag_resolver import TagResolver
 from studiorum.latex_engine import create_latex_engine
@@ -109,8 +110,8 @@ def main(
             config_result = config_loader.load_with_overrides(
                 config_file=config_file, env_overrides=True
             )
-            if config_result.is_error():
-                error = config_result.error  # type: ignore[attr-defined]
+            if is_error_result(config_result):
+                error = config_result.error
                 rprint(f"[red]Error loading configuration: {error.message}[/red]")
                 if error.suggestions:
                     rprint("[yellow]Suggestions:[/yellow]")
@@ -143,8 +144,8 @@ def main(
     except ConfigValidationError as e:
         rprint(f"[red]Configuration validation error:[/red] {e.message}")
         if e.errors:
-            for error in e.errors:
-                rprint(f"  • {error}")
+            for error_msg in e.errors:
+                rprint(f"  • {error_msg}")
         raise typer.Exit(1)
     except Exception as e:
         rprint(f"[red]Configuration error:[/red] {e}")

@@ -12,9 +12,10 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import threading
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from studiorum.core.logging import get_logger
+from studiorum.core.result import Error, Result, Success
 
 if TYPE_CHECKING:
     from studiorum.core.config.unified_config import ApplicationConfig
@@ -53,8 +54,7 @@ def get_app_config_service() -> ConfigurationProtocol:
             )
         except RuntimeError:
             # No running loop, safe to create one
-            service = asyncio.run(container.get_service(ConfigurationProtocol))  # type: ignore[type-abstract]
-            return service
+            return asyncio.run(container.get_service(ConfigurationProtocol))  # type: ignore[type-abstract]
 
     except Exception as e:
         logger.warning(
@@ -80,13 +80,17 @@ def get_app_config_service() -> ConfigurationProtocol:
             def supports_hot_reload(self) -> bool:
                 return False
 
-            async def reload_from_source(self, source: str) -> object:
-                return {"success": False, "error": "Not supported in legacy mode"}
+            async def reload_from_source(
+                self, source: str
+            ) -> Result[ApplicationConfig, Any]:
+                from studiorum.core.error_types import ConfigurationError
 
-            def validate_config(self) -> object:
-                return {"success": True, "data": self._config}
+                return Error(ConfigurationError(message="Not supported in legacy mode"))
 
-        return LegacyConfigWrapper(get_app_config())  # type: ignore[return-value]
+            def validate_config(self) -> Result[ApplicationConfig, Any]:
+                return Success(self._config)
+
+        return LegacyConfigWrapper(get_app_config())
 
 
 def get_app_config() -> ApplicationConfig:
@@ -115,21 +119,14 @@ def get_cache_service() -> CacheProtocol:
 
         container = get_global_container()
 
-        # Check if we're in an async context
+        # Try to get the service synchronously if possible
         try:
             asyncio.get_running_loop()
-            # We're in an async context - need to avoid asyncio.run()
-            # Instead, create a task and get the result
-            import concurrent.futures
-            import threading
-
-            # Use a thread pool to avoid event loop conflicts
-            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(
-                    lambda: asyncio.run(container.get_service(CacheProtocol))  # type: ignore[type-abstract]
-                )
-                return future.result(timeout=5.0)  # 5 second timeout
-
+            # In async context, caller should use await container.get_service() directly
+            raise RuntimeError(
+                "get_cache_service() cannot be called from async context. "
+                "Use 'await container.get_service(CacheProtocol)' instead."
+            )
         except RuntimeError:
             # No running loop, safe to create one
             return asyncio.run(container.get_service(CacheProtocol))  # type: ignore[type-abstract]
@@ -163,7 +160,7 @@ def get_cache_service() -> CacheProtocol:
                 # Legacy cache doesn't have stats
                 return {"legacy_mode": True}
 
-        return LegacyCacheWrapper()  # type: ignore[return-value]  # type: ignore[return-value]  # type: ignore[return-value]
+        return LegacyCacheWrapper()
 
 
 def get_cache() -> CacheProtocol:
@@ -234,7 +231,7 @@ def get_content_type_registry_service() -> ContentTypeRegistryProtocol:
             def get_legacy_registry(self) -> ContentTypeRegistry:
                 return self._registry
 
-        return LegacyRegistryWrapper()  # type: ignore[return-value]
+        return LegacyRegistryWrapper()
 
 
 def get_content_type_registry() -> ContentTypeRegistry:

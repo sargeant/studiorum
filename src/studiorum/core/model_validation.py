@@ -18,7 +18,7 @@ from studiorum.core.error_types import (
     ValidationError,
     create_validation_error,
 )
-from studiorum.core.result import Error, Result, Success
+from studiorum.core.result import Error, Result, Success, is_error_result
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -315,8 +315,8 @@ def validate_with_mode[T: BaseModel](
     """
     result = validation_fn()
 
-    if result.is_error():
-        error = result.error  # type: ignore[attr-defined]
+    if is_error_result(result):
+        error = result.error
 
         # Adjust error severity based on mode
         if mode == ValidationMode.SILENT and error.severity == ErrorSeverity.WARNING:

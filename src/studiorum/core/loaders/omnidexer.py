@@ -4,7 +4,7 @@ import hashlib
 from collections import defaultdict
 from datetime import timedelta
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Generic, TypeVar, cast
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -20,10 +20,13 @@ from .json_loader import JsonDataLoader
 logger = get_logger(__name__)
 
 
-class IndexEntry(BaseModel):
+T = TypeVar("T", bound=BaseContent)
+
+
+class IndexEntry[T: BaseContent](BaseModel):
     """Represents an indexed content entry with validation."""
 
-    content: BaseContent = Field(description="The content being indexed")
+    content: T = Field(description="The content being indexed")
     content_type: ContentType | Any = Field(description="Type of the content")
     hash_id: str = Field(
         min_length=8, max_length=8, description="8-character unique hash identifier"
@@ -96,7 +99,7 @@ class IndexEntry(BaseModel):
         return normalized
 
     @classmethod
-    def create(cls, content: BaseContent, content_type: ContentType) -> "IndexEntry":
+    def create(cls, content: T, content_type: ContentType) -> "IndexEntry[T]":
         """Create an index entry from content with automatic hash and key generation."""
         # Handle different source formats
         if hasattr(content.source, "abbreviation"):
@@ -181,14 +184,14 @@ class Omnidexer:
         # Thread safety no longer needed for sync operations
 
         # Index structures
-        self._index: dict[str, IndexEntry] = {}  # hash_id -> entry
-        self._by_type: dict[ContentType, dict[str, IndexEntry]] = defaultdict(
-            dict
+        self._index: dict[str, IndexEntry[BaseContent]] = {}  # hash_id -> entry
+        self._by_type: dict[ContentType, dict[str, IndexEntry[BaseContent]]] = (
+            defaultdict(dict)
         )  # type -> lookup_key -> entry
-        self._by_source: dict[str, list[IndexEntry]] = defaultdict(
+        self._by_source: dict[str, list[IndexEntry[BaseContent]]] = defaultdict(
             list
         )  # source -> entries
-        self._by_name: dict[str, list[IndexEntry]] = defaultdict(
+        self._by_name: dict[str, list[IndexEntry[BaseContent]]] = defaultdict(
             list
         )  # name -> entries
 
@@ -222,7 +225,11 @@ class Omnidexer:
     ) -> None:
         """Helper to register loaders for a given loader class and content types."""
         for content_type in content_types:
-            loader = loader_cls.create_for_type(content_type)  # type: ignore[attr-defined]
+            if hasattr(loader_cls, "create_for_type"):
+                loader = loader_cls.create_for_type(content_type)
+            else:
+                # Fallback to regular instantiation if create_for_type doesn't exist
+                loader = loader_cls()
             self.register_loader(content_type, loader)
 
     def register_loader(self, content_type: ContentType, loader: DataLoader) -> None:
@@ -408,8 +415,9 @@ class Omnidexer:
         self, content_type: ContentType, name: str, source: str | None = None
     ) -> BaseContent | None:
         """Find content by type, name, and optionally source."""
-        # Use cached version
-        return self._find_cached(content_type, name, source)  # type: ignore[no-any-return]
+        # Use cached version with proper type annotation
+        result = self._find_cached(content_type, name, source)
+        return cast(BaseContent | None, result)
 
     @cached(
         key_func=lambda self,
@@ -431,22 +439,19 @@ class Omnidexer:
             # Exact lookup with source
             lookup_key = f"{name}|{source}".lower()
             entry = type_index.get(lookup_key)
-            # Type cast needed due to Any type in IndexEntry.content
-            return entry.content if entry else None  # type: ignore[no-any-return]
+            return entry.content if entry else None
         else:
             # Search all sources for this name
             name_lower = name.lower()
             for lookup_key, entry in type_index.items():
                 if lookup_key.startswith(f"{name_lower}|"):
-                    # Type cast needed due to Any type in IndexEntry.content
-                    return entry.content  # type: ignore[no-any-return]
+                    return entry.content
             return None
 
     def find_by_hash(self, hash_id: str) -> BaseContent | None:
         """Find content by unique hash identifier."""
         entry = self._index.get(hash_id)
-        # Type cast needed due to Any type in IndexEntry.content
-        return entry.content if entry else None  # type: ignore[no-any-return]
+        return entry.content if entry else None
 
     def find_all(self, content_type: ContentType, name: str) -> list[BaseContent]:
         """Find all content matching type and name across all sources."""
@@ -459,8 +464,7 @@ class Omnidexer:
 
         for lookup_key, entry in type_index.items():
             if lookup_key.startswith(f"{name_lower}|"):
-                # Type cast needed due to Any type in IndexEntry.content
-                matches.append(entry.content)  # type: ignore[arg-type]
+                matches.append(entry.content)
 
         return matches
 
@@ -483,21 +487,20 @@ class Omnidexer:
 
         if content_type not in self._by_type:
             return []
-        # Type cast needed due to Any type in IndexEntry.content
-        return [entry.content for entry in self._by_type[content_type].values()]  # type: ignore[misc]  # type: ignore[misc]
+        return [entry.content for entry in self._by_type[content_type].values()]
 
     def get_all_by_source(self, source: str) -> list[BaseContent]:
         """Get all content from a specific source."""
         entries = self._by_source.get(source, [])
-        # Type cast needed due to Any type in IndexEntry.content
-        return [entry.content for entry in entries]  # type: ignore[misc]
+        return [entry.content for entry in entries]
 
     def search(
         self, query: str, content_type: ContentType | None = None, limit: int = 50
     ) -> list[BaseContent]:
         """Search for content by name (fuzzy matching)."""
-        # Use cached version
-        return self._search_cached(query, content_type, limit)  # type: ignore[no-any-return]
+        # Use cached version with proper type annotation
+        result = self._search_cached(query, content_type, limit)
+        return cast(list[BaseContent], result)
 
     @cached(
         key_func=lambda self,
@@ -522,8 +525,7 @@ class Omnidexer:
             for entry in self._by_type[ctype].values():
                 # Simple fuzzy matching - can be enhanced
                 if query_lower in entry.content.name.lower():
-                    # Type cast needed due to Any type in IndexEntry.content
-                    results.append(entry.content)  # type: ignore[arg-type]
+                    results.append(entry.content)
                     if len(results) >= limit:
                         return results
 
@@ -545,8 +547,7 @@ class Omnidexer:
             for lookup_key, entry in self._by_type[ctype].items():
                 content_name = entry.content.name.lower()
                 if content_name.startswith(prefix_lower):
-                    # Type cast needed due to Any type in IndexEntry.content
-                    results.append(entry.content)  # type: ignore[arg-type]
+                    results.append(entry.content)
                     if len(results) >= limit:
                         return results
 

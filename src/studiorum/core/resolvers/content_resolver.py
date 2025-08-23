@@ -150,8 +150,8 @@ class ContentResolver:
         Returns:
             ContentResolver instance with protocol-validated services
         """
-        omnidexer = await context.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
-        tag_resolver = await context.get_service(TagResolverProtocol)  # type: ignore[type-abstract]
+        omnidexer = await context.get_service(OmnidexerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        tag_resolver = await context.get_service(TagResolverProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
         return cls(omnidexer, tag_resolver, context)
 
     def resolve_adventure(self, abbreviation: str) -> ContentResolutionResult:
@@ -287,10 +287,8 @@ class ContentResolver:
         Returns:
             List of suggested abbreviations
         """
-        if hasattr(self.omnidexer, "get_all_by_type"):
-            all_content = self.omnidexer.get_all_by_type(content_type)  # type: ignore[attr-defined]
-        else:
-            all_content = []
+        # Protocol guarantees this method exists
+        all_content = self.omnidexer.get_all_by_type(content_type)
         if not all_content:
             return []
 
@@ -580,10 +578,8 @@ class ContentResolver:
         norm_abbrev = abbreviation.strip().lower()
 
         # Get all content of this type
-        if hasattr(self.omnidexer, "get_all_by_type"):
-            all_content = self.omnidexer.get_all_by_type(content_type)  # type: ignore[attr-defined]
-        else:
-            all_content = []
+        # Protocol guarantees this method exists
+        all_content = self.omnidexer.get_all_by_type(content_type)
         if not all_content:
             return ContentResolutionResult(
                 status=ResolutionStatus.NO_MATCH, query=abbreviation
@@ -847,11 +843,8 @@ class ContentResolver:
         spell_type = ContentType("spell")
 
         for name in names:
-            # Try exact match first
-            if hasattr(self.omnidexer, "find_all"):
-                matches = self.omnidexer.find_all(spell_type, name)  # type: ignore[attr-defined]
-            else:
-                matches = []
+            # Try exact match first - protocol guarantees this method exists
+            matches = self.omnidexer.find_all(spell_type, name)
 
             if matches:
                 # Add all exact matches
@@ -902,10 +895,8 @@ class ContentResolver:
             List of suggested spell names
         """
         spell_type = ContentType("spell")
-        if hasattr(self.omnidexer, "get_all_by_type"):
-            all_spells = self.omnidexer.get_all_by_type(spell_type)  # type: ignore[attr-defined]
-        else:
-            all_spells = []
+        # Protocol guarantees this method exists
+        all_spells = self.omnidexer.get_all_by_type(spell_type)
 
         if not all_spells:
             return []
@@ -933,11 +924,8 @@ class ContentResolver:
         item_type = ContentType("item")
 
         for name in names:
-            # Try exact match first
-            if hasattr(self.omnidexer, "find_all"):
-                matches = self.omnidexer.find_all(item_type, name)  # type: ignore[attr-defined]
-            else:
-                matches = []
+            # Try exact match first - protocol guarantees this method exists
+            matches = self.omnidexer.find_all(item_type, name)
 
             if matches and len(matches) == 1:
                 results.append(
@@ -997,10 +985,8 @@ class ContentResolver:
             List of suggested item names
         """
         item_type = ContentType("item")
-        if hasattr(self.omnidexer, "get_all_by_type"):
-            all_items = self.omnidexer.get_all_by_type(item_type)  # type: ignore[attr-defined]
-        else:
-            all_items = []
+        # Protocol guarantees this method exists
+        all_items = self.omnidexer.get_all_by_type(item_type)
 
         if not all_items:
             return []

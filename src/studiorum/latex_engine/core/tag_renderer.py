@@ -45,7 +45,8 @@ class LaTeXTagRenderer:
             return self._render_special_tag(result)
         else:
             logger.warning(f"Unknown tag result type: {type(result)}")
-            return str(result)  # type: ignore[no-any-return]
+            # Fallback to string representation for unexpected types
+            return str(result)
 
     def _render_content_reference(self, ref: ContentReference) -> str:
         """Render a content reference with appropriate LaTeX formatting.

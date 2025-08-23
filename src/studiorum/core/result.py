@@ -41,7 +41,10 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeGuard, TypeVar
+
+if TYPE_CHECKING:
+    from typing import Self
 
 T = TypeVar("T")  # Success value type
 E = TypeVar("E")  # Error type
@@ -139,7 +142,9 @@ class Success[T, E](Result[T, E]):
 
     def map_error(self, fn: Callable[[E], Any]) -> Result[T, Any]:
         """Return self since there's no error to transform."""
-        return self  # type: ignore[return-value]
+        # Success[T, E] is compatible with Result[T, Any] since T is the same
+        # and the error type doesn't matter for Success instances
+        return Success[T, Any](self.value)
 
     def and_then(self, fn: Callable[[T], Result[U, E]]) -> Result[U, E]:
         """Chain another Result-returning operation."""
@@ -184,7 +189,8 @@ class Error[T, E](Result[T, E]):
 
     def map(self, fn: Callable[[T], U]) -> Result[U, E]:
         """Return self since there's no success value to transform."""
-        return self  # type: ignore[return-value]
+        # Error[T, E] needs to become Error[U, E] to match the return type
+        return Error[U, E](self.error)
 
     def map_error(self, fn: Callable[[E], Any]) -> Result[T, Any]:
         """Transform the error value using the given function."""
@@ -192,11 +198,45 @@ class Error[T, E](Result[T, E]):
 
     def and_then(self, fn: Callable[[T], Result[U, E]]) -> Result[U, E]:
         """Return self since there's no success value to chain with."""
-        return self  # type: ignore[return-value]
+        # Error[T, E] needs to become Error[U, E] to match the return type
+        return Error[U, E](self.error)
+
+    def with_context(self, message: str, **context: Any) -> Error:
+        """Add contextual information to this error.
+
+        Follows Rust's anyhow pattern for error context chaining.
+        Preserves the original error while adding higher-level context.
+
+        Args:
+            message: High-level description of what operation failed
+            **context: Additional context (operation, ids, parameters, etc.)
+
+        Returns:
+            New Error with chained context
+
+        Example:
+            if isinstance(result, Error):
+                return result.with_context(
+                    "Failed to process adventure images",
+                    operation="image_processing",
+                    adventure_id="tomb-of-annihilation"
+                )
+        """
+        return Error({"message": message, "underlying": self.error, "context": context})
 
 
 # Type alias for convenience
 ResultType = Success[T, E] | Error[T, E]
+
+
+def is_success_result[T, E](result: Result[T, E]) -> TypeGuard[Success[T, E]]:
+    """TypeGuard function to check if a Result is a Success."""
+    return result.is_success()
+
+
+def is_error_result[T, E](result: Result[T, E]) -> TypeGuard[Error[T, E]]:
+    """TypeGuard function to check if a Result is an Error."""
+    return result.is_error()
 
 
 def collect_results[T, E](results: list[Result[T, E]]) -> Result[list[T], list[E]]:
@@ -225,11 +265,14 @@ def collect_results[T, E](results: list[Result[T, E]]) -> Result[list[T], list[E
     errors: list[E] = []
 
     for result in results:
-        if result.is_success():
+        if is_success_result(result):
             successes.append(result.unwrap())
+        elif is_error_result(result):
+            # TypeGuard ensures mypy knows this is an Error with .error attribute
+            errors.append(result.error)
         else:
-            # We know this is an Error, so we can access the error attribute
-            errors.append(result.error)  # type: ignore[attr-defined]
+            # This should never happen in practice, but mypy requires exhaustive handling
+            raise TypeError(f"Invalid Result type: {type(result)}")
 
     if errors:
         return Error(errors)

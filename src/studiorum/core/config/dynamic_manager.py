@@ -73,7 +73,7 @@ if TYPE_CHECKING:
     from watchdog.observers import Observer
 
 from ..error_types import ConfigurationError, ErrorCategory, ErrorSeverity, MCPErrorCode
-from ..result import Error, Result, Success
+from ..result import Error, Result, Success, is_error_result
 from .loader import ConfigLoader
 from .unified_config import ApplicationConfig, get_app_config, set_app_config
 
@@ -569,12 +569,12 @@ class ConfigurationManager:
         """Internal method to reload configuration from file."""
         try:
             result = await self.reload_from_file()
-            if result.is_error():
+            if is_error_result(result):
                 logger.error(
                     "Failed to reload configuration from file",
                     extra={
                         "config_path": str(self._config_path),
-                        "error": result.error.message,  # type: ignore[attr-defined]
+                        "error": result.error.message,
                     },
                 )
         except Exception as e:

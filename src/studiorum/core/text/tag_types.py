@@ -198,5 +198,4 @@ class TagContext(ServiceContext):
         """Find content using the omnidexer."""
         if self.omnidexer is None:
             return None
-        # Type: ignore the Any return from omnidexer since we know it returns BaseContent | None
-        return self.omnidexer.find(content_type, name, source)  # type: ignore[no-any-return]
+        return self.omnidexer.find(content_type, name, source)

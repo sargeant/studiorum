@@ -72,7 +72,7 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
     # Configuration (hot-reloadable singleton)
     # Highest priority cleanup to ensure other services can access config during shutdown
     container.register_service(
-        ConfigurationProtocol,  # type: ignore[type-abstract]
+        ConfigurationProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
         create_configuration_service,
         lifecycle=ServiceLifecycle.SINGLETON,
         dependencies=(),
@@ -84,7 +84,7 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
     # Core async resources (singleton for performance, async lifecycle)
     # High priority cleanup after configuration
     container.register_service(
-        OmnidexerProtocol,  # type: ignore[type-abstract]
+        OmnidexerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
         create_omnidexer_service,
         lifecycle=ServiceLifecycle.ASYNC_RESOURCE,
         dependencies=(ConfigurationProtocol,),
@@ -98,7 +98,7 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
     # Infrastructure services (singleton for shared state)
     # Medium priority cleanup
     container.register_service(
-        ContentTypeRegistryProtocol,  # type: ignore[type-abstract]
+        ContentTypeRegistryProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
         create_content_type_registry_service,
         lifecycle=ServiceLifecycle.SINGLETON,
         dependencies=(),
@@ -108,7 +108,7 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
     logger.debug("Registered ContentTypeRegistryProtocol as singleton")
 
     container.register_service(
-        ContentFactoryProtocol,  # type: ignore[type-abstract]
+        ContentFactoryProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
         create_content_factory_service,
         lifecycle=ServiceLifecycle.SINGLETON,
         dependencies=(),  # Could depend on ContentTypeRegistryProtocol in future
@@ -118,7 +118,7 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
     logger.debug("Registered ContentFactoryProtocol as singleton")
 
     container.register_service(
-        EntryTypeRegistryProtocol,  # type: ignore[type-abstract]
+        EntryTypeRegistryProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
         create_entry_registry_service,
         lifecycle=ServiceLifecycle.SINGLETON,
         dependencies=(),
@@ -128,7 +128,7 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
     logger.debug("Registered EntryTypeRegistryProtocol as singleton")
 
     container.register_service(
-        CacheProtocol,  # type: ignore[type-abstract]
+        CacheProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
         create_cache_service,
         lifecycle=ServiceLifecycle.SINGLETON,
         dependencies=(),
@@ -140,7 +140,7 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
     # Request-scoped services (MCP isolation required)
     # Later cleanup priority to ensure dependencies are available
     container.register_service(
-        TagResolverProtocol,  # type: ignore[type-abstract]
+        TagResolverProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
         create_tag_resolver_service,
         lifecycle=ServiceLifecycle.SCOPED,
         dependencies=(OmnidexerProtocol, ConfigurationProtocol),
@@ -150,7 +150,7 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
     logger.debug("Registered TagResolverProtocol as scoped with hot-reload")
 
     container.register_service(
-        DisplayManagerProtocol,  # type: ignore[type-abstract]
+        DisplayManagerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
         create_display_manager_service,
         lifecycle=ServiceLifecycle.SCOPED,
         dependencies=(ConfigurationProtocol,),
@@ -160,7 +160,7 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
     logger.debug("Registered DisplayManagerProtocol as scoped with hot-reload")
 
     container.register_service(
-        ReferenceManagerProtocol,  # type: ignore[type-abstract]
+        ReferenceManagerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
         create_reference_manager_service,
         lifecycle=ServiceLifecycle.SCOPED,
         dependencies=(OmnidexerProtocol,),
@@ -174,6 +174,12 @@ async def register_modern_services(container: ModernServiceContainer) -> None:
     from .encounter_services import register_encounter_services
 
     register_encounter_services(container)
+
+    # Image processing services (Phase 4 - Service Integration)
+    # Register after core services are available
+    from .image_services import register_image_services
+
+    register_image_services(container)
 
     logger.info("Modern service registration completed successfully")
 

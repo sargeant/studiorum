@@ -34,6 +34,7 @@ from .tag_ast import (
     RechargeTagNode,
     SenseTagNode,
     SkillTagNode,
+    SourceTrackingNode,
     SpellTagNode,
     StatusTagNode,
     TagNode,
@@ -492,7 +493,7 @@ class TagASTTransformer(Transformer):
             # Quick reference tags have format: text|source|page|section|flags
             node = TagNode(tag_type)
             node.name = name  # Contains reference text
-            node.source = source  # type: ignore[attr-defined]  # Contains source book
+            node.source = source  # Contains source book
             if final_display_text_nodes is not None:
                 node.display_text_nodes = final_display_text_nodes
             return node
@@ -501,8 +502,8 @@ class TagASTTransformer(Transformer):
             # Deity reference tags have format: name|pantheon|source|display
             node = TagNode(tag_type)
             node.name = name
-            node.source = source  # type: ignore[attr-defined]
-            node.page = page  # type: ignore[attr-defined]
+            node.source = source
+            node.page = page
             if final_display_text_nodes is not None:
                 node.display_text_nodes = final_display_text_nodes
             return node
@@ -511,8 +512,8 @@ class TagASTTransformer(Transformer):
             # Disease reference tags have format: name|source|display|page
             node = TagNode(tag_type)
             node.name = name
-            node.source = source  # type: ignore[attr-defined]
-            node.page = page  # type: ignore[attr-defined]
+            node.source = source
+            node.page = page
             if final_display_text_nodes is not None:
                 node.display_text_nodes = final_display_text_nodes
             return node
@@ -521,8 +522,8 @@ class TagASTTransformer(Transformer):
             # Table reference tags have format: name|source|display|page
             node = TagNode(tag_type)
             node.name = name
-            node.source = source  # type: ignore[attr-defined]
-            node.page = page  # type: ignore[attr-defined]
+            node.source = source
+            node.page = page
             if final_display_text_nodes is not None:
                 node.display_text_nodes = final_display_text_nodes
             return node
@@ -538,7 +539,7 @@ class TagASTTransformer(Transformer):
             # Card tags have format: card_name|deck|source
             node = TagNode(tag_type)
             node.name = name  # Contains card name
-            node.source = source  # type: ignore[attr-defined]  # Contains deck name
+            node.source = source  # Contains deck name
             # Use display text if provided, otherwise card name
             if final_display_text_nodes is not None:
                 node.display_text_nodes = final_display_text_nodes
@@ -550,7 +551,7 @@ class TagASTTransformer(Transformer):
             # Deck tags have format: deck_name|source|display_text
             node = TagNode(tag_type)
             node.name = name  # Contains deck name
-            node.source = source  # type: ignore[attr-defined]  # Contains source
+            node.source = source  # Contains source
             # Use display text if provided, otherwise deck name
             if final_display_text_nodes is not None:
                 node.display_text_nodes = final_display_text_nodes
@@ -563,8 +564,8 @@ class TagASTTransformer(Transformer):
             # Recipe reference tags have format: name|source|display|page
             node = TagNode(tag_type)
             node.name = name
-            node.source = source  # type: ignore[attr-defined]
-            node.page = page  # type: ignore[attr-defined]
+            node.source = source
+            node.page = page
             if final_display_text_nodes is not None:
                 node.display_text_nodes = final_display_text_nodes
             else:
@@ -576,8 +577,8 @@ class TagASTTransformer(Transformer):
             # Reward reference tags have format: name|source|display|page
             node = TagNode(tag_type)
             node.name = name
-            node.source = source  # type: ignore[attr-defined]
-            node.page = page  # type: ignore[attr-defined]
+            node.source = source
+            node.page = page
             if final_display_text_nodes is not None:
                 node.display_text_nodes = final_display_text_nodes
             else:
@@ -589,7 +590,7 @@ class TagASTTransformer(Transformer):
             # Scale damage tags have format: damage|progression|base_damage
             node = TagNode(tag_type)
             node.name = name  # Contains damage expression like "2d6", "3d8"
-            node.source = source  # type: ignore[attr-defined]  # Contains progression like "3,5,7,9"
+            node.source = source  # Contains progression like "3,5,7,9"
             # For scaledamage, display the primary damage value
             node.display_text_nodes = [TextNode(name)]
             return node
@@ -598,7 +599,7 @@ class TagASTTransformer(Transformer):
             # Scale dice tags have format: dice|progression|base_dice|unit
             node = TagNode(tag_type)
             node.name = name  # Contains dice expression like "5d8"
-            node.source = source  # type: ignore[attr-defined]  # Contains progression like "1-7"
+            node.source = source  # Contains progression like "1-7"
             # For scaledice, display the primary dice value
             node.display_text_nodes = [TextNode(name)]
             return node

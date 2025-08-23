@@ -14,7 +14,7 @@ Key Features:
 from __future__ import annotations
 
 import time
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from studiorum.core.api import ModernContextualAPI
 from studiorum.core.context import async_request_context
@@ -485,7 +485,8 @@ class CharacterProgressionTools:
         if cache_key in self._cache:
             cache_time = self._cache_ttl.get(cache_key, 0)
             if time.time() - cache_time < self.cache_duration:
-                return self._cache[cache_key]  # type: ignore[no-any-return]
+                # Cache stores dict[str, Any] values based on _cache_result signature
+                return cast(dict[str, Any], self._cache[cache_key])
             else:
                 # Remove expired entry
                 self._cache.pop(cache_key, None)

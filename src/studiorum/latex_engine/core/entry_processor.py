@@ -1,12 +1,13 @@
 """Recursive entry processor for LaTeX rendering of 5etools entry structures."""
 
 import asyncio
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from studiorum.core.entry_registry import ValidationMode, get_registry
 from studiorum.core.exceptions import EntryProcessingError
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import ContentType
+from studiorum.core.result import Error
 from studiorum.core.types import EntryData, ProcessingContext
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -16,6 +17,9 @@ from ..utils.unicode_mappings import (
     get_unmapped_unicode_chars,
 )
 from .images.image_processor import ImageProcessingConfig, ImageProcessor
+
+if TYPE_CHECKING:
+    from .images.gallery_processor import GalleryProcessor
 
 logger = get_logger(__name__)
 
@@ -52,6 +56,9 @@ class RecursiveEntryProcessor:
 
         # Initialize image processor
         self._image_processor = image_processor or ImageProcessor()
+
+        # Initialize gallery processor as None (lazy loaded)
+        self._gallery_processor: GalleryProcessor | None = None
 
     def process_entries(
         self, entries: list[str | dict[str, Any]], context: RenderingContext
@@ -194,6 +201,8 @@ class RecursiveEntryProcessor:
                 return self._process_inset(entry, context)
             elif entry_type == "image":
                 return self._process_image(entry, context)
+            elif entry_type == "gallery":
+                return self._process_gallery(entry, context)
             elif entry_type == "list":
                 return self._process_list(entry, context)
             elif entry_type == "table":
@@ -434,6 +443,136 @@ class RecursiveEntryProcessor:
             result.append("\\end{center}")
 
         return "\n".join(result)
+
+    def _process_gallery(
+        self, gallery: dict[str, Any], context: RenderingContext
+    ) -> str:
+        """Process a gallery entry with multiple images.
+
+        Args:
+            gallery: Gallery dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string for the gallery
+        """
+        # Check if images are enabled
+        include_images = context.metadata.get("include_images", True)
+        if not include_images:
+            title = gallery.get("title", gallery.get("caption", ""))
+            return (
+                f"% Gallery placeholder: {title}" if title else "% Gallery placeholder"
+            )
+
+        try:
+            # Initialize gallery processor if needed
+            gallery_processor = self._get_gallery_processor()
+
+            # Process the gallery
+            if gallery_processor is not None:
+                result = gallery_processor.process_gallery(gallery, context)
+            else:
+                result = Error("Gallery processor not available")
+
+            if result.is_success():
+                processed_gallery = result.unwrap()
+                return processed_gallery.latex_command
+            else:
+                # Fallback to basic gallery processing
+                logger.warning("Gallery processing failed, using fallback")
+                return self._process_gallery_basic(gallery, context)
+
+        except Exception as e:
+            logger.error(f"Gallery processing error: {str(e)}, using fallback")
+            return self._process_gallery_basic(gallery, context)
+
+    def _process_gallery_basic(
+        self, gallery: dict[str, Any], context: RenderingContext
+    ) -> str:
+        """Basic fallback gallery processing.
+
+        Args:
+            gallery: Gallery dictionary
+            context: Rendering context
+
+        Returns:
+            LaTeX string for basic gallery layout
+        """
+        images = gallery.get("images", [])
+        title = gallery.get("title")
+        caption = gallery.get("caption")
+
+        if not images:
+            return "% Empty gallery"
+
+        result = ["\\begin{figure}[htbp]", "\\centering"]
+
+        if title:
+            result.append(f"% Gallery: {title}")
+
+        # Process each image as a subfigure
+        num_images = len(images)
+        image_width = f"{0.45}\\textwidth" if num_images > 1 else "0.8\\textwidth"
+
+        for i, image_data in enumerate(images):
+            # Extract image information
+            href = image_data.get("href", "")
+            img_title = image_data.get("title", "")
+
+            if not href:
+                continue
+
+            # Extract image path
+            if isinstance(href, dict):
+                image_path = href.get("path", href.get("url", ""))
+            else:
+                image_path = str(href)
+
+            if not image_path:
+                continue
+
+            # Create subfigure
+            result.extend(
+                [
+                    f"\\begin{{subfigure}}{{{image_width}}}",
+                    "    \\centering",
+                    f"    \\includegraphics[width=\\textwidth]{{{self._escape_latex(image_path)}}}",
+                ]
+            )
+
+            if img_title:
+                result.append(f"    \\caption{{{self._escape_latex(img_title)}}}")
+
+            result.append("\\end{subfigure}")
+
+            # Add horizontal space between images in same row
+            if i < num_images - 1 and (i + 1) % 2 != 0:
+                result.append("\\hfill")
+            # Add line break for new row (every 2 images)
+            elif i < num_images - 1 and (i + 1) % 2 == 0:
+                result.append("\\\\[1em]")
+
+        if caption:
+            result.append(f"\\caption{{{self._escape_latex(caption)}}}")
+
+        result.append("\\end{figure}")
+
+        return "\n".join(result)
+
+    def _get_gallery_processor(self) -> "GalleryProcessor | None":
+        """Get or create gallery processor instance."""
+        if not hasattr(self, "_gallery_processor") or self._gallery_processor is None:
+            try:
+                from .images.gallery_processor import GalleryProcessor
+
+                self._gallery_processor = GalleryProcessor(
+                    image_processor=self._image_processor
+                )
+            except ImportError as e:
+                logger.error(f"Failed to import GalleryProcessor: {e}")
+                self._gallery_processor = None
+
+        return self._gallery_processor
 
     def _process_list(
         self, list_entry: dict[str, Any], context: RenderingContext

@@ -9,10 +9,13 @@ scattered TypedDict and separate config classes with a hierarchical structure.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+if TYPE_CHECKING:
+    from studiorum.core.assets.image_sources import ImageSourceConfig
 
 
 class LoggingConfig(BaseModel):
@@ -271,6 +274,295 @@ class MCPConfig(BaseModel):
     )
 
 
+class ImageConfig(BaseModel):
+    """Configuration for image asset management and Phase 4 processing."""
+
+    # Core image processing
+    enabled: bool = Field(default=True, description="Enable image processing")
+    cache_dir: Path | None = Field(
+        default=None, description="Custom image cache directory"
+    )
+    default_cache_ttl_hours: int = Field(
+        default=24,
+        ge=1,
+        le=168,
+        description="Default cache TTL for image sources (hours)",
+    )
+    max_cache_size_mb: int = Field(
+        default=1024, ge=10, le=10240, description="Maximum total cache size in MB"
+    )
+    cleanup_interval_hours: int = Field(
+        default=24, ge=1, le=168, description="How often to run cache cleanup (hours)"
+    )
+    sources: list[ImageSourceConfig] = Field(
+        default_factory=list, description="Configured image sources"
+    )
+
+    # Phase 4: Image Processing Options
+    image_quality: str = Field(
+        default="hybrid",
+        pattern=r"^(digital|print|hybrid|high|low)$",
+        description="Image quality mode: digital (web-optimized), print (high-res), hybrid (balanced), high (max quality), low (compact)",
+    )
+    placement_strategy: str = Field(
+        default="intelligent",
+        pattern=r"^(intelligent|simple|float|inline)$",
+        description="Image placement strategy: intelligent (AI-guided), simple (basic rules), float (LaTeX floats), inline (in-text)",
+    )
+    gallery_layout: str = Field(
+        default="grid",
+        pattern=r"^(grid|showcase|sequential|comparison)$",
+        description="Gallery layout mode: grid (thumbnails), showcase (featured), sequential (ordered), comparison (side-by-side)",
+    )
+    enable_intelligent_placement: bool = Field(
+        default=True,
+        description="Enable AI-powered intelligent image placement optimization",
+    )
+    enable_content_analysis: bool = Field(
+        default=True,
+        description="Enable content analysis for context-aware image selection",
+    )
+    enable_layout_optimization: bool = Field(
+        default=True,
+        description="Enable automatic layout optimization for better readability",
+    )
+    enable_output_optimization: bool = Field(
+        default=True,
+        description="Enable output format optimization (resolution, compression, format selection)",
+    )
+
+    # Phase 4: Content-Specific Image Options
+    bestiary_images: bool = Field(
+        default=True,
+        description="Include creature images in bestiary content",
+    )
+    item_images: bool = Field(
+        default=True,
+        description="Include item and equipment images",
+    )
+    adventure_images: bool = Field(
+        default=True,
+        description="Include adventure maps, scenes, and narrative images",
+    )
+    chapter_art: bool = Field(
+        default=True,
+        description="Include chapter headers and decorative artwork",
+    )
+
+    # Phase 4: Performance Options
+    preload_images: bool = Field(
+        default=True,
+        description="Preload frequently used images for faster processing",
+    )
+    use_cache: bool = Field(
+        default=True,
+        description="Enable image caching system for performance optimization",
+    )
+    sync_sources_on_startup: bool = Field(
+        default=False,
+        description="Synchronize all image sources on application startup (slower startup, faster runtime)",
+    )
+    parallel_processing: bool = Field(
+        default=True,
+        description="Enable parallel image processing for performance gains",
+    )
+    max_concurrent_downloads: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Maximum number of concurrent image downloads",
+    )
+
+    # Phase 4: Advanced Options
+    enabled_sources: list[str] | None = Field(
+        default=None,
+        description="List of enabled source names (None = all enabled). Use to filter specific image sources.",
+    )
+    fallback_to_placeholders: bool = Field(
+        default=True,
+        description="Generate placeholder images when source images are unavailable",
+    )
+    generate_missing_alt_text: bool = Field(
+        default=True,
+        description="Auto-generate alt text for accessibility when missing from source",
+    )
+
+    # Legacy compatibility
+    include_images_default: bool = Field(
+        default=False, description="Default value for including images in content"
+    )
+
+    # Default 5etools-img source
+    enable_default_5etools_source: bool = Field(
+        default=True,
+        description="Automatically configure default 5etools image sources",
+    )
+
+    def model_post_init(self, __context: Any) -> None:
+        """Post-process configuration after parsing."""
+        if self.enable_default_5etools_source and not self.sources:
+            self._add_default_sources()
+
+    def _add_default_sources(self) -> None:
+        """Add default 5etools image sources."""
+        try:
+            import studiorum.core.assets.image_sources as img_sources
+
+            # Create specific source types instead of using the union
+            default_sources: list[img_sources.ImageSourceConfig] = [
+                img_sources.GitImageSourceConfig(
+                    name="5etools-img-git",
+                    repository_url="https://github.com/5etools-mirror-3/5etools-img.git",
+                    priority=10,
+                    enabled=True,
+                    cache_ttl_hours=168,  # 1 week
+                ),
+                img_sources.HttpApiImageSourceConfig(
+                    name="5etools-img-http",
+                    base_url="https://raw.githubusercontent.com/5etools-mirror-3/5etools-img/main",
+                    priority=20,
+                    enabled=True,
+                    cache_ttl_hours=24,
+                ),
+            ]
+
+            self.sources.extend(default_sources)
+        except ImportError:
+            # If image_sources module isn't available yet, skip default sources
+            pass
+
+    @property
+    def cache_directory(self) -> Path:
+        """Get the cache directory path."""
+        if self.cache_dir:
+            return self.cache_dir
+        return Path.home() / ".studiorum" / "image_cache"
+
+    @property
+    def quality(self) -> str:
+        """Get image quality setting for backward compatibility."""
+        return self.image_quality
+
+    @property
+    def max_cache_size_gb(self) -> float:
+        """Get max cache size in GB."""
+        return self.max_cache_size_mb / 1024.0
+
+    @property
+    def is_high_performance_mode(self) -> bool:
+        """Check if high performance options are enabled."""
+        return (
+            self.parallel_processing
+            and self.preload_images
+            and self.use_cache
+            and self.max_concurrent_downloads >= 3
+        )
+
+    @property
+    def enabled_content_types(self) -> set[str]:
+        """Get set of enabled content type identifiers."""
+        content_types = set()
+        if self.bestiary_images:
+            content_types.add("bestiary")
+        if self.item_images:
+            content_types.add("items")
+        if self.adventure_images:
+            content_types.add("adventures")
+        if self.chapter_art:
+            content_types.add("chapter_art")
+        return content_types
+
+    @property
+    def is_intelligent_processing_enabled(self) -> bool:
+        """Check if AI-powered intelligent processing is fully enabled."""
+        return (
+            self.enable_intelligent_placement
+            and self.enable_content_analysis
+            and self.enable_layout_optimization
+        )
+
+    def get_active_sources(self) -> list[ImageSourceConfig]:
+        """Get list of currently active image sources based on enabled_sources filter."""
+        if self.enabled_sources is None:
+            return [
+                source for source in self.sources if getattr(source, "enabled", True)
+            ]
+
+        # Filter sources by name
+        enabled_names = set(self.enabled_sources)
+        return [
+            source
+            for source in self.sources
+            if getattr(source, "name", None) in enabled_names
+            and getattr(source, "enabled", True)
+        ]
+
+    def should_process_content_type(self, content_type: str) -> bool:
+        """Check if images should be processed for a specific content type."""
+        content_type_map = {
+            "bestiary": self.bestiary_images,
+            "monster": self.bestiary_images,
+            "creature": self.bestiary_images,
+            "items": self.item_images,
+            "item": self.item_images,
+            "equipment": self.item_images,
+            "adventures": self.adventure_images,
+            "adventure": self.adventure_images,
+            "chapter": self.chapter_art,
+            "chapter_art": self.chapter_art,
+        }
+        return content_type_map.get(content_type.lower(), False)
+
+    def get_quality_settings(self) -> dict[str, str | int | bool]:
+        """Get quality settings optimized for the current image_quality mode."""
+        quality_configs: dict[str, dict[str, str | int | bool]] = {
+            "digital": {"format": "webp", "quality": 85, "optimize": True},
+            "print": {"format": "png", "quality": 95, "dpi": 300},
+            "hybrid": {"format": "auto", "quality": 90, "optimize": True},
+            "high": {"format": "png", "quality": 100, "optimize": False},
+            "low": {"format": "jpeg", "quality": 70, "optimize": True},
+        }
+        return quality_configs.get(self.image_quality, quality_configs["hybrid"])
+
+    def validate_configuration(self) -> list[str]:
+        """Validate the image configuration and return list of warnings/issues."""
+        issues = []
+
+        # Performance validation
+        if self.parallel_processing and self.max_concurrent_downloads > 10:
+            issues.append(
+                f"High concurrent downloads ({self.max_concurrent_downloads}) may impact performance"
+            )
+
+        # Quality vs performance tradeoffs
+        if self.image_quality in ("high", "print") and not self.use_cache:
+            issues.append(
+                "High quality mode without caching may cause slow performance"
+            )
+
+        # Source validation
+        if self.enabled_sources:
+            available_names = {getattr(source, "name", None) for source in self.sources}
+            invalid_names = set(self.enabled_sources) - available_names
+            if invalid_names:
+                issues.append(
+                    f"Invalid source names in enabled_sources: {invalid_names}"
+                )
+
+        # Content type validation
+        if not any(
+            [
+                self.bestiary_images,
+                self.item_images,
+                self.adventure_images,
+                self.chapter_art,
+            ]
+        ):
+            issues.append("No content types enabled - images will not be processed")
+
+        return issues
+
+
 class ApplicationConfig(BaseSettings):
     """
     Complete application configuration.
@@ -297,6 +589,9 @@ class ApplicationConfig(BaseSettings):
     mcp: MCPConfig = Field(
         default_factory=MCPConfig, description="MCP server configuration"
     )
+    image: ImageConfig = Field(
+        default_factory=ImageConfig, description="Image asset configuration"
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -312,6 +607,26 @@ class ApplicationConfig(BaseSettings):
         self.paths.output_path.mkdir(parents=True, exist_ok=True)
         self.paths.build_path.mkdir(parents=True, exist_ok=True)
 
+
+# Build models to resolve forward references
+def _rebuild_models() -> None:
+    """Rebuild models to resolve forward references."""
+    try:
+        # Import the module and make ImageSourceConfig available globally
+        from studiorum.core.assets.image_sources import ImageSourceConfig
+
+        globals()["ImageSourceConfig"] = ImageSourceConfig
+
+        ImageConfig.model_rebuild()
+        ApplicationConfig.model_rebuild()
+    except ImportError:
+        # If image_sources module isn't available yet, skip rebuild
+        pass
+
+
+# Rebuild models immediately when module is imported
+# This ensures forward references are resolved even for direct instantiation
+_rebuild_models()
 
 # Global configuration instance
 _app_config: ApplicationConfig | None = None
