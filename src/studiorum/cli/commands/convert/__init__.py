@@ -25,7 +25,7 @@ from .shared import (
 from .supplement import supplement
 
 # Create the main convert app
-app: typer.Typer = typer.Typer(help="Convert D&D content to LaTeX/PDF")
+app: typer.Typer = typer.Typer(help="Convert 5e content to LaTeX/PDF")
 
 # Register commands
 app.command("adventure")(adventure)
