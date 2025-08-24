@@ -415,10 +415,10 @@ class Item(BaseContent):
             # Try to get tag resolver from service container
             from ..container import get_global_container
             from ..result import Error
-            from ..services.protocols import TagResolverProtocol
+            from ..text.tag_resolver import TagResolver
 
             container = get_global_container()
-            tag_resolver = container.get_service_sync(TagResolverProtocol)
+            tag_resolver = container.get_service_sync(TagResolver)
 
             result = processor.get_description_with_context(tag_resolver)
             if isinstance(result, Error):
@@ -446,6 +446,14 @@ class Item(BaseContent):
                 extract_text_recursive(entry_data)
             elif isinstance(entry, dict):
                 # Handle dict entries
+                # Always include name if present (for entries with names)
+                if "name" in entry:
+                    text_parts.append(str(entry["name"]))
+
+                # Always include "by" if present (for quote attributions)
+                if "by" in entry:
+                    text_parts.append(str(entry["by"]))
+
                 if "text" in entry:
                     text_parts.append(str(entry["text"]))
                 elif "entries" in entry:
@@ -453,9 +461,9 @@ class Item(BaseContent):
                     for nested_entry in entry["entries"]:
                         extract_text_recursive(nested_entry)
                 else:
-                    # Try to extract any string values from the dict
-                    for value in entry.values():
-                        if isinstance(value, str):
+                    # Try to extract any string values from the dict (excluding name and by which we already handled)
+                    for key, value in entry.items():
+                        if key not in ("name", "by") and isinstance(value, str):
                             text_parts.append(value)
                         elif isinstance(value, list):
                             for item in value:

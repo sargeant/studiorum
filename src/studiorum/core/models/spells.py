@@ -402,11 +402,11 @@ class Spell(BaseContent):
             # Try to get tag resolver from service container
             from ..container import get_global_container
             from ..result import Error
-            from ..services.protocols import TagResolverProtocol
+            from ..text.tag_resolver import TagResolver
 
             # Use sync access since this method is sync
             container = get_global_container()
-            tag_resolver = container.get_service_sync(TagResolverProtocol)
+            tag_resolver = container.get_service_sync(TagResolver)
 
             processor = self.get_processor()
             result = processor.get_higher_level_with_context(tag_resolver)
@@ -418,7 +418,9 @@ class Spell(BaseContent):
 
         except Exception:
             # Service container failed, use simple text extraction fallback
-            text = self._extract_simple_text_from_entries(self.higher_level or [])
+            text = self._extract_simple_text_from_entries(
+                self.higher_level or [], skip_section_names=True
+            )
 
         # Remove LaTeX paragraph headers since we want just the content
         import re
@@ -432,8 +434,15 @@ class Spell(BaseContent):
         return text.strip()
 
     @staticmethod
-    def _extract_simple_text_from_entries(entries: list[Any]) -> str:
-        """Extract simple text from entries without processing."""
+    def _extract_simple_text_from_entries(
+        entries: list[Any], skip_section_names: bool = False
+    ) -> str:
+        """Extract simple text from entries without processing.
+
+        Args:
+            entries: List of entry objects to extract text from
+            skip_section_names: If True, don't include names from "entries" type objects
+        """
         if not entries:
             return ""
 
@@ -448,6 +457,16 @@ class Spell(BaseContent):
                 extract_text_recursive(entry_data)
             elif isinstance(entry, dict):
                 # Handle dict entries
+                # Include name if present, unless we're skipping section names for "entries" type
+                if "name" in entry and not (
+                    skip_section_names and entry.get("type") == "entries"
+                ):
+                    text_parts.append(str(entry["name"]))
+
+                # Always include "by" if present (for quote attributions)
+                if "by" in entry:
+                    text_parts.append(str(entry["by"]))
+
                 if "text" in entry:
                     text_parts.append(str(entry["text"]))
                 elif "entries" in entry:
@@ -455,9 +474,9 @@ class Spell(BaseContent):
                     for nested_entry in entry["entries"]:
                         extract_text_recursive(nested_entry)
                 else:
-                    # Try to extract any string values from the dict
-                    for value in entry.values():
-                        if isinstance(value, str):
+                    # Try to extract any string values from the dict (excluding name and by which we already handled)
+                    for key, value in entry.items():
+                        if key not in ("name", "by") and isinstance(value, str):
                             text_parts.append(value)
                         elif isinstance(value, list):
                             for item in value:
@@ -481,7 +500,7 @@ class Spell(BaseContent):
             # Import here to avoid circular dependencies
             from ..container import get_global_container
             from ..result import Error
-            from ..services.protocols import TagResolverProtocol
+            from ..text.tag_resolver import TagResolver
 
             # If context has tag_resolver, use it directly
             if context and hasattr(context, "tag_resolver") and context.tag_resolver:
@@ -495,7 +514,7 @@ class Spell(BaseContent):
             # Try to get tag resolver from service container
 
             container = get_global_container()
-            tag_resolver = container.get_service_sync(TagResolverProtocol)
+            tag_resolver = container.get_service_sync(TagResolver)
 
             result = processor.get_description_with_context(tag_resolver, context)
             if isinstance(result, Error):
@@ -517,7 +536,7 @@ class Spell(BaseContent):
             # Import here to avoid circular dependencies
             from ..container import get_global_container
             from ..result import Error
-            from ..services.protocols import TagResolverProtocol
+            from ..text.tag_resolver import TagResolver
 
             # If context has tag_resolver, use it directly
             if context and hasattr(context, "tag_resolver") and context.tag_resolver:
@@ -531,7 +550,7 @@ class Spell(BaseContent):
             # Try to get tag resolver from service container
 
             container = get_global_container()
-            tag_resolver = container.get_service_sync(TagResolverProtocol)
+            tag_resolver = container.get_service_sync(TagResolver)
 
             result = processor.get_higher_level_with_context(tag_resolver, context)
             if isinstance(result, Error):

@@ -79,7 +79,7 @@ class SpellEntryRenderer(BaseEntryRenderer):
                 content.entries
             )
             higher_level_text = content._extract_simple_text_from_entries(
-                content.higher_level or []
+                content.higher_level or [], skip_section_names=True
             )
 
         # Provide both the spell object and preprocessed fields for compatibility

@@ -1043,10 +1043,10 @@ class Creature(BaseContent):
         try:
             # Try to get tag resolver from service container
             from ..container import get_global_container
-            from ..services.protocols import TagResolverProtocol
+            from ..text.tag_resolver import TagResolver
 
             container = get_global_container()
-            tag_resolver = container.get_service_sync(TagResolverProtocol)
+            tag_resolver = container.get_service_sync(TagResolver)
 
             processor = self.get_processor()
             # Use the processor's senses processing method if available
@@ -1062,8 +1062,16 @@ class Creature(BaseContent):
                     return str(self.senses)
 
         except Exception:
-            # Fallback to formatted senses
-            return self.get_formatted_senses()
+            # Fallback to formatted senses with basic tag stripping
+            formatted_senses = self.get_formatted_senses()
+            if formatted_senses:
+                # Strip basic 5etools tags like {@sense blindsight} -> blindsight
+                import re
+
+                # Simple regex to strip basic tag markup
+                cleaned = re.sub(r"\{@\w+\s+([^}]+)\}", r"\1", formatted_senses)
+                return cleaned
+            return formatted_senses
 
     def get_formatted_languages(self) -> str | None:
         """Get formatted languages list."""
