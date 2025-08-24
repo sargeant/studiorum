@@ -4,6 +4,7 @@ from collections.abc import Iterator
 from typing import Any, Union
 
 from studiorum.core.logging import get_logger
+from studiorum.core.result import Error
 
 from ..entry_registry import ValidationMode, get_registry
 from ..exceptions import EntryProcessingError
@@ -122,7 +123,11 @@ class EntryParser:
                 )
 
                 # Use modern ValidationContext interface
-                self._registry.validate_entry_type(context)
+                validation_result = self._registry.validate_entry_type(context)
+                if isinstance(validation_result, Error):
+                    # Convert to exception to maintain existing behavior
+                    error = validation_result.error
+                    raise error.to_exception()
 
             # Dispatch to specific parsing methods
             if entry_type == "section":

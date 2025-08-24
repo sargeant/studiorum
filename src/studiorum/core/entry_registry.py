@@ -15,12 +15,14 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from studiorum.core.logging import get_logger
 
 from .base_context import ProcessingContext
+from .error_types import UnknownTypeError, create_unknown_type_error
 from .exceptions import (
     EntryProcessingWarning,
     EntryValidationError,
     MalformedEntryError,
     UnknownEntryTypeError,
 )
+from .result import Error, Result, Success
 
 logger = get_logger(__name__)
 
@@ -373,19 +375,19 @@ class EntryTypeRegistry:
         """
         return entry_type in self._all_known_types
 
-    def validate_entry_type(self, context: ValidationContext) -> None:
+    def validate_entry_type(
+        self, context: ValidationContext
+    ) -> Result[None, UnknownTypeError]:
         """Validate an entry type according to the current validation mode.
 
         Args:
             context: ValidationContext containing entry data and validation parameters
 
-        Raises:
-            UnknownEntryTypeError: If validation_mode is STRICT and type is unknown
+        Returns:
+            Success(None) if validation passes or warning is issued
+            Error(UnknownTypeError) if validation fails in strict mode
         """
         entry_type = context.entry_type or "unknown"
-        entry_data = (
-            context.entry_data if isinstance(context.entry_data, dict) else None
-        )
         source = context.source
         parent_name = context.parent_name
         validation_mode = context.validation_mode or self.validation_mode
@@ -397,12 +399,15 @@ class EntryTypeRegistry:
             self._statistics.add_unknown_type(entry_type)
 
             if validation_mode == ValidationMode.STRICT:
-                raise UnknownEntryTypeError(
+                # Create error with available types for better error messages
+                available_types = sorted(list(self._all_known_types))
+                error = create_unknown_type_error(
                     entry_type=entry_type,
-                    entry=entry_data,
+                    available_types=available_types,
                     source=source,
                     parent_name=parent_name,
                 )
+                return Error(error)
             elif validation_mode == ValidationMode.PERMISSIVE:
                 warning_msg = f"Unknown entry type encountered: '{entry_type}'"
                 if source:
@@ -412,8 +417,9 @@ class EntryTypeRegistry:
 
                 warnings.warn(warning_msg, EntryProcessingWarning, stacklevel=3)
                 logger.warning(warning_msg)
-                self._statistics.validation_warnings += 1
-            # SILENT mode does nothing
+
+        return Success(None)
+        # SILENT mode does nothing
 
     def validate_entry_structure(self, context: ValidationContext) -> ValidationResult:
         """Validate basic entry structure using ValidationContext.

@@ -188,7 +188,13 @@ class RecursiveEntryProcessor:
                 )
 
                 # Use modern ValidationContext interface
-                self._registry.validate_entry_type(validation_context)
+                validation_result = self._registry.validate_entry_type(
+                    validation_context
+                )
+                if isinstance(validation_result, Error):
+                    # Convert to exception to maintain existing behavior
+                    error = validation_result.error
+                    raise error.to_exception()
 
             # Dispatch to specific processing methods
             if entry_type == "section":
@@ -1071,7 +1077,7 @@ class RecursiveEntryProcessor:
         return commands[min(depth, len(commands) - 1)]
 
     def _preprocess_attack_abbreviations(self, text: str) -> str:
-        """Preprocess attack abbreviations to match 2024 D&D format.
+        """Preprocess attack abbreviations to match 2024 5e format.
 
         Converts standalone attack abbreviations like 'm +10' to 'Melee Attack Roll: +10'
         based on 5etools attackTagToFull function.
@@ -1126,7 +1132,7 @@ class RecursiveEntryProcessor:
         if not text or not context.metadata.get("tag_resolver"):
             return self._escape_latex(text)
 
-        # Preprocess attack abbreviations (2024 D&D format)
+        # Preprocess attack abbreviations (2024 5e format)
         text = self._preprocess_attack_abbreviations(text)
 
         # Skip obvious non-tag content to avoid parser warnings

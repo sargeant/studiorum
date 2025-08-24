@@ -118,25 +118,32 @@ class TestEntryTypeRegistry:
     def test_validate_entry_type_unknown_strict(self):
         """Test validation of unknown entry types in strict mode."""
         from studiorum.core.entry_registry import ValidationContext
+        from studiorum.core.result import Error
 
         strict_registry = EntryTypeRegistry(ValidationMode.STRICT)
 
         context = ValidationContext(entry_data={}, entry_type="unknownType")
 
-        with pytest.raises(UnknownEntryTypeError) as exc_info:
-            strict_registry.validate_entry_type(context)
+        result = strict_registry.validate_entry_type(context)
 
-        assert exc_info.value.entry_type == "unknownType"
+        # Should return Error result
+        assert isinstance(result, Error)
+        assert result.error.entry_type == "unknownType"
         assert "unknownType" in strict_registry.unknown_types
 
     def test_validate_entry_type_unknown_permissive(self):
         """Test validation of unknown entry types in permissive mode."""
         from studiorum.core.entry_registry import ValidationContext
+        from studiorum.core.result import Success
 
         context = ValidationContext(entry_data={}, entry_type="unknownType")
 
         with pytest.warns(EntryProcessingWarning, match="Unknown entry type"):
-            self.registry.validate_entry_type(context)
+            result = self.registry.validate_entry_type(context)
+
+        # Should return Success result with warning
+        assert isinstance(result, Success)
+        assert result.unwrap() is None
 
         assert "unknownType" in self.registry.unknown_types
         assert self.registry.statistics.entry_counts["unknownType"] == 1
@@ -144,6 +151,7 @@ class TestEntryTypeRegistry:
     def test_validate_entry_type_unknown_silent(self):
         """Test validation of unknown entry types in silent mode."""
         from studiorum.core.entry_registry import ValidationContext
+        from studiorum.core.result import Success
 
         silent_registry = EntryTypeRegistry(ValidationMode.SILENT)
 
@@ -152,13 +160,17 @@ class TestEntryTypeRegistry:
         # Should not raise exception or warning
         with warnings.catch_warnings():
             warnings.simplefilter("error")  # Turn warnings into errors
-            silent_registry.validate_entry_type(context)
+            result = silent_registry.validate_entry_type(context)
 
+        # Should return Success result
+        assert isinstance(result, Success)
+        assert result.unwrap() is None
         assert "unknownType" in silent_registry.unknown_types
 
     def test_validate_entry_type_with_context(self):
         """Test validation with full context information."""
         from studiorum.core.entry_registry import ValidationContext
+        from studiorum.core.result import Success
 
         entry = {"type": "unknownType", "name": "Test"}
 
@@ -170,7 +182,11 @@ class TestEntryTypeRegistry:
         )
 
         with pytest.warns(EntryProcessingWarning) as warning_info:
-            self.registry.validate_entry_type(context)
+            result = self.registry.validate_entry_type(context)
+
+        # Should return Success result
+        assert isinstance(result, Success)
+        assert result.unwrap() is None
 
         warning_msg = str(warning_info[0].message)
         assert "unknownType" in warning_msg
