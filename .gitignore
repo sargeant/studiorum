@@ -127,3 +127,4 @@ docs/_build/
 test*.tex
 debug-loading.tex
 site/
+scratch/
