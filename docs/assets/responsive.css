@@ -53,7 +53,7 @@ h3 { font-size: var(--text-lg); }
 }
 
 /* Override for larger screens handled in theme-components.css */
-@media (max-width: 767px) {
+@media (max-width: 600px) {
   .feature-cards {
     grid-template-columns: 1fr !important;
     gap: var(--space-4);
@@ -152,10 +152,10 @@ td:before {
 }
 
 /* =============================================================================
-   MEDIUM SCREENS - TABLETS (768px+)
+   MEDIUM SCREENS - TABLETS (640px+)
    ============================================================================= */
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .container {
     max-width: 768px;
     padding-left: var(--space-8);
@@ -444,7 +444,7 @@ td:before {
 }
 
 /* Examples showcase responsive behavior */
-@media (max-width: 767px) {
+@media (max-width: 639px) {
   .examples-showcase {
     grid-template-columns: 1fr !important;
     gap: var(--space-4);
@@ -460,7 +460,7 @@ td:before {
   }
 }
 
-@media (min-width: 768px) and (max-width: 1199px) {
+@media (min-width: 640px) and (max-width: 1199px) {
   .examples-showcase {
     grid-template-columns: repeat(2, 1fr);
   }
