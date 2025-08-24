@@ -1036,15 +1036,34 @@ class Creature(BaseContent):
         )
 
     def get_processed_senses(self) -> str | None:
-        """
-        Get senses with 5e.tools markup processed for LaTeX.
+        """Get senses with 5e.tools markup processed for LaTeX using modern service patterns."""
+        if not self.senses:
+            return None
 
-        DEPRECATED: This method uses global services. New code should use
-        the processor pattern with explicit service injection.
-        """
-        from .compatibility import process_creature_senses_legacy
+        try:
+            # Try to get tag resolver from service container
+            from ..container import get_global_container
+            from ..services.protocols import TagResolverProtocol
 
-        return process_creature_senses_legacy(self)
+            container = get_global_container()
+            tag_resolver = container.get_service_sync(TagResolverProtocol)
+
+            processor = self.get_processor()
+            # Use the processor's senses processing method if available
+            if hasattr(processor, "_process_senses_with_tag_resolver"):
+                return processor._process_senses_with_tag_resolver(
+                    self.senses, tag_resolver
+                )
+            else:
+                # Fallback to basic tag processing
+                if isinstance(self.senses, str):
+                    return tag_resolver.process_text(self.senses)
+                else:
+                    return str(self.senses)
+
+        except Exception:
+            # Fallback to formatted senses
+            return self.get_formatted_senses()
 
     def get_formatted_languages(self) -> str | None:
         """Get formatted languages list."""

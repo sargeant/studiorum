@@ -408,15 +408,68 @@ class Item(BaseContent):
         return str(self.value)
 
     def get_description_text(self) -> str:
-        """
-        Extract text from complex entry structures using proper entry processing.
+        """Get item description text using modern service patterns."""
+        processor = self.get_processor()
 
-        DEPRECATED: This method uses global services. New code should use
-        the processor pattern with explicit service injection.
-        """
-        from .compatibility import get_item_description_legacy
+        try:
+            # Try to get tag resolver from service container
+            from ..container import get_global_container
+            from ..result import Error
+            from ..services.protocols import TagResolverProtocol
 
-        return get_item_description_legacy(self)
+            container = get_global_container()
+            tag_resolver = container.get_service_sync(TagResolverProtocol)
+
+            result = processor.get_description_with_context(tag_resolver)
+            if isinstance(result, Error):
+                return ""
+            return result.unwrap()
+
+        except Exception:
+            # Fallback to simple text extraction
+            return self._extract_simple_text_from_entries(self.entries or [])
+
+    @staticmethod
+    def _extract_simple_text_from_entries(entries: list[Any]) -> str:
+        """Extract simple text from entries without processing."""
+        if not entries:
+            return ""
+
+        text_parts = []
+
+        def extract_text_recursive(entry: Any) -> None:
+            if isinstance(entry, str):
+                text_parts.append(entry)
+            elif hasattr(entry, "model_dump"):
+                # For Pydantic models, get the dict representation
+                entry_data = entry.model_dump()
+                extract_text_recursive(entry_data)
+            elif isinstance(entry, dict):
+                # Handle dict entries
+                if "text" in entry:
+                    text_parts.append(str(entry["text"]))
+                elif "entries" in entry:
+                    # Recursively process nested entries
+                    for nested_entry in entry["entries"]:
+                        extract_text_recursive(nested_entry)
+                else:
+                    # Try to extract any string values from the dict
+                    for value in entry.values():
+                        if isinstance(value, str):
+                            text_parts.append(value)
+                        elif isinstance(value, list):
+                            for item in value:
+                                extract_text_recursive(item)
+            elif isinstance(entry, list):
+                for item in entry:
+                    extract_text_recursive(item)
+            else:
+                text_parts.append(str(entry))
+
+        for entry in entries:
+            extract_text_recursive(entry)
+
+        return " ".join(text_parts)
 
     def get_item_metadata_line(self) -> str:
         """Get formatted metadata line (category, type, rarity, attunement)."""

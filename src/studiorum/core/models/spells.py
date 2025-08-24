@@ -302,36 +302,6 @@ class Spell(BaseContent):
 
         return ", ".join(parts)
 
-    def get_description_text(self, context: "RenderingContext | None" = None) -> str:
-        """
-        Extract text from complex entry structures using proper entry processing.
-
-        DEPRECATED: This method uses global services. New code should use
-        the processor pattern with explicit service injection.
-
-        Args:
-            context: Optional rendering context with reference tracking. If None,
-                    creates a default context for backward compatibility.
-        """
-        from .compatibility import get_spell_description_legacy
-
-        return get_spell_description_legacy(self, context)
-
-    def get_higher_level_text(self, context: "RenderingContext | None" = None) -> str:
-        """
-        Extract text from complex higher level entries using proper entry processing.
-
-        DEPRECATED: This method uses global services. New code should use
-        the processor pattern with explicit service injection.
-
-        Args:
-            context: Optional rendering context with reference tracking. If None,
-                    creates a default context for backward compatibility.
-        """
-        from .compatibility import get_spell_higher_level_legacy
-
-        return get_spell_higher_level_legacy(self, context)
-
     # Enhanced formatting methods for the new architecture
     def get_spell_attack_text(self) -> str:
         """Get formatted spell attack or saving throw text."""
@@ -426,8 +396,30 @@ class Spell(BaseContent):
         """Get higher level scaling description text."""
         if not self.higher_level:
             return ""
-        # Use the new proper entry processing
-        text = self.get_higher_level_text()
+
+        # Try modern processor pattern first, fallback to simple text extraction
+        try:
+            # Try to get tag resolver from service container
+            from ..container import get_global_container
+            from ..result import Error
+            from ..services.protocols import TagResolverProtocol
+
+            # Use sync access since this method is sync
+            container = get_global_container()
+            tag_resolver = container.get_service_sync(TagResolverProtocol)
+
+            processor = self.get_processor()
+            result = processor.get_higher_level_with_context(tag_resolver)
+            if isinstance(result, Error):
+                # Service worked but processing failed, use fallback
+                text = self._extract_simple_text_from_entries(self.higher_level or [])
+            else:
+                text = result.unwrap()
+
+        except Exception:
+            # Service container failed, use simple text extraction fallback
+            text = self._extract_simple_text_from_entries(self.higher_level or [])
+
         # Remove LaTeX paragraph headers since we want just the content
         import re
 
@@ -438,6 +430,117 @@ class Spell(BaseContent):
         text = text.replace("\\textbf{At Higher Levels}", "")
         # Clean up extra whitespace
         return text.strip()
+
+    @staticmethod
+    def _extract_simple_text_from_entries(entries: list[Any]) -> str:
+        """Extract simple text from entries without processing."""
+        if not entries:
+            return ""
+
+        text_parts = []
+
+        def extract_text_recursive(entry: Any) -> None:
+            if isinstance(entry, str):
+                text_parts.append(entry)
+            elif hasattr(entry, "model_dump"):
+                # For Pydantic models, get the dict representation
+                entry_data = entry.model_dump()
+                extract_text_recursive(entry_data)
+            elif isinstance(entry, dict):
+                # Handle dict entries
+                if "text" in entry:
+                    text_parts.append(str(entry["text"]))
+                elif "entries" in entry:
+                    # Recursively process nested entries
+                    for nested_entry in entry["entries"]:
+                        extract_text_recursive(nested_entry)
+                else:
+                    # Try to extract any string values from the dict
+                    for value in entry.values():
+                        if isinstance(value, str):
+                            text_parts.append(value)
+                        elif isinstance(value, list):
+                            for item in value:
+                                extract_text_recursive(item)
+            elif isinstance(entry, list):
+                for item in entry:
+                    extract_text_recursive(item)
+            else:
+                text_parts.append(str(entry))
+
+        for entry in entries:
+            extract_text_recursive(entry)
+
+        return " ".join(text_parts)
+
+    def get_description_text(self, context: "RenderingContext | None" = None) -> str:
+        """Get spell description text using modern service patterns."""
+        processor = self.get_processor()
+
+        try:
+            # Import here to avoid circular dependencies
+            from ..container import get_global_container
+            from ..result import Error
+            from ..services.protocols import TagResolverProtocol
+
+            # If context has tag_resolver, use it directly
+            if context and hasattr(context, "tag_resolver") and context.tag_resolver:
+                result = processor.get_description_with_context(
+                    context.tag_resolver, context
+                )
+                if isinstance(result, Error):
+                    return ""
+                return result.unwrap()
+
+            # Try to get tag resolver from service container
+
+            container = get_global_container()
+            tag_resolver = container.get_service_sync(TagResolverProtocol)
+
+            result = processor.get_description_with_context(tag_resolver, context)
+            if isinstance(result, Error):
+                return ""
+            return result.unwrap()
+
+        except Exception:
+            # Fallback to simple text extraction
+            return self._extract_simple_text_from_entries(self.entries)
+
+    def get_higher_level_text(self, context: "RenderingContext | None" = None) -> str:
+        """Get spell higher level text using modern service patterns."""
+        if not self.higher_level:
+            return ""
+
+        processor = self.get_processor()
+
+        try:
+            # Import here to avoid circular dependencies
+            from ..container import get_global_container
+            from ..result import Error
+            from ..services.protocols import TagResolverProtocol
+
+            # If context has tag_resolver, use it directly
+            if context and hasattr(context, "tag_resolver") and context.tag_resolver:
+                result = processor.get_higher_level_with_context(
+                    context.tag_resolver, context
+                )
+                if isinstance(result, Error):
+                    return ""
+                return result.unwrap()
+
+            # Try to get tag resolver from service container
+
+            container = get_global_container()
+            tag_resolver = container.get_service_sync(TagResolverProtocol)
+
+            result = processor.get_higher_level_with_context(tag_resolver, context)
+            if isinstance(result, Error):
+                return ""
+            return result.unwrap()
+
+        except Exception:
+            # Fallback to simple text extraction
+            return self._extract_simple_text_from_entries(self.higher_level or [])
 
     def get_spell_list_classes(self) -> str:
         """Get formatted list of classes that can cast this spell."""

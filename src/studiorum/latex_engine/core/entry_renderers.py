@@ -75,12 +75,10 @@ class SpellEntryRenderer(BaseEntryRenderer):
         else:
             # Fallback for contexts without tag_resolver - use simple text extraction directly
             # This avoids the complexity of service container initialization in test environments
-            from studiorum.core.models.compatibility import (
-                _extract_simple_text_from_entries,
+            description_text = content._extract_simple_text_from_entries(
+                content.entries
             )
-
-            description_text = _extract_simple_text_from_entries(content.entries)
-            higher_level_text = _extract_simple_text_from_entries(
+            higher_level_text = content._extract_simple_text_from_entries(
                 content.higher_level or []
             )
 
