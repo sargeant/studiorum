@@ -59,6 +59,12 @@ class StudiorumLogger:
                 stacklevel=2,
             )
 
+        # Debug the send_to_logfire logic
+        if debug:
+            print(f"🐛 DEBUG: enable_telemetry={enable_telemetry}")
+            print(f"🐛 DEBUG: logfire_token present={logfire_token is not None}")
+            print(f"🐛 DEBUG: send_to_logfire={send_to_logfire}")
+
         # Configure Logfire
         logfire.configure(
             token=logfire_token,  # Pass token explicitly
@@ -89,11 +95,25 @@ class StudiorumLogger:
                 enable_logfire=True,
             )
 
-        # Instrument key libraries
+        # Instrument key libraries (optional)
         if enable_telemetry:
-            logfire.instrument_httpx()
-            logfire.instrument_requests()
-            logfire.instrument_system_metrics()
+            try:
+                logfire.instrument_httpx()
+            except Exception as e:
+                if debug:
+                    print(f"🐛 DEBUG: httpx instrumentation skipped: {e}")
+
+            try:
+                logfire.instrument_requests()
+            except Exception as e:
+                if debug:
+                    print(f"🐛 DEBUG: requests instrumentation skipped: {e}")
+
+            try:
+                logfire.instrument_system_metrics()
+            except Exception as e:
+                if debug:
+                    print(f"🐛 DEBUG: system metrics instrumentation skipped: {e}")
 
         cls._initialized = True
         logfire.info(
@@ -140,7 +160,16 @@ def get_logger(name: str) -> Any:
     if not StudiorumLogger._initialized:
         debug = os.getenv("STUDIORUM_DEBUG", "false").lower() == "true"
         environment = os.getenv("STUDIORUM_ENVIRONMENT", "local")
-        StudiorumLogger.initialize(debug=debug, environment=environment)
+
+        # Check for telemetry environment variables
+        enable_telemetry = (
+            os.getenv("STUDIORUM_TELEMETRY", "false").lower() == "true"
+            or os.getenv("STUDIORUM_OBSERVABILITY", "false").lower() == "true"
+        )
+
+        StudiorumLogger.initialize(
+            debug=debug, environment=environment, enable_telemetry=enable_telemetry
+        )
 
     # Return Logfire's logger - it handles module naming internally
     return logfire
