@@ -1,0 +1,486 @@
+/* Studiorum Documentation - Responsive CSS
+ * Generated from private/docs-mkdocs.md plan on 2025-08-24
+ * Mobile-first responsive design system
+ */
+
+/* =============================================================================
+   MOBILE-FIRST BASE STYLES (320px+)
+   ============================================================================= */
+
+/* Base mobile layout */
+.container {
+  width: 100%;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Mobile typography adjustments */
+h1 { font-size: var(--text-2xl); }
+h2 { font-size: var(--text-xl); }
+h3 { font-size: var(--text-lg); }
+
+.hero-title {
+  font-size: var(--text-3xl);
+  line-height: 1.1;
+}
+
+/* Mobile spacing */
+.hero-banner {
+  padding: var(--space-8) var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+/* Mobile navigation */
+.navbar-collapse {
+  background: var(--studiorum-shadow);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-2);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Feature Cards - Mobile First Approach */
+/* Base: Single column for mobile, allow desktop override */
+.feature-cards {
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  margin: var(--space-6) 0;
+}
+
+.feature-cards > * {
+  padding: var(--space-4);
+}
+
+/* Override for larger screens handled in theme-components.css */
+@media (max-width: 767px) {
+  .feature-cards {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-4);
+    margin: var(--space-6) 0;
+  }
+}
+
+/* Mobile buttons */
+.btn-primary,
+.btn-secondary,
+.btn-accent,
+.btn-outline {
+  width: 100%;
+  text-align: center;
+  margin-bottom: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+}
+
+/* Mobile code blocks */
+pre {
+  font-size: var(--text-sm);
+  padding: var(--space-3);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile tables */
+table {
+  font-size: var(--text-sm);
+  overflow-x: auto;
+  display: block;
+  white-space: nowrap;
+}
+
+thead, tbody, th, td, tr {
+  display: block;
+}
+
+th {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+
+tr {
+  border: 1px solid var(--studiorum-gold);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+  padding: var(--space-3);
+  position: relative;
+}
+
+td {
+  border: none;
+  position: relative;
+  padding-left: 30%;
+  white-space: nowrap;
+  text-align: left;
+}
+
+td:before {
+  content: attr(data-label) ": ";
+  position: absolute;
+  left: var(--space-2);
+  font-weight: 600;
+  color: var(--studiorum-deep-purple);
+}
+
+/* =============================================================================
+   SMALL SCREENS (480px+)
+   ============================================================================= */
+
+@media (min-width: 480px) {
+  .container {
+    max-width: 480px;
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+
+  .hero-title {
+    font-size: var(--text-4xl);
+  }
+
+  .hero-banner {
+    padding: var(--space-12) var(--space-6);
+  }
+
+  /* Allow some buttons to be inline */
+  .btn-group .btn-primary,
+  .btn-group .btn-secondary,
+  .btn-group .btn-accent {
+    width: auto;
+    display: inline-block;
+    margin-right: var(--space-3);
+  }
+}
+
+/* =============================================================================
+   MEDIUM SCREENS - TABLETS (768px+)
+   ============================================================================= */
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+
+  /* Tablet typography */
+  h1 { font-size: var(--text-3xl); }
+  h2 { font-size: var(--text-2xl); }
+  h3 { font-size: var(--text-xl); }
+
+  /* Tablet hero */
+  .hero-banner {
+    padding: var(--space-16) var(--space-8);
+    margin-bottom: var(--space-12);
+  }
+
+  /* Tablet navigation - show sidebar */
+  .wy-nav-side {
+    display: block;
+    width: 300px;
+  }
+
+  .wy-nav-content-wrap {
+    margin-left: 300px;
+  }
+
+  /* Two-column feature cards on tablet and up */
+  .feature-cards {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--space-6);
+  }
+
+  /* Tablet buttons - restore normal sizing */
+  .btn-primary,
+  .btn-secondary,
+  .btn-accent,
+  .btn-outline {
+    width: auto;
+    display: inline-block;
+    margin-right: var(--space-3);
+    margin-bottom: var(--space-2);
+  }
+
+  /* Tablet tables - restore normal layout */
+  table, thead, tbody, th, td, tr {
+    display: table-row-group;
+  }
+
+  table {
+    display: table;
+    overflow-x: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tbody {
+    display: table-row-group;
+  }
+
+  tr {
+    display: table-row;
+    border: none;
+    margin-bottom: 0;
+    padding: 0;
+  }
+
+  th, td {
+    display: table-cell;
+    position: static;
+    padding: var(--space-3) var(--space-4);
+    white-space: normal;
+  }
+
+  th {
+    top: auto;
+    left: auto;
+  }
+
+  td:before {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   LARGE SCREENS - LAPTOPS (1024px+)
+   ============================================================================= */
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+
+  /* Large screen navigation enhancements */
+  .navbar-nav {
+    display: flex;
+    align-items: center;
+  }
+
+  .navbar-nav > li {
+    margin-right: var(--space-2);
+  }
+
+  /* Wider sidebar for better content organization */
+  .wy-nav-side {
+    width: 320px;
+  }
+
+  .wy-nav-content-wrap {
+    margin-left: 320px;
+  }
+
+  /* Enhanced feature cards with better spacing - maintain 2x2 */
+  .feature-cards {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--space-8);
+  }
+
+  /* Better code block presentation */
+  pre {
+    font-size: var(--text-base);
+    padding: var(--space-6);
+  }
+}
+
+/* =============================================================================
+   EXTRA LARGE SCREENS - DESKTOPS (1200px+)
+   ============================================================================= */
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1200px;
+  }
+
+  /* Desktop typography enhancements */
+  .hero-title {
+    font-size: clamp(var(--text-4xl), 6vw, 4rem);
+  }
+
+  /* Maximum content width for readability */
+  .content-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  /* Desktop hero with maximum impact */
+  .hero-banner {
+    padding: var(--space-20) var(--space-12);
+  }
+
+  /* Three-column layout for feature cards on very wide screens */
+  .feature-cards-wide {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* =============================================================================
+   ULTRA WIDE SCREENS (1440px+)
+   ============================================================================= */
+
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1400px;
+  }
+
+  /* Ultra-wide specific optimizations */
+  .wy-nav-content-wrap {
+    max-width: calc(100% - 400px);
+  }
+
+  /* Expanded sidebar for ultra-wide screens */
+  .wy-nav-side {
+    width: 400px;
+  }
+
+  .wy-nav-content-wrap {
+    margin-left: 400px;
+  }
+}
+
+/* =============================================================================
+   PRINT STYLES
+   ============================================================================= */
+
+@media print {
+  /* Hide navigation and interactive elements */
+  .navbar,
+  .wy-nav-side,
+  .btn-primary,
+  .btn-secondary,
+  .btn-accent,
+  .btn-outline {
+    display: none !important;
+  }
+
+  /* Optimize layout for printing */
+  .wy-nav-content-wrap {
+    margin-left: 0 !important;
+  }
+
+  .container {
+    max-width: none;
+    width: 100%;
+    padding: 0;
+  }
+
+  /* Optimize typography for print */
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+
+  h1 { font-size: 18pt; }
+  h2 { font-size: 16pt; }
+  h3 { font-size: 14pt; }
+
+  /* Ensure page breaks */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+
+  pre, table {
+    page-break-inside: avoid;
+  }
+
+  /* Remove colors and effects for better printing */
+  * {
+    background: white !important;
+    color: black !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* =============================================================================
+   ACCESSIBILITY & SPECIAL REQUIREMENTS
+   ============================================================================= */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --studiorum-deep-purple: #000080;
+    --studiorum-gold: #FFD700;
+    --studiorum-shadow: #000000;
+    --studiorum-parchment: #FFFFFF;
+  }
+
+  .feature-cards > *,
+  .feature-cards > li {
+    border-width: 3px;
+    background: white !important;
+    color: black !important;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-accent {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Low data mode optimizations */
+@media (prefers-reduced-data: reduce) {
+  .hero-banner::before,
+  .hero-banner::after {
+    background: var(--studiorum-deep-purple) !important;
+  }
+
+  .feature-cards > * {
+    background: var(--studiorum-shadow) !important;
+  }
+}
+
+/* Examples showcase responsive behavior */
+@media (max-width: 767px) {
+  .examples-showcase {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-4);
+  }
+
+  .example-card {
+    padding: var(--space-4);
+  }
+
+  .example-code pre {
+    padding: var(--space-3) !important;
+    font-size: 0.85em;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .examples-showcase {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* =============================================================================
+   LANDSCAPE ORIENTATION SPECIFIC (MOBILE)
+   ============================================================================= */
+
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .hero-banner {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .hero-title {
+    font-size: var(--text-2xl);
+  }
+
+  /* Compress vertical spacing in landscape mode */
+  .space-y-8 > * + * { margin-top: var(--space-4); }
+  .space-y-6 > * + * { margin-top: var(--space-3); }
+  .space-y-4 > * + * { margin-top: var(--space-2); }
+}

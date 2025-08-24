@@ -1,0 +1,134 @@
+# Studiorum Documentation - MkDocs Configuration
+# Generated from private/docs-mkdocs.md plan on 2025-08-24
+
+site_name: Studiorum
+site_description: D&D 5e content processing toolkit - LaTeX/PDF generation and MCP integration
+site_url: https://studiorum.dev
+repo_url: https://github.com/sargeant/studiorum
+repo_name: studiorum
+edit_uri: edit/develop/docs/
+docs_dir: docs
+
+theme:
+  name: cinder
+  custom_dir: docs/overrides  # Custom visual theme
+
+# Visual Design System - Fantasy-Themed with AI Accents
+extra_css:
+  - assets/theme-core.css        # Core color scheme & typography
+  - assets/theme-components.css  # Cards, navigation, UI elements
+  - assets/ai-accents.css        # Subtle AI-influenced effects
+  - assets/responsive.css        # Mobile-first responsive design
+  - https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Cabin:ital,wght@0,400;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap
+  - https://cdn.jsdelivr.net/npm/@githubnext/monaspace@1.000.0/fonts/webfonts/MonaspaceNeon/MonaspaceNeon.css
+
+extra_javascript:
+  - assets/theme-interactions.js # Hover effects, animations
+  - assets/ai-enhancements.js    # Subtle tech/AI visual elements
+  - https://unpkg.com/mermaid@11/dist/mermaid.min.js
+  - assets/mermaid-init.js       # Mermaid initialization and theming
+
+# Enhanced Cinder Configuration for Visual Theme
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/sargeant/studiorum
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/studiorum/
+  studiorum_theme:
+    primary_color: "#4a148c"      # Deep purple
+    accent_color: "#ffc107"       # Gold
+    ai_accent: "#00e5ff"          # Cyan AI glow
+    enable_effects: true          # Subtle visual effects
+    typography_style: "elegant"   # Playfair Display headers, readable body
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - mkdocstrings:
+      enabled: true
+      default_handler: python
+      handlers:
+        python:
+          options:
+            # Documentation
+            show_source: false
+            show_signature_annotations: true
+            separate_signature: true
+            merge_init_into_class: true
+            # Filtering
+            filters: ["!^_", "!^__pycache__"]
+            inherited_members: true
+            members_order: source
+            # Rendering
+            docstring_style: numpy
+            docstring_options:
+              ignore_init_summary: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            # Extra options (moved to fix deprecation warning)
+            extra:
+              show_private: false
+
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.highlight:
+      use_pygments: true
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: sargeant
+      repo: studiorum
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Navigation Structure - Two-Tab Approach
+nav:
+  - Studiorum: index.md
+  - User Guide:
+    - user-guide/index.md
+    - Quick Start: user-guide/quick-start.md
+    - Converting Content: user-guide/converting-content.md
+    - MCP Integration: user-guide/mcp-setup.md
+    - Troubleshooting: user-guide/troubleshooting.md
+    - CLI Reference: user-guide/cli-reference.md
+  - Developer Guide:
+    - developer-guide/index.md
+    - Architecture: developer-guide/architecture.md
+    - Getting Started: developer-guide/getting-started.md
+    - API Reference:
+      - developer-guide/api/index.md
+      - Core Services: developer-guide/api/services.md
+      - Models: developer-guide/api/models.md
+      - Renderers: developer-guide/api/renderers.md
+    - AI Agent Development: developer-guide/ai-agents.md
+    - Contributing: developer-guide/contributing.md
+    - Model Usage: developer-guide/models.md

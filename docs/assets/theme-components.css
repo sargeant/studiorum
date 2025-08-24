@@ -1,0 +1,551 @@
+/* Studiorum Documentation - Component Theme CSS
+ * Generated from private/docs-mkdocs.md plan on 2025-08-24
+ * Navigation, Cards, Buttons, and UI Components
+ */
+
+/* =============================================================================
+   NAVIGATION COMPONENTS
+   ============================================================================= */
+
+/* Navigation Tabs - Primary Visual Element */
+.wy-nav-content-wrap .wy-nav-content {
+  max-width: none;
+}
+
+/* Custom Navigation Tabs Styling for Cinder Theme */
+.navbar, .navbar-default {
+  background: linear-gradient(135deg, var(--studiorum-deep-purple), var(--studiorum-shadow)) !important;
+  border-bottom: 2px solid var(--studiorum-gold);
+  box-shadow: 0 2px 8px rgba(74, 20, 140, 0.3);
+  border: none;
+  /* Ensure full width background */
+  width: 100% !important;
+  max-width: none !important;
+  /* Ensure background extends to viewport edges */
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+/* Ensure navbar container extends full width */
+.navbar .container,
+.navbar .container-fluid,
+.navbar-header,
+.navbar-collapse {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Override any theme-specific navbar constraints */
+nav.navbar,
+.navbar-fixed-top,
+.navbar-static-top {
+  background: linear-gradient(135deg, var(--studiorum-deep-purple), var(--studiorum-shadow)) !important;
+  width: 100vw !important;
+  max-width: none !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 !important;
+  position: relative !important;
+}
+
+/* Force navigation to stay on single line */
+.navbar-nav {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+}
+
+.navbar-nav > li {
+  display: inline-block !important;
+  float: none !important;
+  margin-right: var(--space-1) !important;
+}
+
+/* Navigation link styling - combined */
+.navbar-nav > li > a {
+  color: var(--studiorum-parchment) !important;
+  transition: all var(--transition-base);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm) !important;  /* Much smaller: 1.6rem instead of 2.4rem */
+  padding: var(--space-3) var(--space-4);
+  line-height: 1.4 !important;  /* Tighter line height for nav */
+  white-space: nowrap !important;  /* Prevent text wrapping */
+  display: inline-block !important;
+}
+
+/* Navbar Brand/Site Title - Match other nav elements */
+.navbar-brand,
+.navbar .navbar-brand,
+.site-title,
+.navbar-header a {
+  color: var(--studiorum-parchment) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  font-size: var(--text-sm) !important;  /* Same smaller size as nav items */
+  text-shadow: none !important;
+  line-height: 1.4 !important;  /* Consistent line height */
+}
+
+.navbar-nav > li > a:hover,
+.navbar-nav > li > a:focus {
+  color: var(--studiorum-gold) !important;
+  text-shadow: 0 0 8px var(--studiorum-gold);
+  background-color: rgba(255, 193, 7, 0.1) !important;
+}
+
+.navbar-nav > .active > a {
+  background-color: rgba(255, 193, 7, 0.2) !important;
+  color: var(--studiorum-gold) !important;
+}
+
+/* Mobile navigation adjustments */
+@media (max-width: 767px) {
+  .navbar-nav > li > a {
+    font-size: var(--text-xs) !important;  /* Even smaller on mobile: 1.3rem */
+    padding: var(--space-2) var(--space-3) !important;  /* Reduced padding */
+  }
+
+  .navbar-brand,
+  .navbar .navbar-brand,
+  .site-title,
+  .navbar-header a {
+    font-size: var(--text-xs) !important;  /* Consistent mobile sizing */
+  }
+
+  /* Allow wrapping on very small screens if needed */
+  .navbar-nav {
+    flex-wrap: wrap !important;
+  }
+
+  .navbar-nav > li {
+    margin-right: 0 !important;
+    margin-bottom: var(--space-1) !important;
+  }
+}
+
+/* Sidebar Navigation */
+.wy-nav-side {
+  background: linear-gradient(180deg,
+    rgba(26, 10, 46, 0.95),
+    rgba(74, 20, 140, 0.9));
+}
+
+.wy-menu-vertical a {
+  color: var(--studiorum-parchment);
+  transition: all var(--transition-base);
+}
+
+.wy-menu-vertical a:hover {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: var(--studiorum-gold);
+}
+
+/* =============================================================================
+   CARD COMPONENTS - MAIN NAVIGATION ELEMENT
+   ============================================================================= */
+
+/* Feature Cards Grid Layout - Simplified and Robust */
+.feature-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Fixed 2x2 grid for desktop */
+  gap: var(--space-6);
+  margin: var(--space-8) 0;
+  /* Ensure grid stays stable regardless of JavaScript */
+  position: relative;
+  z-index: 1;
+}
+
+.feature-card {
+  /* Grid item - no special reset needed for divs */
+}
+
+/* Mobile override - single column */
+@media (max-width: 767px) {
+  .feature-cards {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}
+
+/* Examples showcase layout */
+.examples-showcase {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-6);
+  margin: var(--space-8) 0;
+}
+
+.example-card {
+  background: linear-gradient(135deg,
+    rgba(253, 241, 220, 0.15),
+    rgba(253, 241, 220, 0.05));
+  border: 1px solid rgba(230, 154, 40, 0.3);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  transition: all 0.3s ease;
+}
+
+.example-card:hover {
+  border-color: rgba(230, 154, 40, 0.5);
+  box-shadow: 0 4px 12px rgba(230, 154, 40, 0.15);
+  transform: translateY(-2px);
+}
+
+.example-card h4 {
+  margin: 0 0 var(--space-4) 0;
+  color: var(--studiorum-deep-purple);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.example-code {
+  margin: 0;
+}
+
+/* Ensure code blocks in examples have no white background */
+.example-code pre,
+.example-code code {
+  background: linear-gradient(135deg,
+    rgba(253, 241, 220, 0.95),
+    rgba(253, 241, 220, 0.9)) !important;
+  color: var(--studiorum-shadow) !important;
+  border: none !important;
+  margin: 0 !important;
+}
+
+.example-code pre {
+  padding: var(--space-4) !important;
+  border-radius: var(--radius-md) !important;
+  /* Remove any white background overrides */
+  background: linear-gradient(135deg,
+    rgba(253, 241, 220, 0.95),
+    rgba(253, 241, 220, 0.9)) !important;
+}
+
+/* Individual Feature Card Styling - Improved Contrast */
+.feature-card {
+  background: linear-gradient(135deg,
+    rgba(248, 246, 242, 0.98),
+    rgba(248, 246, 242, 0.95)) !important;
+  border: 2px solid var(--studiorum-gold);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  color: var(--studiorum-shadow);
+  text-decoration: none;
+  transition: all var(--transition-base);
+  box-shadow:
+    0 4px 12px rgba(74, 20, 140, 0.2),
+    inset 0 1px 0 rgba(255, 193, 7, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Card Hover Effects */
+.feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 20px rgba(74, 20, 140, 0.3),
+    0 0 0 1px var(--studiorum-deep-purple);
+  border-color: var(--studiorum-deep-purple);
+}
+
+/* Card Headers - High contrast for readability */
+.feature-card h3,
+.feature-card h4,
+.feature-card strong {
+  color: var(--studiorum-deep-purple) !important;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-3);
+  font-weight: 700;
+  text-shadow: none;
+}
+
+/* Card Content - High contrast text */
+.feature-card p {
+  color: var(--studiorum-shadow);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  margin-bottom: var(--space-4);
+  opacity: 0.9;
+}
+
+/* Card Icons */
+.feature-card .card-icon {
+  font-size: var(--text-3xl);
+  color: var(--studiorum-cyan-glow);
+  margin-bottom: var(--space-3);
+  display: block;
+}
+
+/* =============================================================================
+   BUTTON COMPONENTS
+   ============================================================================= */
+
+/* Primary Buttons */
+.btn-primary, .btn.btn-primary {
+  background: linear-gradient(135deg, var(--studiorum-deep-purple), var(--studiorum-shadow));
+  border: 1px solid var(--studiorum-gold);
+  color: var(--studiorum-parchment);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-weight: 600;
+  text-transform: none;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary:hover,
+.btn.btn-primary:hover {
+  background: linear-gradient(135deg, var(--studiorum-gold), #ffb300);
+  color: var(--studiorum-shadow);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+}
+
+/* Secondary Buttons */
+.btn-secondary {
+  background: transparent;
+  border: 2px solid var(--studiorum-gold);
+  color: var(--studiorum-gold);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-weight: 600;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-secondary:hover {
+  background: var(--studiorum-gold);
+  color: var(--studiorum-shadow);
+  box-shadow: 0 0 16px rgba(255, 193, 7, 0.6);
+}
+
+/* Accent Buttons */
+.btn-accent {
+  background: linear-gradient(135deg, var(--studiorum-cyan-glow), var(--studiorum-circuit-blue));
+  border: none;
+  color: var(--studiorum-shadow);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-weight: 600;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-accent:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.4);
+}
+
+/* Outline Buttons */
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--studiorum-parchment);
+  color: var(--studiorum-parchment);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 500;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-outline:hover {
+  background: var(--studiorum-parchment);
+  color: var(--studiorum-shadow);
+}
+
+/* =============================================================================
+   CONTENT CONTAINERS
+   ============================================================================= */
+
+/* Hero Banner */
+.hero-banner {
+  text-align: center;
+  padding: var(--space-16) var(--space-8);
+  margin-bottom: var(--space-12);
+  border-radius: var(--radius-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg,
+    var(--studiorum-deep-purple),
+    var(--studiorum-shadow));
+  opacity: 0.95;  /* Increased opacity for better contrast */
+  z-index: -1;
+}
+
+.hero-title {
+  font-size: clamp(var(--text-3xl), 5vw, var(--text-4xl));
+  color: var(--studiorum-gold) !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8) !important;  /* Enhanced shadow for better contrast */
+  margin-bottom: var(--space-4);
+  font-weight: 700 !important;
+}
+
+.hero-subtitle {
+  font-size: var(--text-xl);
+  color: var(--studiorum-parchment) !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7) !important;  /* Add shadow for readability */
+  margin-bottom: var(--space-3);
+  font-family: var(--font-display);
+}
+
+.hero-description {
+  font-size: var(--text-base);
+  color: var(--studiorum-parchment) !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7) !important;  /* Add shadow for readability */
+  max-width: 600px;
+  margin: 0 auto var(--space-8);
+  opacity: 1.0;  /* Remove opacity reduction for better readability */
+}
+
+/* Getting Started CTA */
+.getting-started-cta {
+  text-align: center;
+  padding: var(--space-8);
+  background: linear-gradient(135deg,
+    rgba(255, 193, 7, 0.1),
+    rgba(74, 20, 140, 0.05));
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: var(--radius-xl);
+  margin: var(--space-12) 0;
+}
+
+/* =============================================================================
+   ADMONITIONS & CALLOUTS
+   ============================================================================= */
+
+/* Info callouts */
+.admonition.info {
+  background: linear-gradient(135deg,
+    rgba(74, 20, 140, 0.1),
+    rgba(0, 229, 255, 0.05));
+  border-left: 4px solid var(--studiorum-cyan-glow);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+/* Warning callouts */
+.admonition.warning {
+  background: linear-gradient(135deg,
+    rgba(255, 152, 0, 0.1),
+    rgba(255, 193, 7, 0.05));
+  border-left: 4px solid var(--studiorum-warning);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+/* Success callouts */
+.admonition.success {
+  background: linear-gradient(135deg,
+    rgba(76, 175, 80, 0.1),
+    rgba(76, 175, 80, 0.05));
+  border-left: 4px solid var(--studiorum-success);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+/* =============================================================================
+   TABLE STYLING
+   ============================================================================= */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-6) 0;
+  background: var(--studiorum-parchment);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+thead {
+  background: linear-gradient(135deg, var(--studiorum-deep-purple), var(--studiorum-shadow));
+  color: var(--studiorum-parchment);
+}
+
+th {
+  padding: var(--space-4);
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-align: left;
+}
+
+td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgba(74, 20, 140, 0.1);
+}
+
+tr:hover {
+  background-color: rgba(74, 20, 140, 0.05);
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN HOOKS
+   ============================================================================= */
+
+/* Large screens */
+@media (min-width: 1200px) {
+  .hero-banner {
+    padding: var(--space-20) var(--space-12);
+  }
+
+  /* Keep 2x2 grid on large screens */
+  .feature-cards {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Medium screens - maintain 2x2 if space allows */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .feature-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+}
+
+/* Small screens - single column */
+@media (max-width: 767px) {
+  .hero-banner {
+    padding: var(--space-12) var(--space-4);
+  }
+
+  .feature-cards {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-4);
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-accent {
+    display: block;
+    text-align: center;
+    margin-bottom: var(--space-3);
+  }
+}

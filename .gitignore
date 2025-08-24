@@ -126,3 +126,4 @@ docs/_build/
 .test-performance-*.json
 test*.tex
 debug-loading.tex
+site/
