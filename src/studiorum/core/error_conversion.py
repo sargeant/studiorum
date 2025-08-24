@@ -24,12 +24,9 @@ from studiorum.core.error_types import (
     create_processing_error,
     create_validation_error,
 )
-from studiorum.core.exceptions import (
-    DnD5eError,
-    EntryProcessingError,
-    EntryValidationError,
-    UnknownEntryTypeError,
-)
+
+# Legacy exception imports removed in Phase 3
+# Exception classes are no longer used - only Result patterns
 from studiorum.core.result import Error, Result, Success, is_error_result
 
 T = TypeVar("T")
@@ -38,52 +35,19 @@ E = TypeVar("E", bound=BaseError)
 
 def exception_to_error(exception: Exception, source: str | None = None) -> BaseError:
     """
-    Convert an exception to a structured error.
+    Convert a generic exception to a structured error.
+
+    This function is maintained for compatibility with external code that still
+    raises generic exceptions. All internal code should use Result patterns.
 
     Args:
         exception: Exception to convert
         source: Source location for context
 
     Returns:
-        Structured error appropriate for the exception type
+        Structured error for the exception
     """
-    if isinstance(exception, EntryValidationError):
-        return create_validation_error(
-            message=str(exception),
-            field_name=exception.field_name,
-            entry_type=exception.entry_type,
-            source=source or exception.source,
-            parent_name=exception.parent_name,
-            severity=ErrorSeverity.ERROR,
-        )
-
-    if isinstance(exception, EntryProcessingError):
-        return create_processing_error(
-            message=str(exception),
-            entry_type=exception.entry_type,
-            source=source or exception.source,
-            parent_name=exception.parent_name,
-            severity=ErrorSeverity.ERROR,
-        )
-
-    if isinstance(exception, UnknownEntryTypeError):
-        return create_processing_error(
-            message=str(exception),
-            entry_type=exception.entry_type,
-            source=source or exception.source,
-            parent_name=exception.parent_name,
-            severity=ErrorSeverity.ERROR,
-        )
-
-    if isinstance(exception, DnD5eError):
-        return ProcessingError(
-            message=str(exception),
-            category=ErrorCategory.PROCESSING,
-            severity=ErrorSeverity.ERROR,
-            source=source,
-        )
-
-    # Generic exception conversion
+    # Generic exception conversion for any remaining exceptions
     return ProcessingError(
         message=f"Unexpected error: {exception}",
         category=ErrorCategory.SYSTEM_ERROR,
@@ -136,9 +100,10 @@ def wrap_exception_as_result[T](
 
 def unwrap_or_raise[T](result: Result[T, BaseError]) -> T:
     """
-    Unwrap a Result or convert error back to exception.
+    Unwrap a Result or raise a RuntimeError for legacy compatibility.
 
-    Useful for gradually migrating code that expects exceptions.
+    NOTE: This function is deprecated. New code should handle Result patterns directly.
+    It's maintained only for backward compatibility during the migration period.
 
     Args:
         result: Result to unwrap
@@ -147,14 +112,14 @@ def unwrap_or_raise[T](result: Result[T, BaseError]) -> T:
         Success value
 
     Raises:
-        Exception converted from error
+        RuntimeError with error details
 
     Example:
         ```python
-        # Use Result internally but provide exception interface
+        # DEPRECATED - Use Result patterns directly instead
         def legacy_api(data: dict) -> ProcessedData:
             result = new_result_based_function(data)
-            return unwrap_or_raise(result)  # Raises on error
+            return unwrap_or_raise(result)  # Raises RuntimeError on error
         ```
     """
     if result.is_success():
@@ -162,7 +127,8 @@ def unwrap_or_raise[T](result: Result[T, BaseError]) -> T:
     else:
         if is_error_result(result):
             error = result.error
-            raise error.to_exception()
+            # Convert structured error to RuntimeError for legacy compatibility
+            raise RuntimeError(f"Operation failed: {error.message}")
         else:
             # This should not happen, but handle gracefully
             raise RuntimeError("Result is neither success nor error")

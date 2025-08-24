@@ -12,12 +12,8 @@ from studiorum.core.entry_registry import (
     get_registry,
     set_validation_mode,
 )
-from studiorum.core.exceptions import (
-    EntryProcessingWarning,
-    EntryValidationError,
-    MalformedEntryError,
-    UnknownEntryTypeError,
-)
+from studiorum.core.exceptions import EntryProcessingWarning
+from studiorum.core.result import Error, Success
 from tests.test_helpers import reset_test_environment
 
 
@@ -118,7 +114,6 @@ class TestEntryTypeRegistry:
     def test_validate_entry_type_unknown_strict(self):
         """Test validation of unknown entry types in strict mode."""
         from studiorum.core.entry_registry import ValidationContext
-        from studiorum.core.result import Error
 
         strict_registry = EntryTypeRegistry(ValidationMode.STRICT)
 
@@ -134,7 +129,6 @@ class TestEntryTypeRegistry:
     def test_validate_entry_type_unknown_permissive(self):
         """Test validation of unknown entry types in permissive mode."""
         from studiorum.core.entry_registry import ValidationContext
-        from studiorum.core.result import Success
 
         context = ValidationContext(entry_data={}, entry_type="unknownType")
 
@@ -151,7 +145,6 @@ class TestEntryTypeRegistry:
     def test_validate_entry_type_unknown_silent(self):
         """Test validation of unknown entry types in silent mode."""
         from studiorum.core.entry_registry import ValidationContext
-        from studiorum.core.result import Success
 
         silent_registry = EntryTypeRegistry(ValidationMode.SILENT)
 
@@ -170,7 +163,6 @@ class TestEntryTypeRegistry:
     def test_validate_entry_type_with_context(self):
         """Test validation with full context information."""
         from studiorum.core.entry_registry import ValidationContext
-        from studiorum.core.result import Success
 
         entry = {"type": "unknownType", "name": "Test"}
 

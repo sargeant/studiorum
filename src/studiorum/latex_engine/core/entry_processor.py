@@ -4,10 +4,10 @@ import asyncio
 from typing import TYPE_CHECKING, Any
 
 from studiorum.core.entry_registry import ValidationMode, get_registry
-from studiorum.core.exceptions import EntryProcessingError
+from studiorum.core.error_types import create_processing_error
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import ContentType
-from studiorum.core.result import Error
+from studiorum.core.result import Error, Result, Success
 from studiorum.core.types import EntryData, ProcessingContext
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -71,6 +71,10 @@ class RecursiveEntryProcessor:
 
         Returns:
             List of processed LaTeX strings
+
+        Note:
+            This method maintains the list[str] interface for backward compatibility
+            while using Result patterns internally for error handling.
         """
         processed = []
 
@@ -79,7 +83,8 @@ class RecursiveEntryProcessor:
                 # Plain text entry - process tags
                 processed.append(self._process_text_with_tags(entry, context))
             elif isinstance(entry, dict):
-                processed.append(self.process_entry_dict(entry, context))
+                result = self.process_entry_dict(entry, context)
+                processed.append(result)
             else:
                 # Handle Pydantic models by converting to dict
                 import os
@@ -98,7 +103,8 @@ class RecursiveEntryProcessor:
                                 f"Converting Pydantic model {type(entry).__name__} to dict"
                             )
                         entry_dict = entry.model_dump(exclude_none=True)
-                        processed.append(self.process_entry_dict(entry_dict, context))
+                        result = self.process_entry_dict(entry_dict, context)
+                        processed.append(result)
                     # Check if it's a dataclass
                     elif hasattr(entry, "__dataclass_fields__"):
                         import dataclasses
@@ -108,7 +114,8 @@ class RecursiveEntryProcessor:
                                 f"Converting dataclass {type(entry).__name__} to dict"
                             )
                         entry_dict = dataclasses.asdict(entry)
-                        processed.append(self.process_entry_dict(entry_dict, context))
+                        result = self.process_entry_dict(entry_dict, context)
+                        processed.append(result)
                     else:
                         # Check if strict mode is enabled
                         if os.getenv(
@@ -118,9 +125,19 @@ class RecursiveEntryProcessor:
                             "true",
                             "yes",
                         ):
+                            error = create_processing_error(
+                                message=f"Unknown entry type {type(entry).__name__} encountered in strict mode",
+                                context={
+                                    "entry_type_name": type(entry).__name__,
+                                    "entry_data": str(entry),
+                                    "strict_mode": True,
+                                },
+                            )
+                            logger.error(
+                                f"Strict mode processing failure: {error.message}"
+                            )
                             raise ValueError(
-                                f"Unknown entry type {type(entry).__name__} encountered in strict mode. "
-                                f"Entry: {entry}. Expected str, dict, Pydantic model, or dataclass."
+                                f"Unknown entry type {type(entry).__name__} encountered in strict mode"
                             )
 
                         # Fallback for other types with logging
@@ -136,9 +153,20 @@ class RecursiveEntryProcessor:
                         "true",
                         "yes",
                     ):
+                        error = create_processing_error(
+                            message=f"Failed to process entry {type(entry).__name__} in strict mode: {e}",
+                            context={
+                                "entry_type_name": type(entry).__name__,
+                                "entry_data": str(entry),
+                                "strict_mode": True,
+                                "exception_type": type(e).__name__,
+                            },
+                        )
+                        logger.error(
+                            f"Strict mode entry conversion failure: {error.message}"
+                        )
                         raise ValueError(
-                            f"Failed to process entry {type(entry).__name__} in strict mode: {e}. "
-                            f"Entry: {entry}"
+                            f"Failed to process entry {type(entry).__name__} in strict mode: {e}"
                         ) from e
 
                     # If conversion fails, fallback to string with logging
@@ -148,6 +176,7 @@ class RecursiveEntryProcessor:
                         )
                     processed.append(str(entry))
 
+        # Return processed entries (errors are logged but don't fail the whole operation)
         return processed
 
     def process_entry_dict(
@@ -162,112 +191,120 @@ class RecursiveEntryProcessor:
         Returns:
             LaTeX string
 
-        Raises:
-            EntryProcessingError: If entry processing fails critically
+        Note:
+            This method maintains the str interface for backward compatibility
+            while using Result patterns internally for error handling.
         """
         self._entries_processed += 1
         entry_type = entry.get("type", "")
 
-        try:
-            # Log entry processing for debugging
-            logger.debug(
-                f"Processing LaTeX entry type '{entry_type}' at depth {self._depth}"
+        # Log entry processing for debugging
+        logger.debug(
+            f"Processing LaTeX entry type '{entry_type}' at depth {self._depth}"
+        )
+
+        # Validate entry type if not empty and not in SILENT mode
+        if entry_type and self._validation_mode != ValidationMode.SILENT:
+            # Create ValidationContext for modern interface
+            from studiorum.core.entry_registry import ValidationContext
+
+            validation_context = ValidationContext(
+                entry_data=entry,
+                source=context.metadata.get("source_name", "unknown"),
+                parent_name=f"depth_{self._depth}",
+                entry_type=entry_type,
+                validation_mode=self._validation_mode,
             )
 
-            # Validate entry type if not empty and not in SILENT mode
-            if entry_type and self._validation_mode != ValidationMode.SILENT:
-                # Create ValidationContext for modern interface
-                from studiorum.core.entry_registry import ValidationContext
-
-                validation_context = ValidationContext(
-                    entry_data=entry,
-                    source=context.metadata.get("source_name", "unknown"),
-                    parent_name=f"depth_{self._depth}",
-                    entry_type=entry_type,
-                    validation_mode=self._validation_mode,
+            # Use modern ValidationContext interface
+            validation_result = self._registry.validate_entry_type(validation_context)
+            if isinstance(validation_result, Error):
+                self._errors_encountered += 1
+                # For backward compatibility, log error and return empty string
+                logger.error(
+                    f"Failed to validate LaTeX entry type '{entry_type}': {validation_result.error}"
                 )
+                return ""
 
-                # Use modern ValidationContext interface
-                validation_result = self._registry.validate_entry_type(
-                    validation_context
-                )
-                if isinstance(validation_result, Error):
-                    # Convert to exception to maintain existing behavior
-                    error = validation_result.error
-                    raise error.to_exception()
-
-            # Dispatch to specific processing methods
+        # Dispatch to specific processing methods
+        try:
             if entry_type == "section":
-                return self._process_section(entry, context)
+                latex_result = self._process_section(entry, context)
             elif entry_type == "entries":
-                return self._process_entries_block(entry, context)
+                latex_result = self._process_entries_block(entry, context)
             elif entry_type == "insetReadaloud":
-                return self._process_inset_readaloud(entry, context)
+                latex_result = self._process_inset_readaloud(entry, context)
             elif entry_type == "inset":
-                return self._process_inset(entry, context)
+                latex_result = self._process_inset(entry, context)
             elif entry_type == "image":
-                return self._process_image(entry, context)
+                latex_result = self._process_image(entry, context)
             elif entry_type == "gallery":
-                return self._process_gallery(entry, context)
+                latex_result = self._process_gallery(entry, context)
             elif entry_type == "list":
-                return self._process_list(entry, context)
+                latex_result = self._process_list(entry, context)
             elif entry_type == "table":
-                return self._process_table(entry, context)
+                latex_result = self._process_table(entry, context)
             elif entry_type == "quote":
-                return self._process_quote(entry, context)
+                latex_result = self._process_quote(entry, context)
             elif entry_type == "actions":
-                return self._process_actions(entry, context)
+                latex_result = self._process_actions(entry, context)
             elif entry_type == "attack":
-                return self._process_attack(entry, context)
+                latex_result = self._process_attack(entry, context)
             elif entry_type == "options":
-                return self._process_options(entry, context)
+                latex_result = self._process_options(entry, context)
             elif entry_type == "variant":
-                return self._process_variant(entry, context)
+                latex_result = self._process_variant(entry, context)
             elif entry_type == "variantSub":
-                return self._process_variant_sub(entry, context)
+                latex_result = self._process_variant_sub(entry, context)
             elif entry_type == "abilityDc":
-                return self._process_ability_dc(entry, context)
+                latex_result = self._process_ability_dc(entry, context)
             elif entry_type == "abilityAttackMod":
-                return self._process_ability_attack_mod(entry, context)
+                latex_result = self._process_ability_attack_mod(entry, context)
             elif entry_type == "abilityGeneric":
-                return self._process_ability_generic(entry, context)
+                latex_result = self._process_ability_generic(entry, context)
             elif entry_type == "spellcasting":
-                return self._process_spellcasting(entry, context)
+                latex_result = self._process_spellcasting(entry, context)
             elif entry_type == "bonus":
-                return self._process_bonus(entry, context)
+                latex_result = self._process_bonus(entry, context)
             elif entry_type == "bonusSpeed":
-                return self._process_bonus_speed(entry, context)
+                latex_result = self._process_bonus_speed(entry, context)
             elif entry_type == "dice":
-                return self._process_dice(entry, context)
+                latex_result = self._process_dice(entry, context)
             elif entry_type == "item":
-                return self._process_item(entry, context)
+                latex_result = self._process_item(entry, context)
             elif entry_type == "cell":
-                return self._process_cell(entry, context)
+                latex_result = self._process_cell(entry, context)
             elif entry_type == "statblock":
-                return self._process_statblock(entry, context)
+                latex_result = self._process_statblock(entry, context)
             else:
                 # Generic entry with name and entries
                 if entry_type:
                     logger.debug(
                         f"Using generic processing for entry type '{entry_type}' at depth {self._depth}"
                     )
-                return self._process_generic_entry(entry, context)
+                latex_result = self._process_generic_entry(entry, context)
+
+            return latex_result
 
         except Exception as e:
             self._errors_encountered += 1
 
-            # Re-raise our own exceptions
-            if isinstance(e, EntryProcessingError):
-                raise
-
-            # Wrap other exceptions with context
-            raise EntryProcessingError(
+            # Create structured error with context
+            error = create_processing_error(
                 message=f"Failed to process LaTeX entry: {str(e)}",
-                entry=entry,
+                entry_type=entry_type,
                 source=context.metadata.get("source_name", "unknown"),
                 parent_name=f"depth_{self._depth}",
-                entry_type=entry_type,
-            ) from e
+                context={
+                    "entry_data": entry,
+                    "exception_type": type(e).__name__,
+                    "depth": self._depth,
+                },
+            )
+
+            # For backward compatibility, log error and return empty string
+            logger.error(f"LaTeX entry processing failed: {error.message}")
+            return ""
 
     def _process_section(
         self, section: dict[str, Any], context: RenderingContext

@@ -3,11 +3,11 @@
 from collections.abc import Iterator
 from typing import Any, Union
 
+from studiorum.core.error_types import create_processing_error, create_validation_error
 from studiorum.core.logging import get_logger
-from studiorum.core.result import Error
+from studiorum.core.result import Error, Result, Success
 
 from ..entry_registry import ValidationMode, get_registry
-from ..exceptions import EntryProcessingError
 from ..models.content import Source
 from ..models.nested_content import (
     Inset,
@@ -65,80 +65,95 @@ class EntryParser:
 
         Yields:
             Indexable content objects for sections, tables, insets, etc.
+
+        Note:
+            This method maintains the Iterator interface for backward compatibility
+            while using Result patterns internally for error handling.
         """
         if not entries:
             return
 
         for entry in entries:
-            yield from self._parse_single_entry(entry, content_type)
+            result = self._parse_single_entry(entry, content_type)
+            if isinstance(result, Error):
+                # Log error but continue with other entries
+                logger.error(f"Failed to parse entry: {result.error}")
+                continue
+
+            # Yield from the successful iterator
+            yield from result.unwrap()
 
     def _parse_single_entry(
         self, entry: str | EntryDict, content_type: str
-    ) -> Iterator[Any]:
+    ) -> Result[Iterator[Any], Any]:
         """Parse a single entry and yield indexable content.
 
         Args:
             entry: Entry object to parse
             content_type: Type of content ("adventure" or "book")
 
-        Yields:
-            Indexable content objects
-
-        Raises:
-            EntryProcessingError: If entry processing fails critically
+        Returns:
+            Result with Iterator of indexable content objects, or error
         """
         self._entries_processed += 1
 
-        try:
-            # Validate basic entry structure
-            if isinstance(entry, str):
-                # Plain text entries don't create indexable content
-                logger.debug(f"Skipping plain text entry in {self.parent_name}")
-                return
+        def _create_empty_iterator() -> Iterator[Any]:
+            return iter([])
 
-            if not isinstance(entry, dict):
-                logger.warning(
-                    f"Non-dict entry encountered in {self.parent_name}: {type(entry).__name__}"
-                )
-                return
+        # Validate basic entry structure
+        if isinstance(entry, str):
+            # Plain text entries don't create indexable content
+            logger.debug(f"Skipping plain text entry in {self.parent_name}")
+            return Success(_create_empty_iterator())
 
-            entry_type = entry.get("type", "")
+        if not isinstance(entry, dict):
+            logger.warning(
+                f"Non-dict entry encountered in {self.parent_name}: {type(entry).__name__}"
+            )
+            return Success(_create_empty_iterator())
 
-            # Log entry processing for debugging
-            logger.debug(
-                f"Processing entry type '{entry_type}' in {self.parent_name} (source: {self.source.abbreviation})"
+        entry_type = entry.get("type", "")
+
+        # Log entry processing for debugging
+        logger.debug(
+            f"Processing entry type '{entry_type}' in {self.parent_name} (source: {self.source.abbreviation})"
+        )
+
+        # Validate entry type if not empty
+        if entry_type:
+            # Create ValidationContext for modern interface
+            from ..entry_registry import ValidationContext
+
+            context = ValidationContext(
+                entry_data=entry,
+                source=self.source.abbreviation,
+                parent_name=self.parent_name,
+                entry_type=entry_type,
+                validation_mode=self._validation_mode,
             )
 
-            # Validate entry type if not empty
-            if entry_type:
-                # Create ValidationContext for modern interface
-                from ..entry_registry import ValidationContext
-
-                context = ValidationContext(
-                    entry_data=entry,
-                    source=self.source.abbreviation,
+            # Use modern ValidationContext interface
+            validation_result = self._registry.validate_entry_type(context)
+            if isinstance(validation_result, Error):
+                self._errors_encountered += 1
+                return validation_result.with_context(
+                    f"Failed to validate entry type '{entry_type}'",
+                    operation="entry_parsing",
                     parent_name=self.parent_name,
-                    entry_type=entry_type,
-                    validation_mode=self._validation_mode,
+                    source=self.source.abbreviation,
                 )
 
-                # Use modern ValidationContext interface
-                validation_result = self._registry.validate_entry_type(context)
-                if isinstance(validation_result, Error):
-                    # Convert to exception to maintain existing behavior
-                    error = validation_result.error
-                    raise error.to_exception()
-
-            # Dispatch to specific parsing methods
+        # Dispatch to specific parsing methods
+        try:
             if entry_type == "section":
-                yield from self._parse_section(entry, content_type)  # type: ignore[arg-type]
+                result_iterator = self._parse_section(entry, content_type)  # type: ignore[arg-type]
             elif entry_type == "table":
-                yield from self._parse_table(entry, content_type)  # type: ignore[arg-type]
+                result_iterator = self._parse_table(entry, content_type)  # type: ignore[arg-type]
             elif entry_type in ("inset", "insetReadaloud"):
-                yield from self._parse_inset(entry, content_type)  # type: ignore[arg-type]
+                result_iterator = self._parse_inset(entry, content_type)  # type: ignore[arg-type]
             elif entry_type == "entries":
                 # Nested entries - can be variant rules or subsections
-                yield from self._parse_nested_entries(entry, content_type)  # type: ignore[arg-type]
+                result_iterator = self._parse_nested_entries(entry, content_type)  # type: ignore[arg-type]
             else:
                 # For unknown/unhandled entry types, still recursively parse nested entries
                 if entry_type:
@@ -148,23 +163,32 @@ class EntryParser:
 
                 nested_entries = entry.get("entries", [])
                 if nested_entries:
-                    yield from self.parse_entries(nested_entries, content_type)
+                    result_iterator = self.parse_entries(nested_entries, content_type)
+                else:
+                    result_iterator = _create_empty_iterator()
+
+            return Success(result_iterator)
 
         except Exception as e:
             self._errors_encountered += 1
 
-            # Re-raise our own exceptions
-            if isinstance(e, EntryProcessingError):
-                raise
-
-            # Wrap other exceptions with context
-            raise EntryProcessingError(
+            # Create structured error with context
+            error = create_processing_error(
                 message=f"Failed to parse entry: {str(e)}",
-                entry=entry if isinstance(entry, dict) else None,  # type: ignore[arg-type]
+                entry_type=entry.get("type") if isinstance(entry, dict) else None,
                 source=self.source.abbreviation,
                 parent_name=self.parent_name,
-                entry_type=entry.get("type") if isinstance(entry, dict) else None,
-            ) from e
+                context={
+                    "entry_data": entry if isinstance(entry, dict) else None,
+                    "exception_type": type(e).__name__,
+                },
+            )
+
+            return Error(error).with_context(
+                "Entry parsing failed",
+                operation="parse_single_entry",
+                content_type=content_type,
+            )
 
     def _parse_section(self, entry: SectionEntry, content_type: str) -> Iterator[Any]:
         """Parse a section entry."""

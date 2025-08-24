@@ -16,12 +16,9 @@ from studiorum.core.logging import get_logger
 
 from .base_context import ProcessingContext
 from .error_types import UnknownTypeError, create_unknown_type_error
-from .exceptions import (
-    EntryProcessingWarning,
-    EntryValidationError,
-    MalformedEntryError,
-    UnknownEntryTypeError,
-)
+from .exceptions import EntryProcessingWarning  # Keep warning for compatibility
+
+# Other exception classes removed in Phase 3 - using Result patterns
 from .result import Error, Result, Success
 
 logger = get_logger(__name__)

@@ -15,13 +15,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from studiorum.core.exceptions import (
-    DnD5eError,
-    EntryProcessingError,
-    EntryValidationError,
-    MalformedEntryError,
-    UnknownEntryTypeError,
-)
+# Legacy exception imports removed in Phase 3
+# All error handling now uses Result[T, E] patterns exclusively
 
 
 class ErrorSeverity(str, Enum):
@@ -79,9 +74,8 @@ class BaseError(BaseModel):
     source: str | None = None
     suggestions: list[str] | None = Field(default_factory=list)
 
-    def to_exception(self) -> DnD5eError:
-        """Convert this error to an appropriate exception."""
-        return DnD5eError(self.message)
+    # to_exception() method removed in Phase 3
+    # All error handling now uses Result[T, E] patterns
 
     def with_suggestion(self, suggestion: str) -> BaseError:
         """Add a suggestion to this error."""
@@ -134,15 +128,8 @@ class ValidationError(BaseError):
     parent_name: str | None = None
     category: ErrorCategory = ErrorCategory.VALIDATION
 
-    def to_exception(self) -> EntryValidationError:
-        """Convert to EntryValidationError exception."""
-        return EntryValidationError(
-            message=self.message,
-            field_name=self.field_name,
-            source=self.source,
-            parent_name=self.parent_name,
-            entry_type=self.entry_type,
-        )
+    # to_exception() method removed in Phase 3
+    # Use Result[T, E] patterns instead of exceptions
 
 
 class ProcessingError(BaseError):
@@ -155,14 +142,8 @@ class ProcessingError(BaseError):
     context: dict[str, Any] | None = Field(default_factory=dict)
     category: ErrorCategory = ErrorCategory.PROCESSING
 
-    def to_exception(self) -> EntryProcessingError:
-        """Convert to EntryProcessingError exception."""
-        return EntryProcessingError(
-            message=self.message,
-            source=self.source,
-            parent_name=self.parent_name,
-            entry_type=self.entry_type,
-        )
+    # to_exception() method removed in Phase 3
+    # Use Result[T, E] patterns instead of exceptions
 
 
 class UnknownTypeError(ProcessingError):
@@ -177,15 +158,8 @@ class UnknownTypeError(ProcessingError):
         if not self.entry_type:
             raise ValueError("entry_type is required for UnknownTypeError")
 
-    def to_exception(self) -> UnknownEntryTypeError:
-        """Convert to UnknownEntryTypeError exception."""
-        if not self.entry_type:
-            raise ValueError("entry_type is required for UnknownTypeError")
-        return UnknownEntryTypeError(
-            entry_type=self.entry_type,
-            source=self.source,
-            parent_name=self.parent_name,
-        )
+    # to_exception() method removed in Phase 3
+    # Use Result[T, E] patterns instead of exceptions
 
 
 class MalformedDataError(ProcessingError):
@@ -196,13 +170,8 @@ class MalformedDataError(ProcessingError):
     expected_type: str | None = None
     actual_type: str | None = None
 
-    def to_exception(self) -> MalformedEntryError:
-        """Convert to MalformedEntryError exception."""
-        return MalformedEntryError(
-            message=self.message,
-            source=self.source,
-            parent_name=self.parent_name,
-        )
+    # to_exception() method removed in Phase 3
+    # Use Result[T, E] patterns instead of exceptions
 
 
 # New MCP-specific error types
