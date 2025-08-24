@@ -128,3 +128,4 @@ test*.tex
 debug-loading.tex
 site/
 scratch/
+.playwright-mcp
