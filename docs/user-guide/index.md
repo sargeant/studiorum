@@ -1,14 +1,14 @@
 ---
-title: User Guide - Transform D&D Content into Professional PDFs
-description: Get started with studiorum to create beautiful LaTeX/PDF documents from D&D 5e content
+title: User Guide - Transform 5e Content into Professional PDFs
+description: Get started with studiorum to create beautiful LaTeX/PDF documents from 5e content
 ---
 
 # User Guide
 
-Transform D&D content into professional PDFs with studiorum's LaTeX-based typesetting system.
+Transform 5e content into professional PDFs with studiorum's LaTeX-based typesetting system.
 
 <div class="hero-banner gradient-background">
-  <h2 class="hero-title">Create Professional D&D Documents</h2>
+  <h2 class="hero-title">Create Professional 5e Documents</h2>
   <p class="hero-description">Convert adventures, spells, creatures, and more from 5etools format into beautifully formatted PDFs</p>
 </div>
 
@@ -29,7 +29,7 @@ Transform D&D content into professional PDFs with studiorum's LaTeX-based typese
 
     ---
 
-    Learn how to convert different types of D&D content: adventures,
+    Learn how to convert different types of 5e content: adventures,
     spells, creatures, and custom homebrew
 
     [Content Conversion](converting-content.md){ .btn-primary }
@@ -71,7 +71,7 @@ Ideal for creating custom reference documents:
 3. **[MCP Integration](mcp-setup.md)** - Set up AI-assisted content curation
 
 ### Homebrew Content
-For creators publishing their own D&D content:
+For creators publishing their own 5e content:
 
 1. **[Converting Content](converting-content.md#homebrew-content)** - Work with custom JSON
 2. **[Troubleshooting](troubleshooting.md#homebrew-issues)** - Handle validation and formatting

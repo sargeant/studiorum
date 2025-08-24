@@ -25,7 +25,7 @@ studiorum [GLOBAL OPTIONS] COMMAND [COMMAND OPTIONS]
 
 ## convert
 
-Convert D&D 5e content to LaTeX or PDF format.
+Convert 5e content to LaTeX or PDF format.
 
 ### convert adventure
 
@@ -59,16 +59,16 @@ studiorum convert adventure [OPTIONS] ADVENTURE_NAME
 
 ```bash
 # Basic adventure conversion
-studiorum convert adventure "Lost Mine of Phandelver"
+studiorum convert adventure "sample-adventure"
 
 # With all appendices
-studiorum convert adventure "Curse of Strahd" --creatures --spells --items
+studiorum convert adventure "example-adventure" --creatures --spells --items
 
 # Generate PDF directly
-studiorum convert adventure "Storm King's Thunder" --format pdf --output skt.pdf
+studiorum convert adventure "my-adventure" --format pdf --output adventure.pdf
 
 # Use specific compiler
-studiorum convert adventure "Waterdeep Dragon Heist" --compiler xelatex
+studiorum convert adventure "custom-adventure" --compiler xelatex
 ```
 
 ### convert creature
@@ -713,13 +713,13 @@ Studiorum uses standard exit codes:
 **Campaign Preparation**:
 ```bash
 # Generate complete campaign materials
-studiorum convert adventure "Curse of Strahd" \
+studiorum convert adventure "my-campaign" \
     --creatures --spells --items \
-    --format pdf --output cos-complete.pdf
+    --format pdf --output campaign-complete.pdf
 
 # Create separate creature manual
-studiorum convert creatures --sources CoS \
-    --template creature-cards --output cos-creatures.pdf
+studiorum convert creatures --sources SRD \
+    --template creature-cards --output srd-creatures.pdf
 ```
 
 **Custom Content**:

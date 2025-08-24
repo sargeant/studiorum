@@ -5,8 +5,7 @@ description: 5e content processing toolkit - LaTeX/PDF generation and MCP integr
 
 <div class="hero-banner gradient-background">
   <h1 class="hero-title">Studiorum</h1>
-  <p class="hero-subtitle">Content Processing Toolkit for D&D 5e</p>
-  <p class="hero-description">Transform 5etools JSON into professional PDFs and integrate with AI tools through MCP</p>
+  <p class="hero-subtitle">Content Toolkit for the 5th Edition of the World's Greatest Roleplaying Game</p>
 </div>
 
 ## Getting Started
@@ -14,19 +13,19 @@ description: 5e content processing toolkit - LaTeX/PDF generation and MCP integr
 <div class="feature-cards">
   <div class="feature-card">
     <h3>User Guide</h3>
-    <p>Create beautiful PDFs from D&D adventures, spells, and creatures using professional LaTeX typesetting.</p>
+    <p>Create beautiful PDFs from 5e compatible spells, items, and creatures using professional typesetting.</p>
     <a href="user-guide/" class="btn-primary">Get Started</a>
   </div>
 
   <div class="feature-card">
     <h3>Developer Guide</h3>
-    <p>Build applications with studiorum's models and services for comprehensive D&D content processing.</p>
+    <p>Build applications with Studiorum's models and services for 5e content processing.</p>
     <a href="developer-guide/" class="btn-secondary">API Documentation</a>
   </div>
 
   <div class="feature-card">
     <h3>MCP Integration</h3>
-    <p>Connect AI agents to D&D content through Model Context Protocol tools for intelligent content processing.</p>
+    <p>Connect AI agents to 5e content through Model Context Protocol tools for intelligent content processing.</p>
     <a href="user-guide/mcp-setup/" class="btn-accent">Setup MCP</a>
   </div>
 

@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 # Create the main Typer app
 app: typer.Typer = typer.Typer(
     name="studiorum",
-    help="Convert D&D 5e JSON data to beautifully formatted LaTeX/PDF documents",
+    help="Convert 5e JSON data to beautifully formatted LaTeX/PDF documents",
     rich_markup_mode="rich",
 )
 
@@ -74,7 +74,7 @@ def show_version() -> None:
     rprint(
         "[bold blue]studiorum[/bold blue] [green]v2.0.0[/green] - Modern Architecture"
     )
-    rprint("Convert D&D 5e JSON → LaTeX → PDF")
+    rprint("Convert 5e JSON → LaTeX → PDF")
 
 
 @app.callback()
@@ -92,10 +92,10 @@ def main(
     ),
 ) -> None:
     """
-    🎲 **studiorum** - Modern D&D 5e content converter
+    🎲 **studiorum** - Modern 5e content converter
 
     Convert structured JSON data from 5e.tools into professional LaTeX documents
-    that match the style of official D&D 5th edition books.
+    that match the style of official 5th edition books.
     """
     # Reset global state to ensure clean execution for each command
     # This prevents validation contamination between CLI runs
@@ -202,7 +202,7 @@ def serve_api() -> None:
     """
     🚀 **API Server** - Start REST API server (Future Feature)
 
-    Launch a web API for converting D&D content remotely.
+    Launch a web API for converting 5e content remotely.
     """
     rprint("[yellow]API server feature coming in future release![/yellow]")
     rprint("For now, use the CLI commands.")
@@ -291,7 +291,7 @@ def quick_convert(
                 output_format="latex",
                 omnidexer=omnidexer,
                 metadata={
-                    "title": f"D&D Content from {input_file.name}",
+                    "title": f"5e Content from {input_file.name}",
                     "include_images": with_images,
                     "include_toc": len(content_items) > 5,
                     "tag_resolver": tag_resolver,

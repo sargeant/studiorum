@@ -64,9 +64,9 @@ class TestHybridParameterDetection:
         """Test that non-file strings are treated as abbreviations."""
         # Create a proper Adventure instance instead of Mock
         mock_adventure = Adventure(
-            name="Curse of Strahd",
-            id="cos",  # Add ID to prevent loading issues
-            source=Source(abbreviation="CoS", name="Curse of Strahd"),
+            name="Sample Adventure",
+            id="samp",  # Add ID to prevent loading issues
+            source=Source(abbreviation="SAMP", name="Sample Adventure"),
         )
 
         # Mock omnidexer with comprehensive mocking for enrichment
@@ -85,20 +85,20 @@ class TestHybridParameterDetection:
 
             # Mock successful adventure resolution
             mock_result = ContentResolutionResult(
-                status=ResolutionStatus.EXACT_MATCH, content=mock_adventure, query="cos"
+                status=ResolutionStatus.EXACT_MATCH, content=mock_adventure, query="samp"
             )
             # Mock sync resolver method
             mock_resolver.resolve_adventure = Mock(return_value=mock_result)
 
             content_items, source_desc = resolve_content_or_file(
-                "cos", ContentType.ADVENTURE
+                "samp", ContentType.ADVENTURE
             )
 
             assert len(content_items) == 1
             assert content_items[0] == mock_adventure
             assert "abbreviation:" in source_desc
-            assert "cos" in source_desc
-            mock_resolver.resolve_adventure.assert_called_once_with("cos")
+            assert "samp" in source_desc
+            mock_resolver.resolve_adventure.assert_called_once_with("samp")
 
     def test_load_from_file_adventure(self):
         """Test loading adventure from file."""
@@ -205,7 +205,7 @@ class TestHybridParameterDetection:
     def test_handle_resolution_result_no_match_with_suggestions(self):
         """Test handling no match with suggestions."""
         result = ContentResolutionResult(
-            status=ResolutionStatus.NO_MATCH, suggestions=["cos", "lmop"], query="co"
+            status=ResolutionStatus.NO_MATCH, suggestions=["samp", "test"], query="co"
         )
 
         import typer
@@ -248,9 +248,9 @@ class TestFileVsAbbreviationDetection:
     def test_abbreviation_detection(self):
         """Test that non-file strings are not detected as files."""
         test_cases = [
-            "cos",
+            "srd",
             "phb",
-            "lmop",
+            "test",
             "dmg",
             "nonexistent",
             "file_that_does_not_exist.json",

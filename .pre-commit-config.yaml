@@ -15,3 +15,10 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
       - id: check-merge-conflict
+  - repo: local
+    hooks:
+      - id: srd-compliance
+        name: SRD compliance check
+        entry: scripts/pre-commit-compliance.sh
+        language: script
+        files: \.(py|md|yml|yaml|toml)$

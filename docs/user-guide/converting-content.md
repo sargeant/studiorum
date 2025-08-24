@@ -1,15 +1,15 @@
 ---
 title: Converting Content
-description: Advanced options for converting D&D 5e content to LaTeX/PDF format
+description: Advanced options for converting 5e content to LaTeX/PDF format
 ---
 
 # Converting Content
 
-Learn how to use studiorum's powerful conversion capabilities to create professional D&D 5e documents.
+Learn how to use studiorum's powerful conversion capabilities to create professional 5e documents.
 
 ## Content Types
 
-Studiorum supports converting various types of D&D content:
+Studiorum supports converting various types of 5e content:
 
 ### Adventures
 
@@ -17,11 +17,11 @@ Convert full adventures with automatic cross-references:
 
 ```bash
 # Basic adventure conversion
-studiorum convert adventure "Curse of Strahd"
+studiorum convert adventure "sample-adventure"
 
 # With appendices for referenced content
-studiorum convert adventure "Curse of Strahd" \
-    --creatures --spells --items --output cos.tex
+studiorum convert adventure "sample-adventure" \
+    --creatures --spells --items --output adventure.tex
 ```
 
 ### Creatures
@@ -96,7 +96,7 @@ studiorum convert adventure "Waterdeep Dragon Heist" \
 Use different LaTeX templates:
 
 ```bash
-# Official D&D 5e template
+# Official 5e template
 studiorum convert --template dnd-5e creature "Tarrasque"
 
 # Custom template

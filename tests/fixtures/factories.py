@@ -144,8 +144,8 @@ def make_book():
             "contents": [
                 {
                     "name": "Introduction",
-                    "headers": ["Welcome to D&D"],
-                    "entries": ["Welcome to the world of Dungeons & Dragons!"],
+                    "headers": ["Welcome to 5e"],
+                    "entries": ["Welcome to the world's greatest roleplaying game!"],
                 }
             ],
         }
@@ -159,8 +159,8 @@ def make_adventure():
     """Factory for creating adventure data with customizable attributes."""
 
     def _make_adventure(
-        name: str = "Lost Mine of Phandelver",
-        adventure_id: str = "LMoP",
+        name: str = "Sample Adventure",
+        adventure_id: str = "SAMP",
         published: str = "2014-07-15",
         **overrides: Any,
     ) -> dict[str, Any]:

@@ -5,11 +5,11 @@ description: Architecture overview, API reference, and development patterns for 
 
 # Developer Guide
 
-Build applications with studiorum's modern Python architecture for D&D 5e content processing.
+Build applications with studiorum's modern Python architecture for 5e content processing.
 
 <div class="hero-banner gradient-background">
   <h2 class="hero-title">Build with Studiorum</h2>
-  <p class="hero-description">Leverage powerful models, services, and rendering systems for comprehensive D&D content applications</p>
+  <p class="hero-description">Leverage powerful models, services, and rendering systems for comprehensive 5e content applications</p>
 </div>
 
 ## Architecture Overview
@@ -47,7 +47,7 @@ Build applications with studiorum's modern Python architecture for D&D 5e conten
 
     ---
 
-    Build intelligent D&D applications using MCP tools and async
+    Build intelligent 5e applications using MCP tools and async
     service patterns
 
     [AI Agents](ai-agents.md){ .btn-accent }
@@ -57,7 +57,7 @@ Build applications with studiorum's modern Python architecture for D&D 5e conten
 ## Development Pathways
 
 ### Application Development
-Build applications that process D&D content:
+Build applications that process 5e content:
 
 ```mermaid
 graph LR
@@ -69,11 +69,11 @@ graph LR
 ```
 
 1. **[Architecture](architecture.md)** - Understand the system design
-2. **[Models](models.md)** - Work with typed D&D content models
+2. **[Models](models.md)** - Work with typed 5e content models
 3. **[API Reference](api/)** - Explore services and rendering systems
 
 ### MCP Tool Development
-Create AI-powered D&D tools:
+Create AI-powered 5e tools:
 
 ```mermaid
 graph LR
@@ -111,7 +111,7 @@ async def mcp_tool(ctx: AsyncRequestContext):
 ```
 
 ### Type-Safe Models
-Pydantic models with full D&D 5e content support:
+Pydantic models with full 5e content support:
 
 ```python
 from studiorum.core.models import Creature, Spell
