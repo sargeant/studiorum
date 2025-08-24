@@ -6,6 +6,7 @@ from typing import Any
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
+from studiorum.core.result import Error, Success
 from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -51,14 +52,46 @@ class SpellEntryRenderer(BaseEntryRenderer):
         self, content: Spell, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for spell using model methods."""
+        # Use modern service injection pattern instead of deprecated methods
+        processor = content.get_processor()
+
+        # Get description text using modern processor with injected tag resolver
+        if context.tag_resolver:
+            description_result = processor.get_description_with_context(
+                context.tag_resolver, context
+            )
+            if isinstance(description_result, Error):
+                description_text = ""
+            else:
+                description_text = description_result.unwrap()
+
+            higher_level_result = processor.get_higher_level_with_context(
+                context.tag_resolver, context
+            )
+            if isinstance(higher_level_result, Error):
+                higher_level_text = ""
+            else:
+                higher_level_text = higher_level_result.unwrap()
+        else:
+            # Fallback for contexts without tag_resolver - use simple text extraction directly
+            # This avoids the complexity of service container initialization in test environments
+            from studiorum.core.models.compatibility import (
+                _extract_simple_text_from_entries,
+            )
+
+            description_text = _extract_simple_text_from_entries(content.entries)
+            higher_level_text = _extract_simple_text_from_entries(
+                content.higher_level or []
+            )
+
         # Provide both the spell object and preprocessed fields for compatibility
         return {
             "spell": content,
             "level_text": content.get_enhanced_level_text(),
             "components_text": content.get_enhanced_components_text(),
             "duration_text": content.get_enhanced_duration_text(),
-            "description_text": content.get_description_text(),
-            "higher_level_text": content.get_higher_level_text(),
+            "description_text": description_text,
+            "higher_level_text": higher_level_text,
         }
 
 
