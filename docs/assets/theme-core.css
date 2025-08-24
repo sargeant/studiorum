@@ -46,18 +46,18 @@
     --font-mono: 'Monaspace Neon', 'Fira Code', monospace;
     /* Code: Advanced monospace */
 
-    /* Typography Sizes - Moderate scaling for readability */
-    --text-xs: 0.875rem;      /* 14px - Slightly larger than standard */
-    --text-sm: 1rem;          /* 16px - Standard browser default */
-    --text-base: 1.125rem;    /* 18px - Comfortable reading size */
-    --text-lg: 1.25rem;       /* 20px */
-    --text-xl: 1.375rem;      /* 22px */
-    --text-2xl: 1.5rem;       /* 24px */
-    --text-3xl: 1.875rem;     /* 30px */
-    --text-4xl: 2.25rem;      /* 36px */
+    /* Typography Sizes - Large for comfortable reading */
+    --text-xs: 1rem;          /* 16px - Minimum readable size */
+    --text-sm: 1.125rem;      /* 18px - Small text but readable */
+    --text-base: 1.375rem;    /* 22px - Large, comfortable reading */
+    --text-lg: 1.5rem;        /* 24px */
+    --text-xl: 1.75rem;       /* 28px */
+    --text-2xl: 2rem;         /* 32px */
+    --text-3xl: 2.5rem;       /* 40px */
+    --text-4xl: 3rem;         /* 48px */
 
-    /* Code-specific sizing - Keep slightly smaller than body text */
-    --text-code: 1rem;        /* 16px - Standard for code */
+    /* Code-specific sizing - Slightly smaller than body but still readable */
+    --text-code: 1.25rem;     /* 20px - Large enough for code readability */
 
     /* Spacing Scale */
     --space-1: 0.25rem;
