@@ -27,7 +27,7 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from .container import ModernServiceContainer
+    from .container import ServiceContainer
 
 T = TypeVar("T")
 
@@ -101,8 +101,8 @@ class ServiceDescriptor[T]:
     factory: (
         Callable[[], T]
         | Callable[[], Awaitable[T]]
-        | Callable[[ModernServiceContainer], T]
-        | Callable[[ModernServiceContainer], Awaitable[T]]
+        | Callable[[ServiceContainer], T]
+        | Callable[[ServiceContainer], Awaitable[T]]
         | AsyncServiceFactory[T]
     )
     """Factory function or class for creating service instances.
@@ -236,7 +236,7 @@ class AsyncServiceFactory(Protocol[T]):
     sophisticated initialization logic.
     """
 
-    async def create(self, container: ModernServiceContainer) -> T:
+    async def create(self, container: ServiceContainer) -> T:
         """Create service instance with full container access.
 
         Args:

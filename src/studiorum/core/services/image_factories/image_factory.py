@@ -2,7 +2,7 @@
 
 This module provides factory functions for creating all image-related services
 with proper configuration and dependencies. These factories are used by the
-ModernServiceContainer for dependency injection.
+ServiceContainer for dependency injection.
 
 Created: 2025-01-23
 Status: Phase 4 - Service Integration
@@ -40,7 +40,7 @@ from studiorum.latex_engine.core.images.registry.adventure_registry import (
 )
 
 if TYPE_CHECKING:
-    from studiorum.core.services.container import ModernServiceContainer
+    from studiorum.core.services.container import ServiceContainer
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 class ImageServiceFactory:
     """Factory for creating image-related services with proper configuration."""
 
-    def __init__(self, container: ModernServiceContainer | None = None):
+    def __init__(self, container: ServiceContainer | None = None):
         """Initialize factory with optional container reference.
 
         Args:
@@ -242,7 +242,7 @@ class ImageServiceFactory:
 
 
 async def create_image_source_registry_service(
-    container: ModernServiceContainer,
+    container: ServiceContainer,
 ) -> ImageSourceRegistry:
     """Factory function for ImageSourceRegistry service.
 
@@ -257,7 +257,7 @@ async def create_image_source_registry_service(
 
 
 async def create_enhanced_image_placer_service(
-    container: ModernServiceContainer,
+    container: ServiceContainer,
 ) -> EnhancedImagePlacer:
     """Factory function for EnhancedImagePlacer service.
 
@@ -275,7 +275,7 @@ async def create_enhanced_image_placer_service(
 
 
 async def create_layout_analyzer_service(
-    container: ModernServiceContainer,
+    container: ServiceContainer,
 ) -> LayoutAnalyzer:
     """Factory function for LayoutAnalyzer service.
 
@@ -290,7 +290,7 @@ async def create_layout_analyzer_service(
 
 
 async def create_output_optimizer_service(
-    container: ModernServiceContainer,
+    container: ServiceContainer,
 ) -> OutputOptimizer:
     """Factory function for OutputOptimizer service.
 
@@ -305,7 +305,7 @@ async def create_output_optimizer_service(
 
 
 async def create_gallery_processor_service(
-    container: ModernServiceContainer,
+    container: ServiceContainer,
 ) -> GalleryProcessor:
     """Factory function for GalleryProcessor service.
 
@@ -322,7 +322,7 @@ async def create_gallery_processor_service(
 
 
 async def create_bestiary_integration_service(
-    container: ModernServiceContainer,
+    container: ServiceContainer,
 ) -> BestiaryImageIntegration:
     """Factory function for BestiaryImageIntegration service.
 
@@ -339,7 +339,7 @@ async def create_bestiary_integration_service(
 
 
 async def create_item_integration_service(
-    container: ModernServiceContainer,
+    container: ServiceContainer,
 ) -> ItemImageIntegration:
     """Factory function for ItemImageIntegration service.
 
@@ -356,7 +356,7 @@ async def create_item_integration_service(
 
 
 async def create_adventure_integration_service(
-    container: ModernServiceContainer,
+    container: ServiceContainer,
 ) -> AdventureImageIntegration:
     """Factory function for AdventureImageIntegration service.
 
@@ -373,7 +373,7 @@ async def create_adventure_integration_service(
 
 
 async def create_adventure_registry_service(
-    container: ModernServiceContainer,
+    container: ServiceContainer,
 ) -> AdventureImageRegistry:
     """Factory function for AdventureImageRegistry service.
 

@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 
 from studiorum.core.logging import get_logger
 
-from .container import ModernServiceContainer
+from .container import ServiceContainer
 from .factories import (
     create_cache_service,
     create_configuration_service,
@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-async def register_modern_services(container: ModernServiceContainer) -> None:
+async def register_modern_services(container: ServiceContainer) -> None:
     """Register all services with modern lifecycle management.
 
     This function configures the complete service dependency graph with

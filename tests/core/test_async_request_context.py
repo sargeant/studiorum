@@ -199,7 +199,7 @@ class TestAsyncRequestContext:
 
         assert context.metrics.async_operations_count == 2
 
-    @patch("studiorum.core.context.ModernServiceContainer")
+    @patch("studiorum.core.context.ServiceContainer")
     async def test_service_access_caching(self, mock_container_class):
         """Test service access with caching."""
         # Setup mock container and services

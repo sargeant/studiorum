@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from studiorum.core.services.container import (
-    ModernServiceContainer,
     RequestScopedContainer,
+    ServiceContainer,
 )
 from studiorum.core.services.lifecycle import ServiceLifecycle
 from studiorum.core.services.protocols import (
@@ -79,13 +79,13 @@ class MockAsyncService(AsyncResourceProtocol):
         return self.initialized
 
 
-class TestModernServiceContainer:
+class TestServiceContainer:
     """Test modern service container integration."""
 
     @pytest.mark.asyncio
     async def test_container_creation(self):
         """Test basic container creation and registration."""
-        container = ModernServiceContainer()
+        container = ServiceContainer()
 
         # Register a simple service
         container.register_service(
@@ -104,7 +104,7 @@ class TestModernServiceContainer:
     @pytest.mark.asyncio
     async def test_singleton_lifecycle(self):
         """Test singleton lifecycle behavior."""
-        container = ModernServiceContainer()
+        container = ServiceContainer()
 
         container.register_service(
             TestProtocol,
@@ -124,7 +124,7 @@ class TestModernServiceContainer:
     @pytest.mark.asyncio
     async def test_scoped_lifecycle(self):
         """Test scoped lifecycle behavior."""
-        container = ModernServiceContainer()
+        container = ServiceContainer()
 
         container.register_service(
             TestProtocol,
@@ -144,7 +144,7 @@ class TestModernServiceContainer:
     @pytest.mark.asyncio
     async def test_transient_lifecycle(self):
         """Test transient lifecycle behavior."""
-        container = ModernServiceContainer()
+        container = ServiceContainer()
 
         container.register_service(
             TestProtocol,
@@ -165,7 +165,7 @@ class TestModernServiceContainer:
     @pytest.mark.asyncio
     async def test_async_resource_lifecycle(self):
         """Test async resource lifecycle behavior."""
-        container = ModernServiceContainer()
+        container = ServiceContainer()
 
         async def async_factory():
             service = MockAsyncService("async")
@@ -188,7 +188,7 @@ class TestModernServiceContainer:
     @pytest.mark.asyncio
     async def test_dependency_injection(self):
         """Test dependency injection between services."""
-        container = ModernServiceContainer()
+        container = ServiceContainer()
 
         # Register dependency first
         container.register_service(
@@ -223,7 +223,7 @@ class TestModernServiceContainer:
     @pytest.mark.asyncio
     async def test_container_performance_with_realistic_services(self):
         """Test container performance with realistic service patterns."""
-        container = ModernServiceContainer()
+        container = ServiceContainer()
 
         # Mock lightweight omnidexer that doesn't load data
         class MockOmnidexer(AsyncResourceProtocol):
@@ -323,7 +323,7 @@ class TestModernServiceContainer:
     @pytest.mark.asyncio
     async def test_request_scoped_container(self):
         """Test request-scoped container creation and isolation."""
-        parent_container = ModernServiceContainer()
+        parent_container = ServiceContainer()
 
         # Register singleton in parent
         parent_container.register_service(
@@ -354,7 +354,7 @@ class TestModernServiceContainer:
     @pytest.mark.asyncio
     async def test_container_closure(self):
         """Test container closure prevents further operations."""
-        container = ModernServiceContainer()
+        container = ServiceContainer()
 
         container.register_service(
             TestProtocol,
@@ -380,11 +380,11 @@ class TestModernServiceContainer:
     @pytest.mark.asyncio
     async def test_container_repr(self):
         """Test container string representation."""
-        container = ModernServiceContainer()
+        container = ServiceContainer()
 
         # Check initial state
         repr_str = repr(container)
-        assert "ModernServiceContainer" in repr_str
+        assert "ServiceContainer" in repr_str
         assert "open" in repr_str
 
         # Register and get service
@@ -412,7 +412,7 @@ class TestRequestScopedContainer:
     @pytest.mark.asyncio
     async def test_request_container_properties(self):
         """Test request container has proper properties."""
-        parent = ModernServiceContainer()
+        parent = ServiceContainer()
 
         async with await parent.create_request_scope() as request_scope:
             assert isinstance(request_scope, RequestScopedContainer)
@@ -425,7 +425,7 @@ class TestRequestScopedContainer:
     @pytest.mark.asyncio
     async def test_request_container_isolation(self):
         """Test that request containers are isolated from each other."""
-        parent = ModernServiceContainer()
+        parent = ServiceContainer()
 
         # Create two request scopes
         async with await parent.create_request_scope() as scope1:

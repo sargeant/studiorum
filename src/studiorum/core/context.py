@@ -41,7 +41,7 @@ from .error_types import (
     ProcessingError,
 )
 from .exceptions import DnD5eError
-from .services.container import ModernServiceContainer
+from .services.container import ServiceContainer
 from .services.lifecycle import ServiceLifecycle
 from .services.protocols import (
     AsyncResourceProtocol,
@@ -145,7 +145,7 @@ class AsyncRequestContext(BaseModel):
     # Private attributes for internal state
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
-        self._container: ModernServiceContainer | None = None
+        self._container: ServiceContainer | None = None
         self._closed: bool = False
         self._async_resources: WeakSet = WeakSet()
         self._cleanup_tasks: list[asyncio.Task] = []
@@ -172,9 +172,9 @@ class AsyncRequestContext(BaseModel):
                 f"Request {self.request_id} failed: {exc_type.__name__}: {exc_val}"
             )
 
-    async def _create_request_container(self) -> ModernServiceContainer:
+    async def _create_request_container(self) -> ServiceContainer:
         """Create and configure request-scoped service container."""
-        container = ModernServiceContainer()
+        container = ServiceContainer()
 
         # Register all modern services using the standard registration function
         from .services.registration import register_modern_services

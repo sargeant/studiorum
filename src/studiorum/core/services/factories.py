@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     from studiorum.core.interfaces import ContentTypeRegistry
     from studiorum.core.loaders.content_factory import ContentFactory
     from studiorum.core.loaders.omnidexer import Omnidexer
-    from studiorum.core.services.container import ModernServiceContainer
+    from studiorum.core.services.container import ServiceContainer
     from studiorum.core.text.tag_resolver import TagResolver
     from studiorum.core.unified_references import ReferenceManager
     from studiorum.renderers.core.interfaces import RenderingContext
@@ -519,7 +519,7 @@ async def create_content_type_registry_service() -> ContentTypeRegistryProtocol:
 
 
 async def create_display_manager_service(
-    container: ModernServiceContainer,
+    container: ServiceContainer,
 ) -> DisplayManagerProtocol:
     """Factory for display manager service.
 
@@ -710,7 +710,7 @@ async def create_entry_registry_service() -> EntryTypeRegistryProtocol:
 
 
 async def create_reference_manager_service(
-    container: ModernServiceContainer,
+    container: ServiceContainer,
 ) -> ReferenceManagerProtocol:
     """Factory for reference manager service.
 

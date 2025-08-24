@@ -1,7 +1,7 @@
 """Image service registration for dependency injection.
 
 This module provides service registration for all image-related services in the
-ModernServiceContainer. It follows the established patterns from encounter_services.py
+ServiceContainer. It follows the established patterns from encounter_services.py
 and registration.py for consistent service lifecycle management.
 
 Created: 2025-01-23
@@ -40,7 +40,7 @@ from studiorum.core.services.protocols import (
 logger = logging.getLogger(__name__)
 
 
-def register_image_services(container: Any) -> None:  # ModernServiceContainer
+def register_image_services(container: Any) -> None:  # ServiceContainer
     """Register image processing services with the service container.
 
     Args:

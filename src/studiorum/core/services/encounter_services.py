@@ -237,7 +237,7 @@ async def create_thematic_encounter_generator_service(
 # Integration with existing service registration
 
 
-def register_encounter_services(container: Any) -> None:  # ModernServiceContainer
+def register_encounter_services(container: Any) -> None:  # ServiceContainer
     """Register encounter building services with the service container.
 
     Args:

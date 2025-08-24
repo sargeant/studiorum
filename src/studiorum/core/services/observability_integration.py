@@ -3,7 +3,7 @@ Service integration module for image processing observability.
 
 This module provides service registration and factory functions for integrating
 the observability system with the existing image processing services through
-the ModernServiceContainer.
+the ServiceContainer.
 
 Created: 2025-01-23
 Status: Phase 4 - Observability Integration
@@ -116,7 +116,7 @@ def create_resource_monitor_service() -> AsyncResourceMonitor:
     return get_resource_monitor()
 
 
-def register_observability_services(container: Any) -> None:  # ModernServiceContainer
+def register_observability_services(container: Any) -> None:  # ServiceContainer
     """Register observability services with the service container.
 
     Args:

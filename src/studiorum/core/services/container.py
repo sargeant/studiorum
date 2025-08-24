@@ -5,7 +5,7 @@ lifecycles, dependencies, and async resources. Designed to support both
 CLI usage (backward compatibility) and MCP server requirements (request isolation).
 
 Key components:
-- ModernServiceContainer: Full DI container with async support
+- ServiceContainer: Full DI container with async support
 - RequestScopedContainer: Isolated container for MCP requests
 - Service resolution with dependency injection
 - Async resource management and cleanup
@@ -117,7 +117,7 @@ class CircularDependencyError(Exception):
         super().__init__(f"Circular dependency detected: {chain_names}")
 
 
-class ModernServiceContainer:
+class ServiceContainer:
     """2025 Python dependency injection container with full async support.
 
     This container provides:
@@ -130,7 +130,7 @@ class ModernServiceContainer:
 
     Examples:
         Basic usage:
-        >>> container = ModernServiceContainer()
+        >>> container = ServiceContainer()
         >>> container.register_service(
         ...     ConfigurationProtocol,
         ...     create_configuration_service,
@@ -143,7 +143,7 @@ class ModernServiceContainer:
         ...     scoped_service = await request_scope.get_service(TagResolverProtocol)
     """
 
-    def __init__(self, parent: ModernServiceContainer | None = None) -> None:
+    def __init__(self, parent: ServiceContainer | None = None) -> None:
         """Initialize service container.
 
         Args:
@@ -163,14 +163,12 @@ class ModernServiceContainer:
         self._is_closed = False
 
         # Weak references to child containers for cleanup propagation
-        self._child_containers: set[weakref.ReferenceType[ModernServiceContainer]] = (
-            set()
-        )
+        self._child_containers: set[weakref.ReferenceType[ServiceContainer]] = set()
 
         if parent:
             parent._add_child_container(self)
 
-    def _add_child_container(self, child: ModernServiceContainer) -> None:
+    def _add_child_container(self, child: ServiceContainer) -> None:
         """Add a child container reference for cleanup propagation."""
         self._child_containers.add(weakref.ref(child))
 
@@ -653,14 +651,14 @@ class ModernServiceContainer:
         scoped_count = len(self._scoped_instances)
 
         return (
-            f"ModernServiceContainer(status={status}, "
+            f"ServiceContainer(status={status}, "
             f"services={service_count}, "
             f"singletons={singleton_count}, "
             f"scoped={scoped_count})"
         )
 
 
-class RequestScopedContainer(ModernServiceContainer):
+class RequestScopedContainer(ServiceContainer):
     """Request-scoped container for MCP request isolation.
 
     Provides complete isolation for MCP requests while inheriting
@@ -674,7 +672,7 @@ class RequestScopedContainer(ModernServiceContainer):
         # Automatic cleanup when context exits
     """
 
-    def __init__(self, parent: ModernServiceContainer) -> None:
+    def __init__(self, parent: ServiceContainer) -> None:
         """Initialize request-scoped container.
 
         Args:

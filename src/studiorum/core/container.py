@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any
 from studiorum.core.logging import get_logger
 
 if TYPE_CHECKING:
-    from studiorum.core.services.container import ModernServiceContainer
+    from studiorum.core.services.container import ServiceContainer
 
 from studiorum.core.error_types import (
     ErrorCategory,
@@ -31,10 +31,10 @@ logger = get_logger(__name__)
 
 
 # Global container instance
-_global_container: ModernServiceContainer | None = None
+_global_container: ServiceContainer | None = None
 
 
-def get_global_container() -> ModernServiceContainer:
+def get_global_container() -> ServiceContainer:
     """Get the global service container instance.
 
     This provides a global container for CLI usage while still allowing
@@ -45,9 +45,9 @@ def get_global_container() -> ModernServiceContainer:
     """
     global _global_container
     if _global_container is None:
-        from studiorum.core.services.container import ModernServiceContainer
+        from studiorum.core.services.container import ServiceContainer
 
-        _global_container = ModernServiceContainer()
+        _global_container = ServiceContainer()
 
         # Try to register services automatically when possible
         _try_register_services(_global_container)
@@ -55,7 +55,7 @@ def get_global_container() -> ModernServiceContainer:
     return _global_container
 
 
-def _try_register_services(container: ModernServiceContainer) -> None:
+def _try_register_services(container: ServiceContainer) -> None:
     """Try to register services automatically if possible."""
     try:
         import asyncio
@@ -187,7 +187,7 @@ def cleanup_global_container() -> None:
 
 
 @contextmanager
-def service_container_for_testing() -> Iterator[ModernServiceContainer]:
+def service_container_for_testing() -> Iterator[ServiceContainer]:
     """Context manager that provides a fresh container for testing.
 
     This ensures test isolation by creating a new container instance
@@ -201,9 +201,9 @@ def service_container_for_testing() -> Iterator[ModernServiceContainer]:
     original_container = _global_container
 
     # Create fresh container
-    from studiorum.core.services.container import ModernServiceContainer
+    from studiorum.core.services.container import ServiceContainer
 
-    _global_container = ModernServiceContainer()
+    _global_container = ServiceContainer()
 
     try:
         yield _global_container

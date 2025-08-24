@@ -246,12 +246,12 @@ async def test_service_container_in_async_context():
         start_time = time.time()
 
         # Import service container and registration
-        from dnd5e.core.services.container import ModernServiceContainer
+        from dnd5e.core.services.container import ServiceContainer
         from dnd5e.core.services.protocols import OmnidexerProtocol
         from dnd5e.core.services.registration import register_modern_services
 
         print("   Creating and registering services...")
-        container = ModernServiceContainer()
+        container = ServiceContainer()
         await register_modern_services(container)
 
         print("   Resolving omnidexer service...")

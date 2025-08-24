@@ -20,7 +20,7 @@ from studiorum.core.result import Error, Result, Success
 if TYPE_CHECKING:
     from studiorum.core.config.unified_config import ApplicationConfig
     from studiorum.core.interfaces import ContentTypeRegistry
-    from studiorum.core.services.container import ModernServiceContainer
+    from studiorum.core.services.container import ServiceContainer
 
 from .protocols import (
     CacheProtocol,
@@ -252,7 +252,7 @@ def get_content_type_registry() -> ContentTypeRegistry:
 
 
 async def get_app_config_service_async(
-    container: ModernServiceContainer | None = None,
+    container: ServiceContainer | None = None,
 ) -> ConfigurationProtocol:
     """Get the application configuration service from the container (async version).
 
@@ -271,7 +271,7 @@ async def get_app_config_service_async(
 
 
 async def get_cache_service_async(
-    container: ModernServiceContainer | None = None,
+    container: ServiceContainer | None = None,
 ) -> CacheProtocol:
     """Get the cache service from the container (async version).
 
@@ -290,7 +290,7 @@ async def get_cache_service_async(
 
 
 async def get_content_type_registry_service_async(
-    container: ModernServiceContainer | None = None,
+    container: ServiceContainer | None = None,
 ) -> ContentTypeRegistryProtocol:
     """Get the content type registry service from the container (async version).
 
