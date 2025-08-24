@@ -11,7 +11,6 @@ docs_dir: docs
 
 theme:
   name: cinder
-  custom_dir: docs/overrides  # Custom visual theme
 
 # Visual Design System - Fantasy-Themed with AI Accents
 extra_css:

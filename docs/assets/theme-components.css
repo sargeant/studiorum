@@ -12,135 +12,15 @@
   max-width: none;
 }
 
-/* Custom Navigation Tabs Styling for Cinder Theme */
-.navbar, .navbar-default {
-  background: linear-gradient(135deg, var(--studiorum-deep-purple), var(--studiorum-shadow)) !important;
-  border-bottom: 2px solid var(--studiorum-gold);
-  box-shadow: 0 2px 8px rgba(74, 20, 140, 0.3);
-  border: none;
-  /* Ensure full width background */
-  width: 100% !important;
-  max-width: none !important;
-  /* Ensure background extends to viewport edges */
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-}
-
-/* Ensure navbar container extends full width */
-.navbar .container,
-.navbar .container-fluid,
-.navbar-header,
-.navbar-collapse {
-  width: 100% !important;
-  max-width: none !important;
-}
-
-/* Override any theme-specific navbar constraints */
-nav.navbar,
-.navbar-fixed-top,
-.navbar-static-top {
-  background: linear-gradient(135deg, var(--studiorum-deep-purple), var(--studiorum-shadow)) !important;
-  width: 100vw !important;
-  max-width: none !important;
-  left: 0 !important;
-  right: 0 !important;
-  margin: 0 !important;
-  position: relative !important;
-}
-
-/* Force navigation to stay on single line */
-.navbar-nav {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  white-space: nowrap !important;
-}
-
-.navbar-nav > li {
-  display: inline-block !important;
-  float: none !important;
-  margin-right: var(--space-1) !important;
-}
-
-/* Navigation link styling - combined */
+/* Navigation - Use Cinder defaults with subtle theming */
 .navbar-nav > li > a {
-  color: var(--studiorum-parchment) !important;
-  transition: all var(--transition-base);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: var(--text-sm) !important;  /* Much smaller: 1.6rem instead of 2.4rem */
-  padding: var(--space-3) var(--space-4);
-  line-height: 1.4 !important;  /* Tighter line height for nav */
-  white-space: nowrap !important;  /* Prevent text wrapping */
-  display: inline-block !important;
+  font-family: var(--font-ui) !important;
+  /* Use UI font (Lato) instead of display font */
 }
 
-/* Navbar Brand/Site Title - Match other nav elements */
-.navbar-brand,
-.navbar .navbar-brand,
-.site-title,
-.navbar-header a {
-  color: var(--studiorum-parchment) !important;
-  font-family: var(--font-display) !important;
-  font-weight: 600 !important;
-  font-size: var(--text-sm) !important;  /* Same smaller size as nav items */
-  text-shadow: none !important;
-  line-height: 1.4 !important;  /* Consistent line height */
-}
-
-.navbar-nav > li > a:hover,
-.navbar-nav > li > a:focus {
-  color: var(--studiorum-gold) !important;
-  text-shadow: 0 0 8px var(--studiorum-gold);
-  background-color: rgba(255, 193, 7, 0.1) !important;
-}
-
-.navbar-nav > .active > a {
-  background-color: rgba(255, 193, 7, 0.2) !important;
-  color: var(--studiorum-gold) !important;
-}
-
-/* Mobile navigation adjustments */
-@media (max-width: 767px) {
-  .navbar-nav > li > a {
-    font-size: var(--text-xs) !important;  /* Even smaller on mobile: 1.3rem */
-    padding: var(--space-2) var(--space-3) !important;  /* Reduced padding */
-  }
-
-  .navbar-brand,
-  .navbar .navbar-brand,
-  .site-title,
-  .navbar-header a {
-    font-size: var(--text-xs) !important;  /* Consistent mobile sizing */
-  }
-
-  /* Allow wrapping on very small screens if needed */
-  .navbar-nav {
-    flex-wrap: wrap !important;
-  }
-
-  .navbar-nav > li {
-    margin-right: 0 !important;
-    margin-bottom: var(--space-1) !important;
-  }
-}
-
-/* Sidebar Navigation */
-.wy-nav-side {
-  background: linear-gradient(180deg,
-    rgba(26, 10, 46, 0.95),
-    rgba(74, 20, 140, 0.9));
-}
-
+/* Sidebar Navigation - Minimal theming */
 .wy-menu-vertical a {
-  color: var(--studiorum-parchment);
-  transition: all var(--transition-base);
-}
-
-.wy-menu-vertical a:hover {
-  background-color: rgba(255, 193, 7, 0.1);
-  color: var(--studiorum-gold);
+  font-family: var(--font-ui);
 }
 
 /* =============================================================================

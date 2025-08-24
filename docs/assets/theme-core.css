@@ -46,27 +46,18 @@
     --font-mono: 'Monaspace Neon', 'Fira Code', monospace;
     /* Code: Advanced monospace */
 
-    /* Typography Sizes - Balanced: Code +10%, Body -10% from previous aggressive scaling */
-    --text-xs: 1.3rem;
-    /* was 0.75rem → 175% = 1.31rem */
-    --text-sm: 1.6rem;
-    /* was 0.875rem → 175% = 1.53rem */
-    --text-base: 2.0rem;
-    /* was 2.4rem → -10% = 2.16rem (body text reduction) */
-    --text-lg: 2rem;
-    /* was 1.125rem → 175% = 1.97rem */
-    --text-xl: 2.3rem;
-    /* was 1.25rem → 175% = 2.19rem */
-    --text-2xl: 2.8rem;
-    /* was 1.5rem → 175% = 2.63rem */
-    --text-3xl: 3.5rem;
-    /* was 1.875rem → 175% = 3.28rem */
-    --text-4xl: 4rem;
-    /* was 2.25rem → 175% = 3.94rem */
+    /* Typography Sizes - Reset to reasonable defaults */
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    --text-4xl: 2.25rem;
 
-    /* Code-specific sizing - modest boost from body text */
-    --text-code: 1.75rem;
-    /* was --text-base 2.16rem → +6% = 2.29rem (modest code blocks boost) */
+    /* Code-specific sizing */
+    --text-code: 0.875rem;
 
     /* Spacing Scale */
     --space-1: 0.25rem;
@@ -157,36 +148,16 @@ h4 {
     font-size: var(--text-lg);
 }
 
-/* Body Text - LaTeX Template Style: Serif for readability with strong overrides */
+/* Body Text - Serif for readability */
 body,
 p,
 li,
 .prose,
 article {
-    font-family: var(--font-body) !important;
-    /* Lora (serif) optimized for body text, matches Bookmania */
-    font-size: var(--text-base) !important;
-    line-height: 1.6 !important;
-    color: var(--studiorum-shadow) !important;
-}
-
-/* Aggressive font size overrides for theme compatibility */
-.wy-nav-content p,
-.wy-nav-content li,
-.rst-content p,
-.rst-content li,
-.md-content p,
-.md-content li {
-    font-size: var(--text-base) !important;
-    font-family: var(--font-body) !important;
-}
-
-/* Override any remaining small text */
-.wy-nav-content .rst-content,
-.rst-content .wy-nav-content,
-body .wy-nav-content,
-body .rst-content {
-    font-size: var(--text-base) !important;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    color: var(--studiorum-shadow);
 }
 
 /* UI Elements - Sans-serif like LaTeX template */
@@ -336,65 +307,10 @@ pre code {
 }
 
 /* =============================================================================
-   NAVIGATION CUSTOMIZATION
+   NAVIGATION CUSTOMIZATION - MINIMAL
    ============================================================================= */
 
-/* Hide site title to make navigation single line */
-.navbar-brand,
-.navbar-header .navbar-brand,
-.site-name,
-.site-title,
-header .brand,
-.header-brand,
-.nav-brand {
-    display: none !important;
-}
-
-/* Move navigation bar to top and ensure proper positioning */
-.navbar,
-.navbar-header,
-.navigation,
-nav {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-    position: relative !important;
-    top: 0 !important;
-}
-
-/* Ensure navigation items are properly positioned */
-.navbar-nav {
-    margin-left: 0 !important;
-}
-
-/* Remove any extra spacing from header/navbar container */
-.navbar-wrapper,
-.header-wrapper,
-.site-header,
-header {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
-
-/* Remove spacing from body and main content areas */
-body {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
-
-main,
-.main-content,
-.content,
-.wy-nav-content-wrap,
-.wy-nav-content {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
-
-/* Force the main content to be flush with navigation */
-.wy-grid-for-nav {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
+/* Use default Cinder navigation layout with minimal customizations */
 
 /* =============================================================================
    UTILITY CLASSES
