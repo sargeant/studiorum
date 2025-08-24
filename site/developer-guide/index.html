@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="D&D 5e content processing toolkit - LaTeX/PDF generation and MCP integration">
+
+    <link rel="canonical" href="https://studiorum.dev/developer-guide/">
+    <link rel="shortcut icon" href="../img/favicon.ico">
+
+
+    <title>Developer Guide - Build with Studiorum - Studiorum Documentation</title>
+
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css">
+    <link href='//rsms.me/inter/inter.css' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&subset=latin-ext,latin' rel='stylesheet' type='text/css'>
+    <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+    <link href="../css/base.min.css" rel="stylesheet">
+    <link href="../css/cinder.min.css" rel="stylesheet">
+
+
+
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css">
+
+
+    <link href="../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../assets/theme-core.css" rel="stylesheet">
+    <link href="../assets/theme-components.css" rel="stylesheet">
+    <link href="../assets/ai-accents.css" rel="stylesheet">
+    <link href="../assets/responsive.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@githubnext/monaspace@1.000.0/fonts/webfonts/MonaspaceNeon/MonaspaceNeon.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+</head>
+
+<body>
+
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+
+            <!-- Main title -->
+
+
+              <a class="navbar-brand" href="..">Studiorum Documentation</a>
+
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+
+
+                    <li >
+                        <a href="..">Home</a>
+                    </li>
+
+
+
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">User Guide <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+
+
+<li >
+    <a href="../user-guide/">User Guide - Transform D&D Content into Professional PDFs</a>
+</li>
+
+
+
+<li >
+    <a href="../user-guide/quick-start/">Quick Start</a>
+</li>
+
+
+
+<li >
+    <a href="../user-guide/converting-content/">Converting Content</a>
+</li>
+
+
+
+<li >
+    <a href="../user-guide/mcp-setup/">MCP Integration</a>
+</li>
+
+
+
+<li >
+    <a href="../user-guide/troubleshooting/">Troubleshooting</a>
+</li>
+
+
+
+<li >
+    <a href="../user-guide/cli-reference/">CLI Reference</a>
+</li>
+
+
+                        </ul>
+                    </li>
+
+
+
+                    <li class="dropdown active">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Developer Guide <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+
+
+<li class="active">
+    <a href="./">Developer Guide - Build with Studiorum</a>
+</li>
+
+
+
+<li >
+    <a href="architecture/">Architecture</a>
+</li>
+
+
+
+<li >
+    <a href="getting-started/">Getting Started</a>
+</li>
+
+
+
+  <li class="dropdown-submenu">
+    <a tabindex="-1" href="">API Reference</a>
+    <ul class="dropdown-menu">
+
+
+<li >
+    <a href="api/">API Reference</a>
+</li>
+
+
+
+<li >
+    <a href="api/services/">Core Services</a>
+</li>
+
+
+
+<li >
+    <a href="api/models/">Models</a>
+</li>
+
+
+
+<li >
+    <a href="api/renderers/">Renderers</a>
+</li>
+
+
+    </ul>
+  </li>
+
+
+
+<li >
+    <a href="ai-agents/">AI Agent Development</a>
+</li>
+
+
+
+<li >
+    <a href="contributing/">Contributing</a>
+</li>
+
+
+
+<li >
+    <a href="models/">Model Usage</a>
+</li>
+
+
+                        </ul>
+                    </li>
+
+
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                            <i class="fas fa-search"></i> Search
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="../user-guide/cli-reference/">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="next" href="architecture/">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/sargeant/studiorum/edit/develop/docs/developer-guide/index.md">Edit on studiorum</a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <div class="container">
+
+
+        <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="first-level active"><a href="#developer-guide">Developer Guide</a></li>
+            <li class="second-level"><a href="#architecture-overview">Architecture Overview</a></li>
+
+            <li class="second-level"><a href="#development-pathways">Development Pathways</a></li>
+
+                <li class="third-level"><a href="#application-development">Application Development</a></li>
+                <li class="third-level"><a href="#mcp-tool-development">MCP Tool Development</a></li>
+                <li class="third-level"><a href="#core-contribution">Core Contribution</a></li>
+            <li class="second-level"><a href="#key-concepts">Key Concepts</a></li>
+
+                <li class="third-level"><a href="#service-container-pattern">Service Container Pattern</a></li>
+                <li class="third-level"><a href="#type-safe-models">Type-Safe Models</a></li>
+                <li class="third-level"><a href="#asyncsync-hybrid">Async/Sync Hybrid</a></li>
+            <li class="second-level"><a href="#integration-examples">Integration Examples</a></li>
+
+                <li class="third-level"><a href="#basic-content-processing">Basic Content Processing</a></li>
+                <li class="third-level"><a href="#mcp-tool-development_1">MCP Tool Development</a></li>
+                <li class="third-level"><a href="#custom-rendering-pipeline">Custom Rendering Pipeline</a></li>
+            <li class="second-level"><a href="#development-standards">Development Standards</a></li>
+
+                <li class="third-level"><a href="#code-quality">Code Quality</a></li>
+                <li class="third-level"><a href="#architecture-principles">Architecture Principles</a></li>
+            <li class="second-level"><a href="#resources">Resources</a></li>
+
+    </ul>
+</div></div>
+        <div class="col-md-9" role="main">
+
+<h1 id="developer-guide">Developer Guide<a class="headerlink" href="#developer-guide" title="Permanent link">&para;</a></h1>
+<p>Build applications with studiorum's modern Python architecture for D&amp;D 5e content processing.</p>
+<div class="hero-banner gradient-background">
+  <h2 class="hero-title">Build with Studiorum</h2>
+  <p class="hero-description">Leverage powerful models, services, and rendering systems for comprehensive D&D content applications</p>
+</div>
+
+<h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
+<div class="feature-cards">
+<ul>
+<li>
+<p>🏗️ <strong>System Architecture</strong></p>
+<hr />
+<p>Understand the service container, async patterns, and modern Python
+design that powers studiorum</p>
+<p><a class="btn-primary" href="architecture/">Architecture Overview</a></p>
+</li>
+<li>
+<p>🚀 <strong>Quick Development Setup</strong></p>
+<hr />
+<p>Get your development environment running in under 30 minutes with
+our comprehensive setup guide</p>
+<p><a class="btn-primary" href="getting-started/">Getting Started</a></p>
+</li>
+<li>
+<p>📚 <strong>API Reference</strong></p>
+<hr />
+<p>Complete API documentation with examples for models, services,
+and rendering systems</p>
+<p><a class="btn-secondary" href="api/">API Documentation</a></p>
+</li>
+<li>
+<p>🤖 <strong>AI Agent Development</strong></p>
+<hr />
+<p>Build intelligent D&amp;D applications using MCP tools and async
+service patterns</p>
+<p><a class="btn-accent" href="ai-agents/">AI Agents</a></p>
+</li>
+</ul>
+</div>
+<h2 id="development-pathways">Development Pathways<a class="headerlink" href="#development-pathways" title="Permanent link">&para;</a></h2>
+<h3 id="application-development">Application Development<a class="headerlink" href="#application-development" title="Permanent link">&para;</a></h3>
+<p>Build applications that process D&amp;D content:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>graph LR
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    A[Your App] --&gt; B[Studiorum Models]
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    B --&gt; C[Content Processing]
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    C --&gt; D[LaTeX/PDF Output]
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    A --&gt; E[MCP Tools]
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    E --&gt; F[AI Integration]
+</span></code></pre></div>
+<ol>
+<li><strong><a href="architecture/">Architecture</a></strong> - Understand the system design</li>
+<li><strong><a href="models/">Models</a></strong> - Work with typed D&amp;D content models</li>
+<li><strong><a href="api/">API Reference</a></strong> - Explore services and rendering systems</li>
+</ol>
+<h3 id="mcp-tool-development">MCP Tool Development<a class="headerlink" href="#mcp-tool-development" title="Permanent link">&para;</a></h3>
+<p>Create AI-powered D&amp;D tools:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>graph LR
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    A[AI Agent] --&gt; B[MCP Protocol]
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    B --&gt; C[Studiorum MCP Server]
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    C --&gt; D[Content Resolution]
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    D --&gt; E[Structured Response]
+</span></code></pre></div>
+<ol>
+<li><strong><a href="ai-agents/">AI Agents</a></strong> - MCP development patterns</li>
+<li><strong><a href="getting-started/#mcp-development">Getting Started</a></strong> - Development setup</li>
+<li><strong><a href="api/services/">API Reference</a></strong> - Service layer integration</li>
+</ol>
+<h3 id="core-contribution">Core Contribution<a class="headerlink" href="#core-contribution" title="Permanent link">&para;</a></h3>
+<p>Contribute to studiorum itself:</p>
+<ol>
+<li><strong><a href="contributing/">Contributing</a></strong> - Development workflow and standards</li>
+<li><strong><a href="architecture/">Architecture</a></strong> - Deep system understanding</li>
+<li><strong><a href="getting-started/#core-development">Getting Started</a></strong> - Contributor setup</li>
+</ol>
+<h2 id="key-concepts">Key Concepts<a class="headerlink" href="#key-concepts" title="Permanent link">&para;</a></h2>
+<h3 id="service-container-pattern">Service Container Pattern<a class="headerlink" href="#service-container-pattern" title="Permanent link">&para;</a></h3>
+<p>Modern dependency injection with async support:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">studiorum.core.container</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_global_container</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># CLI usage (sync)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">omnidexer</span> <span class="o">=</span> <span class="n">get_global_container</span><span class="p">()</span><span class="o">.</span><span class="n">get_omnidexer_sync</span><span class="p">()</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># MCP usage (async)</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mcp_tool</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">AsyncRequestContext</span><span class="p">):</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">omnidexer</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">get_service</span><span class="p">(</span><span class="n">OmnidexerProtocol</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="type-safe-models">Type-Safe Models<a class="headerlink" href="#type-safe-models" title="Permanent link">&para;</a></h3>
+<p>Pydantic models with full D&amp;D 5e content support:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">studiorum.core.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Creature</span><span class="p">,</span> <span class="n">Spell</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Load and validate content</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">dragon</span> <span class="o">=</span> <span class="n">Creature</span><span class="o">.</span><span class="n">from_5etools</span><span class="p">(</span><span class="s2">&quot;ancient-red-dragon&quot;</span><span class="p">)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">fireball</span> <span class="o">=</span> <span class="n">Spell</span><span class="o">.</span><span class="n">from_5etools</span><span class="p">(</span><span class="s2">&quot;fireball&quot;</span><span class="p">)</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Type-safe access</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CR: </span><span class="si">{</span><span class="n">dragon</span><span class="o">.</span><span class="n">challenge_rating</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Damage: </span><span class="si">{</span><span class="n">fireball</span><span class="o">.</span><span class="n">damage</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="asyncsync-hybrid">Async/Sync Hybrid<a class="headerlink" href="#asyncsync-hybrid" title="Permanent link">&para;</a></h3>
+<p>Optimized for different use cases:</p>
+<ul>
+<li><strong>CLI</strong>: Synchronous for simple sequential operations</li>
+<li><strong>MCP</strong>: Asynchronous for concurrent request handling</li>
+<li><strong>Testing</strong>: Isolated containers for parallel test execution</li>
+</ul>
+<h2 id="integration-examples">Integration Examples<a class="headerlink" href="#integration-examples" title="Permanent link">&para;</a></h2>
+<h3 id="basic-content-processing">Basic Content Processing<a class="headerlink" href="#basic-content-processing" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">studiorum.core.loaders</span><span class="w"> </span><span class="kn">import</span> <span class="n">Omnidexer</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">studiorum.core.resolvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentResolver</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Load and resolve content</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">omnidexer</span> <span class="o">=</span> <span class="n">Omnidexer</span><span class="p">()</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">omnidexer</span><span class="o">.</span><span class="n">load_all_data</span><span class="p">()</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">resolver</span> <span class="o">=</span> <span class="n">ContentResolver</span><span class="p">(</span><span class="n">omnidexer</span><span class="p">)</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">result</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">resolve_adventure</span><span class="p">(</span><span class="s2">&quot;lost-mine-of-phandelver&quot;</span><span class="p">)</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">is_success</span><span class="p">():</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    <span class="n">adventure</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">content</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adventure: </span><span class="si">{</span><span class="n">adventure</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="mcp-tool-development_1">MCP Tool Development<a class="headerlink" href="#mcp-tool-development_1" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">studiorum.mcp.server</span><span class="w"> </span><span class="kn">import</span> <span class="n">mcp_tool</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">studiorum.core.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentType</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="nd">@mcp_tool</span><span class="p">(</span><span class="s2">&quot;lookup_spell&quot;</span><span class="p">)</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">lookup_spell</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">AsyncRequestContext</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Look up a spell by name.&quot;&quot;&quot;</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="n">omnidexer</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">get_service</span><span class="p">(</span><span class="n">OmnidexerProtocol</span><span class="p">)</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">spell</span> <span class="o">=</span> <span class="n">omnidexer</span><span class="o">.</span><span class="n">get_content_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">SPELL</span><span class="p">)</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="k">return</span> <span class="p">{</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">spell</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>        <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="n">spell</span><span class="o">.</span><span class="n">level</span><span class="p">,</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>        <span class="s2">&quot;school&quot;</span><span class="p">:</span> <span class="n">spell</span><span class="o">.</span><span class="n">school</span><span class="p">,</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>        <span class="s2">&quot;damage&quot;</span><span class="p">:</span> <span class="n">spell</span><span class="o">.</span><span class="n">damage</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>    <span class="p">}</span>
+</span></code></pre></div>
+<h3 id="custom-rendering-pipeline">Custom Rendering Pipeline<a class="headerlink" href="#custom-rendering-pipeline" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">studiorum.renderers.latex</span><span class="w"> </span><span class="kn">import</span> <span class="n">LaTeXRenderer</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">studiorum.core.references</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentTracker</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Set up rendering context</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">tracker</span> <span class="o">=</span> <span class="n">ContentTracker</span><span class="p">()</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">context</span> <span class="o">=</span> <span class="n">RenderingContext</span><span class="p">(</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;latex&quot;</span><span class="p">,</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="n">content_tracker</span><span class="o">=</span><span class="n">tracker</span><span class="p">,</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;My Adventure&quot;</span><span class="p">}</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="p">)</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="c1"># Render with custom options</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="n">renderer</span> <span class="o">=</span> <span class="n">LaTeXRenderer</span><span class="p">()</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="n">latex_output</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">render_adventure</span><span class="p">(</span><span class="n">adventure</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="development-standards">Development Standards<a class="headerlink" href="#development-standards" title="Permanent link">&para;</a></h2>
+<h3 id="code-quality">Code Quality<a class="headerlink" href="#code-quality" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Type Safety</strong>: Full mypy compliance with modern Python patterns</li>
+<li><strong>Testing</strong>: Property-based testing with Hypothesis + traditional unit tests</li>
+<li><strong>Performance</strong>: Async architecture with intelligent caching</li>
+<li><strong>Security</strong>: LaTeX injection prevention and input validation</li>
+</ul>
+<h3 id="architecture-principles">Architecture Principles<a class="headerlink" href="#architecture-principles" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Protocol-Based</strong>: Loose coupling through runtime checkable protocols</li>
+<li><strong>Service Oriented</strong>: Dependency injection with lifecycle management</li>
+<li><strong>Result Pattern</strong>: Explicit error handling without exceptions</li>
+<li><strong>Progressive Enhancement</strong>: Graceful degradation and feature detection</li>
+</ul>
+<p><a class="btn-primary btn-large" href="getting-started/">Start Building →</a></p>
+<hr />
+<h2 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">&para;</a></h2>
+<ul>
+<li>📖 <strong><a href="architecture/">Architecture Deep Dive</a></strong> - Complete system design</li>
+<li>🔧 <strong><a href="api/">API Reference</a></strong> - Comprehensive API documentation</li>
+<li>🤖 <strong><a href="ai-agents/">AI Agent Patterns</a></strong> - MCP development guide</li>
+<li>🚀 <strong><a href="contributing/">Contributing</a></strong> - Join the development community</li>
+<li>💬 <strong><a href="https://github.com/sargeant/studiorum/discussions">Discussions</a></strong> - Community support</li>
+</ul></div>
+
+
+    </div>
+
+
+      <footer class="col-md-12 text-center">
+
+
+            <hr>
+            <p>
+            <small>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</small>
+            </p>
+
+
+
+
+      </footer>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="../js/bootstrap-3.0.3.min.js"></script>
+
+
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+
+    <script>hljs.initHighlightingOnLoad();</script>
+
+
+    <script>var base_url = ".."</script>
+
+    <script src="../js/base.js"></script>
+    <script src="../assets/theme-interactions.js"></script>
+    <script src="../assets/ai-enhancements.js"></script>
+    <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+    <script src="../search/main.js"></script>
+
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    </body>
+
+</html>

@@ -50,8 +50,6 @@ from .enhanced_image_placer import (
     EnhancedPlacementConfig,
     EnhancedPlacementResult,
 )
-
-# Legacy imports for backward compatibility
 from .format_converter import FormatConverter
 
 # Phase 3 content integration and registry imports

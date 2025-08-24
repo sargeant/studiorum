@@ -612,37 +612,6 @@ class AppendixMixin:
             if isinstance(content, DeepIndexable):
                 reference_manager.track_deep_index_references(content, context)
 
-    def generate_legacy_appendices(
-        self,
-        reference_manager: ContentReferenceManager,
-        appendix_flags: Any,
-        template_engine: Any,
-        omnidexer: Any,
-    ) -> Any:
-        """Legacy appendix generation for backward compatibility.
-
-        Args:
-            reference_manager: ContentReferenceManager with tracked references
-            appendix_flags: Flags indicating which appendices to generate
-            template_engine: Template engine for rendering
-            omnidexer: Omnidexer for content resolution
-
-        Returns:
-            Generated appendix content as LaTeX string
-        """
-        from studiorum.core.services.appendix_generator import AppendixGenerator
-
-        # Use the ContentTracker from the reference manager for backward compatibility
-        content_tracker = reference_manager.get_content_tracker()
-
-        # Create appendix generator
-        appendix_generator = AppendixGenerator(
-            omnidexer=omnidexer, template_engine=template_engine
-        )
-
-        # Generate appendices using existing system
-        return appendix_generator.generate_appendices(content_tracker, appendix_flags)
-
 
 # Helper functions for parameter combinations
 def get_all_convert_parameters() -> dict[str, Any]:

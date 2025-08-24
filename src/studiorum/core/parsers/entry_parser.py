@@ -9,7 +9,6 @@ from ..entry_registry import ValidationMode, get_registry
 from ..exceptions import EntryProcessingError
 from ..models.content import Source
 from ..models.nested_content import (
-    # Legacy imports for backward compatibility
     Inset,
     Section,
     Table,

@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="D&D 5e content processing toolkit - LaTeX/PDF generation and MCP integration">
+
+    <link rel="canonical" href="https://studiorum.dev/user-guide/cli-reference/">
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+
+
+    <title>CLI Reference - Studiorum Documentation</title>
+
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css">
+    <link href='//rsms.me/inter/inter.css' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&subset=latin-ext,latin' rel='stylesheet' type='text/css'>
+    <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+    <link href="../../css/base.min.css" rel="stylesheet">
+    <link href="../../css/cinder.min.css" rel="stylesheet">
+
+
+
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css">
+
+
+    <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+    <link href="../../assets/theme-core.css" rel="stylesheet">
+    <link href="../../assets/theme-components.css" rel="stylesheet">
+    <link href="../../assets/ai-accents.css" rel="stylesheet">
+    <link href="../../assets/responsive.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@githubnext/monaspace@1.000.0/fonts/webfonts/MonaspaceNeon/MonaspaceNeon.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+
+
+
+
+</head>
+
+<body>
+
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+
+            <!-- Main title -->
+
+
+              <a class="navbar-brand" href="../..">Studiorum Documentation</a>
+
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+
+
+                    <li >
+                        <a href="../..">Home</a>
+                    </li>
+
+
+
+                    <li class="dropdown active">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">User Guide <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+
+
+<li >
+    <a href="../">User Guide - Transform D&D Content into Professional PDFs</a>
+</li>
+
+
+
+<li >
+    <a href="../quick-start/">Quick Start</a>
+</li>
+
+
+
+<li >
+    <a href="../converting-content/">Converting Content</a>
+</li>
+
+
+
+<li >
+    <a href="../mcp-setup/">MCP Integration</a>
+</li>
+
+
+
+<li >
+    <a href="../troubleshooting/">Troubleshooting</a>
+</li>
+
+
+
+<li class="active">
+    <a href="./">CLI Reference</a>
+</li>
+
+
+                        </ul>
+                    </li>
+
+
+
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Developer Guide <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+
+
+<li >
+    <a href="../../developer-guide/">Developer Guide - Build with Studiorum</a>
+</li>
+
+
+
+<li >
+    <a href="../../developer-guide/architecture/">Architecture</a>
+</li>
+
+
+
+<li >
+    <a href="../../developer-guide/getting-started/">Getting Started</a>
+</li>
+
+
+
+  <li class="dropdown-submenu">
+    <a tabindex="-1" href="">API Reference</a>
+    <ul class="dropdown-menu">
+
+
+<li >
+    <a href="../../developer-guide/api/">API Reference</a>
+</li>
+
+
+
+<li >
+    <a href="../../developer-guide/api/services/">Core Services</a>
+</li>
+
+
+
+<li >
+    <a href="../../developer-guide/api/models/">Models</a>
+</li>
+
+
+
+<li >
+    <a href="../../developer-guide/api/renderers/">Renderers</a>
+</li>
+
+
+    </ul>
+  </li>
+
+
+
+<li >
+    <a href="../../developer-guide/ai-agents/">AI Agent Development</a>
+</li>
+
+
+
+<li >
+    <a href="../../developer-guide/contributing/">Contributing</a>
+</li>
+
+
+
+<li >
+    <a href="../../developer-guide/models/">Model Usage</a>
+</li>
+
+
+                        </ul>
+                    </li>
+
+
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                            <i class="fas fa-search"></i> Search
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="../troubleshooting/">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="next" href="../../developer-guide/">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/sargeant/studiorum/edit/develop/docs/user-guide/cli-reference.md">Edit on studiorum</a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <div class="container">
+
+
+        <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="first-level active"><a href="#cli-reference">CLI Reference</a></li>
+            <li class="second-level"><a href="#global-options">Global Options</a></li>
+
+            <li class="second-level"><a href="#convert">convert</a></li>
+
+                <li class="third-level"><a href="#convert-adventure">convert adventure</a></li>
+                <li class="third-level"><a href="#convert-creature">convert creature</a></li>
+                <li class="third-level"><a href="#convert-spell">convert spell</a></li>
+                <li class="third-level"><a href="#convert-item">convert item</a></li>
+            <li class="second-level"><a href="#list">list</a></li>
+
+                <li class="third-level"><a href="#list-adventures">list adventures</a></li>
+                <li class="third-level"><a href="#list-creatures">list creatures</a></li>
+                <li class="third-level"><a href="#list-spells">list spells</a></li>
+                <li class="third-level"><a href="#list-items">list items</a></li>
+            <li class="second-level"><a href="#search">search</a></li>
+
+            <li class="second-level"><a href="#sources">sources</a></li>
+
+                <li class="third-level"><a href="#sources-list">sources list</a></li>
+                <li class="third-level"><a href="#sources-enable">sources enable</a></li>
+                <li class="third-level"><a href="#sources-disable">sources disable</a></li>
+                <li class="third-level"><a href="#sources-update">sources update</a></li>
+            <li class="second-level"><a href="#index">index</a></li>
+
+                <li class="third-level"><a href="#index-build">index build</a></li>
+                <li class="third-level"><a href="#index-status">index status</a></li>
+                <li class="third-level"><a href="#index-refresh">index refresh</a></li>
+            <li class="second-level"><a href="#config">config</a></li>
+
+                <li class="third-level"><a href="#config-init">config init</a></li>
+                <li class="third-level"><a href="#config-show">config show</a></li>
+                <li class="third-level"><a href="#config-validate">config validate</a></li>
+                <li class="third-level"><a href="#config-set">config set</a></li>
+            <li class="second-level"><a href="#cache">cache</a></li>
+
+                <li class="third-level"><a href="#cache-clear">cache clear</a></li>
+                <li class="third-level"><a href="#cache-stats">cache stats</a></li>
+            <li class="second-level"><a href="#mcp">mcp</a></li>
+
+                <li class="third-level"><a href="#mcp-run">mcp run</a></li>
+                <li class="third-level"><a href="#mcp-test">mcp test</a></li>
+                <li class="third-level"><a href="#mcp-stats">mcp stats</a></li>
+            <li class="second-level"><a href="#health">health</a></li>
+
+                <li class="third-level"><a href="#health-check">health check</a></li>
+                <li class="third-level"><a href="#health-version">health version</a></li>
+            <li class="second-level"><a href="#logs">logs</a></li>
+
+                <li class="third-level"><a href="#logs-show">logs show</a></li>
+                <li class="third-level"><a href="#logs-clear">logs clear</a></li>
+            <li class="second-level"><a href="#environment-variables">Environment Variables</a></li>
+
+            <li class="second-level"><a href="#exit-codes">Exit Codes</a></li>
+
+            <li class="second-level"><a href="#examples">Examples</a></li>
+
+                <li class="third-level"><a href="#common-workflows">Common Workflows</a></li>
+    </ul>
+</div></div>
+        <div class="col-md-9" role="main">
+
+<h1 id="cli-reference">CLI Reference<a class="headerlink" href="#cli-reference" title="Permanent link">&para;</a></h1>
+<p>Complete reference for all studiorum command-line interface commands and options.</p>
+<h2 id="global-options">Global Options<a class="headerlink" href="#global-options" title="Permanent link">&para;</a></h2>
+<p>Available for all commands:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>studiorum<span class="w"> </span><span class="o">[</span>GLOBAL<span class="w"> </span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>COMMAND<span class="w"> </span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--config FILE</code></td>
+<td>Configuration file path</td>
+<td><code>~/.studiorum/config.yaml</code></td>
+</tr>
+<tr>
+<td><code>--verbose, -v</code></td>
+<td>Enable verbose output</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--quiet, -q</code></td>
+<td>Suppress non-error output</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help, -h</code></td>
+<td>Show help message</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>--version</code></td>
+<td>Show version information</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h2 id="convert">convert<a class="headerlink" href="#convert" title="Permanent link">&para;</a></h2>
+<p>Convert D&amp;D 5e content to LaTeX or PDF format.</p>
+<h3 id="convert-adventure">convert adventure<a class="headerlink" href="#convert-adventure" title="Permanent link">&para;</a></h3>
+<p>Convert adventures with optional appendices:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>adventure<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>ADVENTURE_NAME
+</span></code></pre></div>
+<p><strong>Arguments:</strong>
+- <code>ADVENTURE_NAME</code>: Name or abbreviation of the adventure</p>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--output, -o FILE</code></td>
+<td>Output file path</td>
+<td>Auto-generated</td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format (latex, pdf)</td>
+<td><code>latex</code></td>
+</tr>
+<tr>
+<td><code>--compiler COMPILER</code></td>
+<td>LaTeX compiler (pdflatex, xelatex, lualatex)</td>
+<td><code>pdflatex</code></td>
+</tr>
+<tr>
+<td><code>--creatures</code></td>
+<td>Include creatures appendix</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--spells</code></td>
+<td>Include spells appendix</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--items</code></td>
+<td>Include magic items appendix</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--template TEMPLATE</code></td>
+<td>LaTeX template to use</td>
+<td><code>dnd-5e</code></td>
+</tr>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Comma-separated source books</td>
+<td>All enabled</td>
+</tr>
+<tr>
+<td><code>--exclude-sources SOURCES</code></td>
+<td>Sources to exclude</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--toc</code></td>
+<td>Include table of contents</td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>--index</code></td>
+<td>Include index</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--debug</code></td>
+<td>Enable debug output</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Basic adventure conversion</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>adventure<span class="w"> </span><span class="s2">&quot;Lost Mine of Phandelver&quot;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># With all appendices</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>adventure<span class="w"> </span><span class="s2">&quot;Curse of Strahd&quot;</span><span class="w"> </span>--creatures<span class="w"> </span>--spells<span class="w"> </span>--items
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Generate PDF directly</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>adventure<span class="w"> </span><span class="s2">&quot;Storm King&#39;s Thunder&quot;</span><span class="w"> </span>--format<span class="w"> </span>pdf<span class="w"> </span>--output<span class="w"> </span>skt.pdf
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="c1"># Use specific compiler</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>adventure<span class="w"> </span><span class="s2">&quot;Waterdeep Dragon Heist&quot;</span><span class="w"> </span>--compiler<span class="w"> </span>xelatex
+</span></code></pre></div>
+<h3 id="convert-creature">convert creature<a class="headerlink" href="#convert-creature" title="Permanent link">&para;</a></h3>
+<p>Convert individual creatures or groups:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>creature<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CREATURE_NAME
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>creatures<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Arguments:</strong>
+- <code>CREATURE_NAME</code>: Name of the creature (for single conversion)</p>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--output, -o FILE</code></td>
+<td>Output file path</td>
+<td>Auto-generated</td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>latex</code></td>
+</tr>
+<tr>
+<td><code>--cr RANGE</code></td>
+<td>Challenge rating range (e.g., "5-10")</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--type TYPE</code></td>
+<td>Creature type filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--size SIZE</code></td>
+<td>Creature size filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--environment ENV</code></td>
+<td>Environment filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--legendary</code></td>
+<td>Include only legendary creatures</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Source book filter</td>
+<td>All enabled</td>
+</tr>
+<tr>
+<td><code>--template TEMPLATE</code></td>
+<td>LaTeX template</td>
+<td><code>dnd-5e</code></td>
+</tr>
+<tr>
+<td><code>--sort-by FIELD</code></td>
+<td>Sort by field (name, cr, type)</td>
+<td><code>name</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Single creature</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>creature<span class="w"> </span><span class="s2">&quot;Ancient Red Dragon&quot;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Creatures by CR range</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>creatures<span class="w"> </span>--cr<span class="w"> </span><span class="m">10</span>-15
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Dragons only</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>creatures<span class="w"> </span>--type<span class="w"> </span>dragon<span class="w"> </span>--legendary
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># Specific environment</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>creatures<span class="w"> </span>--environment<span class="w"> </span><span class="s2">&quot;underdark&quot;</span><span class="w"> </span>--cr<span class="w"> </span><span class="m">5</span>-10
+</span></code></pre></div>
+<h3 id="convert-spell">convert spell<a class="headerlink" href="#convert-spell" title="Permanent link">&para;</a></h3>
+<p>Convert spells:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>spell<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>SPELL_NAME
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>spells<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Arguments:</strong>
+- <code>SPELL_NAME</code>: Name of the spell (for single conversion)</p>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--output, -o FILE</code></td>
+<td>Output file path</td>
+<td>Auto-generated</td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>latex</code></td>
+</tr>
+<tr>
+<td><code>--level LEVELS</code></td>
+<td>Spell level(s) (e.g., "1,3,5" or "1-5")</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--school SCHOOL</code></td>
+<td>Magic school filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--class CLASS</code></td>
+<td>Spell class filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--ritual</code></td>
+<td>Include only ritual spells</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--concentration</code></td>
+<td>Include only concentration spells</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Source book filter</td>
+<td>All enabled</td>
+</tr>
+<tr>
+<td><code>--sort-by FIELD</code></td>
+<td>Sort by (name, level, school)</td>
+<td><code>level</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Single spell</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>spell<span class="w"> </span><span class="s2">&quot;Fireball&quot;</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Third level spells</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>spells<span class="w"> </span>--level<span class="w"> </span><span class="m">3</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Evocation spells for wizards</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>spells<span class="w"> </span>--school<span class="w"> </span>evocation<span class="w"> </span>--class<span class="w"> </span>wizard
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="c1"># Ritual spells</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>spells<span class="w"> </span>--ritual<span class="w"> </span>--level<span class="w"> </span><span class="m">1</span>-5
+</span></code></pre></div>
+<h3 id="convert-item">convert item<a class="headerlink" href="#convert-item" title="Permanent link">&para;</a></h3>
+<p>Convert magic items and equipment:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>item<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>ITEM_NAME
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>items<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Arguments:</strong>
+- <code>ITEM_NAME</code>: Name of the item (for single conversion)</p>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--output, -o FILE</code></td>
+<td>Output file path</td>
+<td>Auto-generated</td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>latex</code></td>
+</tr>
+<tr>
+<td><code>--rarity RARITY</code></td>
+<td>Item rarity filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--type TYPE</code></td>
+<td>Item type filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--attunement</code></td>
+<td>Requires attunement only</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Source book filter</td>
+<td>All enabled</td>
+</tr>
+<tr>
+<td><code>--sort-by FIELD</code></td>
+<td>Sort by (name, rarity, type)</td>
+<td><code>name</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Single item</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>item<span class="w"> </span><span class="s2">&quot;Bag of Holding&quot;</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Legendary weapons</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>items<span class="w"> </span>--rarity<span class="w"> </span>legendary<span class="w"> </span>--type<span class="w"> </span>weapon
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Items requiring attunement</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>items<span class="w"> </span>--attunement<span class="w"> </span>--rarity<span class="w"> </span><span class="s2">&quot;rare,very rare&quot;</span>
+</span></code></pre></div>
+<h2 id="list">list<a class="headerlink" href="#list" title="Permanent link">&para;</a></h2>
+<p>List available content in the database.</p>
+<h3 id="list-adventures">list adventures<a class="headerlink" href="#list-adventures" title="Permanent link">&para;</a></h3>
+<p>List available adventures:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>studiorum<span class="w"> </span>list<span class="w"> </span>adventures<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Source book filter</td>
+<td>All enabled</td>
+</tr>
+<tr>
+<td><code>--recent</code></td>
+<td>Show recently added content</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format (table, json, yaml)</td>
+<td><code>table</code></td>
+</tr>
+<tr>
+<td><code>--limit LIMIT</code></td>
+<td>Maximum results to show</td>
+<td>100</td>
+</tr>
+</tbody>
+</table>
+<h3 id="list-creatures">list creatures<a class="headerlink" href="#list-creatures" title="Permanent link">&para;</a></h3>
+<p>List available creatures:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>studiorum<span class="w"> </span>list<span class="w"> </span>creatures<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--cr RANGE</code></td>
+<td>Challenge rating filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--type TYPE</code></td>
+<td>Creature type filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--size SIZE</code></td>
+<td>Size filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--environment ENV</code></td>
+<td>Environment filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--legendary</code></td>
+<td>Legendary creatures only</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Source book filter</td>
+<td>All enabled</td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>table</code></td>
+</tr>
+<tr>
+<td><code>--limit LIMIT</code></td>
+<td>Maximum results</td>
+<td>100</td>
+</tr>
+<tr>
+<td><code>--sort-by FIELD</code></td>
+<td>Sort field</td>
+<td><code>name</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="list-spells">list spells<a class="headerlink" href="#list-spells" title="Permanent link">&para;</a></h3>
+<p>List available spells:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>studiorum<span class="w"> </span>list<span class="w"> </span>spells<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--level LEVELS</code></td>
+<td>Spell level filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--school SCHOOL</code></td>
+<td>Magic school filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--class CLASS</code></td>
+<td>Spell class filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--ritual</code></td>
+<td>Ritual spells only</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--concentration</code></td>
+<td>Concentration spells only</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Source book filter</td>
+<td>All enabled</td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>table</code></td>
+</tr>
+<tr>
+<td><code>--limit LIMIT</code></td>
+<td>Maximum results</td>
+<td>100</td>
+</tr>
+</tbody>
+</table>
+<h3 id="list-items">list items<a class="headerlink" href="#list-items" title="Permanent link">&para;</a></h3>
+<p>List available items:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>studiorum<span class="w"> </span>list<span class="w"> </span>items<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--rarity RARITY</code></td>
+<td>Item rarity filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--type TYPE</code></td>
+<td>Item type filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--attunement</code></td>
+<td>Requires attunement only</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Source book filter</td>
+<td>All enabled</td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>table</code></td>
+</tr>
+<tr>
+<td><code>--limit LIMIT</code></td>
+<td>Maximum results</td>
+<td>100</td>
+</tr>
+</tbody>
+</table>
+<h2 id="search">search<a class="headerlink" href="#search" title="Permanent link">&para;</a></h2>
+<p>Search across all content types:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>studiorum<span class="w"> </span>search<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>QUERY
+</span></code></pre></div>
+<p><strong>Arguments:</strong>
+- <code>QUERY</code>: Search query string</p>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--type TYPE</code></td>
+<td>Content type filter</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Source book filter</td>
+<td>All enabled</td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>table</code></td>
+</tr>
+<tr>
+<td><code>--limit LIMIT</code></td>
+<td>Maximum results</td>
+<td>50</td>
+</tr>
+<tr>
+<td><code>--fuzzy</code></td>
+<td>Enable fuzzy matching</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--case-sensitive</code></td>
+<td>Case-sensitive search</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Basic search</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>studiorum<span class="w"> </span>search<span class="w"> </span><span class="s2">&quot;dragon&quot;</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># Search creatures only</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>studiorum<span class="w"> </span>search<span class="w"> </span><span class="s2">&quot;undead&quot;</span><span class="w"> </span>--type<span class="w"> </span>creature
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1"># Fuzzy search for misspellings</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>studiorum<span class="w"> </span>search<span class="w"> </span><span class="s2">&quot;tarrasq&quot;</span><span class="w"> </span>--fuzzy
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="c1"># Search specific sources</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>studiorum<span class="w"> </span>search<span class="w"> </span><span class="s2">&quot;fiend&quot;</span><span class="w"> </span>--sources<span class="w"> </span><span class="s2">&quot;MM,VGtM&quot;</span>
+</span></code></pre></div>
+<h2 id="sources">sources<a class="headerlink" href="#sources" title="Permanent link">&para;</a></h2>
+<p>Manage content sources and data.</p>
+<h3 id="sources-list">sources list<a class="headerlink" href="#sources-list" title="Permanent link">&para;</a></h3>
+<p>List available and enabled sources:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>studiorum<span class="w"> </span>sources<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--enabled-only</code></td>
+<td>Show only enabled sources</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>table</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="sources-enable">sources enable<a class="headerlink" href="#sources-enable" title="Permanent link">&para;</a></h3>
+<p>Enable specific source books:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>studiorum<span class="w"> </span>sources<span class="w"> </span><span class="nb">enable</span><span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>SOURCES
+</span></code></pre></div>
+<p><strong>Arguments:</strong>
+- <code>SOURCES</code>: Comma-separated list of source abbreviations</p>
+<p><strong>Examples:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Enable specific sources</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>studiorum<span class="w"> </span>sources<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>PHB,MM,DMG
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># Enable all official sources</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>studiorum<span class="w"> </span>sources<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--official
+</span></code></pre></div>
+<h3 id="sources-disable">sources disable<a class="headerlink" href="#sources-disable" title="Permanent link">&para;</a></h3>
+<p>Disable specific source books:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>studiorum<span class="w"> </span>sources<span class="w"> </span>disable<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>SOURCES
+</span></code></pre></div>
+<p><strong>Arguments:</strong>
+- <code>SOURCES</code>: Comma-separated list of source abbreviations</p>
+<h3 id="sources-update">sources update<a class="headerlink" href="#sources-update" title="Permanent link">&para;</a></h3>
+<p>Update content from remote sources:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>studiorum<span class="w"> </span>sources<span class="w"> </span>update<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--force</code></td>
+<td>Force update even if recent</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Update specific sources only</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--retry COUNT</code></td>
+<td>Retry failed downloads</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>--parallel</code></td>
+<td>Download in parallel</td>
+<td><code>True</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="index">index<a class="headerlink" href="#index" title="Permanent link">&para;</a></h2>
+<p>Manage the content search index.</p>
+<h3 id="index-build">index build<a class="headerlink" href="#index-build" title="Permanent link">&para;</a></h3>
+<p>Build or rebuild the search index:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>studiorum<span class="w"> </span>index<span class="w"> </span>build<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--rebuild</code></td>
+<td>Rebuild existing index</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Index specific sources only</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--optimize</code></td>
+<td>Optimize index after build</td>
+<td><code>True</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="index-status">index status<a class="headerlink" href="#index-status" title="Permanent link">&para;</a></h3>
+<p>Show index status and statistics:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>studiorum<span class="w"> </span>index<span class="w"> </span>status<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>table</code></td>
+</tr>
+<tr>
+<td><code>--detailed</code></td>
+<td>Show detailed statistics</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="index-refresh">index refresh<a class="headerlink" href="#index-refresh" title="Permanent link">&para;</a></h3>
+<p>Refresh index with latest content:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>studiorum<span class="w"> </span>index<span class="w"> </span>refresh<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--incremental</code></td>
+<td>Only update changed content</td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>--sources SOURCES</code></td>
+<td>Refresh specific sources</td>
+<td>All</td>
+</tr>
+</tbody>
+</table>
+<h2 id="config">config<a class="headerlink" href="#config" title="Permanent link">&para;</a></h2>
+<p>Manage configuration settings.</p>
+<h3 id="config-init">config init<a class="headerlink" href="#config-init" title="Permanent link">&para;</a></h3>
+<p>Initialize default configuration:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>studiorum<span class="w"> </span>config<span class="w"> </span>init<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--force</code></td>
+<td>Overwrite existing config</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--minimal</code></td>
+<td>Create minimal config</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--interactive</code></td>
+<td>Interactive configuration</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="config-show">config show<a class="headerlink" href="#config-show" title="Permanent link">&para;</a></h3>
+<p>Display current configuration:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>studiorum<span class="w"> </span>config<span class="w"> </span>show<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format (yaml, json)</td>
+<td><code>yaml</code></td>
+</tr>
+<tr>
+<td><code>--sanitized</code></td>
+<td>Hide sensitive values</td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>--section SECTION</code></td>
+<td>Show specific section only</td>
+<td>All</td>
+</tr>
+</tbody>
+</table>
+<h3 id="config-validate">config validate<a class="headerlink" href="#config-validate" title="Permanent link">&para;</a></h3>
+<p>Validate configuration file:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>studiorum<span class="w"> </span>config<span class="w"> </span>validate<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>CONFIG_FILE<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Arguments:</strong>
+- <code>CONFIG_FILE</code>: Configuration file to validate (optional)</p>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--strict</code></td>
+<td>Strict validation mode</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--fix</code></td>
+<td>Attempt to fix issues</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="config-set">config set<a class="headerlink" href="#config-set" title="Permanent link">&para;</a></h3>
+<p>Set configuration values:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>studiorum<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>KEY<span class="w"> </span>VALUE
+</span></code></pre></div>
+<p><strong>Arguments:</strong>
+- <code>KEY</code>: Configuration key (e.g., "sources.default")
+- <code>VALUE</code>: Value to set</p>
+<p><strong>Examples:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># Set default output format</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>studiorum<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>output.format<span class="w"> </span>pdf
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="c1"># Set LaTeX compiler</span>
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>studiorum<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>latex.compiler<span class="w"> </span>xelatex
+</span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>
+</span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="c1"># Enable cache</span>
+</span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>studiorum<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>cache.enabled<span class="w"> </span><span class="nb">true</span>
+</span></code></pre></div>
+<h2 id="cache">cache<a class="headerlink" href="#cache" title="Permanent link">&para;</a></h2>
+<p>Manage conversion cache.</p>
+<h3 id="cache-clear">cache clear<a class="headerlink" href="#cache-clear" title="Permanent link">&para;</a></h3>
+<p>Clear conversion cache:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>studiorum<span class="w"> </span>cache<span class="w"> </span>clear<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--type TYPE</code></td>
+<td>Cache type to clear</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--older-than DAYS</code></td>
+<td>Clear entries older than N days</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--keep-recent COUNT</code></td>
+<td>Keep N most recent entries</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cache-stats">cache stats<a class="headerlink" href="#cache-stats" title="Permanent link">&para;</a></h3>
+<p>Show cache statistics:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>studiorum<span class="w"> </span>cache<span class="w"> </span>stats<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>table</code></td>
+</tr>
+<tr>
+<td><code>--detailed</code></td>
+<td>Show detailed statistics</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="mcp">mcp<a class="headerlink" href="#mcp" title="Permanent link">&para;</a></h2>
+<p>MCP (Model Context Protocol) server commands.</p>
+<h3 id="mcp-run">mcp run<a class="headerlink" href="#mcp-run" title="Permanent link">&para;</a></h3>
+<p>Start the MCP server:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>studiorum<span class="w"> </span>mcp<span class="w"> </span>run<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--host HOST</code></td>
+<td>Server host address</td>
+<td><code>127.0.0.1</code></td>
+</tr>
+<tr>
+<td><code>--port PORT</code></td>
+<td>Server port</td>
+<td>Auto</td>
+</tr>
+<tr>
+<td><code>--debug</code></td>
+<td>Enable debug logging</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--log-level LEVEL</code></td>
+<td>Logging level</td>
+<td><code>INFO</code></td>
+</tr>
+<tr>
+<td><code>--config FILE</code></td>
+<td>MCP configuration file</td>
+<td>Auto</td>
+</tr>
+</tbody>
+</table>
+<h3 id="mcp-test">mcp test<a class="headerlink" href="#mcp-test" title="Permanent link">&para;</a></h3>
+<p>Test MCP tools:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>studiorum<span class="w"> </span>mcp<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>TOOL_NAME<span class="w"> </span><span class="o">[</span>ARGS...<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Arguments:</strong>
+- <code>TOOL_NAME</code>: Name of the MCP tool to test
+- <code>ARGS</code>: Tool-specific arguments</p>
+<p><strong>Examples:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># Test creature lookup</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>studiorum<span class="w"> </span>mcp<span class="w"> </span><span class="nb">test</span><span class="w"> </span>lookup_creature<span class="w"> </span><span class="s2">&quot;Ancient Red Dragon&quot;</span>
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="c1"># Test spell conversion</span>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>studiorum<span class="w"> </span>mcp<span class="w"> </span><span class="nb">test</span><span class="w"> </span>convert_spell<span class="w"> </span><span class="s2">&quot;Fireball&quot;</span><span class="w"> </span>--format<span class="w"> </span>latex
+</span></code></pre></div>
+<h3 id="mcp-stats">mcp stats<a class="headerlink" href="#mcp-stats" title="Permanent link">&para;</a></h3>
+<p>Show MCP server statistics:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>studiorum<span class="w"> </span>mcp<span class="w"> </span>stats<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--watch</code></td>
+<td>Watch statistics in real-time</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>table</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="health">health<a class="headerlink" href="#health" title="Permanent link">&para;</a></h2>
+<p>System health and diagnostics.</p>
+<h3 id="health-check">health check<a class="headerlink" href="#health-check" title="Permanent link">&para;</a></h3>
+<p>Run system health checks:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>studiorum<span class="w"> </span>health<span class="w"> </span>check<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--detailed</code></td>
+<td>Show detailed diagnostics</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--fix-issues</code></td>
+<td>Attempt to fix found issues</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>table</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="health-version">health version<a class="headerlink" href="#health-version" title="Permanent link">&para;</a></h3>
+<p>Show detailed version information:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>studiorum<span class="w"> </span>health<span class="w"> </span>version<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--format FORMAT</code></td>
+<td>Output format</td>
+<td><code>table</code></td>
+</tr>
+<tr>
+<td><code>--check-updates</code></td>
+<td>Check for available updates</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="logs">logs<a class="headerlink" href="#logs" title="Permanent link">&para;</a></h2>
+<p>View and manage logs.</p>
+<h3 id="logs-show">logs show<a class="headerlink" href="#logs-show" title="Permanent link">&para;</a></h3>
+<p>Display recent logs:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>studiorum<span class="w"> </span>logs<span class="w"> </span>show<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--tail LINES</code></td>
+<td>Show last N lines</td>
+<td>100</td>
+</tr>
+<tr>
+<td><code>--level LEVEL</code></td>
+<td>Filter by log level</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--component COMPONENT</code></td>
+<td>Filter by component</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--since TIME</code></td>
+<td>Show logs since time/date</td>
+<td>All</td>
+</tr>
+<tr>
+<td><code>--follow, -f</code></td>
+<td>Follow log output</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="logs-clear">logs clear<a class="headerlink" href="#logs-clear" title="Permanent link">&para;</a></h3>
+<p>Clear old log files:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>studiorum<span class="w"> </span>logs<span class="w"> </span>clear<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--older-than DAYS</code></td>
+<td>Clear logs older than N days</td>
+<td>30</td>
+</tr>
+<tr>
+<td><code>--keep-recent COUNT</code></td>
+<td>Keep N most recent log files</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+<h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<p>Override configuration with environment variables:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>STUDIORUM_CONFIG_DIR</code></td>
+<td>Configuration directory</td>
+<td><code>~/.studiorum</code></td>
+</tr>
+<tr>
+<td><code>STUDIORUM_DATA_DIR</code></td>
+<td>Data directory</td>
+<td><code>~/.studiorum/data</code></td>
+</tr>
+<tr>
+<td><code>STUDIORUM_CACHE_DIR</code></td>
+<td>Cache directory</td>
+<td><code>~/.studiorum/cache</code></td>
+</tr>
+<tr>
+<td><code>STUDIORUM_LOG_LEVEL</code></td>
+<td>Global log level</td>
+<td><code>INFO</code></td>
+</tr>
+<tr>
+<td><code>STUDIORUM_MAX_MEMORY</code></td>
+<td>Maximum memory usage</td>
+<td>System default</td>
+</tr>
+<tr>
+<td><code>STUDIORUM_PARALLEL_WORKERS</code></td>
+<td>Parallel processing workers</td>
+<td>CPU count</td>
+</tr>
+</tbody>
+</table>
+<h2 id="exit-codes">Exit Codes<a class="headerlink" href="#exit-codes" title="Permanent link">&para;</a></h2>
+<p>Studiorum uses standard exit codes:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Success</td>
+</tr>
+<tr>
+<td>1</td>
+<td>General error</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Command line error</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Configuration error</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Content not found</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Conversion error</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Network error</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Permission error</td>
+</tr>
+<tr>
+<td>8</td>
+<td>System resource error</td>
+</tr>
+</tbody>
+</table>
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<h3 id="common-workflows">Common Workflows<a class="headerlink" href="#common-workflows" title="Permanent link">&para;</a></h3>
+<p><strong>Campaign Preparation</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="c1"># Generate complete campaign materials</span>
+</span><span id="__span-38-2"><a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>adventure<span class="w"> </span><span class="s2">&quot;Curse of Strahd&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-38-3"><a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a><span class="w">    </span>--creatures<span class="w"> </span>--spells<span class="w"> </span>--items<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-38-4"><a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a><span class="w">    </span>--format<span class="w"> </span>pdf<span class="w"> </span>--output<span class="w"> </span>cos-complete.pdf
+</span><span id="__span-38-5"><a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a>
+</span><span id="__span-38-6"><a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a><span class="c1"># Create separate creature manual</span>
+</span><span id="__span-38-7"><a id="__codelineno-38-7" name="__codelineno-38-7" href="#__codelineno-38-7"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>creatures<span class="w"> </span>--sources<span class="w"> </span>CoS<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-38-8"><a id="__codelineno-38-8" name="__codelineno-38-8" href="#__codelineno-38-8"></a><span class="w">    </span>--template<span class="w"> </span>creature-cards<span class="w"> </span>--output<span class="w"> </span>cos-creatures.pdf
+</span></code></pre></div></p>
+<p><strong>Custom Content</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="c1"># Convert homebrew content</span>
+</span><span id="__span-39-2"><a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>creatures<span class="w"> </span>--sources<span class="w"> </span>HB<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-39-3"><a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a><span class="w">    </span>--template<span class="w"> </span>custom<span class="w"> </span>--output<span class="w"> </span>homebrew-monsters.tex
+</span><span id="__span-39-4"><a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a>
+</span><span id="__span-39-5"><a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a><span class="c1"># Merge with official content</span>
+</span><span id="__span-39-6"><a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>adventure<span class="w"> </span><span class="s2">&quot;Custom Campaign&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-39-7"><a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a><span class="w">    </span>--sources<span class="w"> </span><span class="s2">&quot;PHB,MM,HB&quot;</span><span class="w"> </span>--output<span class="w"> </span>campaign.pdf
+</span></code></pre></div></p>
+<p><strong>Performance Optimization</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># Parallel processing for large batches</span>
+</span><span id="__span-40-2"><a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>creatures<span class="w"> </span>--cr<span class="w"> </span><span class="m">1</span>-30<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-40-3"><a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a><span class="w">    </span>--parallel<span class="w"> </span>--workers<span class="w"> </span><span class="m">8</span><span class="w"> </span>--output<span class="w"> </span>all-creatures.tex
+</span><span id="__span-40-4"><a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>
+</span><span id="__span-40-5"><a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a><span class="c1"># Use incremental builds</span>
+</span><span id="__span-40-6"><a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a>studiorum<span class="w"> </span>convert<span class="w"> </span>adventure<span class="w"> </span><span class="s2">&quot;Large Campaign&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-40-7"><a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a><span class="w">    </span>--incremental<span class="w"> </span>--cache<span class="w"> </span>--output<span class="w"> </span>campaign.pdf
+</span></code></pre></div></p></div>
+
+
+    </div>
+
+
+      <footer class="col-md-12 text-center">
+
+
+            <hr>
+            <p>
+            <small>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</small>
+            </p>
+
+
+
+
+      </footer>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="../../js/bootstrap-3.0.3.min.js"></script>
+
+
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+
+    <script>hljs.initHighlightingOnLoad();</script>
+
+
+    <script>var base_url = "../.."</script>
+
+    <script src="../../js/base.js"></script>
+    <script src="../../assets/theme-interactions.js"></script>
+    <script src="../../assets/ai-enhancements.js"></script>
+    <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+    <script src="../../search/main.js"></script>
+
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    </body>
+
+</html>

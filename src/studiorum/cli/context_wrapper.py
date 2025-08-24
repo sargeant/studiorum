@@ -49,6 +49,8 @@ def with_request_context[**P, T](func: Callable[P, T]) -> Callable[P, T]:
         Wrapped function with automatic context injection
 
     Examples:
+        from studiorum.core.api import ModernContextualAPI
+
         @app.command()
         @with_request_context
         def convert_adventure(
@@ -56,7 +58,7 @@ def with_request_context[**P, T](func: Callable[P, T]) -> Callable[P, T]:
             output: str = "output.tex",
             ctx: RequestContext = None  # Injected by decorator
         ):
-            result = ContextualAPI.resolve_adventure(adventure_name)
+            result = ModernContextualAPI.resolve_adventure(adventure_name)
             # ... rest of command
     """
 

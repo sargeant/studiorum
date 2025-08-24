@@ -1467,10 +1467,3 @@ class ModernMCPRequestHandler:
         """
         # Service bridge doesn't exist anymore - return empty metrics
         return {}
-
-
-# Legacy handler for backward compatibility
-class MCPRequestHandler(ModernMCPRequestHandler):
-    """Legacy alias for backward compatibility."""
-
-    pass
