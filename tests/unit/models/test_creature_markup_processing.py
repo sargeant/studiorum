@@ -33,13 +33,18 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-            ),
-            patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
+                "studiorum.core.container.get_global_container"
+            ) as mock_get_container,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
+            # Mock the service container to return our mock services
+            mock_container = Mock()
+            mock_container.get_service_sync.side_effect = lambda protocol: (
+                mock_tag_resolver if "TagResolver" in str(protocol) else mock_omnidexer
+            )
+            mock_get_container.return_value = mock_container
             mock_processor = Mock()
             mock_processor.process_entries.return_value = ["Fire Breath (Recharge 5-6)"]
             mock_processor_class.return_value = mock_processor
@@ -63,13 +68,18 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-            ),
-            patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
+                "studiorum.core.container.get_global_container"
+            ) as mock_get_container,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
+            # Mock the service container to return our mock services
+            mock_container = Mock()
+            mock_container.get_service_sync.side_effect = lambda protocol: (
+                mock_tag_resolver if "TagResolver" in str(protocol) else mock_omnidexer
+            )
+            mock_get_container.return_value = mock_container
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
                 "The creature makes two melee weapon attacks.",
@@ -98,8 +108,12 @@ class TestCreatureMarkupProcessing:
         ).replace("{@spell mage armor}", "mage armor")
 
         with patch(
-            "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-        ):
+            "studiorum.core.container.get_global_container"
+        ) as mock_get_container:
+            # Mock the service container to return our mock tag resolver
+            mock_container = Mock()
+            mock_container.get_service_sync.return_value = mock_tag_resolver
+            mock_get_container.return_value = mock_container
             processed_ac = ac.get_processed_ac_text()
             assert "17 (natural armor, shield) (19 with mage armor)" == processed_ac
 
@@ -136,13 +150,18 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-            ),
-            patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
+                "studiorum.core.container.get_global_container"
+            ) as mock_get_container,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
+            # Mock the service container to return our mock services
+            mock_container = Mock()
+            mock_container.get_service_sync.side_effect = lambda protocol: (
+                mock_tag_resolver if "TagResolver" in str(protocol) else mock_omnidexer
+            )
+            mock_get_container.return_value = mock_container
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
                 "darkvision 60 ft., blindsight 30 ft., passive Perception 15"
@@ -166,8 +185,8 @@ class TestCreatureMarkupProcessing:
 
         # Test that fallback works when tag processing raises exceptions
         with patch(
-            "studiorum.cli.utils.get_tag_resolver",
-            side_effect=Exception("Tag resolver error"),
+            "studiorum.core.container.get_global_container",
+            side_effect=Exception("Service container error"),
         ):
             # Should fall back to original name
             fallback_name = ability.get_processed_name()
@@ -207,13 +226,18 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-            ),
-            patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
+                "studiorum.core.container.get_global_container"
+            ) as mock_get_container,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
+            # Mock the service container to return our mock services
+            mock_container = Mock()
+            mock_container.get_service_sync.side_effect = lambda protocol: (
+                mock_tag_resolver if "TagResolver" in str(protocol) else mock_omnidexer
+            )
+            mock_get_container.return_value = mock_container
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
                 "The creature is an 18th-level spellcaster.",
@@ -238,9 +262,8 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-            ),
-            patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
+                "studiorum.core.container.get_global_container"
+            ) as mock_get_container,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
@@ -248,6 +271,12 @@ class TestCreatureMarkupProcessing:
                 "studiorum.renderers.core.interfaces.RenderingContext"
             ) as mock_context_class,
         ):
+            # Mock the service container to return our mock services
+            mock_container = Mock()
+            mock_container.get_service_sync.side_effect = lambda protocol: (
+                mock_tag_resolver if "TagResolver" in str(protocol) else mock_omnidexer
+            )
+            mock_get_container.return_value = mock_container
             mock_processor = Mock()
             mock_processor.process_entries.return_value = ["Test entry with fireball."]
             mock_processor_class.return_value = mock_processor
@@ -282,13 +311,18 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-            ),
-            patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
+                "studiorum.core.container.get_global_container"
+            ) as mock_get_container,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
+            # Mock the service container to return our mock services
+            mock_container = Mock()
+            mock_container.get_service_sync.side_effect = lambda protocol: (
+                mock_tag_resolver if "TagResolver" in str(protocol) else mock_omnidexer
+            )
+            mock_get_container.return_value = mock_container
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
                 "Melee Weapon Attack: +7 to hit, reach 5 ft., one target.",
@@ -319,13 +353,18 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-            ),
-            patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
+                "studiorum.core.container.get_global_container"
+            ) as mock_get_container,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
+            # Mock the service container to return our mock services
+            mock_container = Mock()
+            mock_container.get_service_sync.side_effect = lambda protocol: (
+                mock_tag_resolver if "TagResolver" in str(protocol) else mock_omnidexer
+            )
+            mock_get_container.return_value = mock_container
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
                 "The creature's innate spellcasting ability is Charisma (spell save DC 15).",
@@ -357,13 +396,18 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-            ),
-            patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
+                "studiorum.core.container.get_global_container"
+            ) as mock_get_container,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
+            # Mock the service container to return our mock services
+            mock_container = Mock()
+            mock_container.get_service_sync.side_effect = lambda protocol: (
+                mock_tag_resolver if "TagResolver" in str(protocol) else mock_omnidexer
+            )
+            mock_get_container.return_value = mock_container
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
                 "Each creature of the dragon's choice that is within 120 feet of the dragon and aware of it must succeed on a DC 19 Wisdom saving throw or become frightened for 1 minute.",
@@ -390,13 +434,18 @@ class TestCreatureMarkupProcessing:
 
         with (
             patch(
-                "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-            ),
-            patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
+                "studiorum.core.container.get_global_container"
+            ) as mock_get_container,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
             ) as mock_processor_class,
         ):
+            # Mock the service container to return our mock services
+            mock_container = Mock()
+            mock_container.get_service_sync.side_effect = lambda protocol: (
+                mock_tag_resolver if "TagResolver" in str(protocol) else mock_omnidexer
+            )
+            mock_get_container.return_value = mock_container
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
                 "The dragon exhales acid in a 60-foot line that is 5 feet wide.",
@@ -432,7 +481,8 @@ class TestCreatureMarkupEdgeCases:
 
         # Should handle empty entries gracefully
         with patch(
-            "studiorum.cli.utils.get_tag_resolver", side_effect=Exception("No resolver")
+            "studiorum.core.container.get_global_container",
+            side_effect=Exception("No container"),
         ):
             description = ability.get_description_text()
             assert description == ""
@@ -451,7 +501,8 @@ class TestCreatureMarkupEdgeCases:
 
         # Test fallback text extraction without tag processing
         with patch(
-            "studiorum.cli.utils.get_tag_resolver", side_effect=Exception("No resolver")
+            "studiorum.core.container.get_global_container",
+            side_effect=Exception("No container"),
         ):
             description = ability.get_description_text()
             assert "String entry" in description
@@ -475,7 +526,8 @@ class TestCreatureMarkupEdgeCases:
 
         # Should handle malformed entries without crashing
         with patch(
-            "studiorum.cli.utils.get_tag_resolver", side_effect=Exception("No resolver")
+            "studiorum.core.container.get_global_container",
+            side_effect=Exception("No container"),
         ):
             description = ability.get_description_text()
             assert "Valid string" in description
@@ -491,14 +543,19 @@ class TestCreatureMarkupEdgeCases:
 
         with (
             patch(
-                "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-            ),
-            patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
+                "studiorum.core.container.get_global_container"
+            ) as mock_get_container,
             patch(
                 "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
                 side_effect=Exception("Construction failed"),
             ),
         ):
+            # Mock the service container to return our mock services
+            mock_container = Mock()
+            mock_container.get_service_sync.side_effect = lambda protocol: (
+                mock_tag_resolver if "TagResolver" in str(protocol) else mock_omnidexer
+            )
+            mock_get_container.return_value = mock_container
             # Should fall back to simple text extraction
             description = ability.get_description_text()
             assert "Test entry" in description
@@ -512,14 +569,19 @@ class TestCreatureMarkupEdgeCases:
 
         with (
             patch(
-                "studiorum.cli.utils.get_tag_resolver", return_value=mock_tag_resolver
-            ),
-            patch("studiorum.cli.utils.get_omnidexer", return_value=mock_omnidexer),
+                "studiorum.core.container.get_global_container"
+            ) as mock_get_container,
             patch(
                 "studiorum.renderers.core.interfaces.RenderingContext",
                 side_effect=Exception("Context creation failed"),
             ),
         ):
+            # Mock the service container to return our mock services
+            mock_container = Mock()
+            mock_container.get_service_sync.side_effect = lambda protocol: (
+                mock_tag_resolver if "TagResolver" in str(protocol) else mock_omnidexer
+            )
+            mock_get_container.return_value = mock_container
             # Should fall back to simple text extraction
             description = ability.get_description_text()
             assert "Test entry" in description

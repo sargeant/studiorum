@@ -96,9 +96,15 @@ class ArmorClass(BaseModel):
         """Get armor class text with 5e.tools markup processed for LaTeX."""
         if self.special:
             try:
-                from ...cli.utils import get_tag_resolver
+                from ..container import get_global_container
+                from ..services.protocols import TagResolverProtocol
+                from ..text.tag_resolver import TagResolver
 
-                tag_resolver = get_tag_resolver()
+                container = get_global_container()
+                tag_resolver = cast(
+                    TagResolver,
+                    container.get_service_sync(TagResolverProtocol),  # type: ignore[type-abstract]
+                )
                 return str(tag_resolver.process_text(self.special))
             except Exception:
                 return self.special
@@ -109,9 +115,15 @@ class ArmorClass(BaseModel):
                 processed_sources = []
                 for source in self.from_:
                     try:
-                        from ...cli.utils import get_tag_resolver
+                        from ..container import get_global_container
+                        from ..services.protocols import TagResolverProtocol
+                        from ..text.tag_resolver import TagResolver
 
-                        tag_resolver = get_tag_resolver()
+                        container = get_global_container()
+                        tag_resolver = cast(
+                            TagResolver,
+                            container.get_service_sync(TagResolverProtocol),  # type: ignore[type-abstract]
+                        )
                         processed_source = tag_resolver.process_text(source)
                         processed_sources.append(str(processed_source))
                     except Exception:
@@ -121,9 +133,15 @@ class ArmorClass(BaseModel):
                 result += f" ({sources})"
             if self.condition:
                 try:
-                    from ...cli.utils import get_tag_resolver
+                    from ..container import get_global_container
+                    from ..services.protocols import TagResolverProtocol
+                    from ..text.tag_resolver import TagResolver
 
-                    tag_resolver = get_tag_resolver()
+                    container = get_global_container()
+                    tag_resolver = cast(
+                        TagResolver,
+                        container.get_service_sync(TagResolverProtocol),  # type: ignore[type-abstract]
+                    )
                     processed_condition = tag_resolver.process_text(self.condition)
                     result += f" {processed_condition}"
                 except Exception:
@@ -294,13 +312,15 @@ class Ability(BaseModel):
     def get_processed_name(self) -> str:
         """Get ability name with 5e.tools markup processed for LaTeX."""
         try:
-            from ...cli.utils import get_omnidexer, get_tag_resolver
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
+            from ..container import get_global_container
+            from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
             # Get services for proper tag processing
-            omnidexer = get_omnidexer()
-            tag_resolver = get_tag_resolver()
+            container = get_global_container()
+            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
+            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
 
             # Create a proper rendering context for entry processing
             context = RenderingContext(
@@ -333,13 +353,15 @@ class Ability(BaseModel):
     def get_description_text(self) -> str:
         """Extract text from complex entry structures using proper entry processing."""
         try:
-            from ...cli.utils import get_omnidexer, get_tag_resolver
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
+            from ..container import get_global_container
+            from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
             # Get services for proper tag processing
-            omnidexer = get_omnidexer()
-            tag_resolver = get_tag_resolver()
+            container = get_global_container()
+            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
+            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
 
             # Create a proper rendering context for entry processing
             context = RenderingContext(
@@ -476,13 +498,15 @@ class Spellcasting(BaseModel):
     def get_processed_name(self) -> str:
         """Get spellcasting name with 5e.tools markup processed for LaTeX."""
         try:
-            from ...cli.utils import get_omnidexer, get_tag_resolver
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
+            from ..container import get_global_container
+            from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
             # Get services for proper tag processing
-            omnidexer = get_omnidexer()
-            tag_resolver = get_tag_resolver()
+            container = get_global_container()
+            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
+            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
 
             # Create a proper rendering context for entry processing
             context = RenderingContext(
@@ -515,13 +539,15 @@ class Spellcasting(BaseModel):
     def get_description_text(self) -> str:
         """Generate formatted spellcasting description with all spell information."""
         try:
-            from ...cli.utils import get_omnidexer, get_tag_resolver
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
+            from ..container import get_global_container
+            from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
             # Get services for proper tag processing
-            omnidexer = get_omnidexer()
-            tag_resolver = get_tag_resolver()
+            container = get_global_container()
+            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
+            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
 
             # Create a proper rendering context for entry processing
             context = RenderingContext(
@@ -619,7 +645,7 @@ class Spellcasting(BaseModel):
     loader_type="json",
 )
 class Creature(BaseContent):
-    """Represents a D&D creature/monster."""
+    """Represents a 5e creature/monster."""
 
     size: list[str] = Field(..., description="Creature size")
     type: str | CreatureType | CreatureTypeDict = Field(
@@ -1046,7 +1072,7 @@ class Creature(BaseContent):
             from ..text.tag_resolver import TagResolver
 
             container = get_global_container()
-            tag_resolver = container.get_service_sync(TagResolver)
+            tag_resolver = container.get_service_sync(TagResolver)  # type: ignore[type-abstract]
 
             processor = self.get_processor()
             # Use the processor's senses processing method if available

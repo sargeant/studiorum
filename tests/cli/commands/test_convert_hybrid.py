@@ -85,7 +85,9 @@ class TestHybridParameterDetection:
 
             # Mock successful adventure resolution
             mock_result = ContentResolutionResult(
-                status=ResolutionStatus.EXACT_MATCH, content=mock_adventure, query="samp"
+                status=ResolutionStatus.EXACT_MATCH,
+                content=mock_adventure,
+                query="samp",
             )
             # Mock sync resolver method
             mock_resolver.resolve_adventure = Mock(return_value=mock_result)

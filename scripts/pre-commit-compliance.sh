@@ -27,14 +27,14 @@ violations=$(echo "$staged_files" | xargs rg -l -i "d&d|dungeons.*dragons|wizard
 if [ -n "$violations" ]; then
     echo "${RED}❌ Trademark terms detected in staged files:${NC}"
     echo
-    
+
     # Show specific violations
     echo "$violations" | while read -r file; do
         echo "${YELLOW}$file:${NC}"
         rg -n -i "d&d|dungeons.*dragons|wizards.*coast" "$file" | head -3
         echo
     done
-    
+
     echo "${RED}Please replace with approved terminology:${NC}"
     echo "  • D&D → 5e"
     echo "  • Dungeons & Dragons → 5e"
