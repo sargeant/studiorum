@@ -38,59 +38,29 @@ def get_app_config_service() -> ConfigurationProtocol:
 
     Returns:
         Configuration service instance
+
+    Raises:
+        RuntimeError: If called from async context
+        ServiceNotRegisteredError: If service not registered
     """
+    # Check if we're in an async context
     try:
-        from studiorum.core.container import get_global_container
-
-        container = get_global_container()
-
-        # Try to get the service synchronously if possible
-        try:
-            asyncio.get_running_loop()
-            # In async context, caller should use await container.get_service() directly
-            raise RuntimeError(
-                "get_app_config_service() cannot be called from async context. "
-                "Use 'await container.get_service(ConfigurationProtocol)' instead."
-            )
-        except RuntimeError:
-            # No running loop, safe to create one
-            return asyncio.run(container.get_service(ConfigurationProtocol))  # type: ignore[type-abstract]
-
-    except Exception as e:
-        logger.warning(
-            f"Failed to get configuration service, falling back to legacy: {e}"
+        asyncio.get_running_loop()
+        # In async context, caller should use await container.get_service() directly
+        raise RuntimeError(
+            "get_app_config_service() cannot be called from async context. "
+            "Use 'await container.get_service(ConfigurationProtocol)' instead."
         )
-        # Fallback to legacy global singleton
-        from studiorum.core.config.unified_config import get_app_config
+    except RuntimeError as e:
+        # Re-raise if it's our error message
+        if "get_app_config_service" in str(e):
+            raise
 
-        # Create a simple wrapper that implements the protocol
-        class LegacyConfigWrapper:
-            def __init__(self, config: ApplicationConfig) -> None:
-                self._config = config
+    # Get service from container using modern sync access
+    from studiorum.core.container import get_global_container
 
-            def get_service_name(self) -> str:
-                return "LegacyConfigWrapper"
-
-            def get_config(self) -> ApplicationConfig:
-                return self._config
-
-            async def reload_config(self, new_config: ApplicationConfig) -> None:
-                self._config = new_config
-
-            def supports_hot_reload(self) -> bool:
-                return False
-
-            async def reload_from_source(
-                self, source: str
-            ) -> Result[ApplicationConfig, Any]:
-                from studiorum.core.error_types import ConfigurationError
-
-                return Error(ConfigurationError(message="Not supported in legacy mode"))
-
-            def validate_config(self) -> Result[ApplicationConfig, Any]:
-                return Success(self._config)
-
-        return LegacyConfigWrapper(get_app_config())
+    container = get_global_container()
+    return container.get_service_sync(ConfigurationProtocol)  # type: ignore[type-abstract]
 
 
 def get_app_config() -> ApplicationConfig:
@@ -113,54 +83,29 @@ def get_cache_service() -> CacheProtocol:
 
     Returns:
         Cache service instance
+
+    Raises:
+        RuntimeError: If called from async context
+        ServiceNotRegisteredError: If service not registered
     """
+    # Check if we're in an async context
     try:
-        from studiorum.core.container import get_global_container
+        asyncio.get_running_loop()
+        # In async context, caller should use await container.get_service() directly
+        raise RuntimeError(
+            "get_cache_service() cannot be called from async context. "
+            "Use 'await container.get_service(CacheProtocol)' instead."
+        )
+    except RuntimeError as e:
+        # Re-raise if it's our error message
+        if "get_cache_service" in str(e):
+            raise
 
-        container = get_global_container()
+    # Get service from container using modern sync access
+    from studiorum.core.container import get_global_container
 
-        # Try to get the service synchronously if possible
-        try:
-            asyncio.get_running_loop()
-            # In async context, caller should use await container.get_service() directly
-            raise RuntimeError(
-                "get_cache_service() cannot be called from async context. "
-                "Use 'await container.get_service(CacheProtocol)' instead."
-            )
-        except RuntimeError:
-            # No running loop, safe to create one
-            return asyncio.run(container.get_service(CacheProtocol))  # type: ignore[type-abstract]
-
-    except Exception as e:
-        logger.warning(f"Failed to get cache service, falling back to legacy: {e}")
-        # Fallback to legacy global singleton
-        from studiorum.core.cache import get_cache
-
-        # Create a simple wrapper that implements the protocol
-        class LegacyCacheWrapper:
-            def __init__(self) -> None:
-                self._cache = get_cache()
-
-            def get_service_name(self) -> str:
-                return "LegacyCacheWrapper"
-
-            def get(self, key: str, default: object = None) -> object:
-                return self._cache.get(key, default)
-
-            def set(self, key: str, value: object, expire: float | None = None) -> None:
-                self._cache.set(key, value, expire=expire)
-
-            def delete(self, key: str) -> bool:
-                return self._cache.delete(key)
-
-            def clear(self) -> None:
-                self._cache.clear()
-
-            def get_stats(self) -> dict[str, object]:
-                # Legacy cache doesn't have stats
-                return {"legacy_mode": True}
-
-        return LegacyCacheWrapper()
+    container = get_global_container()
+    return container.get_service_sync(CacheProtocol)  # type: ignore[type-abstract]
 
 
 def get_cache() -> CacheProtocol:
@@ -182,56 +127,29 @@ def get_content_type_registry_service() -> ContentTypeRegistryProtocol:
 
     Returns:
         Content type registry service instance
+
+    Raises:
+        RuntimeError: If called from async context
+        ServiceNotRegisteredError: If service not registered
     """
+    # Check if we're in an async context
     try:
-        from studiorum.core.container import get_global_container
-
-        container = get_global_container()
-
-        # Try to get the service synchronously if possible
-        try:
-            asyncio.get_running_loop()
-            # In async context, caller should use await container.get_service() directly
-            raise RuntimeError(
-                "get_content_type_registry_service() cannot be called from async context. "
-                "Use 'await container.get_service(ContentTypeRegistryProtocol)' instead."
-            )
-        except RuntimeError:
-            # No running loop, safe to create one
-            return asyncio.run(container.get_service(ContentTypeRegistryProtocol))  # type: ignore[type-abstract]
-
-    except Exception as e:
-        logger.warning(
-            f"Failed to get content type registry service, falling back to legacy: {e}"
+        asyncio.get_running_loop()
+        # In async context, caller should use await container.get_service() directly
+        raise RuntimeError(
+            "get_content_type_registry_service() cannot be called from async context. "
+            "Use 'await container.get_service(ContentTypeRegistryProtocol)' instead."
         )
-        # Fallback to legacy global singleton
-        from studiorum.core.interfaces import get_content_type_registry
+    except RuntimeError as e:
+        # Re-raise if it's our error message
+        if "get_content_type_registry_service" in str(e):
+            raise
 
-        # Create a simple wrapper that implements the protocol
-        class LegacyRegistryWrapper:
-            def __init__(self) -> None:
-                self._registry = get_content_type_registry()
+    # Get service from container using modern sync access
+    from studiorum.core.container import get_global_container
 
-            def get_service_name(self) -> str:
-                return "LegacyRegistryWrapper"
-
-            def register_content_type(self, content_type: str, handler: type) -> None:
-                # Legacy registry doesn't support string-based registration
-                pass
-
-            def get_content_handler(self, content_type: str) -> type | None:
-                # Legacy registry doesn't provide handler lookup
-                return None
-
-            def get_registered_types(self) -> list[str]:
-                # Return the content types from the legacy registry
-                content_types = self._registry.get_all_types()
-                return [ct.value for ct in content_types]
-
-            def get_legacy_registry(self) -> ContentTypeRegistry:
-                return self._registry
-
-        return LegacyRegistryWrapper()
+    container = get_global_container()
+    return container.get_service_sync(ContentTypeRegistryProtocol)  # type: ignore[type-abstract]
 
 
 def get_content_type_registry() -> ContentTypeRegistry:

@@ -266,6 +266,38 @@ class ServiceContainer:
             if self._resolution_stack and self._resolution_stack[-1] == protocol:
                 self._resolution_stack.pop()
 
+    def get_service_sync(self, protocol: type[T]) -> T:
+        """Get service instance synchronously for CLI usage.
+
+        This method provides synchronous access to services for CLI commands
+        that operate in a synchronous context. It cannot be called from an
+        async context to prevent event loop conflicts.
+
+        Args:
+            protocol: Protocol interface to resolve
+
+        Returns:
+            Service instance implementing the protocol
+
+        Raises:
+            RuntimeError: If called from async context
+            ServiceNotRegisteredError: If service not registered
+            ServiceInitializationError: If service creation fails
+        """
+        try:
+            # Check if we're in an async context
+            asyncio.get_running_loop()
+            raise RuntimeError(
+                f"get_service_sync({protocol.__name__}) cannot be called from async context. "
+                f"Use 'await container.get_service({protocol.__name__})' instead."
+            )
+        except RuntimeError as e:
+            # Re-raise if it's our error message
+            if "get_service_sync" in str(e):
+                raise
+            # Otherwise no running loop, safe to create one
+            return asyncio.run(self.get_service(protocol))
+
     async def _get_singleton_instance(
         self, protocol: type[T], descriptor: ServiceDescriptor
     ) -> T:
