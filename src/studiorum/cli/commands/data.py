@@ -19,19 +19,97 @@ Integrates with the new DataSourceManager from Package 1 foundation refactoring.
 """
 
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 import typer
+import yaml
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from studiorum.core.config import get_app_config
 from studiorum.core.container import get_global_container
 from studiorum.core.logging import get_logger
 from studiorum.core.services.protocols import SourceManagerProtocol
 
 logger = get_logger(__name__)
 console = Console()
+
+
+def _get_config_file_path() -> Path:
+    """Get the configuration file path."""
+    config_dir = Path.home() / ".studiorum"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    return config_dir / "config.yaml"
+
+
+def _load_config() -> dict[str, Any]:
+    """Load configuration from file to show current state."""
+    try:
+        app_config = get_app_config().model_dump()
+
+        # Check if we have a config file with overrides
+        config_file = _get_config_file_path()
+        if config_file.exists():
+            with open(config_file, "r") as f:
+                content = f.read()
+
+            # Simple check for primary override being enabled
+            if "primary_override:" in content and "enabled: true" in content:
+                # Extract values from file
+                lines = content.split("\n")
+                in_primary = False
+                path = None
+                description = None
+
+                for line in lines:
+                    if "primary_override:" in line:
+                        in_primary = True
+                    elif in_primary:
+                        if line.strip().startswith("path:") and "null" not in line:
+                            path = line.split(":", 1)[1].strip()
+                        elif (
+                            line.strip().startswith("description:")
+                            and "null" not in line
+                        ):
+                            description = line.split(":", 1)[1].strip()
+                        elif (
+                            line.strip()
+                            and not line.startswith("  ")
+                            and not line.startswith("    ")
+                        ):
+                            break
+
+                if path:
+                    app_config["data_sources"]["primary_override"]["enabled"] = True
+                    app_config["data_sources"]["primary_override"]["path"] = path
+                    app_config["data_sources"]["primary_override"]["type"] = (
+                        "5etools-compatible"
+                    )
+                    if description:
+                        app_config["data_sources"]["primary_override"][
+                            "description"
+                        ] = description
+
+        return app_config
+
+    except Exception:
+        # Fallback structure
+        return {
+            "data_sources": {
+                "srd": {"enabled": True},
+                "primary_override": {"enabled": False},
+                "extensions": [],
+            }
+        }
+
+
+def _save_config(config: dict[str, Any]) -> None:
+    """Save configuration to file."""
+    config_file = _get_config_file_path()
+    with open(config_file, "w") as f:
+        yaml.dump(config, f, default_flow_style=False, indent=2)
+
 
 # Create the data command group
 data_app = typer.Typer(
@@ -68,37 +146,85 @@ Studiorum uses a three-tier data model:
 def list_repositories() -> None:
     """List all configured data repositories."""
     try:
-        container = get_global_container()
-        manager = container.get_service_sync(SourceManagerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        # Load configuration to show actual data source settings
+        config = _load_config()
+        data_sources = config.get("data_sources", {})
 
-        # Get repository statistics
-        stats = manager.get_source_statistics()
+        # SRD data (always present)
+        srd_config = data_sources.get(
+            "srd", {"enabled": True, "path": "bundled://srd-data"}
+        )
 
-        # Create summary panel
+        # Primary override
+        primary = data_sources.get("primary_override", {})
+
+        # Extensions
+        extensions = data_sources.get("extensions", [])
+
+        # Create main table
+        table = Table(title="Data Repository Configuration")
+        table.add_column("Repository", style="cyan", no_wrap=True)
+        table.add_column("Status", justify="center")
+        table.add_column("Type", style="yellow")
+        table.add_column("Location", style="green")
+        table.add_column("Description", style="dim")
+
+        # Add SRD row
+        srd_status = "🟢 Active" if srd_config.get("enabled", True) else "🔴 Disabled"
+        if primary.get("enabled", False):
+            srd_status = "🟡 Overridden"
+        table.add_row(
+            "SRD",
+            srd_status,
+            "Bundled",
+            srd_config.get("path", "bundled://srd-data"),
+            srd_config.get("description", "System Reference Document content"),
+        )
+
+        # Add primary override if configured
+        if primary.get("enabled", False):
+            table.add_row(
+                "Primary Override",
+                "🟢 Active",
+                primary.get("type", "5etools-compatible"),
+                primary.get("path", "Not set"),
+                primary.get("description", "Primary data override"),
+            )
+
+        # Add extensions
+        for i, ext in enumerate(extensions):
+            if isinstance(ext, dict):
+                table.add_row(
+                    f"Extension {i + 1}",
+                    "🟢 Active" if ext.get("enabled", True) else "🔴 Disabled",
+                    ext.get("type", "Extension"),
+                    ext.get("path", ext.get("source", "Unknown")),
+                    ext.get("description", "Extension repository"),
+                )
+
+        console.print(table)
+
+        # Summary panel
+        total_sources = 1  # SRD always counts
+        if primary.get("enabled", False):
+            total_sources += 1
+        total_sources += len(
+            [
+                ext
+                for ext in extensions
+                if isinstance(ext, dict) and ext.get("enabled", True)
+            ]
+        )
+
         summary = Panel(
-            f"[bold]Total Sources:[/bold] {stats.get('enabled_sources', 0)}\n"
-            f"[bold]Is Initialized:[/bold] {'Yes' if stats.get('is_initialized', False) else 'No'}\n"
-            f"[bold]Content Types:[/bold] {stats.get('content_types', 0)}\n"
-            f"[bold]Total Files:[/bold] {stats.get('total_files', 0)}",
-            title="Data Repository Status",
+            f"[bold]Total Active Sources:[/bold] {total_sources}\n"
+            f"[bold]SRD Status:[/bold] {'Overridden' if primary.get('enabled', False) else 'Active'}\n"
+            f"[bold]Primary Override:[/bold] {'Configured' if primary.get('enabled', False) else 'Not set'}\n"
+            f"[bold]Extensions:[/bold] {len(extensions)}",
+            title="📊 Repository Summary",
             expand=False,
         )
         console.print(summary)
-
-        # Show files by type if available
-        if "by_type" in stats and stats["by_type"]:
-            table = Table(title="Content by Type")
-            table.add_column("Content Type", style="cyan")
-            table.add_column("Files", justify="right", style="green")
-
-            for content_type, file_count in stats["by_type"].items():
-                table.add_row(content_type, str(file_count))
-
-            console.print(table)
-        else:
-            console.print(
-                "[yellow]No content files indexed. Run 'studiorum data scan' to build index.[/yellow]"
-            )
 
     except Exception as e:
         logger.error(f"Error listing repositories: {e}")
@@ -136,11 +262,39 @@ def set_primary(
             console.print(f"[red]Error: Path is not a directory: {data_path}[/red]")
             raise typer.Exit(1)
 
-        console.print(f"[yellow]Setting primary data path to: {data_path}[/yellow]")
-        console.print(
-            "[dim]Note: This command will be fully implemented with content source configuration in Package 4.[/dim]"
-        )
-        console.print(f"[green]✓ Primary data path validated: {data_path}[/green]")
+        # Load current configuration
+        config = _load_config()
+
+        # Ensure data_sources section exists
+        if "data_sources" not in config:
+            config["data_sources"] = {}
+
+        # Update primary_override configuration
+        config["data_sources"]["primary_override"] = {
+            "enabled": True,
+            "type": "5etools-compatible",
+            "path": str(data_path),
+            "source": str(data_path),  # This is what is_primary_enabled() checks
+            "description": description or f"Primary data from {data_path}",
+            "branch": None,
+        }
+
+        # Save updated configuration
+        _save_config(config)
+
+        # Force config reload to make changes take effect immediately
+        try:
+            from studiorum.core.config.unified_config import reset_app_config
+
+            reset_app_config()
+            console.print(
+                f"[green]✓ Primary data source configured and activated: {data_path}[/green]"
+            )
+        except Exception:
+            console.print(
+                f"[green]✓ Primary data source configured: {data_path}[/green]"
+            )
+            console.print("[yellow]Note: Restart CLI to apply changes[/yellow]")
 
         if description:
             console.print(f"[dim]Description: {description}[/dim]")

@@ -58,10 +58,119 @@ class DataSourceManager(SourceManager):
 
     def __init__(self) -> None:
         """Initialize with content configuration."""
-        self.config = get_content_config()
+        # Use new data sources configuration if available, fallback to old system
+        try:
+            from studiorum.core.config import get_app_config
+            from studiorum.core.logging import get_logger
+
+            logger = get_logger(__name__)
+
+            app_config = get_app_config()
+            logger.info(
+                f"DataSourceManager: Checking data sources config - has data_sources: {app_config.data_sources is not None}"
+            )
+
+            if app_config.data_sources:
+                is_primary_enabled = app_config.data_sources.is_primary_enabled()
+                logger.info(
+                    f"DataSourceManager: Primary override enabled: {is_primary_enabled}"
+                )
+
+                if is_primary_enabled:
+                    # Use new configuration system with primary override
+                    logger.info(
+                        f"DataSourceManager: Using primary override from {app_config.data_sources.primary_override.path}"
+                    )
+                    self.config = self._create_config_from_new_system(
+                        app_config.data_sources
+                    )
+                else:
+                    # Fallback to old system
+                    logger.info(
+                        "DataSourceManager: Primary override not enabled, using old system"
+                    )
+                    self.config = get_content_config()
+            else:
+                logger.info(
+                    "DataSourceManager: No data_sources config found, using old system"
+                )
+                self.config = get_content_config()
+        except Exception as e:
+            # Fallback to old system if new system fails
+            from studiorum.core.logging import get_logger
+
+            logger = get_logger(__name__)
+            logger.error(
+                f"DataSourceManager: Error loading new config, falling back to old system: {e}"
+            )
+            self.config = get_content_config()
+
         self.content_manager = ContentSourceManager(self.config)
         self._data_paths_cache: dict[ContentType, list[Path]] | None = None
         self._is_initialized = False
+
+    def _create_config_from_new_system(self, data_sources_config: Any) -> Any:
+        """Create old ContentConfiguration from new DataSourcesConfig."""
+        from pathlib import Path
+
+        from ..config.sources import ContentConfiguration, ContentSource, SourceType
+
+        config = ContentConfiguration()
+
+        # Add SRD source if not overridden
+        if not data_sources_config.is_primary_enabled():
+            # Find project root for SRD data
+            project_root = self._find_project_root()
+            config.add_source(
+                ContentSource(
+                    name="srd",
+                    type=SourceType.DIRECTORY,
+                    path=project_root / "srd-data",
+                    enabled=True,
+                    priority=1,
+                    url=None,
+                )
+            )
+
+        # Add primary override if enabled
+        if data_sources_config.is_primary_enabled():
+            primary_path = Path(data_sources_config.primary_override.path)
+            config.add_source(
+                ContentSource(
+                    name="primary",
+                    type=SourceType.DIRECTORY,
+                    path=primary_path,
+                    enabled=True,
+                    priority=0,  # Highest priority
+                    url=None,
+                )
+            )
+
+        # Add extensions
+        for i, ext in enumerate(data_sources_config.get_enabled_extensions()):
+            if ext.path:
+                ext_path = Path(ext.path)
+                config.add_source(
+                    ContentSource(
+                        name=f"extension-{i + 1}",
+                        type=SourceType.DIRECTORY,
+                        path=ext_path,
+                        enabled=True,
+                        priority=10 + i,  # Lower priority than primary
+                        url=None,
+                    )
+                )
+
+        return config
+
+    def _find_project_root(self) -> Path:
+        """Find the project root directory containing data sources."""
+        current = Path(__file__).parent
+        for parent in [current] + list(current.parents):
+            if (parent / "srd-data").exists():
+                return parent
+        # Fallback
+        return Path.cwd()
 
     def get_service_name(self) -> str:
         """Return service name for debugging and logging."""
