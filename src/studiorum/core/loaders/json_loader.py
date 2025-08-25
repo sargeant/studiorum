@@ -14,6 +14,7 @@ from ..config.unified_config import get_app_config
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
 from ..services.access import get_cache
+from ..services.protocols import CacheProtocol
 from ..validation.error_tracker import ValidationErrorTracker
 from .base import DataLoader
 from .content_factory import ContentFactory
@@ -60,10 +61,46 @@ class JsonDataLoader(DataLoader[BaseContent]):
             # If we can't stat the file, just use the path
             return f"json_loader:{self._content_type.value}:{path}:0:0"
 
+    def _get_cache_safe(self) -> CacheProtocol:
+        """Get cache service safely, handling both sync and async contexts."""
+        import asyncio
+
+        try:
+            # Check if we're in an async context
+            asyncio.get_running_loop()
+            # In async context, we can't use the sync service access
+            # For now, skip caching in async contexts to avoid the error
+            logger.debug("JsonDataLoader: Using NoOpCache due to async context")
+            return self._create_noop_cache()
+        except RuntimeError:
+            # Not in async context, use normal cache
+            return get_cache()
+
+    def _create_noop_cache(self) -> CacheProtocol:
+        """Create a no-op cache that implements CacheProtocol."""
+
+        class NoOpCache:
+            def get(self, key: str, default: Any = None) -> Any:
+                return default
+
+            def set(self, key: str, value: Any, expire: Any = None) -> None:
+                pass
+
+            def delete(self, key: str) -> None:
+                pass
+
+            def clear(self) -> None:
+                pass
+
+            def close(self) -> None:
+                pass
+
+        return NoOpCache()  # type: ignore[return-value]
+
     def load(self, path: Path) -> list[BaseContent]:  # Changed from T to BaseContent
         """Load JSON file and validate against Pydantic model."""
-        # Try to get from cache first
-        cache = get_cache()
+        # Try to get from cache first - handle both sync and async contexts
+        cache = self._get_cache_safe()
         cache_key = self._get_cache_key(path)
 
         # Check cache
