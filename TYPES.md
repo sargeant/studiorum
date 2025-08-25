@@ -9,6 +9,7 @@ This document catalogs legitimate `# type: ignore` patterns in the Studiorum cod
 **Pattern**: Using `@runtime_checkable` protocols as type tokens for service registration/resolution
 
 **Example**:
+
 ```python
 # Service registration
 container.register_service(
@@ -22,6 +23,7 @@ service = await container.get_service(ConfigurationProtocol)  # type: ignore[typ
 ```
 
 **Why Legitimate**:
+
 - Protocols are `@runtime_checkable` and work correctly at runtime
 - MyPy sees protocols as abstract and unsuitable as type tokens
 - This is a fundamental limitation when building protocol-based DI systems
@@ -35,6 +37,7 @@ service = await container.get_service(ConfigurationProtocol)  # type: ignore[typ
 **Pattern**: Bridging between old global singleton patterns and new service-based patterns
 
 **Example**:
+
 ```python
 # Legacy global container access
 request_container_raw = await global_container.create_request_scope()
@@ -42,6 +45,7 @@ request_container = cast(RequestScopedContainer, request_container_raw)
 ```
 
 **Why Legitimate**:
+
 - Provides backward compatibility during service container migration
 - Old global container doesn't have full typing
 - Runtime behavior is correct, type system can't verify the cast
@@ -55,6 +59,7 @@ request_container = cast(RequestScopedContainer, request_container_raw)
 ### 1. Dictionary Type Coercion (`return-value,no-any-return`)
 
 **Anti-Pattern**:
+
 ```python
 # BAD - Missing proper type safety
 self._instances: dict[type[Any], Any] = {}
@@ -62,6 +67,7 @@ return self._instances[protocol]  # type: ignore[return-value,no-any-return]
 ```
 
 **Correct Solution**:
+
 ```python
 # GOOD - Type-safe service registry
 class TypedServiceRegistry:
@@ -75,6 +81,7 @@ class TypedServiceRegistry:
 ### 2. Complex Union Factory Dispatch (`call-arg`)
 
 **Anti-Pattern**:
+
 ```python
 # BAD - Complex union type can't be narrowed
 factory: Callable[[], T] | Callable[[Container], T] | AsyncFactory[T]
@@ -82,6 +89,7 @@ result = factory(*args)  # type: ignore[call-arg]
 ```
 
 **Correct Solution**:
+
 ```python
 # GOOD - Separate dispatch methods
 if isinstance(factory, AsyncServiceFactory):
@@ -97,6 +105,7 @@ else:
 ### 3. Protocol Implementation Issues (`return-value`)
 
 **Anti-Pattern**:
+
 ```python
 # BAD - Missing protocol method implementations
 def validate_config(self) -> object:  # Wrong return type
@@ -106,6 +115,7 @@ return LegacyWrapper()  # type: ignore[return-value]
 ```
 
 **Correct Solution**:
+
 ```python
 # GOOD - Proper protocol implementation
 def validate_config(self) -> Result[ApplicationConfig, Any]:
@@ -135,11 +145,13 @@ return LegacyWrapper()  # No type ignore needed
 ### Documentation Requirements
 
 Every `# type: ignore` must include:
+
 - **Specific error type**: `[type-abstract]`, `[return-value]`, etc.
 - **Brief comment**: Why this ignore is necessary
 - **Context**: Reference this document for detailed explanation
 
 **Example**:
+
 ```python
 service = await container.get_service(ConfigurationProtocol)  # type: ignore[type-abstract]
 # ^ Protocol used as type token - see TYPES.md section 1
@@ -170,6 +182,13 @@ service = await container.get_service(ConfigurationProtocol)  # type: ignore[typ
 **P1 Result System**: 19→0 ignores eliminated ✅
 **P2 Service Container**: 33→0 fixable ignores eliminated ✅
 
----
+# Data Modeling Guidelines
 
-**Note**: This document should be updated as new legitimate patterns are discovered or existing patterns are resolved through architectural improvements.
+## Choosing Between Dataclass and Pydantic
+
+### Decision Framework
+
+- **Performance critical** → `@dataclass`
+- **Complex validation needed** → Pydantic `BaseModel`
+- **API/JSON serialization** → Pydantic `BaseModel`
+- **Simple value objects** → `@dataclass`
