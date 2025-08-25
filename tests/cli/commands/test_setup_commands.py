@@ -81,7 +81,7 @@ class TestSetupWizardCommand:
         result = self.runner.invoke(app, ["wizard"])
 
         assert result.exit_code == 0
-        assert "studiorum sources scan" in result.stdout
+        assert "studiorum data scan" in result.stdout
         self.mock_config_manager.reset_to_defaults.assert_called_once()
 
     @patch("studiorum.cli.commands.setup.get_config_manager")
@@ -605,7 +605,7 @@ class TestResetSetupCommand:
 
         assert result.exit_code == 0
         assert "Configuration reset to defaults" in result.stdout
-        assert "studiorum sources scan" in result.stdout
+        assert "studiorum data scan" in result.stdout
         self.mock_config_manager.reset_to_defaults.assert_called_once()
 
     @patch("studiorum.cli.commands.setup.get_config_manager")

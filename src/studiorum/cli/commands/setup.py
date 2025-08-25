@@ -56,7 +56,7 @@ def setup_wizard() -> None:
 
         if not Confirm.ask("\nDo you want to reconfigure sources?"):
             console.print(
-                "Setup cancelled. Use [bold]studiorum sources[/bold] to manage sources."
+                "Setup cancelled. Use [bold]studiorum data[/bold] to manage data repositories."
             )
             return
 
@@ -85,7 +85,7 @@ def setup_wizard() -> None:
         _scan_content()
     else:
         console.print("\nTo download and scan content later, run:")
-        console.print("[bold]studiorum sources scan[/bold]")
+        console.print("[bold]studiorum data scan[/bold]")
 
 
 def _setup_defaults(config_manager: Any) -> None:
@@ -347,4 +347,4 @@ def reset_setup() -> None:
     config_manager.reset_to_defaults()
 
     console.print("[green]✅ Configuration reset to defaults[/green]")
-    console.print("Run [bold]studiorum sources scan[/bold] to download content.")
+    console.print("Run [bold]studiorum data scan[/bold] to download content.")
