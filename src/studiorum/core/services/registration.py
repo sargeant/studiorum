@@ -91,7 +91,7 @@ async def register_modern_services(container: ServiceContainer) -> None:
         SourceManagerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
         create_data_source_manager_service,
         lifecycle=ServiceLifecycle.ASYNC_RESOURCE,
-        dependencies=(),
+        dependencies=(ConfigurationProtocol,),
         hot_reloadable=False,
         cleanup_priority=CleanupPriority.INFRASTRUCTURE,
     )

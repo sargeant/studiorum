@@ -17,17 +17,17 @@ _cli_tag_resolver: TagResolver | None = None
 def get_omnidexer() -> Omnidexer:
     """Get omnidexer instance for CLI commands.
 
-    Uses singleton pattern to avoid loading data multiple times per CLI session.
-    Creates and loads data only once, subsequent calls return cached instance.
+    Uses service container to ensure consistent configuration management.
+    Returns cached instance from global container.
 
     Returns:
         Omnidexer instance ready for use
     """
-    global _cli_omnidexer
-    if _cli_omnidexer is None:
-        _cli_omnidexer = Omnidexer()
-        _cli_omnidexer.load_all_data()
-    return _cli_omnidexer
+    from studiorum.core.container import get_global_container
+    from studiorum.core.services.protocols import OmnidexerProtocol
+
+    container = get_global_container()
+    return container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
 
 
 def get_tag_resolver() -> TagResolver:

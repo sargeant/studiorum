@@ -162,9 +162,35 @@ async def create_configuration_service(
     if config_override is not None:
         config = config_override
     else:
-        from studiorum.core.config.unified_config import ApplicationConfig
+        # Load configuration from file using ConfigurationManager
+        from studiorum.core.config.dynamic_manager import ConfigurationManager
+        from studiorum.core.config.unified_config import get_default_config_path
 
-        config = ApplicationConfig()
+        config_path = get_default_config_path()
+        manager = ConfigurationManager(config_path)
+
+        if config_path.exists():
+            # Load from file if it exists
+            result = await manager.load_config_from_file()
+            if result.is_success():
+                config = result.unwrap()
+                logger.info(f"Configuration loaded from {config_path}")
+            else:
+                # File exists but failed to load, use default with warning
+                from studiorum.core.config.unified_config import ApplicationConfig
+                from studiorum.core.result import Error
+
+                config = ApplicationConfig()
+                if isinstance(result, Error):
+                    logger.warning(
+                        f"Failed to load config from {config_path}: {result.error.message}"
+                    )
+        else:
+            # No config file, use default
+            from studiorum.core.config.unified_config import ApplicationConfig
+
+            config = ApplicationConfig()
+            logger.info(f"No config file found at {config_path}, using defaults")
 
     return ConfigurationService(config)
 
@@ -203,10 +229,14 @@ async def create_omnidexer_service(
             logger.debug("Initializing omnidexer service")
 
             try:
+                from studiorum.core.loaders.data_source_manager import DataSourceManager
                 from studiorum.core.loaders.omnidexer import Omnidexer
 
-                # Create omnidexer (constructor doesn't take sources)
-                self._omnidexer = Omnidexer()
+                # Create DataSourceManager with proper configuration
+                data_source_manager = DataSourceManager(app_config=self._config)
+
+                # Create omnidexer with configured source manager
+                self._omnidexer = Omnidexer(source_manager=data_source_manager)
 
                 # Async source preparation (GitHub cloning, etc)
                 if hasattr(
@@ -858,15 +888,22 @@ async def create_cache_service() -> CacheProtocol:
 # Source Management Services
 
 
-async def create_data_source_manager_service() -> SourceManagerProtocol:
+async def create_data_source_manager_service(
+    config_service: ConfigurationProtocol,
+) -> SourceManagerProtocol:
     """Factory for data source manager service with async resource management.
+
+    Args:
+        config_service: Configuration service dependency
 
     Returns:
         Data source manager service implementing SourceManagerProtocol
     """
     from studiorum.core.loaders.data_source_manager import DataSourceManager
 
-    data_source_manager = DataSourceManager()
+    # Get configuration from the service
+    app_config = config_service.get_config()
+    data_source_manager = DataSourceManager(app_config)
 
     # The DataSourceManager implements AsyncResourceProtocol
     # Initialize it immediately in the factory

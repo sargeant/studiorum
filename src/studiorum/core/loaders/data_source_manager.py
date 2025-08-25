@@ -8,7 +8,10 @@ concerns. This provides the data repository functionality for UnifiedSourceManag
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from ..config.unified_config import ApplicationConfig
 
 from ..config.sources import get_content_config
 from ..logging import get_logger
@@ -56,16 +59,30 @@ class DataSourceManager(SourceManager):
     3. ContentMerger combines metadata structure with content data at runtime
     """
 
-    def __init__(self) -> None:
-        """Initialize with content configuration."""
+    def __init__(self, app_config: ApplicationConfig | None = None) -> None:
+        """Initialize with application configuration.
+
+        Args:
+            app_config: Application configuration instance. If None, will load from get_app_config()
+                       for backward compatibility (deprecated).
+        """
+        from studiorum.core.logging import get_logger
+
+        logger = get_logger(__name__)
+
+        # Handle dependency injection vs backward compatibility
+        if app_config is None:
+            # Backward compatibility mode - load from global function
+            from studiorum.core.config import get_app_config
+
+            logger.warning(
+                "DataSourceManager initialized without dependency injection. "
+                "Consider using service container for proper configuration management."
+            )
+            app_config = get_app_config()
+
         # Use new data sources configuration if available, fallback to old system
         try:
-            from studiorum.core.config import get_app_config
-            from studiorum.core.logging import get_logger
-
-            logger = get_logger(__name__)
-
-            app_config = get_app_config()
             logger.info(
                 f"DataSourceManager: Checking data sources config - has data_sources: {app_config.data_sources is not None}"
             )
@@ -97,9 +114,6 @@ class DataSourceManager(SourceManager):
                 self.config = get_content_config()
         except Exception as e:
             # Fallback to old system if new system fails
-            from studiorum.core.logging import get_logger
-
-            logger = get_logger(__name__)
             logger.error(
                 f"DataSourceManager: Error loading new config, falling back to old system: {e}"
             )
@@ -433,9 +447,15 @@ class DataSourceManager(SourceManager):
         }
 
         if self._is_initialized:
+            # Use full content index for statistics instead of just metadata files
+            all_files = self.content_manager.get_all_content_files()
+            total_files = sum(len(files) for files in all_files.values())
+
+            # Get metadata files for content type breakdown (represents what's actually loadable)
             data_paths = self.get_data_paths()
+
             stats["content_types"] = len(data_paths)
-            stats["total_files"] = sum(len(paths) for paths in data_paths.values())
+            stats["total_files"] = total_files  # Show full indexed content count
 
             by_type: dict[str, int] = {}
             for content_type, paths in data_paths.items():

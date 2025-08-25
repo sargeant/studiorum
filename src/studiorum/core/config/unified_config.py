@@ -646,8 +646,24 @@ _rebuild_models()
 _app_config: ApplicationConfig | None = None
 
 
+def get_default_config_path() -> Path:
+    """Get the default configuration file path.
+
+    Returns:
+        Path to the default configuration file (~/.studiorum/config.yaml)
+    """
+    config_dir = Path.home() / ".studiorum"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    return config_dir / "config.yaml"
+
+
 def get_app_config() -> ApplicationConfig:
-    """Get the global application configuration instance."""
+    """Get the global application configuration instance.
+
+    Note: This function provides basic default configuration.
+    For proper configuration management with file loading and hot-reload,
+    use the ConfigurationManager service through the service container.
+    """
     global _app_config
     if _app_config is None:
         _app_config = ApplicationConfig()

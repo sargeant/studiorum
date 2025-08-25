@@ -3,7 +3,7 @@ Dynamic configuration manager for runtime configuration updates.
 
 This module provides the ConfigurationManager class that enables runtime
 configuration updates with validation, persistence, and notification support
-for the D&D 5e project. It integrates with the existing ApplicationConfig
+for the 5e project. It integrates with the existing ApplicationConfig
 system and supports request-scoped overrides for MCP operations.
 
 Key Features:
@@ -134,10 +134,9 @@ class ConfigurationManager:
 
         # Configuration file path
         if config_path is None:
-            home = Path.home()
-            config_dir = home / ".config" / "studiorum"
-            config_dir.mkdir(parents=True, exist_ok=True)
-            self._config_path = config_dir / "config.yaml"
+            from .unified_config import get_default_config_path
+
+            self._config_path = get_default_config_path()
         else:
             self._config_path = config_path
 

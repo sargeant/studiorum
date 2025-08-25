@@ -55,9 +55,9 @@ Configuration management for Studiorum's settings and three-tier data source arc
 
 def _get_config_file_path() -> Path:
     """Get the configuration file path."""
-    config_dir = Path.home() / ".studiorum"
-    config_dir.mkdir(parents=True, exist_ok=True)
-    return config_dir / "config.yaml"
+    from studiorum.core.config.unified_config import get_default_config_path
+
+    return get_default_config_path()
 
 
 def _load_raw_config() -> dict[str, Any]:

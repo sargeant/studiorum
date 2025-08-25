@@ -38,59 +38,35 @@ console = Console()
 
 def _get_config_file_path() -> Path:
     """Get the configuration file path."""
-    config_dir = Path.home() / ".studiorum"
-    config_dir.mkdir(parents=True, exist_ok=True)
-    return config_dir / "config.yaml"
+    from studiorum.core.config.unified_config import get_default_config_path
+
+    return get_default_config_path()
 
 
 def _load_config() -> dict[str, Any]:
     """Load configuration from file to show current state."""
     try:
+        # Load directly from YAML file like the service container does
+        import yaml
+
+        from studiorum.core.config.unified_config import (
+            ApplicationConfig,
+            get_default_config_path,
+        )
+
+        config_path = get_default_config_path()
+
+        if config_path.exists():
+            # Load YAML file directly
+            with open(config_path, "r") as f:
+                yaml_data = yaml.safe_load(f)
+
+            # Create ApplicationConfig from YAML data to get proper validation
+            config = ApplicationConfig(**yaml_data)
+            return config.model_dump()
+
+        # Fallback to default config if file doesn't exist
         app_config = get_app_config().model_dump()
-
-        # Check if we have a config file with overrides
-        config_file = _get_config_file_path()
-        if config_file.exists():
-            with open(config_file, "r") as f:
-                content = f.read()
-
-            # Simple check for primary override being enabled
-            if "primary_override:" in content and "enabled: true" in content:
-                # Extract values from file
-                lines = content.split("\n")
-                in_primary = False
-                path = None
-                description = None
-
-                for line in lines:
-                    if "primary_override:" in line:
-                        in_primary = True
-                    elif in_primary:
-                        if line.strip().startswith("path:") and "null" not in line:
-                            path = line.split(":", 1)[1].strip()
-                        elif (
-                            line.strip().startswith("description:")
-                            and "null" not in line
-                        ):
-                            description = line.split(":", 1)[1].strip()
-                        elif (
-                            line.strip()
-                            and not line.startswith("  ")
-                            and not line.startswith("    ")
-                        ):
-                            break
-
-                if path:
-                    app_config["data_sources"]["primary_override"]["enabled"] = True
-                    app_config["data_sources"]["primary_override"]["path"] = path
-                    app_config["data_sources"]["primary_override"]["type"] = (
-                        "5etools-compatible"
-                    )
-                    if description:
-                        app_config["data_sources"]["primary_override"][
-                            "description"
-                        ] = description
-
         return app_config
 
     except Exception:
