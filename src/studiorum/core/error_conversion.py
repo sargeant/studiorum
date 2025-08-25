@@ -1,239 +1,43 @@
 """
-Utilities for Result/Exception interoperability during transition period.
+MCP error conversion utilities.
 
-This module provides conversion utilities between Result patterns and exceptions
-to enable gradual migration from exception-based to Result-based error handling.
+This module provides utilities for converting structured BaseError instances
+to MCP-compatible JSON-RPC error responses and for collecting/aggregating
+errors from Result patterns.
+
+All bridge functions for exception conversion have been removed in Phase 4.
 """
 
 from __future__ import annotations
 
-import functools
-import traceback
-from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import Any
 
 from studiorum.core.error_types import (
     BaseError,
-    ConfigurationError,
     ErrorCategory,
     ErrorSeverity,
     MCPErrorCode,
     ProcessingError,
-    ServiceError,
     ValidationError,
-    create_processing_error,
-    create_validation_error,
 )
-from studiorum.core.exceptions import (
-    DnD5eError,
-    EntryProcessingError,
-    EntryValidationError,
-    UnknownEntryTypeError,
-)
+
+# Legacy exception imports removed in Phase 3
+# Exception classes are no longer used - only Result patterns
 from studiorum.core.result import Error, Result, Success, is_error_result
 
-T = TypeVar("T")
-E = TypeVar("E", bound=BaseError)
+# Bridge functions removed in Phase 4 - error conversion module now only contains MCP utilities
 
 
-def exception_to_error(exception: Exception, source: str | None = None) -> BaseError:
-    """
-    Convert an exception to a structured error.
-
-    Args:
-        exception: Exception to convert
-        source: Source location for context
-
-    Returns:
-        Structured error appropriate for the exception type
-    """
-    if isinstance(exception, EntryValidationError):
-        return create_validation_error(
-            message=str(exception),
-            field_name=exception.field_name,
-            entry_type=exception.entry_type,
-            source=source or exception.source,
-            parent_name=exception.parent_name,
-            severity=ErrorSeverity.ERROR,
-        )
-
-    if isinstance(exception, EntryProcessingError):
-        return create_processing_error(
-            message=str(exception),
-            entry_type=exception.entry_type,
-            source=source or exception.source,
-            parent_name=exception.parent_name,
-            severity=ErrorSeverity.ERROR,
-        )
-
-    if isinstance(exception, UnknownEntryTypeError):
-        return create_processing_error(
-            message=str(exception),
-            entry_type=exception.entry_type,
-            source=source or exception.source,
-            parent_name=exception.parent_name,
-            severity=ErrorSeverity.ERROR,
-        )
-
-    if isinstance(exception, DnD5eError):
-        return ProcessingError(
-            message=str(exception),
-            category=ErrorCategory.PROCESSING,
-            severity=ErrorSeverity.ERROR,
-            source=source,
-        )
-
-    # Generic exception conversion
-    return ProcessingError(
-        message=f"Unexpected error: {exception}",
-        category=ErrorCategory.SYSTEM_ERROR,
-        severity=ErrorSeverity.CRITICAL,
-        source=source,
-        context={"exception_type": type(exception).__name__},
-    )
+# exception_to_error() removed in Phase 4
+# Use Result[T, E] patterns directly instead of converting exceptions
 
 
-def wrap_exception_as_result[T](
-    func: Callable[..., T],
-) -> Callable[..., Result[T, BaseError]]:
-    """
-    Decorator to wrap a function that might raise exceptions into Result pattern.
-
-    Args:
-        func: Function that might raise exceptions
-
-    Returns:
-        Function that returns Result[T, BaseError]
-
-    Example:
-        ```python
-        @wrap_exception_as_result
-        def risky_operation(data: dict) -> ProcessedData:
-            # This might raise exceptions
-            return process_data(data)
-
-        # Usage
-        result = risky_operation(some_data)
-        if result.is_success():
-            data = result.unwrap()
-        else:
-            error = result.error
-            print(f"Error: {error.message}")
-        ```
-    """
-
-    @functools.wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Result[T, BaseError]:
-        try:
-            result = func(*args, **kwargs)
-            return Success(result)
-        except Exception as e:
-            error = exception_to_error(e)
-            return Error(error)
-
-    return wrapper
+# wrap_exception_as_result() removed in Phase 4
+# Write functions to return Result[T, E] directly instead of using exception wrappers
 
 
-def unwrap_or_raise[T](result: Result[T, BaseError]) -> T:
-    """
-    Unwrap a Result or convert error back to exception.
-
-    Useful for gradually migrating code that expects exceptions.
-
-    Args:
-        result: Result to unwrap
-
-    Returns:
-        Success value
-
-    Raises:
-        Exception converted from error
-
-    Example:
-        ```python
-        # Use Result internally but provide exception interface
-        def legacy_api(data: dict) -> ProcessedData:
-            result = new_result_based_function(data)
-            return unwrap_or_raise(result)  # Raises on error
-        ```
-    """
-    if result.is_success():
-        return result.unwrap()
-    else:
-        if is_error_result(result):
-            error = result.error
-            raise error.to_exception()
-        else:
-            # This should not happen, but handle gracefully
-            raise RuntimeError("Result is neither success nor error")
-
-
-class ResultMode:
-    """Configuration for enabling Result pattern behavior."""
-
-    _enabled = False
-
-    @classmethod
-    def enable(cls) -> None:
-        """Enable Result pattern mode globally."""
-        cls._enabled = True
-
-    @classmethod
-    def disable(cls) -> None:
-        """Disable Result pattern mode globally."""
-        cls._enabled = False
-
-    @classmethod
-    def is_enabled(cls) -> bool:
-        """Check if Result pattern mode is enabled."""
-        return cls._enabled
-
-
-def with_result_mode(
-    result_func: Callable[..., Result[T, BaseError]],
-    exception_func: Callable[..., T],
-) -> Callable[..., T | Result[T, BaseError]]:
-    """
-    Create a function that can work in both Result and Exception modes.
-
-    Args:
-        result_func: Function that returns Result
-        exception_func: Function that raises exceptions
-
-    Returns:
-        Function that uses Result or Exception based on mode
-
-    Example:
-        ```python
-        def process_with_result(data: dict) -> Result[ProcessedData, BaseError]:
-            # Implementation using Result pattern
-            ...
-
-        def process_with_exception(data: dict) -> ProcessedData:
-            # Implementation using exceptions
-            ...
-
-        # Create hybrid function
-        process_data = with_result_mode(process_with_result, process_with_exception)
-
-        # Usage adapts to mode
-        ResultMode.enable()
-        result = process_data(data)  # Returns Result[ProcessedData, BaseError]
-
-        ResultMode.disable()
-        data = process_data(data)  # Returns ProcessedData or raises
-        ```
-    """
-
-    @functools.wraps(result_func)
-    def wrapper(*args: Any, **kwargs: Any) -> T | Result[T, BaseError]:
-        if ResultMode.is_enabled():
-            return result_func(*args, **kwargs)
-        else:
-            result = result_func(*args, **kwargs)
-            return unwrap_or_raise(result)
-
-    return wrapper
+# unwrap_or_raise() removed in Phase 4
+# Use isinstance(result, Error) and proper Result[T, E] handling instead
 
 
 def collect_errors_and_warnings[T](

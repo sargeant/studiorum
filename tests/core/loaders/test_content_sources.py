@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 import pytest
 from pydantic import ValidationError
 
-from studiorum.core.errors.architecture_errors import (
+from studiorum.core.error_types import (
     ContentLoadingError,
     ContentSourceError,
     ContentValidationError,

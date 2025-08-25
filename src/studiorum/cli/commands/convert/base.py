@@ -226,15 +226,22 @@ class BaseConvertCommand:
 
     def validate_output_directory(self, output_dir: Path) -> None:
         """Validate and create output directory if needed."""
-        from studiorum.core.errors.architecture_errors import ConfigurationError
+        from studiorum.core.error_types import (
+            ConfigurationError,
+            ErrorCategory,
+            MCPErrorCode,
+            MCPException,
+        )
 
         if output_dir.exists():
             if not output_dir.is_dir():
-                raise ConfigurationError(
-                    f"Output path {output_dir} exists but is not a directory",
-                    config_key="output_directory",
-                    config_source="cli",
+                config_error = ConfigurationError(
+                    message=f"Output path {output_dir} exists but is not a directory",
+                    error_code=MCPErrorCode.CONFIGURATION_ERROR,
+                    category=ErrorCategory.SYSTEM_ERROR,
+                    data={"config_key": "output_directory", "config_source": "cli"},
                 )
+                raise MCPException(config_error)
         else:
             output_dir.mkdir(parents=True, exist_ok=True)
 

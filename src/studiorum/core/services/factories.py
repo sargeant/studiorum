@@ -450,6 +450,17 @@ async def create_tag_resolver_service(
             supported_types = self._tag_resolver.get_supported_tag_types()
             return tag_type in supported_types
 
+        def process_text(
+            self, text: str, context: RenderingContext | None = None
+        ) -> str:
+            """Process text with tags using the underlying TagResolver.
+
+            This method provides the interface expected by the entry processor.
+            """
+            if not self._tag_resolver:
+                raise RuntimeError("TagResolver not initialized")
+            return self._tag_resolver.process_text(text, context)
+
     # Get configuration from injected service
     config = config_service.get_config()
 

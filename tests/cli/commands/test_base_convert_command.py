@@ -10,7 +10,7 @@ from studiorum.cli.commands.convert.base import (
     BaseConvertCommand,
     LaTeXMixin,
 )
-from studiorum.core.errors.architecture_errors import ConfigurationError
+from studiorum.core.error_types import ConfigurationError, MCPException
 from studiorum.core.result import Success
 from tests.test_helpers import reset_test_environment
 
@@ -256,10 +256,11 @@ class TestBaseConvertCommand:
 
         with patch("pathlib.Path.exists", return_value=True):
             with patch("pathlib.Path.is_dir", return_value=False):
-                with pytest.raises(ConfigurationError) as exc_info:
+                with pytest.raises(MCPException) as exc_info:
                     command.validate_output_directory(Path("not_a_dir"))
 
                 assert "not a directory" in str(exc_info.value)
+                assert isinstance(exc_info.value.mcp_error, ConfigurationError)
 
 
 class TestLaTeXMixin:
