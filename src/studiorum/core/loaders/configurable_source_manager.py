@@ -229,9 +229,13 @@ class ConfigurableSourceManager(SourceManager):
 
             if type_paths:
                 # Remove duplicates while preserving order (PHASE 1)
+                # IMPORTANT: Preserve existing metadata files and append new content files
+                existing_paths = data_paths.get(content_type, [])
+                all_paths = existing_paths + type_paths
+
                 unique_paths = []
                 seen = set()
-                for path in type_paths:
+                for path in all_paths:
                     if path not in seen:
                         unique_paths.append(path)
                         seen.add(path)
@@ -280,9 +284,13 @@ class ConfigurableSourceManager(SourceManager):
 
             if type_paths:
                 # Remove duplicates while preserving order (PHASE 2)
+                # IMPORTANT: Preserve existing metadata and PHASE 1 files, append new content files
+                existing_paths = data_paths.get(content_type, [])
+                all_paths = existing_paths + type_paths
+
                 unique_paths = []
                 seen = set()
-                for path in type_paths:
+                for path in all_paths:
                     if path not in seen:
                         unique_paths.append(path)
                         seen.add(path)
@@ -304,6 +312,8 @@ class ConfigurableSourceManager(SourceManager):
         logger.debug("Discovered data files (metadata for adventures/books):")
         for content_type, paths in data_paths.items():
             logger.debug(f"  {content_type.value}: {len(paths)} files")
+            for path in paths:
+                logger.debug(f"    - {path}")
 
         return data_paths
 
@@ -320,7 +330,7 @@ class ConfigurableSourceManager(SourceManager):
 
     def get_source_priority(self, source_abbrev: str) -> int:
         """Get priority for a source (lower numbers = higher priority)."""
-        # Official D&D 5e sources get higher priority
+        # Official 5e sources get higher priority
         official_sources = {
             "PHB": 1,  # Player's Handbook
             "MM": 2,  # Monster Manual
@@ -344,7 +354,7 @@ class ConfigurableSourceManager(SourceManager):
         """Build comprehensive source information from all configured sources."""
         source_info = {}
 
-        # Add comprehensive D&D 5e source information
+        # Add comprehensive 5e source information
         official_sources = {
             "PHB": {"name": "Player's Handbook", "official": True, "year": 2014},
             "MM": {"name": "Monster Manual", "official": True, "year": 2014},
@@ -594,6 +604,8 @@ class ConfigurableSourceManager(SourceManager):
         logger.debug("Discovered metadata files:")
         for content_type, paths in metadata_paths.items():
             logger.debug(f"  {content_type.value}: {len(paths)} files")
+            for path in paths:
+                logger.debug(f"    - {path}")
 
         return metadata_paths
 

@@ -215,28 +215,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
             )
             return []
 
-        # Check if this is a metadata/sources file and skip it
-        if self._is_metadata_file(path, data):
-            logger.debug(f"Skipping metadata/sources file: {path}")
-            return []
-
-        # Direct content arrays using string-based comparisons
-        if self._content_type.value == "spell" and "spell" in data:
-            spell_data = data["spell"]
-            if isinstance(spell_data, list):
-                return spell_data
-            return []
-        elif self._content_type.value == "creature" and "monster" in data:
-            monster_data = data["monster"]
-            if isinstance(monster_data, list):
-                return monster_data
-            return []
-        elif self._content_type.value == "item" and "item" in data:
-            item_data = data["item"]
-            if isinstance(item_data, list):
-                return item_data
-            return []
-        elif self._content_type.value == "adventure":
+        # PRIORITY: Handle adventure and book metadata files BEFORE general metadata check
+        # This prevents adventures.json and books.json from being incorrectly classified as generic metadata
+        if self._content_type.value == "adventure":
             # Handle both metadata files (adventures.json) and content files (adventure-*.json)
 
             # Check if this is a metadata file (adventures.json) and process it
@@ -273,6 +254,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     return adventure_data
 
             return []
+
         elif self._content_type.value == "book":
             # Handle both metadata files (books.json) and content files (book-*.json)
 
@@ -309,6 +291,28 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 logger.debug("Processing mixed format book (metadata + data)")
                 return [data]
 
+            return []
+
+        # Check if this is a metadata/sources file and skip it
+        if self._is_metadata_file(path, data):
+            logger.debug(f"Skipping metadata/sources file: {path}")
+            return []
+
+        # Direct content arrays using string-based comparisons
+        if self._content_type.value == "spell" and "spell" in data:
+            spell_data = data["spell"]
+            if isinstance(spell_data, list):
+                return spell_data
+            return []
+        elif self._content_type.value == "creature" and "monster" in data:
+            monster_data = data["monster"]
+            if isinstance(monster_data, list):
+                return monster_data
+            return []
+        elif self._content_type.value == "item" and "item" in data:
+            item_data = data["item"]
+            if isinstance(item_data, list):
+                return item_data
             return []
         elif self._content_type.value == "feat" and "feat" in data:
             feat_data = data["feat"]
