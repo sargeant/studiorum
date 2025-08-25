@@ -2,7 +2,7 @@
 
 This module provides the ContentAttributionManager class that handles content
 attribution (which 5e book content comes from) separately from data repository
-management. This extracts the content attribution functionality from ConfigurableSourceManager.
+management. This provides the content attribution functionality for UnifiedSourceManager.
 """
 
 from __future__ import annotations

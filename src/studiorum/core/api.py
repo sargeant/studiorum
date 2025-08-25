@@ -455,13 +455,6 @@ class ModernContextualAPI:
         )
 
 
-# Legacy API for existing code
-class ContextualAPI(ModernContextualAPI):
-    """Legacy alias for backward compatibility."""
-
-    pass
-
-
 # Convenience functions for common operations
 async def search_content_async(
     query: str,

@@ -12,8 +12,8 @@ from pathlib import Path
 
 import pytest
 
-from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.resolvers.content_resolver import ContentResolver
 from tests.test_helpers import reset_test_environment
 

@@ -7,7 +7,6 @@ the modern service-based architecture.
 
 from __future__ import annotations
 
-import warnings
 from pathlib import Path
 from typing import Any
 
@@ -172,42 +171,3 @@ class UnifiedSourceManager(SourceManager):
     def content_attribution_manager(self) -> ContentAttributionManager:
         """Get the content attribution manager component."""
         return self._content_attribution_manager
-
-
-class ConfigurableSourceManagerCompat(UnifiedSourceManager):
-    """Compatibility wrapper for ConfigurableSourceManager.
-
-    This class provides backward compatibility for existing code that
-    imports ConfigurableSourceManager. Issues deprecation warnings
-    to encourage migration to the new architecture.
-
-    DEPRECATED: Use UnifiedSourceManager directly or migrate to service-based
-    architecture with SourceManagerProtocol and ContentAttributionProtocol.
-    """
-
-    def __init__(self) -> None:
-        """Initialize with deprecation warning."""
-        warnings.warn(
-            "ConfigurableSourceManager is deprecated. Use UnifiedSourceManager "
-            "directly or migrate to service-based architecture with "
-            "SourceManagerProtocol and ContentAttributionProtocol.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super().__init__()
-
-    def _build_source_info_cache(self) -> None:
-        """Legacy method - now handled by ContentAttributionManager."""
-        warnings.warn(
-            "_build_source_info_cache() is deprecated. Source info is managed "
-            "automatically by ContentAttributionManager.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        # Force cache rebuild in attribution manager
-        self._content_attribution_manager.clear_cache()
-
-
-# Alias for immediate backward compatibility
-# This allows existing imports to work without changes
-ConfigurableSourceManager = ConfigurableSourceManagerCompat

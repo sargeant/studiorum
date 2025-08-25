@@ -2,7 +2,7 @@
 
 This module provides the DataSourceManager class that handles data repository
 management (GitHub repos, local directories) separately from content attribution
-concerns. This replaces the data repository functionality from ConfigurableSourceManager.
+concerns. This provides the data repository functionality for UnifiedSourceManager.
 """
 
 from __future__ import annotations

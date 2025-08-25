@@ -1,18 +1,18 @@
-"""Tests for ConfigurableSourceManager content type detection."""
+"""Tests for UnifiedSourceManager content type detection."""
 
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
 
-from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from studiorum.core.loaders.source_manager import FileSystemSourceManager
+from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment
 
 
-class TestConfigurableSourceManager:
-    """Test configurable source manager functionality."""
+class TestUnifiedSourceManager:
+    """Test unified source manager functionality."""
 
     def setup_method(self) -> None:
         """Reset global state for complete isolation using service container."""
@@ -39,14 +39,14 @@ class TestConfigurableSourceManager:
 
     @pytest.fixture
     def manager(self):
-        """Create a ConfigurableSourceManager for testing."""
+        """Create a UnifiedSourceManager for testing."""
         # Ensure registry is initialized before creating the manager
         from tests.test_helpers import setup_test_with_registry
 
         setup_test_with_registry()
 
         # Create manager without mocking to preserve registry-based content_patterns
-        manager = ConfigurableSourceManager()
+        manager = UnifiedSourceManager()
         # Mock only the content manager to control file discovery
         manager.content_manager = Mock()
         manager.content_manager._index_built = True

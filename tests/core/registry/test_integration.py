@@ -75,13 +75,13 @@ class TestRegistryIntegration:
 
     def test_fallback_behavior_when_registry_not_finalized(self):
         """Test that systems work with fallback behavior when registry not finalized."""
-        from studiorum.core.loaders.configurable_source_manager import (
-            ConfigurableSourceManager,
+        from studiorum.core.loaders.unified_source_manager import (
+            UnifiedSourceManager,
         )
 
         # Create instance without initializing registry
         # This should use fallback patterns
-        source_mgr = ConfigurableSourceManager()
+        source_mgr = UnifiedSourceManager()
 
         # The get_data_paths method should still work with fallback patterns
         # We can't test the full functionality without a complete setup,

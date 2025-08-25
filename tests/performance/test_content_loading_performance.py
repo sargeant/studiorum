@@ -10,8 +10,8 @@ import time
 
 import pytest
 
-from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.resolvers.content_resolver import ContentResolver
 
 # Tests converted to sync after async removal migration
@@ -36,7 +36,7 @@ class TestContentLoadingPerformance:
         """Test that omnidexer loading completes in reasonable time."""
         start_time = time.time()
 
-        source_manager = ConfigurableSourceManager()
+        source_manager = UnifiedSourceManager()
         omnidexer = Omnidexer(source_manager)
         omnidexer.load_all_data()
 
@@ -63,7 +63,7 @@ class TestContentLoadingPerformance:
     )
     def test_content_resolution_performance(self):
         """Test that content resolution is reasonably fast."""
-        source_manager = ConfigurableSourceManager()
+        source_manager = UnifiedSourceManager()
         omnidexer = Omnidexer(source_manager)
         omnidexer.load_all_data()
 
@@ -114,7 +114,7 @@ class TestContentLoadingPerformance:
     )
     def test_repeated_resolution_consistency(self):
         """Test that repeated resolutions are consistent."""
-        source_manager = ConfigurableSourceManager()
+        source_manager = UnifiedSourceManager()
         omnidexer = Omnidexer(source_manager)
         omnidexer.load_all_data()
 

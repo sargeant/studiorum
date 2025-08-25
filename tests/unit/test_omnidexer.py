@@ -427,10 +427,10 @@ class TestOmnidexerMetadataOnlyLoading:
         """Test that omnidexer only loads metadata files, not content files."""
         from unittest.mock import Mock, patch
 
-        from studiorum.core.loaders.configurable_source_manager import (
-            ConfigurableSourceManager,
-        )
         from studiorum.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.unified_source_manager import (
+            UnifiedSourceManager,
+        )
 
         # Create test files
         files = [
@@ -442,9 +442,9 @@ class TestOmnidexerMetadataOnlyLoading:
         ]
 
         # Mock the source manager
-        with patch.object(ConfigurableSourceManager, "__init__", return_value=None):
-            with patch.object(ConfigurableSourceManager, "ensure_sources_ready"):
-                source_manager = ConfigurableSourceManager()
+        with patch.object(UnifiedSourceManager, "__init__", return_value=None):
+            with patch.object(UnifiedSourceManager, "ensure_sources_ready"):
+                source_manager = UnifiedSourceManager()
                 source_manager.content_manager = Mock()
                 source_manager.content_manager._index_built = True
                 source_manager.content_manager.get_all_content_files = Mock(
@@ -480,8 +480,8 @@ class TestOmnidexerMetadataOnlyLoading:
         """Test that omnidexer can distinguish between metadata and content files."""
         from unittest.mock import Mock, patch
 
-        from studiorum.core.loaders.configurable_source_manager import (
-            ConfigurableSourceManager,
+        from studiorum.core.loaders.unified_source_manager import (
+            UnifiedSourceManager,
         )
 
         files = [
@@ -493,7 +493,7 @@ class TestOmnidexerMetadataOnlyLoading:
             Path("/data/book-mm.json"),  # content
         ]
 
-        with patch.object(ConfigurableSourceManager, "__init__", return_value=None):
+        with patch.object(UnifiedSourceManager, "__init__", return_value=None):
             # Mock content patterns to prevent initialization requirement
             from studiorum.core.models.content import ContentType
 
@@ -503,7 +503,7 @@ class TestOmnidexerMetadataOnlyLoading:
                 self._get_content_type("spell"): ["spells"],
             }
 
-            source_manager = ConfigurableSourceManager()
+            source_manager = UnifiedSourceManager()
             source_manager.__class__.content_patterns = mock_content_patterns
             source_manager.content_manager = Mock()
             source_manager.content_manager._index_built = True

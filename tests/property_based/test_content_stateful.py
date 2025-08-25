@@ -30,11 +30,11 @@ class OmnidexerStateMachine(RuleBasedStateMachine):
     def setup_omnidexer(self):
         """Initialize omnidexer for testing."""
         # Create a fresh omnidexer instance
-        from studiorum.core.loaders.configurable_source_manager import (
-            ConfigurableSourceManager,
+        from studiorum.core.loaders.unified_source_manager import (
+            UnifiedSourceManager,
         )
 
-        source_manager = ConfigurableSourceManager()
+        source_manager = UnifiedSourceManager()
         self.omnidexer = Omnidexer(source_manager)
         self.initial_content_count = 0
         self.content_added = 0

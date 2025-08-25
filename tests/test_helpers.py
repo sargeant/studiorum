@@ -40,7 +40,7 @@ def reset_test_environment() -> None:
 
     This should be called in setup_method() for any test class that:
     - Uses Omnidexer instances
-    - Uses ConfigurableSourceManager
+    - Uses UnifiedSourceManager
     - Uses ContentFactory
     - Uses any content type registry functionality
     - Tests that load actual data files
