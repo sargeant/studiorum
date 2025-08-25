@@ -13,9 +13,9 @@ from ..interfaces import DeepIndexable
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
 from .base import DataLoader, SourceManager
-from .configurable_source_manager import ConfigurableSourceManager
 from .fluff_loader import FluffDataLoader
 from .json_loader import JsonDataLoader
+from .unified_source_manager import UnifiedSourceManager
 
 logger = get_logger(__name__)
 
@@ -128,7 +128,7 @@ class IndexEntry[T: BaseContent](BaseModel):
 
 class Omnidexer:
     """
-    Central indexing system for all D&D content with deep content discovery.
+    Central indexing system for all 5e content with deep content discovery.
 
     The Omnidexer provides comprehensive content indexing and discovery capabilities,
     including support for nested content through the DeepIndexable protocol. This
@@ -166,7 +166,7 @@ class Omnidexer:
 
         Args:
             source_manager: Custom source manager for content loading. If None,
-                          uses ConfigurableSourceManager with default sources.
+                          uses UnifiedSourceManager with default sources.
             enable_deep_indexing: Whether to enable deep indexing of nested content.
                                 Defaults to True. Disable for performance-critical
                                 applications where nested content discovery is not needed.
@@ -177,7 +177,7 @@ class Omnidexer:
 
         initialize_content_types()
 
-        self.source_manager = source_manager or ConfigurableSourceManager()
+        self.source_manager = source_manager or UnifiedSourceManager()
         self.enable_deep_indexing = enable_deep_indexing
 
         # Note: Removing async lock since we're converting to sync
@@ -241,8 +241,8 @@ class Omnidexer:
         """Load all available data and build comprehensive index."""
         logger.debug("Starting omnidexer data loading...")
 
-        # Ensure sources are ready if using configurable source manager
-        if isinstance(self.source_manager, ConfigurableSourceManager):
+        # Ensure sources are ready if using unified source manager
+        if isinstance(self.source_manager, UnifiedSourceManager):
             self.source_manager.ensure_sources_ready()
 
         # Get data paths from source manager

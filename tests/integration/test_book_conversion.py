@@ -12,8 +12,8 @@ from pathlib import Path
 
 import pytest
 
-from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.resolvers.content_resolver import ContentResolver
 from tests.test_helpers import reset_test_environment
 
@@ -108,7 +108,7 @@ class TestBookConversion:
             # Verify it contains expected test book content
             assert "Test Sourcebook" in content, "Missing test book title"
             assert "Chapter" in content, "Missing chapter structure"
-            assert "D&D" in content, "Missing D&D branding"
+            assert "5e" in content, "Missing 5e branding"
 
             # Verify it has content structure - chapters should be present
             assert "chapter{" in content, "Missing chapter structure"
@@ -407,7 +407,7 @@ class TestBookConversion:
                             break  # Only report once per line
 
             # Allow some unescaped characters but check that we don't have excessive issues
-            # Note: Some legitimate content like "D&D" may not be escaped - this is a known issue
+            # Note: Some legitimate content like "5e" may not be escaped - this is a known issue
             assert len(lines_with_problematic_chars) < 50, (
                 f"Too many potentially problematic unescaped characters: {lines_with_problematic_chars[:5]}"
             )

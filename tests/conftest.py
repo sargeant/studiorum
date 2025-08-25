@@ -11,12 +11,12 @@ from studiorum.core.config.sources import (  # type: ignore
     ContentSource,
     SourceType,
 )
-from studiorum.core.loaders.configurable_source_manager import (
-    ConfigurableSourceManager,  # type: ignore
-)
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
 from studiorum.core.loaders.source_manager import (
     FileSystemSourceManager,  # type: ignore
+)
+from studiorum.core.loaders.unified_source_manager import (
+    UnifiedSourceManager,  # type: ignore
 )
 from studiorum.core.models.creatures import Creature  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore

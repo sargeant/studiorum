@@ -64,7 +64,7 @@ class TestRegistryManager:
         mock_source_manager_class.content_patterns = {}
 
         with patch(
-            "studiorum.core.loaders.configurable_source_manager.ConfigurableSourceManager",
+            "studiorum.core.loaders.unified_source_manager.UnifiedSourceManager",
             mock_source_manager_class,
         ):
             manager._update_source_manager(metadata)
@@ -83,7 +83,7 @@ class TestRegistryManager:
 
         # Patch the actual import location to raise ImportError
         with patch(
-            "studiorum.core.loaders.configurable_source_manager.ConfigurableSourceManager",
+            "studiorum.core.loaders.unified_source_manager.UnifiedSourceManager",
             side_effect=ImportError,
         ):
             # Should not raise, just log warning

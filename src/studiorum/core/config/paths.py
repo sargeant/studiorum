@@ -66,7 +66,7 @@ class PathConfig(BaseModel):
                 content_mappings[content_type] = subdirs
             except ValueError:
                 # Skip content types that don't exist as enum members yet
-                # They will be handled by ConfigurableSourceManager after registry initialization
+                # They will be handled by UnifiedSourceManager after registry initialization
                 continue
 
         for content_type, subdirs in content_mappings.items():

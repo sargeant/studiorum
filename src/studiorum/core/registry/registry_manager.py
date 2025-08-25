@@ -10,7 +10,7 @@ from ..models.content import BaseContent, ContentType
 from .content_type_registry import ContentTypeMetadata
 
 if TYPE_CHECKING:
-    from ..loaders.configurable_source_manager import ConfigurableSourceManager
+    from ..loaders.unified_source_manager import UnifiedSourceManager
 
 logger = get_logger(__name__)
 
@@ -40,7 +40,7 @@ class RegistryManager:
     def _update_source_manager(self, metadata: dict[str, ContentTypeMetadata]) -> None:
         """Replace source manager patterns with registry-based patterns."""
         try:
-            from ..loaders.configurable_source_manager import ConfigurableSourceManager
+            from ..loaders.unified_source_manager import UnifiedSourceManager
 
             # Replace the entire content_patterns dict
             new_patterns: dict[ContentType, list[str]] = {}
@@ -57,14 +57,12 @@ class RegistryManager:
                     continue
 
             # Replace the class attribute completely
-            ConfigurableSourceManager.content_patterns = new_patterns  # type: ignore[attr-defined]
+            UnifiedSourceManager.content_patterns = new_patterns  # type: ignore[attr-defined]
             logger.debug(
                 f"Replaced content_patterns with {len(new_patterns)} registry-based patterns"
             )
         except ImportError:
-            logger.warning(
-                "ConfigurableSourceManager not available for pattern replacement"
-            )
+            logger.warning("UnifiedSourceManager not available for pattern replacement")
 
     def _update_omnidexer(self, metadata: dict[str, ContentTypeMetadata]) -> None:
         """Update omnidexer to use registry-based content type resolution."""

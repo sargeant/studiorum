@@ -7,8 +7,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.models.content import ContentType
 from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
@@ -63,7 +63,7 @@ class TestAdventureResolutionNoDuplicates:
                 json.dump(adventures_metadata, f)
 
             # Create mock source manager that filters out content files
-            mock_source_manager = Mock(spec=ConfigurableSourceManager)
+            mock_source_manager = Mock(spec=UnifiedSourceManager)
             # Only adventures.json should be loaded, content files should be filtered out
             adventure_type = ContentType("adventure")
             mock_source_manager.get_data_paths.return_value = {
@@ -121,7 +121,7 @@ class TestAdventureResolutionNoDuplicates:
             # Content files are ignored in this test, so we don't need to create them
 
             # Create mock source manager that filters out content files
-            mock_source_manager = Mock(spec=ConfigurableSourceManager)
+            mock_source_manager = Mock(spec=UnifiedSourceManager)
             # Only adventures.json should be loaded, content files should be filtered out
             adventure_type = ContentType("adventure")
             mock_source_manager.get_data_paths.return_value = {
@@ -205,7 +205,7 @@ class TestAdventureResolutionNoDuplicates:
                 json.dump(adventures_metadata, f)
 
             # Create mock source manager that filters out content files
-            mock_source_manager = Mock(spec=ConfigurableSourceManager)
+            mock_source_manager = Mock(spec=UnifiedSourceManager)
             # Only adventures.json should be loaded, content files should be filtered out
             adventure_type = ContentType("adventure")
             mock_source_manager.get_data_paths.return_value = {
@@ -283,7 +283,7 @@ class TestAdventureResolutionNoDuplicates:
                 content_files.append(content_file)
 
             # Create mock source manager that filters out content files
-            mock_source_manager = Mock(spec=ConfigurableSourceManager)
+            mock_source_manager = Mock(spec=UnifiedSourceManager)
             # All content files should be filtered out, so empty list
             adventure_type = ContentType("adventure")
             mock_source_manager.get_data_paths.return_value = {

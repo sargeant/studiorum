@@ -7,8 +7,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
 from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment
 
@@ -97,7 +97,7 @@ class TestSourceDiscovery:
                 json.dump(mm_content, f)
 
             # Create mock source manager that filters out content files
-            mock_source_manager = Mock(spec=ConfigurableSourceManager)
+            mock_source_manager = Mock(spec=UnifiedSourceManager)
             # Only books.json should be loaded, content files should be filtered out
             mock_source_manager.get_data_paths.return_value = {
                 ContentType("book"): [books_file]  # Content files filtered out
@@ -137,9 +137,9 @@ class TestSourceDiscovery:
             Path("/data/spells.json"),  # other content - should be loaded
         ]
 
-        with patch.object(ConfigurableSourceManager, "__init__", return_value=None):
-            with patch.object(ConfigurableSourceManager, "ensure_sources_ready"):
-                source_manager = ConfigurableSourceManager()
+        with patch.object(UnifiedSourceManager, "__init__", return_value=None):
+            with patch.object(UnifiedSourceManager, "ensure_sources_ready"):
+                source_manager = UnifiedSourceManager()
                 source_manager.content_manager = Mock()
                 source_manager.content_manager._index_built = True
                 source_manager.content_manager.get_all_content_files = Mock(
@@ -203,7 +203,7 @@ class TestSourceDiscovery:
                 json.dump(phb_content, f)
 
             # Create mock source manager that filters out all content files
-            mock_source_manager = Mock(spec=ConfigurableSourceManager)
+            mock_source_manager = Mock(spec=UnifiedSourceManager)
             mock_source_manager.get_data_paths.return_value = {}  # All files filtered out
             mock_source_manager.ensure_sources_ready.return_value = None
 
@@ -244,7 +244,7 @@ class TestSourceDiscovery:
                 json.dump(malformed_adventures, f)
 
             # Create mock source manager
-            mock_source_manager = Mock(spec=ConfigurableSourceManager)
+            mock_source_manager = Mock(spec=UnifiedSourceManager)
             mock_source_manager.get_data_paths.return_value = {
                 ContentType("adventure"): [adventures_file]
             }
@@ -260,7 +260,7 @@ class TestSourceDiscovery:
             assert adventure_count >= 0
 
     def test_configurable_source_manager_interface_methods(self) -> None:
-        """Test that ConfigurableSourceManager properly implements dual-file interface methods."""
+        """Test that UnifiedSourceManager properly implements dual-file interface methods."""
         # Create test files list
         test_files = [
             Path("/data/adventures.json"),  # metadata
@@ -272,9 +272,9 @@ class TestSourceDiscovery:
             Path("/data/spells.json"),  # other content
         ]
 
-        with patch.object(ConfigurableSourceManager, "__init__", return_value=None):
-            with patch.object(ConfigurableSourceManager, "ensure_sources_ready"):
-                source_manager = ConfigurableSourceManager()
+        with patch.object(UnifiedSourceManager, "__init__", return_value=None):
+            with patch.object(UnifiedSourceManager, "ensure_sources_ready"):
+                source_manager = UnifiedSourceManager()
                 source_manager.content_manager = Mock()
                 source_manager.content_manager._index_built = True
                 source_manager.content_manager.get_all_content_files = Mock(
@@ -321,7 +321,7 @@ class TestSourceDiscovery:
                     assert book_data_paths == book_metadata_paths
 
     @pytest.mark.skip(
-        reason="Tests private implementation details of deprecated ConfigurableSourceManager. Functionality verified through public API tests."
+        reason="Tests private implementation details of deprecated UnifiedSourceManager. Functionality verified through public API tests."
     )
     def test_file_pattern_edge_cases(self) -> None:
         """Test edge cases for file pattern matching."""
@@ -347,8 +347,8 @@ class TestSourceDiscovery:
             (Path("/data/creatures.json"), False, False),
         ]
 
-        with patch.object(ConfigurableSourceManager, "__init__", return_value=None):
-            source_manager = ConfigurableSourceManager()
+        with patch.object(UnifiedSourceManager, "__init__", return_value=None):
+            source_manager = UnifiedSourceManager()
 
             for file_path, should_be_metadata, should_be_content in test_cases:
                 is_metadata = source_manager._is_metadata_file(file_path)

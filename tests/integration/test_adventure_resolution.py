@@ -10,7 +10,7 @@ import pytest
 
 from studiorum.core.loaders import FileSystemSourceManager, Omnidexer
 from studiorum.core.loaders.base import SourceManager
-from studiorum.core.loaders.configurable_source_manager import ConfigurableSourceManager
+from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.models.content import ContentType
 from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 from tests.test_helpers import reset_test_environment

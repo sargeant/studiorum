@@ -108,15 +108,15 @@ class TestRegistryIntegration:
         assert "itemFluff" in fluff_metadata
 
     def test_source_manager_has_patterns(self):
-        """Test that ConfigurableSourceManager has file patterns after initialization."""
+        """Test that UnifiedSourceManager has file patterns after initialization."""
         initialize_content_types()
 
-        from studiorum.core.loaders.configurable_source_manager import (
-            ConfigurableSourceManager,
+        from studiorum.core.loaders.unified_source_manager import (
+            UnifiedSourceManager,
         )
 
         # Check that content patterns are populated
-        patterns = getattr(ConfigurableSourceManager, "content_patterns", {})
+        patterns = getattr(UnifiedSourceManager, "content_patterns", {})
         assert patterns  # Should not be empty
         assert ContentType.SPELL in patterns
         assert "spell" in patterns[ContentType.SPELL]
@@ -224,11 +224,11 @@ class TestRegistryIntegration:
 
         initialize_content_types()
 
-        from studiorum.core.loaders.configurable_source_manager import (
-            ConfigurableSourceManager,
-        )
         from studiorum.core.loaders.content_factory import ContentFactory
         from studiorum.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.unified_source_manager import (
+            UnifiedSourceManager,
+        )
         from studiorum.core.registry.content_type_registry import (
             get_content_type_registry,
         )
@@ -280,8 +280,8 @@ class TestRegistryIntegration:
                         f"{content_type} should be in fluff types"
                     )
 
-        # Check ConfigurableSourceManager consistency
-        patterns = getattr(ConfigurableSourceManager, "content_patterns", {})
+        # Check UnifiedSourceManager consistency
+        patterns = getattr(UnifiedSourceManager, "content_patterns", {})
         for enum_value, metadata in all_metadata.items():
             # Try to create a proper ContentType enum instance
             content_type = None
@@ -303,10 +303,10 @@ class TestRegistryIntegration:
         # Test error handling by mocking the initialization method to raise the expected error
         from unittest.mock import patch
 
-        from studiorum.core.loaders.configurable_source_manager import (
-            ConfigurableSourceManager,
-        )
         from studiorum.core.loaders.content_factory import ContentFactory
+        from studiorum.core.loaders.unified_source_manager import (
+            UnifiedSourceManager,
+        )
 
         # Mock the _initialize_class_map method to raise the expected error
         # This simulates the case where registry manager hasn't populated the class map
@@ -326,13 +326,11 @@ class TestRegistryIntegration:
             ):
                 factory.get_supported_types()  # This triggers initialization
 
-        # Test ConfigurableSourceManager error handling
-        with patch.object(
-            ConfigurableSourceManager, "content_patterns", {}, create=True
-        ):
+        # Test UnifiedSourceManager error handling
+        with patch.object(UnifiedSourceManager, "content_patterns", {}, create=True):
             from unittest.mock import Mock
 
-            source_manager = ConfigurableSourceManager()
+            source_manager = UnifiedSourceManager()
             source_manager.content_manager = Mock()
             source_manager.content_manager._index_built = True
             source_manager.content_manager.get_all_content_files.return_value = {}
