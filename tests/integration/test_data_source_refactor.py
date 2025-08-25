@@ -1,12 +1,10 @@
-"""End-to-end integration tests for data source refactor.
+"""End-to-end integration tests for data source architecture.
 
-This module tests the complete data source refactor workflow from Package 4,
-ensuring that all components work together correctly and that the migration
-from old to new configuration formats works seamlessly.
+This module tests the complete data source architecture workflow,
+ensuring that all components work together correctly.
 
 Test Categories:
 - Complete workflow testing (list → add → scan → remove)
-- Configuration migration testing
 - CLI deprecation warning testing
 - MCP tool integration testing
 - Performance benchmarking
@@ -16,7 +14,6 @@ Test Categories:
 
 from __future__ import annotations
 
-import json
 import shutil
 import tempfile
 import time
@@ -32,7 +29,6 @@ from studiorum.core.config.data_sources import (
     DataSourceType,
     ExtensionDataSourceConfig,
 )
-from studiorum.core.config.migration import ConfigurationMigration
 from studiorum.core.container import reset_global_container
 from studiorum.core.context import AsyncRequestContext
 
@@ -83,92 +79,6 @@ class TestDataSourceRefactorIntegration:
         result = self.runner.invoke(app, ["data", "check"])
         assert result.exit_code == 0
         assert "repository checks" in result.stdout
-
-    def test_configuration_migration(self) -> None:
-        """Test configuration migration from old to new format."""
-        # Create old format configuration
-        old_config = {
-            "default_sources": [
-                "/path/to/5etools-src/data",  # Should become primary override
-                "PHB",  # Should become source attribution
-                "/path/to/homebrew",  # Should become extension
-                "https://example.com/content.json",  # Should become URL extension
-            ],
-            "content": {
-                "merger": {"cache_ttl": 1800, "max_entries": 5000},
-                "sources": {
-                    "CUSTOM": {
-                        "name": "Custom Source",
-                        "priority": 300,
-                        "official": False,
-                    }
-                },
-            },
-            "paths": {"data_path": "/custom/data/path"},
-            "processing": {
-                "enable_caching": False,
-                "cache_ttl": 7200,
-                "max_workers": 8,
-            },
-        }
-
-        # Migrate configuration
-        migration = ConfigurationMigration()
-        new_config = migration.migrate_configuration(old_config)
-
-        # Verify migration results
-        assert new_config.primary_override.enabled is True
-        assert new_config.primary_override.source == "/path/to/5etools-src/data"
-        assert new_config.primary_override.type == DataSourceType.FIVE_TOOLS_COMPATIBLE
-
-        # Check source attribution migration
-        assert "PHB" in new_config.source_attribution.custom_sources
-        assert "CUSTOM" in new_config.source_attribution.custom_sources
-        assert new_config.source_attribution.custom_sources["CUSTOM"]["priority"] == 300
-
-        # Check extensions migration
-        extensions = new_config.extensions
-        assert len(extensions) >= 2  # At least homebrew path and URL
-
-        homebrew_ext = next(
-            (ext for ext in extensions if "homebrew" in ext.source), None
-        )
-        assert homebrew_ext is not None
-        # Migration logic assumes directories unless they have file extensions
-        assert homebrew_ext.type in [DataSourceType.DIRECTORY, DataSourceType.FILE]
-
-        url_ext = next((ext for ext in extensions if "example.com" in ext.source), None)
-        assert url_ext is not None
-        assert url_ext.source == "https://example.com/content.json"
-
-        # Check performance settings migration
-        assert new_config.performance["caching"]["content_cache"]["ttl"] == 1800
-        assert new_config.performance["caching"]["content_cache"]["max_entries"] == 5000
-        assert new_config.performance["caching"]["content_cache"]["enabled"] is False
-        assert new_config.performance["workers"]["max_workers"] == 8
-
-        # Verify migration log
-        report = migration.create_migration_report()
-        assert "Total changes:" in report
-        assert "Migrated '/path/to/5etools-src/data' as primary data override" in report
-        assert "Migrated 'PHB' as custom source attribution" in report
-
-    def test_migration_preview(self) -> None:
-        """Test configuration migration preview functionality."""
-        old_config = {
-            "default_sources": ["PHB", "/test/path"],
-            "content": {"merger": {"cache_ttl": 900}},
-        }
-
-        migration = ConfigurationMigration()
-        preview = migration.preview_migration(old_config)
-
-        assert "migrated_config" in preview
-        assert "migration_log" in preview
-        assert "report" in preview
-
-        # Original migration instance should be unchanged
-        assert len(migration.migration_log) == 0
 
     def test_cli_config_commands(self) -> None:
         """Test CLI configuration commands."""
@@ -364,40 +274,6 @@ class TestDataSourceRefactorIntegration:
         except ValueError as e:
             # Expected - Pydantic field validator should prevent this invalid state
             assert "requires source when enabled" in str(e)
-
-    def test_migration_needs_detection(self) -> None:
-        """Test migration needs detection."""
-        migration = ConfigurationMigration()
-
-        # New format - no migration needed
-        new_config = {"data_sources": {"srd": {"enabled": True}}}
-        assert not migration.needs_migration(new_config)
-
-        # Old format - migration needed
-        old_config = {"default_sources": ["PHB", "MM"]}
-        assert migration.needs_migration(old_config)
-
-        old_config2 = {"content": {"merger": {"cache_ttl": 3600}}}
-        assert migration.needs_migration(old_config2)
-
-        old_config3 = {"paths": {"data_path": "/some/path"}}
-        assert migration.needs_migration(old_config3)
-
-    def test_deprecated_pattern_detection(self) -> None:
-        """Test detection of deprecated configuration patterns."""
-        migration = ConfigurationMigration()
-
-        config_with_deprecated = {
-            "default_sources": ["PHB"],
-            "content": {"merger": {"cache_ttl": 3600}},
-            "paths": {"data_path": "/path"},
-        }
-
-        deprecated = migration.has_deprecated_patterns(config_with_deprecated)
-        assert len(deprecated) == 3
-        assert any("default_sources" in pattern for pattern in deprecated)
-        assert any("content.merger" in pattern for pattern in deprecated)
-        assert any("paths.data_path" in pattern for pattern in deprecated)
 
     def test_extension_management(self) -> None:
         """Test extension management functionality."""

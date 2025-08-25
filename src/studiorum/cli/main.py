@@ -38,7 +38,7 @@ Studiorum - 5e content processing toolkit
 
 [bold]Key Commands:[/bold]
   [cyan]data[/cyan]      Manage data repositories (SRD, primary data, homebrew)
-  [cyan]config[/cyan]    Manage configuration settings and migration
+  [cyan]config[/cyan]    Manage configuration settings
   [cyan]convert[/cyan]   Convert content to LaTeX/PDF
   [cyan]info[/cyan]      Get information about content
   [yellow]sources[/yellow]   [red][DEPRECATED][/red] Use 'data' instead

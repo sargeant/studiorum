@@ -1,23 +1,18 @@
 """CLI commands for configuration management.
 
-This module provides CLI commands for managing Studiorum's configuration,
-including migration from old formats to the new three-tier data source
-architecture.
+This module provides CLI commands for managing Studiorum's configuration.
 
 Commands:
 - show: Display current configuration with syntax highlighting
-- migrate: Migrate from old to new configuration format
 - validate: Validate current configuration for issues
 - reset: Reset configuration to defaults
-
-Integrates with the configuration migration system from Package 4.
 """
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import typer
 import yaml
@@ -27,7 +22,6 @@ from rich.syntax import Syntax
 from rich.table import Table
 
 from studiorum.core.config.data_sources import DataSourcesConfig
-from studiorum.core.config.migration import ConfigurationMigration
 from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.logging import get_logger
 
@@ -40,8 +34,7 @@ config_app = typer.Typer(
     help="""
 [bold cyan]Manage Studiorum configuration[/bold cyan]
 
-Configuration management for Studiorum's settings, including the new
-three-tier data source architecture and migration from older formats.
+Configuration management for Studiorum's settings and three-tier data source architecture.
 
 [bold]Common Usage:[/bold]
   [dim]# Show current configuration[/dim]
@@ -49,12 +42,6 @@ three-tier data source architecture and migration from older formats.
 
   [dim]# Show specific section[/dim]
   studiorum config show --section data_sources
-
-  [dim]# Preview migration changes[/dim]
-  studiorum config migrate --dry-run
-
-  [dim]# Perform migration[/dim]
-  studiorum config migrate
 
   [dim]# Validate configuration[/dim]
   studiorum config validate
@@ -68,7 +55,6 @@ three-tier data source architecture and migration from older formats.
 
 def _get_config_file_path() -> Path:
     """Get the configuration file path."""
-    # Use the same logic as the app config system
     config_dir = Path.home() / ".studiorum"
     config_dir.mkdir(parents=True, exist_ok=True)
     return config_dir / "config.yaml"
@@ -176,119 +162,8 @@ def show_config(
         raise typer.Exit(1)
 
 
-@config_app.command("migrate")
-def migrate_config(
-    dry_run: bool = typer.Option(
-        False, "--dry-run", help="Show what would be migrated without changing anything"
-    ),
-    backup: bool = typer.Option(
-        True, "--backup/--no-backup", help="Create backup of old configuration"
-    ),
-    force: bool = typer.Option(
-        False, "--force", help="Force migration even if new format detected"
-    ),
-) -> None:
-    """Migrate configuration from old format to new three-tier structure.
-
-    [bold]Examples:[/bold]
-      [dim]# Preview migration changes[/dim]
-      studiorum config migrate --dry-run
-
-      [dim]# Perform migration with backup[/dim]
-      studiorum config migrate
-
-      [dim]# Force migration (skip format detection)[/dim]
-      studiorum config migrate --force
-    """
-    try:
-        # Load raw configuration to check for migration needs
-        raw_config = _load_raw_config()
-        migration = ConfigurationMigration()
-
-        # Check if migration is needed
-        if not migration.needs_migration(raw_config) and not force:
-            console.print(
-                "[green]✅ Configuration is already in new format, no migration needed.[/green]"
-            )
-
-            # Show deprecated patterns if any
-            deprecated = migration.has_deprecated_patterns(raw_config)
-            if deprecated:
-                console.print(
-                    "\n[yellow]Note: Some deprecated patterns were found:[/yellow]"
-                )
-                for pattern in deprecated:
-                    console.print(f"  • {pattern}")
-                console.print("\nConsider updating to new patterns when convenient.")
-
-            return
-
-        if dry_run:
-            console.print(
-                "[yellow]🔍 DRY RUN: Showing what would be migrated...[/yellow]"
-            )
-
-            # Preview migration
-            preview = migration.preview_migration(raw_config)
-
-            # Show migration report
-            console.print(f"\n{preview['report']}")
-
-            # Show what the new config would look like
-            if preview["migration_log"]:
-                console.print("\n[bold]New configuration preview:[/bold]")
-                config_yaml = yaml.dump(
-                    preview["migrated_config"], default_flow_style=False, indent=2
-                )
-                syntax = Syntax(config_yaml, "yaml", theme="monokai", line_numbers=True)
-                console.print(
-                    Panel(syntax, title="Migrated Configuration", expand=False)
-                )
-
-            console.print(
-                "\n[yellow]Run without --dry-run to perform the migration.[/yellow]"
-            )
-            return
-
-        # Create backup if requested
-        config_file = _get_config_file_path()
-        if backup and config_file.exists():
-            backup_path = config_file.with_suffix(".yaml.backup")
-            import shutil
-
-            shutil.copy2(config_file, backup_path)
-            console.print(f"[blue]📁 Created backup: {backup_path}[/blue]")
-
-        # Perform migration
-        console.print("[yellow]🔄 Migrating configuration...[/yellow]")
-        migrated_config = migration.migrate_configuration(raw_config)
-
-        # Convert to dictionary and save
-        config_dict = {"data_sources": migrated_config.model_dump()}
-
-        # Preserve other configuration sections that weren't migrated
-        for key, value in raw_config.items():
-            if key not in ["default_sources", "content", "paths", "processing"]:
-                config_dict[key] = value
-
-        _save_config(config_dict)
-
-        # Show results
-        report = migration.create_migration_report()
-        console.print("\n[green]✅ Migration completed![/green]")
-        console.print(report)
-
-        console.print(f"\n[blue]Configuration saved to: {config_file}[/blue]")
-
-    except Exception as e:
-        logger.error(f"Error during migration: {e}")
-        console.print(f"[red]Error during migration: {e}[/red]")
-        raise typer.Exit(1)
-
-
 @config_app.command("validate")
 def validate_config(
-    fix: bool = typer.Option(False, "--fix", help="Attempt to fix validation errors"),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed validation info"
     ),
@@ -301,44 +176,33 @@ def validate_config(
 
       [dim]# Detailed validation info[/dim]
       studiorum config validate --verbose
-
-      [dim]# Attempt to fix issues[/dim]
-      studiorum config validate --fix
     """
     try:
         console.print("[yellow]🔍 Validating configuration...[/yellow]")
 
-        # Check for migration needs first
+        # Load raw config and check for data sources
         raw_config = _load_raw_config()
-        migration = ConfigurationMigration()
 
-        if migration.needs_migration(raw_config):
-            console.print(
-                "[yellow]⚠️  Configuration needs migration to new format.[/yellow]"
-            )
-            console.print("Run 'studiorum config migrate' first.")
-            raise typer.Exit(1)
-
-        # Load and validate data sources configuration
         if "data_sources" not in raw_config:
             console.print("[yellow]⚠️  No data_sources configuration found.[/yellow]")
-            console.print(
-                "Run 'studiorum config migrate' to create initial configuration."
-            )
+            console.print("Creating default data sources configuration...")
+
+            # Create default config
+            default_data_config = DataSourcesConfig()
+            raw_config["data_sources"] = default_data_config.model_dump()
+            _save_config(raw_config)
+            console.print("[green]✅ Default configuration created.[/green]")
             return
 
+        # Validate data sources configuration
         try:
             data_config = DataSourcesConfig.model_validate(raw_config["data_sources"])
         except Exception as e:
             console.print(f"[red]❌ Configuration validation failed: {e}[/red]")
-            if fix:
-                console.print(
-                    "\n[yellow]🔧 Auto-fix not available for parsing errors.[/yellow]"
-                )
-                console.print("Please correct the configuration manually.")
+            console.print("Please correct the configuration manually.")
             raise typer.Exit(1)
 
-        # Validate configuration
+        # Run configuration validation
         validation_errors = data_config.validate_configuration()
 
         if validation_errors:
@@ -351,20 +215,19 @@ def validate_config(
             table.add_column("Severity", style="red")
 
             for error in validation_errors:
-                severity = "Warning" if "not found" in error else "Error"
+                severity = (
+                    "Warning"
+                    if "warning" in error.lower() or "not found" in error
+                    else "Error"
+                )
                 table.add_row(error, severity)
 
             console.print(table)
 
-            if fix:
-                console.print("\n[yellow]🔧 Attempting to fix errors...[/yellow]")
-                console.print(
-                    "[yellow]Auto-fix not yet implemented. Please correct errors manually.[/yellow]"
-                )
-                console.print("\nSuggestions:")
-                console.print("  • Check file paths exist")
-                console.print("  • Verify URL formats")
-                console.print("  • Review extension configurations")
+            console.print("\n[cyan]Suggestions:[/cyan]")
+            console.print("  • Check file paths exist")
+            console.print("  • Verify URL formats")
+            console.print("  • Review extension configurations")
 
             raise typer.Exit(1)
         else:

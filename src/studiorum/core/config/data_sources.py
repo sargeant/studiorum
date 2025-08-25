@@ -1,8 +1,7 @@
 """Configuration models for three-tier data source architecture.
 
-This module implements the new three-tier configuration system for data sources,
-separating data repositories from content attribution as part of Package 4
-configuration refactoring.
+This module implements the three-tier configuration system for data sources,
+separating data repositories from content attribution.
 
 Key Components:
 - SRDDataSourceConfig: Bundled SRD data configuration
