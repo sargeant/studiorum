@@ -59,7 +59,7 @@ version 2005/12/01 or later.
 %</driver>
 % \fi
 % \GetFileInfo{onimage.sty}
-% 
+%
 % \title{The \textsf{onimage} package\thanks{This document
 % corresponds to \textsf{onimage}~\fileversion,
 % dated \filedate.}}
@@ -83,7 +83,7 @@ version 2005/12/01 or later.
 % \DescribeEnv{tikzonimage}^^A
 % The |tikzonimage| environment is used to include an image file and then use
 % TikZ to draw on top of it. It starts a new |tikzpicture| environment and sets
-% the coordinate system so that the origin is at the lower left corner of the 
+% the coordinate system so that the origin is at the lower left corner of the
 % image. By default it also scales the coordinate system so that the point
 % $(1,1)$ is at the upper right corner of the image.
 %
@@ -95,7 +95,7 @@ version 2005/12/01 or later.
 % the second optional argument works in exactly the same way as the optional
 % argument of the |tikzpicture| environment. For example, in order to draw a
 % small red circle in the middle of |some_image.jpg|, one could write
-% 
+%
 %\begin{verbatim}
 %\begin{tikzonimage}[width=0.3\textwidth]{some_image.jpg}[color=red]
 %    \fill (0.5,0.5) circle [radius=2pt];
@@ -107,14 +107,14 @@ version 2005/12/01 or later.
 %
 % \DescribeMacro{tsx/scale cs}^^A
 % The coordinate system scaling behaviour can be modified with the |tsx/scale cs| option.
-% Its default value is |both|, resulting in the behaviour described above. 
+% Its default value is |both|, resulting in the behaviour described above.
 % If the option is set to |x|, then the coordinate system as set so that $(1,0)$ is at the lower right corner of the image and the rectangle with vertices $(0,0)$, $(0,1)$, $(1,1)$ and $(1,0)$ is a square.
 % This is demonstrated in Figure \ref{fig:scale-cs:x}.
 % \begin{figure}
 %   \centering
 %   \begin{tikzonimage}[width=3cm,height=2cm]{some_image.jpg}[color=red,tsx/scale cs=x]
-%       \path[use as bounding box] (0,0) -- (1,1);    
-%       \fill (1,1) circle [radius=2pt] node[right,black] {$(1,1)$};    
+%       \path[use as bounding box] (0,0) -- (1,1);
+%       \fill (1,1) circle [radius=2pt] node[right,black] {$(1,1)$};
 %   \end{tikzonimage}
 %   \caption{The \texttt{tsx/scale cs=x} option.}
 %   \label{fig:scale-cs:x}
@@ -142,13 +142,13 @@ version 2005/12/01 or later.
 % still have the rescaled coordinate system for each of them. For this reason
 % this package also provides an environment to change the coordinate system so
 % that it matches an arbitrary node.
-% 
+%
 % \begin{quote}
 %  |\begin{\tikzonnode}|\marg{node}\oarg{TikZ options}
 % \end{quote}
 %
 % The |tikzonnode| environment acts like a |scope| so that, for example, it limits
-% clipping. To draw a red circle in the middle of a node with some text, one 
+% clipping. To draw a red circle in the middle of a node with some text, one
 % could write
 %
 %\begin{verbatim}
@@ -269,7 +269,7 @@ version 2005/12/01 or later.
                 }
                 \pgfmathsetmacro\tsx@numlinesx{floor(\tsx@width/(\tsx@stepsize*\tsx@stepsize@multx))}
                 \pgfmathsetmacro\tsx@numlinesy{floor(\tsx@height/(\tsx@stepsize*\tsx@stepsize@multy))}
-                
+
                 \ifdim\tsx@numlinesx pt>0pt
                 \ifdim\tsx@numlinesy pt>0pt
                     \draw[help lines,xstep=\tsx@stepsize,ystep=\tsx@stepsize] (0,0) grid (\tsx@width pt,\tsx@height pt);

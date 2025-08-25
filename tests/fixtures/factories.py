@@ -407,6 +407,167 @@ def make_tag_resolver():
 
 
 # ============================================================================
+# Encounter/Combat Factories
+# ============================================================================
+
+
+@pytest.fixture
+def make_encounter_creature():
+    """Factory for creating EncounterCreature objects."""
+    from studiorum.core.models.encounter_types import XP
+    from studiorum.core.services.encounter_collector import EncounterCreature
+
+    def _make_encounter_creature(
+        creature=None,
+        quantity: int = 1,
+        tactical_role: str = "combatant",
+        xp_contribution: int = 100,
+        environmental_suitability: float = 1.0,
+        threat_rating: float = 1.0,
+        **kwargs,
+    ) -> EncounterCreature:
+        """Create an EncounterCreature with custom attributes."""
+        if creature is None:
+            # Create a minimal creature object for testing
+            creature = type(
+                "TestCreature",
+                (),
+                {
+                    "name": "Goblin",
+                    "cr": "1/4",
+                    "type": {"type": "humanoid"},
+                    "source": {"abbreviation": "MM", "page": 166},
+                },
+            )()
+
+        return EncounterCreature(
+            creature=creature,
+            quantity=quantity,
+            tactical_role=tactical_role,
+            xp_contribution=XP(xp_contribution),
+            environmental_suitability=environmental_suitability,
+            threat_rating=threat_rating,
+            **kwargs,
+        )
+
+    return _make_encounter_creature
+
+
+@pytest.fixture
+def make_encounter_generation_result():
+    """Factory for creating EncounterGenerationResult objects."""
+    from studiorum.core.models.encounter_types import XP, EncounterId
+    from studiorum.core.services.encounter_collector import EncounterGenerationResult
+
+    def _make_encounter_generation_result(
+        encounter_id: str | None = None,
+        creatures: list | None = None,
+        total_base_xp: int = 500,
+        total_adjusted_xp: int = 750,
+        difficulty_rating: str = "medium",
+        balance_score: float = 0.75,
+        tactical_analysis: dict | None = None,
+        environmental_fit: float = 0.8,
+        rebalance_suggestions: list | None = None,
+        generation_time_ms: float = 125.0,
+        **overrides,
+    ) -> EncounterGenerationResult:
+        """Create an EncounterGenerationResult with custom attributes."""
+        import uuid
+
+        if encounter_id is None:
+            encounter_id = f"test_encounter_{str(uuid.uuid4())[:8]}"
+
+        if creatures is None:
+            from studiorum.core.models.encounter_types import XP
+            from studiorum.core.services.encounter_collector import EncounterCreature
+
+            # Create a simple test creature
+            test_creature = type(
+                "TestCreature",
+                (),
+                {
+                    "name": "Goblin",
+                    "cr": "1/4",
+                    "type": {"type": "humanoid"},
+                    "source": {"abbreviation": "MM", "page": 166},
+                },
+            )()
+
+            creatures = [
+                EncounterCreature(
+                    creature=test_creature,
+                    quantity=3,
+                    tactical_role="minion",
+                    xp_contribution=XP(total_base_xp),
+                    environmental_suitability=environmental_fit,
+                )
+            ]
+
+        if tactical_analysis is None:
+            tactical_analysis = {
+                "total_creatures": sum(c.quantity for c in creatures),
+                "unique_creature_types": len(creatures),
+                "creature_roles": {"minion": 3},
+                "capabilities": {
+                    "has_ranged_attackers": True,
+                    "has_spellcasters": False,
+                    "has_tanks": True,
+                },
+                "action_economy": {
+                    "action_ratio": 1.25,
+                    "balance_assessment": "balanced",
+                },
+            }
+
+        if rebalance_suggestions is None:
+            rebalance_suggestions = [
+                "Consider adding variety with different creature types",
+                "Balance looks good for the target difficulty",
+            ]
+
+        defaults = {
+            "encounter_id": EncounterId(encounter_id),
+            "creatures": creatures,
+            "total_base_xp": XP(total_base_xp),
+            "total_adjusted_xp": XP(total_adjusted_xp),
+            "difficulty_rating": difficulty_rating,
+            "balance_score": balance_score,
+            "tactical_analysis": tactical_analysis,
+            "environmental_fit": environmental_fit,
+            "rebalance_suggestions": rebalance_suggestions,
+            "generation_time_ms": generation_time_ms,
+        }
+
+        return EncounterGenerationResult(**{**defaults, **overrides})
+
+    return _make_encounter_generation_result
+
+
+@pytest.fixture
+def make_party_composition():
+    """Factory for creating PartyComposition objects."""
+    from studiorum.core.models.encounter_types import PartyComposition, PartyLevel
+
+    def _make_party_composition(
+        size: int = 4,
+        level: int = 5,
+        individual_levels: list[int] | None = None,
+        **overrides,
+    ) -> PartyComposition:
+        """Create a PartyComposition with custom attributes."""
+        defaults = {
+            "size": size,
+            "level": PartyLevel(level),
+            "individual_levels": individual_levels,
+        }
+
+        return PartyComposition(**{**defaults, **overrides})
+
+    return _make_party_composition
+
+
+# ============================================================================
 # LaTeX/Rendering Factories
 # ============================================================================
 

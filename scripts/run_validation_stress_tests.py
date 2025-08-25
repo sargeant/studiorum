@@ -14,9 +14,9 @@ from pathlib import Path
 
 def run_command(cmd, description):
     """Run a command and report results."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"🔬 {description}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"Running: {' '.join(cmd)}")
 
     start_time = time.time()
@@ -125,9 +125,9 @@ def main():
     passed = sum(1 for _, success in results if success)
     total = len(results)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("📊 TEST SUMMARY")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"Total time: {total_duration:.2f}s")
     print(f"Passed: {passed}/{total}")
 

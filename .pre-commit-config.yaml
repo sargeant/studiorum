@@ -21,8 +21,10 @@ repos:
     rev: v1.14.0  # Add mypy type checking
     hooks:
       - id: mypy
-        additional_dependencies: [types-pyyaml, types-psutil]
+        additional_dependencies: [types-pyyaml, types-psutil, pydantic]
         args: [--ignore-missing-imports]
+        language_version: python3.12
+        files: ^src/
   - repo: local
     hooks:
       - id: srd-compliance
