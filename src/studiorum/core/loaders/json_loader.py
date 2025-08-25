@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 from pydantic import ValidationError
 
-from ..config.settings import get_settings
+from ..config.unified_config import get_app_config
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
 from ..services.access import get_cache
@@ -44,7 +44,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             content_factory = ContentFactory()
         self._content_factory = content_factory
         self._error_tracker = ValidationErrorTracker()
-        self._settings = get_settings()
+        self._settings = get_app_config()
         self._base_items_registry: dict[str, dict[str, Any]] | None = None
 
         # Class-level registry is already declared above
@@ -1284,7 +1284,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 logger.error(f"Unexpected error validating item in {path}: {e}")
 
         # Log validation summary if enabled
-        if self._settings.validation_summary:
+        if self._settings.validation.enable_summary:
             self._log_validation_summary()
 
         return validated_content
@@ -1309,10 +1309,10 @@ class JsonDataLoader(DataLoader[BaseContent]):
         }
 
         # Check strictness setting
-        if self._settings.validation_strictness == "strict":
+        if self._settings.validation.strictness == "strict":
             # In strict mode, re-raise the validation error
             raise error
-        elif self._settings.validation_strictness == "lenient":
+        elif self._settings.validation.strictness == "lenient":
             # In lenient mode, only record error but don't log
             self._error_tracker.record_error(error, context)
             return
