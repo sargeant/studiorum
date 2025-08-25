@@ -1,4 +1,4 @@
-"""MCP configuration tools for D&D 5e project.
+"""MCP configuration tools for 5e project.
 
 This module provides natural language configuration capabilities through MCP tools,
 enabling users to interact with the application configuration using intuitive commands
@@ -476,16 +476,21 @@ async def add_content_source(
     replace_existing: bool = False,
     context: AsyncRequestContext | None = None,
 ) -> Result[ConfigurationResponse, MCPError]:
-    """Add or manage D&D content sources for data resolution.
+    """DEPRECATED: Add or manage 5e content sources for data resolution.
 
-    This tool manages the list of content sources used for resolving D&D content
-    references. Sources should use standard 5etools abbreviations.
+    This tool mixed data repository management with content attribution.
+    Use these tools instead:
 
-    Natural language examples:
-    - "Add Tasha's Cauldron to sources"
-    - "Set sources to SRD only"
-    - "Add DMG and PHB to content sources"
-    - "Replace sources with core books only"
+    For data repositories (where to load data from):
+    - manage_data_sources("add_primary", source="/path/to/5etools-data")
+    - manage_data_sources("add_homebrew", source="/path/to/homebrew")
+    - manage_data_sources("add_url", source="https://example.com/content.json")
+
+    For content attribution (which books content comes from):
+    - manage_source_attribution("set_priority", abbreviation="PHB", priority=10)
+    - manage_source_attribution("list")
+
+    This tool will be removed in a future version.
 
     Args:
         sources: List of source abbreviations to add (e.g., ["phb", "dmg", "mm"])
@@ -496,6 +501,13 @@ async def add_content_source(
         Result containing updated source configuration
     """
     try:
+        logger.warning(
+            "add_content_source is deprecated - use manage_data_sources or manage_source_attribution instead"
+        )
+
+        # Still provide the original functionality for backward compatibility
+        # but with deprecation warnings
+
         # Get current configuration
         if context and context.user_config:
             config = context.user_config
@@ -524,14 +536,38 @@ async def add_content_source(
         if result.is_success():
             response = result.unwrap()
             action = "replaced" if replace_existing else "updated"
-            response.message = f"Content sources {action}: {', '.join(new_sources)}"
+            # Add deprecation warning to the response
+            response.message = f"[DEPRECATED] Content sources {action}: {', '.join(new_sources)}. Use manage_data_sources or manage_source_attribution instead."
+
+            # Add migration guidance to the response
+            if not hasattr(response, "migration_guide"):
+                response.current_config["migration_guide"] = {
+                    "deprecated_tool": "add_content_source",
+                    "data_repositories": {
+                        "description": "For managing where data is loaded from",
+                        "tool": "manage_data_sources",
+                        "examples": [
+                            'manage_data_sources("add_primary", source="/path/to/5etools-data")',
+                            'manage_data_sources("add_homebrew", source="/path/to/homebrew")',
+                            'manage_data_sources("add_url", source="https://example.com/spells.json")',
+                        ],
+                    },
+                    "content_attribution": {
+                        "description": "For managing which books content comes from",
+                        "tool": "manage_source_attribution",
+                        "examples": [
+                            'manage_source_attribution("list")',
+                            'manage_source_attribution("set_priority", abbreviation="PHB", priority=10)',
+                        ],
+                    },
+                }
 
         return result
 
     except Exception as e:
-        logger.exception("Failed to add content source")
+        logger.exception("Failed to add content source (deprecated tool)")
         error = MCPError(
-            message=f"Failed to add content source: {str(e)}",
+            message=f"[DEPRECATED] Failed to add content source: {str(e)}. Use manage_data_sources or manage_source_attribution instead.",
             error_code=MCPErrorCode.CONFIGURATION_ERROR,
             category=ErrorCategory.CONFIGURATION,
         )

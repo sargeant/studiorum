@@ -37,6 +37,7 @@ from .protocols import (
     CacheProtocol,
     ConfigurableServiceProtocol,
     ConfigurationProtocol,
+    ContentAttributionProtocol,
     ContentFactoryProtocol,
     ContentTypeRegistryProtocol,
     DisplayManagerProtocol,
@@ -44,6 +45,7 @@ from .protocols import (
     OmnidexerProtocol,
     ReferenceManagerProtocol,
     ServiceProtocol,
+    SourceManagerProtocol,
     TagResolverProtocol,
 )
 
@@ -851,3 +853,39 @@ async def create_cache_service() -> CacheProtocol:
             return self._cache_manager.get_stats()
 
     return CacheService()
+
+
+# Source Management Services
+
+
+async def create_data_source_manager_service() -> SourceManagerProtocol:
+    """Factory for data source manager service with async resource management.
+
+    Returns:
+        Data source manager service implementing SourceManagerProtocol
+    """
+    from studiorum.core.loaders.data_source_manager import DataSourceManager
+
+    data_source_manager = DataSourceManager()
+
+    # The DataSourceManager implements AsyncResourceProtocol
+    # Initialize it immediately in the factory
+    await data_source_manager.initialize()
+
+    logger.info("DataSourceManager service initialized successfully")
+    return data_source_manager
+
+
+async def create_content_attribution_service() -> ContentAttributionProtocol:
+    """Factory for content attribution service.
+
+    Returns:
+        Content attribution service implementing ContentAttributionProtocol
+    """
+    from studiorum.core.loaders.content_attribution_manager import (
+        ContentAttributionManager,
+    )
+
+    content_attribution = ContentAttributionManager()
+    logger.info("ContentAttributionManager service initialized successfully")
+    return content_attribution

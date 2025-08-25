@@ -26,7 +26,7 @@ class TestCLIMain:
         result = self.runner.invoke(app, ["--help"])
         assert result.exit_code == 0
         assert "studiorum" in result.stdout
-        assert "Convert 5e JSON data" in result.stdout
+        assert "Convert 5e content" in result.stdout
 
     def test_cli_version(self) -> None:
         """Test CLI version command."""

@@ -16,6 +16,8 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
+    from pathlib import Path
+    from typing import Any
 
     from studiorum.cli.display_manager import DisplayManager
     from studiorum.core.config.unified_config import ApplicationConfig
@@ -24,7 +26,7 @@ if TYPE_CHECKING:
     from studiorum.core.interfaces import ContentTypeRegistry
     from studiorum.core.loaders.content_factory import ContentFactory
     from studiorum.core.loaders.omnidexer import Omnidexer
-    from studiorum.core.models.content import BaseContent
+    from studiorum.core.models.content import BaseContent, ContentType
     from studiorum.core.result import Result
     from studiorum.core.text.tag_resolver import TagResolver
     from studiorum.core.unified_references import ReferenceManager
@@ -126,7 +128,7 @@ class OmnidexerProtocol(ServiceProtocol, AsyncResourceProtocol, Protocol):
     """Protocol for content indexing and retrieval services.
 
     The omnidexer is responsible for loading, indexing, and providing
-    access to D&D 5e content data. Requires async initialization due
+    access to 5e content data. Requires async initialization due
     to potential GitHub source downloads and large data processing.
     """
 
@@ -247,7 +249,7 @@ class TagResolverProtocol(ServiceProtocol, ConfigurableServiceProtocol, Protocol
     """Protocol for tag resolution and rendering services.
 
     The tag resolver handles parsing and rendering of {@tag} syntax
-    in D&D content. Supports hot-reload for rendering configuration
+    in 5e content. Supports hot-reload for rendering configuration
     changes without restart.
     """
 
@@ -501,6 +503,126 @@ class ReferenceManagerProtocol(ServiceProtocol, Protocol):
 
         Returns:
             List of (source, ref_type) tuples
+        """
+        ...
+
+
+@runtime_checkable
+class SourceManagerProtocol(ServiceProtocol, AsyncResourceProtocol, Protocol):
+    """Protocol for source management services.
+
+    Manages data repositories (GitHub repos, local directories) and provides
+    unified access to 5e content files. Separates data source management
+    from content attribution concerns.
+    """
+
+    async def ensure_sources_ready(self) -> None:
+        """Ensure all data sources are loaded and ready.
+
+        This method handles async source preparation like GitHub
+        repository cloning or remote data downloads.
+
+        Raises:
+            SourceManagerError: If source preparation fails
+        """
+        ...
+
+    def get_data_paths(self) -> dict[ContentType, list[Path]]:
+        """Return paths to data files organized by content type.
+
+        For adventures and books, this should return only metadata files to prevent
+        duplicate loading. Content files are loaded on-demand by ContentResolver.
+
+        Returns:
+            Dictionary mapping content types to data file paths
+        """
+        ...
+
+    def get_metadata_files(self) -> dict[ContentType, list[Path]]:
+        """Return paths to metadata files organized by content type.
+
+        Metadata files contain lightweight index information (names, IDs, TOC)
+        and are loaded by the omnidexer. Content files are excluded.
+
+        Returns:
+            Dictionary mapping content types to metadata file paths
+        """
+        ...
+
+    def get_content_files(self) -> dict[ContentType, list[Path]]:
+        """Return paths to content files organized by content type.
+
+        Content files contain the actual entry data for adventures and books.
+        These are loaded on-demand and merged with metadata.
+
+        Returns:
+            Dictionary mapping content types to content file paths
+        """
+        ...
+
+    def get_source_statistics(self) -> dict[str, Any]:
+        """Get statistics about configured sources.
+
+        Returns:
+            Dictionary with source counts, sync status, and performance metrics
+        """
+        ...
+
+    def clear_cache(self) -> None:
+        """Clear internal caches to force reload of data sources.
+
+        This method forces a complete rebuild of the internal content index
+        and should be called when sources have been modified externally.
+        """
+        ...
+
+
+@runtime_checkable
+class ContentAttributionProtocol(ServiceProtocol, Protocol):
+    """Protocol for content source attribution services.
+
+    Manages 5e source attribution (PHB, MM, DMG, etc.) and priority
+    resolution. Separates content attribution from data repository concerns.
+    """
+
+    def resolve_source(self, source_abbrev: str) -> dict[str, Any] | None:
+        """Resolve source abbreviation to full source information.
+
+        Args:
+            source_abbrev: Source abbreviation (e.g., 'PHB', 'MM', 'DMG')
+
+        Returns:
+            Source information dictionary or None if not found
+        """
+        ...
+
+    def get_source_priority(self, source_abbrev: str) -> int:
+        """Get priority for a source (lower numbers = higher priority).
+
+        Args:
+            source_abbrev: Source abbreviation to check
+
+        Returns:
+            Priority value (0 = highest priority)
+        """
+        ...
+
+    def get_all_sources(self) -> list[str]:
+        """Get list of all known source abbreviations.
+
+        Returns:
+            List of source abbreviations in priority order
+        """
+        ...
+
+    def get_source_metadata(self, source_abbrev: str) -> dict[str, Any] | None:
+        """Get detailed metadata for a source.
+
+        Args:
+            source_abbrev: Source abbreviation
+
+        Returns:
+            Metadata dictionary with publication info, type, etc.
         """
         ...
 
@@ -923,6 +1045,8 @@ __all__ = [
     "ContentFactoryProtocol",
     "EntryTypeRegistryProtocol",
     "ReferenceManagerProtocol",
+    "SourceManagerProtocol",
+    "ContentAttributionProtocol",
     "CacheProtocol",
     # Image service protocols
     "ImageSourceRegistryProtocol",

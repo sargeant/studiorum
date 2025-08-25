@@ -33,7 +33,18 @@ logger = get_logger(__name__)
 # Create the main Typer app
 app: typer.Typer = typer.Typer(
     name="studiorum",
-    help="Convert 5e JSON data to beautifully formatted LaTeX/PDF documents",
+    help="""
+Studiorum - 5e content processing toolkit
+
+[bold]Key Commands:[/bold]
+  [cyan]data[/cyan]      Manage data repositories (SRD, primary data, homebrew)
+  [cyan]config[/cyan]    Manage configuration settings and migration
+  [cyan]convert[/cyan]   Convert content to LaTeX/PDF
+  [cyan]info[/cyan]      Get information about content
+  [yellow]sources[/yellow]   [red][DEPRECATED][/red] Use 'data' instead
+
+Use 'studiorum COMMAND --help' for detailed help on any command.
+""",
     rich_markup_mode="rich",
 )
 
@@ -173,7 +184,9 @@ def main(
 # Import and mount CLI command modules
 try:
     from studiorum.cli.commands.cache import app as cache_app
+    from studiorum.cli.commands.config import config_app
     from studiorum.cli.commands.convert import app as convert_app
+    from studiorum.cli.commands.data import data_app
     from studiorum.cli.commands.info import app as info_app
     from studiorum.cli.commands.list_content import app as list_app
     from studiorum.cli.commands.mcp import mcp_app
@@ -183,7 +196,9 @@ try:
 
     # Mount sub-applications
     app.add_typer(cache_app, name="cache")
+    app.add_typer(config_app, name="config")
     app.add_typer(convert_app, name="convert")
+    app.add_typer(data_app, name="data")
     app.add_typer(list_app, name="list")
     app.add_typer(mcp_app, name="mcp")
     app.add_typer(info_app, name="info")

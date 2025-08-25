@@ -16,6 +16,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 if TYPE_CHECKING:
     from studiorum.core.assets.image_sources import ImageSourceConfig
+    from studiorum.core.config.data_sources import DataSourcesConfig
 
 
 class LoggingConfig(BaseModel):
@@ -46,9 +47,7 @@ class LoggingConfig(BaseModel):
 class PathsConfig(BaseModel):
     """Configuration for file and directory paths."""
 
-    data_path: Path | None = Field(
-        default=None, description="Path to D&D 5e data files"
-    )
+    data_path: Path | None = Field(default=None, description="Path to 5e data files")
     assets_path: Path = Field(default=Path("assets"), description="Path to asset files")
     output_path: Path = Field(
         default=Path("output"), description="Path for generated output files"
@@ -592,6 +591,10 @@ class ApplicationConfig(BaseSettings):
     image: ImageConfig = Field(
         default_factory=ImageConfig, description="Image asset configuration"
     )
+    data_sources: DataSourcesConfig | None = Field(
+        default_factory=lambda: None,
+        description="Data sources configuration (three-tier model)",
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -607,6 +610,15 @@ class ApplicationConfig(BaseSettings):
         self.paths.output_path.mkdir(parents=True, exist_ok=True)
         self.paths.build_path.mkdir(parents=True, exist_ok=True)
 
+        # Initialize data sources config if not provided
+        if self.data_sources is None:
+            try:
+                from studiorum.core.config.data_sources import DataSourcesConfig
+
+                self.data_sources = DataSourcesConfig()
+            except ImportError:
+                pass
+
 
 # Build models to resolve forward references
 def _rebuild_models() -> None:
@@ -614,8 +626,10 @@ def _rebuild_models() -> None:
     try:
         # Import the module and make ImageSourceConfig available globally
         from studiorum.core.assets.image_sources import ImageSourceConfig
+        from studiorum.core.config.data_sources import DataSourcesConfig
 
         globals()["ImageSourceConfig"] = ImageSourceConfig
+        globals()["DataSourcesConfig"] = DataSourcesConfig
 
         ImageConfig.model_rebuild()
         ApplicationConfig.model_rebuild()

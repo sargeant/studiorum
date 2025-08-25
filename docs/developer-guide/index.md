@@ -25,6 +25,15 @@ Build applications with studiorum's modern Python architecture for 5e content pr
 
     [Architecture Overview](architecture.md){ .btn-primary }
 
+-   📚 **Data Source Architecture**
+
+    ---
+
+    Modern three-tier data model with SRD, primary override, and
+    extensions for comprehensive content management
+
+    [Data Sources Guide](data-sources.md){ .btn-primary }
+
 -   🚀 **Quick Development Setup**
 
     ---

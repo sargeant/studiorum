@@ -5,14 +5,14 @@ build-backend = "hatchling.build"
 [project]
 name = "studiorum"
 version = "0.5.0"
-description = "Convert D&D 5e JSON data to beautifully formatted LaTeX/PDF documents"
+description = "Convert 5e JSON data to beautifully formatted LaTeX/PDF documents"
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [{ name = "Sam Sargeant" }]
 keywords = [
     "dnd",
-    "d&d",
-    "dungeons-dragons",
+    "5e",
+    "5e-compatible",
     "5e",
     "latex",
     "pdf",
@@ -108,6 +108,7 @@ dev = [
     "mkdocstrings>=0.30.0",
     "pymdown-extensions>=10.16.1",
     "mkdocstrings-python>=1.17.0",
+    "deadcode>=2.4.1",
 ]
 docs = ["shibuya>=2025.7.24"]
 

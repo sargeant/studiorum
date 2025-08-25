@@ -1,6 +1,21 @@
-"""CLI commands for managing content sources."""
+"""DEPRECATED CLI commands for source management.
+
+These commands are deprecated in favor of the new 'data' command group.
+They continue to work for backward compatibility but will be removed in a future version.
+
+Migration Guide:
+- studiorum sources list    → studiorum data list
+- studiorum sources add     → studiorum data add-homebrew
+- studiorum sources remove  → studiorum data remove
+- studiorum sources scan    → studiorum data scan
+- studiorum sources update  → studiorum data scan
+- studiorum sources info    → studiorum data status
+
+Use 'studiorum data --help' for information about the new commands.
+"""
 
 import asyncio
+import warnings
 from pathlib import Path
 
 import typer
@@ -17,12 +32,51 @@ from studiorum.core.config.sources import (
 from studiorum.core.sources import ContentSourceManager
 
 console = display_manager.console
-app: typer.Typer = typer.Typer(help="Manage content sources")
+
+# Issue deprecation warning at module level
+warnings.warn(
+    "The 'sources' command is deprecated. Use 'data' command instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+# Update help text to indicate deprecation
+app: typer.Typer = typer.Typer(
+    help="""
+[red]DEPRECATED[/red]: Source management commands.
+
+⚠️  These commands are deprecated. Use 'studiorum data' instead:
+  • sources list    → data list
+  • sources add     → data add-homebrew
+  • sources remove  → data remove
+  • sources scan    → data scan
+  • sources update  → data scan
+  • sources info    → data status
+
+This command group will be removed in a future version.
+"""
+)
+
+
+def show_deprecation_warning(new_command: str) -> None:
+    """Show deprecation warning with migration guidance."""
+    console.print("[yellow]⚠️  DEPRECATION WARNING[/yellow]")
+    console.print(f"The 'sources' command is deprecated. Use '{new_command}' instead.")
+    console.print("Migration guide:")
+    console.print("  • studiorum sources list    → studiorum data list")
+    console.print("  • studiorum sources add     → studiorum data add-homebrew")
+    console.print("  • studiorum sources remove  → studiorum data remove")
+    console.print("  • studiorum sources scan    → studiorum data scan")
+    console.print("  • studiorum sources update  → studiorum data scan")
+    console.print("  • studiorum sources info    → studiorum data status")
+    console.print("")
 
 
 @app.command("list")
 def list_sources() -> None:
-    """List all configured content sources."""
+    """DEPRECATED: List configured sources. Use 'studiorum data list' instead."""
+    show_deprecation_warning("studiorum data list")
+
     config = get_content_config()
 
     if not config.content_sources:
@@ -72,7 +126,8 @@ def add_source(
         True, "--auto-update/--no-auto-update", help="Enable automatic updates"
     ),
 ) -> None:
-    """Add a new content source."""
+    """DEPRECATED: Add a source. Use 'studiorum data add-homebrew' instead."""
+    show_deprecation_warning("studiorum data add-homebrew")
 
     # Validate source type
     try:
@@ -158,7 +213,8 @@ def remove_source(
         False, "--remove-data", help="Also remove cached data"
     ),
 ) -> None:
-    """Remove a content source."""
+    """DEPRECATED: Remove a source. Use 'studiorum data remove' instead."""
+    show_deprecation_warning("studiorum data remove")
     config_manager = get_config_manager()
     config = config_manager.get_config()
 
@@ -198,7 +254,8 @@ def remove_source(
 def update_sources(
     name: str | None = typer.Argument(None, help="Name of specific source to update"),
 ) -> None:
-    """Update content sources."""
+    """DEPRECATED: Update sources. Use 'studiorum data scan' instead."""
+    show_deprecation_warning("studiorum data scan")
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
@@ -233,7 +290,8 @@ def update_sources(
 def source_info(
     name: str = typer.Argument(..., help="Name of the source to show info for"),
 ) -> None:
-    """Show detailed information about a content source."""
+    """DEPRECATED: Show source info. Use 'studiorum data status' instead."""
+    show_deprecation_warning("studiorum data status")
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
@@ -285,7 +343,8 @@ def source_info(
 
 @app.command("scan")
 def scan_content() -> None:
-    """Scan and rebuild the content index."""
+    """DEPRECATED: Scan content. Use 'studiorum data scan' instead."""
+    show_deprecation_warning("studiorum data scan")
     config = get_content_config()
     source_manager = ContentSourceManager(config)
 
@@ -319,7 +378,8 @@ def scan_content() -> None:
 
 @app.command("defaults")
 def setup_defaults() -> None:
-    """Set up default content sources (SRD)."""
+    """DEPRECATED: Set up defaults. Use 'studiorum data' commands instead."""
+    show_deprecation_warning("studiorum data list")
     config_manager = get_config_manager()
 
     if typer.confirm("This will reset to default sources. Continue?"):

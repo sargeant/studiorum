@@ -21,8 +21,10 @@ from .container import ServiceContainer
 from .factories import (
     create_cache_service,
     create_configuration_service,
+    create_content_attribution_service,
     create_content_factory_service,
     create_content_type_registry_service,
+    create_data_source_manager_service,
     create_display_manager_service,
     create_entry_registry_service,
     create_omnidexer_service,
@@ -33,12 +35,14 @@ from .lifecycle import CleanupPriority, ServiceLifecycle
 from .protocols import (
     CacheProtocol,
     ConfigurationProtocol,
+    ContentAttributionProtocol,
     ContentFactoryProtocol,
     ContentTypeRegistryProtocol,
     DisplayManagerProtocol,
     EntryTypeRegistryProtocol,
     OmnidexerProtocol,
     ReferenceManagerProtocol,
+    SourceManagerProtocol,
     TagResolverProtocol,
 )
 
@@ -80,6 +84,28 @@ async def register_modern_services(container: ServiceContainer) -> None:
         cleanup_priority=CleanupPriority.CONFIGURATION,
     )
     logger.debug("Registered ConfigurationProtocol as hot-reloadable singleton")
+
+    # Source management services (infrastructure for content loading)
+    # Register before omnidexer as it depends on these services
+    container.register_service(
+        SourceManagerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_data_source_manager_service,
+        lifecycle=ServiceLifecycle.ASYNC_RESOURCE,
+        dependencies=(),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+    )
+    logger.debug("Registered SourceManagerProtocol as async resource")
+
+    container.register_service(
+        ContentAttributionProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_content_attribution_service,
+        lifecycle=ServiceLifecycle.SINGLETON,
+        dependencies=(),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+    )
+    logger.debug("Registered ContentAttributionProtocol as singleton")
 
     # Core async resources (singleton for performance, async lifecycle)
     # High priority cleanup after configuration
@@ -259,6 +285,20 @@ def get_service_lifecycle_summary() -> dict[str, dict]:
             "rationale": "Shared cache for performance optimization, singleton for efficiency",
             "dependencies": [],
         },
+        "SourceManagerProtocol": {
+            "lifecycle": "ASYNC_RESOURCE",
+            "hot_reloadable": False,
+            "cleanup_priority": CleanupPriority.INFRASTRUCTURE,
+            "rationale": "Data repository management with async source preparation",
+            "dependencies": [],
+        },
+        "ContentAttributionProtocol": {
+            "lifecycle": "SINGLETON",
+            "hot_reloadable": False,
+            "cleanup_priority": CleanupPriority.INFRASTRUCTURE,
+            "rationale": "5e source attribution metadata, sharing is optimal",
+            "dependencies": [],
+        },
     }
 
     # Combine base services with encounter services
@@ -339,6 +379,8 @@ def validate_all_factories() -> list[str]:
     # Check that all protocols have corresponding factories
     protocol_classes = [
         ConfigurationProtocol,
+        SourceManagerProtocol,
+        ContentAttributionProtocol,
         OmnidexerProtocol,
         TagResolverProtocol,
         DisplayManagerProtocol,
@@ -351,6 +393,8 @@ def validate_all_factories() -> list[str]:
 
     factory_functions = [
         create_configuration_service,
+        create_data_source_manager_service,
+        create_content_attribution_service,
         create_omnidexer_service,
         create_tag_resolver_service,
         create_display_manager_service,

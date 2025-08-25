@@ -2,7 +2,7 @@
 # Generated from private/docs-mkdocs.md plan on 2025-08-24
 
 site_name: Studiorum
-site_description: D&D 5e content processing toolkit - LaTeX/PDF generation and MCP integration
+site_description: 5e content processing toolkit - LaTeX/PDF generation and MCP integration
 site_url: https://studiorum.dev
 repo_url: https://github.com/sargeant/studiorum
 repo_name: studiorum
@@ -122,6 +122,7 @@ nav:
   - Developer Guide:
     - developer-guide/index.md
     - Architecture: developer-guide/architecture.md
+    - Data Sources: developer-guide/data-sources.md
     - Getting Started: developer-guide/getting-started.md
     - API Reference:
       - developer-guide/api/index.md

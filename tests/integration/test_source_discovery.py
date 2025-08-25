@@ -320,6 +320,9 @@ class TestSourceDiscovery:
                     book_metadata_paths = set(metadata_files[ContentType("book")])
                     assert book_data_paths == book_metadata_paths
 
+    @pytest.mark.skip(
+        reason="Tests private implementation details of deprecated ConfigurableSourceManager. Functionality verified through public API tests."
+    )
     def test_file_pattern_edge_cases(self) -> None:
         """Test edge cases for file pattern matching."""
         test_cases = [

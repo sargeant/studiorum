@@ -1,6 +1,6 @@
 """FastMCP server implementation for Studiorum.
 
-This module implements the FastMCP server that provides D&D 5e content tools
+This module implements the FastMCP server that provides 5e content tools
 with <200ms performance targets. It integrates with existing AsyncRequestContext
 infrastructure and leverages the configuration bridge from Package 1.2.
 
@@ -30,6 +30,7 @@ from ..core.error_types import (
 )
 from ..core.result import Error as ResultError, Result
 from .request_handler import ModernMCPRequestHandler
+from .tools.attribution import manage_source_attribution
 from .tools.config import (
     add_content_source,
     configure_encounter_printing,
@@ -40,18 +41,105 @@ from .tools.config import (
     save_user_preferences,
     update_configuration,
 )
+from .tools.data import manage_data_sources
 
 logger = get_logger(__name__)
 
 # Initialize FastMCP server with Studiorum branding
 mcp = FastMCP(
     name="studiorum-server",
-    instructions="Deterministic D&D 5e data interface with natural language configuration",
+    instructions="Deterministic 5e data interface with natural language configuration",
     version="0.5.0",
 )
 
 # Initialize the modern request handler for delegation
 _request_handler = ModernMCPRequestHandler(enable_performance_monitoring=True)
+
+
+# Data Management Tools (Package 3)
+@mcp.tool()
+async def manage_data_repositories(
+    action: Literal[
+        "list", "add_primary", "add_homebrew", "add_url", "remove", "status"
+    ],
+    source: str | None = None,
+    name: str | None = None,
+    description: str | None = None,
+) -> dict[str, Any]:
+    """Manage data repositories in Studiorum's three-tier data model.
+
+    This tool manages data repositories (SRD, primary override, extensions)
+    separately from content attribution. Performance target: <500ms.
+
+    Args:
+        action: Operation to perform (list, add_primary, add_homebrew, add_url, remove, status)
+        source: Path or URL for repository operations
+        name: Repository name for operations
+        description: Optional description for new repositories
+
+    Returns:
+        Dictionary with operation results
+    """
+    try:
+        # Create async request context for service access
+        async with async_request_context() as context:
+            result = await manage_data_sources(
+                action=action,
+                source=source,
+                name=name,
+                description=description,
+                context=context,
+            )
+            return result
+    except Exception as e:
+        logger.error(f"Data repository management failed: {e}")
+        raise MCPException(
+            MCPError(
+                message=f"Data repository management failed: {e}",
+                error_code=MCPErrorCode.PROCESSING_ERROR,
+                category=ErrorCategory.PROCESSING,
+            )
+        )
+
+
+@mcp.tool()
+async def manage_content_attribution(
+    action: Literal["list", "set_priority", "resolve", "info"],
+    abbreviation: str | None = None,
+    priority: int | None = None,
+) -> dict[str, Any]:
+    """Manage content source attribution metadata and priorities.
+
+    This tool manages which 5e books/publications content comes from,
+    not where data is loaded from. Performance target: <100ms.
+
+    Args:
+        action: Operation to perform (list, set_priority, resolve, info)
+        abbreviation: Source abbreviation (PHB, MM, etc.)
+        priority: Priority value for set_priority action
+
+    Returns:
+        Dictionary with operation results
+    """
+    try:
+        # Create async request context for service access
+        async with async_request_context() as context:
+            result = await manage_source_attribution(
+                action=action,
+                abbreviation=abbreviation,
+                priority=priority,
+                context=context,
+            )
+            return result
+    except Exception as e:
+        logger.error(f"Content attribution management failed: {e}")
+        raise MCPException(
+            MCPError(
+                message=f"Content attribution management failed: {e}",
+                error_code=MCPErrorCode.PROCESSING_ERROR,
+                category=ErrorCategory.PROCESSING,
+            )
+        )
 
 
 # Configuration Tools (from Package 1.2)
@@ -274,7 +362,10 @@ async def add_content_source_to_config(
     sources: list[str],
     replace_existing: bool = False,
 ) -> dict[str, Any]:
-    """Add content sources to the current configuration.
+    """DEPRECATED: Add content sources to the current configuration.
+
+    This tool mixed data repository management with content attribution.
+    Use manage_data_repositories or manage_content_attribution instead.
 
     Args:
         sources: List of source abbreviations (e.g., ["phb", "mm"])
@@ -284,6 +375,11 @@ async def add_content_source_to_config(
         Updated configuration with the new sources added
     """
     try:
+        # Add deprecation warning
+        logger.warning(
+            "add_content_source_to_config is deprecated - use manage_data_repositories or manage_content_attribution instead"
+        )
+
         result = await add_content_source(
             sources=sources,
             replace_existing=replace_existing,
@@ -394,7 +490,7 @@ async def search_content(
     sources: list[str] | None = None,
     limit: int = 20,
 ) -> dict[str, Any]:
-    """Search D&D 5e content with <200ms performance target.
+    """Search 5e content with <200ms performance target.
 
     Args:
         content_type: Type of content to search for
@@ -447,7 +543,7 @@ async def search_spells(
     school: str | None = None,
     limit: int = 20,
 ) -> dict[str, Any]:
-    """Search for D&D 5e spells with optional filtering.
+    """Search for 5e spells with optional filtering.
 
     Args:
         query: Search query for spell names or descriptions
@@ -521,7 +617,7 @@ async def search_creatures(
     creature_type: str | None = None,
     limit: int = 20,
 ) -> dict[str, Any]:
-    """Search for D&D 5e creatures with optional filtering.
+    """Search for 5e creatures with optional filtering.
 
     Args:
         query: Search query for creature names or descriptions
@@ -571,7 +667,7 @@ async def search_creatures(
 
 @mcp.tool()
 async def list_adventures(sources: list[str] | None = None) -> dict[str, Any]:
-    """List available D&D 5e adventures.
+    """List available 5e adventures.
 
     Args:
         sources: Optional list of sources to filter by
@@ -609,7 +705,7 @@ async def list_adventures(sources: list[str] | None = None) -> dict[str, Any]:
 
 @mcp.tool()
 async def list_books(sources: list[str] | None = None) -> dict[str, Any]:
-    """List available D&D 5e books.
+    """List available 5e books.
 
     Args:
         sources: Optional list of sources to filter by
@@ -738,7 +834,7 @@ async def create_mcp_server() -> FastMCP:
 
     # Count registered tools
     tool_count = len(list_registered_tools())
-    logger.info(f"Registered {tool_count} tools for D&D 5e content and configuration")
+    logger.info(f"Registered {tool_count} tools for 5e content and configuration")
 
     return mcp
 

@@ -1,0 +1,213 @@
+"""Unified source manager that coordinates data sources and content attribution.
+
+This module provides the UnifiedSourceManager that combines DataSourceManager
+and ContentAttributionManager to maintain backward compatibility while providing
+the modern service-based architecture.
+"""
+
+from __future__ import annotations
+
+import warnings
+from pathlib import Path
+from typing import Any
+
+from ..logging import get_logger
+from ..models.content import ContentType
+from .base import SourceManager
+from .content_attribution_manager import ContentAttributionManager
+from .data_source_manager import DataSourceManager
+
+logger = get_logger(__name__)
+
+
+class UnifiedSourceManager(SourceManager):
+    """Unified source manager coordinating data sources and content attribution.
+
+    This class provides a unified interface that coordinates between:
+    - DataSourceManager: Handles data repositories (GitHub, local directories)
+    - ContentAttributionManager: Handles 5e source attribution (PHB, MM, etc.)
+
+    Maintains backward compatibility with ConfigurableSourceManager while
+    providing the modern service-based architecture for new code.
+    """
+
+    def __init__(self) -> None:
+        """Initialize unified source manager with both components."""
+        self._data_source_manager = DataSourceManager()
+        self._content_attribution_manager = ContentAttributionManager()
+        self._is_initialized = False
+
+    @property
+    def content_manager(self) -> Any:
+        """Provide access to the underlying content manager for backward compatibility.
+
+        This property enables existing test mocks that modify manager.content_manager
+        to continue working with the new architecture.
+        """
+        # Handle case where __init__ was mocked and _data_source_manager wasn't created
+        if not hasattr(self, "_data_source_manager"):
+            # In test scenarios where __init__ is mocked, create a minimal structure
+            from .data_source_manager import DataSourceManager
+
+            self._data_source_manager = DataSourceManager()
+        return self._data_source_manager.content_manager
+
+    @content_manager.setter
+    def content_manager(self, value: Any) -> None:
+        """Allow setting the content manager for backward compatibility with tests."""
+        # Handle case where __init__ was mocked and _data_source_manager wasn't created
+        if not hasattr(self, "_data_source_manager"):
+            # In test scenarios where __init__ is mocked, create a minimal structure
+            from .data_source_manager import DataSourceManager
+
+            self._data_source_manager = DataSourceManager()
+        self._data_source_manager.content_manager = value
+
+    async def initialize(self) -> None:
+        """Initialize both data source and attribution managers."""
+        await self._data_source_manager.initialize()
+        # ContentAttributionManager doesn't require async initialization
+        self._is_initialized = True
+        logger.debug("UnifiedSourceManager initialized successfully")
+
+    async def cleanup(self) -> None:
+        """Clean up resources from both managers."""
+        await self._data_source_manager.cleanup()
+        # ContentAttributionManager doesn't require cleanup
+        self._is_initialized = False
+
+    def is_initialized(self) -> bool:
+        """Return True if both managers are initialized."""
+        return self._is_initialized and self._data_source_manager.is_initialized()
+
+    def ensure_sources_ready(self) -> None:
+        """Ensure all content sources are available and indexed.
+
+        Note: This is the synchronous compatibility method. For async contexts,
+        use initialize() instead.
+        """
+        import asyncio
+
+        # Try to get the current event loop, if one exists
+        try:
+            asyncio.get_running_loop()
+            # If we're already in an event loop, we need to handle this differently
+            logger.warning(
+                "ensure_sources_ready() called from async context. "
+                "Consider using initialize() instead."
+            )
+            return
+        except RuntimeError:
+            # No event loop running, safe to use asyncio.run()
+            asyncio.run(self.initialize())
+
+    def get_data_paths(self) -> dict[ContentType, list[Path]]:
+        """Return paths to data files organized by content type.
+
+        For adventures and books, this returns only metadata files to prevent
+        duplicate loading. Content files are loaded on-demand by ContentResolver.
+        """
+        # Ensure content_patterns are propagated from the compatibility layer
+        # to the underlying DataSourceManager
+        self._propagate_content_patterns()
+        return self._data_source_manager.get_data_paths()
+
+    def get_metadata_files(self) -> dict[ContentType, list[Path]]:
+        """Return paths to metadata files organized by content type."""
+        return self._data_source_manager.get_metadata_files()
+
+    def get_content_files(self) -> dict[ContentType, list[Path]]:
+        """Return paths to content files organized by content type."""
+        return self._data_source_manager.get_content_files()
+
+    def resolve_source(self, source_abbrev: str) -> dict[str, Any] | None:
+        """Resolve source abbreviation to full source information."""
+        return self._content_attribution_manager.resolve_source(source_abbrev)
+
+    def get_source_priority(self, source_abbrev: str) -> int:
+        """Get priority for a source (lower numbers = higher priority)."""
+        return self._content_attribution_manager.get_source_priority(source_abbrev)
+
+    def get_all_sources(self) -> list[str]:
+        """Get list of all available source abbreviations."""
+        return self._content_attribution_manager.get_all_sources()
+
+    def get_content_statistics(self) -> dict[str, Any]:
+        """Get statistics about available content and sources."""
+        data_stats = self._data_source_manager.get_source_statistics()
+        attribution_stats = (
+            self._content_attribution_manager.get_attribution_statistics()
+        )
+
+        return {**data_stats, **attribution_stats, "unified_manager": True}
+
+    def clear_cache(self) -> None:
+        """Clear internal caches from both managers to force rebuild."""
+        self._data_source_manager.clear_cache()
+        self._content_attribution_manager.clear_cache()
+
+    def _propagate_content_patterns(self) -> None:
+        """Propagate content_patterns from the class to the underlying DataSourceManager.
+
+        This ensures backward compatibility with the registry manager pattern
+        where content_patterns is set as a class attribute.
+        """
+        # Check if content_patterns exists on this class (set by registry manager)
+        if hasattr(self.__class__, "content_patterns"):
+            # Propagate to the DataSourceManager class
+            content_patterns = self.__class__.content_patterns
+            self._data_source_manager.__class__.content_patterns = content_patterns  # type: ignore[attr-defined]
+            logger.debug(
+                f"Propagated {len(content_patterns)} content patterns to DataSourceManager"
+            )
+
+    # Direct access to component managers for advanced usage
+
+    @property
+    def data_source_manager(self) -> DataSourceManager:
+        """Get the data source manager component."""
+        return self._data_source_manager
+
+    @property
+    def content_attribution_manager(self) -> ContentAttributionManager:
+        """Get the content attribution manager component."""
+        return self._content_attribution_manager
+
+
+class ConfigurableSourceManagerCompat(UnifiedSourceManager):
+    """Compatibility wrapper for ConfigurableSourceManager.
+
+    This class provides backward compatibility for existing code that
+    imports ConfigurableSourceManager. Issues deprecation warnings
+    to encourage migration to the new architecture.
+
+    DEPRECATED: Use UnifiedSourceManager directly or migrate to service-based
+    architecture with SourceManagerProtocol and ContentAttributionProtocol.
+    """
+
+    def __init__(self) -> None:
+        """Initialize with deprecation warning."""
+        warnings.warn(
+            "ConfigurableSourceManager is deprecated. Use UnifiedSourceManager "
+            "directly or migrate to service-based architecture with "
+            "SourceManagerProtocol and ContentAttributionProtocol.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__()
+
+    def _build_source_info_cache(self) -> None:
+        """Legacy method - now handled by ContentAttributionManager."""
+        warnings.warn(
+            "_build_source_info_cache() is deprecated. Source info is managed "
+            "automatically by ContentAttributionManager.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        # Force cache rebuild in attribution manager
+        self._content_attribution_manager.clear_cache()
+
+
+# Alias for immediate backward compatibility
+# This allows existing imports to work without changes
+ConfigurableSourceManager = ConfigurableSourceManagerCompat
