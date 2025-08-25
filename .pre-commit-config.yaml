@@ -15,6 +15,14 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
       - id: check-merge-conflict
+      - id: check-toml  # Add TOML validation
+      - id: check-json  # Add JSON validation
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.14.0  # Add mypy type checking
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-pyyaml, types-psutil]
+        args: [--ignore-missing-imports]
   - repo: local
     hooks:
       - id: srd-compliance
