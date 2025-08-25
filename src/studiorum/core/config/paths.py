@@ -5,7 +5,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from ..models.content import ContentType
-from .settings import get_settings
+from .unified_config import get_app_config
 
 
 class PathConfig(BaseModel):
@@ -20,14 +20,14 @@ class PathConfig(BaseModel):
     @classmethod
     def from_settings(cls, root_path: Path) -> "PathConfig":
         """Create PathConfig from current settings."""
-        settings = get_settings()
+        settings = get_app_config()
 
         return cls(
             root_path=root_path,
-            data_path=settings.data_path,
-            assets_path=root_path / settings.assets_path,
-            output_path=root_path / settings.output_path,
-            build_path=root_path / settings.build_path,
+            data_path=settings.paths.data_path,
+            assets_path=root_path / settings.paths.assets_path,
+            output_path=root_path / settings.paths.output_path,
+            build_path=root_path / settings.paths.build_path,
         )
 
     def get_data_paths(self) -> dict[ContentType, list[Path]]:

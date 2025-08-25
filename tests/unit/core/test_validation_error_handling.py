@@ -201,8 +201,8 @@ class TestJsonLoaderValidationIntegration:
                 "studiorum.core.loaders.json_loader.ValidationErrorTracker"
             ) as mock_tracker_class,
             patch(
-                "studiorum.core.loaders.json_loader.get_settings"
-            ) as mock_get_settings,
+                "studiorum.core.loaders.json_loader.get_app_config"
+            ) as mock_get_app_config,
         ):
             # Setup tracker mock
             mock_tracker_class.return_value = mock_validation_tracker
@@ -213,9 +213,11 @@ class TestJsonLoaderValidationIntegration:
 
             # Setup settings mock to ensure normal (not strict) mode
             mock_settings = MagicMock()
-            mock_settings.validation_strictness = "normal"
-            mock_settings.validation_summary = False
-            mock_get_settings.return_value = mock_settings
+            mock_validation = MagicMock()
+            mock_validation.strictness = "normal"
+            mock_validation.enable_summary = False
+            mock_settings.validation = mock_validation
+            mock_get_app_config.return_value = mock_settings
 
             loader = JsonDataLoader(ContentType("spell"))
 
@@ -245,10 +247,10 @@ class TestJsonLoaderValidationIntegration:
                 mock_validation_tracker.should_log_error.assert_called()
                 mock_validation_tracker.record_error.assert_called()
 
-    @patch("studiorum.core.loaders.json_loader.get_settings")
+    @patch("studiorum.core.loaders.json_loader.get_app_config")
     @patch("studiorum.core.loaders.json_loader.ValidationErrorTracker")
     def test_json_loader_respects_strictness_setting(
-        self, mock_tracker_class: MagicMock, mock_get_settings: MagicMock
+        self, mock_tracker_class: MagicMock, mock_get_app_config: MagicMock
     ) -> None:
         """Test that JsonDataLoader respects validation strictness settings."""
         mock_validation_tracker = MagicMock()
@@ -256,9 +258,11 @@ class TestJsonLoaderValidationIntegration:
 
         # Test strict mode - should raise on validation error
         mock_settings = MagicMock()
-        mock_settings.validation_strictness = "strict"
-        mock_settings.validation_summary = False
-        mock_get_settings.return_value = mock_settings
+        mock_validation = MagicMock()
+        mock_validation.strictness = "strict"
+        mock_validation.enable_summary = False
+        mock_settings.validation = mock_validation
+        mock_get_app_config.return_value = mock_settings
 
         loader = JsonDataLoader(ContentType("spell"))
 
@@ -299,10 +303,14 @@ class TestJsonLoaderValidationIntegration:
             }
         }
 
-        with patch("studiorum.core.config.settings.get_settings") as mock_get_settings:
+        with patch(
+            "studiorum.core.config.unified_config.get_app_config"
+        ) as mock_get_app_config:
             mock_settings = MagicMock()
-            mock_settings.validation_summary = True
-            mock_get_settings.return_value = mock_settings
+            mock_validation = MagicMock()
+            mock_validation.enable_summary = True
+            mock_settings.validation = mock_validation
+            mock_get_app_config.return_value = mock_settings
 
             loader = JsonDataLoader(ContentType("spell"))
 

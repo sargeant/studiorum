@@ -667,11 +667,3 @@ def set_app_config(config: ApplicationConfig) -> None:
 
 
 # Convenience functions for backward compatibility
-def get_settings() -> ApplicationConfig:
-    """Backward compatibility alias for get_app_config()."""
-    return get_app_config()
-
-
-def reset_settings() -> None:
-    """Backward compatibility alias for reset_app_config()."""
-    reset_app_config()

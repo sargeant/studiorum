@@ -9,7 +9,7 @@ from typing import Any, cast
 
 from studiorum.core.logging import get_logger
 
-from ..config.settings import get_settings
+from ..config.unified_config import get_app_config
 from ..models.content import ContentType
 from ..types import (
     CacheMetadata,
@@ -40,7 +40,7 @@ class ContentMerger:
             max_cache_size: Maximum number of items to cache (LRU eviction)
         """
         self.source_manager = source_manager
-        self.settings = get_settings()
+        self.settings = get_app_config()
         self.max_cache_size = max_cache_size
 
         # LRU cache using OrderedDict
@@ -71,7 +71,7 @@ class ContentMerger:
             )
 
         # Skip caching if disabled
-        if not self.settings.enable_caching:
+        if not self.settings.processing.enable_caching:
             return self._load_content_from_disk(content_type, content_id)
 
         # Generate cache key
@@ -382,7 +382,7 @@ class ContentMerger:
             return False
 
         # Check TTL expiration
-        if time.time() - cache_meta["access_time"] > self.settings.cache_ttl:
+        if time.time() - cache_meta["access_time"] > self.settings.processing.cache_ttl:
             self._invalidate_cache_entry(cache_key)
             return False
 
@@ -468,8 +468,8 @@ class ContentMerger:
             "invalidations": self._cache_stats["invalidations"],
             "hit_rate": hit_rate,
             "total_requests": total_requests,
-            "cache_enabled": self.settings.enable_caching,
-            "cache_ttl": self.settings.cache_ttl,
+            "cache_enabled": self.settings.processing.enable_caching,
+            "cache_ttl": self.settings.processing.cache_ttl,
         }
 
     def _is_book_metadata(self, metadata_entry: dict[str, Any]) -> bool:
