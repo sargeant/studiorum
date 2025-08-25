@@ -311,6 +311,24 @@ class Ability(BaseModel):
 
     def get_processed_name(self) -> str:
         """Get ability name with 5e.tools markup processed for LaTeX."""
+        # Import check to avoid circular imports
+        import asyncio
+
+        # Check if we're in an async context and can safely use services
+        can_use_services = True
+        try:
+            # If we're in an async context, get_service_sync will fail
+            asyncio.get_running_loop()
+            can_use_services = False
+        except RuntimeError:
+            # No running loop, safe to use sync services
+            pass
+
+        # If we can't use services safely, return plain name
+        if not can_use_services:
+            return self.name
+
+        # Try advanced processing with services
         try:
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
@@ -352,6 +370,24 @@ class Ability(BaseModel):
 
     def get_description_text(self) -> str:
         """Extract text from complex entry structures using proper entry processing."""
+        # Import check to avoid circular imports
+        import asyncio
+
+        # Check if we're in an async context and can safely use services
+        can_use_services = True
+        try:
+            # If we're in an async context, get_service_sync will fail
+            asyncio.get_running_loop()
+            can_use_services = False
+        except RuntimeError:
+            # No running loop, safe to use sync services
+            pass
+
+        # If we can't use services safely, go straight to fallback
+        if not can_use_services:
+            return self._extract_text_from_entries(self.entries)
+
+        # Try advanced processing with services
         try:
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext

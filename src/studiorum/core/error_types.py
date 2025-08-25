@@ -18,6 +18,45 @@ from pydantic import BaseModel, ConfigDict, Field
 # Legacy exception imports removed in Phase 3
 # All error handling now uses Result[T, E] patterns exclusively
 
+__all__ = [
+    # Enums
+    "ErrorSeverity",
+    "ErrorCategory",
+    "MCPErrorCode",
+    # Base error types
+    "BaseError",
+    "MCPError",
+    "ErrorContext",
+    # Validation errors
+    "ValidationError",
+    # Processing errors
+    "ProcessingError",
+    "UnknownTypeError",
+    "MalformedDataError",
+    # MCP-specific errors
+    "ContentNotFoundError",
+    "ContentNotFoundExceptionError",
+    "ConfigurationError",
+    "ServiceError",
+    "PerformanceError",
+    "MCPException",
+    # Architecture errors (converted from exceptions)
+    "ContentSourceError",
+    "ContentValidationError",
+    "ContentLoadingError",
+    "ReferenceTrackingError",
+    "TemplateCompositionError",
+    # Factory functions
+    "create_validation_error",
+    "create_processing_error",
+    "create_unknown_type_error",
+    "create_content_source_error",
+    "create_content_validation_error",
+    "create_content_loading_error",
+    "create_reference_tracking_error",
+    "create_template_composition_error",
+]
+
 
 class ErrorSeverity(str, Enum):
     """Severity levels for errors."""
@@ -405,4 +444,162 @@ def create_unknown_type_error(
         entry_type=entry_type,
         parent_name=parent_name,
         available_types=available_types,
+    )
+
+
+# Architecture Error Types (converted from exception-based patterns)
+
+
+class ContentSourceError(BaseError):
+    """Error for content source operations."""
+
+    model_config = ConfigDict(frozen=True)
+
+    source_location: str = "unknown"
+    source_type: str = "unknown"
+    category: ErrorCategory = ErrorCategory.IO
+
+
+class ContentValidationError(ContentSourceError):
+    """Error for content validation failures."""
+
+    model_config = ConfigDict(frozen=True)
+
+    validation_errors: list[str] | None = Field(default_factory=list)
+    category: ErrorCategory = ErrorCategory.VALIDATION
+
+
+class ContentLoadingError(ContentSourceError):
+    """Error for content loading failures."""
+
+    model_config = ConfigDict(frozen=True)
+
+    items_processed: int = 0
+    items_failed: int = 0
+    category: ErrorCategory = ErrorCategory.IO
+
+
+class ReferenceTrackingError(BaseError):
+    """Error for reference tracking operations."""
+
+    model_config = ConfigDict(frozen=True)
+
+    reference_type: str = "unknown"
+    reference_name: str = "unknown"
+    category: ErrorCategory = ErrorCategory.PROCESSING
+
+
+class TemplateCompositionError(BaseError):
+    """Error for template composition failures."""
+
+    model_config = ConfigDict(frozen=True)
+
+    template_name: str = "unknown"
+    component_name: str = "unknown"
+    category: ErrorCategory = ErrorCategory.RENDER
+
+
+def create_content_source_error(
+    message: str,
+    source_location: str = "unknown",
+    source_type: str = "unknown",
+    source: str | None = None,
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    suggestions: list[str] | None = None,
+) -> ContentSourceError:
+    """Create a content source error with common parameters."""
+    return ContentSourceError(
+        message=message,
+        category=ErrorCategory.IO,
+        severity=severity,
+        source=source,
+        suggestions=suggestions or [],
+        source_location=source_location,
+        source_type=source_type,
+    )
+
+
+def create_content_validation_error(
+    message: str,
+    validation_errors: list[str] | None = None,
+    source_location: str = "unknown",
+    source_type: str = "unknown",
+    source: str | None = None,
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    suggestions: list[str] | None = None,
+) -> ContentValidationError:
+    """Create a content validation error with common parameters."""
+    return ContentValidationError(
+        message=message,
+        category=ErrorCategory.VALIDATION,
+        severity=severity,
+        source=source,
+        suggestions=suggestions or [],
+        source_location=source_location,
+        source_type=source_type,
+        validation_errors=validation_errors or [],
+    )
+
+
+def create_content_loading_error(
+    message: str,
+    items_processed: int = 0,
+    items_failed: int = 0,
+    source_location: str = "unknown",
+    source_type: str = "unknown",
+    source: str | None = None,
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    suggestions: list[str] | None = None,
+) -> ContentLoadingError:
+    """Create a content loading error with common parameters."""
+    return ContentLoadingError(
+        message=message,
+        category=ErrorCategory.IO,
+        severity=severity,
+        source=source,
+        suggestions=suggestions or [],
+        source_location=source_location,
+        source_type=source_type,
+        items_processed=items_processed,
+        items_failed=items_failed,
+    )
+
+
+def create_reference_tracking_error(
+    message: str,
+    reference_type: str = "unknown",
+    reference_name: str = "unknown",
+    source: str | None = None,
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    suggestions: list[str] | None = None,
+) -> ReferenceTrackingError:
+    """Create a reference tracking error with common parameters."""
+    return ReferenceTrackingError(
+        message=message,
+        category=ErrorCategory.PROCESSING,
+        severity=severity,
+        source=source,
+        suggestions=suggestions or [],
+        reference_type=reference_type,
+        reference_name=reference_name,
+    )
+
+
+def create_template_composition_error(
+    message: str,
+    template_name: str = "unknown",
+    component_name: str = "unknown",
+    source: str | None = None,
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    suggestions: list[str] | None = None,
+) -> TemplateCompositionError:
+    """Create a template composition error with common parameters."""
+    return TemplateCompositionError(
+        message=message,
+        category=ErrorCategory.RENDER,
+        severity=severity,
+        source=source,
+        suggestions=suggestions or [],
+        template_name=template_name,
+        component_name=component_name,
     )
