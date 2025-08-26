@@ -405,6 +405,68 @@ class TestServiceContainer:
         repr_str = repr(container)
         assert "closed" in repr_str
 
+    def test_sync_singleton_caching(self):
+        """Test that sync singleton caching works and avoids repeated asyncio.run() calls."""
+        import time
+
+        container = ServiceContainer()
+
+        # Register a singleton service
+        container.register_service(
+            TestProtocol,
+            lambda: MockService("sync-cached"),
+            lifecycle=ServiceLifecycle.SINGLETON,
+        )
+
+        # First call should create the instance
+        start_time = time.time()
+        service1 = container.get_service_sync(TestProtocol)
+        first_call_time = time.time() - start_time
+
+        # Second call should be much faster (cached)
+        start_time = time.time()
+        service2 = container.get_service_sync(TestProtocol)
+        second_call_time = time.time() - start_time
+
+        # Verify it's the same instance
+        assert service1 is service2
+        assert service1.get_service_name() == "sync-cached"
+
+        # Second call should be significantly faster (at least 50% faster)
+        # This verifies we're not running asyncio.run() again
+        assert second_call_time < (first_call_time * 0.5), (
+            f"Second call ({second_call_time:.4f}s) should be much faster than "
+            f"first call ({first_call_time:.4f}s)"
+        )
+
+        # Verify sync cache is populated
+        repr_str = repr(container)
+        assert "sync_cache=1" in repr_str
+
+    def test_sync_cache_non_singleton_fallback(self):
+        """Test that non-singleton services fall back to async resolution."""
+        container = ServiceContainer()
+
+        # Register a transient service
+        container.register_service(
+            TestProtocol,
+            lambda: MockService("transient"),
+            lifecycle=ServiceLifecycle.TRANSIENT,
+        )
+
+        # Should still work but create different instances
+        service1 = container.get_service_sync(TestProtocol)
+        service2 = container.get_service_sync(TestProtocol)
+
+        # Verify they're different instances (transient behavior)
+        assert service1 is not service2
+        assert service1.get_service_name() == "transient"
+        assert service2.get_service_name() == "transient"
+
+        # Sync cache should still be empty for non-singletons
+        repr_str = repr(container)
+        assert "sync_cache=0" in repr_str
+
 
 class TestRequestScopedContainer:
     """Test request-scoped container specific functionality."""
@@ -452,6 +514,73 @@ class TestRequestScopedContainer:
                 assert service1 is not service2
 
         await parent.cleanup()
+
+    def test_sync_cache_cleanup_on_container_cleanup(self):
+        """Test that sync cache is properly cleared during container cleanup."""
+        import asyncio
+
+        container = ServiceContainer()
+
+        # Register a singleton service
+        container.register_service(
+            TestProtocol,
+            lambda: MockService("cleanup-test"),
+            lifecycle=ServiceLifecycle.SINGLETON,
+        )
+
+        # Get service to populate caches
+        service = container.get_service_sync(TestProtocol)
+        assert service.get_service_name() == "cleanup-test"
+
+        # Verify both caches are populated
+        repr_str = repr(container)
+        assert "singletons=1" in repr_str
+        assert "sync_cache=1" in repr_str
+
+        # Cleanup container
+        asyncio.run(container.cleanup())
+
+        # Verify all caches are cleared
+        repr_str = repr(container)
+        assert "singletons=0" in repr_str
+        assert "sync_cache=0" in repr_str
+        assert "closed" in repr_str
+
+    def test_sync_service_existing_async_instance(self):
+        """Test that sync access can reuse existing async singleton instances."""
+        import asyncio
+
+        container = ServiceContainer()
+
+        # Register a singleton service
+        container.register_service(
+            TestProtocol,
+            lambda: MockService("reuse-test"),
+            lifecycle=ServiceLifecycle.SINGLETON,
+        )
+
+        # First, get service via async method
+        async def get_async_service():
+            return await container.get_service(TestProtocol)
+
+        async_service = asyncio.run(get_async_service())
+        assert async_service.get_service_name() == "reuse-test"
+
+        # Verify async singleton cache is populated
+        repr_str = repr(container)
+        assert "singletons=1" in repr_str
+        assert "sync_cache=0" in repr_str
+
+        # Now get via sync method - should reuse existing instance
+        sync_service = container.get_service_sync(TestProtocol)
+
+        # Should be the exact same instance
+        assert sync_service is async_service
+
+        # Both caches should now be populated
+        repr_str = repr(container)
+        assert "singletons=1" in repr_str
+        assert "sync_cache=1" in repr_str
 
 
 if __name__ == "__main__":

@@ -127,6 +127,7 @@ class ServiceContainer:
     - Dependency injection with circular dependency detection
     - Hot-reload infrastructure for configuration changes
     - Request scoping for MCP request isolation
+    - CLI-optimized singleton caching to avoid asyncio.run() overhead
 
     Examples:
         Basic usage:
@@ -161,6 +162,10 @@ class ServiceContainer:
             type[Any]
         ] = []  # For circular dependency detection
         self._is_closed = False
+
+        # CLI-specific singleton cache to avoid asyncio.run() overhead
+        # Only used for sync access to singleton services
+        self._sync_singleton_cache = TypedServiceRegistry()
 
         # Weak references to child containers for cleanup propagation
         self._child_containers: set[weakref.ReferenceType[ServiceContainer]] = set()
@@ -270,8 +275,8 @@ class ServiceContainer:
         """Get service instance synchronously for CLI usage.
 
         This method provides synchronous access to services for CLI commands
-        that operate in a synchronous context. It cannot be called from an
-        async context to prevent event loop conflicts.
+        that operate in a synchronous context. It uses a CLI-specific singleton
+        cache to avoid the overhead of creating event loops repeatedly.
 
         Args:
             protocol: Protocol interface to resolve
@@ -300,8 +305,42 @@ class ServiceContainer:
                 if "get_service_sync" in str(e):
                     raise
 
-        # Otherwise no running loop (or test environment), safe to create one
-        return asyncio.run(self.get_service(protocol))
+        # Fast path: Check CLI singleton cache first
+        if self._sync_singleton_cache.contains(protocol):
+            cached_instance = self._sync_singleton_cache.get(protocol)
+            logger.debug(f"Retrieved {protocol.__name__} from sync cache")
+            return cached_instance
+
+        # Check if service is registered
+        if protocol not in self._descriptors:
+            if self._parent:
+                return self._parent.get_service_sync(protocol)
+            raise ServiceNotRegisteredError(protocol)
+
+        descriptor = self._descriptors[protocol]
+
+        # Only cache singleton services in sync cache
+        if descriptor.lifecycle != ServiceLifecycle.SINGLETON:
+            # Non-singleton services still need event loop
+            return asyncio.run(self.get_service(protocol))
+
+        # Check if instance already exists in async singleton cache
+        if self._singleton_instances.contains(protocol):
+            instance = self._singleton_instances.get(protocol)
+            # Cache in sync cache for future access
+            self._sync_singleton_cache.store(protocol, instance)
+            logger.debug(f"Cached existing {protocol.__name__} in sync cache")
+            return instance
+
+        # Need to create instance - use event loop
+        logger.debug(f"Creating new singleton instance for {protocol.__name__}")
+        instance = asyncio.run(self.get_service(protocol))
+
+        # Cache the newly created singleton instance
+        self._sync_singleton_cache.store(protocol, instance)
+        logger.debug(f"Cached new {protocol.__name__} in sync cache")
+
+        return instance
 
     async def _get_singleton_instance(
         self, protocol: type[T], descriptor: ServiceDescriptor
@@ -606,9 +645,10 @@ class ServiceContainer:
             if self._cleanup_tasks:
                 await asyncio.gather(*self._cleanup_tasks, return_exceptions=True)
 
-            # Clear all state
+            # Clear all state including sync cache
             self._singleton_instances.clear()
             self._scoped_instances.clear()
+            self._sync_singleton_cache.clear()
             self._async_resources.clear()
             self._cleanup_tasks.clear()
             self._child_containers.clear()
@@ -686,12 +726,14 @@ class ServiceContainer:
         service_count = len(self._descriptors)
         singleton_count = len(self._singleton_instances)
         scoped_count = len(self._scoped_instances)
+        sync_cache_count = len(self._sync_singleton_cache)
 
         return (
             f"ServiceContainer(status={status}, "
             f"services={service_count}, "
             f"singletons={singleton_count}, "
-            f"scoped={scoped_count})"
+            f"scoped={scoped_count}, "
+            f"sync_cache={sync_cache_count})"
         )
 
 
