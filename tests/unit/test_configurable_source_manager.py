@@ -461,25 +461,23 @@ class TestFileSystemSourceManager:
 
     def test_new_interface_methods_exist(self):
         """Test that FileSystemSourceManager implements new interface methods."""
-        with patch("studiorum.core.loaders.source_manager.get_path_config"):
-            manager = FileSystemSourceManager()
+        manager = FileSystemSourceManager()
 
-            # Should have the new methods
-            assert hasattr(manager, "get_metadata_files")
-            assert hasattr(manager, "get_content_files")
-            assert callable(manager.get_metadata_files)
-            assert callable(manager.get_content_files)
+        # Should have the new methods
+        assert hasattr(manager, "get_metadata_files")
+        assert hasattr(manager, "get_content_files")
+        assert callable(manager.get_metadata_files)
+        assert callable(manager.get_content_files)
 
     def test_filesystem_manager_dual_file_methods(self):
         """Test that FileSystemSourceManager dual-file methods return empty results."""
-        with patch("studiorum.core.loaders.source_manager.get_path_config"):
-            manager = FileSystemSourceManager()
+        manager = FileSystemSourceManager()
 
-            # Should return empty dicts since filesystem manager doesn't use dual-file pattern
-            metadata_files = manager.get_metadata_files()
-            content_files = manager.get_content_files()
+        # Should return empty dicts since filesystem manager doesn't use dual-file pattern
+        metadata_files = manager.get_metadata_files()
+        content_files = manager.get_content_files()
 
-            assert isinstance(metadata_files, dict)
-            assert isinstance(content_files, dict)
-            assert len(metadata_files) == 0
-            assert len(content_files) == 0
+        assert isinstance(metadata_files, dict)
+        assert isinstance(content_files, dict)
+        assert len(metadata_files) == 0
+        assert len(content_files) == 0

@@ -11,6 +11,23 @@ from .base import SourceManager
 logger = get_logger(__name__)
 
 
+class _PathConfigCompat:
+    """Compatibility wrapper for legacy path_config interface."""
+
+    def __init__(self, source_manager: "FileSystemSourceManager"):
+        self._source_manager = source_manager
+
+    @property
+    def data_path(self) -> Path | None:
+        """Get the data path from the app config."""
+        return self._source_manager.app_config.paths.data_path
+
+    @data_path.setter
+    def data_path(self, value: Path) -> None:
+        """Set the data path in the app config."""
+        self._source_manager.app_config.paths.data_path = value
+
+
 class FileSystemSourceManager(SourceManager):
     """Manages data sources from the file system."""
 
@@ -18,6 +35,8 @@ class FileSystemSourceManager(SourceManager):
         self.root_path = root_path or Path.cwd()
         self.app_config = get_app_config()
         self._source_info = self._build_source_info()
+        # Compatibility wrapper for legacy path_config interface
+        self.path_config = _PathConfigCompat(self)
 
     def get_data_paths(self) -> dict[ContentType, list[Path]]:
         """Return paths to data files organized by content type.

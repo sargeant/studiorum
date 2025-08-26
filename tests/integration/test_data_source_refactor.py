@@ -51,7 +51,7 @@ class TestDataSourceRefactorIntegration:
         # 1. List initial repositories
         result = self.runner.invoke(app, ["data", "list"])
         assert result.exit_code == 0
-        assert "Data Repository Status" in result.stdout
+        assert "Data Repository Configuration" in result.stdout
 
         # 2. Create test homebrew directory
         homebrew_dir = self.temp_dir / "homebrew"

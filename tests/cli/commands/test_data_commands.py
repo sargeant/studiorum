@@ -28,8 +28,8 @@ class TestDataCommands:
         """Test data list command shows repository information."""
         result = self.runner.invoke(app, ["data", "list"])
         assert result.exit_code == 0
-        assert "Data Repository Status" in result.stdout
-        assert "Total Sources" in result.stdout
+        assert "Data Repository Configuration" in result.stdout
+        assert "Total Active Sources" in result.stdout
 
     def test_data_status_command(self):
         """Test data status command shows detailed status."""
@@ -58,8 +58,7 @@ class TestDataCommands:
         """Test setting primary data source with valid path."""
         result = self.runner.invoke(app, ["data", "set-primary", "/test/path"])
         assert result.exit_code == 0
-        assert "Setting primary data path" in result.stdout
-        assert "Primary data path validated" in result.stdout
+        assert "Primary data source configured and activated" in result.stdout
 
     def test_data_set_primary_invalid_path(self):
         """Test setting primary with invalid path shows error."""
