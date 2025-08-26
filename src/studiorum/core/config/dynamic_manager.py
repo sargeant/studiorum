@@ -28,13 +28,13 @@ Examples:
 
     if result.is_success():
         config = result.unwrap()
-        print(f"Updated config: {config.logging.level}")
+        # Updated config successfully
     ```
 
     With configuration watcher:
     ```python
     def on_config_changed(old_config, new_config):
-        print(f"Log level changed: {old_config.logging.level} -> {new_config.logging.level}")
+        # Log level changed
 
     manager.register_config_watcher(on_config_changed)
     ```

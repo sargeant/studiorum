@@ -71,12 +71,12 @@ class ConfigLoader:
 
             if result.is_success():
                 config = result.unwrap()
-                print(f"Loaded config: {config.project.name}")
+                # Loaded config successfully
             else:
                 error = result.error
-                print(f"Config load failed: {error.message}")
+                # Config load failed
                 for suggestion in error.suggestions:
-                    print(f"  - {suggestion}")
+                    # Suggestion available
             ```
         """
         if not path.exists():
@@ -230,7 +230,7 @@ class ConfigLoader:
                 validated_config = result.unwrap()
             else:
                 error = result.error
-                print(f"Validation failed: {error.message}")
+                # Validation failed
             ```
         """
         try:
@@ -286,7 +286,7 @@ class ConfigLoader:
                 config = result.unwrap()
             else:
                 error = result.error
-                print(f"Config loading failed: {error.message}")
+                # Config loading failed
             ```
         """
         configs = []

@@ -144,6 +144,13 @@ class Omnidexer:
         - Cycle prevention for safe recursive indexing
         - Performance monitoring and optimization
         - Type-safe content resolution
+        - Singleton ContentMerger for efficient dual-file operations with cache benefits
+
+    Performance Optimizations:
+        The Omnidexer uses a singleton ContentMerger instance that preserves its LRU cache
+        across multiple load operations. This significantly improves performance in test
+        environments and scenarios where the same data is accessed repeatedly, as the
+        cache remains warm between operations rather than being recreated each time.
 
     Example:
         >>> omnidexer = Omnidexer(enable_deep_indexing=True)
@@ -208,6 +215,9 @@ class Omnidexer:
         self._loaded_types: set[ContentType] = set()
 
         # ContentMerger singleton for dual-file operations
+        # Initialized lazily and preserved across multiple operations to maintain
+        # cache benefits. This significantly improves performance in test environments
+        # and scenarios where repeated data access occurs.
         self._content_merger: ContentMerger | None = None
 
         # Register default loaders
@@ -297,6 +307,11 @@ class Omnidexer:
         them with metadata already loaded from metadata files (adventures.json, books.json).
         This ensures that adventures and books have complete content, not just metadata.
 
+        Performance: Uses a singleton ContentMerger instance that maintains its LRU cache
+        across multiple operations. This provides significant performance benefits in test
+        environments and scenarios with repeated data access, as the cache remains warm
+        rather than being recreated for each operation.
+
         Returns:
             Dictionary mapping content type names to counts of enriched items
         """
@@ -315,11 +330,14 @@ class Omnidexer:
             logger.debug("Mock source manager detected, skipping dual-file enrichment")
             return {}
 
-        # Initialize ContentMerger if not already done
+        # Initialize ContentMerger singleton if not already done
+        # This preserves the LRU cache across multiple operations, providing
+        # significant performance benefits in test environments and repeated access scenarios
         if self._content_merger is None:
             from .content_merger import ContentMerger
 
             self._content_merger = ContentMerger(self.source_manager)
+            logger.debug("Initialized singleton ContentMerger with cache preservation")
 
         enrichment_stats = {}
 
@@ -919,8 +937,13 @@ class Omnidexer:
         """Get the shared ContentMerger instance, initializing if needed.
 
         This method provides access to the singleton ContentMerger instance used
-        for dual-file operations. This enables sharing of the cache across multiple
-        components that need content merging capabilities.
+        for dual-file operations. The singleton pattern preserves the LRU cache
+        across multiple operations, providing significant performance benefits:
+
+        - Cache remains warm between operations rather than being recreated
+        - Reduces file I/O when the same content is accessed repeatedly
+        - Particularly beneficial in test environments with repeated data loading
+        - Enables sharing of cache benefits across multiple components
 
         Returns:
             Shared ContentMerger instance or None if source manager doesn't support content files
@@ -932,12 +955,15 @@ class Omnidexer:
             )
             return None
 
-        # Initialize ContentMerger if not already done
+        # Initialize ContentMerger singleton if not already done
+        # This preserves cache state and provides performance benefits
         if self._content_merger is None:
             from .content_merger import ContentMerger
 
             self._content_merger = ContentMerger(self.source_manager)
-            logger.debug("Initialized shared ContentMerger instance")
+            logger.debug(
+                "Initialized singleton ContentMerger with cache preservation benefits"
+            )
 
         return self._content_merger
 

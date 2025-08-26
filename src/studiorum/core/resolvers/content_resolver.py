@@ -133,28 +133,31 @@ class ContentResolver:
         self.tag_resolver = tag_resolver
         self.context = context
 
-        # Initialize content merger using shared instance from omnidexer
+        # Initialize content merger using shared singleton instance from omnidexer
+        # This leverages the omnidexer's singleton ContentMerger which preserves
+        # LRU cache state across operations for improved performance
         self.content_merger: ContentMerger | None = None
 
-        # Try to get shared content merger from omnidexer first
+        # Try to get shared content merger singleton from omnidexer first
         if hasattr(omnidexer, "get_content_merger"):
             self.content_merger = omnidexer.get_content_merger()
             if self.content_merger is not None:
-                logger.debug("Using shared ContentMerger instance from omnidexer")
+                logger.debug("Using shared ContentMerger singleton from omnidexer")
         elif hasattr(omnidexer, "_omnidexer") and hasattr(
             omnidexer._omnidexer, "get_content_merger"
         ):
-            # Handle service wrapper - get shared instance from wrapped omnidexer
+            # Handle service wrapper - get shared singleton from wrapped omnidexer
             self.content_merger = omnidexer._omnidexer.get_content_merger()
             if self.content_merger is not None:
                 logger.debug(
-                    "Using shared ContentMerger instance from wrapped omnidexer"
+                    "Using shared ContentMerger singleton from wrapped omnidexer"
                 )
 
-        # Fallback to creating own instance if sharing not available
+        # Fallback to creating own instance if singleton sharing not available
+        # Note: This loses cache benefits compared to the shared singleton pattern
         if self.content_merger is None:
             logger.debug(
-                "Shared ContentMerger not available, creating fallback instance"
+                "Shared ContentMerger singleton not available, creating fallback instance"
             )
             # Check for source_manager on the omnidexer or its wrapped instance
             source_manager = None

@@ -86,7 +86,7 @@ class StandardizedEntryValidator:
 
             if result.is_success():
                 entry = result.unwrap()
-                print(f"Validated entry: {entry.type}")
+                # Validated entry successfully
             else:
                 error = result.error
                 logger.error(f"Validation failed: {error.message}")
@@ -468,14 +468,15 @@ def example_usage() -> None:
     )
 
     if result.is_success():
-        entry = result.unwrap()
-        print(f"Successfully validated {entry.type} entry: {entry.name}")
+        # Successfully validated entry
+        result.unwrap()
     elif is_error_result(result):
         error = result.error
-        print(f"Validation failed: {error.message}")
+        # Validation failed
         if error.suggestions:
             for suggestion in error.suggestions:
-                print(f"  Suggestion: {suggestion}")
+                # Process suggestion
+                pass
 
     # Example 2: Validate multiple entries
     entries = [
@@ -491,11 +492,11 @@ def example_usage() -> None:
     )
 
     if batch_result.is_success():
-        validated_entries = batch_result.unwrap()
-        print(f"Successfully validated {len(validated_entries)} entries")
+        # Successfully validated batch
+        batch_result.unwrap()
     elif is_error_result(batch_result):
-        errors = batch_result.error
-        print(f"Batch validation had {len(errors)} errors")
+        # Batch validation had errors
+        pass
 
     # Example 3: Migration from legacy code
     from studiorum.core.entry_registry import EntryTypeRegistry, ValidationContext
@@ -513,10 +514,10 @@ def example_usage() -> None:
     standardized_result = migrate_validation_result(legacy_result)
 
     # Now use Result pattern
-    entry = standardized_result.unwrap_or_else(
+    standardized_result.unwrap_or_else(
         lambda error: ValidatedEntry(type="error", content=error.message)
     )
-    print(f"Migrated result: {entry.type}")
+    # Migrated result
 
 
 if __name__ == "__main__":

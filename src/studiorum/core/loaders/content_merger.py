@@ -30,14 +30,34 @@ class ContentMerger:
     - Metadata files (adventures.json, books.json) provide structure and catalog info
     - Content files (adventure-*.json, book-*.json) provide actual entry data
     - Merging combines metadata structure with content data at resolution time
+
+    Performance Optimization:
+        ContentMerger is designed to be used as a singleton within the Omnidexer.
+        This pattern preserves the internal LRU cache across multiple operations,
+        providing significant performance benefits:
+
+        - Cache remains warm between operations rather than being recreated
+        - Reduces file I/O when the same content files are accessed repeatedly
+        - Particularly beneficial in test environments with multiple data loading cycles
+        - Enables efficient cache hit rates for commonly accessed adventures/books
+
+    Usage Pattern:
+        The recommended pattern is to initialize once per Omnidexer instance and
+        reuse across all dual-file operations. See Omnidexer.get_content_merger()
+        for the proper singleton access pattern.
     """
 
     def __init__(self, source_manager: Any, max_cache_size: int = 100) -> None:
         """Initialize ContentMerger with source manager.
 
+        Note: For optimal performance, this instance should be reused across
+        multiple operations to maintain LRU cache benefits. The Omnidexer
+        implements this as a singleton pattern.
+
         Args:
             source_manager: SourceManager instance for file discovery
             max_cache_size: Maximum number of items to cache (LRU eviction)
+
         """
         self.source_manager = source_manager
         self.settings = get_app_config()
