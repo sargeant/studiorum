@@ -73,11 +73,167 @@ def _try_register_services(container: ServiceContainer) -> None:
                 "Event loop running, services must be registered manually with ensure_services_registered()"
             )
         except RuntimeError:
-            # No running loop, safe to create one
-            asyncio.run(register_modern_services(container))
-            logger.debug("Global container services registered successfully")
+            # No running loop - try sync registration first
+            try:
+                _register_services_sync(container)
+                logger.debug("Global container services registered synchronously")
+            except Exception as sync_error:
+                logger.warning(
+                    f"Sync registration failed: {sync_error}, falling back to async"
+                )
+                # Fallback to async registration
+                asyncio.run(register_modern_services(container))
+                logger.debug(
+                    "Global container services registered successfully (async fallback)"
+                )
     except Exception as e:
         logger.warning(f"Failed to register services in global container: {e}")
+
+
+def _register_services_sync(container: ServiceContainer) -> None:
+    """Register services synchronously for CLI contexts.
+
+    This provides a sync alternative to avoid event loop creation during
+    container initialization for CLI usage.
+    """
+    from studiorum.core.services.factories import (
+        create_cache_service,
+        create_configuration_service,
+        create_content_attribution_service,
+        create_content_factory_service,
+        create_content_type_registry_service,
+        create_data_source_manager_service,
+        create_display_manager_service,
+        create_entry_registry_service,
+        create_omnidexer_service,
+        create_reference_manager_service,
+        create_tag_resolver_service,
+    )
+    from studiorum.core.services.lifecycle import CleanupPriority, ServiceLifecycle
+    from studiorum.core.services.protocols import (
+        CacheProtocol,
+        ConfigurationProtocol,
+        ContentAttributionProtocol,
+        ContentFactoryProtocol,
+        ContentTypeRegistryProtocol,
+        DisplayManagerProtocol,
+        EntryTypeRegistryProtocol,
+        OmnidexerProtocol,
+        ReferenceManagerProtocol,
+        SourceManagerProtocol,
+        TagResolverProtocol,
+    )
+
+    # Register services without creating instances
+    # Service registration is synchronous - only service creation can be async
+
+    # Configuration (hot-reloadable singleton)
+    container.register_service(
+        ConfigurationProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_configuration_service,
+        lifecycle=ServiceLifecycle.SINGLETON,
+        dependencies=(),
+        hot_reloadable=True,
+        cleanup_priority=CleanupPriority.CONFIGURATION,
+    )
+
+    # Source management services
+    container.register_service(
+        SourceManagerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_data_source_manager_service,
+        lifecycle=ServiceLifecycle.ASYNC_RESOURCE,
+        dependencies=(ConfigurationProtocol,),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+    )
+
+    container.register_service(
+        ContentAttributionProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_content_attribution_service,
+        lifecycle=ServiceLifecycle.SINGLETON,
+        dependencies=(),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+    )
+
+    # Core data service (omnidexer with async initialization)
+    container.register_service(
+        OmnidexerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_omnidexer_service,
+        lifecycle=ServiceLifecycle.ASYNC_RESOURCE,
+        dependencies=(ConfigurationProtocol,),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.CORE_RESOURCES,
+    )
+
+    # Registry and factory services (lightweight singletons)
+    container.register_service(
+        ContentTypeRegistryProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_content_type_registry_service,
+        lifecycle=ServiceLifecycle.SINGLETON,
+        dependencies=(),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+    )
+
+    container.register_service(
+        ContentFactoryProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_content_factory_service,
+        lifecycle=ServiceLifecycle.SINGLETON,
+        dependencies=(),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+    )
+
+    container.register_service(
+        EntryTypeRegistryProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_entry_registry_service,
+        lifecycle=ServiceLifecycle.SINGLETON,
+        dependencies=(),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+    )
+
+    # Request-scoped services with hot-reload support
+    container.register_service(
+        TagResolverProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_tag_resolver_service,
+        lifecycle=ServiceLifecycle.SCOPED,
+        dependencies=(OmnidexerProtocol, ConfigurationProtocol),
+        hot_reloadable=True,
+        cleanup_priority=CleanupPriority.REQUEST_SCOPED,
+    )
+
+    # Display and output services (cleaned up last)
+    container.register_service(
+        DisplayManagerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_display_manager_service,
+        lifecycle=ServiceLifecycle.SCOPED,
+        dependencies=(),
+        hot_reloadable=True,
+        cleanup_priority=CleanupPriority.DISPLAY_OUTPUT,
+    )
+
+    container.register_service(
+        ReferenceManagerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_reference_manager_service,
+        lifecycle=ServiceLifecycle.SCOPED,
+        dependencies=(),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.REQUEST_SCOPED,
+    )
+
+    # Infrastructure services
+    container.register_service(
+        CacheProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_cache_service,
+        lifecycle=ServiceLifecycle.SINGLETON,
+        dependencies=(),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+    )
+
+    logger.debug("Services registered synchronously (descriptors only)")
 
 
 async def ensure_services_registered() -> None:

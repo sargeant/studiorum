@@ -96,8 +96,7 @@ class TestCLIIntegration:
 
         self.runner = CliRunner()
 
-    @pytest.mark.asyncio
-    async def test_quick_convert_integration(self, tmp_path: Any) -> None:
+    def test_quick_convert_integration(self, tmp_path: Any) -> None:
         """Test quick convert with mock data."""
         # Create mock JSON file
         mock_data = {

@@ -193,10 +193,7 @@ class TestLaTeXDocumentRenderer:
         assert renderer.template_engine is not None
         assert renderer.entry_registry is not None
 
-    @pytest.mark.asyncio
-    async def test_render_single_spell(
-        self, sample_spell: Any, tag_resolver: Any
-    ) -> None:
+    def test_render_single_spell(self, sample_spell: Any, tag_resolver: Any) -> None:
         """Test rendering single spell as document."""
         renderer: Any = LaTeXDocumentRenderer()
         context: Any = RenderingContext(
@@ -223,8 +220,7 @@ class TestLaTeXDocumentRenderer:
         )  # DND template format
         assert "\\end{document}" in result
 
-    @pytest.mark.asyncio
-    async def test_render_multiple_content(
+    def test_render_multiple_content(
         self, sample_spell: Any, sample_creature: Any, tag_resolver: Any
     ) -> None:
         """Test rendering multiple content items."""
@@ -288,8 +284,7 @@ class TestLaTeXDocumentRenderer:
 class TestRendererIntegration:
     """Integration tests for renderer system."""
 
-    @pytest.mark.asyncio
-    async def test_full_rendering_pipeline(self, loaded_omnidexer: Any) -> None:
+    def test_full_rendering_pipeline(self, loaded_omnidexer: Any) -> None:
         """Test complete rendering pipeline with real data."""
         omnidexer = loaded_omnidexer
 
@@ -334,10 +329,7 @@ class TestRendererIntegration:
         assert "3rd-level evocation" in result
         assert "Gargantuan dragon" in result  # Full text format
 
-    @pytest.mark.asyncio
-    async def test_error_handling_unknown_content_type(
-        self, loaded_omnidexer: Any
-    ) -> None:
+    def test_error_handling_unknown_content_type(self, loaded_omnidexer: Any) -> None:
         """Test handling of unknown content types."""
         omnidexer = loaded_omnidexer
 

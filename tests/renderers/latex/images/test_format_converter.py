@@ -90,7 +90,6 @@ class TestFormatConverter:
 
         assert result is True
 
-    @pytest.mark.asyncio
     def test_convert_webp_to_png_file_not_found(self):
         """Test WebP conversion when file doesn't exist."""
         nonexistent_path = Path("nonexistent.webp")
@@ -98,7 +97,6 @@ class TestFormatConverter:
         with pytest.raises(FileNotFoundError):
             self.converter.convert_webp_to_png(nonexistent_path)
 
-    @pytest.mark.asyncio
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.stat")
     @patch.object(FormatConverter, "_convert_webp_sync")
@@ -130,7 +128,6 @@ class TestFormatConverter:
         assert result.file_size_before == 1000
         assert result.file_size_after == 800
 
-    @pytest.mark.asyncio
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.stat")
     @patch.object(FormatConverter, "_convert_webp_sync")
@@ -153,7 +150,6 @@ class TestFormatConverter:
 
             assert result.converted_path == output_dir / "test.png"
 
-    @pytest.mark.asyncio
     def test_convert_to_compatible_format_webp(self):
         """Test compatible format conversion for WebP."""
         webp_path = Path("test.webp")
@@ -174,7 +170,6 @@ class TestFormatConverter:
             assert result == mock_result
             mock_convert.assert_called_once_with(webp_path, None)
 
-    @pytest.mark.asyncio
     def test_convert_to_compatible_format_png(self):
         """Test compatible format conversion for PNG (no conversion needed)."""
         png_path = Path("test.png")
@@ -183,7 +178,6 @@ class TestFormatConverter:
 
         assert result is None
 
-    @pytest.mark.asyncio
     def test_convert_to_compatible_format_unknown(self):
         """Test compatible format conversion for unknown format."""
         unknown_path = Path("test.xyz")
