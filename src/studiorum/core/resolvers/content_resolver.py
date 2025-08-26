@@ -133,23 +133,45 @@ class ContentResolver:
         self.tag_resolver = tag_resolver
         self.context = context
 
-        # Initialize content merger if omnidexer has source_manager
+        # Initialize content merger using shared instance from omnidexer
         self.content_merger: ContentMerger | None = None
 
-        # Check for source_manager on the omnidexer or its wrapped instance
-        source_manager = None
-        if hasattr(omnidexer, "source_manager"):
-            source_manager = omnidexer.source_manager
-        elif hasattr(omnidexer, "_omnidexer") and omnidexer._omnidexer is not None:
-            # Handle service wrapper - get the actual omnidexer
-            actual_omnidexer = omnidexer._omnidexer
-            if hasattr(actual_omnidexer, "source_manager"):
-                source_manager = actual_omnidexer.source_manager
+        # Try to get shared content merger from omnidexer first
+        if hasattr(omnidexer, "get_content_merger"):
+            self.content_merger = omnidexer.get_content_merger()
+            if self.content_merger is not None:
+                logger.debug("Using shared ContentMerger instance from omnidexer")
+        elif hasattr(omnidexer, "_omnidexer") and hasattr(
+            omnidexer._omnidexer, "get_content_merger"
+        ):
+            # Handle service wrapper - get shared instance from wrapped omnidexer
+            self.content_merger = omnidexer._omnidexer.get_content_merger()
+            if self.content_merger is not None:
+                logger.debug(
+                    "Using shared ContentMerger instance from wrapped omnidexer"
+                )
 
-        if source_manager is not None:
-            self.content_merger = ContentMerger(source_manager)
-        else:
-            logger.warning("No source manager found for content merger initialization")
+        # Fallback to creating own instance if sharing not available
+        if self.content_merger is None:
+            logger.debug(
+                "Shared ContentMerger not available, creating fallback instance"
+            )
+            # Check for source_manager on the omnidexer or its wrapped instance
+            source_manager = None
+            if hasattr(omnidexer, "source_manager"):
+                source_manager = omnidexer.source_manager
+            elif hasattr(omnidexer, "_omnidexer") and omnidexer._omnidexer is not None:
+                # Handle service wrapper - get the actual omnidexer
+                actual_omnidexer = omnidexer._omnidexer
+                if hasattr(actual_omnidexer, "source_manager"):
+                    source_manager = actual_omnidexer.source_manager
+
+            if source_manager is not None:
+                self.content_merger = ContentMerger(source_manager)
+            else:
+                logger.warning(
+                    "No source manager found for content merger initialization"
+                )
 
     @classmethod
     async def from_context(cls, context: "AsyncRequestContext") -> "ContentResolver":

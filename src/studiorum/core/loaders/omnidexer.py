@@ -4,7 +4,10 @@ import hashlib
 from collections import defaultdict
 from datetime import timedelta
 from pathlib import Path
-from typing import Any, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+
+if TYPE_CHECKING:
+    from .content_merger import ContentMerger
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -13,7 +16,6 @@ from ..interfaces import DeepIndexable
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
 from .base import DataLoader, SourceManager
-from .content_merger import ContentMerger
 from .fluff_loader import FluffDataLoader
 from .json_loader import JsonDataLoader
 from .unified_source_manager import UnifiedSourceManager
@@ -205,6 +207,9 @@ class Omnidexer:
         self._loaders: dict[ContentType, DataLoader] = {}
         self._loaded_types: set[ContentType] = set()
 
+        # ContentMerger singleton for dual-file operations
+        self._content_merger: ContentMerger | None = None
+
         # Register default loaders
         self._register_default_loaders()
 
@@ -310,8 +315,11 @@ class Omnidexer:
             logger.debug("Mock source manager detected, skipping dual-file enrichment")
             return {}
 
-        # Initialize content merger
-        merger = ContentMerger(self.source_manager)
+        # Initialize ContentMerger if not already done
+        if self._content_merger is None:
+            from .content_merger import ContentMerger
+
+            self._content_merger = ContentMerger(self.source_manager)
 
         enrichment_stats = {}
 
@@ -351,7 +359,9 @@ class Omnidexer:
                     continue
 
                 # Load content file data
-                content_data = merger.load_content_file(content_type, content_id)
+                content_data = self._content_merger.load_content_file(
+                    content_type, content_id
+                )
                 if not content_data:
                     logger.warning(
                         f"Could not load content data for {content_type.value} '{content_id}'"
@@ -367,7 +377,9 @@ class Omnidexer:
                     metadata_dict = dict(metadata_item.content)
 
                 # Merge metadata with content
-                merged_data = merger.merge_metadata_content(metadata_dict, content_data)
+                merged_data = self._content_merger.merge_metadata_content(
+                    metadata_dict, content_data
+                )
 
                 # Create enriched content object directly using the content factory
                 try:
@@ -902,6 +914,32 @@ class Omnidexer:
                     continue
 
         return tuple(fluff_types)
+
+    def get_content_merger(self) -> "ContentMerger | None":
+        """Get the shared ContentMerger instance, initializing if needed.
+
+        This method provides access to the singleton ContentMerger instance used
+        for dual-file operations. This enables sharing of the cache across multiple
+        components that need content merging capabilities.
+
+        Returns:
+            Shared ContentMerger instance or None if source manager doesn't support content files
+        """
+        # Check if source manager supports content files
+        if not hasattr(self.source_manager, "get_content_files"):
+            logger.debug(
+                "Source manager does not support content files, no ContentMerger available"
+            )
+            return None
+
+        # Initialize ContentMerger if not already done
+        if self._content_merger is None:
+            from .content_merger import ContentMerger
+
+            self._content_merger = ContentMerger(self.source_manager)
+            logger.debug("Initialized shared ContentMerger instance")
+
+        return self._content_merger
 
     def _log_index_stats(self) -> None:
         """Log statistics about the loaded index."""

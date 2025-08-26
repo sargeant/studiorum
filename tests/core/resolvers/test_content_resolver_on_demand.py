@@ -20,6 +20,10 @@ class TestContentResolverOnDemand:
         """Create mock omnidexer."""
         mock_omnidexer = Mock()
         mock_omnidexer.source_manager = Mock()
+        # Configure get_content_merger to return a mock ContentMerger
+        mock_content_merger = Mock()
+        mock_content_merger.source_manager = mock_omnidexer.source_manager
+        mock_omnidexer.get_content_merger = Mock(return_value=mock_content_merger)
         return mock_omnidexer
 
     @pytest.fixture
@@ -69,9 +73,11 @@ class TestContentResolverOnDemand:
         return ContentResolver(mock_omnidexer)
 
     def test_resolver_initializes_content_merger(self, mock_omnidexer):
-        """Test that ContentResolver initializes ContentMerger."""
+        """Test that ContentResolver uses shared ContentMerger from omnidexer."""
         resolver = ContentResolver(mock_omnidexer)
         assert resolver.content_merger is not None
+        # Should call get_content_merger on the omnidexer first
+        mock_omnidexer.get_content_merger.assert_called_once()
         assert resolver.content_merger.source_manager is mock_omnidexer.source_manager
 
     def test_enrich_content_non_dual_file_type(self, content_resolver):
