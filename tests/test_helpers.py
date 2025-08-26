@@ -46,6 +46,23 @@ def reset_test_environment() -> None:
     - Tests that load actual data files
     """
     try:
+        # 0. Force TEST data configuration by disabling primary override
+        # This ensures tests use test-data/ instead of user's personal 5etools-src
+        import os
+
+        from studiorum.core.config.unified_config import reset_app_config
+
+        # Set environment variable to force disable primary override
+        os.environ["STUDIORUM_DISABLE_PRIMARY_OVERRIDE"] = "true"
+
+        # Ensure test config is used
+        if "STUDIORUM_CONFIG_FILE" not in os.environ:
+            os.environ["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
+
+        # Reset app config to pick up environment changes
+        reset_app_config()
+        logger.debug("App configuration reset with primary override disabled for tests")
+
         # 1. Reset both container systems (legacy and modern)
         # Do this first to create fresh instances
         reset_all_containers()

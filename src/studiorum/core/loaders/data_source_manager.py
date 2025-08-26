@@ -83,11 +83,18 @@ class DataSourceManager(SourceManager):
 
         # Use new data sources configuration if available, fallback to old system
         try:
+            import os
+
+            # Check if primary override should be disabled for testing
+            disable_primary_override = os.environ.get(
+                "STUDIORUM_DISABLE_PRIMARY_OVERRIDE", ""
+            ).lower() in ("true", "1", "yes")
+
             logger.info(
                 f"DataSourceManager: Checking data sources config - has data_sources: {app_config.data_sources is not None}"
             )
 
-            if app_config.data_sources:
+            if app_config.data_sources and not disable_primary_override:
                 is_primary_enabled = app_config.data_sources.is_primary_enabled()
                 logger.info(
                     f"DataSourceManager: Primary override enabled: {is_primary_enabled}"
@@ -108,9 +115,14 @@ class DataSourceManager(SourceManager):
                     )
                     self.config = get_content_config()
             else:
-                logger.info(
-                    "DataSourceManager: No data_sources config found, using old system"
-                )
+                if disable_primary_override:
+                    logger.info(
+                        "DataSourceManager: Primary override disabled by environment variable, using old system"
+                    )
+                else:
+                    logger.info(
+                        "DataSourceManager: No data_sources config found, using old system"
+                    )
                 self.config = get_content_config()
         except Exception as e:
             # Fallback to old system if new system fails
