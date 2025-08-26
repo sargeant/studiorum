@@ -117,12 +117,14 @@ class TestDataSourceRefactorIntegration:
                 result = self.runner.invoke(app, ["config", "validate"])
                 # May succeed or fail depending on mocking, but shouldn't crash
 
-    def test_cli_deprecation_warnings(self) -> None:
-        """Test that deprecated CLI commands show warnings."""
+    def test_deprecated_cli_commands_removed(self) -> None:
+        """Test that deprecated CLI commands have been completely removed."""
         result = self.runner.invoke(app, ["sources", "list"])
-        assert result.exit_code == 0
-        assert "DEPRECATION WARNING" in result.stdout
-        assert "data list" in result.stdout
+        assert result.exit_code != 0
+        assert (
+            "No such command 'sources'" in result.stdout
+            or "No such command 'sources'" in result.stderr
+        )
 
     @pytest.mark.asyncio
     async def test_mcp_tool_integration(self) -> None:
@@ -227,17 +229,20 @@ class TestDataSourceRefactorIntegration:
         assert result.exit_code == 1
         assert "Cannot remove" in result.stdout
 
-    def test_backward_compatibility(self) -> None:
-        """Test that existing workflows continue to work."""
-        # Old CLI commands should work with deprecation warnings
+    def test_migration_completed(self) -> None:
+        """Test that migration to data commands has been completed."""
+        # Old CLI commands have been completely removed
         result = self.runner.invoke(app, ["sources", "list"])
-        assert result.exit_code == 0  # Should still work
-        assert "DEPRECATION WARNING" in result.stdout
+        assert result.exit_code != 0
+        assert (
+            "No such command 'sources'" in result.stdout
+            or "No such command 'sources'" in result.stderr
+        )
 
-        # Test help still works
-        result = self.runner.invoke(app, ["sources", "--help"])
+        # New data commands should work instead
+        result = self.runner.invoke(app, ["data", "list"])
         assert result.exit_code == 0
-        assert "DEPRECATED" in result.stdout
+        assert "Data Repository Configuration" in result.stdout
 
     def test_configuration_validation(self) -> None:
         """Test configuration validation functionality."""

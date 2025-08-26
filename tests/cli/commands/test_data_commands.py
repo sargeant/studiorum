@@ -216,15 +216,17 @@ class TestDeprecatedSourcesCommands:
 
         self.runner = CliRunner()
 
-    def test_sources_list_shows_deprecation_warning(self):
-        """Test that sources list shows deprecation warning."""
+    def test_sources_command_removed(self):
+        """Test that deprecated sources command has been removed."""
         result = self.runner.invoke(app, ["sources", "list"])
-        assert "DEPRECATION WARNING" in result.stdout
-        assert "Use 'studiorum data list' instead" in result.stdout
-        assert "studiorum data list" in result.stdout
+        assert result.exit_code != 0
+        assert (
+            "No such command 'sources'" in result.stdout
+            or "No such command 'sources'" in result.stderr
+        )
 
-    def test_sources_add_shows_deprecation_warning(self):
-        """Test that sources add shows deprecation warning."""
+    def test_sources_add_command_removed(self):
+        """Test that deprecated sources add command has been removed."""
         result = self.runner.invoke(
             app,
             [
@@ -237,18 +239,20 @@ class TestDeprecatedSourcesCommands:
                 "/test/path",
             ],
         )
-        assert "DEPRECATION WARNING" in result.stdout
-        assert "studiorum data add-homebrew" in result.stdout
+        assert result.exit_code != 0
+        assert (
+            "No such command 'sources'" in result.stdout
+            or "No such command 'sources'" in result.stderr
+        )
 
-    def test_sources_help_shows_deprecation(self):
-        """Test that sources help shows deprecation notice."""
+    def test_sources_help_command_removed(self):
+        """Test that deprecated sources help command has been removed."""
         result = self.runner.invoke(app, ["sources", "--help"])
-        assert result.exit_code == 0
-        assert "DEPRECATED" in result.stdout
-        assert "data list" in result.stdout
-        assert "data add-homebrew" in result.stdout
-        assert "data remove" in result.stdout
-        assert "data scan" in result.stdout
+        assert result.exit_code != 0
+        assert (
+            "No such command 'sources'" in result.stdout
+            or "No such command 'sources'" in result.stderr
+        )
 
     def test_main_help_shows_data_prominently(self):
         """Test that main help shows data command prominently."""
@@ -256,7 +260,7 @@ class TestDeprecatedSourcesCommands:
         assert result.exit_code == 0
         assert "data" in result.stdout
         assert "Manage data repositories" in result.stdout
-        assert "DEPRECATED" in result.stdout
+        # Sources command has been fully removed, no deprecation messages needed
 
 
 class TestCLIIntegration:

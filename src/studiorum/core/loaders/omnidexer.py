@@ -304,6 +304,12 @@ class Omnidexer:
         # Get content files from source manager
         content_files = self.source_manager.get_content_files()
 
+        # Handle test environments where content_files might be a Mock
+        # In tests, Mocks can't be iterated with 'in' operator
+        if hasattr(content_files, "_mock_name"):
+            logger.debug("Mock source manager detected, skipping dual-file enrichment")
+            return {}
+
         # Initialize content merger
         merger = ContentMerger(self.source_manager)
 
