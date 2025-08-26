@@ -5,7 +5,7 @@ description: Understanding studiorum's design patterns, data flow, and component
 
 # Architecture Overview
 
-Studiorum is built on a modern, service-oriented architecture designed for extensibility, type safety, and performance. This document provides a comprehensive overview of the system's design.
+Studiorum is built on a service-oriented architecture designed for extensibility, type safety, and performance. This document provides a comprehensive overview of the system's design.
 
 ## High-Level Architecture
 
@@ -158,12 +158,12 @@ class ContentResolver:
 
 #### Tag Processing System
 
-Studiorum uses an AST-based tag processing system for D&D content:
+Studiorum uses an AST-based tag processing system for 5e content:
 
 ```python
 class TagParser:
     """
-    Lark-based parser for D&D 5etools tag syntax.
+    Lark-based parser for 5etools tag syntax.
     Builds abstract syntax trees for complex tag structures.
     """
 
@@ -318,7 +318,7 @@ All content follows structured Pydantic models with validation:
 
 ```python
 class BaseContent(BaseModel):
-    """Base class for all D&D content with common fields."""
+    """Base class for all 5e content with common fields."""
 
     name: str
     source: Source

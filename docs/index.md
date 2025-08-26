@@ -67,29 +67,6 @@ print(f"Damage: {fireball.damage}")</code></pre>
   </div>
 </div>
 
-## Architecture Overview
-
-Studiorum provides a modern Python toolkit for processing 5e content from 5etools JSON format into professional LaTeX/PDF documents, with full MCP integration for AI applications.
-
-<div class="mermaid">
-graph TB
-    A[5etools JSON] --> B[ContentMerger]
-    B --> C[Omnidexer]
-    C --> D[Pydantic Models]
-    D --> E[ModernContextualAPI]
-    E --> F{Output}
-    F --> G[MCP Tools]
-    F --> H[CLI Commands]
-</div>
-
-### Key Features
-
-- **Professional PDF Generation**: LaTeX-based typesetting for beautiful documents
-- **Modern Python Architecture**: Type-safe models with Pydantic validation
-- **AI Integration Ready**: MCP server for Claude Code, ChatGPT, and other AI tools
-- **Flexible Content Processing**: Support for adventures, spells, creatures, and more
-- **High Performance**: Async architecture with intelligent caching
-
 <div class="getting-started-cta">
   Choose your path above to get started with studiorum.
 </div>
