@@ -325,8 +325,8 @@ class TestAdventureResolution:
         assert test_adventure_result.content.name == "Test Adventure"
         assert test_adventure_result.content.source.abbreviation == "TEST"
 
-    def test_adventure_count_metadata_only(self):
-        """Test that omnidexer only contains metadata entries, not content files."""
+    def test_adventure_count_with_enriched_content(self):
+        """Test that omnidexer contains adventures with enriched content from dual-file architecture."""
         source_manager = TestSourceManager(self.data_dir)
 
         omnidexer = Omnidexer(source_manager)
@@ -336,12 +336,14 @@ class TestAdventureResolution:
         adventure_type = ContentType("adventure")
         adventures = omnidexer.get_all_by_type(adventure_type)
 
-        # Should only have 1 adventure (from metadata), not 2 (metadata + content)
+        # Should only have 1 adventure (metadata enriched with content)
         assert len(adventures) == 1
 
-        # Adventure should have metadata but empty content
+        # Adventure should have metadata enriched with content from dual-file architecture
         for adventure in adventures:
             assert adventure.name in ["Test Adventure"]
-            # Before resolution, chapters should have empty entries
+            # With dual-file architecture, chapters should have populated entries
             for chapter in adventure.contents:
-                assert chapter.entries == []
+                assert (
+                    len(chapter.entries) > 0
+                )  # Enriched with content from content files

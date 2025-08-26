@@ -457,9 +457,12 @@ class Omnidexer:
 
         type_index = self._by_type[content_type]
 
-        # Search by ID attribute
+        # Search by ID attribute (case-insensitive)
         for entry in type_index.values():
-            if hasattr(entry.content, "id") and entry.content.id == content_id.upper():
+            if (
+                hasattr(entry.content, "id")
+                and entry.content.id.lower() == content_id.lower()
+            ):
                 return entry
 
         return None

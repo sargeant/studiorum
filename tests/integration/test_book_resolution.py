@@ -21,21 +21,23 @@ class TestBookResolution:
         # Note: reset_test_environment() now handles both container systems
         # via reset_all_containers() for proper parallel execution isolation
 
-    def test_omnidexer_loads_only_book_metadata(self):
-        """Test that omnidexer loads only metadata files for books."""
+    def test_omnidexer_loads_book_with_enriched_content(self):
+        """Test that omnidexer loads books with enriched content from dual-file architecture."""
         omnidexer = get_omnidexer()
         book_type = ContentType("book")
         books = omnidexer.get_all_by_type(book_type)
 
-        # Should have books (metadata only)
+        # Should have books with enriched content
         assert len(books) > 0
 
-        # Books should be metadata-only (empty content)
+        # Books should have enriched content from dual-file architecture
         test_book = next((b for b in books if b.source.abbreviation == "TEST"), None)
         if test_book:  # Test book should be available
             assert test_book.name == "Test Sourcebook"
             assert len(test_book.contents) > 0  # Has metadata structure
-            assert len(test_book.contents[0].entries) == 0  # But no actual entries
+            assert (
+                len(test_book.contents[0].entries) > 0
+            )  # And has enriched entries from content files
 
     def test_resolve_book_phb_success(self):
         """Test successful book resolution with content loading."""

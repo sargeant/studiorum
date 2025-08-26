@@ -36,6 +36,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
         self,
         content_type: ContentType,
         content_factory: ContentFactory | None = None,
+        skip_content_files: bool = False,
     ):
         self._content_type = content_type
         if content_factory is None:
@@ -47,6 +48,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
         self._error_tracker = ValidationErrorTracker()
         self._settings = get_app_config()
         self._base_items_registry: dict[str, dict[str, Any]] | None = None
+        self._skip_content_files = skip_content_files
 
         # Class-level registry is already declared above
 
@@ -265,11 +267,21 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     return adventure_data
                 return []
 
-            # Check if this is a content file (adventure-*.json) and process it
+            # Check if this is a content file (adventure-*.json)
             if self._is_adventure_content_file(data):
-                logger.debug("Processing adventure content file")
-                # Transform content file format to expected Adventure format
-                return self._process_adventure_content_file(data)
+                if self._skip_content_files:
+                    logger.debug(
+                        "Skipping adventure content file - will be processed during enrichment"
+                    )
+                    # Content files should not be loaded as separate adventures during bulk loading
+                    # They will be merged with metadata during enrichment
+                    return []
+                else:
+                    logger.debug(
+                        "Processing adventure content file directly (backwards compatibility)"
+                    )
+                    # For direct loading, process content files as adventures
+                    return self._process_adventure_content_file(data)
 
             # Handle mixed format (metadata + data in same file)
             if "data" in data and isinstance(data["data"], list):
@@ -1270,7 +1282,10 @@ class JsonDataLoader(DataLoader[BaseContent]):
     @classmethod
     def create_for_type(cls, content_type: ContentType) -> "JsonDataLoader":
         """Create a JsonDataLoader instance for a given content type."""
-        return JsonDataLoader(content_type)
+        # For dual-file content types (adventures/books), skip content files during bulk loading
+        # This prevents duplicate loading since content files are processed separately during enrichment
+        skip_content = content_type.value in ("adventure", "book")
+        return JsonDataLoader(content_type, skip_content_files=skip_content)
 
     def load_from_data(self, data: dict[str, Any], path: Path) -> list[BaseContent]:
         """Load content from already-parsed JSON data.

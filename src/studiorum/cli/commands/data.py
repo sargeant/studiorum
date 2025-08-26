@@ -83,8 +83,22 @@ def _load_config() -> dict[str, Any]:
 def _save_config(config: dict[str, Any]) -> None:
     """Save configuration to file."""
     config_file = _get_config_file_path()
+
+    # Convert all Path objects to strings to prevent YAML Python object serialization
+    def convert_paths_to_strings(obj: Any) -> Any:
+        if isinstance(obj, Path):
+            return str(obj)
+        elif isinstance(obj, dict):
+            return {key: convert_paths_to_strings(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [convert_paths_to_strings(item) for item in obj]
+        else:
+            return obj
+
+    clean_config = convert_paths_to_strings(config)
+
     with open(config_file, "w") as f:
-        yaml.dump(config, f, default_flow_style=False, indent=2)
+        yaml.dump(clean_config, f, default_flow_style=False, indent=2)
 
 
 # Create the data command group

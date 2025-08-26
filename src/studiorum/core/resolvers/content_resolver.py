@@ -134,11 +134,22 @@ class ContentResolver:
         self.context = context
 
         # Initialize content merger if omnidexer has source_manager
-        self.content_merger: ContentMerger | None
+        self.content_merger: ContentMerger | None = None
+
+        # Check for source_manager on the omnidexer or its wrapped instance
+        source_manager = None
         if hasattr(omnidexer, "source_manager"):
-            self.content_merger = ContentMerger(omnidexer.source_manager)
+            source_manager = omnidexer.source_manager
+        elif hasattr(omnidexer, "_omnidexer") and omnidexer._omnidexer is not None:
+            # Handle service wrapper - get the actual omnidexer
+            actual_omnidexer = omnidexer._omnidexer
+            if hasattr(actual_omnidexer, "source_manager"):
+                source_manager = actual_omnidexer.source_manager
+
+        if source_manager is not None:
+            self.content_merger = ContentMerger(source_manager)
         else:
-            self.content_merger = None
+            logger.warning("No source manager found for content merger initialization")
 
     @classmethod
     async def from_context(cls, context: "AsyncRequestContext") -> "ContentResolver":
