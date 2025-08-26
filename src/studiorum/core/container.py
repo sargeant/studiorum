@@ -132,12 +132,7 @@ def reset_all_services() -> None:
     reset_global_container()
 
     # Reset other global state that may not be in the container yet
-    try:
-        from studiorum.core.config.paths import reset_path_config
-
-        reset_path_config()
-    except ImportError:
-        pass
+    # Note: PathConfig was removed in P4, no path-specific reset needed
 
     try:
         from studiorum.core.config.unified_config import reset_app_config

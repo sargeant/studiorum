@@ -126,7 +126,7 @@ class ConfigurationManager:
 
         Args:
             config_path: Optional path to configuration file.
-                        Defaults to ~/.config/studiorum/config.yaml
+                        Defaults to ~/.studiorum/config.yaml
             enable_file_watcher: Whether to watch config file for changes
         """
         self._lock = asyncio.Lock()  # Async lock for config updates

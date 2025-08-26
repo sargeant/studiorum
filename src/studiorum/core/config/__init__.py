@@ -7,8 +7,6 @@ from .dynamic_manager import (
     set_config_manager,
 )
 from .loader import ConfigLoader, ConfigValidationError
-from .paths import PathConfig, get_path_config
-from .settings import Settings
 from .unified_config import ApplicationConfig, MCPConfig, get_app_config, set_app_config
 from .workflow_config import (
     get_adventure_creation_workflow_config,
@@ -22,10 +20,6 @@ from .workflow_config import (
 
 # New unified configuration (recommended)
 __all__ = [
-    # Legacy configuration (backward compatibility)
-    "Settings",
-    "PathConfig",
-    "get_path_config",
     # New unified configuration (recommended)
     "ApplicationConfig",
     "MCPConfig",

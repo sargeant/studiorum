@@ -632,16 +632,25 @@ class JsonDataLoader(DataLoader[BaseContent]):
         registry = {}
 
         # Find items-base.json in data paths
-        from ..config.paths import get_path_config
+        from ..config.unified_config import get_app_config
 
-        path_config = get_path_config()
+        app_config = get_app_config()
+
+        # Determine root path for relative path resolution
+        root_path = Path.cwd()
+        # Try to detect root path by looking for pyproject.toml or CLAUDE.md
+        current = Path.cwd()
+        for parent in [current] + list(current.parents):
+            if (parent / "pyproject.toml").exists() or (parent / "CLAUDE.md").exists():
+                root_path = parent
+                break
 
         # Check multiple possible locations for items-base.json
         possible_paths = []
 
         # Check configured data paths
-        if path_config.data_path and path_config.data_path.exists():
-            possible_paths.append(path_config.data_path / "items-base.json")
+        if app_config.paths.data_path and app_config.paths.data_path.exists():
+            possible_paths.append(app_config.paths.data_path / "items-base.json")
 
         # Check 5etools-src directory
         fivetools_src = (
@@ -651,7 +660,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             possible_paths.append(fivetools_src)
 
         # Check srd-data directory
-        srd_data = path_config.root_path / "srd-data" / "items-base.json"
+        srd_data = root_path / "srd-data" / "items-base.json"
         if srd_data.exists():
             possible_paths.append(srd_data)
 

@@ -13,6 +13,7 @@ from ..interfaces import DeepIndexable
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
 from .base import DataLoader, SourceManager
+from .content_merger import ContentMerger
 from .fluff_loader import FluffDataLoader
 from .json_loader import JsonDataLoader
 from .unified_source_manager import UnifiedSourceManager
@@ -256,6 +257,7 @@ class Omnidexer:
         load_stats: dict[str, int] = defaultdict(int)
         total_loaded = 0
 
+        # Load metadata files (adventures.json, books.json, etc.)
         for content_type, paths in data_paths.items():
             if content_type in self._loaders:
                 for path in paths:
@@ -267,6 +269,12 @@ class Omnidexer:
             else:
                 logger.warning(f"No loader registered for {content_type.value}")
 
+        # Load and merge dual-file content (adventures and books)
+        dual_file_result = self._load_dual_file_content()
+        for content_type_str, count in dual_file_result.items():
+            load_stats[content_type_str] += count
+            total_loaded += count
+
         if total_loaded == 0:
             logger.warning("No data files found to load")
 
@@ -276,6 +284,260 @@ class Omnidexer:
         self._log_index_stats()
 
         return load_stats
+
+    def _load_dual_file_content(self) -> dict[str, int]:
+        """Load and merge dual-file content types (adventures and books).
+
+        This method loads content files (adventure-*.json, book-*.json) and merges
+        them with metadata already loaded from metadata files (adventures.json, books.json).
+        This ensures that adventures and books have complete content, not just metadata.
+
+        Returns:
+            Dictionary mapping content type names to counts of enriched items
+        """
+        if not hasattr(self.source_manager, "get_content_files"):
+            logger.debug(
+                "Source manager does not support content files, skipping dual-file loading"
+            )
+            return {}
+
+        # Get content files from source manager
+        content_files = self.source_manager.get_content_files()
+
+        # Initialize content merger
+        merger = ContentMerger(self.source_manager)
+
+        enrichment_stats = {}
+
+        # Process adventures and books (dual-file types)
+        adventure_type = ContentType("adventure")
+        book_type = ContentType("book")
+
+        for content_type in [adventure_type, book_type]:
+            if content_type not in content_files:
+                continue
+
+            type_files = content_files[content_type]
+            enriched_count = 0
+
+            logger.info(
+                f"Processing {len(type_files)} {content_type.value} content files for enrichment"
+            )
+
+            for content_file in type_files:
+                # Extract content ID from filename (e.g., "adventure-skt.json" -> "skt")
+                content_id = self._extract_content_id_from_filename(
+                    content_file, content_type
+                )
+                if not content_id:
+                    logger.warning(f"Could not extract content ID from {content_file}")
+                    continue
+
+                # Find the metadata item in our already-loaded index
+                metadata_item = self._find_metadata_item(content_type, content_id)
+                if not metadata_item:
+                    logger.debug(
+                        f"No metadata found for {content_type.value} '{content_id}', loading content-only"
+                    )
+                    # Load content-only file if no metadata exists
+                    self._load_content_only_file(content_type, content_file)
+                    enriched_count += 1
+                    continue
+
+                # Load content file data
+                content_data = merger.load_content_file(content_type, content_id)
+                if not content_data:
+                    logger.warning(
+                        f"Could not load content data for {content_type.value} '{content_id}'"
+                    )
+                    continue
+
+                # Convert metadata item to dict for merging
+                if hasattr(metadata_item.content, "model_dump"):
+                    metadata_dict = metadata_item.content.model_dump()
+                elif hasattr(metadata_item.content, "__dict__"):
+                    metadata_dict = metadata_item.content.__dict__.copy()
+                else:
+                    metadata_dict = dict(metadata_item.content)
+
+                # Merge metadata with content
+                merged_data = merger.merge_metadata_content(metadata_dict, content_data)
+
+                # Create enriched content object directly using the content factory
+                try:
+                    if content_type in self._loaders:
+                        loader = self._loaders[content_type]
+                        # Use the loader's content factory to create validated content from merged data
+                        # The merged_data is already a single adventure/book object, not wrapped in JSON format
+                        from studiorum.core.loaders.json_loader import JsonDataLoader
+
+                        if isinstance(loader, JsonDataLoader):
+                            enriched_item = loader._content_factory.create_content(
+                                merged_data, content_type
+                            )
+                        else:
+                            # Fallback for other loader types
+                            enriched_item = None
+
+                        if enriched_item:
+                            # Replace the metadata-only item with the enriched item
+                            self._replace_index_entry(
+                                metadata_item, enriched_item, content_type
+                            )
+                            enriched_count += 1
+                            logger.info(
+                                f"✅ Enriched {content_type.value} '{content_id}' with {len(merged_data.get('contents', []))} sections"
+                            )
+                        else:
+                            logger.error(
+                                f"❌ No content created from merged data for {content_type.value} '{content_id}'"
+                            )
+                    else:
+                        logger.warning(f"No loader available for {content_type.value}")
+
+                except Exception as e:
+                    logger.error(
+                        f"Failed to create enriched {content_type.value} '{content_id}': {e}"
+                    )
+                    logger.debug(f"Merged data keys: {list(merged_data.keys())}")
+                    logger.debug(f"Sample merged data: {str(merged_data)[:200]}...")
+                    continue
+
+            if enriched_count > 0:
+                enrichment_stats[f"{content_type.value}_enriched"] = enriched_count
+                logger.debug(
+                    f"Enriched {enriched_count} {content_type.value} items with content data"
+                )
+
+        return enrichment_stats
+
+    def _extract_content_id_from_filename(
+        self, file_path: Path, content_type: ContentType
+    ) -> str | None:
+        """Extract content ID from content file name.
+
+        Args:
+            file_path: Path to content file (e.g., "/path/adventure-skt.json")
+            content_type: Type of content
+
+        Returns:
+            Content ID (e.g., "skt") or None if extraction fails
+        """
+        filename = file_path.stem.lower()  # Get filename without extension
+
+        if content_type.value == "adventure":
+            if filename.startswith("adventure-"):
+                return filename[10:]  # Remove "adventure-" prefix
+        elif content_type.value == "book":
+            if filename.startswith("book-"):
+                return filename[5:]  # Remove "book-" prefix
+
+        return None
+
+    def _find_metadata_item(
+        self, content_type: ContentType, content_id: str
+    ) -> IndexEntry[BaseContent] | None:
+        """Find metadata item in the index by content type and ID.
+
+        Args:
+            content_type: Type of content to search
+            content_id: Content ID to find
+
+        Returns:
+            IndexEntry for the metadata item, or None if not found
+        """
+        if content_type not in self._by_type:
+            return None
+
+        type_index = self._by_type[content_type]
+
+        # Search by ID attribute
+        for entry in type_index.values():
+            if hasattr(entry.content, "id") and entry.content.id == content_id.upper():
+                return entry
+
+        return None
+
+    def _load_content_only_file(
+        self, content_type: ContentType, content_file: Path
+    ) -> None:
+        """Load content-only file when no metadata exists.
+
+        Args:
+            content_type: Type of content
+            content_file: Path to content file
+        """
+        try:
+            if content_type in self._loaders:
+                loader = self._loaders[content_type]
+                content_items = loader.load(content_file)
+
+                for item in content_items:
+                    self._add_to_index(item, content_type)
+
+                logger.debug(
+                    f"Loaded {len(content_items)} content-only {content_type.value} items from {content_file}"
+                )
+            else:
+                logger.warning(f"No loader registered for {content_type.value}")
+        except Exception as e:
+            logger.error(
+                f"Failed to load content-only {content_type.value} from {content_file}: {e}"
+            )
+
+    def _replace_index_entry(
+        self,
+        old_entry: IndexEntry[BaseContent],
+        new_content: BaseContent,
+        content_type: ContentType,
+    ) -> None:
+        """Replace an existing index entry with enriched content.
+
+        Args:
+            old_entry: The existing index entry to replace
+            new_content: The new enriched content
+            content_type: Type of content
+        """
+        # Remove old entry from all indexes
+        old_hash_id = old_entry.hash_id
+        old_lookup_key = old_entry.lookup_key
+
+        # Remove from hash index
+        if old_hash_id in self._index:
+            del self._index[old_hash_id]
+
+        # Remove from type index
+        if (
+            content_type in self._by_type
+            and old_lookup_key in self._by_type[content_type]
+        ):
+            del self._by_type[content_type][old_lookup_key]
+
+        # Remove from source index
+        if hasattr(old_entry.content.source, "abbreviation"):
+            source_abbrev = old_entry.content.source.abbreviation
+            if source_abbrev in self._by_source:
+                self._by_source[source_abbrev] = [
+                    entry
+                    for entry in self._by_source[source_abbrev]
+                    if entry.hash_id != old_hash_id
+                ]
+
+        # Remove from name index
+        name_key = old_entry.content.name.lower()
+        if name_key in self._by_name:
+            self._by_name[name_key] = [
+                entry
+                for entry in self._by_name[name_key]
+                if entry.hash_id != old_hash_id
+            ]
+
+        # Remove from indexed hashes
+        if old_hash_id in self._indexed_hashes:
+            self._indexed_hashes.remove(old_hash_id)
+
+        # Add new enriched content
+        self._add_to_index(new_content, content_type)
 
     def _load_content_type(
         self, content_type: ContentType, path: Path

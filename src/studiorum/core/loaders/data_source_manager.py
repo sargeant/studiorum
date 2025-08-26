@@ -72,8 +72,8 @@ class DataSourceManager(SourceManager):
 
         # Handle dependency injection vs backward compatibility
         if app_config is None:
-            # Backward compatibility mode - load from global function
-            from studiorum.core.config import get_app_config
+            # Backward compatibility mode - load from service container
+            from studiorum.core.services.access import get_app_config
 
             logger.warning(
                 "DataSourceManager initialized without dependency injection. "

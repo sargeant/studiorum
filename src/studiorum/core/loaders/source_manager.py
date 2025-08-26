@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from ..config.paths import get_path_config
+from ..config.unified_config import get_app_config
 from ..logging import get_logger
 from ..models.content import ContentType
 from .base import SourceManager
@@ -15,7 +15,8 @@ class FileSystemSourceManager(SourceManager):
     """Manages data sources from the file system."""
 
     def __init__(self, root_path: Path | None = None):
-        self.path_config = get_path_config(root_path)
+        self.root_path = root_path or Path.cwd()
+        self.app_config = get_app_config()
         self._source_info = self._build_source_info()
 
     def get_data_paths(self) -> dict[ContentType, list[Path]]:
@@ -24,7 +25,7 @@ class FileSystemSourceManager(SourceManager):
         For adventures and books, this returns only metadata files to prevent
         duplicate loading. Content files are loaded on-demand by ContentResolver.
         """
-        return self.path_config.get_data_paths()
+        return self._get_data_paths()
 
     def get_metadata_files(self) -> dict[ContentType, list[Path]]:
         """Return paths to metadata files organized by content type.
@@ -135,3 +136,77 @@ class FileSystemSourceManager(SourceManager):
                 "type": "adventure",
             },
         }
+
+    def _get_data_paths(self) -> dict[ContentType, list[Path]]:
+        """Get data file paths organized by content type."""
+        paths = {}
+
+        # Try multiple data source locations
+        data_dirs = []
+        if self.app_config.paths.data_path and self.app_config.paths.data_path.exists():
+            data_dirs.append(self.app_config.paths.data_path)
+
+        # Check for srd-data directory
+        srd_data = self.root_path / "srd-data"
+        if srd_data.exists():
+            data_dirs.append(srd_data)
+
+        # Use string-based mappings and only convert to ContentType if they exist
+        # This avoids the chicken-and-egg problem with dynamic ContentTypes
+        string_mappings = {
+            "spell": ["spells", "spell"],
+            "creature": ["bestiary", "monster", "creatures"],
+            "item": ["items", "item"],
+            "adventure": ["adventure", "adventures"],
+            "book": ["book", "books"],
+            "class": ["class", "classes"],
+            "background": ["background", "backgrounds"],
+            "feat": ["feat", "feats"],
+            "race": ["race", "races"],
+        }
+
+        # Convert to ContentType only if the enum member exists
+        content_mappings = {}
+        for type_str, subdirs in string_mappings.items():
+            try:
+                content_type = ContentType(type_str)
+                content_mappings[content_type] = subdirs
+            except ValueError:
+                # Skip content types that don't exist as enum members yet
+                # They will be handled by UnifiedSourceManager after registry initialization
+                continue
+
+        for content_type, subdirs in content_mappings.items():
+            type_paths = []
+
+            for data_dir in data_dirs:
+                # Check each possible subdirectory
+                for subdir in subdirs:
+                    subdir_path = data_dir / subdir
+                    if subdir_path.exists():
+                        # Find JSON files in this directory
+                        json_files = list(subdir_path.glob("*.json"))
+                        type_paths.extend(json_files)
+
+                # Also check for files in root data directory using string comparisons
+                if content_type.value == "spell":
+                    type_paths.extend(data_dir.glob("spells*.json"))
+                elif content_type.value == "creature":
+                    type_paths.extend(data_dir.glob("bestiary*.json"))
+                    type_paths.extend(data_dir.glob("*monster*.json"))
+                elif content_type.value == "item":
+                    type_paths.extend(data_dir.glob("items*.json"))
+                elif content_type.value == "background":
+                    type_paths.extend(data_dir.glob("background*.json"))
+                elif content_type.value == "feat":
+                    type_paths.extend(data_dir.glob("feat*.json"))
+                elif content_type.value == "race":
+                    type_paths.extend(data_dir.glob("race*.json"))
+                elif content_type.value == "class":
+                    # Classes have a directory structure, already handled above
+                    pass
+
+            if type_paths:
+                paths[content_type] = type_paths
+
+        return paths

@@ -8,7 +8,10 @@ the modern service-based architecture.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from ..config.unified_config import ApplicationConfig
 
 from ..logging import get_logger
 from ..models.content import ContentType
@@ -30,9 +33,9 @@ class UnifiedSourceManager(SourceManager):
     providing the modern service-based architecture for new code.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, app_config: ApplicationConfig | None = None) -> None:
         """Initialize unified source manager with both components."""
-        self._data_source_manager = DataSourceManager()
+        self._data_source_manager = DataSourceManager(app_config)
         self._content_attribution_manager = ContentAttributionManager()
         self._is_initialized = False
 

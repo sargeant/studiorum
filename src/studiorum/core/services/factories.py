@@ -229,22 +229,22 @@ async def create_omnidexer_service(
             logger.debug("Initializing omnidexer service")
 
             try:
-                from studiorum.core.loaders.data_source_manager import DataSourceManager
                 from studiorum.core.loaders.omnidexer import Omnidexer
+                from studiorum.core.loaders.unified_source_manager import (
+                    UnifiedSourceManager,
+                )
 
-                # Create DataSourceManager with proper configuration
-                data_source_manager = DataSourceManager(app_config=self._config)
+                # Create UnifiedSourceManager with configuration
+                config = config_service.get_config()
+                unified_source_manager = UnifiedSourceManager(config)
+
+                # Initialize the source manager properly in async context
+                await unified_source_manager.initialize()
 
                 # Create omnidexer with configured source manager
-                self._omnidexer = Omnidexer(source_manager=data_source_manager)
+                self._omnidexer = Omnidexer(source_manager=unified_source_manager)
 
-                # Async source preparation (GitHub cloning, etc)
-                if hasattr(
-                    self._omnidexer.source_manager, "_ensure_sources_ready_async"
-                ):
-                    await self._omnidexer.source_manager._ensure_sources_ready_async()
-
-                # Load all data
+                # Load all data (this will use the already initialized source manager)
                 self._omnidexer.load_all_data()
 
                 # Resolve copy references
@@ -899,18 +899,18 @@ async def create_data_source_manager_service(
     Returns:
         Data source manager service implementing SourceManagerProtocol
     """
-    from studiorum.core.loaders.data_source_manager import DataSourceManager
+    from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 
-    # Get configuration from the service
-    app_config = config_service.get_config()
-    data_source_manager = DataSourceManager(app_config)
+    # Get configuration from the service and pass to UnifiedSourceManager
+    config = config_service.get_config()
+    unified_source_manager = UnifiedSourceManager(config)
 
-    # The DataSourceManager implements AsyncResourceProtocol
+    # The UnifiedSourceManager implements AsyncResourceProtocol
     # Initialize it immediately in the factory
-    await data_source_manager.initialize()
+    await unified_source_manager.initialize()
 
-    logger.info("DataSourceManager service initialized successfully")
-    return data_source_manager
+    logger.info("UnifiedSourceManager service initialized successfully")
+    return unified_source_manager
 
 
 async def create_content_attribution_service() -> ContentAttributionProtocol:
