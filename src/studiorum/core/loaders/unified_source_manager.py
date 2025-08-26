@@ -201,6 +201,15 @@ class UnifiedSourceManager(SourceManager):
                 if hasattr(data_source_manager, "_is_initialized"):
                     data_source_manager._is_initialized = True
 
+            # Build content index if available
+            content_manager = data_source_manager.content_manager
+            if hasattr(content_manager, "build_content_index_sync"):
+                try:
+                    content_manager.build_content_index_sync()
+                    logger.debug("Content index built synchronously")
+                except Exception as e:
+                    logger.warning(f"Failed to build content index synchronously: {e}")
+
             # Set our own initialization flag
             logger.debug("Data sources initialized synchronously")
 

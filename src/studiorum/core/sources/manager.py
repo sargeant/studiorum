@@ -123,12 +123,84 @@ class ContentSourceManager:
         )
         self._index_built = True
 
+    def build_content_index_sync(self, force_rebuild: bool = False) -> None:
+        """Build index of all available content files synchronously.
+
+        This is the synchronous version for test environments and CLI contexts
+        where async processing is not needed or available.
+        """
+        if self._index_built and not force_rebuild:
+            return
+
+        logger.info("Building content index (sync mode)...")
+        self._content_index.clear()
+
+        enabled_sources = self.config.get_enabled_sources()
+
+        # Process sources sequentially (no async/await needed)
+        for source in enabled_sources:
+            try:
+                files = self._get_source_files_sync(source)
+                self._content_index[source.name] = files
+                logger.info(f"Indexed {len(files)} files from source '{source.name}'")
+            except Exception as e:
+                logger.error(f"Failed to index source '{source.name}': {e}")
+                self._content_index[source.name] = []
+
+        total_files = sum(len(files) for files in self._content_index.values())
+        logger.info(
+            f"Content index built (sync) with {total_files} total files from {len(enabled_sources)} sources"
+        )
+        self._index_built = True
+
     async def _get_source_files(self, source: ContentSource) -> list[Path]:
         """Get list of content files from a source."""
         if source.type == SourceType.GITHUB:
             # Ensure repository is available first
             await self.github_manager.ensure_repository(source)
             return self.github_manager.list_content_files(source)
+
+        elif source.type == SourceType.DIRECTORY:
+            if not source.path:
+                return []
+
+            path = Path(source.path)
+            if not path.exists():
+                return []
+
+            # Find all JSON files in directory
+            json_files = []
+            for json_file in path.rglob("*.json"):
+                try:
+                    if json_file.stat().st_size < 50:  # Skip very small files
+                        continue
+                    json_files.append(json_file)
+                except OSError:
+                    continue
+
+            return sorted(json_files)
+
+        else:
+            logger.warning(f"Unsupported source type: {source.type}")
+            return []
+
+    def _get_source_files_sync(self, source: ContentSource) -> list[Path]:
+        """Get list of content files from a source synchronously.
+
+        This is the synchronous version for test environments and CLI contexts.
+        For GitHub sources, this will skip the ensure_repository step which is async.
+        """
+        if source.type == SourceType.GITHUB:
+            # In sync mode, assume GitHub repository is already available
+            # This is mainly for test environments that should use directory sources
+            logger.warning(
+                f"GitHub source '{source.name}' processed in sync mode - repository may not be available"
+            )
+            try:
+                return self.github_manager.list_content_files(source)
+            except Exception as e:
+                logger.error(f"Failed to list GitHub source files: {e}")
+                return []
 
         elif source.type == SourceType.DIRECTORY:
             if not source.path:
