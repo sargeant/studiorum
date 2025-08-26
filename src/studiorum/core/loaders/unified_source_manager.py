@@ -82,11 +82,18 @@ class UnifiedSourceManager(SourceManager):
         """Return True if both managers are initialized."""
         return self._is_initialized and self._data_source_manager.is_initialized()
 
-    def ensure_sources_ready(self) -> None:
+    async def ensure_sources_ready(self) -> None:
         """Ensure all content sources are available and indexed.
 
+        This is the async version required by the SourceManagerProtocol.
+        """
+        await self.initialize()
+
+    def ensure_sources_ready_sync(self) -> None:
+        """Ensure all content sources are available and indexed (synchronous compatibility).
+
         Note: This is the synchronous compatibility method. For async contexts,
-        use initialize() instead.
+        use ensure_sources_ready() instead.
         """
         import asyncio
 
@@ -95,8 +102,8 @@ class UnifiedSourceManager(SourceManager):
             asyncio.get_running_loop()
             # If we're already in an event loop, we need to handle this differently
             logger.warning(
-                "ensure_sources_ready() called from async context. "
-                "Consider using initialize() instead."
+                "ensure_sources_ready_sync() called from async context. "
+                "Consider using ensure_sources_ready() instead."
             )
             return
         except RuntimeError:
@@ -134,14 +141,30 @@ class UnifiedSourceManager(SourceManager):
         """Get list of all available source abbreviations."""
         return self._content_attribution_manager.get_all_sources()
 
-    def get_content_statistics(self) -> dict[str, Any]:
-        """Get statistics about available content and sources."""
+    def get_service_name(self) -> str:
+        """Return the service name for debugging and logging.
+
+        Returns:
+            Human-readable service name for identification
+        """
+        return "UnifiedSourceManager"
+
+    def get_source_statistics(self) -> dict[str, Any]:
+        """Get statistics about configured sources.
+
+        Returns:
+            Dictionary with source counts, sync status, and performance metrics
+        """
         data_stats = self._data_source_manager.get_source_statistics()
         attribution_stats = (
             self._content_attribution_manager.get_attribution_statistics()
         )
 
         return {**data_stats, **attribution_stats, "unified_manager": True}
+
+    def get_content_statistics(self) -> dict[str, Any]:
+        """Get statistics about available content and sources (compatibility alias)."""
+        return self.get_source_statistics()
 
     def clear_cache(self) -> None:
         """Clear internal caches from both managers to force rebuild."""

@@ -244,7 +244,7 @@ class Omnidexer:
 
         # Ensure sources are ready if using unified source manager
         if isinstance(self.source_manager, UnifiedSourceManager):
-            self.source_manager.ensure_sources_ready()
+            self.source_manager.ensure_sources_ready_sync()
 
         # Get data paths from source manager
         data_paths = self.source_manager.get_data_paths()
