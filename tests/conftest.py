@@ -284,14 +284,15 @@ def test_data_omnidexer() -> Omnidexer:
     import os
     import uuid
 
+    # Set test configuration environment variable BEFORE resetting containers
+    # This ensures the config is loaded from the correct file
+    os.environ["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
+
     # Use full reset sequence for complete isolation
     reset_test_environment()
 
     # Note: reset_test_environment() now handles both container systems via reset_all_containers()
     # No need for additional container resets here
-
-    # Set test configuration environment variable
-    os.environ["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
 
     # Get omnidexer - create directly for test compatibility
     omnidexer = Omnidexer()

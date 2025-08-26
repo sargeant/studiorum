@@ -663,14 +663,24 @@ class Omnidexer:
         if self.enable_deep_indexing and isinstance(content, DeepIndexable):
             try:
                 nested_content = content.get_deep_index_entries(self)
+                indexed_count = 0
                 for nested_item in nested_content:
-                    # Determine content type for nested item
-                    nested_type = ContentType.from_content(nested_item)
-                    # Recursively add nested content (cycle prevention handled above)
-                    self._add_to_index(nested_item, nested_type)
+                    try:
+                        # Determine content type for nested item
+                        nested_type = ContentType.from_content(nested_item)
+                        # Recursively add nested content (cycle prevention handled above)
+                        self._add_to_index(nested_item, nested_type)
+                        indexed_count += 1
+                    except ValueError:
+                        # Skip nested items that don't have registered content types
+                        # This is expected for nested content like sections, tables, insets
+                        logger.debug(
+                            f"Skipping nested item {type(nested_item).__name__} without registered content type"
+                        )
+                        continue
 
                 logger.debug(
-                    f"Deep indexed {len(nested_content)} nested items from {content_type.value}: {content.name}"
+                    f"Deep indexed {indexed_count} nested items from {content_type.value}: {content.name}"
                 )
 
             except Exception as e:

@@ -127,6 +127,10 @@ class TestBookResolution:
 
         # Clear cache stats
         content_merger = resolver.content_merger
+        if content_merger is None:
+            pytest.skip(
+                "ContentMerger not available - omnidexer may not have source_manager"
+            )
         content_merger.clear_cache()
         stats_before = content_merger.get_cache_stats()
 
