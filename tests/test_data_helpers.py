@@ -4,8 +4,20 @@ from typing import Any
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.content import ContentType
+
+# Lazy imports to avoid slow collection
+def _get_omnidexer():
+    """Lazy omnidexer import and creation."""
+    from studiorum.core.loaders.omnidexer import Omnidexer
+
+    return Omnidexer()
+
+
+def _get_content_type(name: str):
+    """Lazy ContentType import."""
+    from studiorum.core.models.content import ContentType
+
+    return ContentType(name)
 
 
 def get_available_sources() -> set[str]:
@@ -15,12 +27,12 @@ def get_available_sources() -> set[str]:
         Set of source abbreviations available in test data
     """
     try:
-        omnidexer = Omnidexer()
+        omnidexer = _get_omnidexer()
         omnidexer.source_manager.ensure_sources_ready_sync()
         omnidexer.load_all_data()
 
         # Get all creatures to check what sources are available
-        creature_type = ContentType("creature")
+        creature_type = _get_content_type("creature")
         creatures = omnidexer.get_all_by_type(creature_type)
 
         sources = {creature.source.abbreviation.lower() for creature in creatures}
@@ -28,6 +40,13 @@ def get_available_sources() -> set[str]:
 
     except Exception:
         return set()
+
+
+def _has_sources(required_sources: list[str]) -> bool:
+    """Check if required sources are available (called during test execution)."""
+    available_sources = get_available_sources()
+    required_lower = {src.lower() for src in required_sources}
+    return required_lower.issubset(available_sources)
 
 
 def requires_full_5etools_data(
@@ -41,19 +60,39 @@ def requires_full_5etools_data(
     Returns:
         pytest skip decorator
     """
+    import os
+
     if required_sources is None:
         required_sources = ["xphb", "xmm", "xdmg"]
 
-    available_sources = get_available_sources()
-    required_lower = {src.lower() for src in required_sources}
-    has_required = required_lower.issubset(available_sources)
+    # Simple environment check - skip unless explicitly running full data tests
+    # This avoids slow data loading during collection
+    is_full_data_test = os.environ.get("STUDIORUM_TEST_FULL_DATA", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
 
     return pytest.mark.skipif(
-        not has_required,
+        not is_full_data_test,
         reason=f"Requires full 5etools data with sources {required_sources}. "
-        f"Available: {sorted(available_sources)}. "
-        f"Run 'make test-full-data' to test with full dataset.",
+        f"Run 'make test-full-data' to test with full dataset (sets STUDIORUM_TEST_FULL_DATA=1).",
     )
+
+
+def _has_enough_creatures(min_count: int) -> bool:
+    """Check if enough creatures are available (called during test execution)."""
+    try:
+        omnidexer = _get_omnidexer()
+        omnidexer.source_manager.ensure_sources_ready_sync()
+        omnidexer.load_all_data()
+
+        creature_type = _get_content_type("creature")
+        creatures = omnidexer.get_all_by_type(creature_type)
+        return len(creatures) >= min_count
+
+    except Exception:
+        return False
 
 
 def requires_minimum_creatures(min_count: int = 10) -> pytest.MarkDecorator:
@@ -65,22 +104,20 @@ def requires_minimum_creatures(min_count: int = 10) -> pytest.MarkDecorator:
     Returns:
         pytest skip decorator
     """
-    try:
-        omnidexer = Omnidexer()
-        omnidexer.source_manager.ensure_sources_ready_sync()
-        omnidexer.load_all_data()
+    import os
 
-        creature_type = ContentType("creature")
-        creatures = omnidexer.get_all_by_type(creature_type)
-        has_enough = len(creatures) >= min_count
-
-    except Exception:
-        has_enough = False
+    # Simple environment check - skip unless explicitly running full data tests
+    # This avoids slow data loading during collection
+    is_full_data_test = os.environ.get("STUDIORUM_TEST_FULL_DATA", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
 
     return pytest.mark.skipif(
-        not has_enough,
+        not is_full_data_test,
         reason=f"Requires at least {min_count} creatures for meaningful testing. "
-        f"Run 'make test-full-data' to test with full dataset.",
+        f"Run 'make test-full-data' to test with full dataset (sets STUDIORUM_TEST_FULL_DATA=1).",
     )
 
 
@@ -94,7 +131,7 @@ def requires_content_type(content_type_name: str) -> pytest.MarkDecorator:
         pytest skip decorator
     """
     try:
-        ContentType(content_type_name)
+        _get_content_type(content_type_name)
         has_type = True
     except ValueError:
         has_type = False

@@ -216,7 +216,7 @@ test-slow: uv
 test-full-data: uv
 	@echo "Running tests requiring full 5etools dataset..."
 	@echo "Loading .env.dev environment for data access..."
-	uv run --env-file .env.dev pytest -m "requires_data"
+	STUDIORUM_TEST_FULL_DATA=1 uv run --env-file .env.dev pytest -m "requires_data"
 
 ## Legacy alias for test-full-data (deprecated)
 test-data: test-full-data
