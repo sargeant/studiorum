@@ -137,26 +137,26 @@ uv-docs:
 
 ## Linting and formatting
 ruff: uv
-	@ruff format $(SRC_DIR) $(TEST_DIR)
-	@ruff check $(SRC_DIR) $(TEST_DIR) || (echo "ERROR: ruff: code style violations found"; exit 1)
+	@$(UV) ruff format $(SRC_DIR) $(TEST_DIR)
+	@$(UV) ruff check $(SRC_DIR) $(TEST_DIR) || (echo "ERROR: ruff: code style violations found"; exit 1)
 
 ## Code formatting target
 format: uv
-	@ruff format $(SRC_DIR) $(TEST_DIR)
+	@$(UV) ruff format $(SRC_DIR) $(TEST_DIR)
 
 ## Static type checking
 mypy: uv
-	@mypy $(SRC_DIR)/ || (echo "ERROR: mypy: type checking failed"; exit 1)
+	@$(UV) mypy $(SRC_DIR)/ || (echo "ERROR: mypy: type checking failed"; exit 1)
 
 # Pyright type checking targets
 pyright-errors: uv
-	@pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level error
+	@$(UV) pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level error
 
 pyright-warnings: uv
-	@pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level warning
+	@$(UV) pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level warning
 
 pyright-json: uv
-	@pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level error --outputjson
+	@$(UV) pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level error --outputjson
 
 # Combined type checking (mypy + pyright)
 typecheck-full: mypy pyright-errors
@@ -164,24 +164,24 @@ typecheck-full: mypy pyright-errors
 
 ## Check for circular imports
 imports: uv
-	@python $(SCRIPTS_DIR)/check_circular_imports.py $(SRC_DIR)/studiorum/ --fail-on-cycles || (echo "ERROR: imports: circular imports detected"; exit 1)
+	@$(UV) python $(SCRIPTS_DIR)/check_circular_imports.py $(SRC_DIR)/studiorum/ --fail-on-cycles || (echo "ERROR: imports: circular imports detected"; exit 1)
 
 ## Check architectural boundaries
 boundaries: uv
-	@python $(SCRIPTS_DIR)/check_architectural_boundaries.py $(SRC_DIR)/studiorum/ --fail-on-violations || (echo "ERROR: boundaries: architectural violations found"; exit 1)
+	@$(UV) python $(SCRIPTS_DIR)/check_architectural_boundaries.py $(SRC_DIR)/studiorum/ --fail-on-violations || (echo "ERROR: boundaries: architectural violations found"; exit 1)
 
 # Security checks
 ## Security vulnerability scan
 pip-audit: uv
-	@pip-audit --desc=off || (echo "ERROR: pip-audit: security vulnerabilities found"; exit 1)
+	@$(UV) pip-audit --desc=off || (echo "ERROR: pip-audit: security vulnerabilities found"; exit 1)
 
 ## Static security analysis
 bandit: uv
-	@bandit -c pyproject.toml --quiet -r $(SRC_DIR)/ || (echo "ERROR: bandit: security issues found"; exit 1)
+	@$(UV) bandit -c pyproject.toml --quiet -r $(SRC_DIR)/ || (echo "ERROR: bandit: security issues found"; exit 1)
 
 # Run all tests
 test: uv
-	@pytest
+	@$(UV) pytest
 
 # Speed-based test targets for development workflow
 ## Run fast tests only (<1s per test)
@@ -391,7 +391,7 @@ ci-install:
 # Outputs: coverage.xml, htmlcov/, test-results.xml
 # Skips tests marked as ci_broken to avoid CI-specific environment issues
 ci-test: ci-install
-	@pytest --cov=studiorum --cov-report=xml --cov-report=html --junitxml=test-results.xml -m "not ci_broken" || (echo "ERROR: CI test suite failed"; exit 1)
+	@$(UV) pytest --cov=studiorum --cov-report=xml --cov-report=html --junitxml=test-results.xml -m "not ci_broken" || (echo "ERROR: CI test suite failed"; exit 1)
 
 ## Run CI checks (quality and security)
 # Comprehensive quality and security validation for CI pipelines
