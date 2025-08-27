@@ -15,7 +15,7 @@ DOCS_DIR := docs
 SCRIPTS_DIR := scripts
 
 # UV configuration for enhanced integration
-UV_SYNC_FLAGS := --locked --no-progress
+UV_SYNC_FLAGS := --no-progress
 UV_DEV_FLAGS := --group dev
 UV_DOCS_FLAGS := --group dev --extra docs
 UV_CI_FLAGS := --frozen

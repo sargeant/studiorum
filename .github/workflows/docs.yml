@@ -18,12 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
         with:
-          python-version: '3.12'
-      - run: pip install uv
-      - run: uv sync
-      - run: uv run mkdocs build --config-file docs/mkdocs.yml
+          version: "latest"
+      - name: Set up Python
+        run: uv python install 3.12
+      - name: Install dependencies
+        run: uv sync --group dev --extra docs
+      - run: uv run mkdocs build --config-file mkdocs.yml
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site/
