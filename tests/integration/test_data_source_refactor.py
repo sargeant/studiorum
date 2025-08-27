@@ -46,6 +46,7 @@ class TestDataSourceRefactorIntegration:
         """Clean up test environment."""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
+    @pytest.mark.xdist_incompatible
     def test_complete_workflow(self) -> None:
         """Test complete workflow: list → add → scan → remove."""
         # Create temporary config file for test isolation
