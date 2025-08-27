@@ -17,7 +17,7 @@ SCRIPTS_DIR := scripts
 # UV configuration for enhanced integration
 UV_SYNC_FLAGS := --no-progress
 UV_DEV_FLAGS := --group dev
-UV_DOCS_FLAGS := --group dev --extra docs
+UV_DOCS_FLAGS := --group dev
 UV_CI_FLAGS := --frozen
 
 # Environment detection
