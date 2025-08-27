@@ -39,6 +39,10 @@ class TestDataSourceRefactorIntegration:
     def setup_method(self) -> None:
         """Set up test environment."""
         reset_global_container()
+        # Also reset CLI-specific globals that might interfere
+        from studiorum.cli.main import reset_cli_globals
+
+        reset_cli_globals()
         self.runner = CliRunner()
         self.temp_dir = Path(tempfile.mkdtemp())
 
