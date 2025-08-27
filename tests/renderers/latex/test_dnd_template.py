@@ -14,6 +14,8 @@ from studiorum.latex_engine.core.dnd_template import (  # type: ignore
     get_recommended_class_options,
 )
 
+pytestmark = pytest.mark.requires_latex
+
 
 @pytest.mark.rendering
 class TestDNDTemplateManager:

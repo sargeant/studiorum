@@ -22,6 +22,9 @@ jobs:
     - name: Set up Python
       run: uv python install 3.12
 
+    - name: Install dependencies
+      run: uv sync --group dev
+
     - name: Run CI quality and security checks
       run: make ci-check
 
@@ -42,6 +45,9 @@ jobs:
 
     - name: Set up Python ${{ matrix.python-version }}
       run: uv python install ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: uv sync --group dev
 
     - name: Run comprehensive test suite with coverage
       run: make ci-test

@@ -94,6 +94,7 @@ dev = [
     "pymdown-extensions>=10.16.1",
     "mkdocstrings-python>=1.17.0",
     "deadcode>=2.4.1",
+    "pyright>=1.1.400",
 ]
 
 images = ["Pillow>=9.0.0"]

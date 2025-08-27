@@ -17,7 +17,7 @@ from studiorum.latex_engine.core.compiler import LaTeXCompiler  # type: ignore
 from tests.test_helpers import reset_test_environment
 
 # Ensure async tests work properly
-pytestmark = pytest.mark.asyncio
+pytestmark = [pytest.mark.asyncio, pytest.mark.requires_latex]
 
 
 @pytest.mark.rendering
