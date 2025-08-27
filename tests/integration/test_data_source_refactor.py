@@ -48,37 +48,48 @@ class TestDataSourceRefactorIntegration:
 
     def test_complete_workflow(self) -> None:
         """Test complete workflow: list → add → scan → remove."""
-        # 1. List initial repositories
-        result = self.runner.invoke(app, ["data", "list"])
-        assert result.exit_code == 0
-        assert "Data Repository Configuration" in result.stdout
+        # Create temporary config file for test isolation
+        config_file = self.temp_dir / "test_config.yaml"
 
-        # 2. Create test homebrew directory
-        homebrew_dir = self.temp_dir / "homebrew"
-        homebrew_dir.mkdir()
-        test_spell = homebrew_dir / "spells.json"
-        test_spell.write_text('{"spell": [{"name": "Test Spell", "source": "BREW"}]}')
+        # Mock config file path to prevent conflicts between parallel tests
+        with patch("studiorum.cli.commands.data._get_config_file_path") as mock_path:
+            mock_path.return_value = config_file
 
-        # 3. Add homebrew repository (validates path)
-        result = self.runner.invoke(app, ["data", "add-homebrew", str(homebrew_dir)])
-        assert result.exit_code == 0
-        assert "Adding homebrew repository" in result.stdout
-        assert "path validated" in result.stdout
+            # 1. List initial repositories
+            result = self.runner.invoke(app, ["data", "list"])
+            assert result.exit_code == 0
+            assert "Data Repository Configuration" in result.stdout
 
-        # 4. Scan repositories
-        result = self.runner.invoke(app, ["data", "scan"])
-        assert result.exit_code == 0
-        assert "Scan complete" in result.stdout
+            # 2. Create test homebrew directory
+            homebrew_dir = self.temp_dir / "homebrew"
+            homebrew_dir.mkdir()
+            test_spell = homebrew_dir / "spells.json"
+            test_spell.write_text(
+                '{"spell": [{"name": "Test Spell", "source": "BREW"}]}'
+            )
 
-        # 5. Check status
-        result = self.runner.invoke(app, ["data", "status"])
-        assert result.exit_code == 0
-        assert "Data Source System Status" in result.stdout
+            # 3. Add homebrew repository (validates path)
+            result = self.runner.invoke(
+                app, ["data", "add-homebrew", str(homebrew_dir)]
+            )
+            assert result.exit_code == 0
+            assert "Adding homebrew repository" in result.stdout
+            assert "path validated" in result.stdout
 
-        # 6. Check repositories
-        result = self.runner.invoke(app, ["data", "check"])
-        assert result.exit_code == 0
-        assert "repository checks" in result.stdout
+            # 4. Scan repositories
+            result = self.runner.invoke(app, ["data", "scan"])
+            assert result.exit_code == 0
+            assert "Scan complete" in result.stdout
+
+            # 5. Check status
+            result = self.runner.invoke(app, ["data", "status"])
+            assert result.exit_code == 0
+            assert "Data Source System Status" in result.stdout
+
+            # 6. Check repositories
+            result = self.runner.invoke(app, ["data", "check"])
+            assert result.exit_code == 0
+            assert "repository checks" in result.stdout
 
     def test_cli_config_commands(self) -> None:
         """Test CLI configuration commands."""
