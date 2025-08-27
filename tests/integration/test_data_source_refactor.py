@@ -38,21 +38,44 @@ class TestDataSourceRefactorIntegration:
 
     def setup_method(self) -> None:
         """Set up test environment."""
-        reset_global_container()
-        # Also reset CLI-specific globals that might interfere
-        from studiorum.cli.main import reset_cli_globals
-        from studiorum.core.registry.content_type_registry import (
-            reset_content_type_registry,
-        )
-
-        reset_cli_globals()
-        reset_content_type_registry()
+        # Comprehensive global state reset
+        self._reset_all_global_state()
         self.runner = CliRunner()
         self.temp_dir = Path(tempfile.mkdtemp())
 
     def teardown_method(self) -> None:
         """Clean up test environment."""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
+        # Also reset after test to prevent contaminating other tests
+        self._reset_all_global_state()
+
+    def _reset_all_global_state(self) -> None:
+        """Reset all known global state for complete test isolation."""
+        try:
+            reset_global_container()
+
+            # Reset CLI-specific globals
+            from studiorum.cli.main import reset_cli_globals
+
+            reset_cli_globals()
+
+            # Reset content type registry
+            from studiorum.core.registry.content_type_registry import (
+                reset_content_type_registry,
+            )
+
+            reset_content_type_registry()
+
+            # Force re-initialization of content types after reset
+            from studiorum.core.registry import initialize_content_types
+
+            initialize_content_types()
+
+        except Exception as e:
+            # Don't let reset failures break tests
+            import warnings
+
+            warnings.warn(f"Global state reset failed: {e}", stacklevel=2)
 
     @pytest.mark.xdist_incompatible
     def test_complete_workflow(self) -> None:
