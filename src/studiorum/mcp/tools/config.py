@@ -703,6 +703,8 @@ async def load_user_preferences(
 
             error_msg = f"Preset '{preset_name}' not found"
             if available_presets:
+                # Sort presets alphabetically for consistent ordering
+                available_presets.sort()
                 error_msg += f". Available presets: {', '.join(available_presets)}"
 
             error = MCPError(
