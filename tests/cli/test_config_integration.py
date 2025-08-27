@@ -19,6 +19,12 @@ class TestCLIConfigIntegration:
 
     def setup_method(self) -> None:
         """Set up test environment."""
+        # Disable Rich console formatting for consistent test output
+        import os
+
+        os.environ["NO_COLOR"] = "1"
+        os.environ["TERM"] = "dumb"
+
         self.runner = CliRunner()
         # Reset config before each test
         reset_app_config()

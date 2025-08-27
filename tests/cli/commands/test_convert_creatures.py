@@ -22,6 +22,12 @@ class TestConvertCreatureCommand:
     def setup_method(self):
         """Set up test fixtures."""
         reset_test_environment()
+        # Disable Rich console formatting for consistent test output
+        import os
+
+        os.environ["NO_COLOR"] = "1"
+        os.environ["TERM"] = "dumb"
+
         self.runner = CliRunner()
 
         # Create mock creature data that follows 5etools format
@@ -263,6 +269,12 @@ class TestCreatureCommandValidation:
     def setup_method(self):
         """Set up test fixtures."""
         reset_test_environment()
+        # Disable Rich console formatting for consistent test output
+        import os
+
+        os.environ["NO_COLOR"] = "1"
+        os.environ["TERM"] = "dumb"
+
         self.runner = CliRunner()
 
     def test_creature_command_requires_name_or_filter(self):
