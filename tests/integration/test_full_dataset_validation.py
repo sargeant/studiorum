@@ -20,6 +20,7 @@ from studiorum.core.loaders.source_manager import (
 )
 from studiorum.core.logging import get_logger  # type: ignore
 from studiorum.core.models.content import ContentType  # type: ignore
+from tests.test_data_helpers import requires_full_5etools_data
 
 
 class ValidationReport:
@@ -99,6 +100,7 @@ class ValidationReport:
         return "\n".join(summary)
 
 
+@requires_full_5etools_data()
 @pytest.mark.integration
 class TestFullDatasetValidation:
     """Integration tests for full dataset validation."""

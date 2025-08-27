@@ -24,6 +24,7 @@ from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.resolvers.content_resolver import ContentResolver
 from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
 from studiorum.renderers.core.interfaces import RenderingContext
+from tests.test_data_helpers import requires_latex_template
 
 
 def check_latex_available() -> bool:
@@ -85,6 +86,7 @@ def compile_latex(tex_content: str, output_dir: Path) -> tuple[bool, str, str]:
 
 
 @pytest.mark.needs_latex
+@requires_latex_template()
 class TestLaTeXCompilation:
     """Integration tests that perform actual LaTeX compilation."""
 
@@ -92,9 +94,6 @@ class TestLaTeXCompilation:
         """Set up test environment."""
         if not check_latex_available():
             pytest.skip("LaTeX (pdflatex) not available")
-
-        if not check_dnd_template_available():
-            pytest.skip("DND-5e-LaTeX-Template not available")
 
     def test_minimal_latex_document_compiles(self):
         """Test that a minimal LaTeX document compiles successfully."""

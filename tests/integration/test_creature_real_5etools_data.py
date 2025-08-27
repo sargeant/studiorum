@@ -16,12 +16,18 @@ from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Creature
 from studiorum.core.services.creature_collector import CreatureCollector
+from tests.test_data_helpers import (
+    requires_full_5etools_data,
+    requires_minimum_creatures,
+)
 from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.requires_data
 @pytest.mark.integration
 @pytest.mark.slow
+@requires_full_5etools_data()
+@requires_minimum_creatures(50)
 class TestCreatureReal5etoolsDataIntegration:
     """Test creature functionality with actual 5etools data files."""
 
@@ -43,37 +49,18 @@ class TestCreatureReal5etoolsDataIntegration:
     @pytest.fixture(autouse=True)
     def load_real_creature_data(self):
         """Load actual creature data from 5etools files."""
-        try:
-            self.omnidexer = Omnidexer()
-            self.omnidexer.load_all_data()
+        # Class decorators ensure we have the required data sources
+        self.omnidexer = Omnidexer()
+        self.omnidexer.load_all_data()
 
-            creature_type = ContentType("creature")
-            all_creatures = self.omnidexer.get_all_by_type(creature_type)
-            self.loaded_creatures = [
-                creature for creature in all_creatures if isinstance(creature, Creature)
-            ]
+        creature_type = ContentType("creature")
+        all_creatures = self.omnidexer.get_all_by_type(creature_type)
+        self.loaded_creatures = [
+            creature for creature in all_creatures if isinstance(creature, Creature)
+        ]
 
-            if not self.loaded_creatures:
-                pytest.skip("No creatures loaded from 5etools data")
-
-            # Filter to creatures from default sources for compatibility with CreatureCollector
-            from studiorum.cli.config_factory import get_default_sources
-
-            default_sources = get_default_sources()
-            self.default_source_creatures = [
-                creature
-                for creature in self.loaded_creatures
-                if creature.source.abbreviation.lower()
-                in [s.lower() for s in default_sources]
-            ]
-
-            if not self.default_source_creatures:
-                pytest.skip(
-                    f"No creatures from default sources {default_sources} available"
-                )
-
-        except Exception as e:
-            pytest.skip(f"Failed to load 5etools creature data: {e}")
+        # Get all creatures, not just from "default sources" which expect 5etools data
+        self.default_source_creatures = self.loaded_creatures
 
     def test_real_data_basic_creature_loading(self):
         """Test that we can load and validate basic creatures from real data."""
@@ -117,7 +104,7 @@ class TestCreatureReal5etoolsDataIntegration:
                 type_str = str(creature_type)
             type_counts[type_str] = type_counts.get(type_str, 0) + 1
 
-        # Should have common D&D creature types
+        # Should have common 5e creature types
         expected_types = {"humanoid", "beast", "dragon", "undead", "fiend"}
         found_types = set(type_counts.keys())
 
@@ -140,12 +127,12 @@ class TestCreatureReal5etoolsDataIntegration:
                     source_abbrev = str(source)
                 source_counts[source_abbrev] = source_counts.get(source_abbrev, 0) + 1
 
-        # Should have some major D&D source at minimum (SRD, MM, PHB, etc.)
+        # Should have some major 5e source at minimum (SRD, MM, PHB, etc.)
         major_sources = {"MM", "SRD", "PHB", "DMG", "XGE", "TCE"}
         found_sources = set(source_counts.keys())
         major_found = found_sources.intersection(major_sources)
         assert len(major_found) > 0, (
-            f"No major D&D sources found. Available sources: {source_counts}"
+            f"No major 5e sources found. Available sources: {source_counts}"
         )
 
         # Should have a reasonable number of creatures from major sources

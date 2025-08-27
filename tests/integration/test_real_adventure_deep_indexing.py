@@ -9,8 +9,10 @@ from studiorum.core.models.nested_content import (
     Section,
     Table,
 )
+from tests.test_data_helpers import requires_full_5etools_data
 
 
+@requires_full_5etools_data()
 @pytest.mark.integration
 class TestRealAdventureDeepIndexing:
     """Integration tests with real adventure data."""

@@ -111,10 +111,10 @@ class TestRealBookDeepIndexing:
 
         # Check for variant rules - skip if content type doesn't exist
         try:
-            variant_rule_type = ContentType("variant_rule")
+            variant_rule_type = ContentType("variantrule")
             variant_rules = omnidexer.get_all_by_type(variant_rule_type)
         except ValueError:
-            pytest.skip("variant_rule is not a registered ContentType")
+            pytest.skip("variantrule is not a registered ContentType")
 
         if variant_rules:
             # Should have some variant rules

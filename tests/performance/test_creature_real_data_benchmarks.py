@@ -15,10 +15,15 @@ from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Creature
 from studiorum.core.services.creature_collector import CreatureCollector
+from tests.test_data_helpers import (
+    requires_full_5etools_data,
+    requires_minimum_creatures,
+)
 from tests.test_helpers import reset_test_environment
 
 
-@pytest.mark.requires_data
+@requires_full_5etools_data()
+@requires_minimum_creatures(100)
 @pytest.mark.performance
 @pytest.mark.slow
 class TestCreatureRealDataPerformanceBenchmarks:

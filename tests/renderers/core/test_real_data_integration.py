@@ -21,9 +21,11 @@ from studiorum.core.text.tag_ast import TagNode
 from studiorum.renderers.core.handlers import get_default_core_handlers
 from studiorum.renderers.core.interfaces import RenderingContext
 from studiorum.renderers.core.unified_renderer import StandardUnifiedRenderer
+from tests.test_data_helpers import requires_full_5etools_data
 from tests.test_helpers import reset_test_environment
 
 
+@requires_full_5etools_data()
 @pytest.mark.rendering
 class TestRealDataIntegration:
     """Integration tests with real 5etools data."""
@@ -345,6 +347,7 @@ class TestRealDataIntegration:
             pytest.skip(f"Omnidexer integration failed: {e}")
 
 
+@requires_full_5etools_data()
 @pytest.mark.rendering
 class TestRealDataPerformance:
     """Performance-focused integration tests with real data."""

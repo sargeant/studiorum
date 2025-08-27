@@ -212,11 +212,15 @@ test-integration: uv
 test-slow: uv
 	@pytest -m "slow"
 
-## Run tests requiring external data
-test-data: uv
-	@echo "Running tests requiring external data..."
+## Run tests requiring full 5etools dataset
+test-full-data: uv
+	@echo "Running tests requiring full 5etools dataset..."
 	@echo "Loading .env.dev environment for data access..."
 	uv run --env-file .env.dev pytest -m "requires_data"
+
+## Legacy alias for test-full-data (deprecated)
+test-data: test-full-data
+	@echo "WARNING: 'make test-data' is deprecated. Use 'make test-full-data' instead."
 
 ## Run LaTeX integration tests (requires LaTeX installation)
 test-latex-integration: uv
