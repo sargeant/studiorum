@@ -41,8 +41,12 @@ class TestDataSourceRefactorIntegration:
         reset_global_container()
         # Also reset CLI-specific globals that might interfere
         from studiorum.cli.main import reset_cli_globals
+        from studiorum.core.registry.content_type_registry import (
+            reset_content_type_registry,
+        )
 
         reset_cli_globals()
+        reset_content_type_registry()
         self.runner = CliRunner()
         self.temp_dir = Path(tempfile.mkdtemp())
 
