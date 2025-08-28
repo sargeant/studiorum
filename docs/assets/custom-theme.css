@@ -79,6 +79,58 @@ button {
 }
 
 /* =============================================================================
+   NAVIGATION CUSTOMIZATION
+   ============================================================================= */
+
+/* Hide the site title in navigation sidebar */
+.md-nav--primary .md-nav__title {
+    display: none;
+}
+
+/* Hide site title in header for consistency */
+.md-header__title {
+    display: none;
+}
+
+/* Header layout fixes - single row with hamburger left, search/github right */
+.md-header__inner {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: none;
+    padding: 0 1rem;
+    gap: 1rem;
+}
+
+/* Hide logo and title since we only want hamburger menu */
+.md-header__button.md-logo,
+.md-header__title {
+    display: none;
+}
+
+/* Keep hamburger menu button on left */
+.md-header__button.md-icon {
+    order: 1;
+    flex-shrink: 0;
+}
+
+/* Push search and github to the right with auto margin */
+.md-search {
+    order: 2;
+    margin-left: auto;
+}
+
+.md-header__source {
+    order: 3;
+    margin-left: 1rem;
+}
+
+/* Hide redundant elements */
+.md-header__topic {
+    display: none;
+}
+
+/* =============================================================================
    MATERIAL THEME COLOR OVERRIDES
    ============================================================================= */
 
