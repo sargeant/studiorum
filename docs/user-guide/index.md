@@ -1,5 +1,5 @@
 ---
-title: User Guide
+title: Introduction
 description: Get started with studiorum to create beautiful LaTeX/PDF documents from 5e content
 ---
 
@@ -9,8 +9,6 @@ Transform 5e content into professional PDFs with studiorum's LaTeX-based typeset
 
 !!! warning "In development"
     This tool is in active development. Some features may not work, some may require debugging for your environment. Check back soon for v1.0
-
-[Ready to create your first PDF?](quick-start.md)
 
 ## What You Can Create
 
@@ -29,6 +27,8 @@ Transform 5e content into professional PDFs with studiorum's LaTeX-based typeset
 
 !!! tip "New to Command Line?"
     Don't worry! Our [Quick Start Guide](quick-start.md) includes step-by-step instructions with screenshots and assumes no prior command line experience.
+
+[Ready to create your first PDF?](quick-start.md)
 
 ---
 

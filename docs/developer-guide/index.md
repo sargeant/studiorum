@@ -1,5 +1,5 @@
 ---
-title: Developer Guide - Build with Studiorum
+title: Introduction
 description: Architecture overview, API reference, and development patterns for building applications with studiorum
 ---
 
@@ -12,60 +12,8 @@ Build applications with studiorum's modern Python architecture for 5e content pr
   <p class="hero-description">Leverage powerful models, services, and rendering systems for comprehensive 5e content applications</p>
 </div>
 
-## Architecture Overview
+## Application Development
 
-<div class="feature-cards" markdown>
-
--   🏗️ **System Architecture**
-
-    ---
-
-    Understand the service container, async patterns, and modern Python
-    design that powers studiorum
-
-    [Architecture Overview](architecture.md){ .btn-primary }
-
--   📚 **Data Source Architecture**
-
-    ---
-
-    Modern three-tier data model with SRD, primary override, and
-    extensions for comprehensive content management
-
-    [Data Sources Guide](data-sources.md){ .btn-primary }
-
--   🚀 **Quick Development Setup**
-
-    ---
-
-    Get your development environment running in under 30 minutes with
-    our comprehensive setup guide
-
-    [Getting Started](getting-started.md){ .btn-primary }
-
--   📚 **API Reference**
-
-    ---
-
-    Complete API documentation with examples for models, services,
-    and rendering systems
-
-    [API Documentation](api/){ .btn-secondary }
-
--   🤖 **AI Agent Development**
-
-    ---
-
-    Build intelligent 5e applications using MCP tools and async
-    service patterns
-
-    [AI Agents](ai-agents.md){ .btn-accent }
-
-</div>
-
-## Development Pathways
-
-### Application Development
 Build applications that process 5e content:
 
 ```mermaid
@@ -81,7 +29,8 @@ graph LR
 2. **[Models](models.md)** - Work with typed 5e content models
 3. **[API Reference](api/)** - Explore services and rendering systems
 
-### MCP Tool Development
+## MCP Tool Development
+
 Create AI-powered 5e tools:
 
 ```mermaid
@@ -96,7 +45,8 @@ graph LR
 2. **[Getting Started](getting-started.md#mcp-development)** - Development setup
 3. **[API Reference](api/services.md)** - Service layer integration
 
-### Core Contribution
+## Core Contribution
+
 Contribute to studiorum itself:
 
 1. **[Contributing](contributing.md)** - Development workflow and standards
@@ -106,6 +56,7 @@ Contribute to studiorum itself:
 ## Key Concepts
 
 ### Service Container Pattern
+
 Modern dependency injection with async support:
 
 ```python
@@ -120,6 +71,7 @@ async def mcp_tool(ctx: AsyncRequestContext):
 ```
 
 ### Type-Safe Models
+
 Pydantic models with full 5e content support:
 
 ```python
@@ -135,6 +87,7 @@ print(f"Damage: {fireball.damage}")
 ```
 
 ### Async/Sync Hybrid
+
 Optimized for different use cases:
 
 - **CLI**: Synchronous for simple sequential operations
@@ -203,12 +156,14 @@ latex_output = renderer.render_adventure(adventure, context)
 ## Development Standards
 
 ### Code Quality
+
 - **Type Safety**: Full mypy compliance with modern Python patterns
 - **Testing**: Property-based testing with Hypothesis + traditional unit tests
 - **Performance**: Async architecture with intelligent caching
 - **Security**: LaTeX injection prevention and input validation
 
 ### Architecture Principles
+
 - **Protocol-Based**: Loose coupling through runtime checkable protocols
 - **Service Oriented**: Dependency injection with lifecycle management
 - **Result Pattern**: Explicit error handling without exceptions
