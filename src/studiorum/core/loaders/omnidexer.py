@@ -421,12 +421,12 @@ class Omnidexer:
                                 metadata_item, enriched_item, content_type
                             )
                             enriched_count += 1
-                            logger.info(
-                                f"✅ Enriched {content_type.value} '{content_id}' with {len(merged_data.get('contents', []))} sections"
+                            logger.debug(
+                                f"Enriched {content_type.value} '{content_id}' with {len(merged_data.get('contents', []))} sections"
                             )
                         else:
                             logger.error(
-                                f"❌ No content created from merged data for {content_type.value} '{content_id}'"
+                                f"No content created from merged data for {content_type.value} '{content_id}'"
                             )
                     else:
                         logger.warning(f"No loader available for {content_type.value}")
