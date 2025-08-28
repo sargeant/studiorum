@@ -1,5 +1,4 @@
-# Studiorum Documentation - MkDocs Configuration
-# Generated from private/docs-mkdocs.md plan on 2025-08-24
+# Studiorum Documentation - MkDocs Configuration with Material Theme
 
 site_name: Studiorum
 site_description: 5e content processing toolkit - LaTeX/PDF generation and MCP integration
@@ -10,36 +9,22 @@ edit_uri: edit/develop/docs/
 docs_dir: docs
 
 theme:
-  name: cinder
+  name: material
+  custom_dir: docs/overrides
+  palette:
+    # Primary colors matching D&D theme
+    primary: deep purple
+    accent: amber
+  font:
+    # Use system fonts by default, custom fonts loaded via extra_css
+    text: Roboto
+    code: Roboto Mono
 
-# Visual Design System - Fantasy-Themed with AI Accents
+# Custom fonts and styling
 extra_css:
-  - assets/theme-core.css        # Core color scheme & typography
-  - assets/theme-components.css  # Cards, navigation, UI elements
-  - assets/ai-accents.css        # Subtle AI-influenced effects
-  - assets/responsive.css        # Mobile-first responsive design
   - https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Cabin:ital,wght@0,400;0,600;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap
   - https://cdn.jsdelivr.net/npm/@githubnext/monaspace@1.000.0/fonts/webfonts/MonaspaceNeon/MonaspaceNeon.css
-
-extra_javascript:
-  - assets/theme-interactions.js # Hover effects, animations
-  - assets/ai-enhancements.js    # Subtle tech/AI visual elements
-  - https://unpkg.com/mermaid@11/dist/mermaid.min.js
-  - assets/mermaid-init.js       # Mermaid initialization and theming
-
-# Enhanced Cinder Configuration for Visual Theme
-extra:
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/sargeant/studiorum
-    - icon: fontawesome/brands/python
-      link: https://pypi.org/project/studiorum/
-  studiorum_theme:
-    primary_color: "#4a148c"      # Deep purple
-    accent_color: "#ffc107"       # Gold
-    ai_accent: "#00e5ff"          # Cyan AI glow
-    enable_effects: true          # Subtle visual effects
-    typography_style: "elegant"   # Playfair Display headers, readable body
+  - assets/custom-theme.css
 
 plugins:
   - search:
@@ -65,9 +50,6 @@ plugins:
               ignore_init_summary: true
             show_symbol_type_heading: true
             show_symbol_type_toc: true
-            # Extra options (moved to fix deprecation warning)
-            extra:
-              show_private: false
 
 markdown_extensions:
   # Python Markdown

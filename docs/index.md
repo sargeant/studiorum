@@ -1,72 +1,37 @@
 ---
-title: Studiorum Documentation
+title: Studiorum
 description: 5e content processing toolkit - LaTeX/PDF generation and MCP integration
+template: home.html
 ---
 
-<div class="hero-banner gradient-background">
+<div class="hero-banner">
   <h1 class="hero-title">Studiorum</h1>
   <p class="hero-subtitle">Content Toolkit for the 5th Edition of the World's Greatest Roleplaying Game</p>
+  <p class="hero-description">Transform D&D™ 5e content into beautiful PDFs with professional typography, or build powerful applications with our Python models and AI agent integrations.</p>
 </div>
-
-## Getting Started
 
 <div class="feature-cards">
-  <div class="feature-card">
+  <a href="user-guide/" class="feature-card">
     <h3>User Guide</h3>
     <p>Create beautiful PDFs from 5e compatible spells, items, and creatures using professional typesetting.</p>
-    <a href="user-guide/" class="btn-primary">Get Started</a>
-  </div>
+  </a>
 
-  <div class="feature-card">
-    <h3>Developer Guide</h3>
-    <p>Build applications with Studiorum's models and services for 5e content processing.</p>
-    <a href="developer-guide/" class="btn-secondary">API Documentation</a>
-  </div>
-
-  <div class="feature-card">
-    <h3>MCP Integration</h3>
+  <a href="user-guide/mcp-setup/" class="feature-card">
+    <h3>MCP for AI</h3>
     <p>Connect AI agents to 5e content through Model Context Protocol tools for intelligent content processing.</p>
-    <a href="user-guide/mcp-setup/" class="btn-accent">Setup MCP</a>
-  </div>
+  </a>
 
-  <div class="feature-card">
+  <a href="developer-guide/" class="feature-card">
     <h3>Open Source</h3>
-    <p>MIT licensed with modern Python architecture. Contributions welcome.</p>
-    <a href="developer-guide/contributing/" class="btn-outline">Contributing</a>
-  </div>
-</div>
+    <p>Build applications with Studiorum's models and services for 5e content processing.</p>
+  </a>
 
-## Examples
-
-<div class="examples-showcase">
-  <div class="example-card">
-    <h4>📚 Create Adventure PDF</h4>
-    <div class="example-code">
-      <pre><code>studiorum convert adventure MGA --output my-great-adventure.pdf</code></pre>
-    </div>
-  </div>
-
-  <div class="example-card">
-    <h4>🐍 Use Python Models</h4>
-    <div class="example-code">
-      <pre><code class="language-python">from studiorum.models import Spell
-
-fireball = Spell.from_5etools("fireball")
-print(f"Damage: {fireball.damage}")</code></pre>
-    </div>
-  </div>
-
-  <div class="example-card">
-    <h4>🔗 MCP Integration</h4>
-    <div class="example-code">
-      <pre><code class="language-json">{
-  "name": "lookup_spell",
-  "arguments": {"name": "fireball"}
-}</code></pre>
-    </div>
-  </div>
 </div>
 
 <div class="getting-started-cta">
-  Choose your path above to get started with studiorum.
+  Choose your path above to get started with Studiorum.
+</div>
+
+<div class="legal-disclaimer">
+  <p>Studiorum is an independent tool that provides a structured query interface for the D&D™ System Reference Document (SRD) and with 5th edition compatible data from homebrew resources. D&D is a trademark of Wizards of the Coast LLC. This tool is not affiliated with or endorsed by Wizards of the Coast.</p>
 </div>

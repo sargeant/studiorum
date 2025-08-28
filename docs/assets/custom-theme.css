@@ -1,0 +1,449 @@
+/* Studiorum Documentation - Custom Theme CSS
+ * Material Theme Overrides for D&D 5e Visual Style
+ */
+
+/* =============================================================================
+   CSS CUSTOM PROPERTIES - STUDIORUM DESIGN SYSTEM
+   ============================================================================= */
+
+:root {
+    /* Primary Colors - D&D Theme */
+    --studiorum-deep-purple: #4a148c;
+    --studiorum-gold: #ffc107;
+    --studiorum-parchment: #f5f5dc;
+    --studiorum-shadow: #1a0a2e;
+
+    /* AI Tech Accents */
+    --studiorum-cyan-glow: #00e5ff;
+    --studiorum-circuit-blue: #03a9f4;
+    --studiorum-data-green: #4caf50;
+
+    /* Typography - LaTeX Template Matched Fonts */
+    --font-display: 'Libre Baskerville', serif;      /* Headers: Mrs Eaves alternative */
+    --font-body: 'Lora', serif;                      /* Body: Bookmania alternative */
+    --font-ui: 'Lato', sans-serif;                   /* UI: Gillius ADF alternative */
+    --font-mono: 'Monaspace Neon', 'Fira Code', monospace; /* Code: Advanced monospace */
+
+    /* Typography Sizes */
+    --text-base: 0.95rem;    /* Further reduced for better balance */
+    --text-lg: 1.25rem;
+    --text-xl: 1.5rem;
+    --text-2xl: 1.75rem;
+    --text-3xl: 2rem;
+    --text-4xl: 2.5rem;
+}
+
+/* =============================================================================
+   TYPOGRAPHY OVERRIDES
+   ============================================================================= */
+
+/* Headers - D&D Style with Libre Baskerville */
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+    font-family: var(--font-display) !important;
+    font-weight: 700;
+    color: var(--studiorum-deep-purple);
+    text-shadow: 0 2px 4px rgba(255, 193, 7, 0.1);
+    letter-spacing: 0.025em;
+}
+
+/* Body text - Lora serif for readability */
+.md-typeset,
+.md-typeset p,
+.md-typeset li {
+    font-family: var(--font-body) !important;
+    font-size: var(--text-base);
+    line-height: 1.6;
+    color: var(--studiorum-shadow);
+}
+
+/* Navigation and UI elements - Lato sans-serif */
+.md-header,
+.md-nav,
+.md-footer,
+.md-search,
+button {
+    font-family: var(--font-ui) !important;
+}
+
+/* Code blocks - Monaspace Neon */
+.md-typeset code,
+.md-typeset pre,
+.md-typeset .codehilite {
+    font-family: var(--font-mono) !important;
+    font-size: 0.7rem;
+}
+
+/* =============================================================================
+   MATERIAL THEME COLOR OVERRIDES
+   ============================================================================= */
+
+/* Override Material's primary colors to match our D&D theme */
+[data-md-color-scheme="default"] {
+    --md-primary-fg-color: var(--studiorum-deep-purple);
+    --md-primary-fg-color--light: #7b1fa2;
+    --md-primary-fg-color--dark: #311b92;
+    --md-accent-fg-color: var(--studiorum-gold);
+    --md-accent-fg-color--transparent: rgba(255, 193, 7, 0.1);
+}
+
+/* Custom styling for links */
+.md-typeset a {
+    color: var(--studiorum-deep-purple);
+}
+
+.md-typeset a:hover {
+    color: var(--studiorum-gold);
+}
+
+/* =============================================================================
+   CODE BLOCK STYLING - D&D INSPIRED
+   ============================================================================= */
+
+/* Code blocks with D&D DndMonster styling - exact LaTeX template match */
+.md-typeset .codehilite,
+.md-typeset .highlight,
+.md-typeset pre,
+.md-typeset .codehilite > pre,
+.md-typeset .highlight > pre {
+    background: #FDF1DC !important;  /* statblockbgtan - exact LaTeX color */
+    color: var(--studiorum-shadow) !important;
+    border: none !important;  /* Remove any existing borders first */
+    border-radius: 0 !important;  /* DndMonster uses sharp corners */
+    /* DndMonster double border system - exact LaTeX implementation */
+    border-top: 3px solid #58180D !important;      /* statblocktitle (titlered) */
+    border-bottom: 3px solid #58180D !important;   /* statblocktitle (titlered) */
+    box-shadow:
+        0 -2px 0 0 #E69A28 inset,    /* Top ribbon - statblockribbonyellow */
+        0 2px 0 0 #E69A28 inset,     /* Bottom ribbon - statblockribbonyellow */
+        0 4px 6px rgba(0, 0, 0, 0.1) !important;  /* Subtle drop shadow */
+    overflow-x: auto;
+    max-width: 100%;
+    word-wrap: break-word;
+    margin: 1em 0 !important;
+    padding: 1em !important;
+}
+
+/* Remove Material's wrapper styling */
+.md-typeset div.codehilite,
+.md-typeset div.highlight {
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Remove Material's default code block backgrounds and apply parchment */
+.md-typeset .codehilite pre,
+.md-typeset .highlight pre,
+.md-typeset pre code,
+.md-typeset .codehilite code,
+.md-typeset .highlight code {
+    background: linear-gradient(135deg,
+        rgba(253, 241, 220, 0.95),
+        rgba(253, 241, 220, 0.9)) !important;
+    color: var(--studiorum-shadow) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 0.7rem !important;
+}
+
+/* Ensure all code elements use Monaspace Neon and parchment background */
+.md-typeset pre,
+.md-typeset pre code,
+.md-typeset .codehilite code,
+.md-typeset .highlight code,
+.md-typeset code[class*="language-"],
+.md-typeset pre[class*="language-"] {
+    background: linear-gradient(135deg,
+        rgba(253, 241, 220, 0.95),
+        rgba(253, 241, 220, 0.9)) !important;
+    color: var(--studiorum-shadow) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 0.7rem !important;
+}
+
+/* Override any syntax highlighting backgrounds */
+.md-typeset .codehilite .hll,
+.md-typeset .highlight .hll {
+    background: rgba(255, 193, 7, 0.2) !important;
+}
+
+/* Inline code styling */
+.md-typeset code:not(pre code) {
+    background: rgba(253, 241, 220, 0.8) !important;
+    color: var(--studiorum-deep-purple) !important;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 4px;
+    padding: 0.2em 0.4em;
+}
+
+/* =============================================================================
+   LANDING PAGE DESIGN
+   ============================================================================= */
+
+/* Full-page landing layout */
+.studiorum-landing-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg,
+        rgba(74, 20, 140, 0.1) 0%,
+        rgba(245, 245, 220, 0.3) 50%,
+        rgba(255, 193, 7, 0.1) 100%);
+}
+
+/* Hero banner */
+.hero-banner {
+    text-align: center;
+    padding: 4rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero-title {
+    font-family: var(--font-display) !important;
+    font-size: 4rem !important;
+    font-weight: 700 !important;
+    color: var(--studiorum-deep-purple) !important;
+    text-shadow: 0 4px 8px rgba(255, 193, 7, 0.3) !important;
+    margin-bottom: 1rem !important;
+    letter-spacing: 0.05em;
+}
+
+.hero-subtitle {
+    font-family: var(--font-body) !important;
+    font-size: 1.5rem !important;
+    color: var(--studiorum-shadow) !important;
+    font-style: italic;
+    margin-bottom: 1.5rem !important;
+}
+
+.hero-description {
+    font-family: var(--font-body) !important;
+    font-size: 1.1rem !important;
+    color: var(--studiorum-shadow) !important;
+    line-height: 1.6;
+    margin-bottom: 3rem !important;
+    opacity: 0.8;
+}
+
+/* Feature cards grid */
+.feature-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+    padding: 0 1rem;
+}
+
+.feature-card {
+    display: block;
+    background: rgba(253, 241, 220, 0.8);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.feature-card:hover {
+    border-color: var(--studiorum-gold);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    color: inherit;
+}
+
+.feature-card h3 {
+    font-family: var(--font-display) !important;
+    color: var(--studiorum-deep-purple) !important;
+    font-size: 1.5rem !important;
+    margin-top: 0 !important;
+    margin-bottom: 1rem !important;
+    transition: color 0.3s ease;
+}
+
+.feature-card:hover h3 {
+    color: var(--studiorum-gold) !important;
+}
+
+.feature-card p {
+    font-family: var(--font-body) !important;
+    color: var(--studiorum-shadow);
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+/* Buttons */
+.btn-primary, .btn-secondary, .btn-accent, .btn-outline {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-family: var(--font-ui) !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid;
+}
+
+.btn-primary {
+    background: var(--studiorum-deep-purple);
+    color: white;
+    border-color: var(--studiorum-deep-purple);
+}
+
+.btn-primary:hover {
+    background: #6a1b9a;
+    transform: translateY(-2px);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--studiorum-gold);
+    color: var(--studiorum-shadow);
+    border-color: var(--studiorum-gold);
+}
+
+.btn-secondary:hover {
+    background: #f57f17;
+    transform: translateY(-2px);
+}
+
+.btn-accent {
+    background: var(--studiorum-cyan-glow);
+    color: var(--studiorum-shadow);
+    border-color: var(--studiorum-cyan-glow);
+}
+
+.btn-accent:hover {
+    background: #18ffff;
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--studiorum-deep-purple);
+    border-color: var(--studiorum-deep-purple);
+}
+
+.btn-outline:hover {
+    background: var(--studiorum-deep-purple);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Examples showcase */
+.examples-showcase {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+    padding: 0 1rem;
+}
+
+.example-card {
+    background: rgba(245, 245, 220, 0.5);
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid rgba(74, 20, 140, 0.1);
+}
+
+.example-card h4 {
+    font-family: var(--font-display) !important;
+    color: var(--studiorum-deep-purple) !important;
+    margin-bottom: 1rem !important;
+    font-size: 1.2rem !important;
+}
+
+.example-code {
+    margin-top: 1rem;
+}
+
+.example-code pre {
+    margin: 0 !important;
+    font-size: 0.8rem !important;
+}
+
+/* Getting started CTA */
+.getting-started-cta {
+    text-align: center;
+    padding: 3rem 2rem;
+    font-family: var(--font-body) !important;
+    font-size: 1.2rem;
+    color: var(--studiorum-shadow);
+    font-style: italic;
+}
+
+/* Legal disclaimer */
+.legal-disclaimer {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+    border-top: 1px solid rgba(74, 20, 140, 0.1);
+    margin-top: 2rem;
+}
+
+.legal-disclaimer p {
+    font-family: var(--font-ui) !important;
+    font-size: 0.85rem !important;
+    color: rgba(26, 10, 46, 0.7) !important;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+/* Ensure readable text on smaller screens */
+@media screen and (max-width: 768px) {
+    .md-typeset {
+        font-size: var(--text-base);
+    }
+
+    .md-typeset h1 {
+        font-size: var(--text-3xl);
+    }
+
+    .md-typeset h2 {
+        font-size: var(--text-2xl);
+    }
+
+    .md-typeset h3 {
+        font-size: var(--text-xl);
+    }
+
+    /* Landing page mobile adjustments */
+    .hero-title {
+        font-size: 3rem !important;
+    }
+
+    .hero-subtitle {
+        font-size: 1.3rem !important;
+    }
+
+    .hero-banner {
+        padding: 2rem 1rem;
+    }
+
+    .feature-cards {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0;
+    }
+
+    .examples-showcase {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0;
+    }
+}

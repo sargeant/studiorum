@@ -30,18 +30,8 @@ Install studiorum using pip or uv:
 Convert a single creature to PDF:
 
 ```bash
-studiorum convert creature "Ancient Red Dragon" --output dragon.tex
-pdflatex dragon.tex
-```
-
-### Convert an Adventure
-
-Convert a full adventure with appendices:
-
-```bash
-studiorum convert adventure "Lost Mine of Phandelver" \
-    --creatures --spells --items \
-    --output lmop.tex
+studiorum convert creatures --type dragon --output dragons.tex
+xelatex dragon.tex
 ```
 
 ### List Available Content
@@ -52,36 +42,20 @@ See what content is available:
 # List adventures
 studiorum list adventures
 
-# List creatures by challenge rating
-studiorum list creatures --cr 10-15
+# List creatures
+studiorum list content --type creature
 
-# List spells by level
-studiorum list spells --level 3
+# List spells
+studiorum list content --type spell
+
+# List items
+studiorum list content --type item
+
 ```
 
 ## Configuration
 
-Create a configuration file at `~/.studiorum/config.yaml`:
-
-```yaml
-# Data sources
-sources:
-  enabled:
-    - PHB  # Player's Handbook
-    - DMG  # Dungeon Master's Guide
-    - MM   # Monster Manual
-    - VGtM # Volo's Guide to Monsters
-
-# LaTeX settings
-latex:
-  compiler: pdflatex
-  template: dnd-5e
-
-# Output preferences
-output:
-  include_toc: true
-  include_index: true
-```
+> Needs content
 
 ## Next Steps
 
