@@ -29,30 +29,21 @@ class TestErrorHandlingPaths:
 
     @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
     @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
-    @patch("builtins.open")
-    @pytest.mark.skip(reason="Test causes hanging - needs investigation")
-    def test_json_decode_error(
-        self, mock_builtin_open, mock_tag_resolver, mock_omnidexer
-    ):
+    def test_json_decode_error(self, mock_tag_resolver, mock_omnidexer):
         """Test handling of invalid JSON files."""
-        # Mock file operations - invalid JSON
-        mock_file = Mock()
-        mock_file.read.return_value = "invalid json content {"
-        mock_builtin_open.return_value.__enter__.return_value = mock_file
-
         # Mock dependencies
         mock_omnidexer_instance = Mock(spec=Omnidexer)
         mock_omnidexer.return_value = mock_omnidexer_instance
         mock_tag_resolver_instance = Mock(spec=TagResolver)
         mock_tag_resolver.return_value = mock_tag_resolver_instance
 
-        # Create temporary file with invalid JSON
+        # Create temporary file with invalid JSON (use real file instead of mocking)
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write("invalid json content {")
             file_path = f.name
 
         try:
-            # Test command
+            # Test command - let the real JSON parsing handle the invalid content
             result = self.runner.invoke(app, ["convert", "adventure", file_path])
 
             # Should exit with error
