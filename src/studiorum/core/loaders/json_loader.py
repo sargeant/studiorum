@@ -506,6 +506,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             "sense": {"sense", "senses"},
             "hazard": {"hazard", "hazards"},
             "status": {"status", "statuses"},
+            "legendarygroup": {"legendaryGroup", "legendarygroup", "legendarygroups"},
         }
 
         return content_type_keys.get(self._content_type.value, set())

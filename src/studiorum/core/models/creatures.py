@@ -65,6 +65,114 @@ class CreatureEntryContent(BaseModel):
     # Allow additional fields for different entry types
     model_config = {"extra": "allow"}
 
+    def get_processed_name(self) -> str:
+        """Get entry name for display (used by template)."""
+        return self.name or ""
+
+    def get_description_text(self) -> str:
+        """Get entry description text for rendering with tag processing and content tracking."""
+        try:
+            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
+            from ...renderers.core.interfaces import RenderingContext
+            from ..container import get_global_container
+            from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
+
+            # Get services for tag processing
+            container = get_global_container()
+            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
+            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
+
+            # Try to get the current rendering context from the call stack
+            # This allows us to access the content_tracker from the main rendering pipeline
+            current_context = None
+            try:
+                import inspect
+
+                from jinja2.runtime import Context
+
+                for frame_info in inspect.stack():
+                    frame = frame_info.frame
+                    frame_locals = frame.f_locals
+
+                    # Check for Jinja2 template context
+                    if "context" in frame_locals:
+                        jinja_context = frame_locals["context"]
+                        # Check if it's a Jinja2 Context with vars
+                        if hasattr(jinja_context, "vars") and jinja_context.vars:
+                            if "rendering_context" in jinja_context.vars:
+                                current_context = jinja_context.vars[
+                                    "rendering_context"
+                                ]
+                                break
+                        # Also check if the context itself is the rendering context
+                        elif hasattr(jinja_context, "content_tracker"):
+                            current_context = jinja_context
+                            break
+
+                    # Also check for direct rendering_context in locals
+                    if "rendering_context" in frame_locals:
+                        current_context = frame_locals["rendering_context"]
+                        break
+            except:
+                pass
+
+            # Create rendering context - use existing content_tracker if available
+            content_tracker = (
+                getattr(current_context, "content_tracker", None)
+                if current_context
+                else None
+            )
+
+            context = RenderingContext(
+                output_format="latex",
+                debug_mode=False,
+                omnidexer=omnidexer,
+                tag_resolver=tag_resolver,
+                content_tracker=content_tracker,
+                metadata={
+                    "source_name": "unknown",
+                    "tag_resolver": tag_resolver,
+                    "content_type": "creature",
+                },
+            )
+
+            # Use recursive entry processor
+            processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+            # Process based on entry type
+            if self.type == "list" and self.items:
+                # Convert to entry format for processor
+                entry_data = {"type": "list", "items": self.items}
+                processed_entries = processor.process_entries([entry_data], context)
+                return "\\n".join(processed_entries)
+            elif self.text:
+                processed_entries = processor.process_entries([self.text], context)
+                return "\\n".join(processed_entries)
+            elif self.entries:
+                processed_entries = processor.process_entries(self.entries, context)
+                return "\\n".join(processed_entries)
+            else:
+                return ""
+
+        except Exception:
+            # Fallback to simple rendering
+            if self.type == "list" and self.items:
+                items_text = []
+                for item in self.items:
+                    if isinstance(item, str):
+                        items_text.append(f"\\item {item}")
+                    else:
+                        items_text.append(f"\\item {str(item)}")
+                return (
+                    f"\\begin{{itemize}}\n{chr(10).join(items_text)}\n\\end{{itemize}}"
+                )
+            elif self.text:
+                return self.text
+            elif self.entries:
+                return " ".join(str(entry) for entry in self.entries)
+            else:
+                return ""
+
 
 # Union type for flexible creature entry parsing
 CreatureEntry = str | CreatureEntryContent
@@ -758,6 +866,9 @@ class Creature(BaseContent):
         None, alias="legendaryActions", description="Number of legendary actions"
     )
     legendary: list[Ability] | None = Field(None, description="Legendary actions")
+    lair_actions: list[CreatureEntry] | None = Field(
+        None, description="Lair actions (populated from legendary group data)"
+    )
     reaction: list[Ability] | None = Field(None, description="Reactions")
     bonus: list[Ability] | None = Field(None, description="Bonus actions")
 

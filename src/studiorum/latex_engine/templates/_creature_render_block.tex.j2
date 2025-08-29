@@ -138,6 +138,22 @@
 <@ endfor @>
 <@ endif @>
 
+<@ if creature.lair_actions @>
+\DndMonsterSection{Lair Actions}
+<@ for lair_action in creature.lair_actions @>
+<@ if lair_action is string @>
+<# lair_action | process_tags | safe #>
+
+<@ else @>
+<@ if lair_action.get_processed_name() @>
+\DndMonsterAction{<# lair_action.get_processed_name() | safe #>}
+<@ endif @>
+<# lair_action.get_description_text() | safe #>
+
+<@ endif @>
+<@ endfor @>
+<@ endif @>
+
 % Add source abbreviation at the bottom
 \vspace{2pt}
 \noindent\hfill{\scriptsize\textcolor{gray}{<# creature.source.abbreviation | latex_escape #>}}

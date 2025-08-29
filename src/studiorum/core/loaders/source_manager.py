@@ -182,6 +182,7 @@ class FileSystemSourceManager(SourceManager):
             "background": ["background", "backgrounds"],
             "feat": ["feat", "feats"],
             "race": ["race", "races"],
+            "legendarygroup": ["bestiary"],
         }
 
         # Convert to ContentType only if the enum member exists
@@ -224,6 +225,8 @@ class FileSystemSourceManager(SourceManager):
                 elif content_type.value == "class":
                     # Classes have a directory structure, already handled above
                     pass
+                elif content_type.value == "legendarygroup":
+                    type_paths.extend(data_dir.glob("legendarygroups*.json"))
 
             if type_paths:
                 paths[content_type] = type_paths

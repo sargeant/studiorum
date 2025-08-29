@@ -9,6 +9,7 @@ from ..loaders.omnidexer import Omnidexer
 from ..models.content import ContentType
 from ..models.creature_filters import CreatureCollectionResult, CreatureFilterCriteria
 from ..models.creatures import Creature
+from ..models.legendarygroup import LegendaryGroup
 
 logger = get_logger(__name__)
 
@@ -110,6 +111,11 @@ class CreatureCollector:
                     result.add_creature(creature_content, source_abbrev)
 
         logger.info(f"Collected {result.total_count} creatures matching criteria")
+
+        # Populate lair actions for all collected creatures
+        if result.creatures:
+            self.populate_lair_actions(result.creatures)
+
         return result
 
     def collect_by_names(
@@ -204,6 +210,10 @@ class CreatureCollector:
                 # No exact match, try fuzzy matching
                 suggestions = self._find_creature_suggestions(name, sources)
                 result.add_unresolved(name, suggestions)
+
+        # Populate lair actions for all collected creatures
+        if result.creatures:
+            self.populate_lair_actions(result.creatures)
 
         return result
 
@@ -860,3 +870,114 @@ class CreatureCollector:
                     stats["by_source"][source] = stats["by_source"].get(source, 0) + 1
 
         return stats
+
+    def populate_lair_actions(self, creatures: list["Creature"]) -> None:
+        """Populate lair actions for creatures from legendary group data.
+
+        Args:
+            creatures: List of creatures to enhance with lair actions
+        """
+        from ..models.content import ContentType
+        from ..models.legendarygroup import LegendaryGroup
+
+        # Get all legendary groups
+        try:
+            legendary_groups = self.omnidexer.get_all_by_type(
+                ContentType.LEGENDARYGROUP
+            )
+        except Exception as e:
+            logger.warning(f"Could not load legendary groups for lair actions: {e}")
+            return
+
+        if not legendary_groups:
+            logger.debug("No legendary groups available for lair action linking")
+            return
+
+        # Create lookup map for efficient matching
+        lg_lookup: dict[str, LegendaryGroup] = {}
+        for lg in legendary_groups:
+            if isinstance(lg, LegendaryGroup):
+                key = f"{lg.name}|{lg.source.abbreviation}"
+                lg_lookup[key] = lg
+
+        logger.debug(f"Built legendary group lookup with {len(lg_lookup)} entries")
+
+        # Link creatures to legendary groups
+        linked_count = 0
+        for creature in creatures:
+            if self._link_creature_to_legendary_group(creature, lg_lookup):
+                linked_count += 1
+
+        logger.debug(f"Linked {linked_count} creatures with lair actions")
+
+    def _link_creature_to_legendary_group(
+        self, creature: "Creature", lg_lookup: dict[str, LegendaryGroup]
+    ) -> bool:
+        """Link a single creature to its legendary group if available.
+
+        Args:
+            creature: Creature to link
+            lg_lookup: Lookup map of legendary groups by composite key
+
+        Returns:
+            True if creature was linked to legendary group, False otherwise
+        """
+        # Create composite key for lookup
+        key = f"{creature.name}|{creature.source.abbreviation}"
+
+        # Try to find matching legendary group
+        legendary_group = lg_lookup.get(key)
+        if not legendary_group:
+            return False
+
+        # Copy lair actions to creature if they exist
+        if legendary_group.has_lair_actions():
+            # Convert legendary group entries to creature entries
+            creature.lair_actions = self._convert_lg_entries_to_creature_entries(
+                legendary_group.lair_actions
+            )
+            logger.debug(
+                f"Added {len(creature.lair_actions)} lair actions to {creature.name}"
+            )
+            return True
+
+        return False
+
+    def _convert_lg_entries_to_creature_entries(self, lg_entries: list) -> list:
+        """Convert legendary group entries to creature entry format.
+
+        Args:
+            lg_entries: List of legendary group entries
+
+        Returns:
+            List of creature entries (str | CreatureEntryContent)
+        """
+        from ..models.creatures import CreatureEntryContent
+
+        converted_entries = []
+        for entry in lg_entries:
+            if isinstance(entry, str):
+                # String entries can be used directly
+                converted_entries.append(entry)
+            elif hasattr(entry, "type") and entry.type == "list":
+                # Convert ListEntry to CreatureEntryContent
+                converted_entries.append(
+                    CreatureEntryContent(
+                        type="list",
+                        name=getattr(entry, "name", None),
+                        items=getattr(entry, "items", []),
+                    )
+                )
+            elif isinstance(entry, dict):
+                # Convert dict to CreatureEntryContent
+                converted_entries.append(CreatureEntryContent(**entry))
+            else:
+                # For other entry types, convert to dict first then to CreatureEntryContent
+                if hasattr(entry, "model_dump"):
+                    converted_entries.append(CreatureEntryContent(**entry.model_dump()))
+                else:
+                    logger.warning(
+                        f"Unknown entry type for lair actions: {type(entry)}"
+                    )
+
+        return converted_entries
