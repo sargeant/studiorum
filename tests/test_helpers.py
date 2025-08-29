@@ -17,9 +17,9 @@ def reset_all_containers() -> None:
     """
     try:
         # Reset legacy container system
-        from studiorum.core.container import reset_global_container
+        from studiorum.core.services.container import ServiceContainer
 
-        reset_global_container()
+        ServiceContainer.reset_global_instance()
         logger.debug("Legacy service container reset")
     except ImportError:
         logger.debug("Legacy container system not available")

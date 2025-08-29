@@ -400,13 +400,12 @@ class Spell(BaseContent):
         # Try modern processor pattern first, fallback to simple text extraction
         try:
             # Try to get tag resolver from service container
-            from ..container import get_global_container
+            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
             from ..result import Error
             from ..text.tag_resolver import TagResolver
 
             # Use sync access since this method is sync
-            container = get_global_container()
-            tag_resolver = container.get_service_sync(TagResolver)
+            tag_resolver = get_cli_tag_resolver()
 
             processor = self.get_processor()
             result = processor.get_higher_level_with_context(tag_resolver)
@@ -498,7 +497,7 @@ class Spell(BaseContent):
 
         try:
             # Import here to avoid circular dependencies
-            from ..container import get_global_container
+            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
             from ..result import Error
             from ..text.tag_resolver import TagResolver
 
@@ -548,9 +547,8 @@ class Spell(BaseContent):
             # Get services for tag processing
             from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
-            container = get_global_container()
-            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
-            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
+            omnidexer = get_cli_omnidexer()
+            tag_resolver = get_cli_tag_resolver()
 
             # Create rendering context - use existing content_tracker if available
             content_tracker = (
@@ -595,7 +593,7 @@ class Spell(BaseContent):
 
         try:
             # Import here to avoid circular dependencies
-            from ..container import get_global_container
+            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
             from ..result import Error
             from ..text.tag_resolver import TagResolver
 
@@ -646,9 +644,8 @@ class Spell(BaseContent):
             from ...renderers.core.interfaces import RenderingContext
             from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
-            container = get_global_container()
-            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
-            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
+            omnidexer = get_cli_omnidexer()
+            tag_resolver = get_cli_tag_resolver()
 
             # Create rendering context - use existing content_tracker if available
             content_tracker = (

@@ -27,8 +27,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from studiorum.cli.services import get_cli_source_manager
 from studiorum.core.config import get_app_config
-from studiorum.core.container import get_global_container
 from studiorum.core.logging import get_logger
 from studiorum.core.services.protocols import SourceManagerProtocol
 
@@ -437,8 +437,7 @@ def scan_repositories() -> None:
     try:
         console.print("[yellow]Scanning data repositories...[/yellow]")
 
-        container = get_global_container()
-        manager = container.get_service_sync(SourceManagerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        manager = get_cli_source_manager()
 
         # Clear cache to force rebuild
         manager.clear_cache()
@@ -471,8 +470,7 @@ def show_status() -> None:
       studiorum data status
     """
     try:
-        container = get_global_container()
-        manager = container.get_service_sync(SourceManagerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        manager = get_cli_source_manager()
 
         stats = manager.get_source_statistics()
 
@@ -522,8 +520,7 @@ def check_repositories() -> None:
     try:
         console.print("[yellow]Checking repository configurations...[/yellow]")
 
-        container = get_global_container()
-        manager = container.get_service_sync(SourceManagerProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        manager = get_cli_source_manager()
 
         # Basic service validation
         stats = manager.get_source_statistics()

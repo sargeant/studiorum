@@ -69,18 +69,31 @@ class CreatureEntryContent(BaseModel):
         """Get entry name for display (used by template)."""
         return self.name or ""
 
-    def get_description_text(self) -> str:
-        """Get entry description text for rendering with tag processing and content tracking."""
+    def get_description_text(
+        self,
+        tag_resolver: "TagResolver | None" = None,
+        omnidexer: "Omnidexer | None" = None,
+    ) -> str:
+        """Get entry description text for rendering with tag processing and content tracking.
+
+        Args:
+            tag_resolver: Optional TagResolver service. If None, will get from CLI services.
+            omnidexer: Optional Omnidexer service. If None, will get from CLI services.
+        """
         try:
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ..container import get_global_container
-            from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
             # Get services for tag processing
-            container = get_global_container()
-            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
-            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
+            if tag_resolver is None:
+                from ...cli.services import get_cli_tag_resolver
+
+                tag_resolver = get_cli_tag_resolver()
+
+            if omnidexer is None:
+                from ...cli.services import get_cli_omnidexer
+
+                omnidexer = get_cli_omnidexer()
 
             # Try to get the current rendering context from the call stack
             # This allows us to access the content_tracker from the main rendering pipeline
@@ -200,40 +213,44 @@ class ArmorClass(BaseModel):
         else:
             return "Unknown"
 
-    def get_processed_ac_text(self) -> str:
-        """Get armor class text with 5e.tools markup processed for LaTeX."""
+    def get_processed_ac_text(self, tag_resolver: "TagResolver | None" = None) -> str:
+        """Get armor class text with 5e.tools markup processed for LaTeX.
+
+        Args:
+            tag_resolver: Optional TagResolver service. If None, will get from global container.
+        """
         if self.special:
             try:
-                from ..container import get_global_container
-                from ..services.protocols import TagResolverProtocol
-                from ..text.tag_resolver import TagResolver
+                if tag_resolver is None:
+                    from ...cli.services import get_cli_tag_resolver
 
-                container = get_global_container()
-                tag_resolver = cast(
-                    TagResolver,
-                    container.get_service_sync(TagResolverProtocol),  # type: ignore[type-abstract]
-                )
+                    tag_resolver = get_cli_tag_resolver()
                 return str(tag_resolver.process_text(self.special))
             except Exception:
                 return self.special
         elif self.ac is not None:
             result = str(self.ac)
+
+            # Get tag_resolver once for all processing in this method
+            if self.from_ or self.condition:
+                if tag_resolver is None:
+                    try:
+                        from ...cli.services import get_cli_tag_resolver
+
+                        tag_resolver = get_cli_tag_resolver()
+                    except Exception:
+                        tag_resolver = None
+
             if self.from_:
                 # Process 5e.tools markup tags in armor sources
                 processed_sources = []
                 for source in self.from_:
                     try:
-                        from ..container import get_global_container
-                        from ..services.protocols import TagResolverProtocol
-                        from ..text.tag_resolver import TagResolver
-
-                        container = get_global_container()
-                        tag_resolver = cast(
-                            TagResolver,
-                            container.get_service_sync(TagResolverProtocol),  # type: ignore[type-abstract]
-                        )
-                        processed_source = tag_resolver.process_text(source)
-                        processed_sources.append(str(processed_source))
+                        if tag_resolver is not None:
+                            processed_source = tag_resolver.process_text(source)
+                            processed_sources.append(str(processed_source))
+                        else:
+                            processed_sources.append(source)
                     except Exception:
                         # Fallback to raw source if tag processing fails
                         processed_sources.append(source)
@@ -241,17 +258,11 @@ class ArmorClass(BaseModel):
                 result += f" ({sources})"
             if self.condition:
                 try:
-                    from ..container import get_global_container
-                    from ..services.protocols import TagResolverProtocol
-                    from ..text.tag_resolver import TagResolver
-
-                    container = get_global_container()
-                    tag_resolver = cast(
-                        TagResolver,
-                        container.get_service_sync(TagResolverProtocol),  # type: ignore[type-abstract]
-                    )
-                    processed_condition = tag_resolver.process_text(self.condition)
-                    result += f" {processed_condition}"
+                    if tag_resolver is not None:
+                        processed_condition = tag_resolver.process_text(self.condition)
+                        result += f" {processed_condition}"
+                    else:
+                        result += f" {self.condition}"
                 except Exception:
                     result += f" {self.condition}"
             return result
@@ -438,15 +449,14 @@ class Ability(BaseModel):
 
         # Try advanced processing with services
         try:
+            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ..container import get_global_container
             from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
             # Get services for proper tag processing
-            container = get_global_container()
-            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
-            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
+            omnidexer = get_cli_omnidexer()
+            tag_resolver = get_cli_tag_resolver()
 
             # Create a proper rendering context for entry processing
             context = RenderingContext(
@@ -497,15 +507,14 @@ class Ability(BaseModel):
 
         # Try advanced processing with services
         try:
+            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ..container import get_global_container
             from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
             # Get services for proper tag processing
-            container = get_global_container()
-            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
-            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
+            omnidexer = get_cli_omnidexer()
+            tag_resolver = get_cli_tag_resolver()
 
             # Create a proper rendering context for entry processing
             context = RenderingContext(
@@ -653,15 +662,14 @@ class Spellcasting(BaseModel):
     def get_processed_name(self) -> str:
         """Get spellcasting name with 5e.tools markup processed for LaTeX."""
         try:
+            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ..container import get_global_container
             from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
             # Get services for proper tag processing
-            container = get_global_container()
-            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
-            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
+            omnidexer = get_cli_omnidexer()
+            tag_resolver = get_cli_tag_resolver()
 
             # Create a proper rendering context for entry processing
             context = RenderingContext(
@@ -694,15 +702,14 @@ class Spellcasting(BaseModel):
     def get_description_text(self) -> str:
         """Generate formatted spellcasting description with all spell information."""
         try:
+            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ..container import get_global_container
             from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
             # Get services for proper tag processing
-            container = get_global_container()
-            omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
-            tag_resolver = container.get_service_sync(TagResolverProtocol)  # type: ignore[type-abstract]
+            omnidexer = get_cli_omnidexer()
+            tag_resolver = get_cli_tag_resolver()
 
             # Create a proper rendering context for entry processing
             context = RenderingContext(
@@ -1252,11 +1259,10 @@ class Creature(BaseContent):
 
         try:
             # Try to get tag resolver from service container
-            from ..container import get_global_container
+            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
             from ..text.tag_resolver import TagResolver
 
-            container = get_global_container()
-            tag_resolver = container.get_service_sync(TagResolver)  # type: ignore[type-abstract]
+            tag_resolver = get_cli_tag_resolver()
 
             processor = self.get_processor()
             # Use the processor's senses processing method if available

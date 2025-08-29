@@ -403,10 +403,10 @@ def reset_cli_globals() -> None:
     to ensure clean test isolation.
     """
     from studiorum.cli.utils import reset_cli_services
-    from studiorum.core.container import reset_global_container
+    from studiorum.core.services.container import ServiceContainer
 
-    # Reset the legacy container for compatibility
-    reset_global_container()
+    # Reset the global container for clean state
+    ServiceContainer.reset_global_instance()
 
     # Reset CLI service singletons to ensure clean state per command
     reset_cli_services()

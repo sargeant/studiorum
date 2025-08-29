@@ -1,25 +1,19 @@
 """
 CLI utility functions for accessing shared services.
 
-This module provides direct instantiation of services for CLI commands,
-ensuring test compatibility and avoiding complex async/sync bridging.
-Uses singleton pattern to avoid redundant data loading within a CLI session.
+This module delegates to the new CLI services module for proper separation of concerns.
+Maintains backwards compatibility for existing CLI commands.
 """
 
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.text.tag_resolver import TagResolver
 
-# Global instances for CLI session (reset per command)
-_cli_omnidexer: Omnidexer | None = None
-_cli_tag_resolver: TagResolver | None = None
-
 
 def get_omnidexer(*, progress_callback: ProgressCallback | None = None) -> Omnidexer:
     """Get omnidexer instance for CLI commands.
 
-    Uses service container to ensure consistent configuration management.
-    Returns cached instance from global container.
+    Delegates to CLI services module for proper service access patterns.
 
     Args:
         progress_callback: Optional progress callback for data loading
@@ -27,48 +21,26 @@ def get_omnidexer(*, progress_callback: ProgressCallback | None = None) -> Omnid
     Returns:
         Omnidexer instance ready for use
     """
-    from studiorum.core.container import get_global_container
-    from studiorum.core.services.factories import create_omnidexer_service_sync
-    from studiorum.core.services.protocols import (
-        ConfigurationProtocol,
-        OmnidexerProtocol,
-    )
+    from studiorum.cli.services import get_cli_omnidexer
 
-    container = get_global_container()
-
-    # If progress callback provided, create new service instance with progress
-    if progress_callback:
-        config_service = container.get_service_sync(ConfigurationProtocol)  # type: ignore[type-abstract]
-        omnidexer_service = create_omnidexer_service_sync(
-            config_service, progress_callback=progress_callback
-        )
-        return omnidexer_service  # type: ignore[return-value]
-
-    # Otherwise use cached singleton
-    return container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
+    return get_cli_omnidexer(progress_callback=progress_callback)
 
 
 def get_tag_resolver() -> TagResolver:
     """Get tag resolver instance for CLI commands.
 
-    Uses cached omnidexer instance to avoid redundant data loading.
+    Delegates to CLI services module for proper service access patterns.
 
     Returns:
         TagResolver instance ready for use
     """
-    global _cli_tag_resolver
-    if _cli_tag_resolver is None:
-        # Pass the singleton omnidexer to avoid creating a second one
-        omnidexer = get_omnidexer()
-        _cli_tag_resolver = TagResolver(omnidexer=omnidexer)
-    return _cli_tag_resolver
+    from studiorum.cli.services import get_cli_tag_resolver
+
+    return get_cli_tag_resolver()
 
 
 def reset_cli_services() -> None:
-    """Reset CLI service instances.
+    """Reset CLI service instances for command isolation."""
+    from studiorum.cli.services import reset_cli_services
 
-    Used for testing and to ensure clean state between CLI commands.
-    """
-    global _cli_omnidexer, _cli_tag_resolver
-    _cli_omnidexer = None
-    _cli_tag_resolver = None
+    reset_cli_services()

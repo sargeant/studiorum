@@ -415,12 +415,11 @@ class Item(BaseContent):
 
         try:
             # Try to get tag resolver from service container
-            from ..container import get_global_container
+            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
             from ..result import Error
             from ..text.tag_resolver import TagResolver
 
-            container = get_global_container()
-            tag_resolver = container.get_service_sync(TagResolver)
+            tag_resolver = get_cli_tag_resolver()
 
             result = processor.get_description_with_context(tag_resolver)
             if isinstance(result, Error):
