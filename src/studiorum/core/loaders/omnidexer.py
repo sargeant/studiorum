@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 if TYPE_CHECKING:
-    from ..container import ServiceContainer
     from ..protocols.progress import ProgressCallback
+    from ..services.container import ServiceContainer
     from ..services.protocols import SourceManagerProtocol
     from .content_merger import ContentMerger
 

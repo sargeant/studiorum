@@ -931,7 +931,7 @@ class CreatureCollector:
             return False
 
         # Copy lair actions to creature if they exist
-        if legendary_group.has_lair_actions():
+        if legendary_group.has_lair_actions() and legendary_group.lair_actions:
             # Convert legendary group entries to creature entries
             creature.lair_actions = self._convert_lg_entries_to_creature_entries(
                 legendary_group.lair_actions

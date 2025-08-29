@@ -704,10 +704,7 @@ async def create_mcp_service_context(
         ... ) as ctx:
         ...     results = await ctx.search_creatures("dragon")
     """
-    # Ensure global container has services registered for legacy access
-    from ..core.container import ensure_services_registered
-
-    await ensure_services_registered()
+    # Services are automatically registered when global container is created
 
     # Create underlying request context
     from ..core.config.unified_config import get_app_config

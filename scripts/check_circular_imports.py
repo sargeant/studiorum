@@ -5,6 +5,11 @@ Circular import detection tool for studiorum project.
 This script analyzes Python import dependencies to detect potential circular
 import chains that could cause runtime errors or make the code harder to maintain.
 
+Features:
+- Ignores imports inside TYPE_CHECKING blocks (type annotations only)
+- Handles relative imports correctly
+- Provides detailed dependency chain analysis
+
 Output behavior:
 - Silent when no circular imports are found
 - Detailed error information when circular imports are detected
@@ -49,6 +54,7 @@ class ImportAnalyzer(ast.NodeVisitor):
         self.base_path = base_path
         self.imports: list[ImportInfo] = []
         self.module_name = self._get_module_name()
+        self._in_type_checking = False
 
     def _get_module_name(self) -> str:
         """Get the module name from file path."""
@@ -68,8 +74,32 @@ class ImportAnalyzer(ast.NodeVisitor):
         else:
             return base_package
 
+    def visit_If(self, node: ast.If) -> None:
+        """Visit if statements to detect TYPE_CHECKING blocks."""
+        # Check if this is a TYPE_CHECKING check
+        is_type_checking_block = False
+        if isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING":
+            is_type_checking_block = True
+        elif isinstance(node.test, ast.Attribute) and node.test.attr == "TYPE_CHECKING":
+            is_type_checking_block = True
+
+        if is_type_checking_block:
+            # Visit the body with TYPE_CHECKING flag set
+            old_in_type_checking = self._in_type_checking
+            self._in_type_checking = True
+            for child in node.body:
+                self.visit(child)
+            self._in_type_checking = old_in_type_checking
+        else:
+            # Regular if statement - continue normal traversal
+            self.generic_visit(node)
+
     def visit_Import(self, node: ast.Import) -> None:
         """Visit import statements."""
+        # Skip imports inside TYPE_CHECKING blocks
+        if self._in_type_checking:
+            return
+
         for alias in node.names:
             # Only track imports within the project (starting with 'studiorum.')
             if alias.name.startswith("studiorum."):
@@ -81,6 +111,10 @@ class ImportAnalyzer(ast.NodeVisitor):
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         """Visit from...import statements."""
+        # Skip imports inside TYPE_CHECKING blocks
+        if self._in_type_checking:
+            return
+
         if node.module and node.module.startswith("studiorum."):
             # Handle relative imports
             if node.module.startswith(".."):

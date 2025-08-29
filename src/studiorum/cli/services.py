@@ -58,6 +58,7 @@ def get_cli_omnidexer(
     global _cli_omnidexer
     if _cli_omnidexer is None:
         _cli_omnidexer = container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract,assignment]
+    assert _cli_omnidexer is not None  # Help type checker understand this is guaranteed
     return _cli_omnidexer
 
 

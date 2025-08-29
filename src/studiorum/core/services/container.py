@@ -1040,6 +1040,7 @@ class ServiceContainer:
         This provides a sync alternative to avoid event loop creation during
         container initialization for CLI usage.
         """
+        # Import factories inside method to avoid circular import
         from studiorum.core.services.factories import (
             create_cache_service,
             create_configuration_service_sync,
@@ -1268,8 +1269,6 @@ async def create_mcp_request_container(
         ... ) as container:
         ...     omnidexer = await container.get_service(OmnidexerProtocol)
     """
-    from ..container import get_global_container
-
     # Get global container (will be enhanced DefaultServiceContainer)
     global_container = ServiceContainer.get_global_instance()
 
