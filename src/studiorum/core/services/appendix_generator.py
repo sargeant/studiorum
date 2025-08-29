@@ -389,8 +389,22 @@ class AppendixGenerator:
         # Extract creature names from tracked content
         creature_names = [content["name"] for content in tracked_creatures]
 
-        # Use existing collector service
-        collection_result = self.creature_collector.collect_by_names(creature_names)
+        # Extract unique sources from tracked creatures to ensure we include adventure-specific sources
+        from studiorum.cli.config_factory import get_default_sources
+
+        tracked_sources = set()
+        for creature_data in tracked_creatures:
+            if "source" in creature_data and creature_data["source"]:
+                tracked_sources.add(creature_data["source"])
+
+        # Combine default sources with adventure sources
+        default_sources = get_default_sources()
+        all_sources = list(set(default_sources + list(tracked_sources)))
+
+        # Use existing collector service with combined sources
+        collection_result = self.creature_collector.collect_by_names(
+            creature_names, all_sources
+        )
 
         if not collection_result.creatures:
             return None

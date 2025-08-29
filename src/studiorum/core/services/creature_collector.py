@@ -112,16 +112,19 @@ class CreatureCollector:
         logger.info(f"Collected {result.total_count} creatures matching criteria")
         return result
 
-    def collect_by_names(self, names: list[str]) -> CreatureCollectionResult:
+    def collect_by_names(
+        self, names: list[str], sources: list[str] | None = None
+    ) -> CreatureCollectionResult:
         """Collect specific creatures by name with fuzzy matching.
 
         Args:
             names: List of creature names to find
+            sources: Optional list of source abbreviations to limit search
 
         Returns:
             CreatureCollectionResult with found creatures and unresolved names
         """
-        return self._collect_by_names(names)
+        return self._collect_by_names(names, sources)
 
     def collect_by_cr_range(
         self, min_cr: float, max_cr: float
@@ -575,7 +578,7 @@ class CreatureCollector:
             # Handle "10+" format
             min_cr_str = cr_string.replace("+", "")
             min_cr = self._parse_cr_value(min_cr_str)
-            return (min_cr if min_cr is not None else 0.0, 30.0)  # Max CR in D&D
+            return (min_cr if min_cr is not None else 0.0, 30.0)  # Max CR in 5e
         elif "<" in cr_string:
             # Handle "<1" format
             max_cr_str = cr_string.replace("<", "")
