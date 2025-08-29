@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..registry import content_type
 from .content import BaseContent
@@ -28,8 +28,7 @@ class Prerequisite(BaseModel):
     race: list[dict[str, str]] | None = Field(None, description="Race requirements")
     psionics: bool | None = Field(None, description="Requires psionics")
 
-    class Config:
-        extra = "allow"  # Allow additional prerequisite types
+    model_config = ConfigDict(extra="allow")  # Allow additional prerequisite types
 
 
 class ResourceConsumption(BaseModel):
@@ -55,8 +54,7 @@ class AdditionalSpells(BaseModel):
         None, description="Known spells by level"
     )
 
-    class Config:
-        extra = "allow"  # Allow other spell granting mechanisms
+    model_config = ConfigDict(extra="allow")  # Allow other spell granting mechanisms
 
 
 @content_type(

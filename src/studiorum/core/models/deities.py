@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..registry import content_type
 from .content import BaseContent
@@ -17,8 +17,7 @@ class SymbolImage(BaseModel):
     type: str = Field(..., description="Type of image reference")
     href: dict[str, str] = Field(..., description="Image URL references")
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 @content_type(

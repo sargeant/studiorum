@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..registry import content_type
 from .content import BaseContent
@@ -27,8 +27,7 @@ class SubclassAdditionalSpells(BaseModel):
         None, description="Innate spellcasting"
     )
 
-    class Config:
-        extra = "allow"  # Allow other spell granting mechanisms
+    model_config = ConfigDict(extra="allow")  # Allow other spell granting mechanisms
 
 
 class CopyMetadata(BaseModel):
@@ -40,8 +39,7 @@ class CopyMetadata(BaseModel):
         None, description="Modifications to apply to copied content"
     )
 
-    class Config:
-        extra = "allow"  # Allow additional copy metadata
+    model_config = ConfigDict(extra="allow")  # Allow additional copy metadata
 
 
 @content_type(

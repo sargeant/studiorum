@@ -51,7 +51,7 @@ class UnifiedSourceManager(SourceManager):
             # In test scenarios where __init__ is mocked, create a minimal structure
             from .data_source_manager import DataSourceManager
 
-            self._data_source_manager = DataSourceManager()
+            self._data_source_manager = DataSourceManager(None)
         return self._data_source_manager.content_manager
 
     @content_manager.setter
@@ -62,7 +62,7 @@ class UnifiedSourceManager(SourceManager):
             # In test scenarios where __init__ is mocked, create a minimal structure
             from .data_source_manager import DataSourceManager
 
-            self._data_source_manager = DataSourceManager()
+            self._data_source_manager = DataSourceManager(None)
         self._data_source_manager.content_manager = value
 
     async def initialize(self) -> None:

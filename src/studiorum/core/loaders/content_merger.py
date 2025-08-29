@@ -265,7 +265,7 @@ class ContentMerger:
                 logger.debug(f"Merged content for section: {content_name}")
             else:
                 # Skip metadata-only sections instead of creating empty chapters
-                logger.warning(f"No content found for metadata section: {content_name}")
+                logger.debug(f"No content found for metadata section: {content_name}")
 
         # Add any content sections that don't have corresponding metadata
         for section_name, content_section in content_by_name.items():
@@ -281,9 +281,7 @@ class ContentMerger:
                         "identifier": content_section["id"],
                     }
                 merged_contents.append(content_entry)
-                logger.warning(
-                    f"Added content section without metadata: {section_name}"
-                )
+                logger.debug(f"Added content section without metadata: {section_name}")
 
         # Update the merged result with the combined contents
         merged_result["contents"] = merged_contents
