@@ -476,6 +476,16 @@ def create_omnidexer_service_sync(
                 results = []
             return list(results)
 
+        def get_all_by_source(self, source: str) -> list[BaseContent]:
+            """Get all content from a specific source."""
+            if not self._omnidexer:
+                raise RuntimeError("Omnidexer not initialized")
+
+            # Lazy load data when first accessed
+            self._ensure_data_loaded()
+
+            return self._omnidexer.get_all_by_source(source)
+
         def find_all(self, content_type: object, name: str) -> list[BaseContent]:
             """Find all content matching type and name across all sources."""
             if not self._initialized:
