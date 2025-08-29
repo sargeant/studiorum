@@ -116,7 +116,7 @@ class StudiorumLogger:
                     print(f"🐛 DEBUG: system metrics instrumentation skipped: {e}")
 
         cls._initialized = True
-        logfire.info(
+        logfire.debug(
             "Studiorum logging initialized", debug=debug, environment=environment
         )
 

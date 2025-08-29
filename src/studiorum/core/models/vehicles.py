@@ -1,4 +1,4 @@
-"""Vehicle models for D&D content."""
+"""Vehicle models for 5e content."""
 
 from __future__ import annotations
 
@@ -22,7 +22,9 @@ class VehicleArmor(BaseModel):
 class VehicleHitPoints(BaseModel):
     """Vehicle hit points information."""
 
-    hp: int = Field(..., description="Hit points")
+    hp: int | None = Field(None, description="Hit points")
+    average: int | None = Field(None, description="Average hit points")
+    formula: str | None = Field(None, description="Hit point formula")
     dt: int | None = Field(None, description="Damage threshold")
 
 
@@ -41,7 +43,7 @@ class VehicleSpeed(BaseModel):
     loader_type="json",
 )
 class Vehicle(BaseContent):
-    """Represents a D&D vehicle (ship, land vehicle, etc.)."""
+    """Represents a 5e vehicle (ship, land vehicle, etc.)."""
 
     vehicle_type: str | None = Field(
         None, alias="vehicleType", description="Type of vehicle"
@@ -55,7 +57,9 @@ class Vehicle(BaseContent):
     ac: list[int | VehicleArmor] | int = Field(
         default_factory=list, description="Base armor class"
     )
-    hp: int | VehicleHitPoints | None = Field(None, description="Base hit points")
+    hp: int | VehicleHitPoints | dict[str, Any] | None = Field(
+        None, description="Base hit points"
+    )
     speed: int | dict[str, Any] | None = Field(None, description="Base speed")
     carrying_capacity: int | None = Field(
         None, alias="carryingCapacity", description="Carrying capacity in pounds"

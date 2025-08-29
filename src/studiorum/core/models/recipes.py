@@ -1,6 +1,6 @@
 """Recipe content models for crafting and cooking systems."""
 
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -11,7 +11,9 @@ from .content import BaseContent
 class RecipeIngredient(BaseModel):
     """Represents an ingredient in a recipe."""
 
-    type: str = Field("ingredient", description="Type of ingredient entry")
+    type: Literal["ingredient"] = Field(
+        "ingredient", description="Type of ingredient entry"
+    )
     entry: str = Field(..., description="Ingredient description with amounts")
     amount1: float | None = Field(None, description="Primary amount")
     amount2: float | None = Field(None, description="Secondary amount")
@@ -19,6 +21,26 @@ class RecipeIngredient(BaseModel):
     def get_description(self) -> str:
         """Get the formatted ingredient description."""
         return self.entry
+
+
+class RecipeEntriesIngredient(BaseModel):
+    """Complex ingredient with nested entries (like 'Cinnamon Whipped Cream')."""
+
+    type: Literal["entries"] = Field("entries", description="Type of ingredient entry")
+    name: str = Field(..., description="Name of the ingredient group")
+    entries: list[Any] = Field(
+        default_factory=list, description="Nested ingredient entries"
+    )
+
+
+# Discriminated union for ingredients
+DiscriminatedIngredient = Annotated[
+    RecipeIngredient | RecipeEntriesIngredient,
+    Field(discriminator="type"),
+]
+
+# Full ingredient type: strings, discriminated objects, or fallback objects
+type IngredientEntry = str | DiscriminatedIngredient
 
 
 class RecipeServing(BaseModel):
@@ -70,10 +92,10 @@ class Recipe(BaseContent):
     serves: RecipeServing | None = Field(None, description="Serving information")
 
     # Ingredients and instructions
-    ingredients: list[RecipeIngredient] = Field(
+    ingredients: list[IngredientEntry] = Field(
         default_factory=list, description="Recipe ingredients"
     )
-    instructions: list[str] = Field(
+    instructions: list[str | DiscriminatedIngredient] = Field(
         default_factory=list, description="Cooking/crafting instructions"
     )
 
@@ -84,7 +106,7 @@ class Recipe(BaseContent):
     difficulty: str | None = Field(None, description="Recipe difficulty level")
 
     # Equipment needed
-    equipment: list[str] = Field(
+    equipment: list[IngredientEntry] = Field(
         default_factory=list, description="Required tools/equipment"
     )
 

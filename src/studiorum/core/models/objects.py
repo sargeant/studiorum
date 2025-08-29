@@ -24,12 +24,14 @@ class Object(BaseContent):
     )
 
     # Combat stats
-    ac: int | None = Field(None, description="Armor Class")
-    hp: int | None = Field(None, description="Hit Points")
+    ac: int | dict[str, Any] | None = Field(None, description="Armor Class")
+    hp: int | dict[str, Any] | None = Field(None, description="Hit Points")
 
     # Resistances and immunities
     resist: list[str] = Field(default_factory=list, description="Damage resistances")
-    immune: list[str] = Field(default_factory=list, description="Damage immunities")
+    immune: list[str | dict[str, Any]] = Field(
+        default_factory=list, description="Damage immunities"
+    )
     vulnerable: list[str] = Field(
         default_factory=list, description="Damage vulnerabilities"
     )
@@ -40,7 +42,9 @@ class Object(BaseContent):
     )
 
     # Optional properties
-    speed: dict[str, Any] | None = Field(None, description="Movement speeds if mobile")
+    speed: dict[str, Any] | int | None = Field(
+        None, description="Movement speeds if mobile"
+    )
     senses: list[str] = Field(default_factory=list, description="Special senses")
 
     # Visual properties
@@ -61,7 +65,7 @@ class Object(BaseContent):
 
     def is_destructible(self) -> bool:
         """Check if the object can be destroyed (has HP)."""
-        return self.hp is not None and self.hp > 0
+        return self.hp is not None and isinstance(self.hp, int) and self.hp > 0
 
     def is_siege_weapon(self) -> bool:
         """Check if this is a siege weapon."""

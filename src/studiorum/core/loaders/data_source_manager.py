@@ -90,19 +90,19 @@ class DataSourceManager(SourceManager):
                 "STUDIORUM_DISABLE_PRIMARY_OVERRIDE", ""
             ).lower() in ("true", "1", "yes")
 
-            logger.info(
+            logger.debug(
                 f"DataSourceManager: Checking data sources config - has data_sources: {app_config.data_sources is not None}"
             )
 
             if app_config.data_sources and not disable_primary_override:
                 is_primary_enabled = app_config.data_sources.is_primary_enabled()
-                logger.info(
+                logger.debug(
                     f"DataSourceManager: Primary override enabled: {is_primary_enabled}"
                 )
 
                 if is_primary_enabled:
                     # Use new configuration system with primary override
-                    logger.info(
+                    logger.debug(
                         f"DataSourceManager: Using primary override from {app_config.data_sources.primary_override.path}"
                     )
                     self.config = self._create_config_from_new_system(
@@ -110,17 +110,17 @@ class DataSourceManager(SourceManager):
                     )
                 else:
                     # Fallback to old system
-                    logger.info(
+                    logger.debug(
                         "DataSourceManager: Primary override not enabled, using old system"
                     )
                     self.config = get_content_config()
             else:
                 if disable_primary_override:
-                    logger.info(
+                    logger.debug(
                         "DataSourceManager: Primary override disabled by environment variable, using old system"
                     )
                 else:
-                    logger.info(
+                    logger.debug(
                         "DataSourceManager: No data_sources config found, using old system"
                     )
                 self.config = get_content_config()

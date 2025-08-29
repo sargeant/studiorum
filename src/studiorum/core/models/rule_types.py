@@ -19,7 +19,7 @@ class Action(BaseContent):
 
     page: int | None = Field(None, description="Page number")
     entries: list[Any] = Field(default_factory=list, description="Action description")
-    time: list[dict[str, Any]] = Field(
+    time: list[dict[str, Any] | str] = Field(
         default_factory=list, description="Time requirement for the action"
     )
     srd: bool | None = Field(None, description="Available in System Reference Document")

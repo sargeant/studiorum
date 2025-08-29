@@ -70,6 +70,129 @@ logger = get_logger(__name__)
 # Configuration Services
 
 
+def create_configuration_service_sync(
+    config_override: ApplicationConfig | None = None,
+) -> ConfigurationProtocol:
+    """Synchronous factory for configuration service with hot-reload support.
+
+    This is the sync alternative to create_configuration_service for CLI usage.
+
+    Args:
+        config_override: Optional configuration override
+
+    Returns:
+        Configuration service implementing ConfigurationProtocol
+    """
+
+    class ConfigurationService:
+        """Configuration service with hot-reload capability."""
+
+        def __init__(self, config: ApplicationConfig) -> None:
+            self._config = config
+            self._reload_callbacks: list[Callable[[], None]] = []
+
+        def get_service_name(self) -> str:
+            return "ConfigurationService"
+
+        def get_config(self) -> ApplicationConfig:
+            return self._config
+
+        async def reload_config(self, new_config: ApplicationConfig) -> None:
+            """Hot-reload configuration."""
+            self._config = new_config
+
+            logger.debug("Configuration hot-reloaded")
+
+            # Notify other services of config change via callbacks
+            for callback in self._reload_callbacks:
+                try:
+                    # Fix: callbacks take no parameters based on type annotation
+                    callback()
+                except Exception as e:
+                    logger.warning(f"Config reload callback failed: {e}")
+
+        def supports_hot_reload(self) -> bool:
+            return True
+
+        async def reload_from_source(
+            self, source: str
+        ) -> Result[ApplicationConfig, ConfigurationError]:
+            """Reload configuration from source."""
+            try:
+                # For now, return current config as placeholder
+                # TODO: Implement proper config file reloading from source
+                await self.reload_config(self._config)
+                return Success(self._config)
+
+            except Exception as e:
+                return Error(
+                    ConfigurationError(
+                        message=f"Failed to reload configuration from {source}: {e}",
+                        error_code=MCPErrorCode.CONFIGURATION_ERROR,
+                        category=ErrorCategory.CONFIGURATION,
+                        severity=ErrorSeverity.ERROR,
+                        source="ConfigurationService.reload_from_source",
+                        suggestions=[
+                            "Check file path and permissions",
+                            "Verify configuration file format",
+                            "Check for configuration syntax errors",
+                        ],
+                    )
+                )
+
+        def validate_config(self) -> Result[ApplicationConfig, ConfigurationError]:
+            """Validate current configuration."""
+            try:
+                # Configuration is already validated by Pydantic during creation
+                return Success(self._config)
+            except Exception as e:
+                return Error(
+                    ConfigurationError(
+                        message=f"Configuration validation failed: {e}",
+                        error_code=MCPErrorCode.CONFIGURATION_ERROR,
+                        category=ErrorCategory.CONFIGURATION,
+                        severity=ErrorSeverity.ERROR,
+                        source="ConfigurationService.validate_config",
+                    )
+                )
+
+        def add_reload_callback(self, callback: Callable[[], None]) -> None:
+            """Add callback for configuration reload notifications."""
+            self._reload_callbacks.append(callback)
+
+    # Get configuration synchronously
+    if config_override is not None:
+        config = config_override
+    else:
+        # Load configuration synchronously for CLI usage
+        from studiorum.core.config.unified_config import (
+            ApplicationConfig,
+            get_default_config_path,
+        )
+
+        config_path = get_default_config_path()
+
+        if config_path.exists():
+            # For sync loading, use simple file reading
+            import yaml
+
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    config_data = yaml.safe_load(f)
+                config = ApplicationConfig.model_validate(config_data)
+                logger.debug(f"Configuration loaded from {config_path}")
+            except Exception as e:
+                # File exists but failed to load, use default with warning
+                config = ApplicationConfig()
+                logger.warning(f"Failed to load config from {config_path}: {e}")
+        else:
+            # No config file, use default
+            config = ApplicationConfig()
+            logger.debug(f"No config file found at {config_path}, using defaults")
+
+    return ConfigurationService(config)
+
+
 async def create_configuration_service(
     config_override: ApplicationConfig | None = None,
 ) -> ConfigurationProtocol:
@@ -99,7 +222,7 @@ async def create_configuration_service(
             """Hot-reload configuration."""
             self._config = new_config
 
-            logger.info("Configuration hot-reloaded")
+            logger.debug("Configuration hot-reloaded")
 
             # Notify other services of config change via callbacks
             for callback in self._reload_callbacks:
@@ -174,7 +297,7 @@ async def create_configuration_service(
             result = await manager.load_config_from_file()
             if result.is_success():
                 config = result.unwrap()
-                logger.info(f"Configuration loaded from {config_path}")
+                logger.debug(f"Configuration loaded from {config_path}")
             else:
                 # File exists but failed to load, use default with warning
                 from studiorum.core.config.unified_config import ApplicationConfig
@@ -190,12 +313,208 @@ async def create_configuration_service(
             from studiorum.core.config.unified_config import ApplicationConfig
 
             config = ApplicationConfig()
-            logger.info(f"No config file found at {config_path}, using defaults")
+            logger.debug(f"No config file found at {config_path}, using defaults")
 
     return ConfigurationService(config)
 
 
 # Core Async Resource Services
+
+
+def create_omnidexer_service_sync(
+    config_service: ConfigurationProtocol,
+) -> OmnidexerProtocol:
+    """Synchronous factory for omnidexer service for CLI usage.
+
+    This is the sync alternative to create_omnidexer_service for CLI commands.
+
+    Args:
+        config_service: Configuration service for accessing app config
+
+    Returns:
+        Omnidexer service implementing OmnidexerProtocol
+    """
+
+    class SyncOmnidexerService(OmnidexerProtocol):
+        """Sync omnidexer service for CLI usage."""
+
+        def __init__(self, config: ApplicationConfig) -> None:
+            self._config = config
+            self._omnidexer: Omnidexer | None = None
+            self._initialized = False
+            self._data_loaded = False
+
+        def get_service_name(self) -> str:
+            return "OmnidexerService"
+
+        def initialize_sync(self) -> None:
+            """Synchronous initialization of omnidexer resources."""
+            if self._initialized:
+                return
+
+            logger.debug("Initializing omnidexer service synchronously")
+
+            try:
+                from studiorum.core.loaders.omnidexer import Omnidexer
+
+                # Create omnidexer with default configuration
+                # Skip async source manager initialization for CLI usage
+                self._omnidexer = Omnidexer()
+
+                # DON'T load all data immediately - let lazy loading work
+                # The omnidexer will load data on-demand when first accessed
+
+                self._initialized = True
+                logger.debug(
+                    "Omnidexer service initialized successfully (sync, lazy loading enabled)"
+                )
+
+            except Exception:
+                logger.exception("Failed to initialize omnidexer service synchronously")
+                raise
+
+        async def initialize(self) -> None:
+            """Async initialization wrapper for compatibility."""
+            self.initialize_sync()
+
+        async def cleanup(self) -> None:
+            """Clean up omnidexer resources."""
+            if self._omnidexer and hasattr(self._omnidexer, "cleanup"):
+                try:
+                    await self._omnidexer.cleanup()
+                    logger.debug("Omnidexer resources cleaned up")
+                except Exception as e:
+                    logger.warning(f"Omnidexer cleanup failed: {e}")
+
+            self._omnidexer = None
+            self._initialized = False
+
+        def is_initialized(self) -> bool:
+            return self._initialized
+
+        def _ensure_data_loaded(self) -> None:
+            """Ensure data is loaded on first access (lazy loading)."""
+            if not self._data_loaded and self._omnidexer:
+                logger.debug("Lazy loading omnidexer data on first access")
+                self._omnidexer.load_all_data()
+                self._data_loaded = True
+
+        async def load_content_sources(self, sources: list[str]) -> None:
+            """Load content from specified sources."""
+            if not self._omnidexer:
+                raise RuntimeError("Omnidexer not initialized")
+            logger.debug(f"Loading content sources: {sources}")
+
+        def get_content(self, content_type: str, identifier: str) -> object:
+            """Get specific content by type and identifier."""
+            if not self._omnidexer:
+                raise RuntimeError("Omnidexer not initialized")
+
+            # Lazy load data when first accessed
+            self._ensure_data_loaded()
+
+            results = self._omnidexer.search_by_name_prefix(identifier)
+            return results[0] if results else None
+
+        def search(
+            self, query: str, content_type: ContentType | None = None, limit: int = 50
+        ) -> list[BaseContent]:
+            """Search for content matching the query."""
+            if not self._omnidexer:
+                raise RuntimeError("Omnidexer not initialized")
+
+            # Lazy load data when first accessed
+            self._ensure_data_loaded()
+
+            results = self._omnidexer.search(query, content_type, limit)
+            return list(results)
+
+        def get_all_by_type(self, content_type: object) -> list[BaseContent]:
+            """Get all content of a specific type."""
+            if not self._omnidexer:
+                raise RuntimeError("Omnidexer not initialized")
+
+            # Lazy load data when first accessed
+            self._ensure_data_loaded()
+
+            from studiorum.core.models.content import ContentType
+
+            if isinstance(content_type, str | ContentType):
+                results = self._omnidexer.get_all_by_type(content_type)
+            else:
+                results = []
+            return list(results)
+
+        def find_all(self, content_type: object, name: str) -> list[BaseContent]:
+            """Find all content matching type and name across all sources."""
+            if not self._initialized:
+                logger.warning("Omnidexer not initialized - returning empty results")
+                return []
+
+            # Lazy load data when first accessed
+            self._ensure_data_loaded()
+
+            if isinstance(content_type, str):
+                try:
+                    content_type = ContentType(content_type)
+                except ValueError:
+                    logger.warning(f"Invalid content type: {content_type}")
+                    return []
+
+            if self._omnidexer is not None and hasattr(self._omnidexer, "find_all"):
+                return self._omnidexer.find_all(cast(ContentType, content_type), name)
+            else:
+                return []
+
+        async def ensure_sources_ready(self) -> None:
+            """Ensure all content sources are loaded and ready."""
+            if not self._initialized:
+                self.initialize_sync()
+            # Ensure data is loaded when sources are needed
+            self._ensure_data_loaded()
+
+        async def search_content_async(
+            self,
+            query: str,
+            content_type: str | None = None,
+            context: object | None = None,
+            limit: int = 50,
+        ) -> object:
+            """High-performance async search with intelligent caching."""
+            if not self._omnidexer:
+                raise RuntimeError("Omnidexer not initialized")
+            results = self.search(query)
+            return {"success": True, "data": results[:limit]}
+
+        async def get_content_async(
+            self,
+            content_type: str,
+            name: str,
+            source: str | None = None,
+            context: object | None = None,
+        ) -> object:
+            """Async content retrieval with intelligent caching."""
+            if not self._omnidexer:
+                raise RuntimeError("Omnidexer not initialized")
+            result = self.get_content(content_type, name)
+            return {"success": True, "data": result}
+
+        def get_performance_statistics(self) -> dict[str, object]:
+            """Get comprehensive performance statistics."""
+            return {
+                "initialized": self._initialized,
+                "omnidexer_type": "SyncOmnidexerService",
+                "performance_mode": "sync_cli_optimized",
+            }
+
+    # Get configuration from injected service
+    config = config_service.get_config()
+
+    # Create and initialize service synchronously
+    service = SyncOmnidexerService(config)
+    service.initialize_sync()
+
+    return service
 
 
 async def create_omnidexer_service(
@@ -251,7 +570,7 @@ async def create_omnidexer_service(
                 await self._resolve_copy_references()
 
                 self._initialized = True
-                logger.info("Omnidexer service initialized successfully")
+                logger.debug("Omnidexer service initialized successfully")
 
             except Exception:
                 logger.exception("Failed to initialize omnidexer service")
@@ -278,7 +597,7 @@ async def create_omnidexer_service(
                 raise RuntimeError("Omnidexer not initialized")
 
             # Implementation would reload omnidexer with new sources
-            logger.info(f"Loading content sources: {sources}")
+            logger.debug(f"Loading content sources: {sources}")
 
         def get_content(self, content_type: str, identifier: str) -> object:
             """Get specific content by type and identifier."""
@@ -459,7 +778,7 @@ async def create_tag_resolver_service(
 
         async def reload_config(self, new_config: ApplicationConfig) -> None:
             """Hot-reload tag resolver configuration."""
-            logger.info("Reloading tag resolver configuration")
+            logger.debug("Reloading tag resolver configuration")
             self._config = new_config
             # Reinitialize with new config
             self._initialize_resolver()
@@ -597,7 +916,7 @@ async def create_display_manager_service(
 
         async def reload_config(self, new_config: ApplicationConfig) -> None:
             """Hot-reload display configuration."""
-            logger.info("Reloading display manager configuration")
+            logger.debug("Reloading display manager configuration")
             self._config = new_config
             # Reinitialize with new config if needed
             self._initialize_display_manager()
@@ -821,7 +1140,7 @@ async def create_reference_manager_service(
     return ReferenceManagerService(omnidexer)
 
 
-async def create_cache_service() -> CacheProtocol:
+def create_cache_service() -> CacheProtocol:
     """Factory for cache service.
 
     Returns:
@@ -909,7 +1228,7 @@ async def create_data_source_manager_service(
     # Initialize it immediately in the factory
     await unified_source_manager.initialize()
 
-    logger.info("UnifiedSourceManager service initialized successfully")
+    logger.debug("UnifiedSourceManager service initialized successfully")
     return unified_source_manager
 
 
@@ -924,5 +1243,5 @@ async def create_content_attribution_service() -> ContentAttributionProtocol:
     )
 
     content_attribution = ContentAttributionManager()
-    logger.info("ContentAttributionManager service initialized successfully")
+    logger.debug("ContentAttributionManager service initialized successfully")
     return content_attribution

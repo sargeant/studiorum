@@ -30,7 +30,7 @@ class FacilityHirelings(BaseModel):
 class FacilityPrerequisite(BaseModel):
     """Represents prerequisites for building a facility."""
 
-    spellcasting_focus: list[str] | None = Field(
+    spellcasting_focus: list[str] | bool | None = Field(
         None, alias="spellcastingFocus", description="Required spellcasting focus types"
     )
     level: int | None = Field(None, description="Minimum character level")
@@ -50,7 +50,7 @@ class Facility(BaseContent):
     facility_type: str = Field(
         ..., alias="facilityType", description="Type of facility (basic, special)"
     )
-    level: int = Field(..., description="Facility level requirement")
+    level: int | None = Field(None, description="Facility level requirement")
 
     # Prerequisites
     prerequisite: list[FacilityPrerequisite] = Field(
@@ -97,10 +97,13 @@ class Facility(BaseContent):
 
     def get_required_focus_types(self) -> list[str]:
         """Get all required spellcasting focus types."""
-        focus_types = []
+        focus_types: list[str] = []
         for prereq in self.prerequisite:
             if prereq.spellcasting_focus:
-                focus_types.extend(prereq.spellcasting_focus)
+                if isinstance(prereq.spellcasting_focus, list):
+                    focus_types.extend(prereq.spellcasting_focus)
+                elif isinstance(prereq.spellcasting_focus, bool):
+                    focus_types.append("any")
         return list(set(focus_types))  # Remove duplicates
 
     def get_hireling_requirement(self) -> str:

@@ -511,6 +511,15 @@ class SpellcasterSpells(BaseModel):
     spells: list[str] = Field(..., description="List of spells with {@spell} tags")
 
 
+class SpellEntry(BaseModel):
+    """Individual spell entry that can be either a string or object with entry/hidden fields."""
+
+    entry: str = Field(..., description="Spell tag (e.g., '{@spell wish}')")
+    hidden: bool | None = Field(
+        None, description="Whether this spell should be hidden in display"
+    )
+
+
 class Spellcasting(BaseModel):
     """Creature spellcasting ability."""
 
@@ -523,8 +532,10 @@ class Spellcasting(BaseModel):
     spells: dict[str, SpellcasterSpells] | None = Field(
         None, description="Spells by level"
     )
-    will: list[str] | None = Field(None, description="At-will spells")
-    daily: dict[str, list[str]] | None = Field(None, description="Daily use spells")
+    will: list[str | SpellEntry] | None = Field(None, description="At-will spells")
+    daily: dict[str, list[str | SpellEntry]] | None = Field(
+        None, description="Daily use spells"
+    )
     ability: str | None = Field(None, description="Spellcasting ability")
     hidden: list[str] | None = Field(None, description="Hidden sections")
     displayAs: str | None = Field(
@@ -637,7 +648,13 @@ class Spellcasting(BaseModel):
 
             # Add at-will spells
             if self.will:
-                will_text = f"At will: {', '.join(self.will)}"
+                will_spells = []
+                for spell in self.will:
+                    if isinstance(spell, str):
+                        will_spells.append(spell)
+                    elif isinstance(spell, SpellEntry):
+                        will_spells.append(spell.entry)
+                will_text = f"At will: {', '.join(will_spells)}"
                 processed_will = processor.process_entries([will_text], context)
                 description_parts.extend(processed_will)
 
@@ -645,7 +662,13 @@ class Spellcasting(BaseModel):
             if self.daily:
                 for frequency, spells in self.daily.items():
                     if spells:
-                        daily_text = f"{frequency}: {', '.join(spells)}"
+                        daily_spells = []
+                        for spell in spells:
+                            if isinstance(spell, str):
+                                daily_spells.append(spell)
+                            elif isinstance(spell, SpellEntry):
+                                daily_spells.append(spell.entry)
+                        daily_text = f"{frequency}: {', '.join(daily_spells)}"
                         processed_daily = processor.process_entries(
                             [daily_text], context
                         )
@@ -667,10 +690,22 @@ class Spellcasting(BaseModel):
             if self.headerEntries:
                 fallback_parts.extend(self.headerEntries)
             if self.will:
-                fallback_parts.append(f"At will: {', '.join(self.will)}")
+                will_spells = []
+                for spell in self.will:
+                    if isinstance(spell, str):
+                        will_spells.append(spell)
+                    elif isinstance(spell, SpellEntry):
+                        will_spells.append(spell.entry)
+                fallback_parts.append(f"At will: {', '.join(will_spells)}")
             if self.daily:
                 for freq, spells in self.daily.items():
-                    fallback_parts.append(f"{freq}: {', '.join(spells)}")
+                    daily_spells = []
+                    for spell in spells:
+                        if isinstance(spell, str):
+                            daily_spells.append(spell)
+                        elif isinstance(spell, SpellEntry):
+                            daily_spells.append(spell.entry)
+                    fallback_parts.append(f"{freq}: {', '.join(daily_spells)}")
             return " ".join(fallback_parts)
 
 
@@ -687,7 +722,9 @@ class Creature(BaseContent):
     type: str | CreatureType | CreatureTypeDict = Field(
         ..., description="Creature type"
     )
-    alignment: list[str | AlignmentDict] = Field(..., description="Creature alignment")
+    alignment: list[str | AlignmentDict] | None = Field(
+        None, description="Creature alignment"
+    )
 
     # Combat stats
     ac: list[int | ArmorClass] = Field(..., description="Armor class")
@@ -1428,20 +1465,28 @@ class Creature(BaseContent):
 
                 # Extract at-will spells
                 if spellcasting_feature.will:
-                    for spell in spellcasting_feature.will:
+                    for spell_entry in spellcasting_feature.will:
+                        spell_text = (
+                            spell_entry
+                            if isinstance(spell_entry, str)
+                            else spell_entry.entry
+                        )
                         references = SpellReferenceParser.extract_spell_references(
-                            spell
+                            spell_text
                         )
                         spell_references.extend(references)
 
                 # Extract daily spells
                 if spellcasting_feature.daily:
-                    # Type annotation: daily is dict[str, list[str]]
-                    daily_spells: dict[str, list[str]] = spellcasting_feature.daily
-                    for frequency, spell_list in daily_spells.items():
-                        for spell in spell_list:
+                    for frequency, spell_list in spellcasting_feature.daily.items():
+                        for spell_entry in spell_list:
+                            spell_text = (
+                                spell_entry
+                                if isinstance(spell_entry, str)
+                                else spell_entry.entry
+                            )
                             references = SpellReferenceParser.extract_spell_references(
-                                spell
+                                spell_text
                             )
                             spell_references.extend(references)
 

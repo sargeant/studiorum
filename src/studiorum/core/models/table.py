@@ -25,8 +25,8 @@ class Table(BaseContent):
     """
 
     # Required fields
-    col_labels: list[str] = Field(
-        ..., description="Column header labels", alias="colLabels"
+    col_labels: list[str] | None = Field(
+        None, description="Column header labels", alias="colLabels"
     )
     rows: list[list[str | Entry]] = Field(..., description="Table row data")
 
@@ -111,7 +111,7 @@ class Table(BaseContent):
 
     def get_column_count(self) -> int:
         """Get the number of columns in the table."""
-        return len(self.col_labels)
+        return len(self.col_labels) if self.col_labels else 0
 
     def get_row_count(self) -> int:
         """Get the number of rows in the table."""
@@ -143,7 +143,7 @@ class Table(BaseContent):
 
     def get_rollable_column_indices(self) -> list[int]:
         """Get the indices of rollable columns."""
-        if not self.rollable_col_labels:
+        if not self.rollable_col_labels or not self.col_labels:
             return []
 
         indices = []
@@ -158,6 +158,8 @@ class Table(BaseContent):
 
     def get_column_index(self, column_name: str) -> int | None:
         """Get the index of a column by name."""
+        if not self.col_labels:
+            return None
         try:
             return self.col_labels.index(column_name)
         except ValueError:

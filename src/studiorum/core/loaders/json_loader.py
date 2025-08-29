@@ -1382,7 +1382,10 @@ class JsonDataLoader(DataLoader[BaseContent]):
         if self._error_tracker.should_log_error(error, context):
             # Format error message with context and suggestions
             formatted_message = self._error_tracker.format_error_message(error, context)
-            logger.warning(formatted_message)
+            # Escape curly braces for logfire to prevent formatting errors
+            # Logfire interprets {field} as placeholders, but our messages contain literal braces
+            escaped_message = formatted_message.replace("{", "{{").replace("}", "}}")
+            logger.warning(escaped_message)
 
         # Always record the error for statistics
         self._error_tracker.record_error(error, context)

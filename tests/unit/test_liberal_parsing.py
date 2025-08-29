@@ -167,9 +167,11 @@ class TestLiberalParsing:
             )
             creatures = creature_loader.load(Path(f.name))
 
-            # Should only load the valid creature, skip copy templates
-            assert len(creatures) == 1
-            assert creatures[0].name == "Valid Creature"
+            # Should load valid creature and resolved copy template
+            assert len(creatures) == 2
+            creature_names = {c.name for c in creatures}
+            assert "Valid Creature" in creature_names
+            assert "Copy Template Creature" in creature_names
 
         Path(f.name).unlink()  # Clean up
         print("✅ Copy-template detection and skip working")
@@ -235,11 +237,11 @@ class TestLiberalParsing:
         creature_data = {
             "monster": [
                 {
-                    "name": "Creature Missing Alignment",
+                    "name": "Creature Missing Size",
                     "source": "TEST",
-                    "size": ["M"],
+                    # Missing size - should cause validation error
                     "type": "humanoid",
-                    # Missing alignment - should cause validation error
+                    "alignment": ["N"],
                     "ac": [{"ac": 10}],
                     "hp": {"average": 10, "formula": "2d8+1"},
                     "speed": {"walk": 30},

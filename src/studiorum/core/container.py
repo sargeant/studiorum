@@ -98,14 +98,14 @@ def _register_services_sync(container: ServiceContainer) -> None:
     """
     from studiorum.core.services.factories import (
         create_cache_service,
-        create_configuration_service,
+        create_configuration_service_sync,
         create_content_attribution_service,
         create_content_factory_service,
         create_content_type_registry_service,
         create_data_source_manager_service,
         create_display_manager_service,
         create_entry_registry_service,
-        create_omnidexer_service,
+        create_omnidexer_service_sync,
         create_reference_manager_service,
         create_tag_resolver_service,
     )
@@ -130,7 +130,7 @@ def _register_services_sync(container: ServiceContainer) -> None:
     # Configuration (hot-reloadable singleton)
     container.register_service(
         ConfigurationProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
-        create_configuration_service,
+        create_configuration_service_sync,
         lifecycle=ServiceLifecycle.SINGLETON,
         dependencies=(),
         hot_reloadable=True,
@@ -156,11 +156,11 @@ def _register_services_sync(container: ServiceContainer) -> None:
         cleanup_priority=CleanupPriority.INFRASTRUCTURE,
     )
 
-    # Core data service (omnidexer with async initialization)
+    # Core data service (omnidexer with sync initialization for CLI)
     container.register_service(
         OmnidexerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
-        create_omnidexer_service,
-        lifecycle=ServiceLifecycle.ASYNC_RESOURCE,
+        create_omnidexer_service_sync,
+        lifecycle=ServiceLifecycle.SINGLETON,
         dependencies=(ConfigurationProtocol,),
         hot_reloadable=False,
         cleanup_priority=CleanupPriority.CORE_RESOURCES,

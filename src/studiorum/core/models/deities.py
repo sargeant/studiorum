@@ -31,8 +31,8 @@ class Deity(BaseContent):
     """Gods, pantheons, and divine entities."""
 
     pantheon: str = Field(..., description="Pantheon this deity belongs to")
-    alignment: list[str] = Field(
-        ..., description="Alignment components (e.g., ['L', 'G'] for Lawful Good)"
+    alignment: list[str] | None = Field(
+        None, description="Alignment components (e.g., ['L', 'G'] for Lawful Good)"
     )
     title: str | None = Field(None, description="Deity's title or epithet")
     domains: list[str] | None = Field(
@@ -43,7 +43,7 @@ class Deity(BaseContent):
         None, alias="symbolImg", description="Symbol image data"
     )
     category: str | None = Field(None, description="Category within pantheon")
-    province: list[str] | None = Field(
+    province: list[str] | str | None = Field(
         None, description="Areas of influence or responsibility"
     )
     alt_names: list[str] | None = Field(

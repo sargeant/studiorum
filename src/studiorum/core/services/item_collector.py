@@ -204,7 +204,11 @@ class ItemCollector:
             True if the item matches all criteria
         """
         # Type filtering
-        if criteria.item_types and not criteria.matches_item_type(item.type):
+        if (
+            criteria.item_types
+            and item.type is not None
+            and not criteria.matches_item_type(item.type)
+        ):
             return False
 
         # Rarity filtering

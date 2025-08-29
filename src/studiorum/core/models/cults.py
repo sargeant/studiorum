@@ -26,7 +26,7 @@ class Cult(BaseContent):
     membership: str | None = Field(None, description="Who joins this cult")
 
     # Powers and abilities
-    signature_spells: list[str] = Field(
+    signature_spells: list[str] | dict[str, Any] = Field(
         default_factory=list,
         alias="signatureSpells",
         description="Spells favored by the cult",

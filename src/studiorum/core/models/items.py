@@ -105,9 +105,9 @@ class ArmorData(BaseModel):
     loader_type="json",
 )
 class Item(BaseContent):
-    """Represents a D&D item."""
+    """Represents a 5e item."""
 
-    type: str | ItemType = Field(..., description="Item type")
+    type: str | ItemType | None = Field(None, description="Item type")
     rarity: str | ItemRarity | None = Field(None, description="Item rarity")
     weight: int | float | None = Field(None, description="Item weight in pounds")
     value: int | float | ValueDetails | dict[str, Any] | None = Field(
@@ -159,7 +159,7 @@ class Item(BaseContent):
     tattoo: bool | None = Field(None, description="Is a tattoo")
 
     # Spell-related data
-    attached_spells: dict[str, Any] | None = Field(
+    attached_spells: dict[str, Any] | list[str] | None = Field(
         None, alias="attachedSpells", description="Attached spells with charges"
     )
 
@@ -323,6 +323,7 @@ class Item(BaseContent):
         if (
             not hasattr(self, "attached_spells")
             or not self.attached_spells
+            or not isinstance(self.attached_spells, dict)
             or "charges" not in self.attached_spells
         ):
             return []
@@ -343,6 +344,7 @@ class Item(BaseContent):
         return bool(
             hasattr(self, "attached_spells")
             and self.attached_spells
+            and isinstance(self.attached_spells, dict)
             and "charges" in self.attached_spells
         )
 

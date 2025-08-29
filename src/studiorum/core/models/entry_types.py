@@ -2,7 +2,7 @@
 Typed entry models to replace dict[str, Any] patterns.
 
 This module provides specific Pydantic models for different types of entries
-that appear in D&D content, replacing the generic dict[str, Any] pattern
+that appear in 5e content, replacing the generic dict[str, Any] pattern
 with type-safe, validated structures.
 """
 
@@ -41,21 +41,24 @@ class TableEntry(BaseEntry):
     caption: str | None = Field(None, description="Table caption")
     colLabels: list[str] | None = Field(None, description="Column headers")
     colStyles: list[str] | None = Field(None, description="Column styles")
-    rows: list[list[str | dict[str, Any]]] = Field(
+    rows: list[list[str | dict[str, Any] | int]] = Field(
         default_factory=list, description="Table rows"
     )
+    footnotes: list[str] | None = Field(None, description="Table footnotes")
 
 
 class ListEntry(BaseEntry):
     """List entry with items and style."""
 
     type: Literal["list"] = "list"
+    name: str | None = Field(None, description="List name/title")
     style: str | None = Field(
         None, description="List style (e.g., list, unordered, list-hang-notitle)"
     )
     items: list[str | dict[str, Any]] = Field(
         default_factory=list, description="List items"
     )
+    columns: int | None = Field(None, description="Number of columns for list display")
 
 
 class InsetEntry(BaseEntry):
@@ -75,6 +78,7 @@ class EntriesEntry(BaseEntry):
 
     type: Literal["entries"] = "entries"
     name: str | None = Field(None, description="Section name")
+    source: str | None = Field(None, description="Source reference")
     page: int | None = Field(None, description="Page number reference")
     entries: list[str | dict[str, Any]] = Field(
         default_factory=list, description="Nested entries"
@@ -117,6 +121,7 @@ class ImageEntry(BaseEntry):
     href: dict[str, str] | None = Field(None, description="Image reference")
     title: str | None = Field(None, description="Image title")
     altText: str | None = Field(None, description="Image alt text")
+    credit: str | None = Field(None, description="Image credit/attribution")
 
 
 class GalleryEntry(BaseEntry):
@@ -197,10 +202,10 @@ class GenericEntry(BaseEntry):
         return v
 
 
-# Union type for all possible entry types (ordered from most to least specific)
-Entry = (
-    str
-    | TableEntry  # Put TableEntry early to avoid conflicts
+# Discriminated union for entry types that have a 'type' field with Literal values
+# This enables efficient validation by checking the discriminator field first
+DiscriminatedEntry = Annotated[
+    TableEntry
     | ActionEntry
     | ListEntry
     | InsetEntry
@@ -212,9 +217,13 @@ Entry = (
     | ItemEntry
     | SpellEntry
     | CreatureEntry
-    | TextEntry  # More generic
-    | GenericEntry  # Fallback for unknown types
-)
+    | TextEntry,
+    Field(discriminator="type"),
+]
+
+# Full Entry type includes discriminated entries, generic fallback, and plain strings
+# Order matters: try discriminated first, then generic, then string
+Entry = str | DiscriminatedEntry | GenericEntry
 
 
 def create_entry(data: str | dict[str, Any]) -> Entry:
