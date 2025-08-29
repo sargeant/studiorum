@@ -46,13 +46,24 @@
 ]
 <@ endif @>
 
-<@ if creature.trait @>
+<@ if creature.trait or (creature.spellcasting and creature.spellcasting | selectattr('displayAs', 'undefined') | list) @>
 \DndMonsterSection{Traits}
+<@ if creature.spellcasting @>
+<@ for spellcasting in creature.spellcasting @>
+<@ if not spellcasting.displayAs @>
+\DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
+<# spellcasting.get_description_text() | safe #>
+
+<@ endif @>
+<@ endfor @>
+<@ endif @>
+<@ if creature.trait @>
 <@ for trait in creature.trait @>
 \DndMonsterAction{<# trait.get_processed_name() | safe #>}
 <# trait.get_description_text() | safe #>
 
 <@ endfor @>
+<@ endif @>
 <@ endif @>
 
 <@ set action_spells = [] @>

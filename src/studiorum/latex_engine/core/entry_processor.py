@@ -638,7 +638,7 @@ class RecursiveEntryProcessor:
         # Determine list environment based on style
         if list_type == "ordered":
             env = "enumerate"
-        elif list_type == "list-hang-notitle" or list_type == "list-hang":
+        elif list_type in ("list-hang-notitle", "list-hang", "list-hang-subtrait"):
             env = "description"
         else:
             env = "itemize"
@@ -691,7 +691,7 @@ class RecursiveEntryProcessor:
                     item_name = item.get("name", "")
                     if item_name:
                         # For description lists, process only the content part (not the name)
-                        if item.get("type") == "item":
+                        if item.get("type") in ("item", "itemSub"):
                             # Special handling for "item" type - extract just entry/entries/text
                             entry_content = item.get("entry", "") or item.get(
                                 "text", ""

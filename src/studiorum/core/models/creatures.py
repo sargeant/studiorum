@@ -435,7 +435,7 @@ class Ability(BaseModel):
                 processed_entries = processor.process_entries(
                     converted_entries, context
                 )
-                return "\n".join(processed_entries)
+                return "\n\n".join(processed_entries)
             else:
                 return ""
 
@@ -1184,35 +1184,48 @@ class Creature(BaseContent):
         )
 
     def get_formatted_resistances(self) -> str | None:
-        """Get formatted damage resistances."""
+        """Get formatted damage resistances following 5etools format."""
         if not hasattr(self, "resist") or not self.resist:
             return None
 
-        resistance_parts = []
+        resistance_groups = []
         for resistance in self.resist:
             if isinstance(resistance, str):
-                resistance_parts.append(resistance)
+                resistance_groups.append(resistance)
             elif isinstance(resistance, dict):
                 # Handle complex resistance structures
                 if "resist" in resistance:
                     resist_types = resistance["resist"]
                     if isinstance(resist_types, list):
-                        # Filter to only string types to satisfy mypy
+                        # Format as "type1, type2, and type3" for multiple types
                         string_types = [
                             str(r) if not isinstance(r, str) else r
                             for r in resist_types
                         ]
-                        resistance_parts.extend(string_types)
-                    else:
-                        resistance_parts.append(str(resist_types))
-                elif "special" in resistance:
-                    resistance_parts.append(resistance["special"])
-                else:
-                    resistance_parts.append(str(resistance))
-            else:
-                resistance_parts.append(str(resistance))
+                        if len(string_types) == 1:
+                            resist_text = string_types[0]
+                        elif len(string_types) == 2:
+                            resist_text = f"{string_types[0]} and {string_types[1]}"
+                        else:
+                            resist_text = f"{', '.join(string_types[:-1])}, and {string_types[-1]}"
 
-        return ", ".join(resistance_parts) if resistance_parts else None
+                        # Add note if present
+                        if "note" in resistance:
+                            resist_text = f"{resist_text} {resistance['note']}"
+                        resistance_groups.append(resist_text)
+                    else:
+                        resist_text = str(resist_types)
+                        if "note" in resistance:
+                            resist_text = f"{resist_text} {resistance['note']}"
+                        resistance_groups.append(resist_text)
+                elif "special" in resistance:
+                    resistance_groups.append(resistance["special"])
+                else:
+                    resistance_groups.append(str(resistance))
+            else:
+                resistance_groups.append(str(resistance))
+
+        return "; ".join(resistance_groups) if resistance_groups else None
 
     def get_formatted_immunities(self) -> str | None:
         """Get formatted damage immunities."""
