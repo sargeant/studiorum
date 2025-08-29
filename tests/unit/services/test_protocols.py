@@ -112,6 +112,10 @@ class TestServiceProtocols:
                 """Find all content matching type and name - mock implementation."""
                 return []
 
+            def find(self, content_type: object, name: str, source: str | None = None):
+                """Find content by type, name, and optionally source - mock implementation."""
+                return None
+
             def set_progress_callback(self, callback) -> None:
                 """Set progress callback - mock implementation."""
                 pass

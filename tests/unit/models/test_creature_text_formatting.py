@@ -494,7 +494,7 @@ class TestCreatureTextValidation:
         assert "Common, Elvish, telepathy 120 ft." == languages
 
         resistances = creature.get_formatted_resistances()
-        assert "fire, cold" == resistances
+        assert "fire; cold" == resistances
 
         immunities = creature.get_formatted_immunities()
         assert "poison" == immunities

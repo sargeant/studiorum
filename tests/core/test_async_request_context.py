@@ -72,11 +72,14 @@ class MockOmnidexer:
     def get_performance_statistics(self) -> dict[str, object]:
         return {}
 
-    def get_all_by_type(self, content_type: object) -> list:
+    def get_all_by_type(self, content_type) -> list:
         return []
 
-    def find_all(self, content_type: object, name: str) -> list:
+    def find_all(self, content_type, name: str) -> list:
         return []
+
+    def find(self, content_type, name: str, source: str | None = None):
+        return None
 
     def set_progress_callback(self, callback) -> None:
         pass
