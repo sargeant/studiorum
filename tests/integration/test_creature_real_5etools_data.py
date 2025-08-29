@@ -365,6 +365,10 @@ class TestCreatureReal5etoolsDataIntegration:
 
         import psutil
 
+        # Skip when running with pytest-xdist to avoid resource contention
+        if os.getenv("PYTEST_XDIST_WORKER"):
+            pytest.skip("Memory monitoring tests incompatible with parallel execution")
+
         process = psutil.Process(os.getpid())
 
         # Force garbage collection

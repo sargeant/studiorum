@@ -250,6 +250,10 @@ class TestRenderingPerformance:
 
         import psutil
 
+        # Skip when running with pytest-xdist to avoid resource contention
+        if os.getenv("PYTEST_XDIST_WORKER"):
+            pytest.skip("Memory monitoring tests incompatible with parallel execution")
+
         process = psutil.Process(os.getpid())
         context = RenderingContext(
             output_format="latex", metadata={"title": "Memory Test"}

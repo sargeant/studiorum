@@ -45,7 +45,6 @@ class TestBookConversion:
 
     def _get_test_env(self) -> dict[str, str]:
         """Get environment with test configuration override."""
-        import os
 
         env = os.environ.copy()
         env["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
@@ -506,6 +505,10 @@ class TestBookConversion:
     def test_book_memory_usage_reasonable(self):
         """Test that book conversion doesn't use excessive memory."""
         import psutil
+
+        # Skip when running with pytest-xdist to avoid resource contention
+        if os.getenv("PYTEST_XDIST_WORKER"):
+            pytest.skip("Memory monitoring tests incompatible with parallel execution")
 
         # Get initial memory usage
         process = psutil.Process(os.getpid())

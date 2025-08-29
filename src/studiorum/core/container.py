@@ -263,17 +263,9 @@ def reset_global_container() -> None:
     global _global_container
     if _global_container is not None:
         try:
-            # Try to clean up async container
-            if hasattr(asyncio, "get_running_loop"):
-                try:
-                    loop = asyncio.get_running_loop()
-                    # Schedule cleanup task
-                    loop.create_task(_global_container.cleanup())
-                except RuntimeError:
-                    # No running loop, run cleanup synchronously
-                    asyncio.run(_global_container.cleanup())
-            else:
-                asyncio.run(_global_container.cleanup())
+            # Always run cleanup synchronously to avoid threading issues
+            # Fire-and-forget tasks during teardown can cause infinite loops
+            asyncio.run(_global_container.cleanup())
         except Exception as e:
             logger.warning(f"Error during container cleanup: {e}")
     _global_container = None

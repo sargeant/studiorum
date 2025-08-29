@@ -38,14 +38,18 @@ class MockOmnidexer:
     def is_initialized(self) -> bool:
         return True
 
+    # OmnidexerProtocol methods
     async def load_content_sources(self, sources: list[str]) -> None:
         pass
 
     def get_content(self, content_type: str, identifier: str) -> object:
-        return {"type": content_type, "id": identifier}
+        return None
 
-    def search(self, query: str) -> list:  # BaseContent not accessible in test
-        return [{"name": f"mock_result_{query}", "type": "mock"}]
+    def search(self, query: str) -> list:
+        return []
+
+    async def ensure_sources_ready(self) -> None:
+        pass
 
     async def search_content_async(
         self,
@@ -54,7 +58,7 @@ class MockOmnidexer:
         context: object | None = None,
         limit: int = 50,
     ) -> object:
-        return {"success": True, "data": [{"name": f"async_mock_{query}"}]}
+        return []
 
     async def get_content_async(
         self,
@@ -63,22 +67,19 @@ class MockOmnidexer:
         source: str | None = None,
         context: object | None = None,
     ) -> object:
-        return {"success": True, "data": {"type": content_type, "name": name}}
+        return None
 
     def get_performance_statistics(self) -> dict[str, object]:
-        return {"mock": True, "initialized": True}
+        return {}
 
-    async def ensure_sources_ready(self) -> None:
-        pass
-
-    def get_all_by_type(
-        self, content_type: object
-    ) -> list:  # BaseContent not accessible in test
-        return [{"type": str(content_type), "mock": True}]
+    def get_all_by_type(self, content_type: object) -> list:
+        return []
 
     def find_all(self, content_type: object, name: str) -> list:
-        """Find all content matching type and name - mock implementation."""
-        return [{"type": str(content_type), "name": name, "mock": True}]
+        return []
+
+    def set_progress_callback(self, callback) -> None:
+        pass
 
 
 class MockTagResolver:

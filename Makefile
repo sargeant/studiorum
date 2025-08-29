@@ -186,15 +186,19 @@ test: uv
 # Speed-based test targets for development workflow
 ## Run fast tests only (<1s per test)
 test-fast: uv
-	@pytest -m "fast"
+	@$(UV) pytest -m "fast"
 
 ## Run unit tests (excludes integration and slow tests)
 test-unit: uv
-	@pytest -m "not integration and not slow and not ci_broken"
+	@$(UV) pytest -m "not integration and not slow and not ci_broken"
+
+## Run tests with coverage and parallel execution (may hang - use for CI)
+test-with-coverage: uv
+	@$(UV) pytest --cov=studiorum --cov-report=term-missing --cov-report=html --cov-report=xml -n auto --dist loadscope --max-worker-restart 1
 
 ## Run core functionality tests
 test-core: uv
-	@pytest -m "core"
+	@$(UV) pytest -m "core"
 
 ## Run rendering system tests
 test-rendering: uv

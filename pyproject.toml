@@ -189,10 +189,6 @@ addopts = [
     "-ra",
     "--strict-markers",
     "--strict-config",
-    "--cov=studiorum",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
     "--tb=short",
     "-n",
     "auto",                      # Enable parallel test execution
@@ -200,7 +196,6 @@ addopts = [
     "loadscope",                 # Group tests by module for better isolation
     "--max-worker-restart",
     "1",                         # Force new processes to avoid contamination
-    # Note: Enhanced isolation for parallel execution
 ]
 testpaths = ["tests"]
 markers = [
@@ -236,6 +231,15 @@ markers = [
     "latex_compilation: marks tests that require LaTeX compilation",
 ]
 filterwarnings = ["ignore::UserWarning", "ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+parallel = true
+concurrency = ["multiprocessing"]
+source = ["src/studiorum"]
+
+[tool.coverage.report]
+skip_covered = false
+show_missing = true
 
 [tool.bandit]
 # We use inline # nosec comments for specific suppressions rather than global skips

@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 if TYPE_CHECKING:
+    from ..container import ServiceContainer
     from ..protocols.progress import ProgressCallback
+    from ..services.protocols import SourceManagerProtocol
     from .content_merger import ContentMerger
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -188,7 +190,11 @@ class Omnidexer:
 
         initialize_content_types()
 
-        self.source_manager = source_manager or UnifiedSourceManager()
+        # Initialize source manager
+        if source_manager is not None:
+            self.source_manager = source_manager
+        else:
+            self.source_manager = UnifiedSourceManager()
         self.enable_deep_indexing = enable_deep_indexing
 
         # Note: Removing async lock since we're converting to sync

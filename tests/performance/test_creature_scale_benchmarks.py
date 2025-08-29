@@ -30,6 +30,10 @@ class TestCreatureDatasetScaling:
         """Set up test fixtures."""
         reset_test_environment()
 
+        # Skip when running with pytest-xdist to avoid resource contention
+        if os.getenv("PYTEST_XDIST_WORKER"):
+            pytest.skip("Memory monitoring tests incompatible with parallel execution")
+
         # Track process for memory monitoring
         self.process = psutil.Process(os.getpid())
 
@@ -453,6 +457,11 @@ class TestMemoryUsageValidation:
     def setup_method(self):
         """Set up test fixtures."""
         reset_test_environment()
+
+        # Skip when running with pytest-xdist to avoid resource contention
+        if os.getenv("PYTEST_XDIST_WORKER"):
+            pytest.skip("Memory monitoring tests incompatible with parallel execution")
+
         self.process = psutil.Process(os.getpid())
 
     def test_memory_stability_during_repeated_operations(self):

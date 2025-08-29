@@ -112,6 +112,10 @@ class TestServiceProtocols:
                 """Find all content matching type and name - mock implementation."""
                 return []
 
+            def set_progress_callback(self, callback) -> None:
+                """Set progress callback - mock implementation."""
+                pass
+
         service = MockOmnidexer()
         assert isinstance(service, ServiceProtocol)
         assert isinstance(service, AsyncResourceProtocol)

@@ -365,8 +365,6 @@ def create_omnidexer_service_sync(
             try:
                 from studiorum.core.loaders.omnidexer import Omnidexer
 
-                # Create omnidexer with default configuration
-                # Skip async source manager initialization for CLI usage
                 self._omnidexer = Omnidexer()
 
                 # DON'T load all data immediately - let lazy loading work
