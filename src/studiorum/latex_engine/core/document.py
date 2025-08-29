@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 
 
 class LaTeXDocumentRenderer(DocumentRenderer):
-    """LaTeX document renderer that creates complete D&D-style documents."""
+    """LaTeX document renderer that creates complete 5e-style documents."""
 
     def __init__(self, config: LaTeXConfig | None = None):
         """Initialize LaTeX document renderer.
@@ -102,7 +102,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
         if not metadata:
             # Create default metadata if none provided
             metadata = DocumentMetadata(
-                title=context.metadata.get("title", "D&D 5e Content"),
+                title=context.metadata.get("title", "5e Content"),
                 subtitle=None,
                 short_title=None,
                 editor=None,
@@ -265,7 +265,7 @@ class LaTeXDocumentRenderer(DocumentRenderer):
             class_options = [page_size, font_size, "twocolumn"]
 
         template_vars = {
-            "title": context.metadata.get("title", "D&D 5e Content"),
+            "title": context.metadata.get("title", "5e Content"),
             "subtitle": context.metadata.get("subtitle", ""),
             "author": context.metadata.get("author", ""),
             "date": context.metadata.get("date", r"\today"),
@@ -551,7 +551,7 @@ This content type is not yet fully supported by the rendering system.
 
         if isinstance(content, str):
             # Process string content with tags
-            tag_resolver = context.metadata.get("tag_resolver")
+            tag_resolver = context.tag_resolver
             if tag_resolver:
                 result = tag_resolver.process_text(content, context)
                 return str(result)
@@ -629,7 +629,7 @@ This content type is not yet fully supported by the rendering system.
 
         if isinstance(content, str):
             # Process string content with tags
-            tag_resolver = context.metadata.get("tag_resolver")
+            tag_resolver = context.tag_resolver
             if tag_resolver:
                 result = tag_resolver.process_text(content, context)
                 return str(result)

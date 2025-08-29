@@ -1166,7 +1166,7 @@ class RecursiveEntryProcessor:
         Returns:
             Text with tags processed
         """
-        if not text or not context.metadata.get("tag_resolver"):
+        if not text or not context.tag_resolver:
             return self._escape_latex(text)
 
         # Preprocess attack abbreviations (2024 5e format)
@@ -1176,8 +1176,8 @@ class RecursiveEntryProcessor:
         if not self._is_valid_tag_input(text):
             return self._escape_latex(text)
 
-        # Type cast needed due to forward reference in RenderingContext
-        tag_resolver = context.metadata.get("tag_resolver")
+        # Use tag resolver directly from context field
+        tag_resolver = context.tag_resolver
         result = tag_resolver.process_text(text, context) if tag_resolver else text
         return str(result)
 

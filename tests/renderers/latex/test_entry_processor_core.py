@@ -32,7 +32,8 @@ class TestRecursiveEntryProcessor:
         )
         self.context = RenderingContext(
             output_format="latex",
-            metadata={"include_images": True, "tag_resolver": mock_tag_resolver},
+            tag_resolver=mock_tag_resolver,
+            metadata={"include_images": True},
         )
 
     def test_init_default(self):

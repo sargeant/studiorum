@@ -635,11 +635,11 @@ def spells(
                 output_format="latex",
                 omnidexer=omnidexer,
                 content_tracker=content_tracker,
+                tag_resolver=tag_resolver,
                 metadata={
                     "title": spell_title,
                     "include_images": with_images,
                     "include_toc": True,
-                    "tag_resolver": tag_resolver,
                     "document_metadata": metadata,
                     "latex_config": latex_config,
                     "spell_count": len(sorted_spells),

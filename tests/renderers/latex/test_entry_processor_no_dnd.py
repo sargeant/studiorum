@@ -27,7 +27,7 @@ class TestRecursiveEntryProcessorWithoutDNDTemplate:
             side_effect=lambda text, context=None: f"processed_{text}"
         )
         self.context = RenderingContext(
-            output_format="latex", metadata={"tag_resolver": mock_tag_resolver}
+            output_format="latex", tag_resolver=mock_tag_resolver
         )
 
     def test_process_inset_readaloud_without_dnd(self):

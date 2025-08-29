@@ -27,7 +27,7 @@ class TestRecursiveEntryProcessorEdgeCases:
             side_effect=lambda text, context=None: text
         )
         self.context = RenderingContext(
-            output_format="latex", metadata={"tag_resolver": mock_tag_resolver}
+            output_format="latex", tag_resolver=mock_tag_resolver
         )
 
     def test_process_section_no_name_no_entries(self):
