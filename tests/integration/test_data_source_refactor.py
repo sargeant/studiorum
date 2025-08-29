@@ -29,8 +29,8 @@ from studiorum.core.config.data_sources import (
     DataSourceType,
     ExtensionDataSourceConfig,
 )
-from studiorum.core.container import reset_global_container
 from studiorum.core.context import AsyncRequestContext
+from studiorum.core.services.container import ServiceContainer
 
 
 class TestDataSourceRefactorIntegration:
@@ -52,7 +52,7 @@ class TestDataSourceRefactorIntegration:
     def _reset_all_global_state(self) -> None:
         """Reset all known global state for complete test isolation."""
         try:
-            reset_global_container()
+            ServiceContainer.reset_global_instance()
 
             # Reset CLI-specific globals
             from studiorum.cli.main import reset_cli_globals

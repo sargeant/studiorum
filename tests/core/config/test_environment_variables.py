@@ -20,7 +20,7 @@ from studiorum.core.config.unified_config import (
     get_app_config,
     reset_app_config,
 )
-from studiorum.core.container import reset_global_container
+from studiorum.core.services.container import ServiceContainer
 
 
 class TestEnvironmentVariables:
@@ -30,7 +30,7 @@ class TestEnvironmentVariables:
         """Set up test environment with clean state."""
         # Reset both app config and service container for isolation
         reset_app_config()
-        reset_global_container()
+        ServiceContainer.reset_global_instance()
         # Store original environment state
         self._original_env: dict[str, str | None] = {}
 
@@ -45,7 +45,7 @@ class TestEnvironmentVariables:
 
         # Reset configs again for clean slate
         reset_app_config()
-        reset_global_container()
+        ServiceContainer.reset_global_instance()
 
     def _set_env_vars(self, env_vars: dict[str, str]) -> None:
         """Set environment variables and track original values."""
@@ -634,7 +634,7 @@ class TestEnvironmentVariableIntegration:
     def setup_method(self) -> None:
         """Set up test environment."""
         reset_app_config()
-        reset_global_container()
+        ServiceContainer.reset_global_instance()
         self._original_env: dict[str, str | None] = {}
 
     def teardown_method(self) -> None:
@@ -645,7 +645,7 @@ class TestEnvironmentVariableIntegration:
             else:
                 os.environ[key] = original_value
         reset_app_config()
-        reset_global_container()
+        ServiceContainer.reset_global_instance()
 
     def _set_env_vars(self, env_vars: dict[str, str]) -> None:
         """Set environment variables and track original values."""

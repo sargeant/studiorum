@@ -9,9 +9,9 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from typing import cast
 
-from studiorum.core.container import get_global_container
 from studiorum.core.models.content import ContentType
 from studiorum.core.resolvers.content_resolver import ContentResolver
+from studiorum.core.services.container import ServiceContainer
 from studiorum.core.services.protocols import OmnidexerProtocol
 
 
@@ -20,7 +20,7 @@ def main():
 
     # Step 1: Get omnidexer via service container (same as CLI)
     print("=== STEP 1: Loading omnidexer via service container ===")
-    container = get_global_container()
+    container = ServiceContainer.get_global_instance()
     omnidexer_service = container.get_service_sync(OmnidexerProtocol)
     print("Omnidexer service loaded successfully")
 

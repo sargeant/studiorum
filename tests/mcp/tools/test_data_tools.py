@@ -23,9 +23,9 @@ class TestDataSourcesMCPTool:
 
     def setup_method(self):
         """Set up test environment."""
-        from studiorum.core.container import reset_global_container
+        from studiorum.core.services.container import ServiceContainer
 
-        reset_global_container()
+        ServiceContainer.reset_global_instance()
 
     @pytest.mark.asyncio
     async def test_list_action(self):
@@ -304,9 +304,9 @@ class TestSourceAttributionMCPTool:
 
     def setup_method(self):
         """Set up test environment."""
-        from studiorum.core.container import reset_global_container
+        from studiorum.core.services.container import ServiceContainer
 
-        reset_global_container()
+        ServiceContainer.reset_global_instance()
 
     @pytest.mark.asyncio
     async def test_list_sources(self):

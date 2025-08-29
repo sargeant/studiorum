@@ -19,9 +19,9 @@ class TestDataCommands:
 
     def setup_method(self):
         """Set up test environment."""
-        from studiorum.core.container import reset_global_container
+        from studiorum.core.services.container import ServiceContainer
 
-        reset_global_container()
+        ServiceContainer.reset_global_instance()
 
         self.runner = CliRunner()
         self.temp_dir = Path(tempfile.mkdtemp())
@@ -226,9 +226,9 @@ class TestDeprecatedSourcesCommands:
 
     def setup_method(self):
         """Set up test environment."""
-        from studiorum.core.container import reset_global_container
+        from studiorum.core.services.container import ServiceContainer
 
-        reset_global_container()
+        ServiceContainer.reset_global_instance()
 
         self.runner = CliRunner()
 
@@ -284,9 +284,9 @@ class TestCLIIntegration:
 
     def setup_method(self):
         """Set up test environment."""
-        from studiorum.core.container import reset_global_container
+        from studiorum.core.services.container import ServiceContainer
 
-        reset_global_container()
+        ServiceContainer.reset_global_instance()
 
         self.runner = CliRunner()
 

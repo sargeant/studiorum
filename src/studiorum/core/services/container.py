@@ -1271,7 +1271,7 @@ async def create_mcp_request_container(
     from ..container import get_global_container
 
     # Get global container (will be enhanced DefaultServiceContainer)
-    global_container = get_global_container()
+    global_container = ServiceContainer.get_global_instance()
 
     # Check if it has the create_request_scope method
     if not hasattr(global_container, "create_request_scope"):

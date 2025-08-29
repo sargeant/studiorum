@@ -62,9 +62,9 @@ def get_app_config() -> ApplicationConfig:
                 raise
 
     # Direct container access - eliminate bridge function
-    from studiorum.core.container import get_global_container
+    from studiorum.core.services.container import ServiceContainer
 
-    container = get_global_container()
+    container = ServiceContainer.get_global_instance()
     config_service = container.get_service_sync(ConfigurationProtocol)  # type: ignore[type-abstract]
     return config_service.get_config()
 
@@ -99,9 +99,9 @@ def get_cache_service() -> CacheProtocol:
                 raise
 
     # Get service from container using modern sync access
-    from studiorum.core.container import get_global_container
+    from studiorum.core.services.container import ServiceContainer
 
-    container = get_global_container()
+    container = ServiceContainer.get_global_instance()
     return container.get_service_sync(CacheProtocol)  # type: ignore[type-abstract]
 
 
@@ -147,9 +147,9 @@ def get_content_type_registry_service() -> ContentTypeRegistryProtocol:
                 raise
 
     # Get service from container using modern sync access
-    from studiorum.core.container import get_global_container
+    from studiorum.core.services.container import ServiceContainer
 
-    container = get_global_container()
+    container = ServiceContainer.get_global_instance()
     return container.get_service_sync(ContentTypeRegistryProtocol)  # type: ignore[type-abstract]
 
 
