@@ -459,6 +459,7 @@ class AppendixGenerator:
             LaTeX content for the spell entry
         """
         # Use existing entry renderer for consistent rendering
+        from studiorum.cli.utils import get_tag_resolver
         from studiorum.renderers.core.interfaces import RenderingContext
 
         # Create rendering context with ContentTracker for tracking references
@@ -466,6 +467,7 @@ class AppendixGenerator:
             output_format="latex",
             omnidexer=self.omnidexer,
             content_tracker=content_tracker,
+            tag_resolver=get_tag_resolver(),
         )
 
         # Get spell renderer and render
@@ -483,6 +485,7 @@ class AppendixGenerator:
             LaTeX content for the item entry
         """
         # Use existing entry renderer for consistent rendering
+        from studiorum.cli.utils import get_tag_resolver
         from studiorum.renderers.core.interfaces import RenderingContext
 
         # Create rendering context with ContentTracker for tracking references
@@ -490,6 +493,7 @@ class AppendixGenerator:
             output_format="latex",
             omnidexer=self.omnidexer,
             content_tracker=content_tracker,
+            tag_resolver=get_tag_resolver(),
         )
 
         # Get item renderer and render
@@ -509,6 +513,7 @@ class AppendixGenerator:
             LaTeX content for the creature entry
         """
         # Use existing entry renderer for consistent rendering
+        from studiorum.cli.utils import get_tag_resolver
         from studiorum.renderers.core.interfaces import RenderingContext
 
         # Create rendering context with ContentTracker for tracking references
@@ -516,6 +521,7 @@ class AppendixGenerator:
             output_format="latex",
             omnidexer=self.omnidexer,
             content_tracker=content_tracker,
+            tag_resolver=get_tag_resolver(),
         )
 
         # Get creature renderer and render

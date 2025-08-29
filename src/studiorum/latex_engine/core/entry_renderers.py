@@ -67,6 +67,7 @@ class SpellEntryRenderer(BaseEntryRenderer):
             "duration_text": content.get_enhanced_duration_text(),
             "description_text": description_text,
             "higher_level_text": higher_level_text,
+            "rendering_context": context,
         }
 
 

@@ -1,7 +1,7 @@
 % Shared spell rendering block for use in both spellbook and spell_entry templates
 % This macro can be included by both templates to ensure consistent rendering
 
-<@ macro render_spell(spell) @>
+<@ macro render_spell(spell, rendering_context=rendering_context) @>
 \DndSpellHeader%
   {<# spell.name | latex_escape #>}
   {<# spell.get_level_text() | latex_escape #>}
@@ -10,10 +10,10 @@
   {<# spell.get_components_text() | latex_escape #>}
   {<# spell.get_duration_text() | latex_escape #>}
 
-<# spell.get_description_text() | safe #>
+<# spell.get_description_text(rendering_context) | safe #>
 
-<@ if spell.get_higher_level_text() @>
+<@ if spell.get_higher_level_text(rendering_context) @>
 
-<# spell.get_higher_level_text() | safe #>
+<# spell.get_higher_level_text(rendering_context) | safe #>
 <@ endif @>
 <@ endmacro @>
