@@ -179,10 +179,10 @@ class TestTemplateInjectionVulnerabilities:
             def get_duration_text(self):
                 return "Instantaneous"
 
-            def get_description_text(self):
+            def get_description_text(self, context=None):
                 return "Test\\input{/etc/passwd}"
 
-            def get_higher_level_text(self):
+            def get_higher_level_text(self, context=None):
                 return None
 
         # Test with a malicious spell name
