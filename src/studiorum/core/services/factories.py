@@ -460,7 +460,7 @@ def create_omnidexer_service_sync(
             results = self._omnidexer.search(query, content_type, limit)
             return list(results)
 
-        def get_all_by_type(self, content_type: object) -> list[BaseContent]:
+        def get_all_by_type(self, content_type: ContentType) -> list[BaseContent]:
             """Get all content of a specific type."""
             if not self._omnidexer:
                 raise RuntimeError("Omnidexer not initialized")
@@ -468,12 +468,7 @@ def create_omnidexer_service_sync(
             # Lazy load data when first accessed
             self._ensure_data_loaded()
 
-            from studiorum.core.models.content import ContentType
-
-            if isinstance(content_type, str | ContentType):
-                results = self._omnidexer.get_all_by_type(content_type)
-            else:
-                results = []
+            results = self._omnidexer.get_all_by_type(content_type)
             return list(results)
 
         def get_all_by_source(self, source: str) -> list[BaseContent]:
@@ -486,7 +481,23 @@ def create_omnidexer_service_sync(
 
             return self._omnidexer.get_all_by_source(source)
 
-        def find_all(self, content_type: object, name: str) -> list[BaseContent]:
+        def find(
+            self, content_type: ContentType, name: str, source: str | None = None
+        ) -> BaseContent | None:
+            """Find content by type, name, and optionally source."""
+            if not self._initialized:
+                logger.warning("Omnidexer not initialized - returning None")
+                return None
+
+            # Lazy load data when first accessed
+            self._ensure_data_loaded()
+
+            if self._omnidexer is not None and hasattr(self._omnidexer, "find"):
+                return self._omnidexer.find(content_type, name, source)
+            else:
+                return None
+
+        def find_all(self, content_type: ContentType, name: str) -> list[BaseContent]:
             """Find all content matching type and name across all sources."""
             if not self._initialized:
                 logger.warning("Omnidexer not initialized - returning empty results")
@@ -495,15 +506,8 @@ def create_omnidexer_service_sync(
             # Lazy load data when first accessed
             self._ensure_data_loaded()
 
-            if isinstance(content_type, str):
-                try:
-                    content_type = ContentType(content_type)
-                except ValueError:
-                    logger.warning(f"Invalid content type: {content_type}")
-                    return []
-
             if self._omnidexer is not None and hasattr(self._omnidexer, "find_all"):
-                return self._omnidexer.find_all(cast(ContentType, content_type), name)
+                return self._omnidexer.find_all(content_type, name)
             else:
                 return []
 
@@ -687,39 +691,36 @@ async def create_omnidexer_service(
             results = self._omnidexer.search(query, content_type, limit)
             return list(results)
 
-        def get_all_by_type(self, content_type: object) -> list[BaseContent]:
+        def get_all_by_type(self, content_type: ContentType) -> list[BaseContent]:
             """Get all content of a specific type."""
             if not self._omnidexer:
                 raise RuntimeError("Omnidexer not initialized")
-            # Import ContentType for type annotation
-            from studiorum.core.models.content import ContentType
 
-            # Ensure content_type is compatible with omnidexer expectations
-            if isinstance(content_type, str | ContentType):
-                results = self._omnidexer.get_all_by_type(content_type)
-            else:
-                # If it's not a supported type, return empty list
-                results = []
+            results = self._omnidexer.get_all_by_type(content_type)
             return list(results)
 
-        def find_all(self, content_type: object, name: str) -> list[BaseContent]:
+        def find(
+            self, content_type: ContentType, name: str, source: str | None = None
+        ) -> BaseContent | None:
+            """Find content by type, name, and optionally source."""
+            if not self._initialized:
+                logger.warning("Omnidexer not initialized - returning None")
+                return None
+
+            if self._omnidexer is not None and hasattr(self._omnidexer, "find"):
+                return self._omnidexer.find(content_type, name, source)
+            else:
+                return None
+
+        def find_all(self, content_type: ContentType, name: str) -> list[BaseContent]:
             """Find all content matching type and name across all sources."""
             if not self._initialized:
                 logger.warning("Omnidexer not initialized - returning empty results")
                 return []
 
-            # Convert content_type to ContentType enum if needed
-            if isinstance(content_type, str):
-                try:
-                    content_type = ContentType(content_type)
-                except ValueError:
-                    logger.warning(f"Invalid content type: {content_type}")
-                    return []
-
             # Delegate to the concrete omnidexer
             if self._omnidexer is not None and hasattr(self._omnidexer, "find_all"):
-                # Cast since we know content_type is ContentType at this point
-                return self._omnidexer.find_all(cast(ContentType, content_type), name)
+                return self._omnidexer.find_all(content_type, name)
             else:
                 # Fallback implementation
                 return []

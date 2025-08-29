@@ -224,7 +224,7 @@ class OmnidexerProtocol(ServiceProtocol, AsyncResourceProtocol, Protocol):
         """
         ...
 
-    def get_all_by_type(self, content_type: object) -> list[BaseContent]:
+    def get_all_by_type(self, content_type: ContentType) -> list[BaseContent]:
         """Get all content of a specific type.
 
         Args:
@@ -235,7 +235,22 @@ class OmnidexerProtocol(ServiceProtocol, AsyncResourceProtocol, Protocol):
         """
         ...
 
-    def find_all(self, content_type: object, name: str) -> list[BaseContent]:
+    def find(
+        self, content_type: ContentType, name: str, source: str | None = None
+    ) -> BaseContent | None:
+        """Find content by type, name, and optionally source.
+
+        Args:
+            content_type: Content type enum or string identifier
+            name: Content name to search for
+            source: Optional source abbreviation to restrict search
+
+        Returns:
+            First content matching the specified criteria, or None if not found
+        """
+        ...
+
+    def find_all(self, content_type: ContentType, name: str) -> list[BaseContent]:
         """Find all content matching type and name across all sources.
 
         Args:
