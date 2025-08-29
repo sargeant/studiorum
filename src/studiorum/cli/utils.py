@@ -7,6 +7,7 @@ Uses singleton pattern to avoid redundant data loading within a CLI session.
 """
 
 from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.text.tag_resolver import TagResolver
 
 # Global instances for CLI session (reset per command)
@@ -14,19 +15,36 @@ _cli_omnidexer: Omnidexer | None = None
 _cli_tag_resolver: TagResolver | None = None
 
 
-def get_omnidexer() -> Omnidexer:
+def get_omnidexer(*, progress_callback: ProgressCallback | None = None) -> Omnidexer:
     """Get omnidexer instance for CLI commands.
 
     Uses service container to ensure consistent configuration management.
     Returns cached instance from global container.
 
+    Args:
+        progress_callback: Optional progress callback for data loading
+
     Returns:
         Omnidexer instance ready for use
     """
     from studiorum.core.container import get_global_container
-    from studiorum.core.services.protocols import OmnidexerProtocol
+    from studiorum.core.services.factories import create_omnidexer_service_sync
+    from studiorum.core.services.protocols import (
+        ConfigurationProtocol,
+        OmnidexerProtocol,
+    )
 
     container = get_global_container()
+
+    # If progress callback provided, create new service instance with progress
+    if progress_callback:
+        config_service = container.get_service_sync(ConfigurationProtocol)  # type: ignore[type-abstract]
+        omnidexer_service = create_omnidexer_service_sync(
+            config_service, progress_callback=progress_callback
+        )
+        return omnidexer_service  # type: ignore[return-value]
+
+    # Otherwise use cached singleton
     return container.get_service_sync(OmnidexerProtocol)  # type: ignore[type-abstract]
 
 

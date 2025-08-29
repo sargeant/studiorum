@@ -14,6 +14,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+# Import progress protocols for re-export
+from studiorum.core.protocols.progress import ProgressAwareService, ProgressCallback
+
 if TYPE_CHECKING:
     from collections.abc import Awaitable
     from pathlib import Path
@@ -27,6 +30,7 @@ if TYPE_CHECKING:
     from studiorum.core.loaders.content_factory import ContentFactory
     from studiorum.core.loaders.omnidexer import Omnidexer
     from studiorum.core.models.content import BaseContent, ContentType
+    from studiorum.core.protocols.progress import ProgressCallback
     from studiorum.core.result import Result
     from studiorum.core.text.tag_resolver import TagResolver
     from studiorum.core.unified_references import ReferenceManager
@@ -240,6 +244,14 @@ class OmnidexerProtocol(ServiceProtocol, AsyncResourceProtocol, Protocol):
 
         Returns:
             List of all content matching the specified type and name
+        """
+        ...
+
+    def set_progress_callback(self, callback: ProgressCallback | None) -> None:
+        """Set progress callback for data loading operations.
+
+        Args:
+            callback: Progress callback to report loading progress (None to disable)
         """
         ...
 
@@ -1048,6 +1060,9 @@ __all__ = [
     "SourceManagerProtocol",
     "ContentAttributionProtocol",
     "CacheProtocol",
+    # Progress protocols
+    "ProgressCallback",
+    "ProgressAwareService",
     # Image service protocols
     "ImageSourceRegistryProtocol",
     "EnhancedImagePlacerProtocol",

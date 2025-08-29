@@ -13,6 +13,7 @@ from studiorum.cli.display_manager import display_manager
 from studiorum.cli.utils import get_omnidexer
 from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.resolvers import ContentResolutionResult, ContentResolver
 from studiorum.core.security import ExecutableNotFoundError, get_platform_file_opener
 from studiorum.core.services.protocols import OmnidexerProtocol
@@ -141,13 +142,17 @@ async def compile_pdf(latex_path: Path, open_file: bool = False) -> None:
 
 
 def resolve_content_or_file(
-    source: str, content_type: ContentType
+    source: str,
+    content_type: ContentType,
+    *,
+    progress_callback: ProgressCallback | None = None,
 ) -> tuple[list[BaseContent], str]:
     """Resolve content source to content objects using unified ContentLoader.
 
     Args:
         source: File path or content abbreviation
         content_type: Type of content to resolve
+        progress_callback: Optional progress callback for data loading
 
     Returns:
         tuple of (content_items, source_description)
@@ -195,8 +200,8 @@ def resolve_content_or_file(
             )
             raise typer.Exit(1)
 
-    # Try to resolve as abbreviation using omnidexer
-    omnidexer = get_omnidexer()
+    # Try to resolve as abbreviation using omnidexer with progress
+    omnidexer = get_omnidexer(progress_callback=progress_callback)
     resolver = ContentResolver(cast(OmnidexerProtocol, omnidexer))
 
     if content_type == ContentType.ADVENTURE:

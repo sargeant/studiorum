@@ -150,7 +150,7 @@ def adventure(
     """
     📖 Convert adventure to LaTeX
 
-    Converts a D&D adventure to a beautifully formatted LaTeX document
+    Converts a 5e adventure to a beautifully formatted LaTeX document
     matching official book styling.
 
     \\b
@@ -163,10 +163,25 @@ def adventure(
     def _convert() -> None:
         result = None  # Initialize to avoid UnboundLocalError
         try:
-            # Resolve content source (file or abbreviation)
-            content_items, source_desc = resolve_content_or_file(
-                content_source, ContentType("adventure")
-            )
+            # Load content and resolve with progress reporting
+            with display_manager.progress("Loading content") as _:
+                from studiorum.cli.progress_adapter import create_progress_adapter
+
+                # Create progress adapter to bridge DisplayManager to service layer
+                progress_adapter = create_progress_adapter(display_manager)
+
+                # Resolve content source (file or abbreviation) with progress
+                content_items, source_desc = resolve_content_or_file(
+                    content_source,
+                    ContentType("adventure"),
+                    progress_callback=progress_adapter,
+                )
+
+                # Get omnidexer and tag resolver (omnidexer already loaded by resolve_content_or_file)
+                omnidexer = (
+                    get_omnidexer()
+                )  # Get cached instance since data is already loaded
+                tag_resolver = get_tag_resolver()
 
             # Determine output file
             if output_file is None:
@@ -179,15 +194,6 @@ def adventure(
                 output_path = Path("output/adventures") / input_name
             else:
                 output_path = output_file
-
-            # Load omnidexer and tag resolver
-            with display_manager.progress("Loading content") as _:
-                load_task = display_manager.add_task(
-                    "[cyan]Loading content data...", total=None
-                )
-                omnidexer = get_omnidexer()
-                tag_resolver = get_tag_resolver()
-                display_manager.update_task(load_task, completed=100)
 
             # Create LaTeX configuration using base class
             command_instance = BaseConvertCommand()

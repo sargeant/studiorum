@@ -30,6 +30,7 @@ from studiorum.core.error_types import (
 )
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.result import Error, Result, Success
 
 from .protocols import (
@@ -323,6 +324,8 @@ async def create_configuration_service(
 
 def create_omnidexer_service_sync(
     config_service: ConfigurationProtocol,
+    *,
+    progress_callback: ProgressCallback | None = None,
 ) -> OmnidexerProtocol:
     """Synchronous factory for omnidexer service for CLI usage.
 
@@ -338,11 +341,16 @@ def create_omnidexer_service_sync(
     class SyncOmnidexerService(OmnidexerProtocol):
         """Sync omnidexer service for CLI usage."""
 
-        def __init__(self, config: ApplicationConfig) -> None:
+        def __init__(
+            self,
+            config: ApplicationConfig,
+            progress_callback: ProgressCallback | None = None,
+        ) -> None:
             self._config = config
             self._omnidexer: Omnidexer | None = None
             self._initialized = False
             self._data_loaded = False
+            self._progress_callback = progress_callback
 
         def get_service_name(self) -> str:
             return "OmnidexerService"
@@ -392,11 +400,36 @@ def create_omnidexer_service_sync(
         def is_initialized(self) -> bool:
             return self._initialized
 
+        def set_progress_callback(self, callback: ProgressCallback | None) -> None:
+            """Set progress callback for data loading operations."""
+            self._progress_callback = callback
+
         def _ensure_data_loaded(self) -> None:
             """Ensure data is loaded on first access (lazy loading)."""
             if not self._data_loaded and self._omnidexer:
                 logger.debug("Lazy loading omnidexer data on first access")
-                self._omnidexer.load_all_data()
+
+                # Use progress callback if available
+                if self._progress_callback:
+                    operation_id = self._progress_callback.start_operation(
+                        "Loading 5e content data", metadata={"stage": "lazy_loading"}
+                    )
+                    try:
+                        self._omnidexer.load_all_data(
+                            progress_callback=self._progress_callback
+                        )
+                        self._progress_callback.complete_operation(
+                            operation_id, result="Content data loaded successfully"
+                        )
+                    except Exception as e:
+                        self._progress_callback.complete_operation(
+                            operation_id, error=e
+                        )
+                        raise
+                else:
+                    # Fallback to original behavior without progress
+                    self._omnidexer.load_all_data()
+
                 self._data_loaded = True
 
         async def load_content_sources(self, sources: list[str]) -> None:
@@ -511,7 +544,7 @@ def create_omnidexer_service_sync(
     config = config_service.get_config()
 
     # Create and initialize service synchronously
-    service = SyncOmnidexerService(config)
+    service = SyncOmnidexerService(config, progress_callback)
     service.initialize_sync()
 
     return service
@@ -519,6 +552,8 @@ def create_omnidexer_service_sync(
 
 async def create_omnidexer_service(
     config_service: ConfigurationProtocol,
+    *,
+    progress_callback: ProgressCallback | None = None,
 ) -> OmnidexerProtocol:
     """Factory for async omnidexer with proper resource management.
 
@@ -532,13 +567,22 @@ async def create_omnidexer_service(
     class AsyncOmnidexerService(OmnidexerProtocol):
         """Async omnidexer service with resource management."""
 
-        def __init__(self, config: ApplicationConfig) -> None:
+        def __init__(
+            self,
+            config: ApplicationConfig,
+            progress_callback: ProgressCallback | None = None,
+        ) -> None:
             self._config = config
             self._omnidexer: Omnidexer | None = None
             self._initialized = False
+            self._progress_callback = progress_callback
 
         def get_service_name(self) -> str:
             return "OmnidexerService"
+
+        def set_progress_callback(self, callback: ProgressCallback | None) -> None:
+            """Set progress callback for data loading operations."""
+            self._progress_callback = callback
 
         async def initialize(self) -> None:
             """Async initialization of omnidexer resources."""
@@ -564,7 +608,25 @@ async def create_omnidexer_service(
                 self._omnidexer = Omnidexer(source_manager=unified_source_manager)
 
                 # Load all data (this will use the already initialized source manager)
-                self._omnidexer.load_all_data()
+                if self._progress_callback:
+                    operation_id = self._progress_callback.start_operation(
+                        "Loading 5e content data",
+                        metadata={"stage": "async_initialization"},
+                    )
+                    try:
+                        self._omnidexer.load_all_data(
+                            progress_callback=self._progress_callback
+                        )
+                        self._progress_callback.complete_operation(
+                            operation_id, result="Content data loaded successfully"
+                        )
+                    except Exception as e:
+                        self._progress_callback.complete_operation(
+                            operation_id, error=e
+                        )
+                        raise
+                else:
+                    self._omnidexer.load_all_data()
 
                 # Resolve copy references
                 await self._resolve_copy_references()
@@ -722,7 +784,7 @@ async def create_omnidexer_service(
     config = config_service.get_config()
 
     # Create and initialize service
-    service = AsyncOmnidexerService(config)
+    service = AsyncOmnidexerService(config, progress_callback)
     await service.initialize()
 
     return service

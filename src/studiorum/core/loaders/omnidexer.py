@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 if TYPE_CHECKING:
+    from ..protocols.progress import ProgressCallback
     from .content_merger import ContentMerger
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -253,9 +254,21 @@ class Omnidexer:
         self._loaders[content_type] = loader
         logger.debug(f"Registered loader for {content_type.value}")
 
-    def load_all_data(self, data_path: Path | None = None) -> dict[str, int]:
+    def load_all_data(
+        self,
+        data_path: Path | None = None,
+        *,
+        progress_callback: "ProgressCallback | None" = None,
+    ) -> dict[str, int]:
         """Load all available data and build comprehensive index."""
         logger.debug("Starting omnidexer data loading...")
+
+        # Start overall progress operation
+        main_operation_id = None
+        if progress_callback:
+            main_operation_id = progress_callback.start_operation(
+                "Loading 5e content types", metadata={"component": "omnidexer"}
+            )
 
         # Ensure sources are ready if using unified source manager
         if isinstance(self.source_manager, UnifiedSourceManager):
@@ -275,12 +288,34 @@ class Omnidexer:
         # Load metadata files (adventures.json, books.json, etc.)
         for content_type, paths in data_paths.items():
             if content_type in self._loaders:
-                for path in paths:
+                # Report progress for this content type
+                type_operation_id = None
+                if progress_callback:
+                    type_operation_id = progress_callback.start_operation(
+                        f"Loading {content_type.value}",
+                        total=len(paths),
+                        metadata={"content_type": content_type.value},
+                    )
+
+                for i, path in enumerate(paths):
+                    if progress_callback and type_operation_id:
+                        progress_callback.update_progress(
+                            type_operation_id,
+                            completed=i,
+                            description=f"Loading {content_type.value} from {path.name}",
+                        )
+
                     result = self._load_content_type(content_type, path)
                     if isinstance(result, dict):
                         for content_type_str, count in result.items():
                             load_stats[content_type_str] += count
                             total_loaded += count
+
+                if progress_callback and type_operation_id:
+                    progress_callback.complete_operation(
+                        type_operation_id,
+                        result=f"Loaded {len(paths)} {content_type.value} files",
+                    )
             else:
                 logger.warning(f"No loader registered for {content_type.value}")
 
@@ -297,6 +332,13 @@ class Omnidexer:
             f"Omnidexer loaded {total_loaded} total items across {len(load_stats)} content types"
         )
         self._log_index_stats()
+
+        # Complete main progress operation
+        if progress_callback and main_operation_id:
+            progress_callback.complete_operation(
+                main_operation_id,
+                result=f"Loaded {total_loaded} items across {len(load_stats)} content types",
+            )
 
         return load_stats
 
