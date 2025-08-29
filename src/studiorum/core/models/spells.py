@@ -541,7 +541,8 @@ class Spell(BaseContent):
                     if "rendering_context" in frame_locals:
                         current_context = frame_locals["rendering_context"]
                         break
-            except:
+            except Exception:  # nosec B110
+                # Ignore frame inspection errors - fallback to None context
                 pass
 
             # Get services for tag processing
@@ -637,7 +638,8 @@ class Spell(BaseContent):
                     if "rendering_context" in frame_locals:
                         current_context = frame_locals["rendering_context"]
                         break
-            except:
+            except Exception:  # nosec B110
+                # Ignore frame inspection errors - fallback to None context
                 pass
 
             # Get services for tag processing
