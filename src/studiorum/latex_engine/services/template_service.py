@@ -65,15 +65,6 @@ class TemplateService:
         if not text:
             return ""
 
-        # Debug logging for all spell content
-        if hasattr(entry, "name") and entry.name == "Animate Objects":
-            logger.error(
-                f"PROCESSING ANIMATE OBJECTS SPELL: source={entry.source.abbreviation}"
-            )
-            logger.error(f"Animate Objects spell text: {repr(text[:500])}")
-        elif "Animate Objects" in str(entry):
-            logger.error(f"Text containing Animate Objects: {repr(text[:500])}")
-
         # Create rendering context with content tracker
         rendering_context = RenderingContext(
             output_format="latex",
@@ -84,18 +75,11 @@ class TemplateService:
 
         # Process the text using the tag resolver with explicit context
         try:
-            # Debug logging for problematic tags
-            if "@creature" in text and "Animated Object" in text:
-                logger.debug(f"Processing problematic text: {repr(text)}")
-
             processed_text = self.tag_resolver.process_text(text, rendering_context)
             # Apply itemSub formatting after tag processing
             return self._format_itemsub_entries(processed_text, entry)
         except Exception as e:
             logger.warning(f"Failed to process entry text: {e}")
-            # Debug the actual text that failed
-            if "@creature" in text and "Animated Object" in text:
-                logger.error(f"Tag processing failed for: {repr(text)}")
             # Fallback to escaped raw text
             return self._escape_latex(text)
 
@@ -279,7 +263,8 @@ class TemplateService:
                 return " ".join(parts)
 
         # Handle objects with get_description_text method (like test mocks)
-        if hasattr(entry, "get_description_text"):
+        # But avoid circular calls - if this is a Pydantic model, process it directly
+        if hasattr(entry, "get_description_text") and not hasattr(entry, "model_dump"):
             return entry.get_description_text()
 
         # Handle spellcasting objects specifically
