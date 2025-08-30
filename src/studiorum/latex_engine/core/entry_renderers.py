@@ -105,6 +105,11 @@ class CreatureEntryRenderer(BaseEntryRenderer):
 
             template_service = get_cli_template_service()
 
+        # Get entry processor for structured content handling
+        from .entry_processor import RecursiveEntryProcessor
+
+        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+
         # Provide both the creature object and preprocessed fields for compatibility
         return {
             "creature": content,
@@ -127,6 +132,7 @@ class CreatureEntryRenderer(BaseEntryRenderer):
             },
             "rendering_context": context,
             "template_service": template_service,
+            "entry_processor": entry_processor,
             "content_tracker": context.content_tracker or ContentTracker(),
         }
 

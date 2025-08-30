@@ -75,7 +75,9 @@ class TemplateService:
 
         # Process the text using the tag resolver with explicit context
         try:
-            return self.tag_resolver.process_text(text, rendering_context)
+            processed_text = self.tag_resolver.process_text(text, rendering_context)
+            # Apply itemSub formatting after tag processing
+            return self._format_itemsub_entries(processed_text, entry)
         except Exception as e:
             logger.warning(f"Failed to process entry text: {e}")
             # Fallback to escaped raw text
@@ -115,13 +117,25 @@ class TemplateService:
                     return f"{entry['name']} {entry['text']}"
                 return entry["text"]
             elif "items" in entry and isinstance(entry["items"], list):
-                # Handle list items
+                # Handle list items including itemSub entries
                 parts = []
                 for item in entry["items"]:
-                    text = self._extract_text_from_entry(item)
-                    if text:  # Only add non-empty text
-                        parts.append(text)
-                return " ".join(parts)
+                    if isinstance(item, dict) and item.get("type") == "itemSub":
+                        # Extract itemSub content with proper formatting
+                        item_name = item.get("name", "")
+                        item_entry = item.get("entry", "") or item.get("text", "")
+                        if item_name and item_entry:
+                            parts.append(f"{item_name}. {item_entry}")
+                        elif item_entry:
+                            parts.append(item_entry)
+                        elif item_name:
+                            parts.append(f"{item_name}.")
+                    else:
+                        text = self._extract_text_from_entry(item)
+                        if text:  # Only add non-empty text
+                            parts.append(text)
+                # Join itemSub entries with line breaks between items, but name+description on same line
+                return " ".join(parts) if len(parts) <= 1 else "\n\n".join(parts)
             elif "entries" in entry and isinstance(entry["entries"], list):
                 # Handle entries list
                 parts = []
@@ -188,13 +202,25 @@ class TemplateService:
                 and entry.items
                 and isinstance(entry.items, list)
             ):
-                # Handle list items from Pydantic models
+                # Handle list items from Pydantic models including itemSub entries
                 parts = []
                 for item in entry.items:
-                    text = self._extract_text_from_entry(item)
-                    if text:  # Only add non-empty text
-                        parts.append(text)
-                return " ".join(parts)
+                    if isinstance(item, dict) and item.get("type") == "itemSub":
+                        # Extract itemSub content with proper formatting
+                        item_name = item.get("name", "")
+                        item_entry = item.get("entry", "") or item.get("text", "")
+                        if item_name and item_entry:
+                            parts.append(f"{item_name}. {item_entry}")
+                        elif item_entry:
+                            parts.append(item_entry)
+                        elif item_name:
+                            parts.append(f"{item_name}.")
+                    else:
+                        text = self._extract_text_from_entry(item)
+                        if text:  # Only add non-empty text
+                            parts.append(text)
+                # Join itemSub entries with line breaks between items, but name+description on same line
+                return " ".join(parts) if len(parts) <= 1 else "\n\n".join(parts)
             return self._extract_text_from_entry(entry.model_dump())
 
         # Handle list entries
@@ -212,6 +238,59 @@ class TemplateService:
 
         # Fallback to string representation
         return str(entry)
+
+    def _format_itemsub_entries(self, processed_text: str, original_entry: Any) -> str:
+        """Apply itemSub-specific LaTeX formatting after tag processing.
+
+        Args:
+            processed_text: Text after tag processing
+            original_entry: Original entry object to check for itemSub structure
+
+        Returns:
+            Text with itemSub formatting applied
+        """
+        # Check if this entry contains itemSub entries
+        has_itemsub = self._has_itemsub_entries(original_entry)
+        if not has_itemsub:
+            return processed_text
+
+        # Format itemSub entries: make names italic and separate with line breaks
+        lines = processed_text.split("\n\n")
+        formatted_lines = []
+
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            # Check if line starts with a name pattern (ends with .)
+            if ". " in line and not line.startswith(" "):
+                # Split at first '. ' to separate name from description
+                parts = line.split(". ", 1)
+                if len(parts) == 2:
+                    name, description = parts
+                    # Skip if this is just the intro line
+                    if "following flaws" not in line.lower():
+                        formatted_line = f"\\textit{{{name}.}} {description}"
+                        formatted_lines.append(formatted_line)
+                    else:
+                        formatted_lines.append(line)
+                else:
+                    formatted_lines.append(line)
+            else:
+                formatted_lines.append(line)
+
+        return "\n\n".join(formatted_lines)
+
+    def _has_itemsub_entries(self, entry: Any) -> bool:
+        """Check if entry contains itemSub structures."""
+        if hasattr(entry, "entries") and entry.entries:
+            for subentry in entry.entries:
+                if hasattr(subentry, "items") and subentry.items:
+                    for item in subentry.items:
+                        if isinstance(item, dict) and item.get("type") == "itemSub":
+                            return True
+        return False
 
     def _escape_latex(self, text: str) -> str:
         """Escape LaTeX special characters in text.

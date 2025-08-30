@@ -142,7 +142,7 @@
 \DndMonsterSection{Lair Actions}
 <@ for lair_action in creature.lair_actions @>
 <@ if lair_action is string @>
-<# lair_action | process_tags | safe #>
+<# template_service.render_entry_description([lair_action], content_tracker) | safe #>
 
 <@ else @>
 <@ if lair_action.get_processed_name() @>

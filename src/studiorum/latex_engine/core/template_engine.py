@@ -307,60 +307,6 @@ class LaTeXTemplateEngine:
 
             return value
 
-        def process_tags(value: str) -> str:
-            """Process 5etools tags using the current rendering context with content tracking."""
-            if not isinstance(value, str):
-                value = str(value)
-
-            # Try to get rendering_context from the current Jinja2 template global context
-            import inspect
-
-            from jinja2 import select_autoescape
-            from jinja2.runtime import Context
-
-            current_context = None
-
-            # Look through the call stack for the Jinja2 rendering context
-            for frame_info in inspect.stack():
-                frame = frame_info.frame
-                frame_locals = frame.f_locals
-
-                # Check for Jinja2 template context
-                if "context" in frame_locals and hasattr(
-                    frame_locals["context"], "vars"
-                ):
-                    jinja_context = frame_locals["context"]
-                    # Check if rendering_context is in the template variables
-                    if (
-                        hasattr(jinja_context, "vars")
-                        and "rendering_context" in jinja_context.vars
-                    ):
-                        current_context = jinja_context.vars["rendering_context"]
-                        break
-
-                # Also check for direct rendering_context in locals
-                if "rendering_context" in frame_locals:
-                    current_context = frame_locals["rendering_context"]
-                    break
-
-            if current_context and hasattr(current_context, "tag_resolver"):
-                # Use the main rendering context with its content_tracker
-                tag_resolver = current_context.tag_resolver
-                if tag_resolver:
-                    try:
-                        result = tag_resolver.process_text(value, current_context)
-                        return str(result)
-                    except Exception as e:
-                        # Fallback to escaped text if tag processing fails
-                        from studiorum.core.logging import get_logger
-
-                        logger = get_logger(__name__)
-                        logger.warning(f"Tag processing failed in filter: {e}")
-                        return escape_latex_text(value)
-
-            # Fallback if no context available
-            return escape_latex_text(value)
-
         # Register filters
         self.env.filters["latex_escape"] = latex_escape
         self.env.filters["latex_newlines"] = latex_newlines
@@ -375,7 +321,6 @@ class LaTeXTemplateEngine:
         self.env.filters["markdown_to_latex"] = markdown_to_latex
         self.env.filters["clean_jinja_comments"] = clean_jinja_comments
         self.env.filters["dnd_smallcaps"] = dnd_smallcaps
-        self.env.filters["process_tags"] = process_tags
 
     def render_template(self, template_name: str, context: dict[str, Any]) -> str:
         """Render a template with the given context.

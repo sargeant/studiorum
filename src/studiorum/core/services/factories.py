@@ -428,7 +428,24 @@ def create_omnidexer_service_sync(
                     # Fallback to original behavior without progress
                     self._omnidexer.load_all_data()
 
+                # Resolve copy references after data loading (matches async version)
+                self._resolve_copy_references()
+
                 self._data_loaded = True
+
+        def _resolve_copy_references(self) -> None:
+            """Resolve copy references after data loading (sync version)."""
+            if not self._omnidexer:
+                return
+
+            try:
+                from studiorum.core.resolvers.copy_resolver import CopyResolver
+
+                copy_resolver = CopyResolver(self._omnidexer)
+                copy_resolver.resolve_copies_in_omnidexer()
+
+            except Exception as e:
+                logger.warning(f"Failed to resolve copy references: {e}")
 
         async def load_content_sources(self, sources: list[str]) -> None:
             """Load content from specified sources."""
