@@ -65,11 +65,11 @@
   {<# spell.get_components_text() | latex_escape #>}
   {<# spell.get_duration_text() | latex_escape #>}
 
-<# spell.get_description_text(rendering_context) | safe #>
+<# template_service.render_entry_description(spell, content_tracker) | safe #>
 
-<@ if spell.get_higher_level_text(rendering_context) @>
+<@ if spell.higher_level @>
 
-<# spell.get_higher_level_text(rendering_context) | safe #>
+<# template_service.render_entry_description(spell.higher_level, content_tracker) | safe #>
 <@ endif @>
 
 <@ if not loop.last @>
@@ -96,11 +96,11 @@
   {<# spell.get_components_text() | latex_escape #>}
   {<# spell.get_duration_text() | latex_escape #>}
 
-<# spell.get_description_text(rendering_context) | safe #>
+<# template_service.render_entry_description(spell, content_tracker) | safe #>
 
-<@ if spell.get_higher_level_text(rendering_context) @>
+<@ if spell.higher_level @>
 
-<# spell.get_higher_level_text(rendering_context) | safe #>
+<# template_service.render_entry_description(spell.higher_level, content_tracker) | safe #>
 <@ endif @>
 
 <@ if not loop.last @>

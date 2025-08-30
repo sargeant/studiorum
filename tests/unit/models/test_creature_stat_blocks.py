@@ -8,6 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from studiorum.cli.services import get_cli_template_service
 from studiorum.core.models.creatures import (
     Ability,
     ArmorClass,
@@ -17,6 +18,7 @@ from studiorum.core.models.creatures import (
     SkillBonus,
     Speed,
 )
+from studiorum.core.references.content_tracker import ContentTracker
 from tests.test_helpers import reset_test_environment
 
 
@@ -396,7 +398,12 @@ class TestCreatureAbilities:
         with patch(
             "studiorum.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
         ):
-            text = simple_ability.get_description_text()
+            # Use template service for text extraction
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            text = template_service.render_entry_description(
+                simple_ability.entries, content_tracker
+            )
             assert "advantage on Wisdom (Perception)" in text
 
     def test_ability_name_processing(self):
@@ -435,7 +442,12 @@ class TestCreatureAbilities:
         with patch(
             "studiorum.cli.main.get_tag_resolver", side_effect=Exception("No resolver")
         ):
-            text = complex_ability.get_description_text()
+            # Use template service for text extraction
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            text = template_service.render_entry_description(
+                complex_ability.entries, content_tracker
+            )
             assert "18th-level spellcaster" in text
             assert "Cantrips" in text
             assert "magic missile" in text

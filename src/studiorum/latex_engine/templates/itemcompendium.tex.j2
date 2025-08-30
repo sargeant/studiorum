@@ -74,9 +74,9 @@
 % Item properties integrated into description
 
 % Item description
-<@ if item.get_description_text() @>
+<@ if item.entries @>
 
-<# item.get_description_text() | clean_jinja_comments | safe #>
+<# template_service.render_entry_description(item, content_tracker) | clean_jinja_comments | safe #>
 <@ endif @>
 
 <@ if not loop.last @>
@@ -114,9 +114,9 @@
 % Item properties integrated into description
 
 % Item description
-<@ if item.get_description_text() @>
+<@ if item.entries @>
 
-<# item.get_description_text() | clean_jinja_comments | safe #>
+<# template_service.render_entry_description(item, content_tracker) | clean_jinja_comments | safe #>
 <@ endif @>
 
 <@ if not loop.last @>

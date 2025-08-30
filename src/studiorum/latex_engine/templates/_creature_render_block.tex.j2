@@ -1,7 +1,7 @@
 % Shared creature rendering block for use in both bestiary and creature_entry templates
 % This macro can be included by both templates to ensure consistent rendering
 
-<@ macro render_creature(creature) @>
+<@ macro render_creature(creature, template_service=template_service, content_tracker=content_tracker) @>
 <#-- Check if creature needs full-width layout --#>
 <@ if creature.requires_full_width_layout() @>
 % Large creature - switch to single column layout
@@ -52,7 +52,7 @@
 <@ for spellcasting in creature.spellcasting @>
 <@ if not spellcasting.displayAs @>
 \DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
-<# spellcasting.get_description_text() | safe #>
+<# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
 
 <@ endif @>
 <@ endfor @>
@@ -60,7 +60,7 @@
 <@ if creature.trait @>
 <@ for trait in creature.trait @>
 \DndMonsterAction{<# trait.get_processed_name() | safe #>}
-<# trait.get_description_text() | safe #>
+<# template_service.render_entry_description(trait, content_tracker) | safe #>
 
 <@ endfor @>
 <@ endif @>
@@ -85,13 +85,13 @@
 \DndMonsterSection{Actions}
 <@ for spellcasting in action_spells @>
 \DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
-<# spellcasting.get_description_text() | safe #>
+<# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
 
 <@ endfor @>
 <@ if creature.action @>
 <@ for action in creature.action @>
 \DndMonsterAction{<# action.get_processed_name() | safe #>}
-<# action.get_description_text() | safe #>
+<# template_service.render_entry_description(action, content_tracker) | safe #>
 
 <@ endfor @>
 <@ endif @>
@@ -101,13 +101,13 @@
 \DndMonsterSection{Bonus Actions}
 <@ for spellcasting in bonus_spells @>
 \DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
-<# spellcasting.get_description_text() | safe #>
+<# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
 
 <@ endfor @>
 <@ if creature.bonus @>
 <@ for bonus in creature.bonus @>
 \DndMonsterAction{<# bonus.get_processed_name() | safe #>}
-<# bonus.get_description_text() | safe #>
+<# template_service.render_entry_description(bonus, content_tracker) | safe #>
 
 <@ endfor @>
 <@ endif @>
@@ -117,13 +117,13 @@
 \DndMonsterSection{Reactions}
 <@ for spellcasting in reaction_spells @>
 \DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
-<# spellcasting.get_description_text() | safe #>
+<# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
 
 <@ endfor @>
 <@ if creature.reaction @>
 <@ for reaction in creature.reaction @>
 \DndMonsterAction{<# reaction.get_processed_name() | safe #>}
-<# reaction.get_description_text() | safe #>
+<# template_service.render_entry_description(reaction, content_tracker) | safe #>
 
 <@ endfor @>
 <@ endif @>
@@ -133,7 +133,7 @@
 \DndMonsterSection{Legendary Actions}
 <@ for legendary in creature.legendary @>
 \DndMonsterAction{<# legendary.get_processed_name() | safe #>}
-<# legendary.get_description_text() | safe #>
+<# template_service.render_entry_description(legendary, content_tracker) | safe #>
 
 <@ endfor @>
 <@ endif @>
@@ -148,7 +148,7 @@
 <@ if lair_action.get_processed_name() @>
 \DndMonsterAction{<# lair_action.get_processed_name() | safe #>}
 <@ endif @>
-<# lair_action.get_description_text() | safe #>
+<# template_service.render_entry_description(lair_action, content_tracker) | safe #>
 
 <@ endif @>
 <@ endfor @>

@@ -8,7 +8,9 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+from studiorum.cli.services import get_cli_template_service
 from studiorum.core.models.creatures import Ability, ArmorClass, Creature
+from studiorum.core.references.content_tracker import ContentTracker
 from tests.test_helpers import reset_test_environment
 
 
@@ -76,8 +78,13 @@ class TestCreatureMarkupProcessing:
             ]
             mock_processor_class.return_value = mock_processor
 
-            description = ability.get_description_text()
-            assert "melee weapon attacks" in description
+            # Use template service for description rendering
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            description = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
+            assert "Melee Weapon Attack:" in description
             assert "1d8+4 slashing damage" in description
 
     def test_armor_class_markup_processing(self):
@@ -175,7 +182,14 @@ class TestCreatureMarkupProcessing:
             assert fallback_name == "Spell Attack {@spell magic missile}"
 
             # Should fall back to simple text extraction
-            fallback_description = ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            fallback_description = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
             assert "magic missile" in fallback_description
             assert "1d4+1" in fallback_description
 
@@ -223,7 +237,14 @@ class TestCreatureMarkupProcessing:
             ]
             mock_processor_class.return_value = mock_processor
 
-            processed_text = complex_ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            processed_text = template_service.render_entry_description(
+                complex_ability.entries, content_tracker
+            )
             assert "18th-level spellcaster" in processed_text
             assert "mage hand" in processed_text
             assert "magic missile" in processed_text
@@ -259,17 +280,21 @@ class TestCreatureMarkupProcessing:
             mock_context = Mock()
             mock_context_class.return_value = mock_context
 
-            ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            template_service.render_entry_description(ability.entries, content_tracker)
 
             # Verify RenderingContext was created with correct parameters
             mock_context_class.assert_called_once()
             call_args = mock_context_class.call_args[1]
             assert call_args["output_format"] == "latex"
             assert call_args["debug_mode"] is False
-            assert call_args["omnidexer"] == mock_omnidexer
-            assert call_args["tag_resolver"] == mock_tag_resolver
-            assert "content_type" in call_args["metadata"]
-            assert call_args["metadata"]["content_type"] == "creature"
+            # Note: omnidexer and tag_resolver may be real instances from service container
+            assert "omnidexer" in call_args
+            assert "content_tracker" in call_args
 
     def test_attack_markup_processing(self):
         """Test processing of attack-related markup tags."""
@@ -300,7 +325,14 @@ class TestCreatureMarkupProcessing:
             ]
             mock_processor_class.return_value = mock_processor
 
-            processed_text = ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            processed_text = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
             assert "Melee Weapon Attack" in processed_text
             assert "+7 to hit" in processed_text
             assert "1d8 + 3 slashing damage" in processed_text
@@ -340,7 +372,14 @@ class TestCreatureMarkupProcessing:
             ]
             mock_processor_class.return_value = mock_processor
 
-            processed_text = ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            processed_text = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
             assert "spell save DC 15" in processed_text
             assert "detect magic" in processed_text
             assert "fireball" in processed_text
@@ -375,7 +414,14 @@ class TestCreatureMarkupProcessing:
             ]
             mock_processor_class.return_value = mock_processor
 
-            processed_text = ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            processed_text = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
             assert "DC 19 Wisdom saving throw" in processed_text
             assert "frightened for 1 minute" in processed_text
 
@@ -420,7 +466,14 @@ class TestCreatureMarkupProcessing:
                 "The dragon exhales acid in a 60-foot line that is 5 feet wide.",
                 "Each creature in that line must make a DC 18 Dexterity saving throw, taking 12d8 acid damage on a failed save, or half as much damage on a successful one.",
             ]
-            processed_description = ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            processed_description = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
             assert "12d8 acid damage" in processed_description
 
 
@@ -439,7 +492,14 @@ class TestCreatureMarkupEdgeCases:
             "studiorum.cli.services.get_cli_tag_resolver",
             side_effect=Exception("No CLI service"),
         ):
-            description = ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            description = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
             assert description == ""
 
     def test_mixed_entry_types_processing(self):
@@ -459,7 +519,14 @@ class TestCreatureMarkupEdgeCases:
             "studiorum.cli.services.get_cli_tag_resolver",
             side_effect=Exception("No CLI service"),
         ):
-            description = ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            description = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
             assert "String entry" in description
             assert "Subsection" in description
             assert "Nested string" in description
@@ -484,7 +551,14 @@ class TestCreatureMarkupEdgeCases:
             "studiorum.cli.services.get_cli_tag_resolver",
             side_effect=Exception("No CLI service"),
         ):
-            description = ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            description = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
             assert "Valid string" in description
             # Other entries should be converted to strings or handled gracefully
 
@@ -507,7 +581,14 @@ class TestCreatureMarkupEdgeCases:
             # Mock the CLI service to return our mock tag resolver
             mock_get_tag_resolver.return_value = mock_tag_resolver
             # Should fall back to simple text extraction
-            description = ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            description = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
             assert "Test entry" in description
 
     def test_context_creation_failure(self):
@@ -528,5 +609,12 @@ class TestCreatureMarkupEdgeCases:
             # Mock the CLI service to return our mock tag resolver
             mock_get_tag_resolver.return_value = mock_tag_resolver
             # Should fall back to simple text extraction
-            description = ability.get_description_text()
+            from studiorum.cli.services import get_cli_template_service
+            from studiorum.core.references.content_tracker import ContentTracker
+
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            description = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
             assert "Test entry" in description

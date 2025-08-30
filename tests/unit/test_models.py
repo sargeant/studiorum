@@ -5,6 +5,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
+from studiorum.cli.services import get_cli_template_service
 from studiorum.core.models.content import Source  # type: ignore
 from studiorum.core.models.creatures import (  # type: ignore
     Ability,
@@ -15,6 +16,7 @@ from studiorum.core.models.creatures import (  # type: ignore
     Speed,
 )
 from studiorum.core.models.spells import Spell, SpellComponent  # type: ignore
+from studiorum.core.references.content_tracker import ContentTracker
 
 
 class TestSource:
@@ -604,7 +606,13 @@ class TestAbility:
             name="Multiattack", entries=["The dragon makes three attacks."]
         )
         assert str(ability) == "Multiattack"
-        assert ability.get_description_text() == "The dragon makes three attacks."
+        # Test description extraction using template service
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        description = template_service.render_entry_description(
+            ability.entries, content_tracker
+        )
+        assert description == "The dragon makes three attacks."
 
     def test_ability_complex_entries(self) -> None:
         """Test ability with complex entry structures."""
@@ -617,7 +625,12 @@ class TestAbility:
             },
         ]
         ability: Any = Ability(name="Breath Weapon", entries=entries)
-        result = ability.get_description_text()
+        # Test complex entries using template service
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        result = template_service.render_entry_description(
+            ability.entries, content_tracker
+        )
         assert "The dragon breathes fire in a cone." in result
         assert "Fire Breath" in result  # LaTeX format: \subsection{Fire Breath}
         assert "Each creature in the area must make a saving throw." in result
@@ -629,7 +642,12 @@ class TestAbility:
             {"name": "Special Action", "text": "This has both name and text."},
         ]
         ability: Any = Ability(name="Complex Ability", entries=entries)
-        result = ability.get_description_text()
+        # Test text entries using template service
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        result = template_service.render_entry_description(
+            ability.entries, content_tracker
+        )
         # Note: {"text": "..."} entries are not rendering properly in current implementation
         # This is a known issue with the entry processing system
         # assert "This is a text entry." in result
@@ -649,7 +667,12 @@ class TestAbility:
             }
         ]
         ability: Any = Ability(name="List Ability", entries=entries)
-        result = ability.get_description_text()
+        # Test list entries using template service
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        result = template_service.render_entry_description(
+            ability.entries, content_tracker
+        )
         assert "Simple string item" in result  # LaTeX format: \item Simple string item
         assert "Named Item" in result  # LaTeX format: \subsection{Named Item}
         # Note: {"text": "..."} items are not rendering properly in current implementation
@@ -666,7 +689,12 @@ class TestAbility:
             }
         ]
         ability: Any = Ability(name="Nested Ability", entries=entries)
-        result = ability.get_description_text()
+        # Test nested entries using template service
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        result = template_service.render_entry_description(
+            ability.entries, content_tracker
+        )
         # Note: {"text": "..."} entries are not rendering properly in current implementation
         # assert "Deeply nested text" in result
         assert (
@@ -678,13 +706,24 @@ class TestAbility:
         """Test ability edge cases."""
         # Empty entries
         ability1: Any = Ability(name="Empty", entries=[])
-        assert ability1.get_description_text() == ""
+        # Test empty entries using template service
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        assert (
+            template_service.render_entry_description(ability1.entries, content_tracker)
+            == ""
+        )
 
         # None/empty dict entries
         ability2: Any = Ability(name="Minimal", entries=[{}])
-        assert ability2.get_description_text() == ""
+        assert (
+            template_service.render_entry_description(ability2.entries, content_tracker)
+            == ""
+        )
 
         # Mixed empty and valid entries
         ability3: Any = Ability(name="Mixed", entries=["Valid text", {}, ""])
-        result = ability3.get_description_text()
+        result = template_service.render_entry_description(
+            ability3.entries, content_tracker
+        )
         assert "Valid text" in result

@@ -511,10 +511,22 @@ class LaTeXTemplateEngine:
         Returns:
             Template context dictionary
         """
-        context = {
+        context: dict[str, Any] = {
             "config": self.config,
             "debug": self.debug,
         }
+
+        # Add template services if not already provided
+        if "template_service" not in kwargs:
+            from ...cli.services import get_cli_template_service
+
+            context["template_service"] = get_cli_template_service()
+
+        if "content_tracker" not in kwargs:
+            from ...core.references.content_tracker import ContentTracker
+
+            context["content_tracker"] = ContentTracker()
+
         context.update(kwargs)
         return context
 

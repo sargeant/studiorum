@@ -491,195 +491,28 @@ class Spell(BaseContent):
 
         return " ".join(text_parts)
 
-    def get_description_text(self, context: "RenderingContext | None" = None) -> str:
-        """Get spell description text using modern service patterns."""
-        processor = self.get_processor()
+    def get_description_text(self) -> str:
+        """Get spell description text using TemplateService (backward compatibility)."""
+        from ...cli.services import get_cli_template_service
+        from ...core.references.content_tracker import ContentTracker
 
-        try:
-            # Import here to avoid circular dependencies
-            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
-            from ..result import Error
-            from ..text.tag_resolver import TagResolver
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        return template_service.render_entry_description(self.entries, content_tracker)
 
-            # If context has tag_resolver, use it directly
-            if context and hasattr(context, "tag_resolver") and context.tag_resolver:
-                result = processor.get_description_with_context(
-                    context.tag_resolver, context
-                )
-                if isinstance(result, Error):
-                    return ""
-                return result.unwrap()
-
-            # Try to get the current rendering context from the call stack
-            # This allows us to access the content_tracker from the main rendering pipeline
-            current_context = None
-            try:
-                import inspect
-
-                from jinja2.runtime import Context
-
-                for frame_info in inspect.stack():
-                    frame = frame_info.frame
-                    frame_locals = frame.f_locals
-
-                    # Check for Jinja2 template context
-                    if "context" in frame_locals:
-                        jinja_context = frame_locals["context"]
-                        # Check if it's a Jinja2 Context with vars
-                        if hasattr(jinja_context, "vars") and jinja_context.vars:
-                            if "rendering_context" in jinja_context.vars:
-                                current_context = jinja_context.vars[
-                                    "rendering_context"
-                                ]
-                                break
-                        # Also check if the context itself is the rendering context
-                        elif hasattr(jinja_context, "content_tracker"):
-                            current_context = jinja_context
-                            break
-
-                    # Also check for direct rendering_context in locals
-                    if "rendering_context" in frame_locals:
-                        current_context = frame_locals["rendering_context"]
-                        break
-            except Exception:  # nosec B110
-                # Ignore frame inspection errors - fallback to None context
-                pass
-
-            # Get services for tag processing
-            from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
-
-            omnidexer = get_cli_omnidexer()
-            tag_resolver = get_cli_tag_resolver()
-
-            # Create rendering context - use existing content_tracker if available
-            content_tracker = (
-                getattr(current_context, "content_tracker", None)
-                if current_context
-                else None
-            )
-
-            from ...renderers.core.interfaces import RenderingContext
-
-            effective_context = RenderingContext(
-                output_format="latex",
-                debug_mode=False,
-                omnidexer=omnidexer,
-                tag_resolver=tag_resolver,
-                content_tracker=content_tracker,
-                metadata={
-                    "source_name": "unknown",
-                    "tag_resolver": tag_resolver,
-                    "content_type": "spell",
-                },
-            )
-
-            result = processor.get_description_with_context(
-                tag_resolver,  # type: ignore[arg-type]  # TagResolverProtocol vs TagResolver
-                effective_context,
-            )
-            if isinstance(result, Error):
-                return ""
-            return result.unwrap()
-
-        except Exception:
-            # Fallback to simple text extraction
-            return self._extract_simple_text_from_entries(self.entries)
-
-    def get_higher_level_text(self, context: "RenderingContext | None" = None) -> str:
-        """Get spell higher level text using modern service patterns."""
+    def get_higher_level_text(self) -> str:
+        """Get spell higher level text using TemplateService (backward compatibility)."""
         if not self.higher_level:
             return ""
 
-        processor = self.get_processor()
+        from ...cli.services import get_cli_template_service
+        from ...core.references.content_tracker import ContentTracker
 
-        try:
-            # Import here to avoid circular dependencies
-            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
-            from ..result import Error
-            from ..text.tag_resolver import TagResolver
-
-            # If context has tag_resolver, use it directly
-            if context and hasattr(context, "tag_resolver") and context.tag_resolver:
-                result = processor.get_higher_level_with_context(
-                    context.tag_resolver, context
-                )
-                if isinstance(result, Error):
-                    return ""
-                return result.unwrap()
-
-            # Try to get the current rendering context from the call stack
-            # This allows us to access the content_tracker from the main rendering pipeline
-            current_context = None
-            try:
-                import inspect
-
-                from jinja2.runtime import Context
-
-                for frame_info in inspect.stack():
-                    frame = frame_info.frame
-                    frame_locals = frame.f_locals
-
-                    # Check for Jinja2 template context
-                    if "context" in frame_locals:
-                        jinja_context = frame_locals["context"]
-                        # Check if it's a Jinja2 Context with vars
-                        if hasattr(jinja_context, "vars") and jinja_context.vars:
-                            if "rendering_context" in jinja_context.vars:
-                                current_context = jinja_context.vars[
-                                    "rendering_context"
-                                ]
-                                break
-                        # Also check if the context itself is the rendering context
-                        elif hasattr(jinja_context, "content_tracker"):
-                            current_context = jinja_context
-                            break
-
-                    # Also check for direct rendering_context in locals
-                    if "rendering_context" in frame_locals:
-                        current_context = frame_locals["rendering_context"]
-                        break
-            except Exception:  # nosec B110
-                # Ignore frame inspection errors - fallback to None context
-                pass
-
-            # Get services for tag processing
-            from ...renderers.core.interfaces import RenderingContext
-            from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
-
-            omnidexer = get_cli_omnidexer()
-            tag_resolver = get_cli_tag_resolver()
-
-            # Create rendering context - use existing content_tracker if available
-            content_tracker = (
-                getattr(current_context, "content_tracker", None)
-                if current_context
-                else None
-            )
-
-            effective_context = RenderingContext(
-                output_format="latex",
-                debug_mode=False,
-                omnidexer=omnidexer,
-                tag_resolver=tag_resolver,
-                content_tracker=content_tracker,
-                metadata={
-                    "source_name": "unknown",
-                    "tag_resolver": tag_resolver,
-                    "content_type": "spell",
-                },
-            )
-
-            result = processor.get_higher_level_with_context(
-                tag_resolver,  # type: ignore[arg-type]  # TagResolverProtocol vs TagResolver
-                effective_context,
-            )
-            if isinstance(result, Error):
-                return ""
-            return result.unwrap()
-
-        except Exception:
-            # Fallback to simple text extraction
-            return self._extract_simple_text_from_entries(self.higher_level or [])
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        return template_service.render_entry_description(
+            self.higher_level, content_tracker
+        )
 
     def get_spell_list_classes(self) -> str:
         """Get formatted list of classes that can cast this spell."""

@@ -14,13 +14,17 @@ from studiorum.core.protocols.progress import ProgressCallback
 
 if TYPE_CHECKING:
     from studiorum.core.loaders.omnidexer import Omnidexer
-    from studiorum.core.services.protocols import SourceManagerProtocol
+    from studiorum.core.services.protocols import (
+        SourceManagerProtocol,
+        TemplateServiceProtocol,
+    )
     from studiorum.core.text.tag_resolver import TagResolver
 
 # Global instances for CLI session performance
 _cli_omnidexer: Omnidexer | None = None
 _cli_tag_resolver: TagResolver | None = None
 _cli_source_manager: SourceManagerProtocol | None = None
+_cli_template_service: TemplateServiceProtocol | None = None
 
 
 def get_cli_omnidexer(
@@ -97,12 +101,29 @@ def get_cli_source_manager() -> SourceManagerProtocol:
     return _cli_source_manager
 
 
+def get_cli_template_service() -> TemplateServiceProtocol:
+    """Get template service instance for CLI commands.
+
+    Returns:
+        TemplateServiceProtocol instance for template processing
+    """
+    from studiorum.core.services.container import ServiceContainer
+    from studiorum.core.services.protocols import TemplateServiceProtocol
+
+    global _cli_template_service
+    if _cli_template_service is None:
+        container = ServiceContainer.get_global_instance()
+        _cli_template_service = container.get_service_sync(TemplateServiceProtocol)  # type: ignore[type-abstract,assignment]
+    return _cli_template_service
+
+
 def reset_cli_services() -> None:
     """Reset all CLI service instances for command isolation.
 
     Called between CLI commands to ensure clean state.
     """
-    global _cli_omnidexer, _cli_tag_resolver, _cli_source_manager
+    global _cli_omnidexer, _cli_tag_resolver, _cli_source_manager, _cli_template_service
     _cli_omnidexer = None
     _cli_tag_resolver = None
     _cli_source_manager = None
+    _cli_template_service = None

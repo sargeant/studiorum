@@ -11,6 +11,7 @@ from typing import Any
 import pytest
 from logfire.testing import CaptureLogfire
 
+from studiorum.cli.services import get_cli_template_service
 from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
 from studiorum.core.loaders.source_manager import (
@@ -18,6 +19,7 @@ from studiorum.core.loaders.source_manager import (
 )
 from studiorum.core.logging import get_logger  # type: ignore
 from studiorum.core.models.content import ContentType  # type: ignore
+from studiorum.core.references.content_tracker import ContentTracker
 
 
 class TestDataValidationStress:
@@ -282,12 +284,21 @@ class TestDataValidationStress:
 
         spell = Spell.model_validate(complex_spell_data)
         assert spell.name == "Complex Test Spell"
-        assert (
-            spell.get_description_text()
-        )  # Should extract text from complex structure
-        assert (
-            spell.get_higher_level_text()
-        )  # Should extract text from complex structure
+
+        # Use template service for description extraction
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        description_text = template_service.render_entry_description(
+            spell.entries, content_tracker
+        )
+        assert description_text  # Should extract text from complex structure
+
+        # Use template service for higher level text extraction
+        if spell.higher_level:
+            higher_level_text = template_service.render_entry_description(
+                spell.higher_level, content_tracker
+            )
+            assert higher_level_text  # Should extract text from complex structure
 
         # Test creature validation
         from studiorum.core.models.creatures import Creature  # type: ignore
@@ -422,7 +433,15 @@ class TestDataValidationStress:
 
         item = Item.model_validate(complex_item)
         assert item.name == "Complex Item"
-        assert item.get_description_text()  # Should extract text from complex structure
+        # Use template service for item description extraction
+        from studiorum.cli.services import get_cli_template_service
+        from studiorum.core.references.content_tracker import ContentTracker
+
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        assert template_service.render_entry_description(
+            item.entries, content_tracker
+        )  # Should extract text from complex structure
 
         print("✅ Edge case data structures validated successfully")
 

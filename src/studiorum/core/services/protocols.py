@@ -17,6 +17,8 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 # Import progress protocols for re-export
 from studiorum.core.protocols.progress import ProgressAwareService, ProgressCallback
 
+# Template service protocol defined below with other protocols
+
 if TYPE_CHECKING:
     from collections.abc import Awaitable
     from pathlib import Path
@@ -31,6 +33,7 @@ if TYPE_CHECKING:
     from studiorum.core.loaders.omnidexer import Omnidexer
     from studiorum.core.models.content import BaseContent, ContentType
     from studiorum.core.protocols.progress import ProgressCallback
+    from studiorum.core.references.content_tracker import ContentTracker
     from studiorum.core.result import Result
     from studiorum.core.text.tag_resolver import TagResolver
     from studiorum.core.unified_references import ReferenceManager
@@ -300,6 +303,35 @@ class TagResolverProtocol(ServiceProtocol, ConfigurableServiceProtocol, Protocol
 
         Returns:
             True if the tag type is supported
+        """
+        ...
+
+
+@runtime_checkable
+class TemplateServiceProtocol(ServiceProtocol, Protocol):
+    """Protocol for template processing services.
+
+    Provides explicit context passing for template rendering, eliminating
+    the need for stack inspection and ensuring consistent behavior across
+    all template rendering operations.
+    """
+
+    def render_entry_description(
+        self,
+        entry: Any,
+        content_tracker: ContentTracker,
+    ) -> str:
+        """Render entry description with explicit context passing.
+
+        This method replaces the problematic get_description_text() pattern
+        that relied on stack inspection to find rendering context.
+
+        Args:
+            entry: Entry object containing description data
+            content_tracker: Content tracker for appendix generation
+
+        Returns:
+            Rendered description text suitable for LaTeX templates
         """
         ...
 
@@ -1078,6 +1110,8 @@ __all__ = [
     # Progress protocols
     "ProgressCallback",
     "ProgressAwareService",
+    # Template service protocols
+    "TemplateServiceProtocol",
     # Image service protocols
     "ImageSourceRegistryProtocol",
     "EnhancedImagePlacerProtocol",

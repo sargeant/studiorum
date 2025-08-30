@@ -20,9 +20,12 @@ from studiorum.renderers.core.interfaces import RenderingContext
 @pytest.fixture
 def mock_context() -> Mock:
     """Create mock render context."""
+    from studiorum.core.references.content_tracker import ContentTracker
+
     context = Mock(spec=RenderingContext)
     context.tag_resolver = Mock()
     context.tag_resolver.process_text.side_effect = lambda x: x
+    context.content_tracker = ContentTracker()
     return context
 
 
@@ -125,10 +128,13 @@ class TestSpellEntryRenderer:
         Note: Entry renderers do not perform tag processing - that happens
         at a different layer in the architecture.
         """
+        from studiorum.core.references.content_tracker import ContentTracker
+
         mock_context = Mock(spec=RenderingContext)
         # Tag resolver is provided but not used by entry renderers
         mock_context.tag_resolver = Mock()
         mock_context.tag_resolver.process_text.return_value = "PROCESSED_TEXT"
+        mock_context.content_tracker = ContentTracker()
 
         spell = Spell.model_validate(sample_spell_data)
         context = renderer.get_template_context(spell, mock_context)
@@ -143,8 +149,11 @@ class TestSpellEntryRenderer:
         self, renderer: SpellEntryRenderer, sample_spell_data: dict[str, Any]
     ) -> None:
         """Test template context without tag resolver."""
+        from studiorum.core.references.content_tracker import ContentTracker
+
         mock_context = Mock(spec=RenderingContext)
         mock_context.tag_resolver = None
+        mock_context.content_tracker = ContentTracker()
 
         spell = Spell.model_validate(sample_spell_data)
         context = renderer.get_template_context(spell, mock_context)
@@ -279,8 +288,11 @@ class TestCreatureEntryRenderer:
         mock_context: Mock,
     ) -> None:
         """Test creature template context generation."""
+        from studiorum.core.references.content_tracker import ContentTracker
+
         mock_context = Mock(spec=RenderingContext)
         mock_context.tag_resolver = None
+        mock_context.content_tracker = ContentTracker()
 
         creature = Creature.model_validate(sample_creature_data)
         context = renderer.get_template_context(creature, mock_context)
@@ -329,8 +341,11 @@ class TestItemEntryRenderer:
         self, renderer: ItemEntryRenderer, sample_item_data: dict[str, Any]
     ) -> None:
         """Test item template context generation."""
+        from studiorum.core.references.content_tracker import ContentTracker
+
         mock_context = Mock(spec=RenderingContext)
         mock_context.tag_resolver = None
+        mock_context.content_tracker = ContentTracker()
 
         item = Item.model_validate(sample_item_data)
         context = renderer.get_template_context(item, mock_context)
@@ -418,8 +433,11 @@ class TestRendererPerformance:
     def test_memory_usage_with_large_content(self) -> None:
         """Test memory usage with large content objects."""
         renderer = SpellEntryRenderer()
+        from studiorum.core.references.content_tracker import ContentTracker
+
         mock_context = Mock(spec=RenderingContext)
         mock_context.tag_resolver = None
+        mock_context.content_tracker = ContentTracker()
 
         # Create spell with large description
         large_description = ["This is a very long description. " * 1000]

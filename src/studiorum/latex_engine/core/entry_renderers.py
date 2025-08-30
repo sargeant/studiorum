@@ -6,6 +6,7 @@ from typing import Any
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
+from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.result import Error, Success
 from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 from studiorum.renderers.core.interfaces import RenderingContext
@@ -59,6 +60,16 @@ class SpellEntryRenderer(BaseEntryRenderer):
             content.higher_level or [], skip_section_names=True
         )
 
+        # Get template service for explicit context passing
+        # Try to get from context first, fallback to CLI service
+        template_service = None
+        if hasattr(context, "template_service") and context.template_service:
+            template_service = context.template_service
+        else:
+            from ...cli.services import get_cli_template_service
+
+            template_service = get_cli_template_service()
+
         # Provide both the spell object and preprocessed fields for compatibility
         return {
             "spell": content,
@@ -68,6 +79,8 @@ class SpellEntryRenderer(BaseEntryRenderer):
             "description_text": description_text,
             "higher_level_text": higher_level_text,
             "rendering_context": context,
+            "template_service": template_service,
+            "content_tracker": context.content_tracker or ContentTracker(),
         }
 
 
@@ -82,6 +95,16 @@ class CreatureEntryRenderer(BaseEntryRenderer):
         self, content: Creature, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for creature using model methods."""
+        # Get template service for explicit context passing
+        # Try to get from context first, fallback to CLI service
+        template_service = None
+        if hasattr(context, "template_service") and context.template_service:
+            template_service = context.template_service
+        else:
+            from ...cli.services import get_cli_template_service
+
+            template_service = get_cli_template_service()
+
         # Provide both the creature object and preprocessed fields for compatibility
         return {
             "creature": content,
@@ -102,6 +125,9 @@ class CreatureEntryRenderer(BaseEntryRenderer):
                 "wis": content.get_ability_text(content.wisdom),
                 "cha": content.get_ability_text(content.charisma),
             },
+            "rendering_context": context,
+            "template_service": template_service,
+            "content_tracker": context.content_tracker or ContentTracker(),
         }
 
 
@@ -116,6 +142,16 @@ class ItemEntryRenderer(BaseEntryRenderer):
         self, content: Item, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context for item using model methods."""
+        # Get template service for explicit context passing
+        # Try to get from context first, fallback to CLI service
+        template_service = None
+        if hasattr(context, "template_service") and context.template_service:
+            template_service = context.template_service
+        else:
+            from ...cli.services import get_cli_template_service
+
+            template_service = get_cli_template_service()
+
         # Provide both the item object and preprocessed fields for compatibility
         return {
             "item": content,
@@ -123,6 +159,9 @@ class ItemEntryRenderer(BaseEntryRenderer):
             "rarity_text": content.get_rarity_text(),
             "weight_text": content.get_weight_text(),
             "value_text": content.get_value_text(),
+            "rendering_context": context,
+            "template_service": template_service,
+            "content_tracker": context.content_tracker or ContentTracker(),
         }
 
 

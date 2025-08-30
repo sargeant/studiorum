@@ -1067,7 +1067,9 @@ class ServiceContainer:
             ReferenceManagerProtocol,
             SourceManagerProtocol,
             TagResolverProtocol,
+            TemplateServiceProtocol,
         )
+        from studiorum.latex_engine.services.factories import create_template_service
 
         # Register services without creating instances
         # Service registration is synchronous - only service creation can be async
@@ -1146,6 +1148,16 @@ class ServiceContainer:
             lifecycle=ServiceLifecycle.SCOPED,
             dependencies=(OmnidexerProtocol, ConfigurationProtocol),
             hot_reloadable=True,
+            cleanup_priority=CleanupPriority.REQUEST_SCOPED,
+        )
+
+        # Template processing services
+        container.register_service(
+            TemplateServiceProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+            create_template_service,
+            lifecycle=ServiceLifecycle.SINGLETON,
+            dependencies=(TagResolverProtocol, OmnidexerProtocol),
+            hot_reloadable=False,
             cleanup_priority=CleanupPriority.REQUEST_SCOPED,
         )
 
