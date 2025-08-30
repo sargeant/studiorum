@@ -65,6 +65,65 @@ class TemplateService:
         if not text:
             return ""
 
+        # Debug logging for all spell content
+        if hasattr(entry, "name") and entry.name == "Animate Objects":
+            logger.error(
+                f"PROCESSING ANIMATE OBJECTS SPELL: source={entry.source.abbreviation}"
+            )
+            logger.error(f"Animate Objects spell text: {repr(text[:500])}")
+        elif "Animate Objects" in str(entry):
+            logger.error(f"Text containing Animate Objects: {repr(text[:500])}")
+
+        # Create rendering context with content tracker
+        rendering_context = RenderingContext(
+            output_format="latex",
+            omnidexer=self.omnidexer,
+            content_tracker=content_tracker,
+            debug_mode=False,
+        )
+
+        # Process the text using the tag resolver with explicit context
+        try:
+            # Debug logging for problematic tags
+            if "@creature" in text and "Animated Object" in text:
+                logger.debug(f"Processing problematic text: {repr(text)}")
+
+            processed_text = self.tag_resolver.process_text(text, rendering_context)
+            # Apply itemSub formatting after tag processing
+            return self._format_itemsub_entries(processed_text, entry)
+        except Exception as e:
+            logger.warning(f"Failed to process entry text: {e}")
+            # Debug the actual text that failed
+            if "@creature" in text and "Animated Object" in text:
+                logger.error(f"Tag processing failed for: {repr(text)}")
+            # Fallback to escaped raw text
+            return self._escape_latex(text)
+
+    def render_entry_content_only(
+        self,
+        entry: Any,
+        content_tracker: ContentTracker,
+    ) -> str:
+        """Render entry content without the entry name.
+
+        This is useful for higher level entries where the name is handled
+        separately in the template (e.g., as \\paragraph{}).
+
+        Args:
+            entry: Entry object containing description data
+            content_tracker: Content tracker for appendix generation
+
+        Returns:
+            Rendered content text without the entry name
+        """
+        if entry is None:
+            return ""
+
+        # Extract only the content from entry, skipping the name
+        text = self._extract_content_only_from_entry(entry)
+        if not text:
+            return ""
+
         # Create rendering context with content tracker
         rendering_context = RenderingContext(
             output_format="latex",
@@ -82,6 +141,80 @@ class TemplateService:
             logger.warning(f"Failed to process entry text: {e}")
             # Fallback to escaped raw text
             return self._escape_latex(text)
+
+    def _extract_content_only_from_entry(self, entry: Any) -> str:
+        """Extract text content from entry formats, excluding the entry name.
+
+        Args:
+            entry: Entry object in various formats
+
+        Returns:
+            Extracted text content without the entry name
+        """
+        if isinstance(entry, str):
+            return entry
+
+        if isinstance(entry, dict):
+            # Handle common 5etools entry patterns
+            if "entries" in entry and entry["entries"] is not None:
+                # Recursively process nested entries, but skip the name
+                parts = []
+                # Skip the name for content-only extraction
+                # Include the "by" field if present (author attribution)
+                if "by" in entry and entry["by"]:
+                    parts.append(f"by {entry['by']}")
+                for sub_entry in entry["entries"]:
+                    text = self._extract_text_from_entry(sub_entry)
+                    if text:  # Only add non-empty text
+                        parts.append(text)
+                return " ".join(parts)
+            elif "text" in entry:
+                # Include name if present for named text entries
+                if "name" in entry and entry["name"]:
+                    return f"{entry['name']} {entry['text']}"
+                return entry["text"]
+            elif "items" in entry and isinstance(entry["items"], list):
+                # Handle list items including itemSub entries
+                parts = []
+                for item in entry["items"]:
+                    if isinstance(item, dict) and item.get("type") == "itemSub":
+                        # Extract itemSub content with proper formatting
+                        item_name = item.get("name", "")
+                        item_entry = item.get("entry", "") or item.get("text", "")
+                        if item_name and item_entry:
+                            parts.append(f"{item_name}. {item_entry}")
+                        elif item_entry:
+                            parts.append(item_entry)
+                        elif item_name:
+                            parts.append(f"{item_name}.")
+                    else:
+                        text = self._extract_text_from_entry(item)
+                        if text:  # Only add non-empty text
+                            parts.append(text)
+                # Join itemSub entries with line breaks between items, but name+description on same line
+                return " ".join(parts) if len(parts) <= 1 else "\n\n".join(parts)
+            elif "entries" in entry and isinstance(entry["entries"], list):
+                # Handle entries list
+                parts = []
+                for e in entry["entries"]:
+                    text = self._extract_text_from_entry(e)
+                    if text:  # Only add non-empty text
+                        parts.append(text)
+                return " ".join(parts)
+
+        # Handle Pydantic models
+        if hasattr(entry, "model_dump"):
+            # Check for EntriesEntry type - extract only the entries content
+            if hasattr(entry, "entries") and entry.entries:
+                parts = []
+                for sub_entry in entry.entries:
+                    text = self._extract_text_from_entry(sub_entry)
+                    if text:
+                        parts.append(text)
+                return " ".join(parts)
+
+        # Fallback to regular extraction
+        return self._extract_text_from_entry(entry)
 
     def _extract_text_from_entry(self, entry: Any) -> str:
         """Extract text content from various entry formats.

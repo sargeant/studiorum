@@ -13,7 +13,9 @@
 <# template_service.render_entry_description(spell, content_tracker) | safe #>
 
 <@ if spell.higher_level @>
+<@ for hl_entry in spell.higher_level @>
 
-<# template_service.render_entry_description(spell.higher_level, content_tracker) | safe #>
+\paragraph{<# hl_entry.name | latex_escape #>} <# template_service.render_entry_content_only(hl_entry, content_tracker) | safe #>
+<@ endfor @>
 <@ endif @>
 <@ endmacro @>
