@@ -453,34 +453,39 @@ class TestBookRenderingIntegration:
         assert len(result) > 500  # Substantial LaTeX content
 
     def test_book_rendering_memory_usage(self, complex_book: Any) -> None:
-        """Test that book rendering doesn't leak memory excessively."""
+        """Test that book rendering doesn't leak memory after initialization."""
         import gc
 
         context = RenderingContext(
             output_format="latex", metadata={"title": "Memory Test"}
         )
 
-        # Force garbage collection before test
-        gc.collect()
-        initial_objects = len(gc.get_objects())
-
         with patch.object(
             self.renderer.template_engine,
             "check_dnd_template_availability",
             return_value=True,
         ):
-            # Render the same book multiple times
+            # Do first render to trigger service container initialization
+            gc.collect()
+            first_result = self.renderer.render_document([complex_book], context)
+            assert isinstance(first_result, str)
+
+            # Now measure growth from subsequent renders
+            gc.collect()
+            after_initialization = len(gc.get_objects())
+
+            # Render multiple times and check for memory leaks
             for _ in range(5):
                 result = self.renderer.render_document([complex_book], context)
                 assert isinstance(result, str)
 
-        # Force garbage collection after test
-        gc.collect()
-        final_objects = len(gc.get_objects())
+            # Force garbage collection after test
+            gc.collect()
+            final_objects = len(gc.get_objects())
 
-        # Object count shouldn't grow excessively (some growth is expected)
-        object_growth = final_objects - initial_objects
-        assert object_growth < 1000  # Reasonable threshold for memory usage
+            # Check growth after initialization (should be minimal)
+            post_init_growth = final_objects - after_initialization
+            assert post_init_growth < 100  # Much tighter threshold after initialization
 
 
 @pytest.mark.rendering

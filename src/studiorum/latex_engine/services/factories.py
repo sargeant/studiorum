@@ -25,9 +25,15 @@ def create_template_service(
     Returns:
         Template service implementing TemplateServiceProtocol
     """
+    from ...core.services.factories import (
+        create_latex_formatter_service,
+        create_text_extractor_service,
+    )
     from .template_service import TemplateService
 
     return TemplateService(
+        text_extractor=create_text_extractor_service(),
+        latex_formatter=create_latex_formatter_service(),
         tag_resolver=tag_resolver,  # type: ignore[arg-type]
         omnidexer=omnidexer,  # type: ignore[arg-type]
     )

@@ -1,5 +1,6 @@
 """Text processing and tag parsing system."""
 
+from .protocols import TextExtractionProtocol
 from .tag_parser import TagParser
 from .tag_resolver import TagResolver
 from .tag_types import (
@@ -10,11 +11,15 @@ from .tag_types import (
     TagContext,
     TagResolutionResult,
 )
+from .text_extractor import TextExtractor
 
 __all__ = [
     # Core classes
     "TagParser",
     "TagResolver",
+    "TextExtractor",
+    # Protocols
+    "TextExtractionProtocol",
     # Types
     "ContentReference",
     "FormattingNode",

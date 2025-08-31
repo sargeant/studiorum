@@ -369,8 +369,36 @@ class Ability(BaseModel):
             # Fallback to original name if processing fails
             return self.name
 
+    def get_text(self) -> str:
+        """Get creature text using modern template service APIs."""
+        from ...cli.services import get_cli_template_service
+        from ...core.references.content_tracker import ContentTracker
+        from ...latex_engine.services.template_service import TemplateService
+
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        # Cast to concrete implementation to access bind_context
+        concrete_service = (
+            template_service
+            if isinstance(template_service, TemplateService)
+            else template_service
+        )
+        bound_service = concrete_service.bind_context(content_tracker)  # type: ignore[attr-defined]
+        return bound_service.render_entry(self.entries)
+
     def get_description_text(self) -> str:
-        """Get description text using TemplateService (backward compatibility)."""
+        """Get description text using TemplateService (backward compatibility).
+
+        Note:
+            Deprecated: Use get_text() instead for cleaner API
+        """
+        import warnings
+
+        warnings.warn(
+            "get_description_text is deprecated. Use get_text() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         from ...cli.services import get_cli_template_service
         from ...core.references.content_tracker import ContentTracker
 

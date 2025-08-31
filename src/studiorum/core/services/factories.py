@@ -60,9 +60,16 @@ if TYPE_CHECKING:
     from studiorum.core.interfaces import ContentTypeRegistry
     from studiorum.core.loaders.content_factory import ContentFactory
     from studiorum.core.loaders.omnidexer import Omnidexer
+    from studiorum.core.references.content_tracker import ContentTracker
     from studiorum.core.services.container import ServiceContainer
+    from studiorum.core.text.protocols import TextExtractionProtocol
     from studiorum.core.text.tag_resolver import TagResolver
     from studiorum.core.unified_references import ReferenceManager
+    from studiorum.latex_engine.formatters.protocols import LaTeXFormattingProtocol
+    from studiorum.latex_engine.services.protocols import (
+        ContextBoundTemplateProtocol,
+        TemplateServiceProtocol,
+    )
     from studiorum.renderers.core.interfaces import RenderingContext
 
 logger = get_logger(__name__)
@@ -819,7 +826,7 @@ async def create_omnidexer_service(
 # Hot-Reloadable Scoped Services
 
 
-async def create_tag_resolver_service(
+def create_tag_resolver_service(
     omnidexer: OmnidexerProtocol,
     config_service: ConfigurationProtocol,
 ) -> TagResolverProtocol:
@@ -909,7 +916,7 @@ async def create_tag_resolver_service(
 # Infrastructure Services
 
 
-async def create_content_type_registry_service() -> ContentTypeRegistryProtocol:
+def create_content_type_registry_service() -> ContentTypeRegistryProtocol:
     """Factory for content type registry service.
 
     Returns:
@@ -1050,7 +1057,7 @@ async def create_display_manager_service(
     return DisplayManagerService(config)
 
 
-async def create_content_factory_service() -> ContentFactoryProtocol:
+def create_content_factory_service() -> ContentFactoryProtocol:
     """Factory for content factory service.
 
     Returns:
@@ -1106,7 +1113,7 @@ async def create_content_factory_service() -> ContentFactoryProtocol:
     return ContentFactoryService()
 
 
-async def create_entry_registry_service() -> EntryTypeRegistryProtocol:
+def create_entry_registry_service() -> EntryTypeRegistryProtocol:
     """Factory for entry type registry service.
 
     Returns:
@@ -1320,7 +1327,7 @@ async def create_data_source_manager_service(
     return unified_source_manager
 
 
-async def create_content_attribution_service() -> ContentAttributionProtocol:
+def create_content_attribution_service() -> ContentAttributionProtocol:
     """Factory for content attribution service.
 
     Returns:
@@ -1333,3 +1340,80 @@ async def create_content_attribution_service() -> ContentAttributionProtocol:
     content_attribution = ContentAttributionManager()
     logger.debug("ContentAttributionManager service initialized successfully")
     return content_attribution
+
+
+def create_text_extractor_service() -> TextExtractionProtocol:
+    """Factory for text extraction service.
+
+    Returns:
+        Text extraction service implementing TextExtractionProtocol
+    """
+    from studiorum.core.text.text_extractor import TextExtractor
+
+    text_extractor = TextExtractor()
+    logger.debug("TextExtractor service initialized successfully")
+    return text_extractor
+
+
+def create_latex_formatter_service() -> LaTeXFormattingProtocol:
+    """Factory for LaTeX formatting service.
+
+    Returns:
+        LaTeX formatting service implementing LaTeXFormattingProtocol
+    """
+    from studiorum.latex_engine.formatters.latex_formatter import LaTeXFormatter
+
+    latex_formatter = LaTeXFormatter()
+    logger.debug("LaTeXFormatter service initialized successfully")
+    return latex_formatter
+
+
+def create_template_service_with_components(
+    text_extractor: TextExtractionProtocol,
+    latex_formatter: LaTeXFormattingProtocol,
+    tag_resolver: TagResolverProtocol,
+    omnidexer: OmnidexerProtocol,
+) -> TemplateServiceProtocol:
+    """Factory for component-based template service.
+
+    Args:
+        text_extractor: Text extraction component
+        latex_formatter: LaTeX formatting component
+        tag_resolver: Tag resolver service
+        omnidexer: Omnidexer service
+
+    Returns:
+        Template service with injected components
+    """
+    from studiorum.latex_engine.services.template_service import TemplateService
+
+    template_service = TemplateService(
+        text_extractor=text_extractor,
+        latex_formatter=latex_formatter,
+        tag_resolver=tag_resolver,
+        omnidexer=omnidexer,
+    )
+    logger.debug("TemplateService with components initialized successfully")
+    return template_service
+
+
+def create_context_bound_template_service(
+    template_service: TemplateServiceProtocol,
+    content_tracker: ContentTracker,
+) -> ContextBoundTemplateProtocol:
+    """Factory for context-bound template service with clean APIs.
+
+    Args:
+        template_service: Base template service to bind context to
+        content_tracker: ContentTracker context to bind for all operations
+
+    Returns:
+        Context-bound template service with clean APIs (no tracker parameters)
+    """
+    from studiorum.latex_engine.services.context_bound_template_service import (
+        ContextBoundTemplateService,
+    )
+
+    bound_service = ContextBoundTemplateService(template_service, content_tracker)
+    logger.debug("ContextBoundTemplateService initialized successfully")
+    return bound_service

@@ -1050,9 +1050,12 @@ class ServiceContainer:
             create_data_source_manager_service,
             create_display_manager_service,
             create_entry_registry_service,
+            create_latex_formatter_service,
             create_omnidexer_service_sync,
             create_reference_manager_service,
             create_tag_resolver_service,
+            create_template_service_with_components,
+            create_text_extractor_service,
         )
         from studiorum.core.services.lifecycle import CleanupPriority, ServiceLifecycle
         from studiorum.core.services.protocols import (
@@ -1063,13 +1066,14 @@ class ServiceContainer:
             ContentTypeRegistryProtocol,
             DisplayManagerProtocol,
             EntryTypeRegistryProtocol,
+            LaTeXFormattingProtocol,
             OmnidexerProtocol,
             ReferenceManagerProtocol,
             SourceManagerProtocol,
             TagResolverProtocol,
             TemplateServiceProtocol,
+            TextExtractionProtocol,
         )
-        from studiorum.latex_engine.services.factories import create_template_service
 
         # Register services without creating instances
         # Service registration is synchronous - only service creation can be async
@@ -1151,12 +1155,36 @@ class ServiceContainer:
             cleanup_priority=CleanupPriority.REQUEST_SCOPED,
         )
 
-        # Template processing services
+        # Template processing components (before main service)
+        container.register_service(
+            TextExtractionProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+            create_text_extractor_service,
+            lifecycle=ServiceLifecycle.SINGLETON,
+            dependencies=(),
+            hot_reloadable=False,
+            cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+        )
+
+        container.register_service(
+            LaTeXFormattingProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+            create_latex_formatter_service,
+            lifecycle=ServiceLifecycle.SINGLETON,
+            dependencies=(),
+            hot_reloadable=False,
+            cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+        )
+
+        # Template processing services (with component injection)
         container.register_service(
             TemplateServiceProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
-            create_template_service,
+            create_template_service_with_components,
             lifecycle=ServiceLifecycle.SINGLETON,
-            dependencies=(TagResolverProtocol, OmnidexerProtocol),
+            dependencies=(
+                TextExtractionProtocol,
+                LaTeXFormattingProtocol,
+                TagResolverProtocol,
+                OmnidexerProtocol,
+            ),
             hot_reloadable=False,
             cleanup_priority=CleanupPriority.REQUEST_SCOPED,
         )

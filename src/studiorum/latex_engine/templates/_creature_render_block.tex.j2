@@ -51,7 +51,7 @@
 <@ if creature.spellcasting @>
 <@ for spellcasting in creature.spellcasting @>
 <@ if not spellcasting.displayAs @>
-\DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
+\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
 <# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
 
 <@ endif @>
@@ -59,7 +59,7 @@
 <@ endif @>
 <@ if creature.trait @>
 <@ for trait in creature.trait @>
-\DndMonsterAction{<# trait.get_processed_name() | safe #>}
+\DndMonsterAction{<# trait | safe_processed_name | safe #>}
 <# template_service.render_entry_description(trait, content_tracker) | safe #>
 
 <@ endfor @>
@@ -84,13 +84,13 @@
 <@ if creature.action or action_spells @>
 \DndMonsterSection{Actions}
 <@ for spellcasting in action_spells @>
-\DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
+\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
 <# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
 
 <@ endfor @>
 <@ if creature.action @>
 <@ for action in creature.action @>
-\DndMonsterAction{<# action.get_processed_name() | safe #>}
+\DndMonsterAction{<# action | safe_processed_name | safe #>}
 <# template_service.render_entry_description(action, content_tracker) | safe #>
 
 <@ endfor @>
@@ -100,13 +100,13 @@
 <@ if creature.bonus or bonus_spells @>
 \DndMonsterSection{Bonus Actions}
 <@ for spellcasting in bonus_spells @>
-\DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
+\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
 <# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
 
 <@ endfor @>
 <@ if creature.bonus @>
 <@ for bonus in creature.bonus @>
-\DndMonsterAction{<# bonus.get_processed_name() | safe #>}
+\DndMonsterAction{<# bonus | safe_processed_name | safe #>}
 <# template_service.render_entry_description(bonus, content_tracker) | safe #>
 
 <@ endfor @>
@@ -116,13 +116,13 @@
 <@ if creature.reaction or reaction_spells @>
 \DndMonsterSection{Reactions}
 <@ for spellcasting in reaction_spells @>
-\DndMonsterAction{<# spellcasting.get_processed_name() | safe #>}
+\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
 <# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
 
 <@ endfor @>
 <@ if creature.reaction @>
 <@ for reaction in creature.reaction @>
-\DndMonsterAction{<# reaction.get_processed_name() | safe #>}
+\DndMonsterAction{<# reaction | safe_processed_name | safe #>}
 <# template_service.render_entry_description(reaction, content_tracker) | safe #>
 
 <@ endfor @>
@@ -132,7 +132,7 @@
 <@ if creature.legendary @>
 \DndMonsterSection{Legendary Actions}
 <@ for legendary in creature.legendary @>
-\DndMonsterAction{<# legendary.get_processed_name() | safe #>}
+\DndMonsterAction{<# legendary | safe_processed_name | safe #>}
 <# template_service.render_entry_description(legendary, content_tracker) | safe #>
 
 <@ endfor @>
@@ -145,8 +145,8 @@
 <# template_service.render_entry_description([lair_action], content_tracker) | safe #>
 
 <@ else @>
-<@ if lair_action.get_processed_name() @>
-\DndMonsterAction{<# lair_action.get_processed_name() | safe #>}
+<@ if lair_action | safe_processed_name @>
+\DndMonsterAction{<# lair_action | safe_processed_name | safe #>}
 <@ endif @>
 <# template_service.render_entry_description(lair_action, content_tracker) | safe #>
 

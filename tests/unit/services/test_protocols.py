@@ -144,6 +144,9 @@ class TestServiceProtocols:
             def supports_tag_type(self, tag_type: str) -> bool:
                 return True
 
+            def process_text(self, text: str, context=None) -> str:
+                return "processed text"
+
         service = MockTagResolver()
         assert isinstance(service, ServiceProtocol)
         assert isinstance(service, ConfigurableServiceProtocol)

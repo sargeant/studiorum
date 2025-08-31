@@ -307,6 +307,23 @@ class LaTeXTemplateEngine:
 
             return value
 
+        def safe_processed_name(obj: Any) -> str:
+            """Safely get processed name from object or dict."""
+            if hasattr(obj, "get_processed_name"):
+                try:
+                    return obj.get_processed_name()
+                except (AttributeError, TypeError, ValueError):
+                    # Method exists but failed - continue to fallback
+                    pass
+
+            # Fallback to name attribute for dicts or objects
+            if isinstance(obj, dict):
+                return obj.get("name", "Unknown")
+            elif hasattr(obj, "name"):
+                return obj.name
+            else:
+                return str(obj)
+
         # Register filters
         self.env.filters["latex_escape"] = latex_escape
         self.env.filters["latex_newlines"] = latex_newlines
@@ -321,6 +338,7 @@ class LaTeXTemplateEngine:
         self.env.filters["markdown_to_latex"] = markdown_to_latex
         self.env.filters["clean_jinja_comments"] = clean_jinja_comments
         self.env.filters["dnd_smallcaps"] = dnd_smallcaps
+        self.env.filters["safe_processed_name"] = safe_processed_name
 
     def render_template(self, template_name: str, context: dict[str, Any]) -> str:
         """Render a template with the given context.

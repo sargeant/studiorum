@@ -306,6 +306,18 @@ class TagResolverProtocol(ServiceProtocol, ConfigurableServiceProtocol, Protocol
         """
         ...
 
+    def process_text(self, text: str, context: RenderingContext | None = None) -> str:
+        """Process text containing tags and return rendered text.
+
+        Args:
+            text: Text containing tags to process
+            context: Rendering context for tag resolution
+
+        Returns:
+            Processed text with tags resolved
+        """
+        ...
+
 
 @runtime_checkable
 class TemplateServiceProtocol(ServiceProtocol, Protocol):
@@ -332,6 +344,61 @@ class TemplateServiceProtocol(ServiceProtocol, Protocol):
 
         Returns:
             Rendered description text suitable for LaTeX templates
+        """
+        ...
+
+
+@runtime_checkable
+class TextExtractionProtocol(ServiceProtocol, Protocol):
+    """Protocol for text extraction from 5etools entry structures."""
+
+    def extract_from_entry(self, entry: Any) -> str:
+        """Extract full text including entry names.
+
+        Args:
+            entry: Entry object in various 5etools formats
+
+        Returns:
+            Extracted text content with names included
+        """
+        ...
+
+    def extract_content_only_from_entry(self, entry: Any) -> str:
+        """Extract content text excluding entry names.
+
+        Args:
+            entry: Entry object in various 5etools formats
+
+        Returns:
+            Extracted text content without entry names
+        """
+        ...
+
+
+@runtime_checkable
+class LaTeXFormattingProtocol(ServiceProtocol, Protocol):
+    """Protocol for LaTeX formatting operations."""
+
+    def format_text(self, text: str, original_entry: Any = None) -> str:
+        """Apply LaTeX formatting to processed text.
+
+        Args:
+            text: Text content to format
+            original_entry: Original entry object for structure-based formatting
+
+        Returns:
+            LaTeX-formatted text
+        """
+        ...
+
+    def escape_latex_chars(self, text: str) -> str:
+        """Escape LaTeX special characters.
+
+        Args:
+            text: Text to escape
+
+        Returns:
+            Text with LaTeX special characters escaped
         """
         ...
 
@@ -1112,6 +1179,8 @@ __all__ = [
     "ProgressAwareService",
     # Template service protocols
     "TemplateServiceProtocol",
+    "TextExtractionProtocol",
+    "LaTeXFormattingProtocol",
     # Image service protocols
     "ImageSourceRegistryProtocol",
     "EnhancedImagePlacerProtocol",
