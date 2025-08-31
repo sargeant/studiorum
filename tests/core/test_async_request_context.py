@@ -203,17 +203,17 @@ class TestAsyncRequestContext:
 
         assert context.metrics.async_operations_count == 2
 
-    @patch("studiorum.core.context.ServiceContainer")
-    async def test_service_access_caching(self, mock_container_class):
+    async def test_service_access_caching(self):
         """Test service access with caching."""
-        # Setup mock container and services
+        # Create a mock container that doesn't trigger service registration
         mock_container = AsyncMock()
-        mock_container_class.return_value = mock_container
-
         mock_omnidexer = MockOmnidexer()
         mock_container.get_service.return_value = mock_omnidexer
 
         context = create_async_request_context()
+
+        # Directly inject the mock container to avoid registration warnings
+        context._container = mock_container
 
         async with context as ctx:
             # First access should call container

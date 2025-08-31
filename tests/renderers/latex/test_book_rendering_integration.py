@@ -452,6 +452,7 @@ class TestBookRenderingIntegration:
         assert isinstance(result, str)
         assert len(result) > 500  # Substantial LaTeX content
 
+    @pytest.mark.serial
     def test_book_rendering_memory_usage(self, complex_book: Any) -> None:
         """Test that book rendering doesn't leak memory after initialization."""
         import gc

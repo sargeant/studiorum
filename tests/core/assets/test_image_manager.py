@@ -292,7 +292,10 @@ class TestImageManager:
         mock_response.status = 404
 
         mock_session = AsyncMock()
-        mock_session.get.return_value.__aenter__.return_value = mock_response
+        mock_context_manager = AsyncMock()
+        mock_context_manager.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_context_manager.__aexit__ = AsyncMock(return_value=None)
+        mock_session.get.return_value = mock_context_manager
 
         with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await self.manager._download_from_url(url, output_path)
