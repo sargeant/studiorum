@@ -111,9 +111,11 @@ class TestUnifiedTagRenderer:
 
         context = RenderingContext(output_format="latex")
 
-        result = renderer.render_tag(mock_node, context)
-
-        assert result == "Unknown Tag"
+        # After Phase 2: Should raise ValueError for unknown tags (no fallbacks)
+        with pytest.raises(
+            ValueError, match="No handler available for tag type 'unknown'"
+        ):
+            renderer.render_tag(mock_node, context)
 
     def test_render_tag_handler_error(self):
         """Test tag rendering when handler raises error."""
@@ -131,9 +133,9 @@ class TestUnifiedTagRenderer:
 
         context = RenderingContext(output_format="latex")
 
-        result = renderer.render_tag(mock_node, context)
-
-        assert result == "[Test Tag]"  # Error fallback
+        # After Phase 2: Should propagate handler errors instead of fallback
+        with pytest.raises(Exception, match="Handler error"):
+            renderer.render_tag(mock_node, context)
 
     def test_enhanced_context_creation(self):
         """Test creation of enhanced context with configuration."""

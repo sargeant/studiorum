@@ -52,7 +52,7 @@
 <@ for spellcasting in creature.spellcasting @>
 <@ if not spellcasting.displayAs @>
 \DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
+<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
 
 <@ endif @>
 <@ endfor @>
@@ -60,7 +60,7 @@
 <@ if creature.trait @>
 <@ for trait in creature.trait @>
 \DndMonsterAction{<# trait | safe_processed_name | safe #>}
-<# template_service.render_entry_description(trait, content_tracker) | safe #>
+<# template_service.render_entry_content_only(trait, content_tracker) | safe #>
 
 <@ endfor @>
 <@ endif @>
@@ -85,13 +85,13 @@
 \DndMonsterSection{Actions}
 <@ for spellcasting in action_spells @>
 \DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
+<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
 
 <@ endfor @>
 <@ if creature.action @>
 <@ for action in creature.action @>
 \DndMonsterAction{<# action | safe_processed_name | safe #>}
-<# template_service.render_entry_description(action, content_tracker) | safe #>
+<# template_service.render_entry_content_only(action, content_tracker) | safe #>
 
 <@ endfor @>
 <@ endif @>
@@ -101,13 +101,13 @@
 \DndMonsterSection{Bonus Actions}
 <@ for spellcasting in bonus_spells @>
 \DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
+<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
 
 <@ endfor @>
 <@ if creature.bonus @>
 <@ for bonus in creature.bonus @>
 \DndMonsterAction{<# bonus | safe_processed_name | safe #>}
-<# template_service.render_entry_description(bonus, content_tracker) | safe #>
+<# template_service.render_entry_content_only(bonus, content_tracker) | safe #>
 
 <@ endfor @>
 <@ endif @>
@@ -117,13 +117,13 @@
 \DndMonsterSection{Reactions}
 <@ for spellcasting in reaction_spells @>
 \DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# template_service.render_entry_description(spellcasting, content_tracker) | safe #>
+<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
 
 <@ endfor @>
 <@ if creature.reaction @>
 <@ for reaction in creature.reaction @>
 \DndMonsterAction{<# reaction | safe_processed_name | safe #>}
-<# template_service.render_entry_description(reaction, content_tracker) | safe #>
+<# template_service.render_entry_content_only(reaction, content_tracker) | safe #>
 
 <@ endfor @>
 <@ endif @>
@@ -133,7 +133,7 @@
 \DndMonsterSection{Legendary Actions}
 <@ for legendary in creature.legendary @>
 \DndMonsterAction{<# legendary | safe_processed_name | safe #>}
-<# template_service.render_entry_description(legendary, content_tracker) | safe #>
+<# template_service.render_entry_content_only(legendary, content_tracker) | safe #>
 
 <@ endfor @>
 <@ endif @>
@@ -142,13 +142,13 @@
 \DndMonsterSection{Lair Actions}
 <@ for lair_action in creature.lair_actions @>
 <@ if lair_action is string @>
-<# template_service.render_entry_description([lair_action], content_tracker) | safe #>
+<# template_service.render_entry_content_only([lair_action], content_tracker) | safe #>
 
 <@ else @>
 <@ if lair_action | safe_processed_name @>
 \DndMonsterAction{<# lair_action | safe_processed_name | safe #>}
 <@ endif @>
-<# template_service.render_entry_description(lair_action, content_tracker) | safe #>
+<# template_service.render_entry_content_only(lair_action, content_tracker) | safe #>
 
 <@ endif @>
 <@ endfor @>

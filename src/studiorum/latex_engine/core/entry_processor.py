@@ -396,7 +396,7 @@ class RecursiveEntryProcessor:
         )
 
         processed_entries = self.process_entries(entries, sidebar_context)
-        content = "\n".join(processed_entries)
+        content = "\n\n".join(processed_entries)
 
         if self.use_dnd_template:
             return f"\\begin{{DndReadAloud}}\n{content}\n\\end{{DndReadAloud}}"
@@ -427,7 +427,7 @@ class RecursiveEntryProcessor:
         )
 
         processed_entries = self.process_entries(entries, sidebar_context)
-        content = "\n".join(processed_entries)
+        content = "\n\n".join(processed_entries)
 
         if self.use_dnd_template:
             if name:
@@ -702,7 +702,7 @@ class RecursiveEntryProcessor:
                                     entry_content, context
                                 )
                             elif entries_content:
-                                processed_content = "\n".join(
+                                processed_content = "\n\n".join(
                                     self.process_entries(entries_content, context)
                                 )
                             else:
@@ -994,7 +994,7 @@ class RecursiveEntryProcessor:
         by = quote.get("by", "")
 
         processed_entries = self.process_entries(entries, context)
-        content = "\n".join(processed_entries)
+        content = "\n\n".join(processed_entries)
 
         result = []
         result.append("\\begin{quotation}")

@@ -927,7 +927,7 @@ class AbilityTagHandler:
                 try:
                     # Last part should be the ability score
                     ability_score = int(parts[-1])
-                    # Calculate modifier from ability score using D&D formula
+                    # Calculate modifier from ability score using 5e formula
                     modifier = (ability_score - 10) // 2
                     return f"+{modifier}" if modifier >= 0 else str(modifier)
                 except (ValueError, IndexError):
@@ -1144,7 +1144,7 @@ class FormattingTagHandler(BaseTagHandler):
                     if child_tag_type == "bold":
                         # Extract text from nested bold tag
                         child_content = self._extract_nested_content(child, context)
-                        # Check if this is D&D text that should use small-caps instead of bold
+                        # Check if this is 5e branding text that should use small-caps instead of bold
                         if self._is_dnd_text(child_content):
                             content_parts.append(
                                 f"\\textsc{{{self._format_dnd_text(child_content)}}}"
@@ -1160,44 +1160,27 @@ class FormattingTagHandler(BaseTagHandler):
                         dc_value = getattr(child, "dc", "")
                         content_parts.append(f"DC {dc_value}")
                     else:
-                        # For other nested tags, try to render them through the unified renderer
-                        # Fall back to extracting meaningful content if no rendering available
-                        rendered_content = None
-
+                        # For other nested tags, render them through the unified renderer
                         # Try to render using unified renderer in context
                         if hasattr(context, "renderer") and hasattr(
                             context.renderer, "render_tag"
                         ):
-                            try:
-                                rendered_content = context.renderer.render_tag(
-                                    child, context
-                                )
-                            # Rendering fallback chain, multiple attempts for content extraction
-                            except Exception:  # nosec B110
-                                pass
-
+                            rendered_content = context.renderer.render_tag(
+                                child, context
+                            )
                         # Try using tag resolver if renderer unavailable
-                        if rendered_content is None:
-                            tag_resolver = context.metadata.get("tag_resolver")
-                            if tag_resolver and hasattr(tag_resolver, "renderer"):
-                                try:
-                                    rendered_content = tag_resolver.renderer.render_tag(
-                                        child, tag_resolver.rendering_context
-                                    )
-                                # Rendering fallback chain, multiple attempts for content extraction
-                                except Exception:  # nosec B110
-                                    pass
-
-                        # Fall back to extracting name or meaningful content
-                        if rendered_content is None:
-                            if hasattr(child, "name") and child.name:
-                                rendered_content = str(child.name)
-                            elif hasattr(child, "tag_type"):
-                                rendered_content = (
-                                    f"[{child.tag_type.replace('_', ' ').title()}]"
-                                )
-                            else:
-                                rendered_content = "[Unknown Tag]"
+                        elif context.metadata.get("tag_resolver") and hasattr(
+                            context.metadata["tag_resolver"], "renderer"
+                        ):
+                            tag_resolver = context.metadata["tag_resolver"]
+                            rendered_content = tag_resolver.renderer.render_tag(
+                                child, tag_resolver.rendering_context
+                            )
+                        else:
+                            # No renderer available - this should be an error condition
+                            raise ValueError(
+                                f"No renderer available for nested tag {child_tag_type} in {tag_type}"
+                            )
 
                         content_parts.append(rendered_content)
                 else:
@@ -1253,7 +1236,7 @@ class FormattingTagHandler(BaseTagHandler):
         pass
 
     def _is_dnd_text(self, text: str) -> bool:
-        """Check if text contains D&D references that should use small-caps."""
+        """Check if text contains game branding references that should use small-caps."""
         import re
 
         # Check for "Dungeons & Dragons" or "D&D" (case insensitive)
@@ -1837,6 +1820,9 @@ class RechargeTagHandler(BaseTagHandler):
 
     def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
         """Process recharge tags according to 5etools format."""
+        # Import LaTeX escaping
+        from studiorum.core.latex_utils import escape_latex_text
+
         # Get the recharge value from the correct attribute
         recharge_text = getattr(tag_node, "recharge", "6").strip()
         flags = getattr(tag_node, "flags", "").strip()
@@ -1849,9 +1835,13 @@ class RechargeTagHandler(BaseTagHandler):
 
         # Format according to 5etools logic
         if recharge_num < 6:
+            # Use Unicode em-dash (U+2014), which will be escaped to --- by escape_latex_text
             recharge_display = f"Recharge {recharge_num}–6"
         else:
             recharge_display = f"Recharge {recharge_num}"
+
+        # Apply LaTeX escaping to handle special characters including em-dash
+        recharge_display = escape_latex_text(recharge_display)
 
         # Check for minimal flag ("m") which removes parentheses
         if "m" in flags:
@@ -2056,6 +2046,417 @@ class HitYourSpellAttackTagHandler(BaseTagHandler):
             return "your spell attack modifier"
 
 
+class ActionTagHandler(BaseTagHandler):
+    """Core handler for action reference tags."""
+
+    def __init__(self) -> None:
+        try:
+            content_type = ContentType("action")
+        except ValueError:
+            logger.debug("Content type 'action' not found in registry")
+            content_type = None
+        super().__init__("action", content_type)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract action reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+        source = self._extract_source_info(node)
+        page = self._extract_page_info(node)
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=display_text,
+            source=source,
+            page=page,
+            content_type=self.content_type,
+            format_style=FormatStyle.ITALIC,
+        )
+
+
+class AreaTagHandler:
+    """Core handler for area reference tags."""
+
+    def __init__(self) -> None:
+        self.tag_type = "area"
+        self.supported_tags = ["area"]
+
+    def handles_tag_type(self, tag_type: str) -> bool:
+        """Check if this handler processes the given tag type."""
+        return tag_type == "area"
+
+    def process_tag(self, node: TagNode, context: RenderingContext) -> str:
+        """Process area tags - these are usually cross-references within adventures."""
+        name = getattr(node, "name", "")
+        display_text = getattr(node, "display_text", None)
+
+        if display_text:
+            return str(display_text)
+        elif name:
+            return str(name)
+        else:
+            return "[Area]"
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for area tags, use process_tag instead."""
+        raise NotImplementedError("Use process_tag for area tags")
+
+    def should_include_page_reference(self, page: str | None) -> bool:
+        """Area tags may include page references."""
+        return page is not None
+
+    def validate_content_reference(
+        self, node: TagNode, context: RenderingContext
+    ) -> list[TagValidationError]:
+        """Area tags don't need content validation."""
+        return []
+
+    def track_content_for_appendix(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Area tags don't need appendix tracking."""
+        pass
+
+
+class SkillTagHandler(BaseTagHandler):
+    """Core handler for skill reference tags."""
+
+    def __init__(self) -> None:
+        # Skills don't have a specific content type, they're mechanics
+        super().__init__("skill", None)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract skill reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=display_text,
+            source=None,
+            page=None,
+            content_type=None,
+            format_style=FormatStyle.ITALIC,
+        )
+
+
+class SenseTagHandler(BaseTagHandler):
+    """Core handler for sense reference tags."""
+
+    def __init__(self) -> None:
+        try:
+            content_type = ContentType("sense")
+        except ValueError:
+            logger.debug("Content type 'sense' not found in registry")
+            content_type = None
+        super().__init__("sense", content_type)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract sense reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+        source = self._extract_source_info(node)
+        page = self._extract_page_info(node)
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=display_text,
+            source=source,
+            page=page,
+            content_type=self.content_type,
+            format_style=FormatStyle.ITALIC,
+        )
+
+
+class StatusTagHandler(BaseTagHandler):
+    """Core handler for status reference tags."""
+
+    def __init__(self) -> None:
+        try:
+            content_type = ContentType("status")
+        except ValueError:
+            logger.debug("Content type 'status' not found in registry")
+            content_type = None
+        super().__init__("status", content_type)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract status reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+        source = self._extract_source_info(node)
+        page = self._extract_page_info(node)
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=display_text,
+            source=source,
+            page=page,
+            content_type=self.content_type,
+            format_style=FormatStyle.ITALIC,
+        )
+
+
+class DeckTagHandler(BaseTagHandler):
+    """Core handler for deck reference tags."""
+
+    def __init__(self) -> None:
+        try:
+            content_type = ContentType("deck")
+        except ValueError:
+            logger.debug("Content type 'deck' not found in registry")
+            content_type = None
+        super().__init__("deck", content_type)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract deck reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+        source = self._extract_source_info(node)
+        page = self._extract_page_info(node)
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=display_text,
+            source=source,
+            page=page,
+            content_type=self.content_type,
+            format_style=FormatStyle.ITALIC,
+        )
+
+
+class HazardTagHandler(BaseTagHandler):
+    """Core handler for hazard reference tags."""
+
+    def __init__(self) -> None:
+        try:
+            content_type = ContentType("hazard")
+        except ValueError:
+            logger.debug("Content type 'hazard' not found in registry")
+            content_type = None
+        super().__init__("hazard", content_type)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract hazard reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+        source = self._extract_source_info(node)
+        page = self._extract_page_info(node)
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=display_text,
+            source=source,
+            page=page,
+            content_type=self.content_type,
+            format_style=FormatStyle.ITALIC,
+        )
+
+
+class RecipeTagHandler(BaseTagHandler):
+    """Core handler for recipe reference tags."""
+
+    def __init__(self) -> None:
+        try:
+            content_type = ContentType("recipe")
+        except ValueError:
+            logger.debug("Content type 'recipe' not found in registry")
+            content_type = None
+        super().__init__("recipe", content_type)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract recipe reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+        source = self._extract_source_info(node)
+        page = self._extract_page_info(node)
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=display_text,
+            source=source,
+            page=page,
+            content_type=self.content_type,
+            format_style=FormatStyle.ITALIC,
+        )
+
+
+class RewardTagHandler(BaseTagHandler):
+    """Core handler for reward reference tags."""
+
+    def __init__(self) -> None:
+        try:
+            content_type = ContentType("reward")
+        except ValueError:
+            logger.debug("Content type 'reward' not found in registry")
+            content_type = None
+        super().__init__("reward", content_type)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract reward reference information."""
+        name = getattr(node, "name", "")
+        display_text = self._extract_display_text(node, context)
+        source = self._extract_source_info(node)
+        page = self._extract_page_info(node)
+
+        return ContentReferenceInfo(
+            name=name or display_text,
+            display_text=display_text,
+            source=source,
+            page=page,
+            content_type=self.content_type,
+            format_style=FormatStyle.ITALIC,
+        )
+
+
+class FilterTagHandler:
+    """Core handler for filter tags - custom processing tags."""
+
+    def __init__(self) -> None:
+        self.tag_type = "filter"
+        self.supported_tags = ["filter"]
+
+    def handles_tag_type(self, tag_type: str) -> bool:
+        """Check if this handler processes the given tag type."""
+        return tag_type == "filter"
+
+    def process_tag(self, node: TagNode, context: RenderingContext) -> str:
+        """Process filter tags - these are usually formatting or processing directives."""
+        # Filter tags are often used for conditional content, return empty string
+        return ""
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for filter tags, use process_tag instead."""
+        raise NotImplementedError("Use process_tag for filter tags")
+
+    def should_include_page_reference(self, page: str | None) -> bool:
+        """Filter tags don't have page references."""
+        return False
+
+    def validate_content_reference(
+        self, node: TagNode, context: RenderingContext
+    ) -> list[TagValidationError]:
+        """Filter tags don't need content validation."""
+        return []
+
+    def track_content_for_appendix(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Filter tags don't need appendix tracking."""
+        pass
+
+
+class ScaleDamageTagHandler:
+    """Core handler for scale damage tags."""
+
+    def __init__(self) -> None:
+        self.tag_type = "scaledamage"
+        self.supported_tags = ["scaledamage"]
+
+    def handles_tag_type(self, tag_type: str) -> bool:
+        """Check if this handler processes the given tag type."""
+        return tag_type == "scaledamage"
+
+    def process_tag(self, node: TagNode, context: RenderingContext) -> str:
+        """Process scale damage tags."""
+        name = getattr(node, "name", "")
+        display_text = getattr(node, "display_text", None)
+
+        if display_text:
+            return str(display_text)
+        elif name:
+            return str(name)
+        else:
+            return "[Scaled Damage]"
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for scaledamage tags, use process_tag instead."""
+        raise NotImplementedError("Use process_tag for scaledamage tags")
+
+    def should_include_page_reference(self, page: str | None) -> bool:
+        """Scale damage tags don't have page references."""
+        return False
+
+    def validate_content_reference(
+        self, node: TagNode, context: RenderingContext
+    ) -> list[TagValidationError]:
+        """Scale damage tags don't need content validation."""
+        return []
+
+    def track_content_for_appendix(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Scale damage tags don't need appendix tracking."""
+        pass
+
+
+class ScaleDiceTagHandler:
+    """Core handler for scale dice tags."""
+
+    def __init__(self) -> None:
+        self.tag_type = "scaledice"
+        self.supported_tags = ["scaledice"]
+
+    def handles_tag_type(self, tag_type: str) -> bool:
+        """Check if this handler processes the given tag type."""
+        return tag_type == "scaledice"
+
+    def process_tag(self, node: TagNode, context: RenderingContext) -> str:
+        """Process scale dice tags."""
+        name = getattr(node, "name", "")
+        display_text = getattr(node, "display_text", None)
+
+        if display_text:
+            return str(display_text)
+        elif name:
+            return str(name)
+        else:
+            return "[Scaled Dice]"
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for scaledice tags, use process_tag instead."""
+        raise NotImplementedError("Use process_tag for scaledice tags")
+
+    def should_include_page_reference(self, page: str | None) -> bool:
+        """Scale dice tags don't have page references."""
+        return False
+
+    def validate_content_reference(
+        self, node: TagNode, context: RenderingContext
+    ) -> list[TagValidationError]:
+        """Scale dice tags don't need content validation."""
+        return []
+
+    def track_content_for_appendix(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Scale dice tags don't need appendix tracking."""
+        pass
+
+
 # Registry of core handlers for easy access
 def get_default_core_handlers() -> list[TagHandler]:
     """Get the list of default core tag handlers."""
@@ -2099,4 +2500,17 @@ def get_default_core_handlers() -> list[TagHandler]:
         NoteTagHandler(),
         QuickrefTagHandler(),
         HitYourSpellAttackTagHandler(),
+        # New handlers for previously missing tag types
+        ActionTagHandler(),
+        AreaTagHandler(),
+        SkillTagHandler(),
+        SenseTagHandler(),
+        StatusTagHandler(),
+        DeckTagHandler(),
+        HazardTagHandler(),
+        RecipeTagHandler(),
+        RewardTagHandler(),
+        FilterTagHandler(),
+        ScaleDamageTagHandler(),
+        ScaleDiceTagHandler(),
     ]

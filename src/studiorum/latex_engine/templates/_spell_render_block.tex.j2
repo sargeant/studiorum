@@ -5,7 +5,7 @@
 \DndSpellHeader%
   {<# spell.name | latex_escape #>}
   {<# spell.get_level_text() | latex_escape #>}
-  {<# spell.get_casting_time_text() | latex_escape #>}
+  {<# template_service.process_field_text(spell.get_casting_time_text()) | safe #>}
   {<# spell.get_range_text() | latex_escape #>}
   {<# spell.get_components_text() | latex_escape #>}
   {<# spell.get_duration_text() | latex_escape #>}

@@ -141,16 +141,9 @@ class CopyResolver:
             if source_item:
                 return source_item
 
-            # Strategy 2: Try fallback lookup strategies
-            source_item = self._try_fallback_lookup(
-                source_name, source_source, item_name
-            )
-            if source_item:
-                return source_item
-
-            # Only log warning if all strategies fail
+            # Log warning and fail cleanly when exact lookup fails
             logger.warning(
-                f"Could not find copy source {source_name}|{source_source} for {item_name} (tried exact + fallback strategies)"
+                f"Could not find copy source {source_name}|{source_source} for {item_name} (exact lookup failed)"
             )
             return None
         else:
@@ -173,134 +166,6 @@ class CopyResolver:
                 return source_item
 
         return None
-
-    def _try_fallback_lookup(
-        self, source_name: str, source_source: str, item_name: str
-    ) -> Any | None:
-        """Try fallback lookup strategies for better content resolution."""
-        # Strategy 1: Try finding by partial name match within the same source
-        source_item = self._try_partial_name_lookup(source_name, source_source)
-        if source_item:
-            logger.debug(
-                f"Found copy source via partial name match for {item_name}: {source_item.name}"
-            )
-            return source_item
-
-        # Strategy 2: Try finding in any source (in case source abbreviation differs)
-        source_item = self._try_any_source_lookup(source_name)
-        if source_item:
-            actual_source = getattr(
-                source_item.source, "abbreviation", source_item.source
-            )
-            logger.debug(
-                f"Found copy source via any-source lookup for {item_name}: {source_item.name} from {actual_source}"
-            )
-            return source_item
-
-        # Strategy 3: Try normalized name variations (remove common suffixes)
-        source_item = self._try_normalized_name_lookup(
-            source_name, source_source, item_name
-        )
-        if source_item:
-            logger.debug(
-                f"Found copy source via normalized name for {item_name}: {source_item.name}"
-            )
-            return source_item
-
-        return None
-
-    def _try_partial_name_lookup(
-        self, source_name: str, source_source: str
-    ) -> Any | None:
-        """Try to find creatures that contain the source name as a substring."""
-        for content_type in [ContentType.CREATURE, ContentType.ITEM, ContentType.SPELL]:
-            try:
-                all_items = self._omnidexer.get_all_by_type(content_type)
-                for item in all_items:
-                    item_source = getattr(item.source, "abbreviation", str(item.source))
-                    if item_source.lower() == source_source.lower():
-                        item_name_lower = item.name.lower()
-                        source_name_lower = source_name.lower()
-                        # Check if the source name is contained in the item name
-                        if source_name_lower in item_name_lower:
-                            return item
-            except (AttributeError, TypeError, ValueError):
-                continue
-        return None
-
-    def _try_any_source_lookup(self, source_name: str) -> Any | None:
-        """Try to find the source item in any available source."""
-        for content_type in [ContentType.CREATURE, ContentType.ITEM, ContentType.SPELL]:
-            # Use the omnidexer's find method without specifying source
-            source_item = self._omnidexer.find(content_type, source_name, None)
-            if source_item:
-                return source_item
-        return None
-
-    def _try_normalized_name_lookup(
-        self, source_name: str, source_source: str, item_name: str
-    ) -> Any | None:
-        """Try lookup with normalized names (remove common variations)."""
-        # Common name normalization patterns
-        normalizations = [
-            # Remove "spore servant" suffix and variations
-            lambda name: name.replace(" spore servant", "").strip(),
-            lambda name: name.replace(" (spore servant)", "").strip(),
-            # Remove parenthetical descriptions
-            lambda name: name.split("(")[0].strip(),
-            # Try base creature name from item name patterns
-            lambda name: self._extract_base_creature_name(name, item_name),
-        ]
-
-        for normalize_func in normalizations:
-            try:
-                normalized_name = normalize_func(source_name)
-                if normalized_name and normalized_name != source_name:
-                    # Try exact lookup with normalized name
-                    source_item = self._try_exact_lookup(normalized_name, source_source)
-                    if source_item:
-                        return source_item
-
-                    # Try any source lookup with normalized name
-                    source_item = self._try_any_source_lookup(normalized_name)
-                    if source_item:
-                        return source_item
-            except (AttributeError, TypeError, ValueError):
-                continue
-
-        return None
-
-    def _extract_base_creature_name(self, source_name: str, item_name: str) -> str:
-        """Extract base creature name using generic patterns."""
-        # Generic approach: try removing common suffixes and prefixes
-        # This is more maintainable than hardcoding specific creature types
-
-        # Common patterns that indicate variations of base creatures
-        common_suffixes = [
-            " spore servant",
-            " (spore servant)",
-            " variant",
-            " (variant)",
-        ]
-        common_prefixes = ["young ", "adult ", "ancient ", "dire "]
-
-        item_lower = item_name.lower()
-
-        # Try removing suffixes
-        for suffix in common_suffixes:
-            if item_lower.endswith(suffix.lower()):
-                base_name = item_name[: -len(suffix)].strip()
-                if base_name:
-                    return base_name
-
-        # Try removing prefixes
-        for prefix in common_prefixes:
-            if item_lower.startswith(prefix.lower()):
-                base_name = item_name[len(prefix) :].strip()
-                if base_name:
-                    return base_name
-
-        return source_name
 
     def _update_omnidexer_index(self, resolved_item: Any) -> None:
         """Update the omnidexer index with the resolved item.
@@ -373,7 +238,7 @@ class CopyResolver:
 
                 else:
                     logger.debug(
-                        f"Lookup key {lookup_key} not found in {content_type} index (item was resolved via fallback strategy)"
+                        f"Lookup key {lookup_key} not found in {content_type} index"
                     )
             else:
                 logger.warning(f"Content type {content_type} not found in omnidexer")

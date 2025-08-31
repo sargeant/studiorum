@@ -29,30 +29,35 @@ def get_service_sync(self, protocol: type[T]) -> T:
 
 **Impact**: This pattern provided up to 350,000x performance improvement by eliminating expensive `asyncio.run()` calls when services are already cached.
 
-### Avoid asyncio.run() in Sync Contexts
+### Use Appropriate Service Patterns for Context
 
-**❌ DON'T**: Use `asyncio.run()` repeatedly for same services
+**❌ DON'T**: Mix async and sync service patterns inappropriately
 
 ```python
-# Anti-pattern - creates event loop overhead every time
+# Anti-pattern - asyncio.run() fallbacks (REMOVED in Phase 2)
 def get_service():
-    return asyncio.run(self._async_get_service())
+    try:
+        return self._sync_service()
+    except:
+        return asyncio.run(self._async_service())  # Expensive fallback
 ```
 
-**✅ DO**: Use direct synchronous creation in test environments
+**✅ DO**: Use dedicated sync factories for CLI contexts
 
 ```python
-# Optimized pattern - bypasses event loop in tests
-def get_service_sync(self, protocol: type[T]) -> T:
-    # In test environments, use direct sync creation
-    if os.getenv("PYTEST_CURRENT_TEST"):
-        return self._create_instance_sync(protocol)
+# Optimized pattern - proper separation of sync/async patterns
+# CLI container registration
+container.register_service(
+    OmnidexerProtocol,
+    create_omnidexer_service_sync,  # Dedicated sync factory
+    lifecycle=ServiceLifecycle.SINGLETON
+)
 
-    # Production path with cache checking
-    return asyncio.run(self.get_service(protocol))
+# Direct sync access without event loop
+omnidexer = container.get_omnidexer_sync()
 ```
 
-**Impact**: Test environments achieve massive performance gains by avoiding event loop creation entirely.
+**Impact**: Eliminates expensive `asyncio.run()` calls entirely and provides clear architectural separation between CLI and MCP contexts.
 
 ### Use Direct Instantiation in Tests
 
@@ -261,8 +266,8 @@ Based on the performance fixes implemented:
 ## Common Performance Anti-Patterns
 
 ### 1. Event Loop Creation in Sync Contexts
-- **Problem**: `asyncio.run()` calls in CLI/test environments
-- **Solution**: Dual-cache singleton system with sync access paths
+- **Problem**: `asyncio.run()` fallbacks in CLI environments (RESOLVED in Phase 2)
+- **Solution**: Dedicated sync service factories with proper lifecycle management
 
 ### 2. Cache Invalidation During Operations
 - **Problem**: Creating new instances instead of reusing cached ones
@@ -272,9 +277,9 @@ Based on the performance fixes implemented:
 - **Problem**: Full dependency resolution for simple operations
 - **Solution**: Direct singleton access with cache checking
 
-### 4. Test Environment Over-Engineering
-- **Problem**: Using production async patterns in test environments
-- **Solution**: Direct synchronous creation with proper isolation
+### 4. Inappropriate Service Context Patterns
+- **Problem**: Using async service patterns in sync CLI contexts
+- **Solution**: Context-appropriate service registration (sync factories for CLI, async for MCP)
 
 ## Performance Testing Strategy
 
@@ -295,7 +300,7 @@ Based on the performance fixes implemented:
 
 ### When Adding New Services
 - Always implement proper singleton caching patterns
-- Avoid `asyncio.run()` in sync contexts
+- Use context-appropriate service patterns (sync factories for CLI, async for MCP)
 - Consider test environment performance impact
 - Design with cache reuse in mind
 

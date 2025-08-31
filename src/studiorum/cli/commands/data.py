@@ -442,6 +442,12 @@ def scan_repositories() -> None:
         # Clear cache to force rebuild
         manager.clear_cache()
 
+        # Trigger re-initialization for CLI context
+        if hasattr(manager, "initialize"):
+            import asyncio
+
+            asyncio.run(manager.initialize())
+
         # Get refreshed statistics
         stats = manager.get_source_statistics()
 

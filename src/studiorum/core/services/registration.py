@@ -210,6 +210,46 @@ async def register_modern_services(container: ServiceContainer) -> None:
     logger.info("Modern service registration completed successfully")
 
 
+def register_cli_sync_services(container: ServiceContainer) -> None:
+    """Register CLI-specific sync services to avoid asyncio.run() fallbacks.
+
+    This function registers sync versions of ASYNC_RESOURCE services specifically
+    for CLI usage, eliminating expensive asyncio.run() fallbacks.
+
+    Args:
+        container: Service container to register services with
+    """
+    from .factories import (
+        create_data_source_manager_service_sync,
+        create_omnidexer_service_sync,
+    )
+
+    logger.info("Registering CLI sync services to eliminate fallbacks")
+
+    # Override ASYNC_RESOURCE services with sync SINGLETON versions for CLI
+    container.register_service(
+        SourceManagerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_data_source_manager_service_sync,
+        lifecycle=ServiceLifecycle.SINGLETON,
+        dependencies=(ConfigurationProtocol,),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+    )
+    logger.debug("Overridden SourceManagerProtocol with sync singleton for CLI")
+
+    container.register_service(
+        OmnidexerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_omnidexer_service_sync,
+        lifecycle=ServiceLifecycle.SINGLETON,
+        dependencies=(ConfigurationProtocol,),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.CORE_RESOURCES,
+    )
+    logger.debug("Overridden OmnidexerProtocol with sync singleton for CLI")
+
+    logger.info("CLI sync service registration completed")
+
+
 def get_service_lifecycle_summary() -> dict[str, dict]:
     """Get summary of service lifecycle assignments and rationale.
 

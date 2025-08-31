@@ -153,28 +153,13 @@ class ContentResolver:
                     "Using shared ContentMerger singleton from wrapped omnidexer"
                 )
 
-        # Fallback to creating own instance if singleton sharing not available
-        # Note: This loses cache benefits compared to the shared singleton pattern
+        # ContentMerger singleton should always be available from properly initialized omnidexer
         if self.content_merger is None:
-            logger.debug(
-                "Shared ContentMerger singleton not available, creating fallback instance"
+            raise RuntimeError(
+                "ContentMerger singleton not available from omnidexer. "
+                "This indicates an omnidexer initialization issue. "
+                "Ensure omnidexer is properly initialized with source manager support."
             )
-            # Check for source_manager on the omnidexer or its wrapped instance
-            source_manager = None
-            if hasattr(omnidexer, "source_manager"):
-                source_manager = omnidexer.source_manager
-            elif hasattr(omnidexer, "_omnidexer") and omnidexer._omnidexer is not None:
-                # Handle service wrapper - get the actual omnidexer
-                actual_omnidexer = omnidexer._omnidexer
-                if hasattr(actual_omnidexer, "source_manager"):
-                    source_manager = actual_omnidexer.source_manager
-
-            if source_manager is not None:
-                self.content_merger = ContentMerger(source_manager)
-            else:
-                logger.warning(
-                    "No source manager found for content merger initialization"
-                )
 
     @classmethod
     async def from_context(cls, context: "AsyncRequestContext") -> "ContentResolver":

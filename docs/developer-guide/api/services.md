@@ -76,14 +76,30 @@ async def get_service[T](self, protocol: type[T]) -> T:
 
 **Sync Service Access**
 
-For CLI and synchronous contexts:
+For CLI and synchronous contexts, use dedicated sync factories:
 
 ```python
+from studiorum.core.services.factories import (
+    create_omnidexer_service_sync,
+    create_data_source_manager_service_sync
+)
+
+# Register sync factories in CLI container
+container.register_service(
+    OmnidexerProtocol,
+    create_omnidexer_service_sync,        # Sync factory
+    lifecycle=ServiceLifecycle.SINGLETON
+)
+
 # Direct sync access methods
 omnidexer = container.get_omnidexer_sync()
 content_resolver = container.get_content_resolver_sync()
 tag_resolver = container.get_tag_resolver_sync()
 ```
+
+**Context Separation**: CLI and MCP contexts use different service registration patterns:
+- **CLI**: Uses `SINGLETON` lifecycle with sync factories for performance
+- **MCP**: Uses `ASYNC_RESOURCE` lifecycle with async factories for request isolation
 
 ### Service Lifecycles
 
@@ -96,7 +112,43 @@ class ServiceLifecycle(Enum):
     SINGLETON = "singleton"     # One instance per container
     TRANSIENT = "transient"     # New instance per request
     SCOPED = "scoped"          # One instance per scope
+    ASYNC_RESOURCE = "async_resource"  # Async lifecycle for MCP contexts
 ```
+
+## Service Architecture Changes
+
+### Phase 2 Improvements (August 2025)
+
+**Fallback Removal**: All service fallback patterns have been eliminated for better error visibility and performance:
+
+- **❌ REMOVED**: `asyncio.run()` fallbacks in CLI contexts
+- **❌ REMOVED**: ContentMerger fallback instance creation
+- **✅ ADDED**: Dedicated sync service factories for CLI usage
+- **✅ ADDED**: Clear context separation between CLI and MCP service patterns
+
+### Best Practices
+
+**CLI Service Registration**:
+```python
+# Use sync factories with SINGLETON lifecycle
+container.register_service(
+    SourceManagerProtocol,
+    create_data_source_manager_service_sync,
+    lifecycle=ServiceLifecycle.SINGLETON
+)
+```
+
+**MCP Service Registration**:
+```python
+# Use async factories with ASYNC_RESOURCE lifecycle
+container.register_service(
+    SourceManagerProtocol,
+    create_data_source_manager_service,
+    lifecycle=ServiceLifecycle.ASYNC_RESOURCE
+)
+```
+
+**Error Handling**: Services now fail fast with clear error messages instead of using expensive fallback patterns.
 
 **Singleton Services**
 
@@ -282,7 +334,7 @@ if isinstance(adventure_result, Success):
 
 ### TagResolver Service
 
-Resolves D&D content tags and cross-references.
+Resolves 5e content tags and cross-references.
 
 ```python
 from studiorum.core.services.protocols import TagResolverProtocol

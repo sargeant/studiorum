@@ -345,8 +345,8 @@ class UnifiedTagRenderer:
                 break
 
         if not core_handler:
-            # Fallback for unhandled tag types
-            return self._render_unknown_tag(node, context)
+            # No handler available for this tag type - this should be an error
+            raise ValueError(f"No handler available for tag type '{tag_type}'")
 
         try:
             # Check if this is a formatting handler that returns direct results
@@ -392,12 +392,12 @@ class UnifiedTagRenderer:
             )
 
         except Exception as e:
-            # Error handling - return safe fallback
+            # Let rendering failures propagate with proper error context
             from studiorum.core.logging import get_logger
 
             logger = get_logger(__name__)
             logger.error(f"Error rendering tag {tag_type}: {e}")
-            return self._render_error_fallback(node, e)
+            raise
 
     def _create_enhanced_context(
         self, base_context: RenderingContext
@@ -421,29 +421,3 @@ class UnifiedTagRenderer:
             content_tracker=base_context.content_tracker,
             metadata=enhanced_metadata,
         )
-
-    def _render_unknown_tag(self, node: TagNode, context: RenderingContext) -> str:
-        """Fallback rendering for unknown tag types."""
-        # For unknown tags, try to extract meaningful content instead of showing TagNode(...)
-        if hasattr(node, "name") and node.name:
-            # Use the name attribute if available (most common case)
-            # Escape LaTeX special characters since this content will be included in LaTeX output
-            name = str(node.name)
-            if context.output_format.lower() == "latex":
-                from studiorum.core.latex_utils import escape_latex_text
-
-                name = escape_latex_text(name)
-            return name
-        elif hasattr(node, "tag_type") and node.tag_type:
-            # For tags without names, show the tag type in a readable format
-            tag_type = node.tag_type.replace("_", " ").title()
-            return f"[{tag_type}]"
-        else:
-            # Last resort fallback
-            return "[Unknown Tag]"
-
-    def _render_error_fallback(self, node: TagNode, error: Exception) -> str:
-        """Safe fallback when rendering fails."""
-        # Return something safe that won't break document compilation
-        fallback_text = getattr(node, "name", "[ERROR]")
-        return f"[{fallback_text}]"

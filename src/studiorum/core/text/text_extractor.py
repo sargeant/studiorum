@@ -29,7 +29,11 @@ class TextExtractor:
                 # Recursively process nested entries
                 parts = []
                 # Include the name if present (for LaTeX formatting like \subsection{Name})
-                if "name" in entry and entry["name"]:
+                # BUT skip for entries where the renderer already handles the name
+                is_spell = (
+                    "level" in entry and "school" in entry and "components" in entry
+                )
+                if "name" in entry and entry["name"] and not is_spell:
                     parts.append(entry["name"])
                 # Include the "by" field if present (author attribution)
                 if "by" in entry and entry["by"]:

@@ -375,11 +375,11 @@ class ServiceContainer:
         elif descriptor.lifecycle == ServiceLifecycle.TRANSIENT:
             return self._create_instance_sync(descriptor)
         elif descriptor.lifecycle == ServiceLifecycle.ASYNC_RESOURCE:
-            # Async resources cannot be created synchronously - fallback to async
-            logger.warning(
-                f"ASYNC_RESOURCE service {protocol.__name__} requires event loop"
+            # Async resources cannot be created synchronously
+            raise RuntimeError(
+                f"ASYNC_RESOURCE service {protocol.__name__} requires async context. "
+                f"CLI should use sync service registration to avoid this error."
             )
-            return asyncio.run(self.get_service(protocol))
         elif descriptor.lifecycle == ServiceLifecycle.HOT_RELOADABLE:
             # Hot-reloadable services are typically singleton
             return self._get_singleton_instance_sync(protocol, descriptor)
@@ -560,31 +560,12 @@ class ServiceContainer:
                 f"cannot be called synchronously. Use async context."
             )
 
-        # Check if factory is async - need special handling
+        # Check if factory is async - this should not happen with sync registration
         if asyncio.iscoroutinefunction(factory):
-            # Try to run the async factory synchronously as fallback
-            # This is not ideal but necessary for CLI compatibility
-            logger.warning(
-                f"Running async factory for {descriptor.protocol.__name__} synchronously. "
-                f"Consider providing a sync alternative for better performance."
+            raise RuntimeError(
+                f"Async factory registered for sync context: {descriptor.protocol.__name__}. "
+                f"Use sync factory registration to avoid this error."
             )
-            try:
-                # Use asyncio.run as fallback for critical services
-                coro_result = (
-                    factory(*deps)
-                    if len(descriptor.dependencies) > 0
-                    else (
-                        factory(self) if descriptor.requires_container() else factory()
-                    )
-                )
-                return asyncio.run(coro_result)
-            except RuntimeError as e:
-                if "cannot be called from a running event loop" in str(e):
-                    raise RuntimeError(
-                        f"Cannot create {descriptor.protocol.__name__} synchronously "
-                        f"from within async context. Use async container methods."
-                    ) from e
-                raise
 
         # Call sync factory using progressive fallback approach
         # This handles the complex union type by trying different call patterns
@@ -1047,7 +1028,7 @@ class ServiceContainer:
             create_content_attribution_service,
             create_content_factory_service,
             create_content_type_registry_service,
-            create_data_source_manager_service,
+            create_data_source_manager_service_sync,
             create_display_manager_service,
             create_entry_registry_service,
             create_latex_formatter_service,
@@ -1091,8 +1072,8 @@ class ServiceContainer:
         # Source management services
         container.register_service(
             SourceManagerProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
-            create_data_source_manager_service,
-            lifecycle=ServiceLifecycle.ASYNC_RESOURCE,
+            create_data_source_manager_service_sync,
+            lifecycle=ServiceLifecycle.SINGLETON,
             dependencies=(ConfigurationProtocol,),
             hot_reloadable=False,
             cleanup_priority=CleanupPriority.INFRASTRUCTURE,

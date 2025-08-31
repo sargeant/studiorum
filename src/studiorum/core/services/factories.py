@@ -1302,6 +1302,28 @@ def create_cache_service() -> CacheProtocol:
 # Source Management Services
 
 
+def create_data_source_manager_service_sync(
+    config_service: ConfigurationProtocol,
+) -> SourceManagerProtocol:
+    """Synchronous factory for data source manager service for CLI usage.
+
+    Args:
+        config_service: Configuration service dependency
+
+    Returns:
+        Data source manager service implementing SourceManagerProtocol
+    """
+    from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
+
+    # Get configuration from the service and pass to UnifiedSourceManager
+    config = config_service.get_config()
+    unified_source_manager = UnifiedSourceManager(config)
+
+    # For CLI usage, initialize synchronously (no async resources needed)
+    logger.debug("UnifiedSourceManager service initialized successfully (sync)")
+    return unified_source_manager
+
+
 async def create_data_source_manager_service(
     config_service: ConfigurationProtocol,
 ) -> SourceManagerProtocol:

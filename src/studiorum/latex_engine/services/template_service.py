@@ -155,3 +155,36 @@ class TemplateService:
             logger.warning(f"Failed to process entry text: {e}")
             # Fallback to escaped raw text
             return self.latex_formatter.escape_latex_chars(text)
+
+    def process_field_text(self, text: str) -> str:
+        """Process text that may contain embedded tags and return LaTeX-safe output.
+
+        This is used for spell fields like casting time that may contain embedded
+        tags like {@variantrule ...} that need to be rendered.
+
+        Args:
+            text: Raw text that may contain embedded tags
+
+        Returns:
+            Processed text with tags rendered and LaTeX-escaped
+        """
+        if not text:
+            return ""
+
+        # Create a minimal rendering context for processing field text
+        rendering_context = RenderingContext(
+            output_format="latex",
+            omnidexer=self.omnidexer,
+            content_tracker=None,  # Field text processing doesn't need appendix tracking
+            debug_mode=False,
+        )
+
+        try:
+            # Process any embedded tags in the text
+            processed_text = self.tag_resolver.process_text(text, rendering_context)
+            # Apply LaTeX escaping to the final result
+            return self.latex_formatter.escape_latex_chars(processed_text)
+        except Exception as e:
+            logger.warning(f"Failed to process field text tags: {e}")
+            # Fallback to escaped raw text
+            return self.latex_formatter.escape_latex_chars(text)
