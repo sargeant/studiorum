@@ -179,12 +179,15 @@ pip-audit: uv
 bandit: uv
 	@$(UV) bandit -c pyproject.toml --quiet -r $(SRC_DIR)/ || (echo "ERROR: bandit: security issues found"; exit 1)
 
-# Run all tests (parallel + serial)
-test: test-parallel test-serial
-
-# Run parallel-safe tests only
-test-parallel: uv
+# Run parallel-safe tests (safe for automation)
+test: uv
 	@$(UV) pytest
+
+# Run parallel-safe tests only (alias for test)
+test-parallel: test
+
+# Run all tests including problematic ones (parallel + serial)
+test-all: test-parallel test-serial
 
 # Speed-based test targets for development workflow
 ## Run fast tests only (<1s per test)
