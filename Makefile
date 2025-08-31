@@ -179,8 +179,11 @@ pip-audit: uv
 bandit: uv
 	@$(UV) bandit -c pyproject.toml --quiet -r $(SRC_DIR)/ || (echo "ERROR: bandit: security issues found"; exit 1)
 
-# Run all tests
-test: uv
+# Run all tests (parallel + serial)
+test: test-parallel test-serial
+
+# Run parallel-safe tests only
+test-parallel: uv
 	@$(UV) pytest
 
 # Speed-based test targets for development workflow
@@ -191,6 +194,10 @@ test-fast: uv
 ## Run unit tests (excludes integration and slow tests)
 test-unit: uv
 	@$(UV) pytest -m "not integration and not slow and not ci_broken"
+
+## Run xdist incompatible tests sequentially (no parallel execution)
+test-serial: uv
+	@$(UV) pytest -m "xdist_incompatible" -n 0
 
 ## Run tests with coverage and parallel execution (may hang - use for CI)
 test-with-coverage: uv
