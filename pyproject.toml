@@ -190,14 +190,14 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--tb=short",
+    "-m",
+    "not xdist_incompatible",    # Skip xdist_incompatible tests by default
     "-n",
     "auto",                      # Enable parallel test execution
     "--dist",
     "loadscope",                 # Group tests by module for better isolation
     "--max-worker-restart",
     "1",                         # Force new processes to avoid contamination
-    "-m",
-    "not xdist_incompatible",    # Skip xdist_incompatible tests during parallel execution
 ]
 testpaths = ["tests"]
 markers = [
