@@ -75,6 +75,7 @@ class BaseConvertCommand:
         high_contrast = cli_args.get("high_contrast")
         two_column = cli_args.get("two_column")
         justified = cli_args.get("justified")
+        statblock = cli_args.get("statblock")
 
         # Extract additional CLI values
         title = cli_args.get("title")
@@ -183,6 +184,11 @@ class BaseConvertCommand:
                 else self._safe_getattr(user_config, "latex.justified")
                 if self._safe_getattr(user_config, "latex.justified") is not None
                 else app_config.rendering.latex.document.justified_text
+            ),
+            "statblock": (
+                statblock
+                or self._safe_getattr(user_config, "latex.document.statblock")
+                or app_config.rendering.latex.document.statblock
             ),
         }
 
@@ -444,6 +450,12 @@ class LaTeXMixin:
                 "--justified/--not-justified",
                 help="Justify text columns",
                 rich_help_panel="Document Layout",
+            ),
+            "statblock": typer.Option(
+                None,
+                "--statblock",
+                help="Statblock style (2014/classic/2024/modern)",
+                rich_help_panel="Visual Styling",
             ),
         }
 

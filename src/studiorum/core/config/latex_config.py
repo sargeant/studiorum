@@ -66,6 +66,12 @@ class LaTeXDocumentConfig(BaseModel):
         default=False, description="Disable document outline generation"
     )
 
+    # Statblock style
+    statblock: str = Field(
+        default="2024",
+        description="Statblock style (2014/classic for legacy, 2024/modern for updated)",
+    )
+
     # Custom options
     custom_class_options: list[str] = Field(
         default_factory=list, description="Additional custom class options"
@@ -129,6 +135,15 @@ class LaTeXDocumentConfig(BaseModel):
             raise ValueError(f"Fonts must be one of: {valid_fonts}")
         return v
 
+    @field_validator("statblock")
+    @classmethod
+    def validate_statblock(cls, v: str) -> str:
+        """Validate statblock style."""
+        valid_styles = ["2014", "classic", "2024", "modern"]
+        if v not in valid_styles:
+            raise ValueError(f"Statblock must be one of: {valid_styles}")
+        return v
+
     def get_class_options_list(self) -> list[str]:
         """Get complete list of class options for document class.
 
@@ -182,6 +197,10 @@ class LaTeXDocumentConfig(BaseModel):
         # Add no outline option
         if self.no_outline:
             options.append("nooutline")
+
+        # Add statblock style option
+        if self.statblock in ["2024", "modern"]:
+            options.append("stats=modern")
 
         # Add custom options
         options.extend(self.custom_class_options)

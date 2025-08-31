@@ -836,6 +836,10 @@ class Creature(BaseContent):
         """Get formatted speed text."""
         return str(self.speed)
 
+    def get_initiative_modifier(self) -> int:
+        """Get initiative modifier (dexterity modifier)."""
+        return self.get_ability_modifier(self.dexterity)
+
     def get_cr_text(self) -> str:
         """Get formatted challenge rating text."""
         if self.cr is None:
@@ -874,6 +878,27 @@ class Creature(BaseContent):
                 save_parts.append(f"{ability_name} {sign}{bonus}")
 
         return ", ".join(save_parts) if save_parts else None
+
+    def get_save_value(self, ability: str) -> int | None:
+        """Get saving throw bonus for a specific ability.
+
+        Args:
+            ability: Ability name (str, dex, con, int, wis, cha)
+
+        Returns:
+            Save bonus as integer, or None if not proficient
+        """
+        if not hasattr(self, "save") or not self.save:
+            return None
+
+        save_value = self.save.get(ability.lower())
+        if save_value is None:
+            return None
+
+        # Convert string format ("+5" or "5") to integer
+        if isinstance(save_value, str):
+            return int(save_value.replace("+", ""))
+        return int(save_value)
 
     def get_formatted_skills(self) -> str | None:
         """Get formatted skills list."""

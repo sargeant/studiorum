@@ -179,6 +179,10 @@ class LaTeXDocumentConfig(BaseModel):
     no_outline: bool = Field(
         default=False, description="Disable document outline generation"
     )
+    statblock: Literal["2014", "classic", "2024", "modern"] = Field(
+        default="2024",
+        description="Statblock style (2014/classic for legacy, 2024/modern for updated)",
+    )
 
 
 class LaTeXRenderingConfig(BaseModel):

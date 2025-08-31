@@ -97,11 +97,17 @@ def supplement(
         help="Justify text columns",
         rich_help_panel="Document Layout",
     ),
+    statblock: str | None = typer.Option(
+        None,
+        "--statblock",
+        help="Statblock style (2014/classic/2024/modern)",
+        rich_help_panel="Visual Styling",
+    ),
 ) -> None:
     """
     📄 Convert supplement JSON to LaTeX
 
-    Converts various D&D content (spells, creatures, items) from 5e.tools JSON
+    Converts various 5e content (spells, creatures, items) from 5e.tools JSON
     format into a formatted supplement document.
     """
 
@@ -192,6 +198,7 @@ def supplement(
                 high_contrast=high_contrast,
                 two_column=two_column,
                 justified=justified,
+                statblock=statblock,
             )
 
             # Import legacy config classes for backward compatibility
@@ -210,6 +217,7 @@ def supplement(
                 justified_text=config["justified"],
                 fonts=config["fonts"],
                 no_outline=config["no_outline"],
+                statblock=config["statblock"],
             )
             latex_config = LaTeXConfig(document=latex_doc_config)
 

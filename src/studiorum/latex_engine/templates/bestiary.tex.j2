@@ -73,7 +73,7 @@ This bestiary contains <# creature_count #> creatures<@ if sources_used @> from 
 <@ endif @>
 
 <#-- Use shared creature rendering macro for consistency --#>
-<# render_creature(creature, template_service, content_tracker) #>
+<# render_creature(creature, template_service, content_tracker, latex_config) #>
 
 <#-- Add float barrier every 10 creatures to prevent accumulation --#>
 <@ if loop.index % 10 == 0 and not loop.last @>
@@ -103,7 +103,7 @@ This bestiary contains <# creature_count #> creatures<@ if sources_used @> from 
 <@ endif @>
 
 <#-- Use shared creature rendering macro for consistency --#>
-<# render_creature(creature, template_service, content_tracker) #>
+<# render_creature(creature, template_service, content_tracker, latex_config) #>
 
 <#-- Add float barrier every 10 creatures to prevent accumulation --#>
 <@ if loop.index % 10 == 0 and not loop.last @>

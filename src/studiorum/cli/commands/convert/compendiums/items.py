@@ -322,6 +322,12 @@ def items(
         help="Justify text columns",
         rich_help_panel="Document Layout",
     ),
+    statblock: str | None = typer.Option(
+        None,
+        "--statblock",
+        help="Statblock style (2014/classic/2024/modern)",
+        rich_help_panel="Visual Styling",
+    ),
     with_images: bool = typer.Option(
         get_with_images_default(),
         "--images/--no-images",
@@ -586,6 +592,7 @@ def items(
                 high_contrast=high_contrast,
                 two_column=two_column,
                 justified=justified,
+                statblock=statblock,
             )
 
             from studiorum.core.config.latex_config import (
@@ -603,6 +610,7 @@ def items(
                 justified_text=config["justified"],
                 fonts=config["fonts"],
                 no_outline=config["no_outline"],
+                statblock=config["statblock"],
             )
             latex_config = LaTeXConfig(document=latex_doc_config)
 

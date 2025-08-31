@@ -121,6 +121,12 @@ def adventure(
         help="Justify text columns",
         rich_help_panel="Document Layout",
     ),
+    statblock: str | None = typer.Option(
+        None,
+        "--statblock",
+        help="Statblock style (2014/classic/2024/modern)",
+        rich_help_panel="Visual Styling",
+    ),
     # Appendix options
     appendix_spells: bool = typer.Option(
         get_appendix_spells_default(),
@@ -206,6 +212,7 @@ def adventure(
                 high_contrast=high_contrast,
                 two_column=two_column,
                 justified=justified,
+                statblock=statblock,
             )
 
             # Import legacy config classes for backward compatibility
@@ -224,6 +231,7 @@ def adventure(
                 justified_text=config["justified"],
                 fonts=config["fonts"],
                 no_outline=config["no_outline"],
+                statblock=config["statblock"],
             )
             latex_config = LaTeXConfig(document=latex_doc_config)
 
