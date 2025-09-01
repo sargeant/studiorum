@@ -5,7 +5,7 @@ description: Common issues and solutions when using studiorum
 
 # Troubleshooting
 
-Common issues you might encounter when using studiorum and how to resolve them.
+Common issues you might encounter when using studiorum and how to resolve them. Check the list of [known issues](known-issues.md) first.
 
 ## Installation Issues
 

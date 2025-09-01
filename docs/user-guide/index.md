@@ -8,7 +8,7 @@ description: Get started with studiorum to create beautiful LaTeX/PDF documents 
 Transform 5e content into professional PDFs with studiorum's LaTeX-based typesetting system.
 
 !!! warning "In development"
-    This tool is in active development. Some features may not work, some may require debugging for your environment. Check back soon for v1.0
+    This tool is in active development. Some features may not work, some may require debugging for your environment. Check back soon for v1.0. See [known issues](known-issues.md) for a bunch of things that need work.
 
 ## What You Can Create
 
@@ -24,9 +24,6 @@ Transform 5e content into professional PDFs with studiorum's LaTeX-based typeset
     - **Python 3.12+** installed on your system
     - **Basic command line** familiarity (we'll guide you through it)
     - **LaTeX distribution** (automatically handled in most cases)
-
-!!! tip "New to Command Line?"
-    Don't worry! Our [Quick Start Guide](quick-start.md) includes step-by-step instructions with screenshots and assumes no prior command line experience.
 
 [Ready to create your first PDF?](quick-start.md)
 

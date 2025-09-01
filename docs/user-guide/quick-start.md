@@ -34,7 +34,35 @@ Install Studiorum by cloning the Github repository. In the future it will be ava
     pip install studiorum
     ```
 
-### LaTeX template
+### LaTeX
+
+You'll need a LaTeX installation to build the PDFs.
+
+=== "macOS"
+
+    ```bash
+    # Install MacTeX (full distribution)
+    brew install --cask mactex
+
+    # Or BasicTeX (minimal)
+    brew install --cask basictex
+    ```
+
+=== "Ubuntu/Debian"
+
+    ```bash
+    # Full installation
+    sudo apt-get install texlive-full
+
+    # Minimal installation
+    sudo apt-get install texlive-latex-base texlive-latex-extra
+    ```
+
+=== "Windows"
+
+    Download and install [MiKTeX](https://miktex.org/download) or [TeX Live](https://www.tug.org/texlive/).
+
+#### LaTeX template
 
 We build on the great work of others by using an open source template for the LaTeX document processing language. In the future we plan to automatically handle the install, but for now please [install the template manually](https://github.com/ashonit/DND-5e-LaTeX-Template).
 
