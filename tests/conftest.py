@@ -6,19 +6,27 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.config.sources import (  # type: ignore
+from studiorum.core.config.sources import (  # type: ignore
     ContentConfiguration,
     ContentSource,
     SourceType,
 )
-from dnd5e.core.loaders.configurable_source_manager import (
-    ConfigurableSourceManager,  # type: ignore
+from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
+from studiorum.core.loaders.source_manager import (
+    FileSystemSourceManager,  # type: ignore
 )
-from dnd5e.core.loaders.omnidexer import Omnidexer  # type: ignore
-from dnd5e.core.loaders.source_manager import FileSystemSourceManager  # type: ignore
-from dnd5e.core.models.creatures import Creature  # type: ignore
-from dnd5e.core.models.spells import Spell  # type: ignore
-from dnd5e.core.text.tag_resolver import TagResolver  # type: ignore
+from studiorum.core.loaders.unified_source_manager import (
+    UnifiedSourceManager,  # type: ignore
+)
+from studiorum.core.models.creatures import Creature  # type: ignore
+from studiorum.core.models.spells import Spell  # type: ignore
+from studiorum.core.text.tag_resolver import TagResolver  # type: ignore
+
+# Import the test helper for consistent setup
+from tests.test_helpers import reset_test_environment, setup_test_with_registry
+
+# Import the profiler plugin to ensure it's discovered by pytest
+pytest_plugins = ["scripts.test_profiler"]
 
 
 @pytest.fixture
@@ -192,6 +200,9 @@ def loaded_omnidexer(
     import asyncio
     import json
 
+    # Use full reset sequence for complete isolation
+    reset_test_environment()
+
     # Create test data files and ensure they're written to disk
     spell_file = temp_data_dir / "spells" / "test-spells.json"
     spell_file.write_text(json.dumps({"spell": [sample_spell_data]}))
@@ -224,6 +235,9 @@ def make_omnidexer():
 
         if temp_data_dir is None:
             raise ValueError("temp_data_dir is required for factory fixture")
+
+        # Use full reset sequence for complete isolation
+        reset_test_environment()
 
         # Create test data files if provided
         if spell_data:
@@ -267,13 +281,36 @@ def make_tag_resolver():
 def test_data_omnidexer() -> Omnidexer:
     """Omnidexer using test-data and srd-data sources."""
     import asyncio
+    import os
+    import uuid
 
-    # Use the ConfigurableSourceManager which automatically includes test-data
-    source_manager = ConfigurableSourceManager()
-    asyncio.run(source_manager.ensure_sources_ready())
+    # Set test configuration environment variable BEFORE resetting containers
+    # This ensures the config is loaded from the correct file
+    os.environ["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
 
-    omnidexer = Omnidexer(source_manager)
+    # Use full reset sequence for complete isolation
+    reset_test_environment()
+
+    # Note: reset_test_environment() now handles both container systems via reset_all_containers()
+    # No need for additional container resets here
+
+    # Get omnidexer - create directly for test compatibility
+    omnidexer = Omnidexer()
     omnidexer.load_all_data()
+
+    # The container already calls load_all_data() when creating the omnidexer
+    # No need to call it again - doing so triggers duplicate detection
+
+    # NOTE: There is a known issue where books fail to load in test environment
+    # due to complex global state corruption. This affects multiple test files.
+    # The container loads adventures correctly but books fail to load.
+    # This needs deeper investigation but is documented in private/omnidexer-dup.md
+
+    # NOTE: Book loading issue was resolved as of 2025-08-19
+    # The environmental issue that prevented books from loading in the test
+    # environment appears to have been fixed. See private/omnidexer-dup.md
+    # for the full investigation history. The workaround has been removed.
+
     return omnidexer
 
 

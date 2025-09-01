@@ -5,33 +5,38 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import ContentType  # type: ignore
-from dnd5e.core.models.creatures import Creature  # type: ignore
-from dnd5e.core.models.items import Item  # type: ignore
-from dnd5e.core.models.spells import Spell  # type: ignore
-from dnd5e.renderers.base import RenderContext  # type: ignore
-from dnd5e.renderers.latex.content_processor import (  # type: ignore
+from studiorum.core.models.content import ContentType  # type: ignore
+from studiorum.core.models.creatures import Creature  # type: ignore
+from studiorum.core.models.items import Item  # type: ignore
+from studiorum.core.models.spells import Spell  # type: ignore
+from studiorum.latex_engine.core.content_processor import (  # type: ignore
     ContentProcessor,
     ContentProcessorRegistry,
     CreatureProcessor,
     ItemProcessor,
     SpellProcessor,
 )
+from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestSpellProcessor:
     """Test cases for spell content processor."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = SpellProcessor()
-        self.context = Mock(spec=RenderContext)
+        self.context = Mock(spec=RenderingContext)
 
     def test_supports_content_type(self) -> None:
         """Test content type support."""
-        assert self.processor.supports_content_type(ContentType.SPELL)
-        assert not self.processor.supports_content_type(ContentType.CREATURE)
-        assert not self.processor.supports_content_type(ContentType.ITEM)
+        assert self.processor.supports_content_type(ContentType("spell"))
+        assert not self.processor.supports_content_type(ContentType("creature"))
+        assert not self.processor.supports_content_type(ContentType("item"))
 
     def test_process_invalid_content_type(self) -> None:
         """Test processing with invalid content type."""
@@ -201,19 +206,23 @@ class TestSpellProcessor:
         assert "Wizard" in result
 
 
+@pytest.mark.rendering
 class TestCreatureProcessor:
     """Test cases for creature content processor."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = CreatureProcessor()
-        self.context = Mock(spec=RenderContext)
+        self.context = Mock(spec=RenderingContext)
 
     def test_supports_content_type(self) -> None:
         """Test content type support."""
-        assert self.processor.supports_content_type(ContentType.CREATURE)
-        assert not self.processor.supports_content_type(ContentType.SPELL)
-        assert not self.processor.supports_content_type(ContentType.ITEM)
+        assert self.processor.supports_content_type(ContentType("creature"))
+        assert not self.processor.supports_content_type(ContentType("spell"))
+        assert not self.processor.supports_content_type(ContentType("item"))
 
     def test_process_invalid_content_type(self) -> None:
         """Test processing with invalid content type."""
@@ -404,19 +413,23 @@ class TestCreatureProcessor:
         assert "legendary" in result
 
 
+@pytest.mark.rendering
 class TestItemProcessor:
     """Test cases for item content processor."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = ItemProcessor()
-        self.context = Mock(spec=RenderContext)
+        self.context = Mock(spec=RenderingContext)
 
     def test_supports_content_type(self) -> None:
         """Test content type support."""
-        assert self.processor.supports_content_type(ContentType.ITEM)
-        assert not self.processor.supports_content_type(ContentType.SPELL)
-        assert not self.processor.supports_content_type(ContentType.CREATURE)
+        assert self.processor.supports_content_type(ContentType("item"))
+        assert not self.processor.supports_content_type(ContentType("spell"))
+        assert not self.processor.supports_content_type(ContentType("creature"))
 
     def test_process_invalid_content_type(self) -> None:
         """Test processing with invalid content type."""
@@ -565,6 +578,7 @@ class TestItemProcessor:
         assert self.processor._get_value_tier(item) == "Expensive"
 
 
+@pytest.mark.rendering
 class TestContentProcessorRegistry:
     """Test cases for content processor registry."""
 
@@ -572,13 +586,15 @@ class TestContentProcessorRegistry:
         """Test that initialization registers default processors."""
         registry: Any = ContentProcessorRegistry()
 
-        assert ContentType.SPELL in registry._processors
-        assert ContentType.CREATURE in registry._processors
-        assert ContentType.ITEM in registry._processors
+        assert ContentType("spell") in registry._processors
+        assert ContentType("creature") in registry._processors
+        assert ContentType("item") in registry._processors
 
-        assert isinstance(registry._processors[ContentType.SPELL], SpellProcessor)
-        assert isinstance(registry._processors[ContentType.CREATURE], CreatureProcessor)
-        assert isinstance(registry._processors[ContentType.ITEM], ItemProcessor)
+        assert isinstance(registry._processors[ContentType("spell")], SpellProcessor)
+        assert isinstance(
+            registry._processors[ContentType("creature")], CreatureProcessor
+        )
+        assert isinstance(registry._processors[ContentType("item")], ItemProcessor)
 
     def test_register_processor(self) -> None:
         """Test processor registration."""
@@ -597,7 +613,7 @@ class TestContentProcessorRegistry:
         """Test getting existing processor."""
         registry: Any = ContentProcessorRegistry()
 
-        processor = registry.get_processor(ContentType.SPELL)
+        processor = registry.get_processor(ContentType("spell"))
         assert processor is not None
         assert isinstance(processor, SpellProcessor)
 
@@ -623,13 +639,13 @@ class TestContentProcessorRegistry:
         spell.components.material = None
         spell.duration = []
         spell.classes = {}
-        context: Any = Mock(spec=RenderContext)
+        context: Any = Mock(spec=RenderingContext)
 
         # Mock the content type detection
         with patch(
-            "dnd5e.renderers.latex.content_processor.ContentType.from_content"
+            "studiorum.latex_engine.core.content_processor.ContentType.from_content"
         ) as mock_from_content:
-            mock_from_content.return_value = ContentType.SPELL
+            mock_from_content.return_value = ContentType("spell")
 
             result = registry.process_content(spell, context)
 
@@ -640,11 +656,11 @@ class TestContentProcessorRegistry:
         """Test content processing without available processor."""
         registry: Any = ContentProcessorRegistry()
         unknown_content: Any = Mock()
-        context: Any = Mock(spec=RenderContext)
+        context: Any = Mock(spec=RenderingContext)
 
         # Mock the content type detection to return unknown type
         with patch(
-            "dnd5e.renderers.latex.content_processor.ContentType.from_content"
+            "studiorum.latex_engine.core.content_processor.ContentType.from_content"
         ) as mock_from_content:
             fake_content_type: Any = Mock()
             mock_from_content.return_value = fake_content_type

@@ -3,23 +3,10 @@
   "condition": [
     {
       "name": "Blinded",
-      "source": "PHB",
+      "source": "SRD",
       "page": 290,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Blinded|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -28,28 +15,14 @@
             "Attack rolls against the creature have advantage, and the creature's attack rolls have disadvantage."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Charmed",
-      "source": "PHB",
+      "source": "SRD",
       "page": 290,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Charmed|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -58,28 +31,14 @@
             "The charmer has advantage on any ability check to interact socially with the creature."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Deafened",
-      "source": "PHB",
+      "source": "SRD",
       "page": 290,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Deafened|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -87,24 +46,14 @@
             "A deafened creature can't hear and automatically fails any ability check that requires hearing."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Exhaustion",
-      "source": "PHB",
+      "source": "SRD",
       "page": 291,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        }
-      ],
-      "reprintedAs": [
-        "Exhaustion|XPHB"
-      ],
       "entries": [
         "Some special abilities and environmental hazards, such as starvation and the long-term effects of freezing or scorching temperatures, can lead to a special condition called exhaustion. Exhaustion is measured in six levels. An effect can give a creature one or more levels of exhaustion, as specified in the effect's description.",
         {
@@ -152,23 +101,10 @@
     },
     {
       "name": "Frightened",
-      "source": "PHB",
+      "source": "SRD",
       "page": 290,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Frightened|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -177,28 +113,14 @@
             "The creature can't willingly move closer to the source of its fear."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Grappled",
-      "source": "PHB",
+      "source": "SRD",
       "page": 290,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Grappled|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -208,28 +130,14 @@
             "The condition also ends if an effect removes the grappled creature from the reach of the grappler or grappling effect, such as when a creature is hurled away by the {@spell thunderwave} spell."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Incapacitated",
-      "source": "PHB",
+      "source": "SRD",
       "page": 290,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Incapacitated|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -241,23 +149,10 @@
     },
     {
       "name": "Invisible",
-      "source": "PHB",
+      "source": "SRD",
       "page": 291,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Invisible|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -266,28 +161,14 @@
             "Attack rolls against the creature have disadvantage, and the creature's attack rolls have advantage."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Paralyzed",
-      "source": "PHB",
+      "source": "SRD",
       "page": 291,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Paralyzed|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -298,28 +179,14 @@
             "Any attack that hits the creature is a critical hit if the attacker is within 5 feet of the creature."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Petrified",
-      "source": "PHB",
+      "source": "SRD",
       "page": 291,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Petrified|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -332,28 +199,14 @@
             "The creature is immune to poison and disease, although a poison or disease already in its system is suspended, not neutralized."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Poisoned",
-      "source": "PHB",
+      "source": "SRD",
       "page": 292,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Poisoned|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -361,28 +214,14 @@
             "A poisoned creature has disadvantage on attack rolls and ability checks."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Prone",
-      "source": "PHB",
+      "source": "SRD",
       "page": 292,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Prone|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -392,28 +231,14 @@
             "An attack roll against the creature has advantage if the attacker is within 5 feet of the creature. Otherwise, the attack roll has disadvantage."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Restrained",
-      "source": "PHB",
+      "source": "SRD",
       "page": 292,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Restrained|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -423,28 +248,14 @@
             "The creature has disadvantage on Dexterity saving throws."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Stunned",
-      "source": "PHB",
+      "source": "SRD",
       "page": 292,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Stunned|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -454,28 +265,14 @@
             "Attack rolls against the creature have advantage."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     },
     {
       "name": "Unconscious",
-      "source": "PHB",
+      "source": "SRD",
       "page": 292,
       "srd": true,
       "basicRules": true,
-      "otherSources": [
-        {
-          "source": "RMR",
-          "page": 62
-        },
-        {
-          "source": "HftT",
-          "page": 48
-        }
-      ],
-      "reprintedAs": [
-        "Unconscious|XPHB"
-      ],
       "entries": [
         {
           "type": "list",
@@ -487,19 +284,15 @@
             "Any attack that hits the creature is a critical hit if the attacker is within 5 feet of the creature."
           ]
         }
-      ],
-      "hasFluffImages": true
+      ]
     }
   ],
   "disease": [
     {
       "name": "Cackle Fever",
-      "source": "DMG",
+      "source": "SRD",
       "page": 257,
       "srd": true,
-      "reprintedAs": [
-        "Cackle Fever|XDMG"
-      ],
       "entries": [
         "This disease targets humanoids, although gnomes are strangely immune. While in the grips of this disease, victims frequently succumb to fits of mad laughter, giving the disease its common name and its morbid nickname: \"the shrieks.\"",
         "Symptoms manifest {@dice 1d4} hours after infection and include fever and disorientation. The infected creature gains one level of {@condition exhaustion} that can't be removed until the disease is cured.",
@@ -510,12 +303,9 @@
     },
     {
       "name": "Sewer Plague",
-      "source": "DMG",
+      "source": "SRD",
       "page": 257,
       "srd": true,
-      "reprintedAs": [
-        "Sewer Plague|XDMG"
-      ],
       "entries": [
         "Sewer plague is a generic term for a broad category of illnesses that incubate in sewers, refuse heaps, and stagnant swamps, and which are sometimes transmitted by creatures that dwell in those areas, such as rats and otyughs.",
         "When a humanoid creature is bitten by a creature that carries the disease, or when it comes into contact with filth or offal contaminated by the disease, the creature must succeed on a {@dc 11} Constitution saving throw or become infected.",
@@ -526,12 +316,9 @@
     },
     {
       "name": "Sight Rot",
-      "source": "DMG",
+      "source": "SRD",
       "page": 257,
       "srd": true,
-      "reprintedAs": [
-        "Sight Rot|XDMG"
-      ],
       "entries": [
         "This painful infection causes bleeding from the eyes and eventually blinds the victim.",
         "A beast or humanoid that drinks water tainted by sight rot must succeed on a {@dc 15} Constitution saving throw or become infected. One day after infection, the creature's vision starts to become blurry. The creature takes a -1 penalty to attack rolls and ability checks that rely on sight. At the end of each long rest after the symptoms appear, the penalty worsens by 1. When it reaches -5, the victim is {@condition blinded} until its sight is restored by magic such as {@spell lesser restoration} or {@spell heal}.",
@@ -542,13 +329,10 @@
   "status": [
     {
       "name": "Concentration",
-      "source": "PHB",
+      "source": "SRD",
       "page": 203,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Concentration|XPHB"
-      ],
       "entries": [
         "Some spells require you to maintain {@status concentration} in order to keep their magic active. If you lose {@status concentration}, such a spell ends.",
         "If a spell must be maintained with {@status concentration}, that fact appears in its Duration entry, and the spell specifies how long you can concentrate on it. You can end {@status concentration} at any time (no action required).",
@@ -566,13 +350,10 @@
     },
     {
       "name": "Surprised",
-      "source": "PHB",
+      "source": "SRD",
       "page": 189,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Surprised|XPHB"
-      ],
       "entries": [
         "A band of adventurers sneaks up on a bandit camp, springing from the trees to attack them. A {@creature gelatinous cube} glides down a dungeon passage, unnoticed by the adventurers until the cube engulfs one of them. In these situations, one side of the battle gains surprise over the other.",
         "The DM determines who might be surprised. If neither side tries to be stealthy, they automatically notice each other. Otherwise, the DM compares the Dexterity ({@skill Stealth}) checks of anyone hiding with the passive Wisdom ({@skill Perception}) score of each creature on the opposing side. Any character or monster that doesn't notice a threat is {@status surprised} at the start of the encounter.",

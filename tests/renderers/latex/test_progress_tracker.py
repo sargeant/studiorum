@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.renderers.latex.progress_tracker import (  # type: ignore
+from studiorum.latex_engine.utils.progress_tracker import (  # type: ignore
     CompilationProgress,
     NoProgressReporter,
     ProgressTracker,
@@ -13,7 +13,7 @@ from dnd5e.renderers.latex.progress_tracker import (  # type: ignore
 )
 
 try:
-    from dnd5e.renderers.latex.progress_tracker import (
+    from studiorum.latex_engine.utils.progress_tracker import (
         RichProgressReporter,  # type: ignore
     )
 
@@ -22,6 +22,7 @@ except ImportError:
     RICH_AVAILABLE = False
 
 
+@pytest.mark.rendering
 class TestCompilationProgress:
     """Tests for compilation progress tracking."""
 
@@ -81,6 +82,7 @@ class TestCompilationProgress:
         assert progress2.overall_progress == 1.0
 
 
+@pytest.mark.rendering
 class TestNoProgressReporter:
     """Tests for no-op progress reporter."""
 
@@ -100,6 +102,7 @@ class TestNoProgressReporter:
         assert True
 
 
+@pytest.mark.rendering
 class TestSimpleProgressReporter:
     """Tests for simple progress reporter."""
 
@@ -161,15 +164,16 @@ class TestSimpleProgressReporter:
 
 
 @pytest.mark.skipif(not RICH_AVAILABLE, reason="Rich library not available")
+@pytest.mark.rendering
 class TestRichProgressReporter:
     """Tests for rich progress reporter."""
 
     def test_rich_reporter_initialization(self) -> None:
         """Test rich reporter initialization."""
         with (
-            patch("dnd5e.renderers.latex.progress_tracker.Console"),
+            patch("studiorum.latex_engine.utils.progress_tracker.Console"),
             patch(
-                "dnd5e.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
+                "studiorum.latex_engine.utils.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
                 False,
             ),
         ):
@@ -183,7 +187,8 @@ class TestRichProgressReporter:
         """Test rich reporter with custom console."""
         mock_console: Any = Mock()
         with patch(
-            "dnd5e.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE", False
+            "studiorum.latex_engine.utils.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
+            False,
         ):
             reporter: Any = RichProgressReporter(mock_console)
             assert reporter.console == mock_console
@@ -194,7 +199,8 @@ class TestRichProgressReporter:
         mock_console: Any = Mock()
 
         with patch(
-            "dnd5e.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE", False
+            "studiorum.latex_engine.utils.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
+            False,
         ):
             reporter: Any = RichProgressReporter(mock_console)
 
@@ -223,7 +229,8 @@ class TestRichProgressReporter:
         """Test error display in rich reporter."""
         mock_console: Any = Mock()
         with patch(
-            "dnd5e.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE", False
+            "studiorum.latex_engine.utils.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
+            False,
         ):
             reporter: Any = RichProgressReporter(mock_console)
 
@@ -243,10 +250,11 @@ class TestRichProgressReporter:
 
         with (
             patch(
-                "dnd5e.renderers.latex.progress_tracker.DISPLAY_MANAGER_AVAILABLE", True
+                "studiorum.latex_engine.utils.progress_tracker.DISPLAY_MANAGER_AVAILABLE",
+                True,
             ),
             patch(
-                "dnd5e.renderers.latex.progress_tracker.display_manager",
+                "studiorum.latex_engine.utils.progress_tracker.display_manager",
                 mock_display_manager,
             ),
         ):
@@ -272,11 +280,14 @@ class TestRichProgressReporter:
 
     def test_rich_reporter_unavailable(self) -> None:
         """Test rich reporter when rich is not available."""
-        with patch("dnd5e.renderers.latex.progress_tracker.RICH_AVAILABLE", False):
+        with patch(
+            "studiorum.latex_engine.utils.progress_tracker.RICH_AVAILABLE", False
+        ):
             with pytest.raises(ImportError, match="Rich library not available"):
                 RichProgressReporter()
 
 
+@pytest.mark.rendering
 class TestProgressTracker:
     """Tests for progress tracker."""
 
@@ -303,7 +314,9 @@ class TestProgressTracker:
 
     def test_progress_tracker_rich_fallback(self) -> None:
         """Test progress tracker falls back when rich unavailable."""
-        with patch("dnd5e.renderers.latex.progress_tracker.RICH_AVAILABLE", False):
+        with patch(
+            "studiorum.latex_engine.utils.progress_tracker.RICH_AVAILABLE", False
+        ):
             tracker: Any = ProgressTracker(style="rich")
 
             # Should fall back to no-op reporter

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+<!-- Custom homepage template without navigation -->
+{% block site_nav %}{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+<!-- Full-page content -->
+{% block content %}
+<div class="studiorum-landing-page">
+  <main class="md-main md-main--home">
+    <div class="md-main__inner md-grid">
+      <div class="md-content md-content--home">
+        <article class="md-content__inner md-typeset">
+          {{ page.content }}
+        </article>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+<!-- Landing page styles -->
+{% block styles %}
+  {{ super() }}
+  <style>
+    .studiorum-landing-page {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    .md-main--home {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .studiorum-landing-page .md-main__inner,
+    .studiorum-landing-page .md-main__inner.md-grid,
+    .studiorum-landing-page .md-grid {
+      margin-top: 0 !important;
+      margin: 0 !important;
+    }
+
+    .md-content--home {
+      max-width: 1200px;
+      width: 100%;
+      padding: 2rem;
+    }
+
+    .md-content__inner {
+      margin: 0 auto;
+      padding-top: 0 !important;
+    }
+
+    /* Hide the default site navigation on homepage only */
+    body[data-md-component="home"] .md-header,
+    body[data-md-component="home"] .md-sidebar {
+      display: none !important;
+    }
+  </style>
+{% endblock %}

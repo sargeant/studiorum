@@ -7,23 +7,28 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.renderers.latex.compilation_config import (  # type: ignore
+from studiorum.latex_engine.config.compilation import (  # type: ignore
     CompilationConfig,
     CompilationMode,
     CompilationResult,
     LaTeXEngine,
 )
-from dnd5e.renderers.latex.compiler import LaTeXCompiler  # type: ignore
+from studiorum.latex_engine.core.compiler import LaTeXCompiler  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 # Ensure async tests work properly
-pytestmark = pytest.mark.asyncio
+pytestmark = [pytest.mark.asyncio, pytest.mark.requires_latex]
 
 
+@pytest.mark.rendering
 class TestLaTeXCompiler:
     """Tests for LaTeX compiler."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         # Create config that won't actually try to compile
         self.config = CompilationConfig(
             show_progress=False, check_dependencies=False, timeout_seconds=10
@@ -51,13 +56,18 @@ class TestLaTeXCompiler:
             LaTeXCompiler(invalid_config)
 
     @patch("subprocess.run")
-    def test_check_engine_availability_success(self, mock_run: Any) -> None:
+    @patch("studiorum.latex_engine.core.compiler.get_latex_executable")
+    def test_check_engine_availability_success(
+        self, mock_get_executable: Any, mock_run: Any
+    ) -> None:
         """Test successful engine availability check."""
+        mock_get_executable.return_value = "lualatex"
         mock_run.return_value = Mock(returncode=0)
 
         result = self.compiler._check_engine_availability(LaTeXEngine.LUALATEX)
         assert result is True
 
+        mock_get_executable.assert_called_once_with("lualatex")
         mock_run.assert_called_once()
         args = mock_run.call_args[0][0]
         assert args[0] == "lualatex"
@@ -173,8 +183,17 @@ class TestLaTeXCompiler:
         assert self.compiler._get_pass_description(5, 5) == "Additional pass 5"
 
     @patch("subprocess.run")
-    def test_get_available_engines(self, mock_run: Any) -> None:
+    @patch("studiorum.latex_engine.core.compiler.get_latex_executable")
+    def test_get_available_engines(
+        self, mock_get_executable: Any, mock_run: Any
+    ) -> None:
         """Test getting available engines."""
+
+        # Mock get_latex_executable to return the command names
+        def mock_get_executable_fn(engine_name: str) -> str:
+            return engine_name
+
+        mock_get_executable.side_effect = mock_get_executable_fn
 
         # Mock successful checks for LuaLaTeX and XeLaTeX, failed for PDFLaTeX
         def mock_subprocess_run(cmd: Any, **kwargs: Any) -> Any:
@@ -195,8 +214,22 @@ class TestLaTeXCompiler:
         assert LaTeXEngine.PDFLATEX not in available
 
     @patch("subprocess.run")
-    def test_validate_environment(self, mock_run: Any) -> None:
+    @patch("studiorum.latex_engine.core.compiler.get_latex_executable")
+    @patch("studiorum.latex_engine.core.compiler.get_latex_utility")
+    def test_validate_environment(
+        self, mock_get_utility: Any, mock_get_executable: Any, mock_run: Any
+    ) -> None:
         """Test environment validation."""
+
+        # Mock executable resolution
+        def mock_get_executable_fn(engine_name: str) -> str:
+            return engine_name
+
+        def mock_get_utility_fn(utility_name: str) -> str:
+            return utility_name
+
+        mock_get_executable.side_effect = mock_get_executable_fn
+        mock_get_utility.side_effect = mock_get_utility_fn
 
         # Mock LuaLaTeX available, others not
         def mock_subprocess_run(cmd: Any, **kwargs: Any) -> Any:
@@ -329,7 +362,7 @@ Hello World
 
     def test_analyze_compilation_errors(self) -> None:
         """Test compilation error analysis."""
-        from dnd5e.renderers.latex.compilation_config import (
+        from studiorum.latex_engine.config.compilation import (
             CompilationPass,  # type: ignore
         )
 
@@ -353,7 +386,7 @@ Hello World
 
     def test_analyze_compilation_errors_timeout(self) -> None:
         """Test compilation error analysis for timeout."""
-        from dnd5e.renderers.latex.compilation_config import (
+        from studiorum.latex_engine.config.compilation import (
             CompilationPass,  # type: ignore
         )
 
@@ -373,16 +406,22 @@ Hello World
 
         # Should detect timeout
         error_categories = [error.category for error in errors]
-        from dnd5e.renderers.latex.error_parser import ErrorCategory  # type: ignore
+        from studiorum.latex_engine.utils.error_parser import (
+            ErrorCategory,  # type: ignore
+        )
 
         assert ErrorCategory.TIMEOUT_ERROR in error_categories
 
 
+@pytest.mark.rendering
 class TestLaTeXCompilerIntegration:
     """Integration tests for LaTeX compiler."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.config = CompilationConfig(
             show_progress=False,
             check_dependencies=False,
@@ -404,7 +443,7 @@ class TestLaTeXCompilerIntegration:
             result = await self.compiler.compile_document(latex_content, "test")
             assert result.success is False
             assert result.error_message is not None
-            assert "No LaTeX engines available" in result.error_message
+            assert "No compatible LaTeX engines available" in result.error_message
 
     async def test_compile_with_dependency_error(self) -> None:
         """Test compilation with dependency check failure."""

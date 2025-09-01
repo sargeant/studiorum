@@ -7,19 +7,19 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.cli.commands.convert import (
+from studiorum.cli.commands.convert import (
     _handle_resolution_result,
-    _load_from_file,
     resolve_content_or_file,
 )
-from dnd5e.core.models.adventures import Adventure
-from dnd5e.core.models.content import ContentType, Source
-from dnd5e.core.resolvers.content_resolver import (
+from studiorum.core.models.adventures import Adventure
+from studiorum.core.models.content import ContentType, Source
+from studiorum.core.resolvers.content_resolver import (
     ContentResolutionResult,
     ResolutionStatus,
 )
 
 
+@pytest.mark.cli
 class TestHybridParameterDetection:
     """Test hybrid parameter detection functionality."""
 
@@ -59,40 +59,48 @@ class TestHybridParameterDetection:
         finally:
             Path(file_path).unlink()  # Clean up
 
-    @patch("dnd5e.cli.commands.convert.get_omnidexer")
+    @patch("studiorum.cli.commands.convert.shared.get_omnidexer")
     def test_resolve_content_or_file_with_abbreviation(self, mock_get_omnidexer):
         """Test that non-file strings are treated as abbreviations."""
-        # Mock omnidexer and resolver
-        mock_omnidexer = Mock()
-        mock_get_omnidexer.return_value = mock_omnidexer
-
         # Create a proper Adventure instance instead of Mock
         mock_adventure = Adventure(
-            name="Curse of Strahd",
-            source=Source(abbreviation="CoS", name="Curse of Strahd"),
+            name="Sample Adventure",
+            id="samp",  # Add ID to prevent loading issues
+            source=Source(abbreviation="SAMP", name="Sample Adventure"),
         )
 
+        # Mock omnidexer with comprehensive mocking for enrichment
+        mock_omnidexer = Mock()
+        # Mock all methods that might be called during enrichment
+        mock_omnidexer.get_all_by_type.return_value = []  # Return empty list for enrichment calls
+        mock_omnidexer.find.return_value = None  # No cross-references found
+        mock_get_omnidexer.return_value = mock_omnidexer
+
         # Mock successful resolution
-        with patch("dnd5e.cli.commands.convert.ContentResolver") as mock_resolver_class:
+        with patch(
+            "studiorum.cli.commands.convert.shared.ContentResolver"
+        ) as mock_resolver_class:
             mock_resolver = Mock()
             mock_resolver_class.return_value = mock_resolver
 
             # Mock successful adventure resolution
             mock_result = ContentResolutionResult(
-                status=ResolutionStatus.EXACT_MATCH, content=mock_adventure, query="cos"
+                status=ResolutionStatus.EXACT_MATCH,
+                content=mock_adventure,
+                query="samp",
             )
             # Mock sync resolver method
             mock_resolver.resolve_adventure = Mock(return_value=mock_result)
 
             content_items, source_desc = resolve_content_or_file(
-                "cos", ContentType.ADVENTURE
+                "samp", ContentType.ADVENTURE
             )
 
             assert len(content_items) == 1
             assert content_items[0] == mock_adventure
             assert "abbreviation:" in source_desc
-            assert "cos" in source_desc
-            mock_resolver.resolve_adventure.assert_called_once_with("cos")
+            assert "samp" in source_desc
+            mock_resolver.resolve_adventure.assert_called_once_with("samp")
 
     def test_load_from_file_adventure(self):
         """Test loading adventure from file."""
@@ -116,8 +124,8 @@ class TestHybridParameterDetection:
             file_path = Path(f.name)
 
         try:
-            content_items, source_desc = _load_from_file(
-                file_path, ContentType.ADVENTURE
+            content_items, source_desc = resolve_content_or_file(
+                str(file_path), ContentType.ADVENTURE
             )
 
             assert len(content_items) == 1
@@ -144,7 +152,9 @@ class TestHybridParameterDetection:
             file_path = Path(f.name)
 
         try:
-            content_items, source_desc = _load_from_file(file_path, ContentType.BOOK)
+            content_items, source_desc = resolve_content_or_file(
+                str(file_path), ContentType.BOOK
+            )
 
             assert len(content_items) == 1
             assert "Book:" in content_items[0].name
@@ -197,7 +207,7 @@ class TestHybridParameterDetection:
     def test_handle_resolution_result_no_match_with_suggestions(self):
         """Test handling no match with suggestions."""
         result = ContentResolutionResult(
-            status=ResolutionStatus.NO_MATCH, suggestions=["cos", "lmop"], query="co"
+            status=ResolutionStatus.NO_MATCH, suggestions=["samp", "test"], query="co"
         )
 
         import typer
@@ -215,6 +225,7 @@ class TestHybridParameterDetection:
             _handle_resolution_result(result, "xyz", ContentType.ADVENTURE)
 
 
+@pytest.mark.cli
 class TestFileVsAbbreviationDetection:
     """Test detection logic for file vs abbreviation inputs."""
 
@@ -239,9 +250,9 @@ class TestFileVsAbbreviationDetection:
     def test_abbreviation_detection(self):
         """Test that non-file strings are not detected as files."""
         test_cases = [
-            "cos",
+            "srd",
             "phb",
-            "lmop",
+            "test",
             "dmg",
             "nonexistent",
             "file_that_does_not_exist.json",
@@ -253,6 +264,7 @@ class TestFileVsAbbreviationDetection:
             assert not file_path.is_file()
 
 
+@pytest.mark.cli
 class TestErrorHandling:
     """Test error handling in hybrid parameter detection."""
 
@@ -263,13 +275,15 @@ class TestErrorHandling:
             file_path = Path(f.name)
 
         try:
-            with pytest.raises(json.JSONDecodeError):
-                _load_from_file(file_path, ContentType.ADVENTURE)
+            import typer
+
+            with pytest.raises(typer.Exit):
+                resolve_content_or_file(str(file_path), ContentType.ADVENTURE)
         finally:
             file_path.unlink()
 
     def test_empty_adventure_file(self):
-        """Test handling of adventure file with no valid content."""
+        """Test handling of adventure file with empty adventure list - should succeed with ContentLoader."""
         adventure_data = {"adventure": []}  # Empty adventure list
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -277,10 +291,15 @@ class TestErrorHandling:
             file_path = Path(f.name)
 
         try:
-            import typer
+            # ContentLoader now creates default adventure for empty files
+            content_items, source_desc = resolve_content_or_file(
+                str(file_path), ContentType.ADVENTURE
+            )
 
-            with pytest.raises(typer.Exit):
-                _load_from_file(file_path, ContentType.ADVENTURE)
+            # Should create a default adventure with generated name and source
+            assert len(content_items) == 1
+            assert "Adventure:" in content_items[0].name
+            assert "file:" in source_desc
         finally:
             file_path.unlink()
 
@@ -294,8 +313,8 @@ class TestErrorHandling:
             import typer
 
             with pytest.raises(typer.Exit):
-                _load_from_file(
-                    file_path, ContentType.SPELL
+                resolve_content_or_file(
+                    str(file_path), ContentType.SPELL
                 )  # Unsupported for file loading
         finally:
             file_path.unlink()

@@ -4,10 +4,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.adventures import Adventure
-from dnd5e.core.models.books import Book
-from dnd5e.core.models.content import ContentType, Source
-from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from studiorum.core.models.adventures import Adventure
+from studiorum.core.models.books import Book
+from studiorum.core.models.content import ContentType, Source
+from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
 # Tests converted to sync after async removal migration
 
@@ -20,6 +20,10 @@ class TestContentResolverOnDemand:
         """Create mock omnidexer."""
         mock_omnidexer = Mock()
         mock_omnidexer.source_manager = Mock()
+        # Configure get_content_merger to return a mock ContentMerger
+        mock_content_merger = Mock()
+        mock_content_merger.source_manager = mock_omnidexer.source_manager
+        mock_omnidexer.get_content_merger = Mock(return_value=mock_content_merger)
         return mock_omnidexer
 
     @pytest.fixture
@@ -69,9 +73,11 @@ class TestContentResolverOnDemand:
         return ContentResolver(mock_omnidexer)
 
     def test_resolver_initializes_content_merger(self, mock_omnidexer):
-        """Test that ContentResolver initializes ContentMerger."""
+        """Test that ContentResolver uses shared ContentMerger from omnidexer."""
         resolver = ContentResolver(mock_omnidexer)
         assert resolver.content_merger is not None
+        # Should call get_content_merger on the omnidexer first
+        mock_omnidexer.get_content_merger.assert_called_once()
         assert resolver.content_merger.source_manager is mock_omnidexer.source_manager
 
     def test_enrich_content_non_dual_file_type(self, content_resolver):
@@ -79,7 +85,7 @@ class TestContentResolverOnDemand:
         spell = Mock()
         spell.name = "Fireball"
 
-        result = content_resolver._enrich_content_if_needed(spell, ContentType.SPELL)
+        result = content_resolver._enrich_content_if_needed(spell, ContentType("spell"))
         assert result is spell  # Should return the same object
 
     def test_enrich_content_adventure_no_id(self, content_resolver):
@@ -89,11 +95,11 @@ class TestContentResolverOnDemand:
         adventure.id = None
 
         result = content_resolver._enrich_content_if_needed(
-            adventure, ContentType.ADVENTURE
+            adventure, ContentType("adventure")
         )
         assert result is adventure  # Should return original if no ID
 
-    @patch("dnd5e.core.resolvers.content_resolver.logger")
+    @patch("studiorum.core.resolvers.content_resolver.logger")
     def test_enrich_content_adventure_success(
         self, mock_logger, content_resolver, mock_adventure_metadata, mock_content_data
     ):
@@ -124,19 +130,19 @@ class TestContentResolverOnDemand:
         )
 
         content_resolver._enrich_content_if_needed(
-            mock_adventure_metadata, ContentType.ADVENTURE
+            mock_adventure_metadata, ContentType("adventure")
         )
 
         # Verify content merger was called
         content_resolver.content_merger.load_content_file.assert_called_once_with(
-            ContentType.ADVENTURE, "TestAdv"
+            ContentType("adventure"), "TestAdv"
         )
         content_resolver.content_merger.merge_metadata_content.assert_called_once()
 
         # Verify model_validate was called to create enriched content
         adventure_class.model_validate.assert_called_once()
 
-    @patch("dnd5e.core.resolvers.content_resolver.logger")
+    @patch("studiorum.core.resolvers.content_resolver.logger")
     def test_enrich_content_merger_failure(
         self, mock_logger, content_resolver, mock_adventure_metadata
     ):
@@ -147,7 +153,7 @@ class TestContentResolverOnDemand:
         )
 
         result = content_resolver._enrich_content_if_needed(
-            mock_adventure_metadata, ContentType.ADVENTURE
+            mock_adventure_metadata, ContentType("adventure")
         )
 
         # Should return original content on failure
@@ -180,7 +186,7 @@ class TestContentResolverOnDemand:
 
         # Verify enrichment was called
         content_resolver._enrich_content_if_needed.assert_called_once_with(
-            mock_adventure_metadata, ContentType.ADVENTURE
+            mock_adventure_metadata, ContentType("adventure")
         )
 
     def test_resolve_book_with_enrichment(self, content_resolver):
@@ -210,7 +216,7 @@ class TestContentResolverOnDemand:
 
         # Verify enrichment was called
         content_resolver._enrich_content_if_needed.assert_called_once_with(
-            book, ContentType.BOOK
+            book, ContentType("book")
         )
 
     def test_resolve_multiple_matches_not_enriched(self, content_resolver):
@@ -280,5 +286,5 @@ class TestContentResolverOnDemand:
 
         # Verify enrichment was called with preferred match
         content_resolver._enrich_content_if_needed.assert_called_once_with(
-            adventure2, ContentType.ADVENTURE
+            adventure2, ContentType("adventure")
         )

@@ -8,8 +8,8 @@ import pytest
 from hypothesis import assume, given, strategies as st
 from hypothesis.stateful import Bundle, RuleBasedStateMachine, initialize, rule
 
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.content import ContentType
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.content import ContentType
 
 
 class OmnidexerStateMachine(RuleBasedStateMachine):
@@ -30,11 +30,11 @@ class OmnidexerStateMachine(RuleBasedStateMachine):
     def setup_omnidexer(self):
         """Initialize omnidexer for testing."""
         # Create a fresh omnidexer instance
-        from dnd5e.core.loaders.configurable_source_manager import (
-            ConfigurableSourceManager,
+        from studiorum.core.loaders.unified_source_manager import (
+            UnifiedSourceManager,
         )
 
-        source_manager = ConfigurableSourceManager()
+        source_manager = UnifiedSourceManager()
         self.omnidexer = Omnidexer(source_manager)
         self.initial_content_count = 0
         self.content_added = 0
@@ -109,15 +109,15 @@ class OmnidexerStateMachine(RuleBasedStateMachine):
 
         # Content types should be valid
         valid_content_types = {
-            ContentType.SPELL.value,
-            ContentType.MONSTER.value,
-            ContentType.ITEM.value,
-            ContentType.CLASS.value,
-            ContentType.RACE.value,
-            ContentType.BACKGROUND.value,
-            ContentType.FEAT.value,
-            ContentType.ADVENTURE.value,
-            ContentType.BOOK.value,
+            ContentType("spell").value,
+            ContentType("monster").value,
+            ContentType("item").value,
+            ContentType("class").value,
+            ContentType("race").value,
+            ContentType("background").value,
+            ContentType("feat").value,
+            ContentType("adventure").value,
+            ContentType("book").value,
         }
 
         for content_type in stats.keys():
@@ -199,14 +199,6 @@ class ContentResolutionStateMachine(RuleBasedStateMachine):
 # Test runner for stateful tests
 class TestStatefulContentManagement:
     """Integration tests using stateful testing patterns."""
-
-    @pytest.mark.skip(
-        reason="Omnidexer implementation details not suitable for stateful testing"
-    )
-    def test_omnidexer_state_machine(self):
-        """Run stateful tests on omnidexer operations."""
-        # Run the state machine with a reasonable number of steps
-        OmnidexerStateMachine.TestCase().runTest()
 
     def test_content_resolution_state_machine(self):
         """Run stateful tests on content resolution."""

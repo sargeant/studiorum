@@ -8,8 +8,9 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from dnd5e.core.config.sources import ContentSource, SourceType
-from dnd5e.core.sources.github import GitHubSourceManager
+from studiorum.core.config.sources import ContentSource, SourceType
+from studiorum.core.sources.github import GitHubSourceManager
+from tests.test_helpers import reset_test_environment
 
 
 class TestGitHubSourceManager:
@@ -17,6 +18,9 @@ class TestGitHubSourceManager:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.temp_dir = Path(tempfile.mkdtemp())
         self.cache_dir = self.temp_dir / "cache"
         self.manager = GitHubSourceManager(self.cache_dir)
@@ -266,12 +270,17 @@ class TestGitHubSourceManager:
 
     def test_is_git_available_true(self):
         """Test git availability check when git is available."""
-        with patch("subprocess.run") as mock_run:
+        with (
+            patch("subprocess.run") as mock_run,
+            patch("studiorum.core.sources.github.get_git_executable") as mock_get_git,
+        ):
+            mock_get_git.return_value = "git"
             mock_run.return_value = None  # Successful completion
 
             result = self.manager.is_git_available()
 
             assert result is True
+            mock_get_git.assert_called_once()
             mock_run.assert_called_once_with(
                 ["git", "--version"],
                 stdout=subprocess.DEVNULL,
@@ -475,6 +484,9 @@ class TestGitHubSourceManagerEdgeCases:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.temp_dir = Path(tempfile.mkdtemp())
         self.cache_dir = self.temp_dir / "cache"
         self.manager = GitHubSourceManager(self.cache_dir)

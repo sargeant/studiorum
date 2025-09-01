@@ -5,14 +5,19 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 
-from dnd5e.renderers.latex.dnd_template import (  # type: ignore
+import pytest
+
+from studiorum.latex_engine.core.dnd_template import (  # type: ignore
     DNDTemplateManager,
     check_dnd_template_status,
     get_dnd_document_class_options,
     get_recommended_class_options,
 )
 
+pytestmark = pytest.mark.requires_latex
 
+
+@pytest.mark.rendering
 class TestDNDTemplateManager:
     """Tests for DNDTemplateManager class."""
 
@@ -26,8 +31,12 @@ class TestDNDTemplateManager:
         assert "expl3" in manager.required_packages
 
     @patch("subprocess.run")
-    def test_find_template_file_found(self, mock_run: Any) -> None:
+    @patch("studiorum.latex_engine.core.dnd_template.get_latex_utility")
+    def test_find_template_file_found(
+        self, mock_get_utility: Any, mock_run: Any
+    ) -> None:
         """Test finding template file when it exists."""
+        mock_get_utility.return_value = "kpsewhich"
         mock_run.return_value = Mock(
             returncode=0,
             stdout="/usr/local/texlive/2023/texmf-dist/tex/latex/dnd/dndbook.cls\n",
@@ -38,6 +47,7 @@ class TestDNDTemplateManager:
 
         assert result is not None
         assert result.name == "dndbook.cls"
+        mock_get_utility.assert_called_once_with("kpsewhich")
         mock_run.assert_called_once_with(
             ["kpsewhich", "dndbook.cls"], capture_output=True, text=True, timeout=30
         )
@@ -237,6 +247,7 @@ class TestDNDTemplateManager:
         manager.print_status_report()
 
 
+@pytest.mark.rendering
 class TestUtilityFunctions:
     """Tests for utility functions."""
 
@@ -327,6 +338,7 @@ class TestUtilityFunctions:
         assert "justified" not in unknown_options  # justified_text is False by default
 
 
+@pytest.mark.rendering
 class TestIntegration:
     """Integration tests for DND template system."""
 

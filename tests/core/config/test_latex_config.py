@@ -2,7 +2,7 @@
 
 import pytest
 
-from dnd5e.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
+from studiorum.core.config.latex_config import LaTeXConfig, LaTeXDocumentConfig
 
 
 class TestLaTeXDocumentConfig:
@@ -15,7 +15,7 @@ class TestLaTeXDocumentConfig:
         assert config.document_class == "dndbook"
         assert config.class_options == ["twocolumn"]
         assert config.font_scheme == "dmsguild"
-        assert config.paper_size == "letterpaper"
+        assert config.paper_size == "letter"
         assert config.font_size == "11pt"
         assert config.background is None
         assert config.high_contrast is False
@@ -25,6 +25,9 @@ class TestLaTeXDocumentConfig:
         assert config.include_toc is True
         assert config.include_index is False
         assert config.custom_class_options == []
+        assert config.fonts is None
+        assert config.no_outline is False
+        assert config.statblock == "2024"
 
     def test_background_validation_valid(self) -> None:
         """Test valid background values."""
@@ -59,7 +62,7 @@ class TestLaTeXDocumentConfig:
 
     def test_paper_size_validation_valid(self) -> None:
         """Test valid paper size values."""
-        valid_sizes = ["letterpaper", "a4paper", "a5paper"]
+        valid_sizes = ["letter", "a4", "a5"]
 
         for size in valid_sizes:
             config = LaTeXDocumentConfig(paper_size=size)
@@ -83,12 +86,30 @@ class TestLaTeXDocumentConfig:
         with pytest.raises(ValueError, match="Font size must be one of"):
             LaTeXDocumentConfig(font_size="invalid")
 
+    def test_fonts_validation_valid(self) -> None:
+        """Test valid fonts values."""
+        valid_fonts = ["wotc", "dmsguild"]
+
+        for fonts in valid_fonts:
+            config = LaTeXDocumentConfig(fonts=fonts)
+            assert config.fonts == fonts
+
+    def test_fonts_validation_none(self) -> None:
+        """Test None fonts value."""
+        config = LaTeXDocumentConfig(fonts=None)
+        assert config.fonts is None
+
+    def test_fonts_validation_invalid(self) -> None:
+        """Test invalid fonts values."""
+        with pytest.raises(ValueError, match="Fonts must be one of"):
+            LaTeXDocumentConfig(fonts="invalid")
+
     def test_get_class_options_list_default(self) -> None:
         """Test class options list generation with defaults."""
         config = LaTeXDocumentConfig()
         options = config.get_class_options_list()
 
-        expected = ["letterpaper", "11pt", "twocolumn"]
+        expected = ["letterpaper", "11pt", "twocolumn", "stats=modern"]
         assert options == expected
 
     def test_get_class_options_list_with_background(self) -> None:
@@ -163,6 +184,90 @@ class TestLaTeXDocumentConfig:
 
         assert options.count("justified") == 1
         assert "custom" in options
+
+    def test_get_class_options_list_fonts_wotc(self) -> None:
+        """Test class options list with WOTC fonts."""
+        config = LaTeXDocumentConfig(fonts="wotc")
+        options = config.get_class_options_list()
+
+        assert "fonts=wotc" in options
+
+    def test_get_class_options_list_fonts_dmsguild(self) -> None:
+        """Test class options list with DMs Guild fonts."""
+        config = LaTeXDocumentConfig(fonts="dmsguild")
+        options = config.get_class_options_list()
+
+        assert "fonts=dmsguild" in options
+
+    def test_get_class_options_list_no_fonts(self) -> None:
+        """Test class options list without fonts option."""
+        config = LaTeXDocumentConfig(fonts=None)
+        options = config.get_class_options_list()
+
+        assert not any(opt.startswith("fonts=") for opt in options)
+
+    def test_get_class_options_list_no_outline(self) -> None:
+        """Test class options list with no outline."""
+        config = LaTeXDocumentConfig(no_outline=True)
+        options = config.get_class_options_list()
+
+        assert "nooutline" in options
+
+    def test_get_class_options_list_with_outline(self) -> None:
+        """Test class options list with outline (default)."""
+        config = LaTeXDocumentConfig(no_outline=False)
+        options = config.get_class_options_list()
+
+        assert "nooutline" not in options
+
+    def test_get_class_options_list_fonts_and_no_outline(self) -> None:
+        """Test class options list with both fonts and no outline."""
+        config = LaTeXDocumentConfig(fonts="wotc", no_outline=True)
+        options = config.get_class_options_list()
+
+        assert "fonts=wotc" in options
+        assert "nooutline" in options
+
+    def test_statblock_validation_valid(self) -> None:
+        """Test valid statblock values."""
+        valid_styles = ["2014", "classic", "2024", "modern"]
+
+        for style in valid_styles:
+            config = LaTeXDocumentConfig(statblock=style)
+            assert config.statblock == style
+
+    def test_statblock_validation_invalid(self) -> None:
+        """Test invalid statblock values."""
+        with pytest.raises(ValueError, match="Statblock must be one of"):
+            LaTeXDocumentConfig(statblock="invalid")
+
+    def test_get_class_options_list_statblock_2024(self) -> None:
+        """Test class options list with 2024 statblock style."""
+        config = LaTeXDocumentConfig(statblock="2024")
+        options = config.get_class_options_list()
+
+        assert "stats=modern" in options
+
+    def test_get_class_options_list_statblock_modern(self) -> None:
+        """Test class options list with modern statblock style."""
+        config = LaTeXDocumentConfig(statblock="modern")
+        options = config.get_class_options_list()
+
+        assert "stats=modern" in options
+
+    def test_get_class_options_list_statblock_2014(self) -> None:
+        """Test class options list with 2014 statblock style."""
+        config = LaTeXDocumentConfig(statblock="2014")
+        options = config.get_class_options_list()
+
+        assert "stats=modern" not in options
+
+    def test_get_class_options_list_statblock_classic(self) -> None:
+        """Test class options list with classic statblock style."""
+        config = LaTeXDocumentConfig(statblock="classic")
+        options = config.get_class_options_list()
+
+        assert "stats=modern" not in options
 
 
 class TestLaTeXConfig:

@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/tag_renderer.py
-# hypothesis_version: 6.136.7
-
-['50\\%', 'bold', 'chance', 'coinflip', 'dc', 'filter', 'hit', 'italic', 'loader', 'note', 'plain', 'recharge']

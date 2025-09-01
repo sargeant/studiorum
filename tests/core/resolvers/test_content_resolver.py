@@ -4,10 +4,10 @@ from unittest.mock import Mock
 
 import pytest
 
-from dnd5e.core.models.adventures import Adventure
-from dnd5e.core.models.books import Book
-from dnd5e.core.models.content import ContentType, Source
-from dnd5e.core.resolvers.content_resolver import (
+from studiorum.core.models.adventures import Adventure
+from studiorum.core.models.books import Book
+from studiorum.core.models.content import ContentType, Source
+from studiorum.core.resolvers.content_resolver import (
     ContentResolutionResult,
     ContentResolver,
     ResolutionStatus,
@@ -152,7 +152,7 @@ class TestContentResolver:
         assert result.status == ResolutionStatus.EXACT_MATCH
         assert result.content == sample_adventure
         assert result.query == "cos"
-        mock_omnidexer.get_all_by_type.assert_called_with(ContentType.ADVENTURE)
+        mock_omnidexer.get_all_by_type.assert_called_with(ContentType("adventure"))
 
     def test_resolve_adventure_case_insensitive(
         self, resolver, mock_omnidexer, sample_adventure
@@ -176,7 +176,7 @@ class TestContentResolver:
         assert result.status == ResolutionStatus.EXACT_MATCH
         assert result.content == sample_book
         assert result.query == "phb"
-        mock_omnidexer.get_all_by_type.assert_called_with(ContentType.BOOK)
+        mock_omnidexer.get_all_by_type.assert_called_with(ContentType("book"))
 
     def test_resolve_adventure_multiple_matches_picks_preferred(
         self, resolver, mock_omnidexer
@@ -278,7 +278,7 @@ class TestContentResolver:
         """Test resolve_any with specific content type."""
         mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
 
-        result = resolver.resolve_any("cos", ContentType.ADVENTURE)
+        result = resolver.resolve_any("cos", ContentType("adventure"))
 
         assert result.status == ResolutionStatus.EXACT_MATCH
         assert result.content == sample_adventure
@@ -288,7 +288,7 @@ class TestContentResolver:
     ) -> None:
         """Test resolve_any without content type specified."""
         mock_omnidexer.get_all_by_type.side_effect = (
-            lambda ct: [sample_adventure] if ct == ContentType.ADVENTURE else []
+            lambda ct: [sample_adventure] if ct == ContentType("adventure") else []
         )
 
         result = resolver.resolve_any("cos")
@@ -302,7 +302,7 @@ class TestContentResolver:
         """Test find_suggestions basic functionality."""
         mock_omnidexer.get_all_by_type.return_value = [sample_adventure]
 
-        suggestions = resolver.find_suggestions("co", ContentType.ADVENTURE)
+        suggestions = resolver.find_suggestions("co", ContentType("adventure"))
 
         assert "cos" in suggestions
         assert len(suggestions) <= 5
@@ -311,7 +311,7 @@ class TestContentResolver:
         """Test find_suggestions with no content available."""
         mock_omnidexer.get_all_by_type.return_value = []
 
-        suggestions = resolver.find_suggestions("cos", ContentType.ADVENTURE)
+        suggestions = resolver.find_suggestions("cos", ContentType("adventure"))
 
         assert suggestions == []
 
@@ -335,7 +335,9 @@ class TestContentResolver:
 
         mock_omnidexer.get_all_by_type.return_value = adventures
 
-        suggestions = resolver.find_suggestions("test", ContentType.ADVENTURE, limit=3)
+        suggestions = resolver.find_suggestions(
+            "test", ContentType("adventure"), limit=3
+        )
 
         assert len(suggestions) <= 3
 

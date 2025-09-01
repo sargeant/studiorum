@@ -2,22 +2,33 @@
 
 from unittest.mock import Mock
 
-from dnd5e.renderers.base import RenderContext
-from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
+import pytest
+
+from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+from studiorum.renderers.core.interfaces import RenderingContext
+from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestRecursiveEntryProcessorWithoutDNDTemplate:
     """Test processor without DND template."""
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = RecursiveEntryProcessor(use_dnd_template=False)
-        self.context = RenderContext()
+        self.context = RenderingContext(output_format="latex")
 
         # Mock tag resolver to return escaped text
         mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text = Mock(side_effect=lambda x: f"processed_{x}")
-        self.context.tag_resolver = mock_tag_resolver
+        mock_tag_resolver.process_text = Mock(
+            side_effect=lambda text, context=None: f"processed_{text}"
+        )
+        self.context = RenderingContext(
+            output_format="latex", tag_resolver=mock_tag_resolver
+        )
 
     def test_process_inset_readaloud_without_dnd(self):
         """Test read-aloud inset without DND template."""

@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from dnd5e.core.text.tag_ast import (  # type: ignore
+from studiorum.core.text.tag_ast import (  # type: ignore
     AdventureTagNode,
     BackgroundTagNode,
     BoldTagNode,
@@ -30,11 +30,12 @@ from dnd5e.core.text.tag_ast import (  # type: ignore
     TagNode,
     TextNode,
 )
-from dnd5e.core.text.tag_parser import (  # type: ignore
+from studiorum.core.text.tag_parser import (  # type: ignore
     TagASTTransformer,
     TagParseError,
     TagParser,
 )
+from tests.test_helpers import reset_test_environment
 
 
 class TestTagParseError:
@@ -67,6 +68,9 @@ class TestTagASTTransformer:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.original_text = "Test text with {@creature Dragon|MM} tags"
         self.transformer = TagASTTransformer(self.original_text)
 
@@ -214,6 +218,9 @@ class TestTagParser:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.parser = TagParser()
 
     def test_parser_initialization(self) -> None:
@@ -356,13 +363,24 @@ class TestTagParser:
             ("{@book Player's Handbook|PHB}", BookTagNode),
             ("{@filter spells}", FilterTagNode),
             ("{@loader bestiary}", LoaderTagNode),
-            ("{@unknown test}", TagNode),
         ]
 
         for text, expected_type in test_cases:
             result = self.parser.parse(text)
             assert len(result.children) == 1
             assert isinstance(result.children[0], expected_type)
+
+        # Test unknown tag handling - depends on fallback setting
+        import os
+
+        result = self.parser.parse("{@unknown test}")
+        assert len(result.children) == 1
+        if os.getenv("STUDIORUM_DISABLE_TAG_FALLBACK"):
+            # When fallback is disabled, unknown tags become TextNode
+            assert isinstance(result.children[0], TextNode)
+        else:
+            # When fallback is enabled, unknown tags become TagNode
+            assert isinstance(result.children[0], TagNode)
 
     def test_parse_malformed_tags_error_recovery(self) -> None:
         """Test parser error recovery with malformed tags."""
@@ -471,7 +489,7 @@ class TestTagParser:
         """Test that grammar file exists."""
         grammar_path = (
             Path(__file__).parent.parent.parent.parent
-            / "src/dnd5e/core/text/tag_grammar.lark"
+            / "src/studiorum/core/text/tag_grammar.lark"
         )
         assert grammar_path.exists(), f"Grammar file not found at {grammar_path}"
 
@@ -482,9 +500,9 @@ class TestTagParser:
         def mock_lark(*args: Any, **kwargs: Any) -> None:
             raise Exception("Lark parser error")
 
-        import dnd5e.core.text.tag_parser  # type: ignore
+        import studiorum.core.text.tag_parser  # type: ignore
 
-        monkeypatch.setattr(dnd5e.core.text.tag_parser, "Lark", mock_lark)
+        monkeypatch.setattr(studiorum.core.text.tag_parser, "Lark", mock_lark)
 
         with pytest.raises(TagParseError, match="Failed to initialize parser"):
             TagParser()
@@ -495,6 +513,9 @@ class TestNestedTagParsing:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.parser = TagParser()
 
     def test_simple_nested_tag(self) -> None:

@@ -3,12 +3,9 @@
   "trap": [
     {
       "name": "Collapsing Roof",
-      "source": "DMG",
+      "source": "SRD",
       "page": 122,
       "srd": true,
-      "reprintedAs": [
-        "Collapsing Roof|XDMG"
-      ],
       "trapHazType": "MECH",
       "entries": [
         "This trap uses a trip wire to collapse the supports keeping an unstable section of a ceiling in place.",
@@ -20,12 +17,9 @@
     },
     {
       "name": "Falling Net",
-      "source": "DMG",
+      "source": "SRD",
       "page": 122,
       "srd": true,
-      "reprintedAs": [
-        "Falling Net|XDMG"
-      ],
       "trapHazType": "MECH",
       "entries": [
         "This trap uses a trip wire to release a net suspended from the ceiling.",
@@ -36,30 +30,10 @@
       ]
     },
     {
-      "name": "Fire-Breathing Statue",
-      "source": "DMG",
-      "page": 122,
-      "srd": true,
-      "reprintedAs": [
-        "Fire-Casting Statue|XDMG"
-      ],
-      "trapHazType": "MAG",
-      "entries": [
-        "This trap is activated when an intruder steps on a hidden pressure plate, releasing a magical gout of flame from a nearby statue. The statue can be of anything, including a dragon or a wizard casting a spell.",
-        "The DC is 15 to spot the pressure plate, as well as faint scorch marks on the floor and walls. A spell or other effect that can sense the presence of magic, such as detect magic, reveals an aura of evocation magic around the statue.",
-        "The trap activates when more than 20 pounds of weight is placed on the pressure plate, causing the statue to release a 30-foot cone of fire. Each creature in the fire must make a {@dc 13} Dexterity saving throw, taking 22 ({@damage 4d10}) fire damage on a failed save, or half as much damage on a successful one.",
-        "Wedging an iron spike or other object under the pressure plate prevents the trap from activating. A successful {@spell dispel magic} ({@dc 13}) cast on the statue destroys the trap."
-      ]
-    },
-    {
       "name": "Pits",
-      "source": "DMG",
+      "source": "SRD",
       "page": 122,
       "srd": true,
-      "reprintedAs": [
-        "Hidden Pit|XDMG",
-        "Spiked Pit|XDMG"
-      ],
       "trapHazType": "MECH",
       "entries": [
         {
@@ -98,58 +72,8 @@
       ]
     },
     {
-      "name": "Poison Darts",
-      "source": "DMG",
-      "page": 123,
-      "srd": true,
-      "reprintedAs": [
-        "Poisoned Darts|XDMG"
-      ],
-      "trapHazType": "MECH",
-      "entries": [
-        "When a creature steps on a hidden pressure plate, poison-tipped darts shoot from spring-loaded or pressurized tubes cleverly embedded in the surrounding walls. An area might include multiple pressure plates, each one rigged to its own set of darts.",
-        "The tiny holes in the walls are obscured by dust and cobwebs, or cleverly hidden amid bas-reliefs, murals, or frescoes that adorn the walls. The DC to spot them is 15. With a successful {@dc 15} Intelligence ({@skill Investigation}) check, a character can deduce the presence of the pressure plate from variations in the mortar and stone used to create it, compared to the surrounding floor. Wedging an iron spike or other object under the pressure plate prevents the trap from activating. Stuffing the holes with cloth or wax prevents the darts contained within from launching.",
-        "The trap activates when more than 20 pounds of weight is placed on the pressure plate, releasing four darts. Each dart makes a ranged attack with a +8 bonus against a random target within 10 feet of the pressure plate (vision is irrelevant to this attack roll). (If there are no targets in the area, the darts don't hit anything.) A target that is hit takes 2 ({@damage 1d4}) piercing damage and must succeed on a {@dc 15} Constitution saving throw, taking 11 ({@damage 2d10}) poison damage on a failed save, or half as much damage on a successful one."
-      ]
-    },
-    {
-      "name": "Poison Needle",
-      "source": "DMG",
-      "page": 123,
-      "srd": true,
-      "reprintedAs": [
-        "Poisoned Needle|XDMG"
-      ],
-      "trapHazType": "MECH",
-      "entries": [
-        "A poisoned needle is hidden within a treasure chest's lock, or in something else that a creature might open. Opening the chest without the proper key causes the needle to spring out, delivering a dose of poison.",
-        "When the trap is triggered, the needle extends 3 inches straight out from the lock. A creature within range takes 1 piercing damage and 11 ({@damage 2d10}) poison damage, and must succeed on a {@dc 15} Constitution saving throw or be {@condition poisoned} for 1 hour.",
-        "A successful {@dc 20} Intelligence ({@skill Investigation}) check allows a character to deduce the trap's presence from alterations made to the lock to accommodate the needle.",
-        "A successful {@dc 15} Dexterity check using {@item thieves' tools|phb} disarms the trap, removing the needle from the lock. Unsuccessfully attempting to pick the lock triggers the trap."
-      ]
-    },
-    {
-      "name": "Rolling Sphere",
-      "source": "DMG",
-      "page": 123,
-      "srd": true,
-      "reprintedAs": [
-        "Rolling Stone|XDMG"
-      ],
-      "trapHazType": "MECH",
-      "entries": [
-        "When 20 or more pounds of pressure are placed on this trap's pressure plate, a hidden trapdoor in the ceiling opens, releasing a 10-foot-diameter rolling sphere of solid stone.",
-        "With a successful {@dc 15} Wisdom ({@skill Perception}) check, a character can spot the trapdoor and pressure plate.",
-        "A search of the floor accompanied by a successful {@dc 15} Intelligence ({@skill Investigation}) check reveals variations in the mortar and stone that betray the pressure plate's presence. The same check made while inspecting the ceiling notes variations in the stonework that reveal the trapdoor. Wedging an iron spike or other object under the pressure plate prevents the trap from activating.",
-        "Activation of the sphere requires all creatures present to roll initiative. The sphere rolls initiative with a {@hit +8} bonus. On its turn, it moves 60 feet in a straight line.",
-        "The sphere can move through creatures' spaces, and creatures can move through its space, treating it as {@quickref difficult terrain||3}. Whenever the sphere enters a creature's space or a creature enters its space while it's rolling, that creature must succeed on a {@dc 15} Dexterity saving throw or take 55 ({@damage 10d10}) bludgeoning damage and be knocked {@condition prone}.",
-        "The sphere stops when it hits a wall or similar barrier. It can't go around corners, but smart dungeon builders incorporate gentle, curving turns into nearby passages that allow the sphere to keep moving.",
-        "As an action, a creature within 5 feet of the sphere can attempt to slow it down with a {@dc 20} Strength check. On a successful check, the sphere's speed is reduced by 15 feet. If the sphere's speed drops to 0, it stops moving and is no longer a threat."
-      ]
-    },
-    {
       "name": "Sphere of Annihilation",
-      "source": "DMG",
+      "source": "SRD",
       "page": 123,
       "srd": true,
       "trapHazType": "MAG",

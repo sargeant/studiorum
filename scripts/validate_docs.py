@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Documentation validation script for 5e2pdf.
+Documentation validation script for studiorum.
 
 Validates documentation for:
 - Broken links
@@ -28,7 +28,7 @@ class DocValidator:
 
     def validate_all(self) -> bool:
         """Run all validation checks."""
-        print("🔍 Validating 5e2pdf documentation...")
+        print("🔍 Validating studiorum documentation...")
 
         success = True
 
@@ -67,15 +67,17 @@ class DocValidator:
         required_files = [
             "index.md",
             "quickstart.md",
-            "user-guide/index.md",
-            "user-guide/installation.md",
-            "user-guide/basic-usage.md",
-            "user-guide/advanced-features.md",
-            "user-guide/troubleshooting.md",
-            "developer/index.md",
-            "developer/contributing.md",
+            "installation.md",
+            "basic-usage.md",
+            "advanced-features.md",
+            "troubleshooting.md",
+            "getting-started.md",
+            "architecture-overview.md",
+            "component-guides.md",
+            "development-workflows.md",
+            "contributing.md",
             "examples/index.md",
-            "api/index.md",
+            "library-reference/index.md",
         ]
 
         missing_files = []
@@ -159,8 +161,19 @@ class DocValidator:
                 if in_code_block:
                     continue
 
-                # Find markdown links
-                link_matches = re.findall(r"\[.*?\]\((.*?)\)", line)
+                # Find markdown links - but skip if we're in code blocks
+                # Match [text](link) where text doesn't contain brackets
+                # and link is a valid URL/path format
+                link_pattern = r"\[([^\[\]]+)\]\(([^)\s]+)\)"
+                link_matches = re.findall(link_pattern, line)
+                # Extract just the link part, filter out obvious non-links
+                link_matches = [
+                    match[1]
+                    for match in link_matches
+                    if not re.match(
+                        r"^[^:]+:[^:]+$", match[1]
+                    )  # Skip type annotations like "fn: Callable"
+                ]
                 for link in link_matches:
                     if self._is_internal_link(link):
                         if not self._check_internal_link_exists(
@@ -397,7 +410,7 @@ class DocValidator:
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Validate 5e2pdf documentation")
+    parser = argparse.ArgumentParser(description="Validate studiorum documentation")
     parser.add_argument(
         "--docs-dir",
         type=Path,

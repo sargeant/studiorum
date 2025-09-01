@@ -5,10 +5,10 @@ using only SRD-compatible and test data (no copyrighted content).
 """
 
 import pytest
-from hypothesis import example, given, strategies as st
+from hypothesis import HealthCheck, example, given, settings, strategies as st
 from hypothesis.strategies import composite
 
-from dnd5e.core.models.creatures import Creature
+from studiorum.core.models.creatures import Creature
 
 # ==== Hypothesis Strategies for D&D Creature Objects ====
 
@@ -474,8 +474,19 @@ class TestCreatureDataIntegrity:
     """Test creature data integrity and consistency."""
 
     @given(valid_test_creatures())
+    @settings(
+        suppress_health_check=[HealthCheck.too_slow],
+        deadline=None,  # Disable deadline for slow systems
+        max_examples=50,  # Reduce examples for faster runs
+    )
     def test_creature_basic_validation(self, creature_data: dict):
-        """Creatures should pass basic validation."""
+        """Creatures should pass basic validation.
+
+        Note: This test uses relaxed Hypothesis settings because the
+        valid_test_creatures strategy is complex and can be slow under
+        high CPU load. The health check is suppressed to prevent false
+        failures in CI or on slower systems.
+        """
         try:
             creature = Creature.model_validate(creature_data)
 

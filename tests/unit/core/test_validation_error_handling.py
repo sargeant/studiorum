@@ -9,9 +9,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.config.unified_config import ApplicationConfig
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.models.content import ContentType
+from studiorum.core.config.unified_config import ApplicationConfig
+from studiorum.core.loaders.json_loader import JsonDataLoader
+from studiorum.core.models.content import ContentType
 
 
 class TestValidationErrorDeduplication:
@@ -52,7 +52,7 @@ class TestValidationErrorDeduplication:
         self, sample_validation_error: ValidationError
     ) -> None:
         """Test that identical validation errors are deduplicated."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
         context = {"file": "test.json", "item_name": "test_item"}
@@ -68,7 +68,7 @@ class TestValidationErrorDeduplication:
         self, sample_validation_error: ValidationError
     ) -> None:
         """Test that identical errors from different files are still deduplicated."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
         context1 = {"file": "test1.json", "item_name": "test_item"}
@@ -95,7 +95,7 @@ class TestValidationErrorDeduplication:
         self, sample_validation_error: ValidationError
     ) -> None:
         """Test that different validation errors are not deduplicated."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
         context = {"file": "test.json", "item_name": "test_item"}
@@ -128,7 +128,7 @@ class TestValidationErrorDeduplication:
         self, sample_validation_error: ValidationError
     ) -> None:
         """Test that error summary includes occurrence counts."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
         context = {"file": "test.json", "item_name": "test_item"}
@@ -160,20 +160,20 @@ class TestValidationStrictnessConfiguration:
 
     def test_validation_strictness_levels(self) -> None:
         """Test different validation strictness levels."""
-        from dnd5e.core.validation.strictness import ValidationStrictness
+        from studiorum.core.validation.strictness import ValidationStrictness
 
         # Test that all expected levels exist
         assert ValidationStrictness.STRICT in ValidationStrictness
         assert ValidationStrictness.NORMAL in ValidationStrictness
         assert ValidationStrictness.LENIENT in ValidationStrictness
 
-    @patch.dict("os.environ", {"DND5E_VALIDATION__STRICTNESS": "strict"})
+    @patch.dict("os.environ", {"STUDIORUM_VALIDATION__STRICTNESS": "strict"})
     def test_validation_strictness_from_environment(self) -> None:
         """Test that validation strictness can be set from environment."""
         config = ApplicationConfig()
         assert config.validation.strictness == "strict"
 
-    @patch.dict("os.environ", {"DND5E_VALIDATION__ENABLE_SUMMARY": "true"})
+    @patch.dict("os.environ", {"STUDIORUM_VALIDATION__ENABLE_SUMMARY": "true"})
     def test_validation_summary_from_environment(self) -> None:
         """Test that validation summary can be enabled from environment."""
         config = ApplicationConfig()
@@ -191,45 +191,66 @@ class TestJsonLoaderValidationIntegration:
         tracker.get_summary.return_value = {}
         return tracker
 
-    @patch("dnd5e.core.loaders.json_loader.ValidationErrorTracker")
     def test_json_loader_uses_error_tracker(
-        self, mock_tracker_class: MagicMock, mock_validation_tracker: MagicMock
+        self, mock_validation_tracker: MagicMock
     ) -> None:
         """Test that JsonDataLoader uses ValidationErrorTracker for error handling."""
-        mock_tracker_class.return_value = mock_validation_tracker
-
-        loader = JsonDataLoader(ContentType.SPELL)
-
-        # Simulate validation error during content creation
-        with patch.object(loader._content_factory, "create_content") as mock_create:
-            validation_error = ValidationError.from_exception_data(
-                "TestModel",
-                [
-                    {
-                        "type": "missing",
-                        "loc": ("field",),
-                        "msg": "Field required",
-                        "input": {},
-                    }
-                ],
+        # Patch both the tracker and settings to ensure proper test environment
+        with (
+            patch(
+                "studiorum.core.loaders.json_loader.ValidationErrorTracker"
+            ) as mock_tracker_class,
+            patch(
+                "studiorum.core.loaders.json_loader.get_app_config"
+            ) as mock_get_app_config,
+        ):
+            # Setup tracker mock
+            mock_tracker_class.return_value = mock_validation_tracker
+            mock_validation_tracker.should_log_error.return_value = True
+            mock_validation_tracker.format_error_message.return_value = (
+                "Test validation error message"
             )
-            mock_create.side_effect = validation_error
 
-            # Call load_from_data which should trigger error handling
-            data = {"spell": [{"name": "Test Spell", "level": 1, "school": "A"}]}
-            path = Path("/test/path.json")
+            # Setup settings mock to ensure normal (not strict) mode
+            mock_settings = MagicMock()
+            mock_validation = MagicMock()
+            mock_validation.strictness = "normal"
+            mock_validation.enable_summary = False
+            mock_settings.validation = mock_validation
+            mock_get_app_config.return_value = mock_settings
 
-            loader.load_from_data(data, path)
+            loader = JsonDataLoader(ContentType("spell"))
 
-            # Verify tracker was used
-            mock_tracker_class.assert_called_once()
-            mock_validation_tracker.should_log_error.assert_called()
-            mock_validation_tracker.record_error.assert_called()
+            # Simulate validation error during content creation
+            with patch.object(loader._content_factory, "create_content") as mock_create:
+                validation_error = ValidationError.from_exception_data(
+                    "TestModel",
+                    [
+                        {
+                            "type": "missing",
+                            "loc": ("field",),
+                            "msg": "Field required",
+                            "input": {},
+                        }
+                    ],
+                )
+                mock_create.side_effect = validation_error
 
-    @patch("dnd5e.core.loaders.json_loader.get_settings")
-    @patch("dnd5e.core.loaders.json_loader.ValidationErrorTracker")
+                # Call load_from_data which should trigger error handling
+                data = {"spell": [{"name": "Test Spell", "level": 1, "school": "A"}]}
+                path = Path("/test/path.json")
+
+                loader.load_from_data(data, path)
+
+                # Verify tracker was used
+                mock_tracker_class.assert_called_once()
+                mock_validation_tracker.should_log_error.assert_called()
+                mock_validation_tracker.record_error.assert_called()
+
+    @patch("studiorum.core.loaders.json_loader.get_app_config")
+    @patch("studiorum.core.loaders.json_loader.ValidationErrorTracker")
     def test_json_loader_respects_strictness_setting(
-        self, mock_tracker_class: MagicMock, mock_get_settings: MagicMock
+        self, mock_tracker_class: MagicMock, mock_get_app_config: MagicMock
     ) -> None:
         """Test that JsonDataLoader respects validation strictness settings."""
         mock_validation_tracker = MagicMock()
@@ -237,11 +258,13 @@ class TestJsonLoaderValidationIntegration:
 
         # Test strict mode - should raise on validation error
         mock_settings = MagicMock()
-        mock_settings.validation_strictness = "strict"
-        mock_settings.validation_summary = False
-        mock_get_settings.return_value = mock_settings
+        mock_validation = MagicMock()
+        mock_validation.strictness = "strict"
+        mock_validation.enable_summary = False
+        mock_settings.validation = mock_validation
+        mock_get_app_config.return_value = mock_settings
 
-        loader = JsonDataLoader(ContentType.SPELL)
+        loader = JsonDataLoader(ContentType("spell"))
 
         with patch.object(loader._content_factory, "create_content") as mock_create:
             validation_error = ValidationError.from_exception_data(
@@ -264,9 +287,9 @@ class TestJsonLoaderValidationIntegration:
             with pytest.raises(ValidationError):
                 loader.load_from_data(data, path)
 
-    @patch("dnd5e.core.loaders.json_loader.ValidationErrorTracker")
+    @patch("studiorum.core.loaders.json_loader.ValidationErrorTracker")
     def test_json_loader_logs_summary_when_enabled(
-        self, mock_tracker_class: MagicMock, mock_validation_tracker: MagicMock
+        self, mock_tracker_class: MagicMock, mock_validation_tracker: MagicMock, capfire
     ) -> None:
         """Test that JsonDataLoader logs validation summary when enabled."""
         mock_tracker_class.return_value = mock_validation_tracker
@@ -280,25 +303,32 @@ class TestJsonLoaderValidationIntegration:
             }
         }
 
-        with patch("dnd5e.core.config.settings.get_settings") as mock_get_settings:
+        with patch(
+            "studiorum.core.config.unified_config.get_app_config"
+        ) as mock_get_app_config:
             mock_settings = MagicMock()
-            mock_settings.validation_summary = True
-            mock_get_settings.return_value = mock_settings
+            mock_validation = MagicMock()
+            mock_validation.enable_summary = True
+            mock_settings.validation = mock_validation
+            mock_get_app_config.return_value = mock_settings
 
-            loader = JsonDataLoader(ContentType.SPELL)
+            loader = JsonDataLoader(ContentType("spell"))
 
-            with patch("dnd5e.core.loaders.json_loader.logger") as mock_logger:
-                # Call summary logging method
-                loader._log_validation_summary()
+            # Call summary logging method
+            loader._log_validation_summary()
 
-                # Verify summary was logged
-                mock_logger.info.assert_called()
-                # Check that summary information was logged
-                calls = mock_logger.info.call_args_list
-                summary_calls = [
-                    call for call in calls if "Validation Summary" in str(call)
-                ]
-                assert len(summary_calls) > 0
+            # Verify summary was logged by checking spans
+            messages = []
+            for span in capfire.exporter.exported_spans:
+                if hasattr(span, "attributes") and span.attributes:
+                    msg = span.attributes.get("logfire.msg", "")
+                    if msg:
+                        messages.append(msg)
+
+            log_output = "\n".join(messages)
+
+            # Check that summary information was logged
+            assert "Validation Summary" in log_output
 
 
 class TestValidationErrorMessages:
@@ -306,7 +336,7 @@ class TestValidationErrorMessages:
 
     def test_error_message_includes_context(self) -> None:
         """Test that error messages include contextual information."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
 
@@ -338,7 +368,7 @@ class TestValidationErrorMessages:
 
     def test_error_message_includes_suggested_fixes(self) -> None:
         """Test that error messages include suggested fixes for common issues."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
 
@@ -364,7 +394,7 @@ class TestValidationErrorMessages:
 
     def test_error_categorization(self) -> None:
         """Test that errors are properly categorized."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
 
@@ -406,7 +436,7 @@ class TestPerformanceImpact:
         """Test that error tracker performs well with many duplicate errors."""
         import time
 
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
 
@@ -450,7 +480,7 @@ class TestPerformanceImpact:
 
     def test_hash_collision_handling(self) -> None:
         """Test that the system handles potential hash collisions gracefully."""
-        from dnd5e.core.validation.error_tracker import ValidationErrorTracker
+        from studiorum.core.validation.error_tracker import ValidationErrorTracker
 
         tracker = ValidationErrorTracker()
 
@@ -498,7 +528,7 @@ class TestBackwardCompatibility:
 
     def test_existing_json_loader_behavior_preserved(self) -> None:
         """Test that existing JsonDataLoader behavior is preserved."""
-        loader = JsonDataLoader(ContentType.SPELL)
+        loader = JsonDataLoader(ContentType("spell"))
 
         # Test that basic functionality still works
         spell_data = {
@@ -528,8 +558,7 @@ class TestBackwardCompatibility:
     def test_existing_tests_still_pass(self) -> None:
         """Test that existing test patterns still work after Pydantic migration."""
         # This test verifies that our changes don't break existing functionality
-        # Original test used deprecated _add_missing_required_fields() method
-        # Now we test that the Pydantic validation works instead
+        # Original test used deprecated method, now we test that the Pydantic validation works instead
 
         # Test that loading works with minimal spell data
         # Pydantic should handle validation and provide defaults where appropriate

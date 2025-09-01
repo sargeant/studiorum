@@ -1,169 +1,182 @@
-"""Tests for custom D&D 5e exceptions."""
+"""Tests for Result[T, E] error handling patterns.
+
+This test file has been updated for Phase 3 to test Result patterns
+instead of legacy exception classes. Only EntryProcessingWarning
+remains for backward compatibility.
+"""
 
 import pytest
 
-from dnd5e.core.exceptions import (
-    DnD5eError,
-    EntryProcessingError,
-    EntryProcessingWarning,
-    EntryValidationError,
-    MalformedEntryError,
-    UnknownEntryTypeError,
+from studiorum.core.error_types import (
+    BaseError,
+    ProcessingError,
+    UnknownTypeError,
+    ValidationError,
+    create_processing_error,
+    create_unknown_type_error,
+    create_validation_error,
 )
+from studiorum.core.exceptions import EntryProcessingWarning
+from studiorum.core.result import Error, Success
 
 
-class TestDnD5eError:
-    """Test the base DnD5eError exception."""
+class TestBaseError:
+    """Test the base BaseError structured error type."""
 
-    def test_basic_exception(self):
-        """Test basic exception creation and inheritance."""
-        error = DnD5eError("Test error")
-        assert str(error) == "Test error"
-        assert isinstance(error, Exception)
+    def test_basic_error(self):
+        """Test basic error creation and properties."""
+        error = create_processing_error(
+            message="Test error", entry_type="test", source="TEST"
+        )
+        assert error.message == "Test error"
+        assert error.entry_type == "test"
+        assert error.source == "TEST"
+        assert isinstance(error, BaseError)
 
 
-class TestEntryProcessingError:
-    """Test EntryProcessingError with context."""
+class TestProcessingError:
+    """Test ProcessingError structured error type."""
 
     def test_basic_error(self):
         """Test basic error without context."""
-        error = EntryProcessingError("Something went wrong")
-        assert str(error) == "Something went wrong"
-        assert error.entry is None
+        error = create_processing_error("Something went wrong")
+        assert error.message == "Something went wrong"
+        assert error.entry_type is None
         assert error.source is None
         assert error.parent_name is None
-        assert error.entry_type is None
 
     def test_error_with_full_context(self):
         """Test error with complete context information."""
-        entry = {"type": "section", "name": "Test Section"}
-        error = EntryProcessingError(
+        error = create_processing_error(
             message="Processing failed",
-            entry=entry,
+            entry_type="section",
             source="PHB",
             parent_name="Chapter 1",
-            entry_type="section",
+            context={"entry_data": {"type": "section", "name": "Test Section"}},
         )
 
-        expected_msg = (
-            "Processing failed (source: PHB, parent: Chapter 1, type: section)"
-        )
-        assert str(error) == expected_msg
-        assert error.entry == entry
+        assert error.message == "Processing failed"
+        assert error.entry_type == "section"
         assert error.source == "PHB"
         assert error.parent_name == "Chapter 1"
-        assert error.entry_type == "section"
+        assert error.context is not None
+        assert error.context["entry_data"]["type"] == "section"
 
     def test_error_with_partial_context(self):
         """Test error with only some context fields."""
-        error = EntryProcessingError(
+        error = create_processing_error(
             message="Processing failed",
             source="PHB",
             entry_type="table",
         )
 
-        expected_msg = "Processing failed (source: PHB, type: table)"
-        assert str(error) == expected_msg
+        assert error.message == "Processing failed"
         assert error.source == "PHB"
         assert error.entry_type == "table"
         assert error.parent_name is None
 
 
-class TestUnknownEntryTypeError:
-    """Test UnknownEntryTypeError specific functionality."""
+class TestUnknownTypeError:
+    """Test UnknownTypeError structured error type."""
 
     def test_unknown_type_error(self):
         """Test unknown entry type error creation."""
-        entry = {"type": "unknownType", "data": "test"}
-        error = UnknownEntryTypeError(
+        error = create_unknown_type_error(
             entry_type="unknownType",
-            entry=entry,
+            available_types=["section", "table", "inset"],
             source="Custom",
             parent_name="Test Parent",
         )
 
-        expected_msg = "Unknown entry type: 'unknownType' (source: Custom, parent: Test Parent, type: unknownType)"
-        assert str(error) == expected_msg
+        assert error.message == "Unknown entry type: 'unknownType'"
         assert error.entry_type == "unknownType"
-        assert error.entry == entry
+        assert error.source == "Custom"
+        assert error.parent_name == "Test Parent"
+        assert error.available_types == ["section", "table", "inset"]
 
     def test_unknown_type_minimal(self):
         """Test unknown entry type error with minimal context."""
-        error = UnknownEntryTypeError(entry_type="mystery")
+        error = create_unknown_type_error(entry_type="mystery")
 
-        expected_msg = "Unknown entry type: 'mystery' (type: mystery)"
-        assert str(error) == expected_msg
+        assert error.message == "Unknown entry type: 'mystery'"
         assert error.entry_type == "mystery"
+        assert error.source is None
+        assert error.parent_name is None
 
 
-class TestEntryValidationError:
-    """Test EntryValidationError with field validation context."""
+class TestValidationError:
+    """Test ValidationError structured error type."""
 
     def test_validation_error_with_field(self):
         """Test validation error with field name."""
-        entry = {"type": "table"}  # Missing required 'rows' field
-        error = EntryValidationError(
+        error = create_validation_error(
             message="Field is required",
             field_name="rows",
-            entry=entry,
-            source="DMG",
             entry_type="table",
+            source="DMG",
         )
 
-        expected_msg = "Validation failed for field 'rows': Field is required (source: DMG, type: table)"
-        assert str(error) == expected_msg
+        assert error.message == "Field is required"
         assert error.field_name == "rows"
-        assert error.entry == entry
+        assert error.entry_type == "table"
+        assert error.source == "DMG"
 
     def test_validation_error_without_field(self):
         """Test validation error without specific field."""
-        error = EntryValidationError(
+        error = create_validation_error(
             message="Entry structure is invalid",
             entry_type="section",
         )
 
-        expected_msg = "Entry structure is invalid (type: section)"
-        assert str(error) == expected_msg
+        assert error.message == "Entry structure is invalid"
+        assert error.entry_type == "section"
         assert error.field_name is None
 
 
-class TestMalformedEntryError:
-    """Test MalformedEntryError for structural problems."""
+class TestMalformedDataError:
+    """Test MalformedDataError for structural problems."""
 
     def test_malformed_dict_entry(self):
-        """Test malformed error with dict entry."""
-        entry = {"invalid": "structure", "missing": "type"}
-        error = MalformedEntryError(
+        """Test malformed error with expected structure."""
+        error = create_processing_error(
             message="Missing required structure",
-            entry=entry,
             source="Test",
+            context={
+                "expected_type": "dict",
+                "actual_type": "invalid_structure",
+                "entry_data": {"invalid": "structure", "missing": "type"},
+            },
         )
 
-        expected_msg = "Malformed entry: Missing required structure (source: Test)"
-        assert str(error) == expected_msg
-        assert error.entry == entry
+        assert error.message == "Missing required structure"
+        assert error.source == "Test"
+        assert error.context is not None
+        assert error.context["expected_type"] == "dict"
 
     def test_malformed_non_dict_entry(self):
-        """Test malformed error with non-dict entry."""
-        entry = 123  # Should be dict or string
-        error = MalformedEntryError(
+        """Test malformed error with wrong data type."""
+        error = create_processing_error(
             message="Wrong data type",
-            entry=entry,
+            context={
+                "expected_type": "dict",
+                "actual_type": "int",
+                "actual_value": 123,
+            },
         )
 
-        expected_msg = "Malformed entry: Wrong data type"
-        assert str(error) == expected_msg
-        assert error.entry is None  # Non-dict entries are not stored as entry_dict
+        assert error.message == "Wrong data type"
+        assert error.context["actual_type"] == "int"
+        assert error.context["actual_value"] == 123
 
-    def test_malformed_error_inheritance(self):
-        """Test that MalformedEntryError inherits from EntryProcessingError."""
-        error = MalformedEntryError("Test error")
-        assert isinstance(error, EntryProcessingError)
-        assert isinstance(error, DnD5eError)
+    def test_malformed_error_is_processing_error(self):
+        """Test that malformed data errors are processing errors."""
+        error = create_processing_error("Test error")
+        assert isinstance(error, ProcessingError)
+        assert isinstance(error, BaseError)
 
 
 class TestEntryProcessingWarning:
-    """Test EntryProcessingWarning for non-fatal issues."""
+    """Test EntryProcessingWarning for non-fatal issues (backward compatibility)."""
 
     def test_warning_creation(self):
         """Test warning creation and inheritance."""
@@ -179,30 +192,69 @@ class TestEntryProcessingWarning:
             warnings.warn("Test warning", EntryProcessingWarning, stacklevel=2)
 
 
-class TestExceptionInheritance:
-    """Test exception inheritance hierarchy."""
+class TestResultPatterns:
+    """Test Result[T, E] pattern integration with error types."""
+
+    def test_error_result_creation(self):
+        """Test creating Error results with structured errors."""
+        error = create_processing_error("Test failed", entry_type="test")
+        result = Error(error)
+
+        assert result.is_error()
+        assert not result.is_success()
+        assert isinstance(result, Error)
+
+    def test_success_result_creation(self):
+        """Test creating Success results."""
+        result = Success("test data")
+
+        assert result.is_success()
+        assert not result.is_error()
+        assert result.unwrap() == "test data"
+
+    def test_error_with_context_chaining(self):
+        """Test error context chaining using with_context."""
+        base_error = create_processing_error(
+            "Base error", entry_type="test", source="TEST"
+        )
+        result = Error(base_error)
+
+        chained_result = result.with_context(
+            "Higher level operation failed",
+            operation="test_operation",
+            context_id="123",
+        )
+
+        assert isinstance(chained_result, Error)
+        assert isinstance(chained_result.error, dict)
+        assert chained_result.error["message"] == "Higher level operation failed"
+        assert chained_result.error["underlying"] == base_error
+
+
+class TestErrorTypeHierarchy:
+    """Test structured error type hierarchy."""
 
     def test_all_inherit_from_base(self):
-        """Test that all custom exceptions inherit from DnD5eError."""
-        exceptions = [
-            EntryProcessingError("test"),
-            UnknownEntryTypeError("test"),
-            EntryValidationError("test"),
-            MalformedEntryError("test"),
+        """Test that all structured errors inherit from BaseError."""
+        errors = [
+            create_processing_error("test"),
+            create_validation_error("test"),
+            create_unknown_type_error("test"),
         ]
 
-        for exc in exceptions:
-            assert isinstance(exc, DnD5eError)
-            assert isinstance(exc, Exception)
+        for error in errors:
+            assert isinstance(error, BaseError)
 
-    def test_processing_error_inheritance(self):
-        """Test specific inheritance for processing-related errors."""
-        exceptions = [
-            UnknownEntryTypeError("test"),
-            EntryValidationError("test"),
-            MalformedEntryError("test"),
-        ]
+    def test_specific_error_types(self):
+        """Test specific error type inheritance."""
+        processing_error = create_processing_error("test")
+        validation_error = create_validation_error("test")
+        unknown_type_error = create_unknown_type_error("test")
 
-        for exc in exceptions:
-            assert isinstance(exc, EntryProcessingError)
-            assert isinstance(exc, DnD5eError)
+        assert isinstance(processing_error, ProcessingError)
+        assert isinstance(validation_error, ValidationError)
+        assert isinstance(unknown_type_error, UnknownTypeError)
+
+        # All should inherit from BaseError
+        for error in [processing_error, validation_error, unknown_type_error]:
+            assert isinstance(error, BaseError)

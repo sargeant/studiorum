@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/dnd_template.py
-# hypothesis_version: 6.136.7
-
-['--version', '.texlive', '10pt', '11pt', '12pt', '=', 'LaTeX not found', 'Library', 'Not available', 'Use A4 paper size', '[green]✓[/green]', '[yellow]?[/yellow]', 'a4paper', 'adventure', 'article', 'bg', 'book', 'dnd', 'dndarticle', 'dndarticle.cls', 'dndbook', 'dndbook.cls', 'dndcore.def', 'dndfonts.sty', 'dndheader.sty', 'dndmonster.sty', 'dndoptions.clo', 'dndsections.sty', 'dndsidebar.sty', 'expl3', 'fancy', 'fancyhdr', 'geometry', 'highcontrast', 'homebrew', 'justified', 'kpsewhich', 'latex', 'latex_available', 'latex_version', 'letterpaper', 'onecolumn', 'pdflatex', 'pgf', 'platform', 'python_version', 'reference', 'supplement', 'tex', 'tex_version', 'texmf', 'texmf-var', 'tikz', 'twocolumn', 'xcolor']

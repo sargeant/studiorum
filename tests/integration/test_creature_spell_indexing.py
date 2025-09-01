@@ -2,14 +2,20 @@
 
 import pytest
 
-from dnd5e.core.interfaces import DeepIndexable
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.models.creatures import Creature
-from dnd5e.core.references import SpellReferenceParser
+from studiorum.core.interfaces import DeepIndexable
+from studiorum.core.models.content import ContentType
+from studiorum.core.models.creatures import Creature
+from studiorum.core.references import SpellReferenceParser
 
 
+@pytest.mark.integration
 class TestCreatureSpellIndexing:
     """Test creature spell indexing functionality."""
+
+    def setup_method(self) -> None:
+        from tests.test_helpers import reset_test_environment
+
+        reset_test_environment()
 
     def test_creature_implements_deep_indexable(self):
         """Test that Creature implements DeepIndexable protocol."""
@@ -65,9 +71,13 @@ class TestCreatureSpellIndexing:
 
         creature = Creature.model_validate(creature_data)
 
-        # Extract spell references directly from the text
-        trait_text = creature.trait[0].get_description_text()
-        references = SpellReferenceParser.extract_spell_references(trait_text)
+        # Extract spell references from raw trait entries
+        all_references = []
+        for entry in creature.trait[0].entries:
+            if isinstance(entry, str):
+                references = SpellReferenceParser.extract_spell_references(entry)
+                all_references.extend(references)
+        references = all_references
 
         assert len(references) >= 3
         spell_names = [ref.name for ref in references]
@@ -111,12 +121,14 @@ class TestCreatureSpellIndexing:
 
         creature = Creature.model_validate(creature_data)
 
-        # Extract spell references from actions
-        all_text = ""
+        # Extract spell references from raw action entries
+        all_references = []
         for action in creature.action:
-            all_text += " " + action.get_description_text()
-
-        references = SpellReferenceParser.extract_spell_references(all_text)
+            for entry in action.entries:
+                if isinstance(entry, str):
+                    references = SpellReferenceParser.extract_spell_references(entry)
+                    all_references.extend(references)
+        references = all_references
 
         assert len(references) >= 3
         spell_names = [ref.name for ref in references]
@@ -153,9 +165,13 @@ class TestCreatureSpellIndexing:
 
         creature = Creature.model_validate(creature_data)
 
-        # Extract spell references from actions
-        action_text = creature.action[0].get_description_text()
-        references = SpellReferenceParser.extract_spell_references(action_text)
+        # Extract spell references from raw action entries
+        all_references = []
+        for entry in creature.action[0].entries:
+            if isinstance(entry, str):
+                references = SpellReferenceParser.extract_spell_references(entry)
+                all_references.extend(references)
+        references = all_references
 
         assert len(references) == 0
 
@@ -202,14 +218,18 @@ class TestCreatureSpellIndexing:
 
         creature = Creature.model_validate(creature_data)
 
-        # Collect all text from all ability types
-        all_text = ""
+        # Extract spell references from raw entries across all ability types
+        all_references = []
         for ability_list in [creature.trait, creature.action, creature.reaction]:
             if ability_list:
                 for ability in ability_list:
-                    all_text += " " + ability.get_description_text()
-
-        references = SpellReferenceParser.extract_spell_references(all_text)
+                    for entry in ability.entries:
+                        if isinstance(entry, str):
+                            references = SpellReferenceParser.extract_spell_references(
+                                entry
+                            )
+                            all_references.extend(references)
+        references = all_references
 
         assert len(references) >= 4
         spell_names = [ref.name for ref in references]
@@ -220,14 +240,20 @@ class TestCreatureSpellIndexing:
 
 
 @pytest.mark.asyncio
+@pytest.mark.integration
 class TestCreatureDeepIndexingIntegration:
     """Test full deep indexing integration with mock omnidexer."""
+
+    def setup_method(self) -> None:
+        from tests.test_helpers import reset_test_environment
+
+        reset_test_environment()
 
     def test_creature_deep_indexing_with_mock_omnidexer(self):
         """Test that creature deep indexing works with a mock omnidexer."""
         from unittest.mock import MagicMock
 
-        from dnd5e.core.models.spells import Spell
+        from studiorum.core.models.spells import Spell
 
         # Create mock spell objects
         mock_fireball = Spell.model_validate(
@@ -266,9 +292,14 @@ class TestCreatureDeepIndexingIntegration:
 
         # Create mock omnidexer
         mock_omnidexer = MagicMock()
+        spell_type = ContentType("spell")
+
+        # Mock get_all_by_type to return non-empty list so it doesn't exit early
+        mock_omnidexer.get_all_by_type.return_value = [mock_fireball, mock_shield]
+
         mock_omnidexer.find.side_effect = lambda content_type, name, source=None: {
-            (ContentType.SPELL, "fireball", "phb"): mock_fireball,
-            (ContentType.SPELL, "shield", "phb"): mock_shield,
+            (spell_type, "fireball", "phb"): mock_fireball,
+            (spell_type, "shield", "phb"): mock_shield,
         }.get((content_type, name.lower(), source.lower() if source else None))
 
         # Create creature with spell references

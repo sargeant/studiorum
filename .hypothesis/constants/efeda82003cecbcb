@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/compilation_config.py
-# hypothesis_version: 6.136.7
-
-[0.0, 300, 600, 3600, '-draftmode', '-file-line-error', '-shell-escape', '-synctex=1', 'Compilation mode', 'CompilationConfig', 'End time timestamp', 'LaTeXEngine', 'Process return code', 'Start time timestamp', 'dnd', 'dndbook', 'draft', 'engine_options', 'final', 'fontspec', 'lualatex', 'none', 'normal', 'pdflatex', 'progress_style', 'rich', 'simple', 'xelatex']

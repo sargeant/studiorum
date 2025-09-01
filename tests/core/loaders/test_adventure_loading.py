@@ -6,12 +6,17 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.models.content import ContentType
+from studiorum.core.loaders.json_loader import JsonDataLoader
+from studiorum.core.models.content import ContentType
+from tests.test_helpers import reset_test_environment
 
 
 class TestAdventureLoading:
     """Test cases for adventure loading functionality."""
+
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
 
     def test_adventure_data_only_format_loads_entries(self):
         """Test that data-only adventure files load chapter entries correctly.
@@ -61,7 +66,7 @@ class TestAdventureLoading:
 
         try:
             # Load using JsonDataLoader
-            loader = JsonDataLoader(ContentType.ADVENTURE)
+            loader = JsonDataLoader(ContentType("adventure"))
             adventures = loader.load(temp_path)
 
             # Verify adventure was loaded
@@ -131,7 +136,7 @@ class TestAdventureLoading:
             temp_path = Path(f.name)
 
         try:
-            loader = JsonDataLoader(ContentType.ADVENTURE)
+            loader = JsonDataLoader(ContentType("adventure"))
             adventures = loader.load(temp_path)
 
             assert len(adventures) == 1

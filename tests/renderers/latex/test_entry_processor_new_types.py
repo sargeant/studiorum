@@ -2,22 +2,33 @@
 
 from unittest.mock import Mock
 
-from dnd5e.renderers.base import RenderContext
-from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
+import pytest
+
+from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+from studiorum.renderers.core.interfaces import RenderingContext
+from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestNewEntryTypes:
     """Test new entry types added for issue #89."""
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = RecursiveEntryProcessor(use_dnd_template=True)
-        self.context = RenderContext()
+        self.context = RenderingContext(output_format="latex")
 
         # Mock tag resolver to return escaped text
         mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text = Mock(side_effect=lambda x: f"processed_{x}")
-        self.context.tag_resolver = mock_tag_resolver
+        mock_tag_resolver.process_text = Mock(
+            side_effect=lambda text, context=None: f"processed_{text}"
+        )
+        self.context = RenderingContext(
+            output_format="latex", tag_resolver=mock_tag_resolver
+        )
 
     def test_process_entry_dict_actions(self):
         """Test processing actions entry."""
@@ -81,8 +92,8 @@ class TestNewEntryTypes:
         result = self.processor.process_entry_dict(entry, self.context)
 
         assert "\\begin{itemize}" in result
-        assert "\\item \\subsection{Option 1}" in result
-        assert "\\item \\subsection{Option 2}" in result
+        assert "\\item \\subsection{processed_Option 1}" in result
+        assert "\\item \\subsection{processed_Option 2}" in result
         assert "processed_First choice description" in result
         assert "processed_Second choice description" in result
         assert "\\end{itemize}" in result

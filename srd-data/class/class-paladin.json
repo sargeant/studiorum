@@ -7,12 +7,9 @@
   "class": [
     {
       "name": "Paladin",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
-      "reprintedAs": [
-        "Paladin|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -303,7 +300,6 @@
           "gainSubclassFeatureHasContent": true
         },
         "Ability Score Improvement|Paladin||4",
-        "Martial Versatility|Paladin||4|TCE",
         "Extra Attack|Paladin||5",
         "Aura of Protection|Paladin||6",
         {
@@ -327,23 +323,18 @@
           "gainSubclassFeature": true
         }
       ],
-      "subclassTitle": "Sacred Oath",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Sacred Oath"
     }
   ],
   "subclass": [
     {
       "name": "Oath of Devotion",
       "shortName": "Devotion",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Paladin",
       "classSource": "PHB",
       "page": 85,
       "srd": true,
-      "reprintedAs": [
-        "Devotion|Paladin|XPHB|XPHB"
-      ],
       "edition": "classic",
       "additionalSpells": [
         {
@@ -382,7 +373,7 @@
   "classFeature": [
     {
       "name": "Divine Sense",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -395,7 +386,7 @@
     },
     {
       "name": "Lay on Hands",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -410,7 +401,7 @@
     },
     {
       "name": "Divine Smite",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -422,7 +413,7 @@
     },
     {
       "name": "Fighting Style",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -451,16 +442,13 @@
               "optionalfeature": "Protection"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Blessed Warrior|TCE"
+              "type": "refOptionalfeature"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Blind Fighting|TCE"
+              "type": "refOptionalfeature"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Interception|TCE"
+              "type": "refOptionalfeature"
             }
           ]
         }
@@ -468,7 +456,7 @@
     },
     {
       "name": "Spellcasting",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -518,7 +506,7 @@
     },
     {
       "name": "Channel Divinity",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -532,7 +520,7 @@
     },
     {
       "name": "Divine Health",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -544,7 +532,7 @@
     },
     {
       "name": "Sacred Oath",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -566,8 +554,7 @@
           "classFeature": "Channel Divinity|Paladin||3"
         },
         {
-          "type": "refClassFeature",
-          "classFeature": "Channel Divinity: Harness Divine Power|Paladin||3|TCE"
+          "type": "refClassFeature"
         },
         {
           "name": "Breaking Your Oath",
@@ -582,7 +569,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -595,7 +582,7 @@
     },
     {
       "name": "Extra Attack",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -607,7 +594,7 @@
     },
     {
       "name": "Aura of Protection",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -620,7 +607,7 @@
     },
     {
       "name": "Sacred Oath feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -632,7 +619,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -645,7 +632,7 @@
     },
     {
       "name": "Aura of Courage",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -658,7 +645,7 @@
     },
     {
       "name": "Improved Divine Smite",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -670,7 +657,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -683,7 +670,7 @@
     },
     {
       "name": "Cleansing Touch",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -696,7 +683,7 @@
     },
     {
       "name": "Sacred Oath feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -708,7 +695,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -721,7 +708,7 @@
     },
     {
       "name": "Aura improvements",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -733,7 +720,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -746,7 +733,7 @@
     },
     {
       "name": "Sacred Oath feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 82,
       "srd": true,
       "className": "Paladin",
@@ -760,7 +747,7 @@
   "subclassFeature": [
     {
       "name": "Oath of Devotion",
-      "source": "PHB",
+      "source": "SRD",
       "page": 85,
       "srd": true,
       "className": "Paladin",
@@ -786,7 +773,7 @@
     },
     {
       "name": "Channel Divinity",
-      "source": "PHB",
+      "source": "SRD",
       "page": 85,
       "srd": true,
       "className": "Paladin",
@@ -809,7 +796,7 @@
     },
     {
       "name": "Oath Spells",
-      "source": "PHB",
+      "source": "SRD",
       "page": 85,
       "srd": true,
       "className": "Paladin",
@@ -858,7 +845,7 @@
     },
     {
       "name": "Sacred Weapon",
-      "source": "PHB",
+      "source": "SRD",
       "page": 85,
       "srd": true,
       "className": "Paladin",
@@ -877,7 +864,7 @@
     },
     {
       "name": "Tenets of Devotion",
-      "source": "PHB",
+      "source": "SRD",
       "page": 85,
       "srd": true,
       "className": "Paladin",
@@ -952,7 +939,7 @@
     },
     {
       "name": "Turn the Unholy",
-      "source": "PHB",
+      "source": "SRD",
       "page": 85,
       "srd": true,
       "className": "Paladin",
@@ -971,7 +958,7 @@
     },
     {
       "name": "Aura of Devotion",
-      "source": "PHB",
+      "source": "SRD",
       "page": 85,
       "srd": true,
       "className": "Paladin",
@@ -987,7 +974,7 @@
     },
     {
       "name": "Purity of Spirit",
-      "source": "PHB",
+      "source": "SRD",
       "page": 85,
       "srd": true,
       "className": "Paladin",
@@ -1002,7 +989,7 @@
     },
     {
       "name": "Holy Nimbus",
-      "source": "PHB",
+      "source": "SRD",
       "page": 85,
       "srd": true,
       "className": "Paladin",

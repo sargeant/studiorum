@@ -6,12 +6,17 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from dnd5e.core.loaders.json_loader import JsonDataLoader
-from dnd5e.core.models.content import ContentType
+from studiorum.core.loaders.json_loader import JsonDataLoader
+from studiorum.core.models.content import ContentType
+from tests.test_helpers import reset_test_environment
 
 
 class TestMetadataContentDetection:
     """Test metadata vs content file detection logic."""
+
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
 
     def test_detect_adventure_metadata_file(self) -> None:
         """Test detection of adventure metadata files (adventures.json)."""
@@ -36,7 +41,7 @@ class TestMetadataContentDetection:
             ]
         }
 
-        loader = JsonDataLoader(ContentType.ADVENTURE)
+        loader = JsonDataLoader(ContentType("adventure"))
         is_metadata = loader._is_adventure_metadata_file(metadata_data)
 
         assert is_metadata
@@ -68,7 +73,7 @@ class TestMetadataContentDetection:
             ]
         }
 
-        loader = JsonDataLoader(ContentType.ADVENTURE)
+        loader = JsonDataLoader(ContentType("adventure"))
         is_content = loader._is_adventure_content_file(content_data)
 
         assert is_content
@@ -98,7 +103,7 @@ class TestMetadataContentDetection:
             ]
         }
 
-        loader = JsonDataLoader(ContentType.BOOK)
+        loader = JsonDataLoader(ContentType("book"))
         is_metadata = loader._is_book_metadata_file(metadata_data)
 
         assert is_metadata
@@ -129,7 +134,7 @@ class TestMetadataContentDetection:
             ]
         }
 
-        loader = JsonDataLoader(ContentType.BOOK)
+        loader = JsonDataLoader(ContentType("book"))
         is_content = loader._is_book_content_file(content_data)
 
         assert is_content
@@ -154,7 +159,11 @@ class TestMetadataContentDetection:
         }
 
         # Test with different content types
-        for content_type in [ContentType.SPELL, ContentType.CREATURE, ContentType.ITEM]:
+        for content_type in [
+            ContentType("spell"),
+            ContentType("creature"),
+            ContentType("item"),
+        ]:
             loader = JsonDataLoader(content_type)
 
             # The methods exist but should return False for non-adventure/book data
@@ -190,7 +199,7 @@ class TestMetadataContentDetection:
             "data": [{"type": "section", "name": "Test"}],
         }
 
-        loader = JsonDataLoader(ContentType.ADVENTURE)
+        loader = JsonDataLoader(ContentType("adventure"))
 
         assert loader._is_adventure_metadata_file(metadata_data)
         assert not loader._is_adventure_content_file(metadata_data)
@@ -218,7 +227,7 @@ class TestMetadataContentDetection:
             ]
         }
 
-        loader = JsonDataLoader(ContentType.BOOK)
+        loader = JsonDataLoader(ContentType("book"))
 
         assert loader._is_book_metadata_file(metadata_data)
         assert not loader._is_book_content_file(metadata_data)
@@ -244,7 +253,7 @@ class TestMetadataContentDetection:
             temp_path = Path(f.name)
 
         try:
-            loader = JsonDataLoader(ContentType.ADVENTURE)
+            loader = JsonDataLoader(ContentType("adventure"))
             adventures = loader.load(temp_path)
 
             # Should successfully load the adventure from content file when called directly
@@ -273,7 +282,7 @@ class TestMetadataContentDetection:
             temp_path = Path(f.name)
 
         try:
-            loader = JsonDataLoader(ContentType.BOOK)
+            loader = JsonDataLoader(ContentType("book"))
             books = loader.load(temp_path)
 
             # Should successfully load the book from content file when called directly
@@ -306,7 +315,7 @@ class TestMetadataContentDetection:
             temp_path = Path(f.name)
 
         try:
-            loader = JsonDataLoader(ContentType.ADVENTURE)
+            loader = JsonDataLoader(ContentType("adventure"))
             adventures = loader.load(temp_path)
 
             # Should successfully load the adventure from metadata file

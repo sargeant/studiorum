@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/indexer/tag_parser.py
-# hypothesis_version: 6.136.7
-
-['Tag missing type', '[tag]', '\\|', '\\}', 'adventure', 'b', 'background', 'bold', 'book', 'chance', 'class', 'condition', 'creature', 'damage', 'dc', 'dice', 'document', 'feat', 'filter', 'hit', 'i', 'italic', 'item', 'lalr', 'loader', 'name', 'race', 'recharge', 'spell', 'tag', 'tag_grammar.lark', 'tag_type', 'text', '|', '}']

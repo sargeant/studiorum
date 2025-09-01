@@ -7,12 +7,9 @@
   "class": [
     {
       "name": "Barbarian",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
-      "reprintedAs": [
-        "Barbarian|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -264,7 +261,6 @@
           "classFeature": "Primal Path|Barbarian||3",
           "gainSubclassFeature": true
         },
-        "Primal Knowledge|Barbarian||3|TCE",
         "Ability Score Improvement|Barbarian||4",
         "Extra Attack|Barbarian||5",
         "Fast Movement|Barbarian||5",
@@ -273,7 +269,6 @@
           "gainSubclassFeature": true
         },
         "Feral Instinct|Barbarian||7",
-        "Instinctive Pounce|Barbarian||7|TCE",
         "Ability Score Improvement|Barbarian||8",
         "Brutal Critical (1 die)|Barbarian||9",
         {
@@ -294,23 +289,18 @@
         "Ability Score Improvement|Barbarian||19",
         "Primal Champion|Barbarian||20"
       ],
-      "subclassTitle": "Primal Path",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Primal Path"
     }
   ],
   "subclass": [
     {
       "name": "Path of the Berserker",
       "shortName": "Berserker",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Barbarian",
       "classSource": "PHB",
       "page": 49,
       "srd": true,
-      "reprintedAs": [
-        "Berserker|Barbarian|XPHB|XPHB"
-      ],
       "edition": "classic",
       "subclassFeatures": [
         "Path of the Berserker|Barbarian||Berserker||3",
@@ -323,7 +313,7 @@
   "classFeature": [
     {
       "name": "Rage",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -347,7 +337,7 @@
     },
     {
       "name": "Unarmored Defense",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -359,7 +349,7 @@
     },
     {
       "name": "Danger Sense",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -371,7 +361,7 @@
     },
     {
       "name": "Reckless Attack",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -383,7 +373,7 @@
     },
     {
       "name": "Primal Path",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -395,7 +385,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -408,7 +398,7 @@
     },
     {
       "name": "Extra Attack",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -420,7 +410,7 @@
     },
     {
       "name": "Fast Movement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -432,7 +422,7 @@
     },
     {
       "name": "Path Feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -444,7 +434,7 @@
     },
     {
       "name": "Feral Instinct",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -457,7 +447,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -470,7 +460,7 @@
     },
     {
       "name": "Brutal Critical (1 die)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -483,7 +473,7 @@
     },
     {
       "name": "Path feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -495,7 +485,7 @@
     },
     {
       "name": "Relentless Rage",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -508,7 +498,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -521,7 +511,7 @@
     },
     {
       "name": "Brutal Critical (2 dice)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -534,7 +524,7 @@
     },
     {
       "name": "Path feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -546,7 +536,7 @@
     },
     {
       "name": "Persistent Rage",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -558,7 +548,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -571,7 +561,7 @@
     },
     {
       "name": "Brutal Critical (3 dice)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -583,7 +573,7 @@
     },
     {
       "name": "Indomitable Might",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -595,7 +585,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -608,7 +598,7 @@
     },
     {
       "name": "Primal Champion",
-      "source": "PHB",
+      "source": "SRD",
       "page": 46,
       "srd": true,
       "className": "Barbarian",
@@ -622,7 +612,7 @@
   "subclassFeature": [
     {
       "name": "Path of the Berserker",
-      "source": "PHB",
+      "source": "SRD",
       "page": 49,
       "srd": true,
       "className": "Barbarian",
@@ -640,7 +630,7 @@
     },
     {
       "name": "Frenzy",
-      "source": "PHB",
+      "source": "SRD",
       "page": 49,
       "srd": true,
       "className": "Barbarian",
@@ -655,7 +645,7 @@
     },
     {
       "name": "Mindless Rage",
-      "source": "PHB",
+      "source": "SRD",
       "page": 49,
       "srd": true,
       "className": "Barbarian",
@@ -670,7 +660,7 @@
     },
     {
       "name": "Intimidating Presence",
-      "source": "PHB",
+      "source": "SRD",
       "page": 49,
       "srd": true,
       "className": "Barbarian",
@@ -686,7 +676,7 @@
     },
     {
       "name": "Retaliation",
-      "source": "PHB",
+      "source": "SRD",
       "page": 49,
       "srd": true,
       "className": "Barbarian",

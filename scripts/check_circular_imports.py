@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
 """
-Circular import detection tool for 5e2pdf project.
+Circular import detection tool for studiorum project.
 
 This script analyzes Python import dependencies to detect potential circular
 import chains that could cause runtime errors or make the code harder to maintain.
+
+Features:
+- Ignores imports inside TYPE_CHECKING blocks (type annotations only)
+- Handles relative imports correctly
+- Provides detailed dependency chain analysis
+
+Output behavior:
+- Silent when no circular imports are found
+- Detailed error information when circular imports are detected
+- Warning messages for analysis issues (to stderr)
 """
 
 import argparse
@@ -44,6 +54,7 @@ class ImportAnalyzer(ast.NodeVisitor):
         self.base_path = base_path
         self.imports: list[ImportInfo] = []
         self.module_name = self._get_module_name()
+        self._in_type_checking = False
 
     def _get_module_name(self) -> str:
         """Get the module name from file path."""
@@ -56,13 +67,42 @@ class ImportAnalyzer(ast.NodeVisitor):
         if module_parts[-1] == "__init__":
             module_parts = module_parts[:-1]
 
-        return ".".join(module_parts)
+        # Prepend base package name (studiorum)
+        base_package = self.base_path.name
+        if module_parts:
+            return f"{base_package}." + ".".join(module_parts)
+        else:
+            return base_package
+
+    def visit_If(self, node: ast.If) -> None:
+        """Visit if statements to detect TYPE_CHECKING blocks."""
+        # Check if this is a TYPE_CHECKING check
+        is_type_checking_block = False
+        if isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING":
+            is_type_checking_block = True
+        elif isinstance(node.test, ast.Attribute) and node.test.attr == "TYPE_CHECKING":
+            is_type_checking_block = True
+
+        if is_type_checking_block:
+            # Visit the body with TYPE_CHECKING flag set
+            old_in_type_checking = self._in_type_checking
+            self._in_type_checking = True
+            for child in node.body:
+                self.visit(child)
+            self._in_type_checking = old_in_type_checking
+        else:
+            # Regular if statement - continue normal traversal
+            self.generic_visit(node)
 
     def visit_Import(self, node: ast.Import) -> None:
         """Visit import statements."""
+        # Skip imports inside TYPE_CHECKING blocks
+        if self._in_type_checking:
+            return
+
         for alias in node.names:
-            # Only track imports within the project (starting with 'dnd5e.')
-            if alias.name.startswith("dnd5e."):
+            # Only track imports within the project (starting with 'studiorum.')
+            if alias.name.startswith("studiorum."):
                 self.imports.append(
                     ImportInfo(
                         module=alias.name, line_number=node.lineno, is_from_import=False
@@ -71,7 +111,11 @@ class ImportAnalyzer(ast.NodeVisitor):
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         """Visit from...import statements."""
-        if node.module and node.module.startswith("dnd5e."):
+        # Skip imports inside TYPE_CHECKING blocks
+        if self._in_type_checking:
+            return
+
+        if node.module and node.module.startswith("studiorum."):
             # Handle relative imports
             if node.module.startswith(".."):
                 # Convert relative import to absolute
@@ -116,11 +160,13 @@ class ImportAnalyzer(ast.NodeVisitor):
 class CircularImportDetector:
     """Detects circular import dependencies in Python projects."""
 
-    def __init__(self, source_path: Path):
+    def __init__(self, source_path: Path, verbose: bool = False):
         self.source_path = source_path
+        self.verbose = verbose
         self.dependencies: dict[str, set[str]] = defaultdict(set)
         self.module_files: dict[str, Path] = {}
         self.import_details: dict[str, list[ImportInfo]] = {}
+        self.analysis_warnings: list[str] = []
 
     def analyze_project(self) -> None:
         """Analyze all Python files in the project."""
@@ -147,7 +193,10 @@ class CircularImportDetector:
                     self.dependencies[analyzer.module_name].add(import_info.module)
 
             except Exception as e:
-                print(f"Warning: Could not analyze {file_path}: {e}")
+                warning = f"Could not analyze {file_path}: {e}"
+                self.analysis_warnings.append(warning)
+                if self.verbose:
+                    print(f"Warning: {warning}", file=sys.stderr)
 
     def find_circular_dependencies(self) -> list[CircularDependency]:
         """Find circular dependencies using DFS."""
@@ -197,50 +246,75 @@ class CircularImportDetector:
             relevant_imports = [imp for imp in imports if imp.module == to_module]
 
             if relevant_imports:
+                # Get file path for context
+                file_path = self.module_files.get(from_module, "unknown")
+                relative_path = (
+                    file_path.relative_to(self.source_path)
+                    if isinstance(file_path, Path)
+                    else file_path
+                )
+
                 import_names = [
                     imp.imported_name or imp.module for imp in relevant_imports
                 ]
                 line_nums = [str(imp.line_number) for imp in relevant_imports]
                 descriptions.append(
-                    f"{from_module} imports {', '.join(import_names)} from {to_module} (lines {', '.join(line_nums)})"
+                    f"{relative_path}:{','.join(line_nums)} imports {', '.join(import_names)} from {to_module}"
                 )
 
         return "; ".join(descriptions)
 
-    def get_import_statistics(self) -> dict[str, int]:
-        """Get statistics about imports in the project."""
-        stats = {
-            "total_modules": len(self.module_files),
+    def get_summary_stats(self) -> dict[str, int]:
+        """Get basic statistics for reporting."""
+        return {
+            "modules_analyzed": len(self.module_files),
             "total_imports": sum(
                 len(imports) for imports in self.import_details.values()
             ),
-            "modules_with_imports": len(
-                [m for m in self.import_details if self.import_details[m]]
-            ),
-            "max_imports_per_module": max(
-                len(imports) for imports in self.import_details.values()
-            )
-            if self.import_details
-            else 0,
+            "analysis_warnings": len(self.analysis_warnings),
         }
 
-        # Find most imported modules
-        import_counts = defaultdict(int)
-        for imports in self.import_details.values():
-            for imp in imports:
-                import_counts[imp.module] += 1
+    def check(self) -> int:
+        """
+        Perform the circular import check.
 
-        if import_counts:
-            most_imported = max(import_counts, key=import_counts.get)
-            stats["most_imported_module"] = most_imported
-            stats["most_imported_count"] = import_counts[most_imported]
-
-        return stats
-
-    def generate_report(self) -> str:
-        """Generate a comprehensive report."""
+        Returns:
+            0 if no circular imports found
+            1 if circular imports found
+            2 if analysis errors occurred
+        """
+        self.analyze_project()
         cycles = self.find_circular_dependencies()
-        stats = self.get_import_statistics()
+
+        # Report analysis warnings to stderr
+        if self.analysis_warnings:
+            for warning in self.analysis_warnings:
+                print(f"Warning: {warning}", file=sys.stderr)
+
+        if cycles:
+            # Print detailed error information
+            print(f"ERROR: {len(cycles)} circular import(s) detected:", file=sys.stderr)
+            print("", file=sys.stderr)
+
+            for i, cycle in enumerate(cycles, 1):
+                print(f"{i}. {cycle}", file=sys.stderr)
+                print("", file=sys.stderr)
+
+            stats = self.get_summary_stats()
+            print(
+                f"Analysis summary: {stats['modules_analyzed']} modules, {stats['total_imports']} imports",
+                file=sys.stderr,
+            )
+
+            return 1
+
+        # Silent success - no output when everything is good
+        return 0
+
+    def generate_verbose_report(self) -> str:
+        """Generate a comprehensive report (for --verbose mode)."""
+        cycles = self.find_circular_dependencies()
+        stats = self.get_summary_stats()
 
         report = ["Circular Import Analysis Report"]
         report.append("=" * 40)
@@ -248,17 +322,17 @@ class CircularImportDetector:
 
         # Statistics
         report.append("Project Statistics:")
-        report.append(f"  Total modules: {stats['total_modules']}")
+        report.append(f"  Modules analyzed: {stats['modules_analyzed']}")
         report.append(f"  Total imports: {stats['total_imports']}")
-        report.append(f"  Modules with imports: {stats['modules_with_imports']}")
-        report.append(f"  Max imports per module: {stats['max_imports_per_module']}")
-
-        if "most_imported_module" in stats:
-            report.append(
-                f"  Most imported module: {stats['most_imported_module']} ({stats['most_imported_count']} times)"
-            )
-
+        report.append(f"  Analysis warnings: {stats['analysis_warnings']}")
         report.append("")
+
+        # Analysis warnings
+        if self.analysis_warnings:
+            report.append("Analysis Warnings:")
+            for warning in self.analysis_warnings:
+                report.append(f"  - {warning}")
+            report.append("")
 
         # Circular dependencies
         if cycles:
@@ -276,7 +350,8 @@ class CircularImportDetector:
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(
-        description="Detect circular imports in Python projects"
+        description="Detect circular imports in Python projects",
+        epilog="Exit codes: 0=no issues, 1=circular imports found, 2=analysis errors",
     )
     parser.add_argument(
         "source_path", type=Path, help="Path to the source directory to analyze"
@@ -287,35 +362,52 @@ def main():
     parser.add_argument(
         "--fail-on-cycles",
         action="store_true",
-        help="Exit with error code if circular dependencies are found",
+        help="Exit with error code if circular dependencies are found (default behavior)",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Show verbose output including statistics and warnings",
     )
 
     args = parser.parse_args()
 
     if not args.source_path.exists():
-        print(f"Error: Source path {args.source_path} does not exist")
-        sys.exit(1)
+        print(f"ERROR: Source path {args.source_path} does not exist", file=sys.stderr)
+        sys.exit(2)
 
     # Analyze the project
-    detector = CircularImportDetector(args.source_path)
-    detector.analyze_project()
+    detector = CircularImportDetector(args.source_path, verbose=args.verbose)
 
-    # Generate report
-    report = detector.generate_report()
+    if args.verbose or args.output:
+        # Analyze first for verbose report
+        detector.analyze_project()
+        report = detector.generate_verbose_report()
 
-    if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
-            f.write(report)
-        print(f"Report written to {args.output}")
-    else:
-        print(report)
+        if args.output:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(report)
+            print(f"Report written to {args.output}")
+        else:
+            print(report)
 
-    # Exit with error if cycles found and --fail-on-cycles is set
-    if args.fail_on_cycles:
+        # Check for cycles to set exit code
         cycles = detector.find_circular_dependencies()
-        if cycles:
-            print(f"\nError: {len(cycles)} circular dependencies found!")
-            sys.exit(1)
+        exit_code = 1 if cycles else 0
+    else:
+        # Use the new streamlined check method
+        exit_code = detector.check()
+
+    # Handle serious analysis errors
+    if detector.analysis_warnings and exit_code == 0:
+        # If we have warnings but no cycles, still indicate potential issues
+        if (
+            len(detector.analysis_warnings) > len(detector.module_files) * 0.1
+        ):  # > 10% failure rate
+            exit_code = 2
+
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

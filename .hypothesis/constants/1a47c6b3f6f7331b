@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/compiler.py
-# hypothesis_version: 6.136.7
-
-[0.0, 0.1, 0.3, 0.8, 1.0, '*.tex', '--version', '.idx', '.ind', '.lof', '.lot', '.toc', 'Analyzing output', 'Citation.*undefined', 'Initial compilation', 'Label.*undefined', 'No file.*\\.aux', 'No file.*\\.toc', 'Pass complete', 'Running LaTeX engine', 'Starting compilation', 'Table of contents', 'dnd_template', 'dndbook.cls', 'document', 'kpsewhich', 'latex_compile_', 'none', 'timeout', 'utf-8']

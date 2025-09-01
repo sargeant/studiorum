@@ -7,13 +7,10 @@
   "class": [
     {
       "name": "Fighter",
-      "source": "PHB",
+      "source": "SRD",
       "page": 70,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Fighter|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -149,7 +146,6 @@
           "gainSubclassFeature": true
         },
         "Ability Score Improvement|Fighter||4",
-        "Martial Versatility|Fighter||4|TCE",
         "Extra Attack|Fighter||5",
         "Ability Score Improvement|Fighter||6",
         {
@@ -180,24 +176,19 @@
         "Ability Score Improvement|Fighter||19",
         "Extra Attack (3)|Fighter||20"
       ],
-      "subclassTitle": "Martial Archetype",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Martial Archetype"
     }
   ],
   "subclass": [
     {
       "name": "Champion",
       "shortName": "Champion",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Fighter",
       "classSource": "PHB",
       "page": 72,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Champion|Fighter|XPHB|XPHB"
-      ],
       "edition": "classic",
       "optionalfeatureProgression": [
         {
@@ -222,7 +213,7 @@
   "classFeature": [
     {
       "name": "Fighting Style",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -260,24 +251,19 @@
               "optionalfeature": "Two-Weapon Fighting"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Blind Fighting|TCE"
+              "type": "refOptionalfeature"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Interception|TCE"
+              "type": "refOptionalfeature"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Superior Technique|TCE"
+              "type": "refOptionalfeature"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Thrown Weapon Fighting|TCE"
+              "type": "refOptionalfeature"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Unarmed Fighting|TCE"
+              "type": "refOptionalfeature"
             }
           ]
         }
@@ -285,7 +271,7 @@
     },
     {
       "name": "Second Wind",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -299,7 +285,7 @@
     },
     {
       "name": "Action Surge",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -313,7 +299,7 @@
     },
     {
       "name": "Martial Archetype",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -326,7 +312,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -340,7 +326,7 @@
     },
     {
       "name": "Extra Attack",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -354,7 +340,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -368,7 +354,7 @@
     },
     {
       "name": "Martial Archetype feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -381,7 +367,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -395,7 +381,7 @@
     },
     {
       "name": "Indomitable",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -409,7 +395,7 @@
     },
     {
       "name": "Martial Archetype feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -422,7 +408,7 @@
     },
     {
       "name": "Extra Attack (2)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -435,7 +421,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -449,7 +435,7 @@
     },
     {
       "name": "Indomitable (two uses)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -462,7 +448,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -476,7 +462,7 @@
     },
     {
       "name": "Martial Archetype feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -489,7 +475,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -503,7 +489,7 @@
     },
     {
       "name": "Action Surge (two uses)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -516,7 +502,7 @@
     },
     {
       "name": "Indomitable (three uses)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -529,7 +515,7 @@
     },
     {
       "name": "Martial Archetype feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -542,7 +528,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -556,7 +542,7 @@
     },
     {
       "name": "Extra Attack (3)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -571,7 +557,7 @@
   "subclassFeature": [
     {
       "name": "Champion",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -590,7 +576,7 @@
     },
     {
       "name": "Improved Critical",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -606,7 +592,7 @@
     },
     {
       "name": "Remarkable Athlete",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -623,7 +609,7 @@
     },
     {
       "name": "Additional Fighting Style",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -639,7 +625,7 @@
     },
     {
       "name": "Superior Critical",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,
@@ -655,7 +641,7 @@
     },
     {
       "name": "Survivor",
-      "source": "PHB",
+      "source": "SRD",
       "page": 72,
       "srd": true,
       "basicRules": true,

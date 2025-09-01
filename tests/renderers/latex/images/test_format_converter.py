@@ -5,12 +5,14 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.renderers.latex.images.format_converter import (
+from studiorum.latex_engine.core.images.format_converter import (
     ConversionResult,
     FormatConverter,
 )
+from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestConversionResult:
     """Test the conversion result model."""
 
@@ -37,11 +39,15 @@ class TestConversionResult:
     not pytest.importorskip("PIL", None),
     reason="Pillow not available for image processing tests",
 )
+@pytest.mark.rendering
 class TestFormatConverter:
     """Test the format converter functionality."""
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.converter = FormatConverter()
 
     def test_is_conversion_needed_webp(self):
@@ -84,7 +90,6 @@ class TestFormatConverter:
 
         assert result is True
 
-    @pytest.mark.asyncio
     def test_convert_webp_to_png_file_not_found(self):
         """Test WebP conversion when file doesn't exist."""
         nonexistent_path = Path("nonexistent.webp")
@@ -92,7 +97,6 @@ class TestFormatConverter:
         with pytest.raises(FileNotFoundError):
             self.converter.convert_webp_to_png(nonexistent_path)
 
-    @pytest.mark.asyncio
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.stat")
     @patch.object(FormatConverter, "_convert_webp_sync")
@@ -124,7 +128,6 @@ class TestFormatConverter:
         assert result.file_size_before == 1000
         assert result.file_size_after == 800
 
-    @pytest.mark.asyncio
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.stat")
     @patch.object(FormatConverter, "_convert_webp_sync")
@@ -147,7 +150,6 @@ class TestFormatConverter:
 
             assert result.converted_path == output_dir / "test.png"
 
-    @pytest.mark.asyncio
     def test_convert_to_compatible_format_webp(self):
         """Test compatible format conversion for WebP."""
         webp_path = Path("test.webp")
@@ -168,7 +170,6 @@ class TestFormatConverter:
             assert result == mock_result
             mock_convert.assert_called_once_with(webp_path, None)
 
-    @pytest.mark.asyncio
     def test_convert_to_compatible_format_png(self):
         """Test compatible format conversion for PNG (no conversion needed)."""
         png_path = Path("test.png")
@@ -177,7 +178,6 @@ class TestFormatConverter:
 
         assert result is None
 
-    @pytest.mark.asyncio
     def test_convert_to_compatible_format_unknown(self):
         """Test compatible format conversion for unknown format."""
         unknown_path = Path("test.xyz")
@@ -203,11 +203,15 @@ class TestFormatConverter:
     pytest.importorskip("PIL", None) is None,
     reason="Pillow not available for image processing tests",
 )
+@pytest.mark.rendering
 class TestFormatConverterSync:
     """Test synchronous conversion methods."""
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.converter = FormatConverter()
 
     @patch("PIL.Image.open")
@@ -277,6 +281,7 @@ class TestFormatConverterSync:
         mock_img.save.assert_called_once_with(output_path, "PNG", optimize=True)
 
 
+@pytest.mark.rendering
 class TestFormatConverterWithoutPIL:
     """Test format converter behavior when PIL is not available."""
 
@@ -284,7 +289,8 @@ class TestFormatConverterWithoutPIL:
         """Test initialization when PIL is not available."""
         with patch.dict("sys.modules", {"PIL": None}):
             with patch(
-                "dnd5e.renderers.latex.images.format_converter.PIL_AVAILABLE", False
+                "studiorum.latex_engine.core.images.format_converter.PIL_AVAILABLE",
+                False,
             ):
                 with pytest.raises(ImportError, match="Pillow is required"):
                     FormatConverter()

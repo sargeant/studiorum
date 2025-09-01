@@ -1,10 +1,10 @@
 """Tests for adventure deep indexing functionality."""
 
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.adventures import Adventure
-from dnd5e.core.models.chapter import Chapter
-from dnd5e.core.models.content import Source
-from dnd5e.core.models.nested_content import (
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.models.adventures import Adventure
+from studiorum.core.models.chapter import Chapter
+from studiorum.core.models.content import Source
+from studiorum.core.models.nested_content import (
     Inset,
     Section,
     Table,

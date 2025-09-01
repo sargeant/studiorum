@@ -3,8 +3,8 @@
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.models.content import Source
-from dnd5e.core.models.rule_types import Action, Condition, Hazard, Sense, Status
+from studiorum.core.models.content import Source
+from studiorum.core.models.rule_types import Action, Condition, Hazard, Sense, Status
 
 
 @pytest.fixture

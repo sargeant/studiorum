@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/layout/layout_engine.py
-# hypothesis_version: 6.136.7
-
-[0.3, 0.7, '\\begin{DndComment}', '\\begin{DndMonster}', '\\begin{DndReadAloud}', '\\begin{DndSidebar}', '\\begin{DndTable}', '\\begin{figure}', '\\begin{longtable}', '\\begin{table}', '\\begin{tabular}', '\\bigskip', '\\medskip\n', 'adventure', 'blocks_with_columns', 'blocks_with_floats', 'blocks_with_sidebars', 'blocks_with_tables', 'bottom', 'default_columns', 'enable_optimization', 'float', 'float*=', 'float=', 'middle', 'multi_column', 'multicols', 'reference', 'sidebar', 'strategy', 'supplement', 'table', 'top', 'total_blocks', 'typography']

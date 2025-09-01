@@ -5,9 +5,9 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.models.books import Book, BookMetadata  # type: ignore
-from dnd5e.core.models.chapter import Chapter  # type: ignore
-from dnd5e.core.models.content import Source  # type: ignore
+from studiorum.core.models.books import Book, BookMetadata  # type: ignore
+from studiorum.core.models.chapter import Chapter  # type: ignore
+from studiorum.core.models.content import Source  # type: ignore
 
 
 class TestChapter:

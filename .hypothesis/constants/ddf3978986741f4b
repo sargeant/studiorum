@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/sources/manager.py
-# hypothesis_version: 6.136.7
-
-['*.json', 'auto_update', 'branch', 'cache_dir', 'enabled', 'error', 'file_count', 'name', 'path', 'priority', 'sources', 'total_files', 'total_sources', 'type', 'url']

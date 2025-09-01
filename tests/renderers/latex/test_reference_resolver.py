@@ -2,9 +2,16 @@
 
 from unittest.mock import Mock
 
-from dnd5e.renderers.latex.reference_resolver import ReferenceContext, ReferenceResolver
+import pytest
+
+from studiorum.latex_engine.core.reference_resolver import (
+    ReferenceContext,
+    ReferenceResolver,
+)
+from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestReferenceContext:
     """Test reference context dataclass."""
 
@@ -38,11 +45,15 @@ class TestReferenceContext:
         assert context.hyperlinks_enabled is False
 
 
+@pytest.mark.rendering
 class TestReferenceResolver:
     """Test reference resolver functionality."""
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         # Create mock tag integration
         self.mock_tag_integration = Mock()
 
@@ -97,25 +108,24 @@ class TestReferenceResolver:
         resolver = ReferenceResolver(self.mock_tag_integration)
 
         assert resolver.tag_integration == self.mock_tag_integration
-        assert resolver.reference_cache == {}
         assert resolver.forward_references == {}
         assert resolver.reverse_references == {}
         assert resolver.unresolved_references == set()
 
-    def test_resolve_content_reference_with_cache(self):
-        """Test content reference resolution with caching."""
-        # Pre-populate cache
-        cache_key = "creature:Dragon:general"
-        cached_result = "\\textbf{Cached Dragon}"
-        self.resolver.reference_cache[cache_key] = cached_result
-
+    def test_resolve_content_reference_basic(self):
+        """Test basic content reference resolution."""
         result = self.resolver.resolve_content_reference(
             content_type="creature", name="Dragon", context=self.context
         )
 
-        assert result == cached_result
-        # Should not call cross-reference manager
-        self.mock_cross_ref_mgr.register_content.assert_not_called()
+        # Should call cross-reference manager to register content
+        self.mock_cross_ref_mgr.register_content.assert_called_once_with(
+            "creature", "Dragon"
+        )
+
+        # Should return hyperlinked result (as hyperlinks are enabled by default in context)
+        expected_result = "\\hyperref[ref_id_123]{\\textbf{Dragon}}"
+        assert result == expected_result
 
     def test_resolve_content_reference_no_cross_ref_manager(self):
         """Test content reference resolution without cross-reference manager."""
@@ -126,9 +136,6 @@ class TestReferenceResolver:
         )
 
         assert result == "\\textbf{Dragon}"
-        # Should cache the result
-        cache_key = "creature:Dragon:general"
-        assert self.resolver.reference_cache[cache_key] == "\\textbf{Dragon}"
 
     def test_resolve_content_reference_with_hyperlink(self):
         """Test content reference resolution with hyperlink."""
@@ -505,7 +512,6 @@ class TestReferenceResolver:
     def test_generate_reference_report(self):
         """Test reference report generation."""
         # Setup test data
-        self.resolver.reference_cache = {"ref1": "result1", "ref2": "result2"}
         self.resolver.forward_references = {"loc1": ["ref1"], "loc2": ["ref2"]}
         self.resolver.reverse_references = {"ref1": ["loc1"], "ref2": ["loc2"]}
         self.resolver.unresolved_references = {"unresolved1", "unresolved2"}
@@ -528,7 +534,7 @@ class TestReferenceResolver:
 
         result = self.resolver.generate_reference_report()
 
-        assert result["total_references"] == 2
+        assert result["total_references"] == 0  # Reference caching removed
         assert result["forward_references"] == 2
         assert result["reverse_references"] == 2
         assert result["unresolved"] == 2
@@ -554,14 +560,12 @@ class TestReferenceResolver:
     def test_clear_cache(self):
         """Test cache clearing."""
         # Setup test data
-        self.resolver.reference_cache["key"] = "value"
         self.resolver.forward_references["loc"] = ["ref"]
         self.resolver.reverse_references["ref"] = ["loc"]
         self.resolver.unresolved_references.add("unresolved")
 
         self.resolver.clear_cache()
 
-        assert self.resolver.reference_cache == {}
         assert self.resolver.forward_references == {}
         assert self.resolver.reverse_references == {}
         assert self.resolver.unresolved_references == set()
@@ -593,11 +597,15 @@ class TestReferenceResolver:
         assert result["cross_references"] == {}
 
 
+@pytest.mark.rendering
 class TestReferenceResolverEdgeCases:
     """Test edge cases and error conditions."""
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.mock_tag_integration = Mock()
         self.resolver = ReferenceResolver(self.mock_tag_integration)
 

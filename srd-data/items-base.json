@@ -7,13 +7,10 @@
   "baseitem": [
     {
       "name": "Arrow",
-      "source": "PHB",
+      "source": "SRD",
       "page": 150,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Arrow|XPHB"
-      ],
       "edition": "classic",
       "type": "A",
       "rarity": "none",
@@ -23,13 +20,10 @@
     },
     {
       "name": "Arrows (20)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 150,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Arrows (20)|XPHB"
-      ],
       "edition": "classic",
       "type": "A",
       "rarity": "none",
@@ -45,13 +39,10 @@
     },
     {
       "name": "Bagpipes",
-      "source": "PHB",
+      "source": "SRD",
       "page": 154,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Bagpipes|XPHB"
-      ],
       "edition": "classic",
       "type": "INS",
       "rarity": "none",
@@ -60,13 +51,10 @@
     },
     {
       "name": "Battleaxe",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Battleaxe|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -84,13 +72,10 @@
     },
     {
       "name": "Blowgun",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Blowgun|XPHB"
-      ],
       "edition": "classic",
       "type": "R",
       "rarity": "none",
@@ -109,13 +94,10 @@
     },
     {
       "name": "Blowgun Needle",
-      "source": "PHB",
+      "source": "SRD",
       "page": 150,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Needle|XPHB"
-      ],
       "edition": "classic",
       "type": "A",
       "rarity": "none",
@@ -125,13 +107,10 @@
     },
     {
       "name": "Blowgun Needles (50)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 150,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Needles (50)|XPHB"
-      ],
       "edition": "classic",
       "type": "A",
       "rarity": "none",
@@ -147,13 +126,10 @@
     },
     {
       "name": "Breastplate",
-      "source": "PHB",
+      "source": "SRD",
       "page": 145,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Breastplate|XPHB"
-      ],
       "edition": "classic",
       "type": "MA",
       "rarity": "none",
@@ -167,13 +143,10 @@
     },
     {
       "name": "Chain Mail",
-      "source": "PHB",
+      "source": "SRD",
       "page": 145,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Chain Mail|XPHB"
-      ],
       "edition": "classic",
       "type": "HA",
       "rarity": "none",
@@ -189,13 +162,10 @@
     },
     {
       "name": "Chain Shirt",
-      "source": "PHB",
+      "source": "SRD",
       "page": 144,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Chain Shirt|XPHB"
-      ],
       "edition": "classic",
       "type": "MA",
       "rarity": "none",
@@ -209,13 +179,10 @@
     },
     {
       "name": "Club",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Club|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -232,13 +199,10 @@
     },
     {
       "name": "Crossbow Bolt",
-      "source": "PHB",
+      "source": "SRD",
       "page": 150,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Bolt|XPHB"
-      ],
       "edition": "classic",
       "type": "A",
       "rarity": "none",
@@ -248,13 +212,10 @@
     },
     {
       "name": "Crossbow Bolts (20)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 150,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Bolts (20)|XPHB"
-      ],
       "edition": "classic",
       "type": "A",
       "rarity": "none",
@@ -273,13 +234,10 @@
       "group": [
         "Arcane Focus"
       ],
-      "source": "PHB",
+      "source": "SRD",
       "page": 151,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Crystal|XPHB"
-      ],
       "edition": "classic",
       "type": "SCF",
       "scfType": "arcane",
@@ -289,13 +247,10 @@
     },
     {
       "name": "Dagger",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Dagger|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -315,13 +270,10 @@
     },
     {
       "name": "Dart",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Dart|XPHB"
-      ],
       "edition": "classic",
       "type": "R",
       "rarity": "none",
@@ -339,13 +291,10 @@
     },
     {
       "name": "Drum",
-      "source": "PHB",
+      "source": "SRD",
       "page": 154,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Drum|XPHB"
-      ],
       "edition": "classic",
       "type": "INS",
       "rarity": "none",
@@ -354,13 +303,10 @@
     },
     {
       "name": "Dulcimer",
-      "source": "PHB",
+      "source": "SRD",
       "page": 154,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Dulcimer|XPHB"
-      ],
       "edition": "classic",
       "type": "INS",
       "rarity": "none",
@@ -369,13 +315,10 @@
     },
     {
       "name": "Flail",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Flail|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -388,13 +331,10 @@
     },
     {
       "name": "Flute",
-      "source": "PHB",
+      "source": "SRD",
       "page": 154,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Flute|XPHB"
-      ],
       "edition": "classic",
       "type": "INS",
       "rarity": "none",
@@ -403,13 +343,10 @@
     },
     {
       "name": "Glaive",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Glaive|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -428,13 +365,10 @@
     },
     {
       "name": "Greataxe",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Greataxe|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -452,13 +386,10 @@
     },
     {
       "name": "Greatclub",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Greatclub|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -475,13 +406,10 @@
     },
     {
       "name": "Greatsword",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Greatsword|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -499,13 +427,10 @@
     },
     {
       "name": "Halberd",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Halberd|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -524,13 +449,10 @@
     },
     {
       "name": "Half Plate Armor",
-      "source": "PHB",
+      "source": "SRD",
       "page": 145,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Half Plate Armor|XPHB"
-      ],
       "edition": "classic",
       "type": "MA",
       "rarity": "none",
@@ -545,13 +467,10 @@
     },
     {
       "name": "Hand Crossbow",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Hand Crossbow|XPHB"
-      ],
       "edition": "classic",
       "type": "R",
       "rarity": "none",
@@ -572,13 +491,10 @@
     },
     {
       "name": "Handaxe",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Handaxe|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -597,13 +513,10 @@
     },
     {
       "name": "Heavy Crossbow",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Heavy Crossbow|XPHB"
-      ],
       "edition": "classic",
       "type": "R",
       "rarity": "none",
@@ -625,13 +538,10 @@
     },
     {
       "name": "Hide Armor",
-      "source": "PHB",
+      "source": "SRD",
       "page": 144,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Hide Armor|XPHB"
-      ],
       "edition": "classic",
       "type": "MA",
       "rarity": "none",
@@ -645,13 +555,10 @@
     },
     {
       "name": "Horn",
-      "source": "PHB",
+      "source": "SRD",
       "page": 154,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Horn|XPHB"
-      ],
       "edition": "classic",
       "type": "INS",
       "rarity": "none",
@@ -660,13 +567,10 @@
     },
     {
       "name": "Javelin",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Javelin|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -684,13 +588,10 @@
     },
     {
       "name": "Lance",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Lance|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -717,13 +618,10 @@
     },
     {
       "name": "Leather Armor",
-      "source": "PHB",
+      "source": "SRD",
       "page": 144,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Leather Armor|XPHB"
-      ],
       "edition": "classic",
       "type": "LA",
       "rarity": "none",
@@ -737,13 +635,10 @@
     },
     {
       "name": "Light Crossbow",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Light Crossbow|XPHB"
-      ],
       "edition": "classic",
       "type": "R",
       "rarity": "none",
@@ -764,13 +659,10 @@
     },
     {
       "name": "Light Hammer",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Light Hammer|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -789,13 +681,10 @@
     },
     {
       "name": "Longbow",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Longbow|XPHB"
-      ],
       "edition": "classic",
       "type": "R",
       "rarity": "none",
@@ -816,13 +705,10 @@
     },
     {
       "name": "Longsword",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Longsword|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -840,13 +726,10 @@
     },
     {
       "name": "Lute",
-      "source": "PHB",
+      "source": "SRD",
       "page": 154,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Lute|XPHB"
-      ],
       "edition": "classic",
       "type": "INS",
       "rarity": "none",
@@ -855,13 +738,10 @@
     },
     {
       "name": "Lyre",
-      "source": "PHB",
+      "source": "SRD",
       "page": 154,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Lyre|XPHB"
-      ],
       "edition": "classic",
       "type": "INS",
       "rarity": "none",
@@ -870,13 +750,10 @@
     },
     {
       "name": "Mace",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Mace|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -890,13 +767,10 @@
     },
     {
       "name": "Maul",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Maul|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -914,13 +788,10 @@
     },
     {
       "name": "Morningstar",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Morningstar|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -934,16 +805,10 @@
     },
     {
       "name": "Net",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        {
-          "uid": "Net|XPHB",
-          "tag": "item"
-        }
-      ],
       "edition": "classic",
       "type": "R",
       "rarity": "none",
@@ -972,13 +837,10 @@
       "group": [
         "Arcane Focus"
       ],
-      "source": "PHB",
+      "source": "SRD",
       "page": 151,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Orb|XPHB"
-      ],
       "edition": "classic",
       "type": "SCF",
       "scfType": "arcane",
@@ -988,13 +850,10 @@
     },
     {
       "name": "Padded Armor",
-      "source": "PHB",
+      "source": "SRD",
       "page": 144,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Padded Armor|XPHB"
-      ],
       "edition": "classic",
       "type": "LA",
       "rarity": "none",
@@ -1009,13 +868,10 @@
     },
     {
       "name": "Pan Flute",
-      "source": "PHB",
+      "source": "SRD",
       "page": 154,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Pan Flute|XPHB"
-      ],
       "edition": "classic",
       "type": "INS",
       "rarity": "none",
@@ -1024,13 +880,10 @@
     },
     {
       "name": "Pike",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Pike|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -1048,13 +901,10 @@
     },
     {
       "name": "Plate Armor",
-      "source": "PHB",
+      "source": "SRD",
       "page": 145,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Plate Armor|XPHB"
-      ],
       "edition": "classic",
       "type": "HA",
       "rarity": "none",
@@ -1070,13 +920,10 @@
     },
     {
       "name": "Quarterstaff",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Quarterstaff|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -1093,13 +940,10 @@
     },
     {
       "name": "Rapier",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Rapier|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -1117,13 +961,10 @@
     },
     {
       "name": "Ring Mail",
-      "source": "PHB",
+      "source": "SRD",
       "page": 145,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Ring Mail|XPHB"
-      ],
       "edition": "classic",
       "type": "HA",
       "rarity": "none",
@@ -1141,13 +982,10 @@
       "group": [
         "Arcane Focus"
       ],
-      "source": "PHB",
+      "source": "SRD",
       "page": 151,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Rod|XPHB"
-      ],
       "edition": "classic",
       "type": "SCF",
       "scfType": "arcane",
@@ -1157,13 +995,10 @@
     },
     {
       "name": "Scale Mail",
-      "source": "PHB",
+      "source": "SRD",
       "page": 144,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Scale Mail|XPHB"
-      ],
       "edition": "classic",
       "type": "MA",
       "rarity": "none",
@@ -1178,13 +1013,10 @@
     },
     {
       "name": "Scimitar",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Scimitar|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -1202,13 +1034,10 @@
     },
     {
       "name": "Shawm",
-      "source": "PHB",
+      "source": "SRD",
       "page": 154,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Shawm|XPHB"
-      ],
       "edition": "classic",
       "type": "INS",
       "rarity": "none",
@@ -1217,13 +1046,10 @@
     },
     {
       "name": "Shield",
-      "source": "PHB",
+      "source": "SRD",
       "page": 144,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Shield|XPHB"
-      ],
       "edition": "classic",
       "type": "S",
       "rarity": "none",
@@ -1236,13 +1062,10 @@
     },
     {
       "name": "Shortbow",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Shortbow|XPHB"
-      ],
       "edition": "classic",
       "type": "R",
       "rarity": "none",
@@ -1262,13 +1085,10 @@
     },
     {
       "name": "Shortsword",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Shortsword|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -1286,13 +1106,10 @@
     },
     {
       "name": "Sickle",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Sickle|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -1308,13 +1125,10 @@
     },
     {
       "name": "Sling",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Sling|XPHB"
-      ],
       "edition": "classic",
       "type": "R",
       "rarity": "none",
@@ -1331,13 +1145,10 @@
     },
     {
       "name": "Sling Bullet",
-      "source": "PHB",
+      "source": "SRD",
       "page": 150,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Sling Bullet|XPHB"
-      ],
       "edition": "classic",
       "type": "A",
       "rarity": "none",
@@ -1347,13 +1158,10 @@
     },
     {
       "name": "Sling Bullets (20)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 150,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Sling Bullets (20)|XPHB"
-      ],
       "edition": "classic",
       "type": "A",
       "rarity": "none",
@@ -1369,13 +1177,10 @@
     },
     {
       "name": "Spear",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Spear|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -1395,13 +1200,10 @@
     },
     {
       "name": "Splint Armor",
-      "source": "PHB",
+      "source": "SRD",
       "page": 145,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Splint Armor|XPHB"
-      ],
       "edition": "classic",
       "type": "HA",
       "rarity": "none",
@@ -1420,13 +1222,10 @@
       "group": [
         "Arcane Focus"
       ],
-      "source": "PHB",
+      "source": "SRD",
       "page": 151,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Staff|XPHB"
-      ],
       "edition": "classic",
       "type": "SCF",
       "scfType": "arcane",
@@ -1444,13 +1243,10 @@
     },
     {
       "name": "Studded Leather Armor",
-      "source": "PHB",
+      "source": "SRD",
       "page": 144,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Studded Leather Armor|XPHB"
-      ],
       "edition": "classic",
       "type": "LA",
       "rarity": "none",
@@ -1464,13 +1260,10 @@
     },
     {
       "name": "Trident",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Trident|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -1489,13 +1282,10 @@
     },
     {
       "name": "Viol",
-      "source": "PHB",
+      "source": "SRD",
       "page": 154,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Viol|XPHB"
-      ],
       "edition": "classic",
       "type": "INS",
       "rarity": "none",
@@ -1507,13 +1297,10 @@
       "group": [
         "Arcane Focus"
       ],
-      "source": "PHB",
+      "source": "SRD",
       "page": 151,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Wand|XPHB"
-      ],
       "edition": "classic",
       "type": "SCF",
       "scfType": "arcane",
@@ -1523,13 +1310,10 @@
     },
     {
       "name": "War Pick",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "War Pick|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -1542,13 +1326,10 @@
     },
     {
       "name": "Warhammer",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Warhammer|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -1566,13 +1347,10 @@
     },
     {
       "name": "Whip",
-      "source": "PHB",
+      "source": "SRD",
       "page": 149,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Whip|XPHB"
-      ],
       "edition": "classic",
       "type": "M",
       "rarity": "none",
@@ -1592,13 +1370,10 @@
       "group": [
         "Druidic Focus"
       ],
-      "source": "PHB",
+      "source": "SRD",
       "page": 151,
       "srd": true,
       "basicRules": true,
-      "reprintedAs": [
-        "Wooden Staff|XPHB"
-      ],
       "edition": "classic",
       "type": "SCF",
       "scfType": "druid",

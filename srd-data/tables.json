@@ -3,7 +3,7 @@
   "table": [
     {
       "name": "Damage Types",
-      "source": "PHB",
+      "source": "SRD",
       "page": 196,
       "srd": true,
       "basicRules": true,

@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/document_structure.py
-# hypothesis_version: 6.136.7
-
-['"', '&', "'", '-', '/', 'Additional Content', 'Adventures', 'Backgrounds', 'Books', 'Classes', 'Creatures and NPCs', 'Feats', 'Jeremy Crawford', 'Races', 'Spells', '\\backmatter', '\\clearpage', '\\frontmatter', '\\mainmatter', '\\maketitle', '\\printindex', '\\tableofcontents', '_', 'adventure', 'and', 'background', 'book', 'by', 'class', 'contents', 'creature', 'document_class', 'entries', 'feat', 'headers', 'introduction', 'item', 'max_section_depth', 'metadata', 'name', 'numbering_depth', 'quote', 'race', 's', 'sections', 'spell', 'supplement', 'total_content_items', 'total_sections', 'type', 'unknown', 'use_frontmatter', 'use_parts']

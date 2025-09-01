@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/reference_resolver.py
-# hypothesis_version: 6.136.7
-
-['-', '[^a-zA-Z0-9]+', '\\textbf{{{text}}}', '\\textit{{{text}}}', 'adventure', 'appendix_data', 'book', 'class', 'condition', 'content_stats', 'content_type', 'creature', 'cross_references', 'current_section', 'document_type', 'feat', 'forward_references', 'general', 'item', 'message', 'most_referenced', 'name', 'nameref', 'preamble_commands', 'race', 'ref', 'ref_id', 'reference', 'required_packages', 'reverse_references', 'spell', 'supplement', 'text', 'total_references', 'type', 'unresolved', 'unresolved_reference', 'usage_count', '{text}']

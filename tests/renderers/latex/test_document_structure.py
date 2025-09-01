@@ -5,8 +5,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent, Source  # type: ignore
-from dnd5e.core.models.document_metadata import (  # type: ignore
+from studiorum.core.models.content import BaseContent, Source  # type: ignore
+from studiorum.core.models.document_metadata import (  # type: ignore
     ContentSection,
     DocumentAuthor,
     DocumentMetadata,
@@ -14,10 +14,11 @@ from dnd5e.core.models.document_metadata import (  # type: ignore
     DocumentType,
     SectionLevel,
 )
-from dnd5e.renderers.base.context import RenderContext  # type: ignore
-from dnd5e.renderers.latex.document_structure import (
+from studiorum.latex_engine.core.document_structure import (
     DocumentStructureBuilder,  # type: ignore
 )
+from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 
 class MockContent(BaseContent):
@@ -28,6 +29,7 @@ class MockContent(BaseContent):
         self._content_type = content_type
 
 
+@pytest.mark.rendering
 class TestDocumentMetadata:
     """Tests for DocumentMetadata model."""
 
@@ -108,6 +110,7 @@ class TestDocumentMetadata:
         assert part_metadata.get_max_section_level() == SectionLevel.PART
 
 
+@pytest.mark.rendering
 class TestContentSection:
     """Tests for ContentSection model."""
 
@@ -194,18 +197,22 @@ class TestContentSection:
         assert item3 in all_items
 
 
+@pytest.mark.rendering
 class TestDocumentStructureBuilder:
     """Tests for DocumentStructureBuilder class."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.metadata = DocumentMetadata(
             title="Test Adventure",
             document_type=DocumentType.ADVENTURE,
             authors=[DocumentAuthor(name="Test Author")],
         )
         self.builder = DocumentStructureBuilder(self.metadata)
-        self.context = RenderContext()
+        self.context = RenderingContext(output_format="latex")
 
     def test_builder_initialization(self) -> None:
         """Test builder initialization."""
@@ -225,22 +232,28 @@ class TestDocumentStructureBuilder:
         from unittest.mock import patch
 
         with patch(
-            "dnd5e.core.models.content.ContentType.from_content"
+            "studiorum.latex_engine.core.document_structure.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
                 if content._content_type == "spell":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
-                    return ContentType.SPELL
+                    return ContentType("spell")
                 elif content._content_type == "creature":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
-                    return ContentType.CREATURE
+                    return ContentType("creature")
                 elif content._content_type == "item":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
-                    return ContentType.ITEM
+                    return ContentType("item")
                 else:
                     raise ValueError("Unknown type")
 
@@ -294,22 +307,28 @@ class TestDocumentStructureBuilder:
         from unittest.mock import patch
 
         with patch(
-            "dnd5e.core.models.content.ContentType.from_content"
+            "studiorum.latex_engine.core.document_structure.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
                 if content._content_type == "spell":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
-                    return ContentType.SPELL
+                    return ContentType("spell")
                 elif content._content_type == "creature":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
-                    return ContentType.CREATURE
+                    return ContentType("creature")
                 elif content._content_type == "item":
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
-                    return ContentType.ITEM
+                    return ContentType("item")
                 else:
                     raise ValueError("Unknown type")
 
@@ -424,6 +443,7 @@ class TestDocumentStructureBuilder:
             assert document_context["total_content_items"] == 2
 
 
+@pytest.mark.rendering
 class TestDocumentStructureIntegration:
     """Integration tests for document structure system."""
 
@@ -445,7 +465,7 @@ class TestDocumentStructureIntegration:
             MockContent("Magic Sword", "unknown"),
         ]
 
-        context: Any = RenderContext()
+        context: Any = RenderingContext(output_format="latex")
 
         # Use a simple patch to bypass ContentType resolution
         with patch.object(builder, "_organize_content_by_type") as mock_organize:
@@ -475,7 +495,7 @@ class TestDocumentStructureIntegration:
 
         builder: Any = DocumentStructureBuilder(metadata)
         content_items = [MockContent("Magic Missile", "unknown")]
-        context: Any = RenderContext()
+        context: Any = RenderingContext(output_format="latex")
 
         # Use a simple patch to bypass ContentType resolution
         with patch.object(builder, "_organize_content_by_type") as mock_organize:
@@ -507,7 +527,7 @@ class TestDocumentStructureIntegration:
             MockContent("Magic Item", "unknown"),
         ]
 
-        context: Any = RenderContext()
+        context: Any = RenderingContext(output_format="latex")
 
         # Use a simple patch to simulate organized content
         organized_content = {

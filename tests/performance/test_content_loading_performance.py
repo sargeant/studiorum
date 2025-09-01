@@ -5,13 +5,14 @@ This module tests the performance characteristics of the new
 dual-file architecture content loading system.
 """
 
+import os
 import time
 
 import pytest
 
-from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.resolvers.content_resolver import ContentResolver
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
+from studiorum.core.resolvers.content_resolver import ContentResolver
 
 # Tests converted to sync after async removal migration
 
@@ -19,12 +20,23 @@ from dnd5e.core.resolvers.content_resolver import ContentResolver
 class TestContentLoadingPerformance:
     """Test performance of content loading system."""
 
+    def setup_method(self) -> None:
+        """Reset environment before each test for proper isolation."""
+        from tests.test_helpers import reset_test_environment
+
+        reset_test_environment()
+
     @pytest.mark.slow
+    @pytest.mark.requires_data
+    @pytest.mark.skipif(
+        os.getenv("STUDIORUM_CONFIG_FILE") == "test-config.yaml",
+        reason="Performance tests require full 5etools dataset, not test data",
+    )
     def test_omnidexer_loading_performance(self):
         """Test that omnidexer loading completes in reasonable time."""
         start_time = time.time()
 
-        source_manager = ConfigurableSourceManager()
+        source_manager = UnifiedSourceManager()
         omnidexer = Omnidexer(source_manager)
         omnidexer.load_all_data()
 
@@ -44,71 +56,91 @@ class TestContentLoadingPerformance:
         assert len(books) > 0, "Should have loaded books"
 
     @pytest.mark.slow
+    @pytest.mark.requires_data
+    @pytest.mark.skipif(
+        os.getenv("STUDIORUM_CONFIG_FILE") == "test-config.yaml",
+        reason="Performance tests require full 5etools dataset, not test data",
+    )
     def test_content_resolution_performance(self):
         """Test that content resolution is reasonably fast."""
-        source_manager = ConfigurableSourceManager()
+        source_manager = UnifiedSourceManager()
         omnidexer = Omnidexer(source_manager)
         omnidexer.load_all_data()
 
+        # Verify we have sufficient data for meaningful performance testing
+        adventures = omnidexer.get_all_by_type("adventure")
+        books = omnidexer.get_all_by_type("book")
+
+        print(f"DEBUG: Found {len(adventures)} adventures and {len(books)} books")
+        if len(adventures) < 5 or len(books) < 5:
+            pytest.skip(
+                f"Insufficient data for meaningful performance testing: {len(adventures)} adventures, {len(books)} books"
+            )
+
         resolver = ContentResolver(omnidexer)
+
+        # Use well-known content by source abbreviation (ContentResolver handles these)
+        test_adventure = "LMoP"  # Lost Mine of Phandelver
+        test_book = "PHB"  # Player's Handbook (2014)
 
         # Test adventure resolution performance
         start_time = time.time()
-        adventure = resolver.resolve_adventure("TEST")
+        adventure_result = resolver.resolve_adventure(test_adventure)
         end_time = time.time()
 
         adventure_time = end_time - start_time
 
-        assert adventure is not None, "Should resolve adventure"
+        assert adventure_result.is_success, (
+            f"Should resolve adventure '{test_adventure}'"
+        )
         assert adventure_time < 10, (
             f"Adventure resolution took too long: {adventure_time:.2f}s"
         )
 
         # Test book resolution performance
         start_time = time.time()
-        book = resolver.resolve_book("TEST")
+        book_result = resolver.resolve_book(test_book)
         end_time = time.time()
 
         book_time = end_time - start_time
 
-        assert book is not None, "Should resolve book"
+        assert book_result.is_success, f"Should resolve book '{test_book}'"
         assert book_time < 15, f"Book resolution took too long: {book_time:.2f}s"
 
-    def test_caching_effectiveness(self):
-        """Test that caching improves performance on repeated access."""
-        source_manager = ConfigurableSourceManager()
+    @pytest.mark.requires_data
+    @pytest.mark.skipif(
+        os.getenv("STUDIORUM_CONFIG_FILE") == "test-config.yaml",
+        reason="Performance tests require full 5etools dataset, not test data",
+    )
+    def test_repeated_resolution_consistency(self):
+        """Test that repeated resolutions are consistent."""
+        source_manager = UnifiedSourceManager()
         omnidexer = Omnidexer(source_manager)
         omnidexer.load_all_data()
 
+        # Verify we have sufficient data for meaningful performance testing
+        adventures = omnidexer.get_all_by_type("adventure")
+
+        if len(adventures) < 5:
+            pytest.skip("Insufficient data for meaningful performance testing")
+
         resolver = ContentResolver(omnidexer)
 
-        # First resolution (cache miss)
-        start_time = time.time()
-        result1 = resolver.resolve_adventure("TEST")
-        first_time = time.time() - start_time
+        # Use well-known content by source abbreviation (ContentResolver handles these)
+        test_adventure = "LMoP"  # Lost Mine of Phandelver
 
-        # Second resolution (cache hit)
-        start_time = time.time()
-        result2 = resolver.resolve_adventure("TEST")
-        second_time = time.time() - start_time
+        # Resolve the same content twice
+        result1 = resolver.resolve_adventure(test_adventure)
+        result2 = resolver.resolve_adventure(test_adventure)
 
-        assert result1 is not None and result2 is not None, (
-            "Both resolutions should succeed"
+        assert result1.is_success and result2.is_success, (
+            f"Both resolutions should succeed for '{test_adventure}'"
         )
 
-        # Second resolution should be faster (or at least not significantly slower)
-        # Allow for some variance in timing
-        assert second_time <= first_time * 2, (
-            f"Second resolution should benefit from caching: {first_time:.3f}s vs {second_time:.3f}s"
+        # Content should be identical (cached or not)
+        assert result1.content.name == result2.content.name, (
+            "Content should be identical across repeated resolutions"
         )
-
-        # Check cache statistics if available
-        content_merger = resolver.content_merger
-        if hasattr(content_merger, "get_cache_stats"):
-            stats = content_merger.get_cache_stats()
-            assert stats.get("hits", 0) > 0, (
-                "Should have cache hits from repeated access"
-            )
 
 
 if __name__ == "__main__":

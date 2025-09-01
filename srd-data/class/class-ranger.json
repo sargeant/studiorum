@@ -7,12 +7,9 @@
   "class": [
     {
       "name": "Ranger",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
-      "reprintedAs": [
-        "Ranger|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -390,23 +387,17 @@
       ],
       "classFeatures": [
         "Favored Enemy|Ranger||1",
-        "Favored Foe|Ranger||1|TCE",
         "Natural Explorer|Ranger||1",
-        "Deft Explorer|Ranger||1|TCE",
         "Fighting Style|Ranger||2",
         "Spellcasting|Ranger||2",
-        "Spellcasting Focus|Ranger||2|TCE",
         {
           "classFeature": "Ranger Archetype|Ranger||3",
           "gainSubclassFeature": true
         },
         "Primeval Awareness|Ranger||3",
-        "Primal Awareness|Ranger||3|TCE",
         "Ability Score Improvement|Ranger||4",
-        "Martial Versatility|Ranger||4|TCE",
         "Extra Attack|Ranger||5",
         "Favored Enemy and Natural Explorer improvements|Ranger||6",
-        "Deft Explorer Improvement|Ranger||6|TCE",
         {
           "classFeature": "Ranger Archetype feature|Ranger||7",
           "gainSubclassFeature": true
@@ -414,9 +405,7 @@
         "Ability Score Improvement|Ranger||8",
         "Land's Stride|Ranger||8",
         "Hide in Plain Sight|Ranger||10",
-        "Nature's Veil|Ranger||10|TCE",
         "Natural Explorer improvement|Ranger||10",
-        "Deft Explorer Improvement|Ranger||10|TCE",
         {
           "classFeature": "Ranger Archetype feature|Ranger||11",
           "gainSubclassFeature": true
@@ -433,23 +422,18 @@
         "Ability Score Improvement|Ranger||19",
         "Foe Slayer|Ranger||20"
       ],
-      "subclassTitle": "Ranger Archetype",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Ranger Archetype"
     }
   ],
   "subclass": [
     {
       "name": "Hunter",
       "shortName": "Hunter",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Ranger",
       "classSource": "PHB",
       "page": 93,
       "srd": true,
-      "reprintedAs": [
-        "Hunter|Ranger|XPHB|XPHB"
-      ],
       "edition": "classic",
       "subclassFeatures": [
         "Hunter|Ranger||Hunter||3",
@@ -462,7 +446,7 @@
   "classFeature": [
     {
       "name": "Favored Enemy",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -478,7 +462,7 @@
     },
     {
       "name": "Natural Explorer",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -503,7 +487,7 @@
     },
     {
       "name": "Fighting Style",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -532,16 +516,13 @@
               "optionalfeature": "Two-Weapon Fighting"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Blind Fighting|TCE"
+              "type": "refOptionalfeature"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Druidic Warrior|TCE"
+              "type": "refOptionalfeature"
             },
             {
-              "type": "refOptionalfeature",
-              "optionalfeature": "Thrown Weapon Fighting|TCE"
+              "type": "refOptionalfeature"
             }
           ]
         }
@@ -549,7 +530,7 @@
     },
     {
       "name": "Spellcasting",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -599,7 +580,7 @@
     },
     {
       "name": "Primeval Awareness",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -611,7 +592,7 @@
     },
     {
       "name": "Ranger Archetype",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -623,7 +604,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -636,7 +617,7 @@
     },
     {
       "name": "Extra Attack",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -648,7 +629,7 @@
     },
     {
       "name": "Favored Enemy and Natural Explorer improvements",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -661,7 +642,7 @@
     },
     {
       "name": "Ranger Archetype feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -673,7 +654,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -686,7 +667,7 @@
     },
     {
       "name": "Land's Stride",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -699,7 +680,7 @@
     },
     {
       "name": "Hide in Plain Sight",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -712,7 +693,7 @@
     },
     {
       "name": "Natural Explorer improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -724,7 +705,7 @@
     },
     {
       "name": "Ranger Archetype feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -736,7 +717,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -749,7 +730,7 @@
     },
     {
       "name": "Favored Enemy improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -761,7 +742,7 @@
     },
     {
       "name": "Vanish",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -773,7 +754,7 @@
     },
     {
       "name": "Ranger Archetype feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -785,7 +766,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -798,7 +779,7 @@
     },
     {
       "name": "Feral Senses",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -810,7 +791,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -823,7 +804,7 @@
     },
     {
       "name": "Foe Slayer",
-      "source": "PHB",
+      "source": "SRD",
       "page": 89,
       "srd": true,
       "className": "Ranger",
@@ -837,7 +818,7 @@
   "subclassFeature": [
     {
       "name": "Hunter",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -855,7 +836,7 @@
     },
     {
       "name": "Horde Breaker",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -870,7 +851,7 @@
     },
     {
       "name": "Hunter's Prey",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -903,7 +884,7 @@
     },
     {
       "name": "Colossus Slayer",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -918,7 +899,7 @@
     },
     {
       "name": "Giant Killer",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -933,7 +914,7 @@
     },
     {
       "name": "Defensive Tactics",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -966,7 +947,7 @@
     },
     {
       "name": "Escape the Horde",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -981,7 +962,7 @@
     },
     {
       "name": "Multiattack Defense",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -996,7 +977,7 @@
     },
     {
       "name": "Steel Will",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -1011,7 +992,7 @@
     },
     {
       "name": "Multiattack",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -1040,7 +1021,7 @@
     },
     {
       "name": "Volley",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -1055,7 +1036,7 @@
     },
     {
       "name": "Whirlwind Attack",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -1070,7 +1051,7 @@
     },
     {
       "name": "Evasion",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -1085,7 +1066,7 @@
     },
     {
       "name": "Stand Against the Tide",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -1100,7 +1081,7 @@
     },
     {
       "name": "Superior Hunter's Defense",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",
@@ -1133,7 +1114,7 @@
     },
     {
       "name": "Uncanny Dodge",
-      "source": "PHB",
+      "source": "SRD",
       "page": 93,
       "srd": true,
       "className": "Ranger",

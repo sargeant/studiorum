@@ -1,0 +1,297 @@
+"""
+Typed entry models to replace dict[str, Any] patterns.
+
+This module provides specific Pydantic models for different types of entries
+that appear in 5e content, replacing the generic dict[str, Any] pattern
+with type-safe, validated structures.
+"""
+
+from typing import Annotated, Any, Literal, Union
+
+from pydantic import BaseModel, ConfigDict, Discriminator, Field, field_validator
+
+
+class BaseEntry(BaseModel):
+    """Base class for all entry types."""
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class TextEntry(BaseEntry):
+    """Simple text entry."""
+
+    type: Literal["text"] = "text"
+    text: str = Field(..., description="The text content")
+
+
+class ActionEntry(BaseEntry):
+    """Action entry with attack and damage information."""
+
+    type: Literal["action"] = "action"
+    name: str = Field(..., description="Name of the action")
+    attack: dict[str, Any] | None = Field(None, description="Attack details")
+    damage: dict[str, Any] | None = Field(None, description="Damage details")
+    description: str | None = Field(None, description="Action description")
+
+
+class TableEntry(BaseEntry):
+    """Table entry with headers and rows."""
+
+    type: Literal["table"] = "table"
+    caption: str | None = Field(None, description="Table caption")
+    colLabels: list[str] | None = Field(None, description="Column headers")
+    colStyles: list[str] | None = Field(None, description="Column styles")
+    rows: list[list[str | dict[str, Any] | int]] = Field(
+        default_factory=list, description="Table rows"
+    )
+    footnotes: list[str] | None = Field(None, description="Table footnotes")
+
+
+class ListEntry(BaseEntry):
+    """List entry with items and style."""
+
+    type: Literal["list"] = "list"
+    name: str | None = Field(None, description="List name/title")
+    style: str | None = Field(
+        None, description="List style (e.g., list, unordered, list-hang-notitle)"
+    )
+    items: list[str | dict[str, Any]] = Field(
+        default_factory=list, description="List items"
+    )
+    columns: int | None = Field(None, description="Number of columns for list display")
+
+
+class InsetEntry(BaseEntry):
+    """Inset/sidebar entry with contained content."""
+
+    type: Literal["inset"] = "inset"
+    name: str | None = Field(None, description="Inset title")
+    source: str | None = Field(None, description="Source book reference")
+    page: int | None = Field(None, description="Page number reference")
+    entries: list[str | dict[str, Any]] = Field(
+        default_factory=list, description="Inset content"
+    )
+
+
+class EntriesEntry(BaseEntry):
+    """Container entry with nested entries."""
+
+    type: Literal["entries"] = "entries"
+    name: str | None = Field(None, description="Section name")
+    source: str | None = Field(None, description="Source reference")
+    page: int | None = Field(None, description="Page number reference")
+    entries: list[str | dict[str, Any]] = Field(
+        default_factory=list, description="Nested entries"
+    )
+
+
+class OptionsEntry(BaseEntry):
+    """Options entry for choices."""
+
+    type: Literal["options"] = "options"
+    count: int | None = Field(None, description="Number of options to choose")
+    entries: list[str | dict[str, Any]] = Field(
+        default_factory=list, description="Available options"
+    )
+
+
+class VariantEntry(BaseEntry):
+    """Variant rule entry."""
+
+    type: Literal["variant"] = "variant"
+    name: str = Field(..., description="Variant name")
+    entries: list[str | dict[str, Any]] = Field(
+        default_factory=list, description="Variant description"
+    )
+    source: str | None = Field(None, description="Variant source")
+
+
+class QuoteEntry(BaseEntry):
+    """Quote or flavor text entry."""
+
+    type: Literal["quote"] = "quote"
+    entries: list[str] = Field(default_factory=list, description="Quote text")
+    by: str | None = Field(None, description="Quote attribution")
+
+
+class ImageEntry(BaseEntry):
+    """Image entry."""
+
+    type: Literal["image"] = "image"
+    href: dict[str, str] | None = Field(None, description="Image reference")
+    title: str | None = Field(None, description="Image title")
+    altText: str | None = Field(None, description="Image alt text")
+    credit: str | None = Field(None, description="Image credit/attribution")
+
+
+class GalleryEntry(BaseEntry):
+    """Gallery entry for multiple images with layout control."""
+
+    type: Literal["gallery"] = "gallery"
+    images: list[dict[str, Any]] = Field(
+        default_factory=list, description="List of image entries in the gallery"
+    )
+    layout: str | None = Field(
+        None, description="Gallery layout: grid, showcase, sequential, comparison"
+    )
+    caption: str | None = Field(None, description="Overall gallery caption")
+    title: str | None = Field(None, description="Gallery title")
+    columns: int | None = Field(
+        None, ge=1, le=6, description="Number of columns for grid layouts"
+    )
+    maxWidth: str | None = Field(
+        None, description="Maximum width specification for the gallery"
+    )
+
+
+class ItemEntry(BaseEntry):
+    """Item reference entry."""
+
+    type: Literal["item"] = "item"
+    name: str = Field(..., description="Item name")
+    source: str | None = Field(None, description="Item source")
+
+
+class SpellEntry(BaseEntry):
+    """Spell reference entry."""
+
+    type: Literal["spell"] = "spell"
+    name: str = Field(..., description="Spell name")
+    source: str | None = Field(None, description="Spell source")
+
+
+class CreatureEntry(BaseEntry):
+    """Creature reference entry."""
+
+    type: Literal["creature"] = "creature"
+    name: str = Field(..., description="Creature name")
+    source: str | None = Field(None, description="Creature source")
+
+
+class GenericEntry(BaseEntry):
+    """Fallback for unknown entry types."""
+
+    type: str = Field(..., description="Entry type")
+
+    # Allow extra fields for unknown entry types
+    model_config = ConfigDict(extra="allow")
+
+    @field_validator("type")
+    @classmethod
+    def validate_type_not_known(cls, v: str) -> str:
+        """Warn about unknown entry types."""
+        known_types = {
+            "text",
+            "action",
+            "table",
+            "list",
+            "inset",
+            "entries",
+            "options",
+            "variant",
+            "quote",
+            "image",
+            "item",
+            "spell",
+            "creature",
+        }
+        if v in known_types:
+            raise ValueError(
+                f"Use specific entry class for type '{v}' instead of GenericEntry"
+            )
+        return v
+
+
+# Discriminated union for entry types that have a 'type' field with Literal values
+# This enables efficient validation by checking the discriminator field first
+DiscriminatedEntry = Annotated[
+    TableEntry
+    | ActionEntry
+    | ListEntry
+    | InsetEntry
+    | EntriesEntry
+    | OptionsEntry
+    | VariantEntry
+    | QuoteEntry
+    | ImageEntry
+    | ItemEntry
+    | SpellEntry
+    | CreatureEntry
+    | TextEntry,
+    Field(discriminator="type"),
+]
+
+# Full Entry type includes discriminated entries, generic fallback, and plain strings
+# Order matters: try discriminated first, then generic, then string
+Entry = str | DiscriminatedEntry | GenericEntry
+
+
+def create_entry(data: str | dict[str, Any]) -> Entry:
+    """
+    Factory function to create the appropriate entry type from data.
+
+    Args:
+        data: Either a string (for simple text) or dict with type information
+
+    Returns:
+        Appropriate Entry subclass instance
+
+    Raises:
+        ValueError: If data format is invalid
+    """
+    if isinstance(data, str):
+        return data
+
+    if not isinstance(data, dict):
+        raise ValueError(f"Entry data must be str or dict, got {type(data)}")
+
+    entry_type = data.get("type")
+    if not entry_type:
+        raise ValueError("Entry dict must have 'type' field")
+
+    # Map entry types to their classes - handle each case explicitly for proper typing
+    if entry_type == "text":
+        return TextEntry.model_validate(data)
+    elif entry_type == "action":
+        return ActionEntry.model_validate(data)
+    elif entry_type == "table":
+        return TableEntry.model_validate(data)
+    elif entry_type == "list":
+        return ListEntry.model_validate(data)
+    elif entry_type == "inset":
+        return InsetEntry.model_validate(data)
+    elif entry_type == "entries":
+        return EntriesEntry.model_validate(data)
+    elif entry_type == "options":
+        return OptionsEntry.model_validate(data)
+    elif entry_type == "variant":
+        return VariantEntry.model_validate(data)
+    elif entry_type == "quote":
+        return QuoteEntry.model_validate(data)
+    elif entry_type == "image":
+        return ImageEntry.model_validate(data)
+    elif entry_type == "item":
+        return ItemEntry.model_validate(data)
+    elif entry_type == "spell":
+        return SpellEntry.model_validate(data)
+    elif entry_type == "creature":
+        return CreatureEntry.model_validate(data)
+    else:
+        # Use GenericEntry for unknown types
+        return GenericEntry.model_validate(data)
+
+
+def validate_entries(entries: list[str | dict[str, Any]]) -> list[Entry]:
+    """
+    Validate a list of entry data and convert to typed Entry objects.
+
+    Args:
+        entries: List of entry data (strings or dicts)
+
+    Returns:
+        List of validated Entry objects
+
+    Raises:
+        ValueError: If any entry is invalid
+    """
+    return [create_entry(entry) for entry in entries]

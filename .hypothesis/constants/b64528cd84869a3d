@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/layout/integration.py
-# hypothesis_version: 6.136.7
-
-['DndReadAloud', 'DndSidebar', 'FULL_WIDTH_BOTTOM', 'adventure', 'allow_float', 'avoid_column_break', 'balance_columns', 'class', 'config', 'creature', 'default_columns', 'emphasis_level', 'emphasis_style', 'enabled', 'float', 'float_position', 'group_with_next', 'hints', 'item', 'layout', 'layout_preferences', 'layout_strategy', 'max_floats_per_page', 'medium', 'multi_column', 'race', 'sidebar', 'sidebar_position', 'sidebar_type', 'span_columns', 'spell', 'strategy', 'strong', 'typography', 'use_drop_cap', 'use_drop_caps', 'use_sidebar']

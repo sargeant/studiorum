@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/models/vehicles.py
-# hypothesis_version: 6.136.7
-
-['Armor class value', 'Armor source', 'Base armor class', 'Base hit points', 'Base speed', 'Damage threshold', 'Hit points', 'Passenger capacity', 'Required crew size', 'Speed condition', 'Speed value', 'Type of vehicle', 'Vehicle description', 'Vehicle dimensions', 'Vehicle size', 'carryingCapacity', 'from', 'vehAc', 'vehHp', 'vehSpeed', 'vehicleType']

@@ -6,25 +6,39 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from dnd5e.core.models.books import Book  # type: ignore
-from dnd5e.core.models.chapter import Chapter  # type: ignore
-from dnd5e.core.models.content import Source  # type: ignore
-from dnd5e.renderers.base.context import RenderContext  # type: ignore
-from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
+from studiorum.core.models.books import Book  # type: ignore
+from studiorum.core.models.chapter import Chapter  # type: ignore
+from studiorum.core.models.content import Source  # type: ignore
+from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: ignore
+from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 
 def compile_document_to_pdf_sync(renderer, books, context):
     """Synchronous wrapper for renderer.compile_document_to_pdf() for testing."""
     import asyncio
 
-    return asyncio.run(renderer.compile_document_to_pdf(books, context=context))
+    try:
+        # Check if we're already in an event loop
+        asyncio.get_running_loop()
+        # If we get here, we're in an async context - need to handle differently
+        import pytest
+
+        pytest.skip("Cannot run sync compilation test from async context")
+    except RuntimeError:
+        # No event loop, safe to use asyncio.run()
+        return asyncio.run(renderer.compile_document_to_pdf(books, context=context))
 
 
+@pytest.mark.rendering
 class TestBookRenderingIntegration:
     """Integration tests for book rendering through the EntryRenderer system."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         config = {"show_progress": False, "compilation_timeout": 10, "max_passes": 2}
         self.renderer = LaTeXDocumentRenderer(config)
 
@@ -40,9 +54,9 @@ class TestBookRenderingIntegration:
             Chapter(
                 name="Introduction",
                 ordinal={"type": "chapter", "identifier": 1},
-                headers=["What Is D&D?", "How to Play"],
+                headers=["What Is 5e?", "How to Play"],
                 entries=[
-                    "Welcome to Dungeons & Dragons!",
+                    "Welcome to 5e!",
                     "This game is about storytelling in worlds of sword and sorcery.",
                 ],
             ),
@@ -130,7 +144,9 @@ class TestBookRenderingIntegration:
 
     def test_simple_book_rendering_structure(self, simple_book: Any) -> None:
         """Test that simple book renders with correct structure."""
-        context = RenderContext(title="Test Book", include_toc=True)
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Test Book", "include_toc": True}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -155,7 +171,10 @@ class TestBookRenderingIntegration:
         self, complex_book: Any
     ) -> None:
         """Test complex book with nested sections and subsections."""
-        context = RenderContext(title="Complex Book Test", include_toc=True)
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"title": "Complex Book Test", "include_toc": True},
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -181,7 +200,9 @@ class TestBookRenderingIntegration:
 
     def test_book_chapter_numbering_in_output(self, complex_book: Any) -> None:
         """Test that chapter numbering is correctly rendered."""
-        context = RenderContext(title="Chapter Numbering Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Chapter Numbering Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -197,7 +218,10 @@ class TestBookRenderingIntegration:
 
     def test_book_metadata_inclusion(self, complex_book: Any) -> None:
         """Test that book metadata is properly included in rendering."""
-        context = RenderContext(title="Metadata Test", author="Test Author")
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"title": "Metadata Test", "author": "Test Author"},
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -226,13 +250,15 @@ class TestBookRenderingIntegration:
                 Chapter(
                     name="Running the Game",
                     ordinal={"type": "chapter", "identifier": 1},
-                    entries=["This chapter explains how to run D&D."],
+                    entries=["This chapter explains how to run 5e."],
                 )
             ],
         )
 
         books = [simple_book, second_book]
-        context = RenderContext(title="Multiple Books Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Multiple Books Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -275,7 +301,9 @@ class TestBookRenderingIntegration:
             cover=None,
         )
 
-        context = RenderContext(title="Error Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Error Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -304,7 +332,9 @@ class TestBookRenderingIntegration:
             cover=None,
         )
 
-        context = RenderContext(title="Empty Book Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Empty Book Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -322,12 +352,14 @@ class TestBookRenderingIntegration:
 
     def test_book_compilation_integration(self, simple_book: Any) -> None:
         """Test full integration from book to PDF compilation."""
-        from dnd5e.renderers.latex.compilation_config import (  # type: ignore
+        from studiorum.latex_engine.config.compilation import (  # type: ignore
             CompilationResult,
             LaTeXEngine,
         )
 
-        context = RenderContext(title="Compilation Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Compilation Test"}
+        )
 
         # Mock successful compilation
         mock_result = CompilationResult(
@@ -371,11 +403,14 @@ class TestBookRenderingIntegration:
 
     def test_book_rendering_with_custom_context(self, simple_book: Any) -> None:
         """Test book rendering with custom render context options."""
-        context = RenderContext(
-            title="Custom Context Test",
-            author="Custom Author",
-            include_toc=True,
-            include_index=True,
+        context = RenderingContext(
+            output_format="latex",
+            metadata={
+                "title": "Custom Context Test",
+                "author": "Custom Author",
+                "include_toc": True,
+                "include_index": True,
+            },
         )
 
         with patch.object(
@@ -396,7 +431,9 @@ class TestBookRenderingIntegration:
         """Test book rendering performance for baseline measurements."""
         import time
 
-        context = RenderContext(title="Performance Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Performance Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -415,40 +452,52 @@ class TestBookRenderingIntegration:
         assert isinstance(result, str)
         assert len(result) > 500  # Substantial LaTeX content
 
+    @pytest.mark.xdist_incompatible
     def test_book_rendering_memory_usage(self, complex_book: Any) -> None:
-        """Test that book rendering doesn't leak memory excessively."""
+        """Test that book rendering doesn't leak memory after initialization."""
         import gc
 
-        context = RenderContext(title="Memory Test")
-
-        # Force garbage collection before test
-        gc.collect()
-        initial_objects = len(gc.get_objects())
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Memory Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
             "check_dnd_template_availability",
             return_value=True,
         ):
-            # Render the same book multiple times
+            # Do first render to trigger service container initialization
+            gc.collect()
+            first_result = self.renderer.render_document([complex_book], context)
+            assert isinstance(first_result, str)
+
+            # Now measure growth from subsequent renders
+            gc.collect()
+            after_initialization = len(gc.get_objects())
+
+            # Render multiple times and check for memory leaks
             for _ in range(5):
                 result = self.renderer.render_document([complex_book], context)
                 assert isinstance(result, str)
 
-        # Force garbage collection after test
-        gc.collect()
-        final_objects = len(gc.get_objects())
+            # Force garbage collection after test
+            gc.collect()
+            final_objects = len(gc.get_objects())
 
-        # Object count shouldn't grow excessively (some growth is expected)
-        object_growth = final_objects - initial_objects
-        assert object_growth < 1000  # Reasonable threshold for memory usage
+            # Check growth after initialization (should be minimal)
+            post_init_growth = final_objects - after_initialization
+            assert post_init_growth < 100  # Much tighter threshold after initialization
 
 
+@pytest.mark.rendering
 class TestBookRenderingEntryProcessing:
     """Tests for book entry processing through EntryRenderer system."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         config = {"show_progress": False}
         self.renderer = LaTeXDocumentRenderer(config)
 
@@ -511,7 +560,9 @@ class TestBookRenderingEntryProcessing:
 
     def test_nested_entry_processing(self, entry_rich_book: Any) -> None:
         """Test that nested entries are properly processed."""
-        context = RenderContext(title="Nested Entry Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Nested Entry Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -530,7 +581,9 @@ class TestBookRenderingEntryProcessing:
 
     def test_table_entry_processing(self, entry_rich_book: Any) -> None:
         """Test that table entries are processed correctly."""
-        context = RenderContext(title="Table Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Table Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -545,7 +598,9 @@ class TestBookRenderingEntryProcessing:
 
     def test_list_entry_processing(self, entry_rich_book: Any) -> None:
         """Test that list entries are processed correctly."""
-        context = RenderContext(title="List Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "List Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -559,7 +614,9 @@ class TestBookRenderingEntryProcessing:
 
     def test_quote_entry_processing(self, entry_rich_book: Any) -> None:
         """Test that quote entries are processed correctly."""
-        context = RenderContext(title="Quote Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Quote Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,
@@ -598,7 +655,9 @@ class TestBookRenderingEntryProcessing:
             author=None,
             cover=None,
         )
-        context = RenderContext(title="Unknown Entry Test")
+        context = RenderingContext(
+            output_format="latex", metadata={"title": "Unknown Entry Test"}
+        )
 
         with patch.object(
             self.renderer.template_engine,

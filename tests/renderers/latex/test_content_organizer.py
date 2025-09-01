@@ -3,12 +3,17 @@
 from typing import Any
 from unittest.mock import patch
 
-from dnd5e.core.models.content import BaseContent, Source  # type: ignore
-from dnd5e.core.models.document_metadata import (  # type: ignore
+import pytest
+
+from studiorum.core.models.content import BaseContent, Source  # type: ignore
+from studiorum.core.models.document_metadata import (  # type: ignore
     DocumentType,
     SectionLevel,
 )
-from dnd5e.renderers.latex.content_organizer import ContentOrganizer  # type: ignore
+from studiorum.latex_engine.core.content_organizer import (
+    ContentOrganizer,  # type: ignore
+)
+from tests.test_helpers import reset_test_environment
 
 
 class MockSpell(BaseContent):
@@ -47,11 +52,15 @@ class MockContent(BaseContent):
         self._content_type = content_type
 
 
+@pytest.mark.rendering
 class TestContentOrganizer:
     """Tests for ContentOrganizer class."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.organizer = ContentOrganizer(DocumentType.BOOK)
 
     def test_organizer_initialization(self) -> None:
@@ -178,22 +187,28 @@ class TestContentOrganizer:
         from unittest.mock import patch
 
         with patch(
-            "dnd5e.core.models.content.ContentType.from_content"
+            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
                 if isinstance(content, MockSpell):
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
-                    return ContentType.SPELL
+                    return ContentType("spell")
                 elif isinstance(content, MockCreature):
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
-                    return ContentType.CREATURE
+                    return ContentType("creature")
                 elif isinstance(content, MockItem):
-                    from dnd5e.core.models.content import ContentType  # type: ignore
+                    from studiorum.core.models.content import (
+                        ContentType,  # type: ignore
+                    )
 
-                    return ContentType.ITEM
+                    return ContentType("item")
                 else:
                     raise ValueError("Unknown type")
 
@@ -230,11 +245,11 @@ class TestContentOrganizer:
         ]
 
         with patch(
-            "dnd5e.core.models.content.ContentType.from_content"
+            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
-                from dnd5e.core.models.content import ContentType  # type: ignore
+                from studiorum.core.models.content import ContentType  # type: ignore
 
                 return ContentType(content._content_type)
 
@@ -408,7 +423,7 @@ class TestContentOrganizer:
 
     def test_create_table_of_contents_data(self) -> None:
         """Test creation of table of contents data."""
-        from dnd5e.core.models.document_metadata import (  # type: ignore
+        from studiorum.core.models.document_metadata import (  # type: ignore
             ContentSection,
             SectionLevel,
         )
@@ -453,6 +468,7 @@ class TestContentOrganizer:
         assert toc_data[2]["level"] == 1
 
 
+@pytest.mark.rendering
 class TestContentOrganizerIntegration:
     """Integration tests for content organizer."""
 
@@ -470,20 +486,20 @@ class TestContentOrganizerIntegration:
         ]
 
         with patch(
-            "dnd5e.core.models.content.ContentType.from_content"
+            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
         ) as mock_from_content:
 
             def side_effect(content: Any) -> Any:
-                from dnd5e.core.models.content import ContentType  # type: ignore
+                from studiorum.core.models.content import ContentType  # type: ignore
 
                 if isinstance(content, MockSpell):
-                    return ContentType.SPELL
+                    return ContentType("spell")
                 elif isinstance(content, MockCreature):
-                    return ContentType.CREATURE
+                    return ContentType("creature")
                 elif isinstance(content, MockItem):
-                    return ContentType.ITEM
+                    return ContentType("item")
                 else:
-                    return ContentType.FEAT
+                    return ContentType("feat")
 
             mock_from_content.side_effect = side_effect
 
@@ -518,11 +534,11 @@ class TestContentOrganizerIntegration:
         )
 
         with patch(
-            "dnd5e.core.models.content.ContentType.from_content"
+            "studiorum.latex_engine.core.content_organizer.ContentType.from_content"
         ) as mock_from_content:
-            from dnd5e.core.models.content import ContentType  # type: ignore
+            from studiorum.core.models.content import ContentType  # type: ignore
 
-            mock_from_content.return_value = ContentType.SPELL
+            mock_from_content.return_value = ContentType("spell")
 
             organized = organizer.organize_content(spells)
             sections = organizer.create_hierarchical_sections(organized)

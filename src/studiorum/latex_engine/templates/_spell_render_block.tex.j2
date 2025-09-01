@@ -1,0 +1,21 @@
+% Shared spell rendering block for use in both spellbook and spell_entry templates
+% This macro can be included by both templates to ensure consistent rendering
+
+<@ macro render_spell(spell, template_service=template_service, content_tracker=content_tracker) @>
+\DndSpellHeader%
+  {<# spell.name | latex_escape #>}
+  {<# spell.get_level_text() | latex_escape #>}
+  {<# template_service.process_field_text(spell.get_casting_time_text()) | safe #>}
+  {<# spell.get_range_text() | latex_escape #>}
+  {<# spell.get_components_text() | latex_escape #>}
+  {<# spell.get_duration_text() | latex_escape #>}
+
+<# template_service.render_entry_description(spell, content_tracker) | safe #>
+
+<@ if spell.higher_level @>
+<@ for hl_entry in spell.higher_level @>
+
+\paragraph{<# hl_entry.name | latex_escape #>} <# template_service.render_entry_content_only(hl_entry, content_tracker) | safe #>
+<@ endfor @>
+<@ endif @>
+<@ endmacro @>

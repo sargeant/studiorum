@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/template_engine.py
-# hypothesis_version: 6.136.7
-
-[' \\\\ ', '#>', '*.tex.j2', '--#>', '.tex.j2', '1st-level', '2nd-level', '3rd-level', '<#', '<#--', '<@', '@>', 'Cantrip', '\\\\begin\\{([^}]+)\\}', '\\\\end\\{([^}]+)\\}', '\\\\end{\\1}\\n', '\\n\\\\begin{\\1}', '\\n\\n\\n+', '\\n\\s*\\n\\s*\\n', 'background', 'book', 'class_options', 'config', 'content_type', 'debug', 'dnd_ability_modifier', 'dnd_challenge_rating', 'dnd_spell_level', 'document_class', 'enable_background', 'enable_index', 'fancy_headers', 'font_scheme', 'font_size', 'high_contrast', 'justified_text', 'latex_available', 'latex_bold', 'latex_escape', 'latex_italic', 'latex_newlines', 'latex_underline', 'latex_verbatim', 'latex_version', 'missing_packages', 'packages_available', 'paper_size', 'show_index', 'show_toc', 'system_info', 'template_available', 'templates_dir', 'two_column', 'use_dnd_template']

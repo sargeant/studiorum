@@ -6,8 +6,8 @@ from unittest.mock import Mock
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.core.models.content import BaseContent, ContentType, Source
-from dnd5e.core.text.tag_types import (
+from studiorum.core.models.content import BaseContent, ContentType, Source
+from studiorum.core.text.tag_types import (
     ContentReference,
     FormattingNode,
     FormatType,
@@ -47,9 +47,9 @@ class TestContentReference:
 
     def test_content_reference_creation_minimal(self) -> None:
         """Test creating ContentReference with minimal required fields."""
-        ref = ContentReference(content_type=ContentType.CREATURE, name="Dragon")
+        ref = ContentReference(content_type=ContentType("creature"), name="Dragon")
 
-        assert ref.content_type == ContentType.CREATURE
+        assert ref.content_type == ContentType("creature")
         assert ref.name == "Dragon"
         assert ref.source is None
         assert ref.display_text is None
@@ -59,7 +59,7 @@ class TestContentReference:
     def test_content_reference_creation_full(self, mock_content: BaseContent) -> None:
         """Test creating ContentReference with all fields."""
         ref = ContentReference(
-            content_type=ContentType.SPELL,
+            content_type=ContentType("spell"),
             name="Fireball",
             source="PHB",
             display_text="powerful fireball",
@@ -67,7 +67,7 @@ class TestContentReference:
             resolved_content=mock_content,
         )
 
-        assert ref.content_type == ContentType.SPELL
+        assert ref.content_type == ContentType("spell")
         assert ref.name == "Fireball"
         assert ref.source == "PHB"
         assert ref.display_text == "powerful fireball"
@@ -77,52 +77,52 @@ class TestContentReference:
     def test_content_reference_name_validation(self) -> None:
         """Test name field validation."""
         # Valid name
-        ref = ContentReference(content_type=ContentType.CREATURE, name="Dragon")
+        ref = ContentReference(content_type=ContentType("creature"), name="Dragon")
         assert ref.name == "Dragon"
 
         # Name with whitespace gets stripped
-        ref = ContentReference(content_type=ContentType.CREATURE, name="  Dragon  ")
+        ref = ContentReference(content_type=ContentType("creature"), name="  Dragon  ")
         assert ref.name == "Dragon"
 
         # Empty name should fail due to min_length constraint
         with pytest.raises(ValidationError) as exc_info:
-            ContentReference(content_type=ContentType.CREATURE, name="")
+            ContentReference(content_type=ContentType("creature"), name="")
         assert "at least 1 character" in str(exc_info.value)
 
         # Whitespace-only name gets stripped to empty but doesn't fail validation
         # (the min_length constraint applies before the validator runs)
-        ref = ContentReference(content_type=ContentType.CREATURE, name="   ")
+        ref = ContentReference(content_type=ContentType("creature"), name="   ")
         assert ref.name == ""  # Gets stripped to empty string
 
     def test_content_reference_source_validation(self) -> None:
         """Test source field validation."""
         # Valid source
         ref = ContentReference(
-            content_type=ContentType.CREATURE, name="Dragon", source="PHB"
+            content_type=ContentType("creature"), name="Dragon", source="PHB"
         )
         assert ref.source == "PHB"
 
         # Source with whitespace gets stripped
         ref = ContentReference(
-            content_type=ContentType.CREATURE, name="Dragon", source="  PHB  "
+            content_type=ContentType("creature"), name="Dragon", source="  PHB  "
         )
         assert ref.source == "PHB"
 
         # Empty source becomes None
         ref = ContentReference(
-            content_type=ContentType.CREATURE, name="Dragon", source=""
+            content_type=ContentType("creature"), name="Dragon", source=""
         )
         assert ref.source is None
 
         # Whitespace-only source becomes None
         ref = ContentReference(
-            content_type=ContentType.CREATURE, name="Dragon", source="   "
+            content_type=ContentType("creature"), name="Dragon", source="   "
         )
         assert ref.source is None
 
         # None source remains None
         ref = ContentReference(
-            content_type=ContentType.CREATURE, name="Dragon", source=None
+            content_type=ContentType("creature"), name="Dragon", source=None
         )
         assert ref.source is None
 
@@ -130,7 +130,7 @@ class TestContentReference:
         """Test display_text field validation."""
         # Valid display text
         ref = ContentReference(
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             name="Dragon",
             display_text="mighty dragon",
         )
@@ -138,7 +138,7 @@ class TestContentReference:
 
         # Display text with whitespace gets stripped
         ref = ContentReference(
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             name="Dragon",
             display_text="  mighty dragon  ",
         )
@@ -146,13 +146,13 @@ class TestContentReference:
 
         # Empty display text becomes None
         ref = ContentReference(
-            content_type=ContentType.CREATURE, name="Dragon", display_text=""
+            content_type=ContentType("creature"), name="Dragon", display_text=""
         )
         assert ref.display_text is None
 
         # Whitespace-only display text becomes None
         ref = ContentReference(
-            content_type=ContentType.CREATURE, name="Dragon", display_text="   "
+            content_type=ContentType("creature"), name="Dragon", display_text="   "
         )
         assert ref.display_text is None
 
@@ -161,12 +161,12 @@ class TestContentReference:
     ) -> None:
         """Test is_resolved property."""
         # Unresolved reference
-        ref = ContentReference(content_type=ContentType.CREATURE, name="Dragon")
+        ref = ContentReference(content_type=ContentType("creature"), name="Dragon")
         assert not ref.is_resolved
 
         # Resolved reference
         ref = ContentReference(
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             name="Dragon",
             resolved_content=mock_content,
         )
@@ -175,12 +175,12 @@ class TestContentReference:
     def test_content_reference_effective_name_property(self) -> None:
         """Test effective_name property."""
         # No display text - uses name
-        ref = ContentReference(content_type=ContentType.CREATURE, name="Dragon")
+        ref = ContentReference(content_type=ContentType("creature"), name="Dragon")
         assert ref.effective_name == "Dragon"
 
         # With display text - uses display text
         ref = ContentReference(
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             name="Dragon",
             display_text="mighty dragon",
         )
@@ -189,12 +189,12 @@ class TestContentReference:
     def test_content_reference_str_method(self, mock_content: BaseContent) -> None:
         """Test __str__ method."""
         # Unresolved reference
-        ref = ContentReference(content_type=ContentType.CREATURE, name="Dragon")
+        ref = ContentReference(content_type=ContentType("creature"), name="Dragon")
         assert str(ref) == "Dragon"
 
         # Unresolved with display text
         ref = ContentReference(
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             name="Dragon",
             display_text="mighty dragon",
         )
@@ -202,7 +202,7 @@ class TestContentReference:
 
         # Resolved reference
         ref = ContentReference(
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             name="Dragon",
             resolved_content=mock_content,
         )
@@ -210,13 +210,13 @@ class TestContentReference:
 
     def test_content_reference_frozen_config(self) -> None:
         """Test that ContentReference is frozen (immutable)."""
-        ref = ContentReference(content_type=ContentType.CREATURE, name="Dragon")
+        ref = ContentReference(content_type=ContentType("creature"), name="Dragon")
 
         with pytest.raises(ValidationError):
             ref.name = "New Name"
 
         with pytest.raises(ValidationError):
-            ref.content_type = ContentType.SPELL
+            ref.content_type = ContentType("spell")
 
     def test_content_reference_arbitrary_types_allowed(
         self, mock_content: BaseContent
@@ -224,7 +224,7 @@ class TestContentReference:
         """Test that arbitrary types are allowed for resolved_content."""
         # Should accept mock objects or other complex types
         ref = ContentReference(
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             name="Dragon",
             resolved_content=mock_content,
         )
@@ -440,7 +440,7 @@ class TestTagContext:
 
     def test_tag_context_creation(self) -> None:
         """Test creating TagContext."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         mock_omnidexer = Mock(spec=Omnidexer)
         context = TagContext(omnidexer=mock_omnidexer)
@@ -449,51 +449,53 @@ class TestTagContext:
 
     def test_tag_context_find_content_method(self) -> None:
         """Test find_content method."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         mock_omnidexer = Mock(spec=Omnidexer)
         mock_content = Mock(spec=BaseContent)
         mock_omnidexer.find.return_value = mock_content
 
         context = TagContext(omnidexer=mock_omnidexer)
-        result = context.find_content(ContentType.CREATURE, "Dragon", "MM")
+        result = context.find_content(ContentType("creature"), "Dragon", "MM")
 
         assert result == mock_content
         mock_omnidexer.find.assert_called_once_with(
-            ContentType.CREATURE, "Dragon", "MM"
+            ContentType("creature"), "Dragon", "MM"
         )
 
     def test_tag_context_find_content_without_source(self) -> None:
         """Test find_content method without source."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         mock_omnidexer = Mock(spec=Omnidexer)
         mock_content = Mock(spec=BaseContent)
         mock_omnidexer.find.return_value = mock_content
 
         context = TagContext(omnidexer=mock_omnidexer)
-        result = context.find_content(ContentType.CREATURE, "Dragon")
+        result = context.find_content(ContentType("creature"), "Dragon")
 
         assert result == mock_content
         mock_omnidexer.find.assert_called_once_with(
-            ContentType.CREATURE, "Dragon", None
+            ContentType("creature"), "Dragon", None
         )
 
     def test_tag_context_find_content_returns_none(self) -> None:
         """Test find_content method when content not found."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         mock_omnidexer = Mock(spec=Omnidexer)
         mock_omnidexer.find.return_value = None
 
         context = TagContext(omnidexer=mock_omnidexer)
-        result = context.find_content(ContentType.CREATURE, "NonexistentCreature", "MM")
+        result = context.find_content(
+            ContentType("creature"), "NonexistentCreature", "MM"
+        )
 
         assert result is None
 
     def test_tag_context_mutable_config(self) -> None:
         """Test that TagContext allows field updates (needed for layout engine)."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         mock_omnidexer = Mock(spec=Omnidexer)
         context = TagContext(omnidexer=mock_omnidexer)
@@ -505,7 +507,7 @@ class TestTagContext:
 
     def test_tag_context_arbitrary_types_allowed(self) -> None:
         """Test that arbitrary types are allowed for omnidexer."""
-        from dnd5e.core.loaders.omnidexer import Omnidexer
+        from studiorum.core.loaders.omnidexer import Omnidexer
 
         # For this test, we need to create a proper mock that passes validation
         mock_omnidexer = Mock(spec=Omnidexer)
@@ -520,7 +522,7 @@ class TestTagResolutionResult:
         """Test TagResolutionResult with ContentReference."""
         mock_content = Mock(spec=BaseContent)
         ref = ContentReference(
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             name="Dragon",
             resolved_content=mock_content,
         )
@@ -566,7 +568,7 @@ class TestEdgeCases:
         long_page = "D" * 50
 
         ref = ContentReference(
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             name=long_name,
             source=long_source,
             display_text=long_display_text,
@@ -596,7 +598,7 @@ class TestEdgeCases:
         """Test handling of Unicode characters."""
         # Unicode in content reference
         ref = ContentReference(
-            content_type=ContentType.CREATURE,
+            content_type=ContentType("creature"),
             name="Drágón",
             source="PH🅱",
             display_text="mágic drágón",
@@ -628,7 +630,7 @@ class TestEdgeCases:
 
         for whitespace_text in whitespace_types:
             ref = ContentReference(
-                content_type=ContentType.CREATURE,
+                content_type=ContentType("creature"),
                 name=whitespace_text,
                 source=whitespace_text,
                 display_text=whitespace_text,

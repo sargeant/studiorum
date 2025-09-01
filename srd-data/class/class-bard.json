@@ -7,12 +7,9 @@
   "class": [
     {
       "name": "Bard",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
-      "reprintedAs": [
-        "Bard|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -549,14 +546,12 @@
         "Spellcasting|Bard||1",
         "Jack of All Trades|Bard||2",
         "Song of Rest (d6)|Bard||2",
-        "Magical Inspiration|Bard||2|TCE",
         {
           "classFeature": "Bard College|Bard||3",
           "gainSubclassFeature": true
         },
         "Expertise|Bard||3",
         "Ability Score Improvement|Bard||4",
-        "Bardic Versatility|Bard||4|TCE",
         "Bardic Inspiration (d8)|Bard||5",
         "Font of Inspiration|Bard||5",
         "Countercharm|Bard||6",
@@ -583,23 +578,18 @@
         "Ability Score Improvement|Bard||19",
         "Superior Inspiration|Bard||20"
       ],
-      "subclassTitle": "Bard College",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Bard College"
     }
   ],
   "subclass": [
     {
       "name": "College of Lore",
       "shortName": "Lore",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Bard",
       "classSource": "PHB",
       "page": 54,
       "srd": true,
-      "reprintedAs": [
-        "Lore|Bard|XPHB|XPHB"
-      ],
       "edition": "classic",
       "additionalSpells": [
         {
@@ -626,7 +616,7 @@
   "classFeature": [
     {
       "name": "Bardic Inspiration",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -641,7 +631,7 @@
     },
     {
       "name": "Spellcasting",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -712,7 +702,7 @@
     },
     {
       "name": "Jack of All Trades",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -724,7 +714,7 @@
     },
     {
       "name": "Song of Rest (d6)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -737,7 +727,7 @@
     },
     {
       "name": "Bard College",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -749,7 +739,7 @@
     },
     {
       "name": "Expertise",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -762,7 +752,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -775,7 +765,7 @@
     },
     {
       "name": "Bardic Inspiration (d8)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -787,7 +777,7 @@
     },
     {
       "name": "Font of Inspiration",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -799,7 +789,7 @@
     },
     {
       "name": "Bard College feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -811,7 +801,7 @@
     },
     {
       "name": "Countercharm",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -823,7 +813,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -836,7 +826,7 @@
     },
     {
       "name": "Song of Rest (d8)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -848,7 +838,7 @@
     },
     {
       "name": "Bardic Inspiration (d10)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -860,7 +850,7 @@
     },
     {
       "name": "Expertise",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -872,7 +862,7 @@
     },
     {
       "name": "Magical Secrets",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -886,7 +876,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -899,7 +889,7 @@
     },
     {
       "name": "Song of Rest (d10)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -911,7 +901,7 @@
     },
     {
       "name": "Bard College feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -923,7 +913,7 @@
     },
     {
       "name": "Magical Secrets",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -936,7 +926,7 @@
     },
     {
       "name": "Bardic Inspiration (d12)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -948,7 +938,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -961,7 +951,7 @@
     },
     {
       "name": "Song of Rest (d12)",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -973,7 +963,7 @@
     },
     {
       "name": "Magical Secrets",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -986,7 +976,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -999,7 +989,7 @@
     },
     {
       "name": "Superior Inspiration",
-      "source": "PHB",
+      "source": "SRD",
       "page": 51,
       "srd": true,
       "className": "Bard",
@@ -1013,7 +1003,7 @@
   "subclassFeature": [
     {
       "name": "College of Lore",
-      "source": "PHB",
+      "source": "SRD",
       "page": 54,
       "srd": true,
       "className": "Bard",
@@ -1037,7 +1027,7 @@
     },
     {
       "name": "Bonus Proficiencies",
-      "source": "PHB",
+      "source": "SRD",
       "page": 54,
       "srd": true,
       "className": "Bard",
@@ -1052,7 +1042,7 @@
     },
     {
       "name": "Cutting Words",
-      "source": "PHB",
+      "source": "SRD",
       "page": 54,
       "srd": true,
       "className": "Bard",
@@ -1067,7 +1057,7 @@
     },
     {
       "name": "Additional Magical Secrets",
-      "source": "PHB",
+      "source": "SRD",
       "page": 54,
       "srd": true,
       "className": "Bard",
@@ -1082,7 +1072,7 @@
     },
     {
       "name": "Peerless Skill",
-      "source": "PHB",
+      "source": "SRD",
       "page": 54,
       "srd": true,
       "className": "Bard",

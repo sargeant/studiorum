@@ -1,0 +1,155 @@
+% Base LaTeX template for D&D 5e documents using DND-5e-LaTeX-Template
+% This template provides the foundation for all D&D-style documents with structured content
+
+<#-- Build document class line with options --#>
+\documentclass[<# class_options | join(', ') #>]{<# document_class | default('dndbook') #>}
+
+<#-- Document configuration --#>
+<@ block document_packages @>
+% DND-5e-LaTeX-Template provides most styling automatically
+% Only include additional packages if needed
+
+<@ if use_custom_fonts @>
+% Custom font configuration (only if not using template defaults)
+\usepackage{fontspec}
+<@ if main_font @>
+\setmainfont{<# main_font #>}
+<@ endif @>
+<@ if sans_font @>
+\setsansfont{<# sans_font #>}
+<@ endif @>
+<@ if mono_font @>
+\setmonofont{<# mono_font #>}
+<@ endif @>
+<@ endif @>
+
+% Additional packages for enhanced functionality
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{makeidx}
+
+<@ if enable_index @>
+\makeindex
+<@ endif @>
+<@ endblock @>
+
+<#-- Document metadata --#>
+<@ block document_metadata @>
+<@ if metadata @>
+\title{<# metadata.title | latex_escape #>}
+<@ if metadata.subtitle @>
+\subtitle{<# metadata.subtitle | latex_escape #>}
+<@ endif @>
+<@ if metadata.authors @>
+\author{<# metadata.get_author_list() | latex_escape #>}
+<@ endif @>
+\date{<# metadata.get_formatted_date() | latex_escape #>}
+<@ endif @>
+<@ endblock @>
+
+<#-- Additional configuration --#>
+<@ block document_config @>
+% Disable automatic section numbering while preserving TOC entries
+\setcounter{secnumdepth}{-1}
+
+<@ if not justified_text @>
+% Disable text justification but preserve paragraph indentation
+\raggedright
+\raggedbottom
+% Restore paragraph indentation after \raggedright resets it
+\setlength{\parindent}{0.8em}
+<@ endif @>
+
+% Hyperlink configuration
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=black,
+    citecolor=black,
+    filecolor=black,
+    bookmarks=true,
+    bookmarksopen=true,
+    bookmarksnumbered=true,
+    <@ if title @>
+    pdftitle={<# title | latex_escape #>},
+    <@ endif @>
+    <@ if author @>
+    pdfauthor={<# author | latex_escape #>},
+    <@ endif @>
+    <@ if subject @>
+    pdfsubject={<# subject | latex_escape #>},
+    <@ else @>
+    pdfsubject={D&D 5e Content},
+    <@ endif @>
+    pdfkeywords={D&D, 5e, RPG, tabletop, <# keywords | default('') | latex_escape #>}
+}
+
+<@ if enable_line_numbers @>
+% Line numbers for debugging (optional)
+\usepackage{lineno}
+\linenumbers
+<@ endif @>
+<@ endblock @>
+
+<#-- Document structure --#>
+\begin{document}
+
+<@ block document_header @>
+<@ if use_frontmatter @>
+\frontmatter
+<@ endif @>
+
+<@ if show_title_page or (metadata and metadata.cover) @>
+% Title page
+\maketitle
+\thispagestyle{empty}
+<@ if use_frontmatter @>
+\clearpage
+<@ else @>
+\newpage
+<@ endif @>
+<@ endif @>
+<@ endblock @>
+
+<@ block table_of_contents @>
+<@ if show_toc or (metadata and metadata.include_toc) @>
+<@ if use_frontmatter @>
+% Table of Contents in frontmatter
+<@ endif @>
+\tableofcontents
+\clearpage
+<@ endif @>
+<@ endblock @>
+
+<@ block document_structure @>
+<@ if use_frontmatter @>
+\mainmatter
+<@ endif @>
+
+<#-- Structured content sections --#>
+<@ if sections @>
+<@ for section in sections @>
+<@ include 'section.tex.j2' @>
+<@ endfor @>
+<@ endif @>
+<@ endblock @>
+
+<@ block document_footer @>
+<@ if use_frontmatter and (show_index or (metadata and metadata.include_index)) @>
+\backmatter
+<@ endif @>
+
+<@ if show_index or (metadata and metadata.include_index) @>
+\printindex
+<@ endif @>
+
+<@ if metadata and metadata.include_bibliography @>
+% Bibliography would go here
+<@ endif @>
+
+<@ if metadata and metadata.include_glossary @>
+% Glossary would go here
+<@ endif @>
+<@ endblock @>
+
+\end{document}

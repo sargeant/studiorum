@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/indexer/latex_tag_handlers.py
-# hypothesis_version: 6.136.7
-
-[' (p. ', ', p. ', 'LaTeXRendererContext', '\\textbf{{{}}}', '\\textit{{{}}}', 'adventure', 'background', 'book', 'class', 'condition', 'creature', 'cross_ref_manager', 'display_text_nodes', 'expression', 'feat', 'filter', 'filter_expression', 'hyperlink_manager', 'item', 'latex_mode', 'name', 'page', 'race', 'scaledice', 'scaling', 'source', 'spell', '{}']

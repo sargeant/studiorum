@@ -6,9 +6,13 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.renderers.latex.template_engine import LaTeXTemplateEngine  # type: ignore
+from studiorum.latex_engine.core.template_engine import (
+    LaTeXTemplateEngine,  # type: ignore
+)
+from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestLaTeXTemplateEngine:
     """Test cases for LaTeX template engine."""
 
@@ -18,7 +22,11 @@ class TestLaTeXTemplateEngine:
 
         assert engine.config == {}
         assert engine.debug is False
-        assert engine.templates_dir == Path("src/dnd5e/renderers/latex/templates")
+        # Path should now be absolute and point to the templates directory
+        assert engine.templates_dir.name == "templates"
+        assert str(engine.templates_dir).endswith(
+            "src/studiorum/latex_engine/templates"
+        )
         assert engine.env is not None
 
     def test_init_custom_config(self) -> None:
@@ -213,17 +221,13 @@ class TestLaTeXTemplateEngine:
         # Test with non-existing template
         assert engine.validate_template("nonexistent") is False
 
-    def test_clear_cache(self) -> None:
-        """Test template cache clearing."""
+    def test_template_caching_removed(self) -> None:
+        """Test that template caching has been removed."""
         engine: Any = LaTeXTemplateEngine()
 
-        # Add something to cache
-        engine._template_cache["test"] = "cached_value"
-        assert len(engine._template_cache) > 0
-
-        # Clear cache
-        engine.clear_cache()
-        assert len(engine._template_cache) == 0
+        # Verify that template cache attributes no longer exist
+        assert not hasattr(engine, "_template_cache")
+        assert not hasattr(engine, "clear_cache")
 
     def test_render_template_not_found(self) -> None:
         """Test rendering with non-existent template."""
@@ -250,7 +254,7 @@ class TestLaTeXTemplateEngine:
         assert "\\begin{itemize}" in result
         assert "\\end{itemize}" in result
 
-    @patch("dnd5e.renderers.latex.template_engine.FileSystemLoader")
+    @patch("studiorum.latex_engine.core.template_engine.FileSystemLoader")
     def test_jinja_environment_configuration(self, mock_loader: Any) -> None:
         """Test Jinja2 environment configuration."""
         engine: Any = LaTeXTemplateEngine()
@@ -269,11 +273,15 @@ class TestLaTeXTemplateEngine:
         assert engine.env.comment_end_string == "--#>"
 
 
+@pytest.mark.rendering
 class TestTemplateRendering:
     """Test cases for template rendering with real templates."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.engine = LaTeXTemplateEngine()
 
     def test_render_simple_template(self) -> None:

@@ -3,12 +3,9 @@
   "feat": [
     {
       "name": "Grappler",
-      "source": "PHB",
+      "source": "SRD",
       "page": 167,
       "srd": true,
-      "reprintedAs": [
-        "Grappler|XPHB"
-      ],
       "prerequisite": [
         {
           "ability": [

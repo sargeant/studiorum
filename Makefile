@@ -1,5 +1,6 @@
-# Makefile for 5e2pdf project
-# All commands run via uv (https://github.com/astral-sh/uv)
+# Makefile for studiorum project
+# Local targets use direct python commands (requires activate-5e)
+# CI targets use uv run for isolated environment
 
 # Configuration for fail-fast behavior and error checking
 SHELL := /bin/bash
@@ -13,7 +14,42 @@ TEST_DIR := tests
 DOCS_DIR := docs
 SCRIPTS_DIR := scripts
 
-.PHONY: help uv uv-docs test mypy pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full test-perf-baseline test-perf-compare test-quality-gate test-quality-strict doctor upgrade
+# UV configuration for enhanced integration
+UV_SYNC_FLAGS := --no-progress
+UV_DEV_FLAGS := --group dev
+UV_DOCS_FLAGS := --group dev
+UV_CI_FLAGS := --frozen
+
+# Environment detection
+CI_DETECTED := $(if $(CI),1,0)
+UV_AVAILABLE := $(shell command -v uv 2>/dev/null)
+
+# Quiet mode configuration
+QUIET ?= 0
+# Auto-enable quiet mode in CI unless explicitly disabled
+ifeq ($(CI_DETECTED),1)
+QUIET ?= 1
+endif
+
+# Output control based on quiet mode
+ifeq ($(QUIET),1)
+ECHO_INFO := @:
+ECHO_SUCCESS := @:
+ECHO_ERROR := @echo "ERROR:"
+else
+ECHO_INFO := @:
+ECHO_SUCCESS := @echo
+ECHO_ERROR := @echo "ERROR:"
+endif
+
+# Conditional flags based on environment
+ifeq ($(CI_DETECTED),1)
+UV_SYNC_BASE := uv sync $(UV_SYNC_FLAGS) $(UV_CI_FLAGS)
+else
+UV_SYNC_BASE := uv sync $(UV_SYNC_FLAGS)
+endif
+
+.PHONY: help uv uv-docs test mypy pyright-errors pyright-warnings pyright-json typecheck-full pip-audit bandit pre-push docs all check security format clean clean-all ci-install ci-test ci-check ci-full test-perf-baseline test-perf-compare test-quality-gate test-quality-strict doctor upgrade env-info check-lockfile export-env cache-info clean-cache
 
 # Parallel execution control - only sync targets should be serial
 # This allows make to run independent targets in parallel while ensuring
@@ -25,9 +61,13 @@ help:
 	@echo "Available targets:"
 	@echo "  help         - Show this help message"
 	@echo "  all          - Run all checks, security, and tests"
-	@echo "  check        - Run code quality checks (ruff, mypy, imports, boundaries)"
+	@echo "  check        - Run code quality checks (ruff, mypy, pyright, imports, boundaries)"
+	@echo "  typecheck-full - Run both mypy and pyright type checking"
+	@echo "  pyright-errors - Run pyright error checking only"
 	@echo "  security     - Run security scans (pip-audit, bandit)"
 	@echo "  test         - Run tests"
+	@echo "  test-xdist-incompatible - Run tests that fail with xdist (sequential execution)"
+	@echo "  test-latex-integration - Run LaTeX integration tests (requires LaTeX installation)"
 	@echo "  format       - Format code with ruff"
 	@echo "  docs         - Build and open documentation"
 	@echo "  clean        - Clean build artifacts"
@@ -41,11 +81,18 @@ help:
 	@echo "  pip-audit    - Security vulnerability scan"
 	@echo "  bandit       - Static security analysis"
 	@echo ""
+	@echo "Smart test selection:"
+	@echo "  test-quick        - Quick feedback (changed files + fast tests)"
+	@echo "  test-impacted     - Run only tests impacted by changes"
+	@echo "  test-focused      - Run tests for current feature branch"
+	@echo "  test-impact-analyze - Analyze which tests are impacted"
+	@echo ""
 	@echo "Test performance and quality:"
-	@echo "  test-perf         - Run fast performance tests"
-	@echo "  test-perf-all     - Run all performance tests"
+	@echo "  test-profile      - Run tests with performance profiling"
 	@echo "  test-perf-baseline - Create performance baseline"
 	@echo "  test-perf-compare - Compare against baseline"
+	@echo "  test-perf-track   - Track performance history"
+	@echo "  test-perf-trends  - Show performance trends"
 	@echo "  test-quality      - Analyze test quality metrics"
 	@echo "  test-quality-gate - Check quality gates"
 	@echo "  test-quality-strict - Strict quality validation"
@@ -61,139 +108,228 @@ help:
 	@echo ""
 	@echo "Diagnostics and maintenance:"
 	@echo "  doctor       - Diagnose environment and dependencies"
+	@echo "  env-info     - Show comprehensive environment information"
+	@echo "  check-lockfile - Validate uv.lock synchronization"
+	@echo "  export-env   - Export current environment to requirements file"
+	@echo "  cache-info   - Show UV cache information"
+	@echo "  clean-cache  - Clean UV cache"
 	@echo "  upgrade      - Upgrade project dependencies"
 
 # Run all pre-push checks
 all: check security test
-	@echo "All pipeline checks completed successfully"
+	$(ECHO_SUCCESS) "All pipeline checks completed successfully"
 
-check: ruff mypy imports boundaries
-	@echo "All code quality checks passed"
+check: ruff mypy pyright-errors imports boundaries
+	$(ECHO_SUCCESS) "All code quality checks passed"
 
-security: uv pip-audit bandit-medium
-	@echo "All security checks passed"
+security: uv pip-audit bandit
+	$(ECHO_SUCCESS) "All security checks passed"
 
 # Sync environment (dev dependencies)
 uv:
-	@echo "Syncing development environment..."
-	uv sync --group dev
+	@$(UV_SYNC_BASE) $(UV_DEV_FLAGS)
 
 # Sync environment (docs dependencies)
 uv-docs:
-	@echo "Syncing documentation environment..."
-	uv sync --extra docs
+	@$(UV_SYNC_BASE) $(UV_DOCS_FLAGS)
 
 # Checks and tools
 
 ## Linting and formatting
 ruff: uv
-	@echo "Running ruff formatting and checks..."
-	$(UV) ruff format $(SRC_DIR) $(TEST_DIR)
-	$(UV) ruff check $(SRC_DIR) $(TEST_DIR) || (echo "Ruff checks failed"; exit 1)
+	@$(UV) ruff format $(SRC_DIR) $(TEST_DIR)
+	@$(UV) ruff check $(SRC_DIR) $(TEST_DIR) || (echo "ERROR: ruff: code style violations found"; exit 1)
 
 ## Code formatting target
 format: uv
-	@echo "Formatting code..."
-	$(UV) ruff format $(SRC_DIR) $(TEST_DIR)
-	@echo "Code formatted"
+	@$(UV) ruff format $(SRC_DIR) $(TEST_DIR)
 
 ## Static type checking
 mypy: uv
-	@echo "Running mypy type checking..."
-	$(UV) mypy $(SRC_DIR)/ || (echo "Type checking failed"; exit 1)
+	@$(UV) mypy $(SRC_DIR)/ || (echo "ERROR: mypy: type checking failed"; exit 1)
+
+# Pyright type checking targets
+pyright-errors: uv
+	@$(UV) pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level error
+
+pyright-warnings: uv
+	@$(UV) pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level warning
+
+pyright-json: uv
+	@$(UV) pyright $(SRC_DIR)/ --pythonpath .venv/bin/python --level error --outputjson
+
+# Combined type checking (mypy + pyright)
+typecheck-full: mypy pyright-errors
+	$(ECHO_SUCCESS) "All type checking passed"
 
 ## Check for circular imports
 imports: uv
-	@echo "Checking for circular imports..."
-	$(UV) python $(SCRIPTS_DIR)/check_circular_imports.py $(SRC_DIR)/dnd5e/ --fail-on-cycles || (echo "Circular import check failed"; exit 1)
+	@$(UV) python $(SCRIPTS_DIR)/check_circular_imports.py $(SRC_DIR)/studiorum/ --fail-on-cycles || (echo "ERROR: imports: circular imports detected"; exit 1)
 
 ## Check architectural boundaries
 boundaries: uv
-	@echo "Checking architectural boundaries..."
-	$(UV) python $(SCRIPTS_DIR)/check_architectural_boundaries.py $(SRC_DIR)/dnd5e/ --fail-on-violations || (echo "Architectural boundary check failed"; exit 1)
+	@$(UV) python $(SCRIPTS_DIR)/check_architectural_boundaries.py $(SRC_DIR)/studiorum/ --fail-on-violations || (echo "ERROR: boundaries: architectural violations found"; exit 1)
 
 # Security checks
 ## Security vulnerability scan
 pip-audit: uv
-	@echo "Running security vulnerability scan..."
-	$(UV) pip-audit --desc=off || (echo "Security vulnerability scan failed"; exit 1)
+	@$(UV) pip-audit --desc=off || (echo "ERROR: pip-audit: security vulnerabilities found"; exit 1)
 
-## Static security analysis (medium severity)
-bandit-medium: uv
-	@echo "Running static security analysis (medium severity)..."
-	$(UV) bandit --severity-level medium -r $(SRC_DIR)/ || (echo "Security analysis failed"; exit 1)
-
-## Static security analysis (all severity)
+## Static security analysis
 bandit: uv
-	@echo "Running static security analysis..."
-	$(UV) bandit -ll -r $(SRC_DIR)/ || (echo "Security analysis failed"; exit 1)
+	@$(UV) bandit -c pyproject.toml --quiet -r $(SRC_DIR)/ || (echo "ERROR: bandit: security issues found"; exit 1)
 
-# Run all tests
+# Run parallel-safe tests (safe for automation)
 test: uv
-	@echo "Running all tests..."
-	$(UV) pytest
+	@$(UV) pytest
 
-# Test Performance and Quality Monitoring
-## Run tests with performance monitoring (fast)
-test-perf: uv
-	@echo "Running fast performance tests..."
-	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --test-type=fast || (echo "Performance tests failed"; exit 1)
-	@echo "Fast performance tests completed"
+# Run parallel-safe tests only (alias for test)
+test-parallel: test
 
-## Run all tests with performance monitoring
-test-perf-all: uv
-	@echo "Running all performance tests..."
-	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --test-type=all || (echo "Performance tests failed"; exit 1)
-	@echo "All performance tests completed"
+# Run all tests including problematic ones (parallel + serial)
+test-all: test-parallel test-serial
+
+# Speed-based test targets for development workflow
+## Run fast tests only (<1s per test)
+test-fast: uv
+	@$(UV) pytest -m "fast"
+
+## Run unit tests (excludes integration and slow tests)
+test-unit: uv
+	@$(UV) pytest -m "not integration and not slow and not ci_broken"
+
+## Run xdist incompatible tests sequentially (no parallel execution)
+test-serial: uv
+	@$(UV) pytest -m "xdist_incompatible" -n 0
+
+## Run tests with coverage and parallel execution (may hang - use for CI)
+test-with-coverage: uv
+	@$(UV) pytest --cov=studiorum --cov-report=term-missing --cov-report=html --cov-report=xml -n auto --dist loadscope --max-worker-restart 1
+
+## Run core functionality tests
+test-core: uv
+	@$(UV) pytest -m "core"
+
+## Run rendering system tests
+test-rendering: uv
+	@pytest -m "rendering and not ci_broken"
+
+## Run CLI interface tests
+test-cli: uv
+	@pytest -m "cli and not ci_broken"
+
+## Run integration tests only
+test-integration: uv
+	@pytest -m "integration and not ci_broken"
+
+## Run slow tests only (>10s per test)
+test-slow: uv
+	@pytest -m "slow"
+
+## Run tests requiring full 5etools dataset
+test-full-data: uv
+	@echo "Running tests requiring full 5etools dataset..."
+	@echo "Loading .env.dev environment for data access..."
+	STUDIORUM_TEST_FULL_DATA=1 uv run --env-file .env.dev pytest -m "requires_data"
+
+## Legacy alias for test-full-data (deprecated)
+test-data: test-full-data
+	@echo "WARNING: 'make test-data' is deprecated. Use 'make test-full-data' instead."
+
+## Run LaTeX integration tests (requires LaTeX installation)
+test-latex-integration: uv
+	@echo "Running LaTeX integration tests (requires LaTeX installation)..."
+	@echo "This will perform actual LaTeX compilation and requires:"
+	@echo "  - LaTeX installation (texlive)"
+	@echo "  - DND-5e-LaTeX-Template"
+	pytest -m "needs_latex" tests/integration/latex/ -v || (echo "LaTeX integration tests failed"; exit 1)
+
+# Smart Test Selection (Phase 4.1)
+## Run only tests impacted by current changes
+test-impacted: uv
+	@echo "Analyzing test impact for current changes..."
+	@$(SCRIPTS_DIR)/run_impacted_tests.sh
+
+## Analyze which tests are impacted by changes
+test-impact-analyze: uv
+	@echo "Analyzing test impact..."
+	@git diff --name-only main...HEAD | xargs python $(SCRIPTS_DIR)/test_impact_analyzer.py
+
+## Run tests for current feature branch
+test-focused: uv
+	@echo "Running tests for current feature branch..."
+	@$(SCRIPTS_DIR)/run_impacted_tests.sh origin/main
+
+## Quick feedback loop - changed files + fast tests
+test-quick: uv
+	@echo "Running quick test suite (changed files + fast tests)..."
+	@if [ -n "$$(git diff --name-only HEAD 2>/dev/null)" ]; then \
+		$(SCRIPTS_DIR)/run_impacted_tests.sh HEAD; \
+	else \
+		pytest -m "fast" --tb=short; \
+	fi
+
+# Test Performance and Quality Monitoring (Phase 4.2)
+## Run tests with performance profiling
+test-profile: uv
+	@echo "Running tests with performance profiling..."
+	pytest --profile -m "not slow" || true
+	@echo "Performance report saved to .test-performance-report.json"
 
 ## Create performance baseline
 test-perf-baseline: uv
 	@echo "Creating performance baseline..."
-	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --baseline || (echo "Baseline creation failed"; exit 1)
+	python $(SCRIPTS_DIR)/performance_baseline.py --create-baseline
 	@echo "Performance baseline created"
-
-## Generate performance report
-test-perf-report: uv
-	@echo "Generating performance report..."
-	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --report || (echo "Performance report failed"; exit 1)
-	@echo "Performance report generated"
 
 ## Compare performance against baseline
 test-perf-compare: uv
 	@echo "Comparing performance against baseline..."
-	$(UV) python $(SCRIPTS_DIR)/test_performance_monitor.py --compare --fail-on-regression || (echo "Performance regression detected"; exit 1)
-	@echo "Performance comparison completed"
+	pytest --profile -m "not slow" || true
+	python $(SCRIPTS_DIR)/performance_baseline.py --compare
+
+## Track performance history
+test-perf-track: uv
+	@echo "Tracking performance history..."
+	pytest --profile -m "not slow" || true
+	python $(SCRIPTS_DIR)/performance_baseline.py --track
+
+## Show performance trends
+test-perf-trends: uv
+	@echo "Showing performance trends..."
+	python $(SCRIPTS_DIR)/performance_baseline.py --trends
+
 
 ## Analyze test quality metrics
 test-quality: uv
 	@echo "Analyzing test quality metrics..."
-	$(UV) python $(SCRIPTS_DIR)/test_quality_metrics.py --report || (echo "Test quality analysis failed"; exit 1)
+	python $(SCRIPTS_DIR)/test_quality_metrics.py --report || (echo "Test quality analysis failed"; exit 1)
 	@echo "Test quality analysis completed"
 
 ## Check test quality gates
 test-quality-gate: uv
 	@echo "Checking test quality gates..."
-	$(UV) python $(SCRIPTS_DIR)/test_quality_metrics.py --check --fail-on-issues || (echo "Test quality gates failed"; exit 1)
+	python $(SCRIPTS_DIR)/test_quality_metrics.py --check --fail-on-issues || (echo "Test quality gates failed"; exit 1)
 	@echo "Test quality gates passed"
 
 ## Comprehensive test quality validation
 test-quality-strict: uv
 	@echo "Running strict test quality validation..."
-	$(UV) python $(SCRIPTS_DIR)/test_quality_metrics.py --check --strict --fail-on-issues || (echo "Strict test quality validation failed"; exit 1)
+	python $(SCRIPTS_DIR)/test_quality_metrics.py --check --strict --fail-on-issues || (echo "Strict test quality validation failed"; exit 1)
 	@echo "Strict test quality validation passed"
 
 # Documentation
 ## Build HTML docs and open in browser
 docs: uv-docs
 	@echo "Building documentation..."
-	cd $(DOCS_DIR) && $(UV) sphinx-build -b html source _build/html || (echo "Documentation build failed"; exit 1)
+	cd $(DOCS_DIR) && sphinx-build -j auto -b html source _build/html || (echo "Documentation build failed"; exit 1)
 	@echo "Documentation built and opened"
 
 ## Start documentation auto-rebuild server
 docs-serve: uv-docs
 	@echo "Starting documentation auto-rebuild server..."
 	@echo "Server will be available at http://localhost:8000"
-	cd $(DOCS_DIR) && $(UV) sphinx-autobuild source _build/html --host 0.0.0.0 --port 8000 --open-browser || (echo "Documentation server failed to start"; exit 1)
+	cd $(DOCS_DIR) && sphinx-autobuild source _build/html --host 0.0.0.0 --port 8000 --open-browser || (echo "Documentation server failed to start"; exit 1)
 
 ## Clean documentation build artifacts
 docs-clean:
@@ -208,20 +344,20 @@ docs-rebuild: docs-clean docs
 ## Check documentation for issues (broken links, syntax)
 docs-check: uv-docs
 	@echo "Checking documentation for issues..."
-	cd $(DOCS_DIR) && $(UV) sphinx-build -b linkcheck source _build/linkcheck || (echo "Link check failed"; exit 1)
-	cd $(DOCS_DIR) && $(UV) sphinx-build -W -b html source _build/html || (echo "Documentation syntax check failed"; exit 1)
+	cd $(DOCS_DIR) && sphinx-build -b linkcheck source _build/linkcheck || (echo "Link check failed"; exit 1)
+	cd $(DOCS_DIR) && sphinx-build -W -b html source _build/html || (echo "Documentation syntax check failed"; exit 1)
 	@echo "Documentation checks passed"
 
 ## Validate documentation quality and structure
 docs-validate: uv-docs
 	@echo "Validating documentation quality..."
-	$(UV) python $(SCRIPTS_DIR)/validate_docs.py --docs-dir $(DOCS_DIR) || (echo "Documentation validation failed"; exit 1)
+	python $(SCRIPTS_DIR)/validate_docs.py --docs-dir $(DOCS_DIR) || (echo "Documentation validation failed"; exit 1)
 	@echo "Documentation validation passed"
 
 ## Full documentation validation (strict mode)
 docs-validate-strict: uv-docs
 	@echo "Running strict documentation validation..."
-	$(UV) python $(SCRIPTS_DIR)/validate_docs.py --docs-dir $(DOCS_DIR) --strict || (echo "Strict documentation validation failed"; exit 1)
+	python $(SCRIPTS_DIR)/validate_docs.py --docs-dir $(DOCS_DIR) --strict || (echo "Strict documentation validation failed"; exit 1)
 	@echo "Strict documentation validation passed"
 
 # Cleanup and maintenance
@@ -262,23 +398,18 @@ clean-all: clean
 ## Install CI dependencies
 # Ensures consistent environment setup across CI runs
 ci-install:
-	@echo "Installing CI dependencies..."
-	uv sync --group dev
-	@echo "CI dependencies installed"
+	@$(UV_SYNC_BASE) $(UV_DEV_FLAGS)
 
 ## Run CI test suite with coverage
 # Full test suite with coverage reporting and JUnit XML for CI integration
 # Outputs: coverage.xml, htmlcov/, test-results.xml
 # Skips tests marked as ci_broken to avoid CI-specific environment issues
 ci-test: ci-install
-	@echo "Running CI test suite..."
-	$(UV) pytest --cov=dnd5e --cov-report=xml --cov-report=html --junitxml=test-results.xml -m "not ci_broken" || (echo "CI test suite failed"; exit 1)
-	@echo "CI test suite completed"
+	@$(UV) pytest --cov=studiorum --cov-report=xml --cov-report=html --junitxml=test-results.xml -m "not ci_broken and not requires_latex and not xdist_incompatible" || (echo "ERROR: CI test suite failed"; exit 1)
 
 ## Run CI checks (quality and security)
 # Comprehensive quality and security validation for CI pipelines
 ci-check: ci-install check security
-	@echo "CI checks completed"
 
 ## Full CI pipeline
 # Complete validation: install → checks → tests
@@ -290,13 +421,52 @@ ci-full: ci-install ci-check ci-test
 # Quick validation for rapid feedback in development
 # Includes: formatting, type checking, fast tests only
 
+# UV Cache Management
+## Clean UV cache for disk space and debugging
+clean-cache:
+	@echo "Cleaning UV cache..."
+	@uv cache clean
+	@echo "UV cache cleaned"
+
+## Show UV cache information
+cache-info:
+	@echo "UV Cache Information:"
+	@echo "  Cache directory: $$(uv cache dir)"
+	@echo "  Cache size: $$(uv cache size 2>/dev/null || echo 'Unable to determine size')"
+	@echo ""
+
+# Lock File Management
+## Validate that uv.lock is in sync with pyproject.toml
+check-lockfile:
+	@echo "Validating lock file synchronization..."
+	@uv lock --check || (echo "ERROR: uv.lock is out of sync with pyproject.toml"; exit 1)
+	@echo "Lock file validation: PASSED"
+
+## Export current environment for debugging
+export-env:
+	@echo "Exporting current environment..."
+	@uv export --format=requirements-txt > requirements-export.txt
+	@echo "Environment exported to requirements-export.txt"
+
+# Environment Information
+## Show comprehensive environment information
+env-info:
+	@echo "Environment Information:"
+	@echo "  CI Detected: $(CI_DETECTED)"
+	@echo "  UV Version: $(UV_AVAILABLE)"
+	@echo "  Python Version: $$(python --version 2>/dev/null || echo 'Not available')"
+	@echo "  Working Directory: $$(pwd)"
+	@echo "  UV Cache Dir: $$(uv cache dir 2>/dev/null || echo 'Not available')"
+	@echo "  Current Branch: $$(git branch --show-current 2>/dev/null || echo 'Not in git repo')"
+	@echo ""
+
 # Diagnostics and maintenance
 # These targets help diagnose environment issues and maintain the project
 
 ## Diagnose environment and dependencies
 # Comprehensive environment health check for troubleshooting
 # Checks: Python, UV, virtual environment, dependencies, git status, disk space
-doctor:
+doctor: env-info
 	@echo "Diagnosing development environment..."
 	@echo "Python version:"
 	@python --version || echo "Python not found"

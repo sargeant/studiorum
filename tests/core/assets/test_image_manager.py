@@ -6,9 +6,10 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from dnd5e.core.assets.image_manager import ImageAsset, ImageManager, ImageSource
-from dnd5e.core.config.unified_config import PathsConfig
-from dnd5e.renderers.base.context import RenderContext
+from studiorum.core.assets.image_manager import ImageAsset, ImageManager, ImageSource
+from studiorum.core.config.unified_config import PathsConfig
+from studiorum.renderers.core.interfaces import RenderingContext
+from tests.test_helpers import reset_test_environment
 
 
 class TestImageSource:
@@ -66,6 +67,9 @@ class TestImageManager:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.paths_config = Mock(spec=PathsConfig)
         self.paths_config.build_path = Path("/tmp/build")
         with patch("pathlib.Path.mkdir"):
@@ -87,9 +91,10 @@ class TestImageManager:
     @pytest.mark.asyncio
     async def test_resolve_image_local_path(self):
         """Test resolving local image paths."""
-        context = Mock(spec=RenderContext)
-        context.assets_dir = Path("/assets")
-        context.images_dir = None
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"assets_dir": Path("/assets"), "images_dir": None},
+        )
 
         with patch.object(
             self.manager, "_resolve_local_path", return_value=Path("/assets/test.png")
@@ -102,30 +107,50 @@ class TestImageManager:
     @pytest.mark.asyncio
     async def test_resolve_image_url_cached(self):
         """Test resolving URL with cached result."""
-        context = Mock(spec=RenderContext)
+        context = RenderingContext(
+            output_format="latex",
+            metadata={},
+        )
         image_url = "https://example.com/test.png"
 
-        # Add cached asset
-        cache_key = self.manager._generate_cache_key(image_url)
-        cached_path = Path("/cache/test.png")
-        self.manager._asset_cache[cache_key] = ImageAsset(
-            original_url=image_url,
-            local_path=cached_path,
-            cache_key=cache_key,
-            file_size=1000,
-            last_accessed=1234567890.0,
-            source_name="test",
-        )
+        # Mock the registry to return no result so it falls back to legacy
+        with patch.object(
+            self.manager._registry, "resolve_image"
+        ) as mock_registry_resolve:
+            from studiorum.core.result import Error
 
-        with patch.object(Path, "exists", return_value=True):
-            result = await self.manager.resolve_image(image_url, context)
+            mock_registry_resolve.return_value = Error("Not found")
 
-            assert result == cached_path
+            # Add cached asset to legacy cache
+            cache_key = self.manager._generate_cache_key(image_url)
+            cached_path = Path("/cache/test.png")
+            self.manager._asset_cache[cache_key] = ImageAsset(
+                original_url=image_url,
+                local_path=cached_path,
+                cache_key=cache_key,
+                file_size=1000,
+                last_accessed=1234567890.0,
+                source_name="test",
+            )
+
+            with (
+                patch.object(Path, "exists", return_value=True),
+                patch.object(
+                    self.manager, "_download_and_cache", return_value=cached_path
+                ) as mock_download,
+            ):
+                result = await self.manager.resolve_image(image_url, context)
+
+                assert result == cached_path
+                mock_download.assert_called_once_with(image_url)
 
     @pytest.mark.asyncio
     async def test_resolve_image_url_download(self):
         """Test resolving URL with download."""
-        context = Mock(spec=RenderContext)
+        context = RenderingContext(
+            output_format="latex",
+            metadata={},
+        )
         image_url = "https://example.com/test.png"
 
         with patch.object(
@@ -139,9 +164,10 @@ class TestImageManager:
     @pytest.mark.asyncio
     async def test_resolve_local_path_assets_dir(self):
         """Test resolving local path from assets directory."""
-        context = Mock(spec=RenderContext)
-        context.assets_dir = Path("/assets")
-        context.images_dir = None
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"assets_dir": Path("/assets"), "images_dir": None},
+        )
 
         with patch.object(Path, "exists", return_value=True):
             result = await self.manager._resolve_local_path("test.png", context)
@@ -151,9 +177,10 @@ class TestImageManager:
     @pytest.mark.asyncio
     async def test_resolve_local_path_images_dir(self):
         """Test resolving local path from images directory."""
-        context = Mock(spec=RenderContext)
-        context.assets_dir = None
-        context.images_dir = Path("/images")
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"assets_dir": None, "images_dir": Path("/images")},
+        )
 
         with patch.object(Path, "exists", return_value=True):
             result = await self.manager._resolve_local_path("test.png", context)
@@ -163,9 +190,10 @@ class TestImageManager:
     @pytest.mark.asyncio
     async def test_resolve_local_path_not_found(self):
         """Test resolving local path when file not found."""
-        context = Mock(spec=RenderContext)
-        context.assets_dir = Path("/assets")
-        context.images_dir = None
+        context = RenderingContext(
+            output_format="latex",
+            metadata={"assets_dir": Path("/assets"), "images_dir": None},
+        )
 
         with patch.object(Path, "exists", return_value=False):
             result = await self.manager._resolve_local_path("test.png", context)
@@ -264,7 +292,10 @@ class TestImageManager:
         mock_response.status = 404
 
         mock_session = AsyncMock()
-        mock_session.get.return_value.__aenter__.return_value = mock_response
+        mock_context_manager = AsyncMock()
+        mock_context_manager.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_context_manager.__aexit__ = AsyncMock(return_value=None)
+        mock_session.get.return_value = mock_context_manager
 
         with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await self.manager._download_from_url(url, output_path)
@@ -312,64 +343,130 @@ class TestImageManager:
         """Test adding a local directory source."""
         original_count = len(self.manager.sources)
 
-        self.manager.add_local_source("local", Path("/local/images"), priority=1)
+        # Create a temporary directory for testing
+        import tempfile
 
-        assert len(self.manager.sources) == original_count + 1
+        with tempfile.TemporaryDirectory() as temp_dir:
+            test_path = Path(temp_dir)
 
-        # Find the added source
-        local_source = next(s for s in self.manager.sources if s.name == "local")
-        assert local_source.base_url == "file:///local/images"
-        assert local_source.local_path == Path("/local/images")
-        assert local_source.priority == 1
+            # Mock the registry add_source call since we're testing legacy behavior
+            with patch.object(self.manager._registry, "add_source") as mock_add_source:
+                from studiorum.core.result import Success
+
+                mock_add_source.return_value = Success(None)
+
+                self.manager.add_local_source("local", test_path, priority=1)
+
+                assert len(self.manager.sources) == original_count + 1
+
+                # Find the added source
+                local_source = next(
+                    s for s in self.manager.sources if s.name == "local"
+                )
+                assert local_source.base_url == f"file://{test_path}"
+                assert local_source.local_path == test_path
+                assert local_source.priority == 1
 
     @pytest.mark.asyncio
     async def test_cleanup_cache(self):
         """Test cache cleanup functionality."""
-        # Create some test cache files
-        old_file = self.manager.cache_dir / "old.png"
-        new_file = self.manager.cache_dir / "new.png"
+        # Mock the registry cleanup method to return success
+        from studiorum.core.result import Success
+
+        mock_registry_stats = {
+            "removed_old": 1,
+            "removed_oversized": 0,
+            "remaining_assets": 1,
+            "remaining_size_mb": 1,
+        }
 
         with (
-            patch.object(Path, "glob") as mock_glob,
-            patch.object(Path, "is_file", return_value=True),
-            patch.object(Path, "stat") as mock_stat,
-            patch.object(Path, "unlink") as mock_unlink,
+            patch.object(
+                self.manager._registry,
+                "cleanup_cache",
+                return_value=Success(mock_registry_stats),
+            ) as mock_registry_cleanup,
             patch("time.time", return_value=1000000),
         ):
-            # Mock old file (older than 30 days)
-            old_stat = Mock()
-            old_stat.st_mtime = 1000000 - (31 * 24 * 60 * 60)  # 31 days ago
+            # Add some legacy cached assets to test legacy cleanup
+            old_asset = ImageAsset(
+                original_url="https://example.com/old.png",
+                local_path=Path("/tmp/old.png"),
+                cache_key="old_key",
+                file_size=1000,
+                last_accessed=1000000 - (31 * 24 * 60 * 60),  # 31 days ago
+                source_name="test",
+            )
+            new_asset = ImageAsset(
+                original_url="https://example.com/new.png",
+                local_path=Path("/tmp/new.png"),
+                cache_key="new_key",
+                file_size=1000,
+                last_accessed=1000000 - (10 * 24 * 60 * 60),  # 10 days ago
+                source_name="test",
+            )
 
-            # Mock new file (recent)
-            new_stat = Mock()
-            new_stat.st_mtime = 1000000 - (10 * 24 * 60 * 60)  # 10 days ago
+            # Mock Path.exists to return True for both assets initially
+            with patch.object(Path, "exists", return_value=True):
+                self.manager._asset_cache["old_key"] = old_asset
+                self.manager._asset_cache["new_key"] = new_asset
 
-            mock_glob.return_value = [old_file, new_file]
-            mock_stat.side_effect = [old_stat, new_stat]
+                await self.manager.cleanup_cache(max_age_days=30)
 
-            await self.manager.cleanup_cache(max_age_days=30)
+                # Verify registry cleanup was called
+                mock_registry_cleanup.assert_called_once_with(max_age_hours=30 * 24)
 
-            # Old file should be deleted, new file should not
-            mock_unlink.assert_called_once()
+                # Verify legacy cleanup removed old asset but kept new one
+                assert "old_key" not in self.manager._asset_cache
+                assert "new_key" in self.manager._asset_cache
 
     def test_get_cache_info(self):
         """Test getting cache information."""
-        with (
-            patch.object(Path, "glob") as mock_glob,
-            patch.object(Path, "is_file", return_value=True),
-            patch.object(Path, "stat") as mock_stat,
-        ):
-            mock_glob.return_value = [Path("file1.png"), Path("file2.png")]
-            mock_stat.return_value = Mock(st_size=1000)
+        # Mock the registry's get_cache_stats method
+        mock_registry_stats = {
+            "total_cached_assets": 3,
+            "total_cache_size_bytes": 3000,
+            "total_cache_size_mb": 3000 / (1024 * 1024),
+            "cache_directory": str(self.manager.cache_dir),
+            "sources": {
+                "5etools-official": {
+                    "status": "active",
+                    "total_images": 100,
+                    "cache_size_bytes": 1500,
+                    "last_sync": 1234567890.0,
+                    "last_error": None,
+                },
+                "5etools-mirror": {
+                    "status": "active",
+                    "total_images": 50,
+                    "cache_size_bytes": 1500,
+                    "last_sync": 1234567890.0,
+                    "last_error": None,
+                },
+            },
+        }
 
-            # Add some cached assets
+        with patch.object(
+            self.manager._registry, "get_cache_stats", return_value=mock_registry_stats
+        ):
+            # Add some legacy cached assets
             self.manager._asset_cache["key1"] = Mock()
             self.manager._asset_cache["key2"] = Mock()
 
             info = self.manager.get_cache_info()
 
-            assert info["total_files"] == 2
-            assert info["total_size_bytes"] == 2000
-            assert info["total_size_mb"] == 2000 / (1024 * 1024)
-            assert info["assets_in_memory"] == 2
+            # Test enhanced registry stats are included
+            assert info["total_cached_assets"] == 3
+            assert info["total_cache_size_bytes"] == 3000
+            assert info["total_cache_size_mb"] == 3000 / (1024 * 1024)
+            assert info["cache_directory"] == str(self.manager.cache_dir)
+
+            # Test legacy compatibility stats are included
+            assert info["legacy_assets_in_memory"] == 2
+            assert len(info["legacy_sources"]) == 2
+
+            # Test that source information is preserved
+            assert "sources" in info
             assert len(info["sources"]) == 2
+            assert "5etools-official" in info["sources"]
+            assert "5etools-mirror" in info["sources"]

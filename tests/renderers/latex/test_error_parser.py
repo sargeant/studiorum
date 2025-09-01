@@ -2,14 +2,18 @@
 
 from typing import Any
 
-from dnd5e.renderers.latex.error_parser import (  # type: ignore
+import pytest
+
+from studiorum.latex_engine.utils.error_parser import (  # type: ignore
     ErrorCategory,
     ErrorSeverity,
     LaTeXError,
     LaTeXErrorParser,
 )
+from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestErrorSeverity:
     """Tests for error severity enum."""
 
@@ -21,6 +25,7 @@ class TestErrorSeverity:
         assert ErrorSeverity.FATAL.value == "fatal"
 
 
+@pytest.mark.rendering
 class TestErrorCategory:
     """Tests for error category enum."""
 
@@ -36,6 +41,7 @@ class TestErrorCategory:
         assert ErrorCategory.UNKNOWN.value == "unknown"
 
 
+@pytest.mark.rendering
 class TestLaTeXError:
     """Tests for LaTeX error representation."""
 
@@ -138,11 +144,15 @@ class TestLaTeXError:
         assert "Suggestion: Install the missing package" in str_repr
 
 
+@pytest.mark.rendering
 class TestLaTeXErrorParser:
     """Tests for LaTeX error parser."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.parser = LaTeXErrorParser()
 
     def test_parser_initialization(self) -> None:

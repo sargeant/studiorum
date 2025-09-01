@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/indexer/cross_reference_manager.py
-# hypothesis_version: 6.136.7
-
-['-', ':', 'Page in source book', '[^a-z0-9]+', '^[a-zA-Z0-9_:-]+$', 'background', 'by_type', 'class', 'count', 'creature', 'duplicate_name', 'feat', 'full', 'hyperref', 'id', 'invalid_label', 'item', 'label', 'labels', 'latex_label', 'message', 'most_referenced', 'name', 'nameref', 'page', 'pageref', 'race', 'ref', 'ref_id', 'references', 'section', 'source', 'spell', 'total_references', 'type', 'unnamed', 'unreferenced']

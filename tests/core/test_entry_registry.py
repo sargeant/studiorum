@@ -5,19 +5,16 @@ from unittest.mock import patch
 
 import pytest
 
-from dnd5e.core.entry_registry import (
+from studiorum.core.entry_registry import (
     EntryTypeCategory,
     EntryTypeRegistry,
     ValidationMode,
     get_registry,
     set_validation_mode,
 )
-from dnd5e.core.exceptions import (
-    EntryProcessingWarning,
-    EntryValidationError,
-    MalformedEntryError,
-    UnknownEntryTypeError,
-)
+from studiorum.core.exceptions import EntryProcessingWarning
+from studiorum.core.result import Error, Success
+from tests.test_helpers import reset_test_environment
 
 
 class TestValidationMode:
@@ -52,6 +49,9 @@ class TestEntryTypeRegistry:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.registry = EntryTypeRegistry(ValidationMode.PERMISSIVE)
 
     def test_initialization(self):
@@ -98,7 +98,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_type_known(self):
         """Test validation of known entry types."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         # Test with ValidationContext (modern interface)
         context1 = ValidationContext(entry_data={}, entry_type="section")
@@ -113,33 +113,38 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_type_unknown_strict(self):
         """Test validation of unknown entry types in strict mode."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         strict_registry = EntryTypeRegistry(ValidationMode.STRICT)
 
         context = ValidationContext(entry_data={}, entry_type="unknownType")
 
-        with pytest.raises(UnknownEntryTypeError) as exc_info:
-            strict_registry.validate_entry_type(context)
+        result = strict_registry.validate_entry_type(context)
 
-        assert exc_info.value.entry_type == "unknownType"
+        # Should return Error result
+        assert isinstance(result, Error)
+        assert result.error.entry_type == "unknownType"
         assert "unknownType" in strict_registry.unknown_types
 
     def test_validate_entry_type_unknown_permissive(self):
         """Test validation of unknown entry types in permissive mode."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         context = ValidationContext(entry_data={}, entry_type="unknownType")
 
         with pytest.warns(EntryProcessingWarning, match="Unknown entry type"):
-            self.registry.validate_entry_type(context)
+            result = self.registry.validate_entry_type(context)
+
+        # Should return Success result with warning
+        assert isinstance(result, Success)
+        assert result.unwrap() is None
 
         assert "unknownType" in self.registry.unknown_types
         assert self.registry.statistics.entry_counts["unknownType"] == 1
 
     def test_validate_entry_type_unknown_silent(self):
         """Test validation of unknown entry types in silent mode."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         silent_registry = EntryTypeRegistry(ValidationMode.SILENT)
 
@@ -148,13 +153,16 @@ class TestEntryTypeRegistry:
         # Should not raise exception or warning
         with warnings.catch_warnings():
             warnings.simplefilter("error")  # Turn warnings into errors
-            silent_registry.validate_entry_type(context)
+            result = silent_registry.validate_entry_type(context)
 
+        # Should return Success result
+        assert isinstance(result, Success)
+        assert result.unwrap() is None
         assert "unknownType" in silent_registry.unknown_types
 
     def test_validate_entry_type_with_context(self):
         """Test validation with full context information."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         entry = {"type": "unknownType", "name": "Test"}
 
@@ -166,7 +174,11 @@ class TestEntryTypeRegistry:
         )
 
         with pytest.warns(EntryProcessingWarning) as warning_info:
-            self.registry.validate_entry_type(context)
+            result = self.registry.validate_entry_type(context)
+
+        # Should return Success result
+        assert isinstance(result, Success)
+        assert result.unwrap() is None
 
         warning_msg = str(warning_info[0].message)
         assert "unknownType" in warning_msg
@@ -175,7 +187,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_structure_string(self):
         """Test validation of string entries."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         context = ValidationContext(entry_data="Plain text entry")
         result = self.registry.validate_entry_structure(context)
@@ -186,7 +198,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_structure_dict(self):
         """Test validation of dict entries."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         entry = {"type": "section", "name": "Test Section"}
         context = ValidationContext(entry_data=entry)
@@ -198,7 +210,7 @@ class TestEntryTypeRegistry:
 
     def test_validate_entry_structure_invalid(self):
         """Test validation of invalid entry structures."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         context = ValidationContext(entry_data=123)
         result = self.registry.validate_entry_structure(context)
@@ -207,18 +219,9 @@ class TestEntryTypeRegistry:
         assert len(result.errors) == 1
         assert "must be dict or string" in result.errors[0]
 
-    # Removed deprecated test: test_validate_required_fields
-    # This tested legacy validate_required_fields() method which is replaced by Pydantic validation
-
-    # Removed deprecated test: test_validate_required_fields_missing
-    # This tested legacy validate_required_fields() method which is replaced by Pydantic validation
-
-    # Removed deprecated test: test_get_common_fields
-    # This tested legacy get_common_fields() method which is replaced by Pydantic validation
-
     def test_reset_statistics(self):
         """Test statistics reset functionality."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         # Generate some statistics
         context1 = ValidationContext(entry_data={}, entry_type="section")
@@ -237,10 +240,10 @@ class TestEntryTypeRegistry:
         assert self.registry.statistics.total_entries == 0
         assert len(self.registry.unknown_types) == 0
 
-    @patch("dnd5e.core.entry_registry.logger")
+    @patch("studiorum.core.entry_registry.logger")
     def test_log_statistics(self, mock_logger):
         """Test statistics logging."""
-        from dnd5e.core.entry_registry import ValidationContext
+        from studiorum.core.entry_registry import ValidationContext
 
         # Generate some statistics
         context1 = ValidationContext(entry_data={}, entry_type="section")
@@ -258,7 +261,7 @@ class TestEntryTypeRegistry:
         assert mock_logger.info.call_count >= 2  # Total + known types
         assert mock_logger.warning.call_count >= 1  # Unknown types
 
-    @patch("dnd5e.core.entry_registry.logger")
+    @patch("studiorum.core.entry_registry.logger")
     def test_log_statistics_empty(self, mock_logger):
         """Test statistics logging with no data."""
         self.registry.log_statistics()

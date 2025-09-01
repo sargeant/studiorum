@@ -2,30 +2,42 @@
 
 import pytest
 
-from dnd5e.cli.main import get_omnidexer
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from studiorum.cli.main import get_omnidexer
+from studiorum.core.models.content import ContentType
+from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from tests.test_helpers import reset_test_environment
 
 # Tests converted to sync after async removal migration
 
 
+@pytest.mark.integration
 class TestBookResolution:
     """Test book resolution with dual-file architecture using real data."""
 
-    def test_omnidexer_loads_only_book_metadata(self):
-        """Test that omnidexer loads only metadata files for books."""
-        omnidexer = get_omnidexer()
-        books = omnidexer.get_all_by_type(ContentType.BOOK)
+    def setup_method(self) -> None:
+        """Reset global state for complete isolation using service container."""
+        reset_test_environment()
 
-        # Should have books (metadata only)
+        # Note: reset_test_environment() now handles both container systems
+        # via reset_all_containers() for proper parallel execution isolation
+
+    def test_omnidexer_loads_book_with_enriched_content(self):
+        """Test that omnidexer loads books with enriched content from dual-file architecture."""
+        omnidexer = get_omnidexer()
+        book_type = ContentType("book")
+        books = omnidexer.get_all_by_type(book_type)
+
+        # Should have books with enriched content
         assert len(books) > 0
 
-        # Books should be metadata-only (empty content)
+        # Books should have enriched content from dual-file architecture
         test_book = next((b for b in books if b.source.abbreviation == "TEST"), None)
         if test_book:  # Test book should be available
             assert test_book.name == "Test Sourcebook"
             assert len(test_book.contents) > 0  # Has metadata structure
-            assert len(test_book.contents[0].entries) == 0  # But no actual entries
+            assert (
+                len(test_book.contents[0].entries) > 0
+            )  # And has enriched entries from content files
 
     def test_resolve_book_phb_success(self):
         """Test successful book resolution with content loading."""
@@ -117,6 +129,10 @@ class TestBookResolution:
 
         # Clear cache stats
         content_merger = resolver.content_merger
+        if content_merger is None:
+            pytest.skip(
+                "ContentMerger not available - omnidexer may not have source_manager"
+            )
         content_merger.clear_cache()
         stats_before = content_merger.get_cache_stats()
 
@@ -142,7 +158,8 @@ class TestBookResolution:
         omnidexer = get_omnidexer()
 
         # Try to find a book that has metadata but might not have content
-        books = omnidexer.get_all_by_type(ContentType.BOOK)
+        book_type = ContentType("book")
+        books = omnidexer.get_all_by_type(book_type)
         assert len(books) > 0
 
         # All books from metadata should be present

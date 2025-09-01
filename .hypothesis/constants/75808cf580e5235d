@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/references.py
-# hypothesis_version: 6.136.7
-
-['BaseContent', 'Custom display text', 'Name of the spell', 'Omnidexer', 'Original tag text', 'Source abbreviation', '\\{@spell\\s+([^}]+)\\}', 'original_tag', '{@spell', '|']

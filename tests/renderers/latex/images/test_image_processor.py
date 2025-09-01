@@ -6,14 +6,16 @@ from unittest.mock import Mock, patch
 import pytest
 from pydantic import ValidationError
 
-from dnd5e.renderers.base.context import RenderContext
-from dnd5e.renderers.latex.images.image_processor import (
+from studiorum.latex_engine.core.images.image_processor import (
     ImageProcessingConfig,
     ImageProcessor,
     ProcessedImage,
 )
+from studiorum.renderers.core.interfaces import RenderingContext
+from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestImageProcessingConfig:
     """Test the image processing configuration."""
 
@@ -52,6 +54,7 @@ class TestImageProcessingConfig:
             ImageProcessingConfig(png_compression=15)  # Should be 0-9
 
 
+@pytest.mark.rendering
 class TestProcessedImage:
     """Test the processed image result model."""
 
@@ -86,11 +89,15 @@ class TestProcessedImage:
         assert result.caption == "Test Image"
 
 
+@pytest.mark.rendering
 class TestImageProcessor:
     """Test the main image processor functionality."""
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.config = ImageProcessingConfig(
             enable_webp_conversion=True,
             enable_optimization=True,
@@ -98,18 +105,25 @@ class TestImageProcessor:
         )
         self.processor = ImageProcessor(self.config)
 
-        # Mock render context
-        self.context = Mock(spec=RenderContext)
-        self.context.include_images = True
-        self.context.assets_dir = Path("/tmp/assets")
-        self.context.images_dir = Path("/tmp/images")
+        # Create proper render context with metadata
+        self.context = RenderingContext(
+            output_format="latex",
+            metadata={
+                "include_images": True,
+                "assets_dir": Path("/tmp/assets"),
+                "images_dir": Path("/tmp/images"),
+            },
+        )
 
     def test_process_image_entry_disabled(self):
         """Test processing when images are disabled."""
-        self.context.include_images = False
+        # Create context with images disabled
+        context = RenderingContext(
+            output_format="latex", metadata={"include_images": False}
+        )
         image_entry = {"href": "test.png", "title": "Test Image"}
 
-        result = self.processor.process_image_entry(image_entry, self.context)
+        result = self.processor.process_image_entry(image_entry, context)
 
         assert result == "% Image placeholder: Test Image"
 
@@ -150,7 +164,7 @@ class TestImageProcessor:
         with patch.object(Path, "exists", return_value=True):
             result = self.processor._resolve_image_path("test.png", self.context)
 
-            expected = self.context.assets_dir / "test.png"
+            expected = self.context.metadata["assets_dir"] / "test.png"
             assert result == expected
 
     def test_resolve_image_path_url(self):
@@ -225,16 +239,23 @@ class TestImageProcessor:
 
 
 @pytest.mark.integration
+@pytest.mark.rendering
 class TestImageProcessorIntegration:
     """Integration tests for image processor with real components."""
 
     def setup_method(self):
         """Set up integration test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = ImageProcessor()
-        self.context = Mock(spec=RenderContext)
-        self.context.include_images = True
-        self.context.assets_dir = Path("/tmp/test_assets")
-        self.context.images_dir = None
+        self.context = RenderingContext(
+            output_format="latex",
+            metadata={
+                "include_images": True,
+                "assets_dir": Path("/tmp/test_assets"),
+            },
+        )
 
     def test_full_pipeline_mock(self):
         """Test full processing pipeline with mocked components."""

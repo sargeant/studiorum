@@ -6,13 +6,14 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from dnd5e.core.models.content import BaseContent, Source  # type: ignore
-from dnd5e.renderers.base.context import RenderContext  # type: ignore
-from dnd5e.renderers.latex.compilation_config import (  # type: ignore
+from studiorum.core.models.content import BaseContent, Source  # type: ignore
+from studiorum.latex_engine.config.compilation import (  # type: ignore
     CompilationResult,
     LaTeXEngine,
 )
-from dnd5e.renderers.latex.document import LaTeXDocumentRenderer  # type: ignore
+from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: ignore
+from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
+from tests.test_helpers import reset_test_environment
 
 # Apply async mark to the entire module
 pytestmark = pytest.mark.asyncio
@@ -25,11 +26,15 @@ class MockContent(BaseContent):
         super().__init__(name=name, source=Source(abbreviation=source_abbr))
 
 
+@pytest.mark.rendering
 class TestLaTeXDocumentRendererIntegration:
     """Integration tests for LaTeX document renderer with compiler."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         config = {"show_progress": False, "compilation_timeout": 10, "max_passes": 2}
         self.renderer = LaTeXDocumentRenderer(config)
 
@@ -198,7 +203,10 @@ class TestLaTeXDocumentRendererIntegration:
             MockContent("Monster 1"),
         ]
 
-        context: Any = RenderContext(title="Test Compendium", include_toc=True)
+        context: Any = RenderingContext(
+            output_format="latex",
+            metadata={"title": "Test Compendium", "include_toc": True},
+        )
 
         mock_result: Any = CompilationResult(
             success=True,
@@ -374,7 +382,7 @@ class TestLaTeXDocumentRendererIntegration:
                 mock_render.assert_called_once()
                 render_args = mock_render.call_args[0]
                 assert render_args[0] == [content]  # content items
-                assert isinstance(render_args[1], RenderContext)  # render context
+                assert isinstance(render_args[1], RenderingContext)  # render context
 
     def test_compiler_config_validation(self) -> None:
         """Test that invalid compiler config raises appropriate error."""
@@ -388,7 +396,7 @@ class TestLaTeXDocumentRendererIntegration:
 
     async def test_render_with_structured_document(self) -> None:
         """Test rendering with structured document metadata."""
-        from dnd5e.core.models.document_metadata import (  # type: ignore
+        from studiorum.core.models.document_metadata import (  # type: ignore
             DocumentMetadata,
             DocumentType,
         )
@@ -401,7 +409,9 @@ class TestLaTeXDocumentRendererIntegration:
             include_toc=True,
         )
 
-        context: Any = RenderContext(metadata=metadata)
+        context: Any = RenderingContext(
+            output_format="latex", metadata={"document_metadata": metadata}
+        )
 
         mock_result: Any = CompilationResult(
             success=True,

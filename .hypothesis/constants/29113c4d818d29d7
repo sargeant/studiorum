@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/cli/commands/list_content.py
-# hypothesis_version: 6.136.7
-
-[1024, '*.json', '--dir', '--limit', '--pattern', '--search', '--source', '--type', '-d', '-l', '-p', '-s', '-t', 'Abbreviation', 'Content Count', 'Details', 'Directory to scan', 'File', 'Item', 'Medium', 'Name', 'Search content names', 'Size', 'Source', 'Type', 'Unknown', 'adventures', 'blue', 'books', 'by_source', 'content', 'cr', 'cyan', 'dim', 'files', 'green', 'homebrew', 'rarity', 'right', 'sources', 'srd-data/adventure', 'srd-data/book', 'type', '📚 Available Sources']

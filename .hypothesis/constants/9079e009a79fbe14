@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/renderers/latex/progress_tracker.py
-# hypothesis_version: 6.136.7
-
-[0.0, 1.0, 100, 'Current pass number', '[bold red]failed[/]', '[green]✓[/]', '[red]✗[/]', '_compilation_failed', 'rich', 'simple', 'unknown', '✅', '✅ SUCCESS', '✓', '✗', '❌', '❌ FAILED']

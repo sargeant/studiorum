@@ -6,15 +6,17 @@ that might cause validation issues.
 
 from typing import Any, cast
 
-from dnd5e.core.models.creatures import (  # type: ignore
+from studiorum.cli.services import get_cli_template_service
+from studiorum.core.models.creatures import (  # type: ignore
     Ability,
     ArmorClass,
     Creature,
     CreatureType,
     HitPoints,
 )
-from dnd5e.core.models.items import Item  # type: ignore
-from dnd5e.core.models.spells import Spell  # type: ignore
+from studiorum.core.models.items import Item  # type: ignore
+from studiorum.core.models.spells import Spell  # type: ignore
+from studiorum.core.references.content_tracker import ContentTracker
 
 
 class TestModelValidationEdgeCases:
@@ -96,8 +98,12 @@ class TestModelValidationEdgeCases:
             spell = Spell.model_validate(spell_data)
             assert spell.name == spell_data["name"]
 
-            # Test text extraction
-            description = spell.get_description_text()
+            # Test text extraction using new template service pattern
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            description = template_service.render_entry_description(
+                spell.entries, content_tracker
+            )
             assert description, f"Failed to extract description for test case {i}"
             assert len(description) > 10, f"Description too short for test case {i}"
 
@@ -168,8 +174,16 @@ class TestModelValidationEdgeCases:
             spell_data.update(cast(dict, higher_level_data))
             spell = Spell.model_validate(spell_data)
 
-            higher_text = spell.get_higher_level_text()
-            assert higher_text, f"Failed to extract higher level text for test case {i}"
+            # Test higher level text extraction using template service
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            if spell.higher_level:
+                higher_text = template_service.render_entry_description(
+                    spell.higher_level, content_tracker
+                )
+                assert higher_text, (
+                    f"Failed to extract higher level text for test case {i}"
+                )
 
         print(f"✅ {len(test_cases)} higher level spell variations validated")
 
@@ -344,7 +358,12 @@ class TestModelValidationEdgeCases:
             ability = Ability.model_validate(ability_data)
             assert ability.name == cast(dict, ability_data)["name"]
 
-            description = ability.get_description_text()
+            # Test ability description extraction using template service
+            template_service = get_cli_template_service()
+            content_tracker = ContentTracker()
+            description = template_service.render_entry_description(
+                ability.entries, content_tracker
+            )
             assert description, (
                 f"Failed to extract description for ability test case {i}"
             )
@@ -418,7 +437,12 @@ class TestModelValidationEdgeCases:
             assert item.name == item_data["name"]
 
             if item.entries:
-                description = item.get_description_text()
+                # Test item description extraction using template service
+                template_service = get_cli_template_service()
+                content_tracker = ContentTracker()
+                description = template_service.render_entry_description(
+                    item.entries, content_tracker
+                )
                 assert description, (
                     f"Failed to extract description for item test case {i}"
                 )
@@ -427,7 +451,7 @@ class TestModelValidationEdgeCases:
 
     def test_source_format_variations(self) -> None:
         """Test that various source formats are handled correctly."""
-        from dnd5e.core.models.content import Source  # type: ignore
+        from studiorum.core.models.content import Source  # type: ignore
 
         test_cases = [
             # String source

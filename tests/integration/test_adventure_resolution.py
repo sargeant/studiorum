@@ -8,11 +8,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dnd5e.core.loaders import FileSystemSourceManager, Omnidexer
-from dnd5e.core.loaders.base import SourceManager
-from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from studiorum.core.loaders import FileSystemSourceManager, Omnidexer
+from studiorum.core.loaders.base import SourceManager
+from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
+from studiorum.core.models.content import ContentType
+from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from tests.test_helpers import reset_test_environment
 
 # Test uses sync methods only
 
@@ -25,17 +26,25 @@ class TestSourceManager(SourceManager):
 
     def get_data_paths(self) -> dict[ContentType, list[Path]]:
         """Return paths to metadata files only."""
+        # Ensure registry is initialized before using ContentType
+        from studiorum.core.registry import initialize_content_types
+
+        initialize_content_types()
+
         paths = {}
+
+        adventure_type = ContentType("adventure")
+        book_type = ContentType("book")
 
         # Check for adventures metadata
         adventures_file = self.data_dir / "adventures.json"
         if adventures_file.exists():
-            paths[ContentType.ADVENTURE] = [adventures_file]
+            paths[adventure_type] = [adventures_file]
 
         # Check for books metadata
         books_file = self.data_dir / "books.json"
         if books_file.exists():
-            paths[ContentType.BOOK] = [books_file]
+            paths[book_type] = [books_file]
 
         return paths
 
@@ -47,19 +56,22 @@ class TestSourceManager(SourceManager):
         """Return content files."""
         paths = {}
 
+        adventure_type = ContentType("adventure")
+        book_type = ContentType("book")
+
         # Check for adventure content files
         adventure_dir = self.data_dir / "adventure"
         if adventure_dir.exists():
             adventure_files = list(adventure_dir.glob("adventure-*.json"))
             if adventure_files:
-                paths[ContentType.ADVENTURE] = adventure_files
+                paths[adventure_type] = adventure_files
 
         # Check for book content files
         book_dir = self.data_dir / "book"
         if book_dir.exists():
             book_files = list(book_dir.glob("book-*.json"))
             if book_files:
-                paths[ContentType.BOOK] = book_files
+                paths[book_type] = book_files
 
         return paths
 
@@ -85,11 +97,14 @@ class TestSourceManager(SourceManager):
         return 100
 
 
+@pytest.mark.integration
 class TestAdventureResolution:
     """End-to-end integration tests for adventure resolution."""
 
     def setup_method(self):
         """Set up test environment with temporary data files."""
+        # Reset global state for complete isolation using service container
+        reset_test_environment()
         # Create temporary directory for test data
         self.temp_dir = tempfile.TemporaryDirectory()
         self.temp_path = Path(self.temp_dir.name)
@@ -188,13 +203,15 @@ class TestAdventureResolution:
         print(f"Data paths found: {data_paths}")
 
         # Also verify the file exists and can be read
-        adv_file = data_paths[ContentType.ADVENTURE][0]
+        adventure_type = ContentType("adventure")
+        adv_file = data_paths[adventure_type][0]
         with open(adv_file) as f:
             metadata = json.load(f)
             print(f"Metadata file has {len(metadata.get('adventure', []))} adventures")
 
         # Verify omnidexer only loaded metadata
-        adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
+        adventure_type = ContentType("adventure")
+        adventures = omnidexer.get_all_by_type(adventure_type)
         print(f"Adventures loaded: {len(adventures)}")
         for adv in adventures:
             print(f"  - {adv.name} (id: {adv.id})")
@@ -308,22 +325,25 @@ class TestAdventureResolution:
         assert test_adventure_result.content.name == "Test Adventure"
         assert test_adventure_result.content.source.abbreviation == "TEST"
 
-    def test_adventure_count_metadata_only(self):
-        """Test that omnidexer only contains metadata entries, not content files."""
+    def test_adventure_count_with_enriched_content(self):
+        """Test that omnidexer contains adventures with enriched content from dual-file architecture."""
         source_manager = TestSourceManager(self.data_dir)
 
         omnidexer = Omnidexer(source_manager)
         omnidexer.load_all_data()
 
         # Get all adventures from omnidexer
-        adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
+        adventure_type = ContentType("adventure")
+        adventures = omnidexer.get_all_by_type(adventure_type)
 
-        # Should only have 1 adventure (from metadata), not 2 (metadata + content)
+        # Should only have 1 adventure (metadata enriched with content)
         assert len(adventures) == 1
 
-        # Adventure should have metadata but empty content
+        # Adventure should have metadata enriched with content from dual-file architecture
         for adventure in adventures:
             assert adventure.name in ["Test Adventure"]
-            # Before resolution, chapters should have empty entries
+            # With dual-file architecture, chapters should have populated entries
             for chapter in adventure.contents:
-                assert chapter.entries == []
+                assert (
+                    len(chapter.entries) > 0
+                )  # Enriched with content from content files

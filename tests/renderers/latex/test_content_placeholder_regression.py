@@ -6,29 +6,36 @@ where string placeholders were globally replaced does not recur.
 
 import pytest
 
-from dnd5e.core.models.books import Book, Chapter
-from dnd5e.core.models.content import Source
-from dnd5e.core.models.document_metadata import DocumentMetadata, DocumentType
-from dnd5e.renderers.base import RenderContext
-from dnd5e.renderers.latex.document import LaTeXDocumentRenderer
-from dnd5e.renderers.latex.document_structure import (
+from studiorum.core.models.books import Book, Chapter
+from studiorum.core.models.content import Source
+from studiorum.core.models.document_metadata import DocumentMetadata, DocumentType
+from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
+from studiorum.latex_engine.core.document_structure import (
     ContentSection,
     DocumentStructureBuilder,
     SectionLevel,
 )
+from studiorum.renderers.core.interfaces import RenderingContext
+from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestContentPlaceholderRegression:
     """Test that content placeholder replacement doesn't cause duplication."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.renderer = LaTeXDocumentRenderer()
         metadata = DocumentMetadata(
             title="Test Book",
             document_type=DocumentType.BOOK,
         )
-        self.context = RenderContext(metadata=metadata)
+        self.context = RenderingContext(
+            output_format="latex", metadata={"document_metadata": metadata}
+        )
 
     def test_string_placeholder_replacement_is_limited(self) -> None:
         """Test that string placeholders are replaced only once, not globally."""
@@ -167,7 +174,7 @@ class TestContentPlaceholderRegression:
         )
 
         # Build document structure
-        builder = DocumentStructureBuilder(self.context.metadata)
+        builder = DocumentStructureBuilder(self.context.metadata["document_metadata"])
         sections, _ = builder.build_document_structure([book], self.context)
 
         # Create a simple template-like document

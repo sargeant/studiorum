@@ -2,23 +2,39 @@
 
 from unittest.mock import Mock
 
-from dnd5e.renderers.base import RenderContext
-from dnd5e.renderers.latex.entry_processor import RecursiveEntryProcessor
+import pytest
+
+from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+from studiorum.renderers.core.interfaces import RenderingContext
+from tests.test_helpers import reset_test_environment
 
 
+@pytest.mark.rendering
 class TestRecursiveEntryProcessor:
     """Test recursive entry processor functionality."""
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.processor = RecursiveEntryProcessor(use_dnd_template=True)
-        self.context = RenderContext()
-        self.context.include_images = True  # Enable image processing
+        self.context = RenderingContext(output_format="latex")
+        self.context = RenderingContext(
+            output_format="latex",
+            metadata={"include_images": True},  # Enable image processing
+        )
 
         # Mock tag resolver to return escaped text
         mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text = Mock(side_effect=lambda x: f"processed_{x}")
-        self.context.tag_resolver = mock_tag_resolver
+        mock_tag_resolver.process_text = Mock(
+            side_effect=lambda text, context=None: f"processed_{text}"
+        )
+        self.context = RenderingContext(
+            output_format="latex",
+            tag_resolver=mock_tag_resolver,
+            metadata={"include_images": True},
+        )
 
     def test_init_default(self):
         """Test processor initialization with defaults."""
@@ -57,7 +73,7 @@ class TestRecursiveEntryProcessor:
 
         assert len(result) == 3
         assert result[0] == "processed_Plain text"
-        assert "\\section{Test Section}" in result[1]
+        assert "\\section{processed_Test Section}" in result[1]
         assert result[2] == "123"
 
     def test_process_entry_dict_section(self):
@@ -65,7 +81,7 @@ class TestRecursiveEntryProcessor:
         entry = {"type": "section", "name": "Test Section", "entries": ["Content here"]}
         result = self.processor.process_entry_dict(entry, self.context)
 
-        assert "\\section{Test Section}" in result
+        assert "\\section{processed_Test Section}" in result
         assert "processed_Content here" in result
 
     def test_process_entry_dict_entries_block(self):
@@ -77,7 +93,7 @@ class TestRecursiveEntryProcessor:
         }
         result = self.processor.process_entry_dict(entry, self.context)
 
-        assert "\\subsection{Entries Block}" in result
+        assert "\\subsection{processed_Entries Block}" in result
         assert "processed_Some content" in result
 
     def test_process_entry_dict_inset_readaloud(self):
@@ -155,14 +171,18 @@ class TestRecursiveEntryProcessor:
     def test_process_entry_dict_image_disabled(self):
         """Test processing image when images are disabled."""
         # Create context with images disabled
-        context = RenderContext()
-        context.include_images = False
+        context = RenderingContext(output_format="latex")
+        context = RenderingContext(
+            output_format="latex", metadata={"include_images": False}
+        )
 
         # Mock tag resolver
         from unittest.mock import Mock
 
         mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text = Mock(side_effect=lambda x: f"processed_{x}")
+        mock_tag_resolver.process_text = Mock(
+            side_effect=lambda text, context=None: f"processed_{text}"
+        )
         context.tag_resolver = mock_tag_resolver
 
         entry = {"type": "image", "href": "path/to/image.png", "title": "Test Image"}
@@ -218,7 +238,7 @@ class TestRecursiveEntryProcessor:
 
         assert "\\begin{itemize}" in result
         assert "\\item processed_String item" in result
-        assert "\\item \\subsection{Nested}" in result
+        assert "\\item \\subsection{processed_Nested}" in result
         assert "\\item 123" in result
 
     def test_process_entry_dict_table_with_dnd_template(self):
@@ -283,7 +303,7 @@ class TestRecursiveEntryProcessor:
         entry = {"name": "Generic Entry", "entries": ["Some content"]}
         result = self.processor.process_entry_dict(entry, self.context)
 
-        assert "\\subsection{Generic Entry}" in result
+        assert "\\subsection{processed_Generic Entry}" in result
         assert "processed_Some content" in result
 
     def test_process_section_depth_tracking(self):
@@ -301,22 +321,24 @@ class TestRecursiveEntryProcessor:
         }
         result = self.processor.process_entry_dict(section, self.context)
 
-        assert "\\section{Main Section}" in result
-        assert "\\subsection{Nested Section}" in result
+        assert "\\section{processed_Main Section}" in result
+        assert "\\subsection{processed_Nested Section}" in result
         assert "processed_Deep content" in result
 
     def test_get_section_command_all_depths(self):
         """Test section command generation for all depths."""
-        assert self.processor._get_section_command(0) == "section"
-        assert self.processor._get_section_command(1) == "subsection"
-        assert self.processor._get_section_command(2) == "subsubsection"
-        assert self.processor._get_section_command(3) == "paragraph"
-        assert self.processor._get_section_command(4) == "subparagraph"
-        assert self.processor._get_section_command(10) == "subparagraph"  # Max depth
+        assert self.processor._get_section_command(0, self.context) == "section"
+        assert self.processor._get_section_command(1, self.context) == "subsection"
+        assert self.processor._get_section_command(2, self.context) == "subsubsection"
+        assert self.processor._get_section_command(3, self.context) == "paragraph"
+        assert self.processor._get_section_command(4, self.context) == "subparagraph"
+        assert (
+            self.processor._get_section_command(10, self.context) == "subparagraph"
+        )  # Max depth
 
     def test_process_text_with_tags_no_resolver(self):
         """Test text processing without tag resolver."""
-        context_no_resolver = RenderContext()
+        context_no_resolver = RenderingContext(output_format="latex")
         context_no_resolver.tag_resolver = None
 
         result = self.processor._process_text_with_tags(

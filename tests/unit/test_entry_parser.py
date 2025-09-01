@@ -1,13 +1,13 @@
 """Tests for entry parser functionality."""
 
-from dnd5e.core.models.content import Source
-from dnd5e.core.models.nested_content import (
+from studiorum.core.models.content import Source
+from studiorum.core.models.nested_content import (
     Inset,
     Section,
     Table,
     VariantRule,
 )
-from dnd5e.core.parsers.entry_parser import EntryParser
+from studiorum.core.parsers.entry_parser import EntryParser
 
 
 class TestEntryParser:

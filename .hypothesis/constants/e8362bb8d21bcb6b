@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/indexer/content_tracker.py
-# hypothesis_version: 6.136.7
-
-['Name of the content', 'Page reference', 'Source abbreviation', 'content_type', 'name', 'page', 'reference_count', 'source', 'total_references', 'total_unique_content', 'type']

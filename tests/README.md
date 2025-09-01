@@ -97,7 +97,7 @@ uv run python scripts/generate_validation_report.py
 The tests use adaptive thresholds based on dataset size:
 
 - **Spell validation warnings**: ≤ 1% of total spells (minimum 10)
-- **Creature validation warnings**: ≤ 1.5% of total creatures (minimum 15)  
+- **Creature validation warnings**: ≤ 1.5% of total creatures (minimum 15)
 - **Item validation warnings**: ≤ 0.5% of total items (minimum 5)
 - **Overall validation warnings**: ≤ 1% of total items (minimum 20)
 - **Memory usage**: ≤ 1GB increase, ≤ 100KB per item

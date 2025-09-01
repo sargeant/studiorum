@@ -8,12 +8,9 @@
   "class": [
     {
       "name": "Sorcerer",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
-      "reprintedAs": [
-        "Sorcerer|XPHB"
-      ],
       "edition": "classic",
       "hd": {
         "number": 1,
@@ -561,10 +558,7 @@
         },
         "Font of Magic|Sorcerer||2",
         "Metamagic|Sorcerer||3",
-        "Metamagic Options|Sorcerer||3|TCE",
         "Ability Score Improvement|Sorcerer||4",
-        "Sorcerous Versatility|Sorcerer||4|TCE",
-        "Magical Guidance|Sorcerer||5|TCE",
         {
           "classFeature": "Sorcerous Origin feature|Sorcerer||6",
           "gainSubclassFeature": true
@@ -585,23 +579,18 @@
         "Ability Score Improvement|Sorcerer||19",
         "Sorcerous Restoration|Sorcerer||20"
       ],
-      "subclassTitle": "Sorcerous Origin",
-      "hasFluff": true,
-      "hasFluffImages": true
+      "subclassTitle": "Sorcerous Origin"
     }
   ],
   "subclass": [
     {
       "name": "Draconic Bloodline",
       "shortName": "Draconic",
-      "source": "PHB",
+      "source": "SRD",
       "className": "Sorcerer",
       "classSource": "PHB",
       "page": 102,
       "srd": true,
-      "reprintedAs": [
-        "Draconic|Sorcerer|XPHB|XPHB"
-      ],
       "edition": "classic",
       "subclassFeatures": [
         "Draconic Bloodline|Sorcerer||Draconic||1",
@@ -614,7 +603,7 @@
   "classFeature": [
     {
       "name": "Sorcerous Origin",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -627,7 +616,7 @@
     },
     {
       "name": "Spellcasting",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -691,7 +680,7 @@
     },
     {
       "name": "Flexible Casting",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -752,7 +741,7 @@
     },
     {
       "name": "Font of Magic",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -772,7 +761,7 @@
     },
     {
       "name": "Sorcery Points",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -785,7 +774,7 @@
     },
     {
       "name": "Metamagic",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -860,7 +849,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -873,7 +862,7 @@
     },
     {
       "name": "Sorcerous Origin feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -885,7 +874,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -898,7 +887,7 @@
     },
     {
       "name": "Metamagic",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -910,7 +899,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -923,7 +912,7 @@
     },
     {
       "name": "Sorcerous Origin feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -935,7 +924,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -948,7 +937,7 @@
     },
     {
       "name": "Metamagic",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -960,7 +949,7 @@
     },
     {
       "name": "Sorcerous Origin feature",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -972,7 +961,7 @@
     },
     {
       "name": "Ability Score Improvement",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -985,7 +974,7 @@
     },
     {
       "name": "Sorcerous Restoration",
-      "source": "PHB",
+      "source": "SRD",
       "page": 99,
       "srd": true,
       "className": "Sorcerer",
@@ -999,7 +988,7 @@
   "subclassFeature": [
     {
       "name": "Draconic Bloodline",
-      "source": "PHB",
+      "source": "SRD",
       "page": 102,
       "srd": true,
       "className": "Sorcerer",
@@ -1021,7 +1010,7 @@
     },
     {
       "name": "Draconic Resilience",
-      "source": "PHB",
+      "source": "SRD",
       "page": 102,
       "srd": true,
       "className": "Sorcerer",
@@ -1037,7 +1026,7 @@
     },
     {
       "name": "Dragon Ancestor",
-      "source": "PHB",
+      "source": "SRD",
       "page": 102,
       "srd": true,
       "className": "Sorcerer",
@@ -1107,7 +1096,7 @@
     },
     {
       "name": "Elemental Affinity",
-      "source": "PHB",
+      "source": "SRD",
       "page": 102,
       "srd": true,
       "className": "Sorcerer",
@@ -1125,7 +1114,7 @@
     },
     {
       "name": "Dragon Wings",
-      "source": "PHB",
+      "source": "SRD",
       "page": 102,
       "srd": true,
       "className": "Sorcerer",
@@ -1141,7 +1130,7 @@
     },
     {
       "name": "Draconic Presence",
-      "source": "PHB",
+      "source": "SRD",
       "page": 102,
       "srd": true,
       "className": "Sorcerer",

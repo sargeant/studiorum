@@ -1,0 +1,179 @@
+% Shared creature rendering block for use in both bestiary and creature_entry templates
+% This macro can be included by both templates to ensure consistent rendering
+
+<@ macro render_creature(creature, template_service=template_service, content_tracker=content_tracker, latex_config=latex_config) @>
+<#-- Check if creature needs full-width layout --#>
+<@ if creature.requires_full_width_layout() @>
+% Large creature - switch to single column layout
+\onecolumn
+<@ endif @>
+
+<#-- Render using DndMonster environment with proper float placement --#>
+\begin{DndMonster}[float=htbp]{<# creature.name | latex_escape #>}
+\noindent \DndMonsterType{<# creature.get_size_type_alignment() | latex_escape #>}
+\DndMonsterBasics[
+    armor-class = {<# creature.get_processed_ac_text() | safe #>},
+    hit-points = {<# creature.get_hp_text() | latex_escape #>},
+    speed = {<# creature.get_speed_text() | latex_escape #>},
+    initiative = <@ if creature.get_initiative_modifier() >= 0 @>+<@ endif @><# creature.get_initiative_modifier() #>
+]
+<#-- Check if using modern statblock format --#>
+<@ set is_modern = latex_config and latex_config.document and latex_config.document.statblock in ['2024', 'modern'] @>
+\DndMonsterAbilityScores[
+    str = <# creature.strength #>,
+    dex = <# creature.dexterity #>,
+    con = <# creature.constitution #>,
+    int = <# creature.intelligence #>,
+    wis = <# creature.wisdom #>,
+    cha = <# creature.charisma #><@ if is_modern @>,
+<@ if creature.get_save_value('str') is not none @>    str save = <@ if creature.get_save_value('str') >= 0 @>+<@ endif @><# creature.get_save_value('str') #>,
+<@ endif @><@ if creature.get_save_value('dex') is not none @>    dex save = <@ if creature.get_save_value('dex') >= 0 @>+<@ endif @><# creature.get_save_value('dex') #>,
+<@ endif @><@ if creature.get_save_value('con') is not none @>    con save = <@ if creature.get_save_value('con') >= 0 @>+<@ endif @><# creature.get_save_value('con') #>,
+<@ endif @><@ if creature.get_save_value('int') is not none @>    int save = <@ if creature.get_save_value('int') >= 0 @>+<@ endif @><# creature.get_save_value('int') #>,
+<@ endif @><@ if creature.get_save_value('wis') is not none @>    wis save = <@ if creature.get_save_value('wis') >= 0 @>+<@ endif @><# creature.get_save_value('wis') #>,
+<@ endif @><@ if creature.get_save_value('cha') is not none @>    cha save = <@ if creature.get_save_value('cha') >= 0 @>+<@ endif @><# creature.get_save_value('cha') #>
+<@ endif @><@ endif @>
+]
+
+<#-- Only show DndMonsterDetails if there's something to show (excluding saves in modern format) --#>
+<@ if (not is_modern and creature.get_formatted_saving_throws()) or creature.get_formatted_skills() or creature.get_formatted_resistances() or creature.get_formatted_immunities() or creature.get_formatted_vulnerabilities() or creature.get_formatted_condition_immunities() or creature.get_formatted_senses() or creature.get_formatted_languages() @>
+\DndMonsterDetails[
+<#-- Only include saving-throws in classic format --#>
+<@ if not is_modern and creature.get_formatted_saving_throws() @>    saving-throws = {<# creature.get_formatted_saving_throws() | latex_escape #>},
+<@ endif @>
+<@ if creature.get_formatted_skills() @>    skills = {<# creature.get_formatted_skills() | latex_escape #>},
+<@ endif @>
+<@ if creature.get_formatted_resistances() @>    damage-resistances = {<# creature.get_formatted_resistances() | latex_escape #>},
+<@ endif @>
+<@ if creature.get_formatted_immunities() @>    damage-immunities = {<# creature.get_formatted_immunities() | latex_escape #>},
+<@ endif @>
+<@ if creature.get_formatted_vulnerabilities() @>    damage-vulnerabilities = {<# creature.get_formatted_vulnerabilities() | latex_escape #>},
+<@ endif @>
+<@ if creature.get_formatted_condition_immunities() @>    condition-immunities = {<# creature.get_formatted_condition_immunities() | latex_escape #>},
+<@ endif @>
+<@ if creature.get_formatted_senses() @>    senses = {<# creature.get_processed_senses() | safe #>},
+<@ endif @>
+<@ if creature.get_formatted_languages() @>    languages = {<# creature.get_formatted_languages() | latex_escape #>},
+<@ endif @>    challenge = {<# creature.get_enhanced_cr_text() | latex_escape #>}
+]
+<@ endif @>
+
+<@ if creature.trait or (creature.spellcasting and creature.spellcasting | selectattr('displayAs', 'undefined') | list) @>
+\DndMonsterSection{Traits}
+<@ if creature.spellcasting @>
+<@ for spellcasting in creature.spellcasting @>
+<@ if not spellcasting.displayAs @>
+\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
+<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
+
+<@ endif @>
+<@ endfor @>
+<@ endif @>
+<@ if creature.trait @>
+<@ for trait in creature.trait @>
+\DndMonsterAction{<# trait | safe_processed_name | safe #>}
+<# template_service.render_entry_content_only(trait, content_tracker) | safe #>
+
+<@ endfor @>
+<@ endif @>
+<@ endif @>
+
+<@ set action_spells = [] @>
+<@ set bonus_spells = [] @>
+<@ set reaction_spells = [] @>
+<@ if creature.spellcasting @>
+<@ for spellcasting in creature.spellcasting @>
+<@ if spellcasting.displayAs == "action" @>
+<@ set _ = action_spells.append(spellcasting) @>
+<@ elif spellcasting.displayAs == "bonus" @>
+<@ set _ = bonus_spells.append(spellcasting) @>
+<@ elif spellcasting.displayAs == "reaction" @>
+<@ set _ = reaction_spells.append(spellcasting) @>
+<@ endif @>
+<@ endfor @>
+<@ endif @>
+
+<@ if creature.action or action_spells @>
+\DndMonsterSection{Actions}
+<@ for spellcasting in action_spells @>
+\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
+<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
+
+<@ endfor @>
+<@ if creature.action @>
+<@ for action in creature.action @>
+\DndMonsterAction{<# action | safe_processed_name | safe #>}
+<# template_service.render_entry_content_only(action, content_tracker) | safe #>
+
+<@ endfor @>
+<@ endif @>
+<@ endif @>
+
+<@ if creature.bonus or bonus_spells @>
+\DndMonsterSection{Bonus Actions}
+<@ for spellcasting in bonus_spells @>
+\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
+<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
+
+<@ endfor @>
+<@ if creature.bonus @>
+<@ for bonus in creature.bonus @>
+\DndMonsterAction{<# bonus | safe_processed_name | safe #>}
+<# template_service.render_entry_content_only(bonus, content_tracker) | safe #>
+
+<@ endfor @>
+<@ endif @>
+<@ endif @>
+
+<@ if creature.reaction or reaction_spells @>
+\DndMonsterSection{Reactions}
+<@ for spellcasting in reaction_spells @>
+\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
+<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
+
+<@ endfor @>
+<@ if creature.reaction @>
+<@ for reaction in creature.reaction @>
+\DndMonsterAction{<# reaction | safe_processed_name | safe #>}
+<# template_service.render_entry_content_only(reaction, content_tracker) | safe #>
+
+<@ endfor @>
+<@ endif @>
+<@ endif @>
+
+<@ if creature.legendary @>
+\DndMonsterSection{Legendary Actions}
+<@ for legendary in creature.legendary @>
+\DndMonsterAction{<# legendary | safe_processed_name | safe #>}
+<# template_service.render_entry_content_only(legendary, content_tracker) | safe #>
+
+<@ endfor @>
+<@ endif @>
+
+<@ if creature.lair_actions @>
+\DndMonsterSection{Lair Actions}
+<@ for lair_action in creature.lair_actions @>
+<@ if lair_action is string @>
+<# template_service.render_entry_content_only([lair_action], content_tracker) | safe #>
+
+<@ else @>
+<@ if lair_action | safe_processed_name @>
+\DndMonsterAction{<# lair_action | safe_processed_name | safe #>}
+<@ endif @>
+<# template_service.render_entry_content_only(lair_action, content_tracker) | safe #>
+
+<@ endif @>
+<@ endfor @>
+<@ endif @>
+
+% Add source abbreviation at the bottom
+\vspace{2pt}
+\noindent\hfill{\scriptsize\textcolor{gray}{<# creature.source.abbreviation | latex_escape #>}}
+
+\end{DndMonster}
+
+<@ if creature.requires_full_width_layout() @>
+% Switch back to two column layout
+\twocolumn
+<@ endif @>
+<@ endmacro @>

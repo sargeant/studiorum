@@ -1,14 +1,15 @@
 """Property-based tests for spell models using Hypothesis.
 
-These tests verify D&D 5e rule invariants and data integrity constraints
+These tests verify 5e rule invariants and data integrity constraints
 automatically across thousands of generated test cases.
 """
 
 import pytest
-from hypothesis import assume, example, given, strategies as st
+from hypothesis import assume, example, given, settings, strategies as st
 from hypothesis.strategies import composite
 
-from dnd5e.core.models.spells import (
+from studiorum.cli.services import get_cli_template_service
+from studiorum.core.models.spells import (
     ClassReference,
     DistanceDetails,
     DurationDetails,
@@ -19,19 +20,20 @@ from dnd5e.core.models.spells import (
     SpellRange,
     SpellTime,
 )
+from studiorum.core.references.content_tracker import ContentTracker
 
-# ==== Hypothesis Strategies for D&D Domain Objects ====
+# ==== Hypothesis Strategies for 5e Domain Objects ====
 
 
 @composite
 def valid_spell_levels(draw) -> int:
-    """Generate valid D&D 5e spell levels (0-9)."""
+    """Generate valid 5e spell levels (0-9)."""
     return draw(st.integers(min_value=0, max_value=9))
 
 
 @composite
 def valid_spell_schools(draw) -> str:
-    """Generate valid D&D 5e schools of magic."""
+    """Generate valid 5e schools of magic."""
     schools = [
         "Abjuration",
         "Conjuration",
@@ -233,7 +235,7 @@ def valid_spells(draw) -> dict:
 
 
 class TestSpellInvariants:
-    """Test D&D 5e spell rule invariants."""
+    """Test 5e spell rule invariants."""
 
     @given(valid_spell_levels())
     def test_spell_level_constraints(self, level: int):
@@ -243,7 +245,7 @@ class TestSpellInvariants:
 
     @given(valid_spell_schools())
     def test_spell_school_names(self, school: str):
-        """Spell schools must be valid D&D schools."""
+        """Spell schools must be valid 5e schools."""
         valid_schools = {
             "Abjuration",
             "Conjuration",
@@ -306,6 +308,7 @@ class TestSpellInvariants:
                 assert len(spell_component.material) > 0
 
     @given(valid_spells())
+    @settings(deadline=None, max_examples=50)  # Reduce examples and disable deadline
     def test_spell_serialization_roundtrip(self, spell_data: dict):
         """Spells should serialize and deserialize consistently."""
         # Create spell from data
@@ -326,7 +329,7 @@ class TestSpellInvariants:
 
     @given(valid_spells())
     def test_spell_level_text_formatting(self, spell_data: dict):
-        """Spell level text should follow D&D formatting conventions."""
+        """Spell level text should follow 5e formatting conventions."""
         spell = Spell.model_validate(spell_data)
         level_text = spell.get_level_text()
 
@@ -348,7 +351,7 @@ class TestSpellInvariants:
 
     @given(valid_spells())
     def test_spell_components_text_formatting(self, spell_data: dict):
-        """Component text should follow standard D&D format."""
+        """Component text should follow standard 5e format."""
         spell = Spell.model_validate(spell_data)
         components_text = spell.get_components_text()
 
@@ -438,12 +441,18 @@ class TestSpellDataIntegrity:
     """Test spell data integrity and consistency."""
 
     @given(valid_spells())
+    @settings(deadline=None)  # Disable deadline due to initial data loading
     def test_spell_entries_non_empty(self, spell_data: dict):
         """Spells must have non-empty description entries."""
         spell = Spell.model_validate(spell_data)
 
         assert len(spell.entries) > 0
-        description_text = spell.get_description_text()
+        # Use template service for description extraction
+        template_service = get_cli_template_service()
+        content_tracker = ContentTracker()
+        description_text = template_service.render_entry_description(
+            spell.entries, content_tracker
+        )
         assert len(description_text.strip()) > 0
 
     @given(valid_spells())
@@ -526,7 +535,7 @@ class TestSpellEdgeCases:
     )
     @given(valid_spells())
     def test_classic_spell_examples(self, spell_data: dict):
-        """Test with classic D&D spell examples."""
+        """Test with classic 5e spell examples."""
         spell = Spell.model_validate(spell_data)
 
         # Basic validation

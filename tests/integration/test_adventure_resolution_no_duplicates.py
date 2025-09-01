@@ -7,12 +7,13 @@ from unittest.mock import Mock
 
 import pytest
 
-from dnd5e.core.loaders.configurable_source_manager import ConfigurableSourceManager
-from dnd5e.core.loaders.omnidexer import Omnidexer
-from dnd5e.core.models.content import ContentType
-from dnd5e.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
+from studiorum.core.loaders.omnidexer import Omnidexer
+from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
+from studiorum.core.models.content import ContentType
+from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 
 
+@pytest.mark.integration
 class TestAdventureResolutionNoDuplicates:
     """Test that adventure resolution returns no duplicates after implementing metadata/content separation."""
 
@@ -62,10 +63,11 @@ class TestAdventureResolutionNoDuplicates:
                 json.dump(adventures_metadata, f)
 
             # Create mock source manager that filters out content files
-            mock_source_manager = Mock(spec=ConfigurableSourceManager)
+            mock_source_manager = Mock(spec=UnifiedSourceManager)
             # Only adventures.json should be loaded, content files should be filtered out
+            adventure_type = ContentType("adventure")
             mock_source_manager.get_data_paths.return_value = {
-                ContentType.ADVENTURE: [adventures_file]  # Content files filtered out
+                adventure_type: [adventures_file]  # Content files filtered out
             }
             mock_source_manager.ensure_sources_ready.return_value = None
 
@@ -79,7 +81,8 @@ class TestAdventureResolutionNoDuplicates:
             assert load_stats.get("adventure") == 2
 
             # Verify we can get adventures
-            all_adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
+            adventure_type = ContentType("adventure")
+            all_adventures = omnidexer.get_all_by_type(adventure_type)
             assert len(all_adventures) == 2, (
                 "Should have exactly 2 adventures (no duplicates)"
             )
@@ -118,13 +121,14 @@ class TestAdventureResolutionNoDuplicates:
             # Content files are ignored in this test, so we don't need to create them
 
             # Create mock source manager that filters out content files
-            mock_source_manager = Mock(spec=ConfigurableSourceManager)
+            mock_source_manager = Mock(spec=UnifiedSourceManager)
             # Only adventures.json should be loaded, content files should be filtered out
+            adventure_type = ContentType("adventure")
             mock_source_manager.get_data_paths.return_value = {
-                ContentType.ADVENTURE: [adventures_file]  # Content files filtered out
+                adventure_type: [adventures_file]  # Content files filtered out
             }
             mock_source_manager.get_content_files.return_value = {
-                ContentType.ADVENTURE: []  # No content files
+                adventure_type: []  # No content files
             }
             mock_source_manager.ensure_sources_ready.return_value = None
 
@@ -201,10 +205,11 @@ class TestAdventureResolutionNoDuplicates:
                 json.dump(adventures_metadata, f)
 
             # Create mock source manager that filters out content files
-            mock_source_manager = Mock(spec=ConfigurableSourceManager)
+            mock_source_manager = Mock(spec=UnifiedSourceManager)
             # Only adventures.json should be loaded, content files should be filtered out
+            adventure_type = ContentType("adventure")
             mock_source_manager.get_data_paths.return_value = {
-                ContentType.ADVENTURE: [adventures_file]  # Content files filtered out
+                adventure_type: [adventures_file]  # Content files filtered out
             }
             mock_source_manager.ensure_sources_ready.return_value = None
 
@@ -278,10 +283,11 @@ class TestAdventureResolutionNoDuplicates:
                 content_files.append(content_file)
 
             # Create mock source manager that filters out content files
-            mock_source_manager = Mock(spec=ConfigurableSourceManager)
+            mock_source_manager = Mock(spec=UnifiedSourceManager)
             # All content files should be filtered out, so empty list
+            adventure_type = ContentType("adventure")
             mock_source_manager.get_data_paths.return_value = {
-                ContentType.ADVENTURE: []  # All content files filtered out
+                adventure_type: []  # All content files filtered out
             }
             mock_source_manager.ensure_sources_ready.return_value = None
 
@@ -299,7 +305,8 @@ class TestAdventureResolutionNoDuplicates:
             )
 
             # Verify omnidexer has no adventures
-            all_adventures = omnidexer.get_all_by_type(ContentType.ADVENTURE)
+            adventure_type = ContentType("adventure")
+            all_adventures = omnidexer.get_all_by_type(adventure_type)
             assert len(all_adventures) == 0, "Should have no adventures indexed"
 
             # Verify statistics

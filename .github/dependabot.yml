@@ -26,6 +26,11 @@ updates:
       - "python"
     # Group minor and patch updates together
     groups:
+      # Security-first grouping (2025 best practice)
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
       production-dependencies:
         patterns:
           - "*"
@@ -51,6 +56,11 @@ updates:
       - dependency-type: "direct"
       - dependency-type: "indirect"
         update-types: ["security"]
+      # Better security coverage
+      - dependency-name: "*"
+        update-types: ["security"]
+    # Handle merge conflicts better
+    rebase-strategy: "auto"
 
   # GitHub Actions workflows
   - package-ecosystem: "github-actions"
@@ -78,3 +88,5 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    # Handle merge conflicts better
+    rebase-strategy: "auto"

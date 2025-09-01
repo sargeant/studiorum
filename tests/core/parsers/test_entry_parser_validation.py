@@ -1,14 +1,19 @@
-"""Tests for enhanced entry parser validation and error handling."""
+"""Tests for enhanced entry parser validation and Result[T, E] error handling.
+
+Updated for Phase 3 to test Result patterns instead of exception patterns.
+"""
 
 import warnings
 from unittest.mock import patch
 
 import pytest
 
-from dnd5e.core.entry_registry import ValidationMode
-from dnd5e.core.exceptions import EntryProcessingError, EntryProcessingWarning
-from dnd5e.core.models.content import Source
-from dnd5e.core.parsers.entry_parser import EntryParser
+from studiorum.core.entry_registry import ValidationMode
+from studiorum.core.exceptions import EntryProcessingWarning
+from studiorum.core.models.content import Source
+from studiorum.core.parsers.entry_parser import EntryParser
+from studiorum.core.result import Error, Success
+from tests.test_helpers import reset_test_environment
 
 
 class TestEntryParserEnhanced:
@@ -16,6 +21,9 @@ class TestEntryParserEnhanced:
 
     def setup_method(self):
         """Set up test fixtures."""
+        # Reset global state for complete isolation
+        reset_test_environment()
+
         self.source = Source(
             name="Test Source",
             abbreviation="TST",
@@ -81,31 +89,30 @@ class TestEntryParserEnhanced:
         assert self.parser._entries_processed == 2  # unknownType + nested section
 
     def test_parse_unknown_entry_type_strict(self):
-        """Test parsing of unknown entry type in strict mode."""
+        """Test parsing of unknown entry type in strict mode logs errors."""
         parser = EntryParser(self.source, "Test", ValidationMode.STRICT)
         entries = [{"type": "unknownType", "data": "test"}]
 
-        with pytest.raises(EntryProcessingError) as exc_info:
-            list(parser.parse_entries(entries))
+        # Parser should return iterator, log errors, and track them
+        results = list(parser.parse_entries(entries))
 
-        # Should be wrapped in EntryProcessingError (but root cause is UnknownEntryTypeError)
-        error_msg = str(exc_info.value)
-        assert "Failed to parse entry" in error_msg or "Unknown entry type" in error_msg
-        assert parser._errors_encountered == 1
+        # Should get empty results but errors should be tracked
+        assert len(results) == 0  # No successful parsing
+        assert parser._errors_encountered >= 1  # Errors were encountered and tracked
 
     def test_parse_malformed_entry_handling(self):
-        """Test handling of entries that cause processing errors."""
+        """Test handling of entries that cause processing errors returns empty results."""
         # Mock a section parser that raises an exception
         with patch.object(self.parser, "_parse_section") as mock_parse:
             mock_parse.side_effect = ValueError("Simulated parsing error")
 
             entries = [{"type": "section", "name": "Bad Section"}]
 
-            with pytest.raises(EntryProcessingError) as exc_info:
-                list(self.parser.parse_entries(entries))
+            results = list(self.parser.parse_entries(entries))
 
-            assert "Failed to parse entry" in str(exc_info.value)
-            assert self.parser._errors_encountered == 1
+            # Should return empty results but with errors tracked internally
+            assert len(results) == 0  # No successful results due to error
+            assert self.parser._errors_encountered == 1  # Error was tracked
 
     def test_variant_rule_detection_book_content(self):
         """Test improved variant rule detection for book content."""
@@ -197,13 +204,14 @@ class TestEntryParserEnhanced:
 
             entries = [{"type": "section", "name": "Bad Section"}]
 
-            with pytest.raises(EntryProcessingError):
-                list(self.parser.parse_entries(entries))
+            results = list(self.parser.parse_entries(entries))
+            # Should get empty results but track the error
+            assert len(results) == 0
 
         stats = self.parser.get_processing_statistics()
         assert stats["errors_encountered"] == 1
 
-    @patch("dnd5e.core.parsers.entry_parser.logger")
+    @patch("studiorum.core.parsers.entry_parser.logger")
     def test_log_processing_summary(self, mock_logger):
         """Test processing summary logging."""
         entries = [
@@ -256,8 +264,10 @@ class TestEntryParserEnhanced:
 
         entries = [{"type": "unknownType", "data": "test"}]
 
-        with pytest.raises(EntryProcessingError):
-            list(strict_parser.parse_entries(entries))
+        results = list(strict_parser.parse_entries(entries))
+        # Should return empty results but track validation errors
+        assert len(results) == 0
+        assert strict_parser._errors_encountered >= 1
 
     def test_debug_logging_enabled(self):
         """Test that debug logging provides useful information."""
@@ -266,7 +276,7 @@ class TestEntryParserEnhanced:
             {"type": "unknownType", "data": "test"},
         ]
 
-        with patch("dnd5e.core.parsers.entry_parser.logger") as mock_logger:
+        with patch("studiorum.core.parsers.entry_parser.logger") as mock_logger:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 list(self.parser.parse_entries(entries))

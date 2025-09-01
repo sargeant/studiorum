@@ -1,4 +1,0 @@
-# file: /Users/sam/Code/5e2pdf/src/dnd5e/core/config/sources.py
-# hypothesis_version: 6.136.7
-
-[3600, '-', '.cache', '.config', '1.0', '5e2pdf', 'APPDATA', 'AppData', 'Cache directory', 'Config directory', 'Git branch to use', 'Local directory path', 'Roaming', 'Update frequency', 'XDG_CONFIG_HOME', '_', 'config.yaml', 'daily', 'directory', 'github', 'json', 'master', 'name', 'nt', 'path', 'srd', 'srd-data', 'test-data', 'type', 'url', 'utf-8', 'w', 'web']
