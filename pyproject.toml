@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "studiorum"
-version = "0.5.0"
+version = "0.6.0"
 description = "Convert 5e JSON data to beautifully formatted LaTeX/PDF documents"
 readme = "README.md"
 requires-python = ">=3.12"
