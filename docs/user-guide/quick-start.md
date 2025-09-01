@@ -5,7 +5,7 @@ description: Get up and running with studiorum in minutes
 
 # Quick Start
 
-Get up and running with studiorum to convert D&D 5e content into professional PDFs.
+Get up and running with Studiorum to convert 5e content into professional PDFs.
 
 ## Installation
 
