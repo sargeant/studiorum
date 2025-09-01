@@ -84,18 +84,20 @@ def _save_config(config: dict[str, Any]) -> None:
     """Save configuration to file."""
     config_file = _get_config_file_path()
 
-    # Convert all Path objects to strings to prevent YAML Python object serialization
-    def convert_paths_to_strings(obj: Any) -> Any:
+    # Convert all Path objects and Enums to strings to prevent YAML Python object serialization
+    def convert_to_serializable(obj: Any) -> Any:
         if isinstance(obj, Path):
             return str(obj)
+        elif hasattr(obj, "value"):  # Handle Enum objects
+            return obj.value
         elif isinstance(obj, dict):
-            return {key: convert_paths_to_strings(value) for key, value in obj.items()}
+            return {key: convert_to_serializable(value) for key, value in obj.items()}
         elif isinstance(obj, list):
-            return [convert_paths_to_strings(item) for item in obj]
+            return [convert_to_serializable(item) for item in obj]
         else:
             return obj
 
-    clean_config = convert_paths_to_strings(config)
+    clean_config = convert_to_serializable(config)
 
     with open(config_file, "w") as f:
         yaml.dump(clean_config, f, default_flow_style=False, indent=2)
@@ -185,10 +187,10 @@ def list_repositories() -> None:
         for i, ext in enumerate(extensions):
             if isinstance(ext, dict):
                 table.add_row(
-                    f"Extension {i + 1}",
+                    ext.get("name", f"Extension {i + 1}"),
                     "🟢 Active" if ext.get("enabled", True) else "🔴 Disabled",
                     ext.get("type", "Extension"),
-                    ext.get("path", ext.get("source", "Unknown")),
+                    ext.get("source", ext.get("path", "Unknown")),
                     ext.get("description", "Extension repository"),
                 )
 
@@ -313,6 +315,11 @@ def add_homebrew(
       studiorum data add-homebrew /path/to/homebrew --name "custom-brew" -d "My custom content"
     """
     try:
+        from studiorum.core.config.data_sources import (
+            DataSourceType,
+            ExtensionDataSourceConfig,
+        )
+
         # Validate path exists
         homebrew_path = Path(path).expanduser().resolve()
         if not homebrew_path.exists():
@@ -324,11 +331,49 @@ def add_homebrew(
 
         console.print(f"[yellow]Adding homebrew repository: {repo_name}[/yellow]")
         console.print(f"[dim]Path: {homebrew_path}[/dim]")
+
+        # Load current configuration
+        config = _load_config()
+
+        # Ensure data_sources exists
+        if "data_sources" not in config:
+            config["data_sources"] = {
+                "srd": {"enabled": True},
+                "primary_override": {"enabled": False},
+                "extensions": [],
+            }
+
+        if "extensions" not in config["data_sources"]:
+            config["data_sources"]["extensions"] = []
+
+        # Check for duplicate names
+        for ext in config["data_sources"]["extensions"]:
+            if ext.get("name") == repo_name:
+                console.print(
+                    f"[red]Error: Repository '{repo_name}' already exists[/red]"
+                )
+                raise typer.Exit(1)
+
+        # Create new extension configuration
+        extension_config = {
+            "name": repo_name,
+            "type": DataSourceType.DIRECTORY.value
+            if homebrew_path.is_dir()
+            else DataSourceType.FILE.value,
+            "source": str(homebrew_path),
+            "enabled": True,
+            "description": description,
+        }
+
+        # Add to extensions
+        config["data_sources"]["extensions"].append(extension_config)
+
+        # Save configuration
+        _save_config(config)
+
+        console.print(f"[green]✓ Homebrew repository added: {repo_name}[/green]")
         console.print(
-            "[dim]Note: This command will be fully implemented with content source configuration in Package 4.[/dim]"
-        )
-        console.print(
-            f"[green]✓ Homebrew repository path validated: {repo_name}[/green]"
+            f"[dim]Type: {'Directory' if homebrew_path.is_dir() else 'File'}[/dim]"
         )
 
         if description:
@@ -360,6 +405,8 @@ def add_url(
     try:
         import urllib.parse
 
+        from studiorum.core.config.data_sources import DataSourceType
+
         # Validate URL format
         parsed = urllib.parse.urlparse(url)
         if parsed.scheme not in ("http", "https"):
@@ -373,10 +420,45 @@ def add_url(
 
         console.print(f"[yellow]Adding URL repository: {repo_name}[/yellow]")
         console.print(f"[dim]URL: {url}[/dim]")
-        console.print(
-            "[dim]Note: This command will be fully implemented with content source configuration in Package 4.[/dim]"
-        )
-        console.print(f"[green]✓ URL repository validated: {repo_name}[/green]")
+
+        # Load current configuration
+        config = _load_config()
+
+        # Ensure data_sources exists
+        if "data_sources" not in config:
+            config["data_sources"] = {
+                "srd": {"enabled": True},
+                "primary_override": {"enabled": False},
+                "extensions": [],
+            }
+
+        if "extensions" not in config["data_sources"]:
+            config["data_sources"]["extensions"] = []
+
+        # Check for duplicate names
+        for ext in config["data_sources"]["extensions"]:
+            if ext.get("name") == repo_name:
+                console.print(
+                    f"[red]Error: Repository '{repo_name}' already exists[/red]"
+                )
+                raise typer.Exit(1)
+
+        # Create new extension configuration
+        extension_config = {
+            "name": repo_name,
+            "type": DataSourceType.URL.value,
+            "source": url,
+            "enabled": True,
+            "description": description,
+        }
+
+        # Add to extensions
+        config["data_sources"]["extensions"].append(extension_config)
+
+        # Save configuration
+        _save_config(config)
+
+        console.print(f"[green]✓ URL repository added: {repo_name}[/green]")
 
         if description:
             console.print(f"[dim]Description: {description}[/dim]")
@@ -409,16 +491,44 @@ def remove_repository(
             )
             raise typer.Exit(1)
 
-        # Confirm removal
-        if not typer.confirm(f"Remove repository '{name}'?"):
-            console.print("Cancelled.")
-            return
+        # Load current configuration
+        config = _load_config()
 
-        console.print(f"[yellow]Removing repository: {name}[/yellow]")
-        console.print(
-            "[dim]Note: This command will be fully implemented with content source configuration in Package 4.[/dim]"
-        )
-        console.print(f"[green]✓ Repository removal validated: {name}[/green]")
+        # Ensure data_sources exists
+        if "data_sources" not in config:
+            console.print("[red]Error: No repositories configured[/red]")
+            raise typer.Exit(1)
+
+        extensions = config["data_sources"].get("extensions", [])
+
+        # Find repository to remove
+        repo_found = False
+        for i, ext in enumerate(extensions):
+            if isinstance(ext, dict) and ext.get("name") == name:
+                repo_found = True
+                # Confirm removal
+                if not typer.confirm(f"Remove repository '{name}'?"):
+                    console.print("Cancelled.")
+                    return
+
+                console.print(f"[yellow]Removing repository: {name}[/yellow]")
+
+                # Remove from extensions list
+                extensions.pop(i)
+
+                # Save updated configuration
+                _save_config(config)
+
+                console.print(f"[green]✓ Repository removed: {name}[/green]")
+                return
+
+        if not repo_found:
+            console.print(f"[red]Error: Repository '{name}' not found[/red]")
+            console.print("\n[dim]Available repositories:[/dim]")
+            for ext in extensions:
+                if isinstance(ext, dict):
+                    console.print(f"  - {ext.get('name', 'Unknown')}")
+            raise typer.Exit(1)
 
     except Exception as e:
         logger.error(f"Error removing repository: {e}")
