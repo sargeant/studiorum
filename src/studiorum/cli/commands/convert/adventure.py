@@ -313,6 +313,9 @@ def adventure(
             if compile_pdf:
                 asyncio.run(compile_pdf_async(output_path, open_pdf))
 
+        except typer.Exit:
+            # Re-raise typer.Exit cleanly to avoid double error messages
+            raise
         except Exception as e:
             import traceback
 

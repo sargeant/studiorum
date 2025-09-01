@@ -221,6 +221,9 @@ def bulk(
                 for name in failed_conversions:
                     rprint(f"  ✗ {name}")
 
+        except typer.Exit:
+            # Re-raise typer.Exit cleanly to avoid double error messages
+            raise
         except Exception as e:
             import traceback
 
