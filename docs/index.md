@@ -1,7 +1,21 @@
 ---
-title: Studiorum
-description: 5e content processing toolkit - LaTeX/PDF generation and MCP integration
+title: Studiorum - 5e Content Processing Toolkit
+description: Transform 5e content into professional PDFs with LaTeX typesetting. Python models, CLI tools, and AI agent integration for RPG content processing.
 template: home.html
+keywords: 
+  - 5e
+  - RPG
+  - PDF generation
+  - LaTeX
+  - content processing
+  - AI agents
+  - MCP
+  - Python
+  - homebrew
+  - tabletop
+  - SRD
+canonical: https://studiorum.dev/
+author: Studiorum Project
 ---
 
 <div class="hero-banner">

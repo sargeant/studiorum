@@ -7,6 +7,27 @@ repo_url: https://github.com/sargeant/studiorum
 repo_name: studiorum
 edit_uri: edit/develop/docs/
 docs_dir: docs
+site_author: Studiorum Project
+
+# SEO and metadata
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/sargeant/studiorum
+      name: Studiorum on GitHub
+  generator: false  # Hide "Made with Material for MkDocs" footer
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: Thanks for your feedback! Help us improve by creating an issue.
 
 theme:
   name: material
@@ -30,6 +51,7 @@ extra_css:
 
 extra_javascript:
   - https://unpkg.com/mermaid@11/dist/mermaid.min.js
+  - assets/plausible-analytics.js
 
 plugins:
   - search:
