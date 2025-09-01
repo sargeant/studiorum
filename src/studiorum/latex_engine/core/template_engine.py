@@ -570,6 +570,7 @@ class LaTeXTemplateEngine:
                 "show_toc": doc_config.include_toc,
                 "show_index": doc_config.include_index,
                 "enable_index": doc_config.include_index,
+                "numbered_sections": True,  # Enable LaTeX native chapter/section numbering
             }
         )
 

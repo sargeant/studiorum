@@ -28,7 +28,7 @@
 % DND-5e-LaTeX-Template provides all styling automatically
 
 % Configure section numbering depth for books
-<@ if metadata and metadata.numbering_depth @>
+<@ if metadata and metadata.numbering_depth and not numbered_sections @>
 \setcounter{secnumdepth}{<# metadata.numbering_depth #>}
 <@ endif @>
 <@ endblock @>

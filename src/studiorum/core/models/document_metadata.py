@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class DocumentType(str, Enum):
-    """Document type enumeration for different D&D content organizations."""
+    """Document type enumeration for different 5e content organizations."""
 
     BOOK = "book"
     ARTICLE = "article"
@@ -280,6 +280,28 @@ class ContentSection(BaseModel):
         for subsection in self.subsections:
             items.extend(subsection.get_all_content_items())
         return items
+
+    def get_clean_title(self, strip_manual_numbering: bool = False) -> str:
+        """Get section title, optionally stripped of manual numbering.
+
+        Args:
+            strip_manual_numbering: If True, remove "Chapter X:" prefixes
+
+        Returns:
+            Clean section title for LaTeX native numbering
+        """
+        title = self.title
+
+        if strip_manual_numbering:
+            # Remove common manual numbering patterns
+            import re
+
+            # Match "Chapter X:" or "Part X:" at the start
+            title = re.sub(r"^(Chapter|Part)\s+\d+:\s*", "", title)
+            # Match "Appendix X:" at the start
+            title = re.sub(r"^Appendix\s+[A-Z]:\s*", "", title)
+
+        return title
 
 
 # Allow forward references

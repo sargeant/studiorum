@@ -312,7 +312,7 @@ class AppendixGenerator:
         content = "\n".join(content_parts)
 
         return AppendixSection(
-            title="Appendix A: Spells",
+            title="Spells",
             content=content,
             content_type="spell",
             item_count=len(collection_result.spells),
@@ -369,7 +369,7 @@ class AppendixGenerator:
         content = "\n".join(content_parts)
 
         return AppendixSection(
-            title="Appendix B: Magic Items",
+            title="Magic Items",
             content=content,
             content_type="item",
             item_count=len(collection_result.items),
@@ -442,7 +442,7 @@ class AppendixGenerator:
         content = "\n".join(content_parts)
 
         return AppendixSection(
-            title="Appendix C: Creatures",
+            title="Creatures",
             content=content,
             content_type="creature",
             item_count=len(collection_result.creatures),

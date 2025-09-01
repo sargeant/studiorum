@@ -11,7 +11,11 @@
 
 <@ elif section.level == 'chapter' @>
 <@ if section.numbered @>
+<@ if numbered_sections | default(true) @>
+\chapter{<# section.get_clean_title(strip_manual_numbering=true) | latex_escape #>}<@ if section.label @>\label{<# section.label #>}<@ endif @>
+<@ else @>
 \chapter{<# section.title | latex_escape #>}<@ if section.label @>\label{<# section.label #>}<@ endif @>
+<@ endif @>
 <@ else @>
 \chapter*{<# section.title | latex_escape #>}<@ if section.label @>\label{<# section.label #>}<@ endif @>
 <@ endif @>

@@ -106,11 +106,10 @@ class TestBookConversion:
 
             # Verify it contains expected test book content
             assert "Test Sourcebook" in content, "Missing test book title"
-            assert "Chapter" in content, "Missing chapter structure"
             assert "5e" in content, "Missing 5e branding"
 
             # Verify it has content structure - chapters should be present
-            assert "chapter{" in content, "Missing chapter structure"
+            assert "\\chapter{" in content, "Missing chapter structure"
 
             # Count lines to ensure substantial content
             line_count = len(content.splitlines())

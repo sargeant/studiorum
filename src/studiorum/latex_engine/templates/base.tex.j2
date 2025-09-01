@@ -49,8 +49,13 @@
 
 <#-- Additional configuration --#>
 <@ block document_config @>
+<@ if numbered_sections | default(true) @>
+% Enable automatic numbering for chapters only, not sections
+\setcounter{secnumdepth}{0}
+<@ else @>
 % Disable automatic section numbering while preserving TOC entries
 \setcounter{secnumdepth}{-1}
+<@ endif @>
 
 <@ if not justified_text @>
 % Disable text justification but preserve paragraph indentation
