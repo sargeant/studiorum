@@ -601,6 +601,7 @@ def creatures(
                 high_contrast, \
                 two_column, \
                 justified, \
+                statblock, \
                 with_images, \
                 spells
 
@@ -650,6 +651,7 @@ def creatures(
             high_contrast = normalize_typer_param(high_contrast)
             two_column = normalize_typer_param(two_column)
             justified = normalize_typer_param(justified)
+            statblock = normalize_typer_param(statblock)
             with_images = normalize_typer_param(with_images)
             spells = normalize_typer_param(spells)
 

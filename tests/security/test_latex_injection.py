@@ -283,6 +283,9 @@ class TestTemplateInjectionVulnerabilities:
             def get_enhanced_cr_text(self):
                 return "17 (18,000 XP)"
 
+            def get_initiative_modifier(self):
+                return 0  # DEX modifier of 0 for testing
+
         test_context = {
             "creature": MockCreature(),
         }

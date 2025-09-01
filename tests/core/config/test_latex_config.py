@@ -27,6 +27,7 @@ class TestLaTeXDocumentConfig:
         assert config.custom_class_options == []
         assert config.fonts is None
         assert config.no_outline is False
+        assert config.statblock == "2024"
 
     def test_background_validation_valid(self) -> None:
         """Test valid background values."""
@@ -108,7 +109,7 @@ class TestLaTeXDocumentConfig:
         config = LaTeXDocumentConfig()
         options = config.get_class_options_list()
 
-        expected = ["letterpaper", "11pt", "twocolumn"]
+        expected = ["letterpaper", "11pt", "twocolumn", "stats=modern"]
         assert options == expected
 
     def test_get_class_options_list_with_background(self) -> None:
@@ -226,6 +227,47 @@ class TestLaTeXDocumentConfig:
 
         assert "fonts=wotc" in options
         assert "nooutline" in options
+
+    def test_statblock_validation_valid(self) -> None:
+        """Test valid statblock values."""
+        valid_styles = ["2014", "classic", "2024", "modern"]
+
+        for style in valid_styles:
+            config = LaTeXDocumentConfig(statblock=style)
+            assert config.statblock == style
+
+    def test_statblock_validation_invalid(self) -> None:
+        """Test invalid statblock values."""
+        with pytest.raises(ValueError, match="Statblock must be one of"):
+            LaTeXDocumentConfig(statblock="invalid")
+
+    def test_get_class_options_list_statblock_2024(self) -> None:
+        """Test class options list with 2024 statblock style."""
+        config = LaTeXDocumentConfig(statblock="2024")
+        options = config.get_class_options_list()
+
+        assert "stats=modern" in options
+
+    def test_get_class_options_list_statblock_modern(self) -> None:
+        """Test class options list with modern statblock style."""
+        config = LaTeXDocumentConfig(statblock="modern")
+        options = config.get_class_options_list()
+
+        assert "stats=modern" in options
+
+    def test_get_class_options_list_statblock_2014(self) -> None:
+        """Test class options list with 2014 statblock style."""
+        config = LaTeXDocumentConfig(statblock="2014")
+        options = config.get_class_options_list()
+
+        assert "stats=modern" not in options
+
+    def test_get_class_options_list_statblock_classic(self) -> None:
+        """Test class options list with classic statblock style."""
+        config = LaTeXDocumentConfig(statblock="classic")
+        options = config.get_class_options_list()
+
+        assert "stats=modern" not in options
 
 
 class TestLaTeXConfig:

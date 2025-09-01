@@ -331,6 +331,7 @@ class TestLaTeXDocumentOptions:
             "two_column": False,
             "justified": False,
             "no_outline": False,
+            "statblock": "2024",
         }
         mock_apply_config_hierarchy.return_value = mock_config_dict
 
@@ -344,6 +345,7 @@ class TestLaTeXDocumentOptions:
         mock_user_config.latex.font_size = None
         mock_user_config.latex.two_column = None
         mock_user_config.latex.justified = None
+        mock_user_config.latex.document.statblock = None
         mock_get_content_config.return_value = mock_user_config
 
         # Mock file operations
