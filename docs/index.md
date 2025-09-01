@@ -13,12 +13,13 @@ template: home.html
 <div class="feature-cards">
   <a href="user-guide/" class="feature-card">
     <h3>User Guide</h3>
-    <p>Create beautiful PDFs from 5e compatible spells, items, and creatures using professional typesetting.</p>
+    <p>Create beautiful PDFs from 5e compatible content using professional typesetting.</p>
   </a>
 
   <a href="user-guide/mcp-setup/" class="feature-card">
     <h3>MCP for AI</h3>
     <p>Connect AI agents to 5e content through Model Context Protocol tools for intelligent content processing.</p>
+    <p><i>(experimental)</i></p>
   </a>
 
   <a href="developer-guide/" class="feature-card">

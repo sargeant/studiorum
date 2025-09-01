@@ -1,9 +1,12 @@
 ---
-title: AI Agent Development
+title: MCP Development
 description: Building AI agents and tools with studiorum's MCP integration
 ---
 
 # AI Agent Development
+
+!!! warning "Experimental"
+    This is highly unstable and needs testing. The CLI is the primary interface for now.
 
 Studiorum provides comprehensive MCP (Model Context Protocol) integration, enabling AI agents to dynamically convert D&D 5e content, search databases, and generate professional PDFs.
 
@@ -468,8 +471,8 @@ async def get_content_statistics(
         }
     },
     "sources": {
-        "PHB": {"creatures": 67, "spells": 345, "items": 123},
-        "MM": {"creatures": 456, "spells": 0, "items": 12},
+        "MY-HOMEBREW": {"creatures": 67, "spells": 345, "items": 123},
+        "MONSTER-COLLECTION": {"creatures": 456, "spells": 0, "items": 12},
         # ... etc
     }
 }

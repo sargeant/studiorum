@@ -5,6 +5,9 @@ description: Set up studiorum as an MCP server for AI agent integration
 
 # MCP Integration
 
+!!! warning "Experimental"
+    This is highly unstable and needs testing. The CLI is the primary interface for now.
+
 Studiorum includes a Model Context Protocol (MCP) server that enables AI agents to convert D&D 5e content dynamically. This allows agents to generate PDFs, look up creatures, spells, and more.
 
 ## What is MCP?
@@ -130,9 +133,7 @@ content:
 
   # Default sources to include
   default_sources:
-    - PHB
-    - MM
-    - DMG
+    - SRD
 
 # Output settings
 output:
@@ -187,6 +188,7 @@ Here are example prompts that work well with the MCP integration:
 ```
 
 The agent will:
+
 1. Use `lookup_creature("Ancient Red Dragon")` to get the creature data
 2. Use `convert_content()` to generate a formatted PDF stat block
 
@@ -198,6 +200,7 @@ spells, and magic items from the adventure"
 ```
 
 The agent will:
+
 1. Use `convert_adventure()` with appendices enabled
 2. Generate a comprehensive PDF reference document
 
@@ -208,6 +211,7 @@ The agent will:
 ```
 
 The agent will:
+
 1. Use `search_creatures()` to find dragons in the CR range
 2. Use `convert_content()` to format each creature
 3. Combine into a single document

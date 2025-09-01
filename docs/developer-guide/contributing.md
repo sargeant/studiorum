@@ -7,22 +7,21 @@ description: Guide for contributing to studiorum - code, documentation, and comm
 
 We welcome contributions from the community! Whether you're fixing bugs, adding features, improving documentation, or helping other users, your contribution makes studiorum better for everyone.
 
-## Code of Conduct
-
-We're committed to providing a welcoming and inclusive environment for all contributors. Please read and follow our [Code of Conduct](https://github.com/sargeant/studiorum/blob/main/CODE_OF_CONDUCT.md).
-
 ## Getting Started
 
 ### Development Environment
 
 1. **Fork the repository** on GitHub
 2. **Clone your fork**:
+
    ```bash
    git clone https://github.com/yourusername/studiorum.git
    cd studiorum
+   git checkout develop # All features are built on this branch
    ```
 
 3. **Set up development environment**:
+
    ```bash
    # Install uv (if not already installed)
    curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -35,6 +34,7 @@ We're committed to providing a welcoming and inclusive environment for all contr
    ```
 
 4. **Verify setup**:
+
    ```bash
    # Run tests
    uv run pytest tests/unit/ -v
@@ -50,7 +50,7 @@ Understanding the codebase layout helps with contributions:
 
 ```
 studiorum/
-├── src/studiorum/           # Main package code
+├── src/studiorum/          # Main package code
 │   ├── core/               # Core services and models
 │   │   ├── container.py    # Dependency injection
 │   │   ├── models/         # Pydantic data models
@@ -60,11 +60,10 @@ studiorum/
 │   ├── renderers/          # Output rendering system
 │   └── latex_engine/       # LaTeX compilation
 ├── tests/                  # Comprehensive test suite
-│   ├── unit/              # Fast, isolated tests
-│   ├── integration/       # Real data integration tests
-│   └── latex/             # LaTeX compilation tests
-├── docs/                  # Documentation (MkDocs)
-└── private/               # Private development docs
+│   ├── unit/               # Fast, isolated tests
+│   ├── integration/        # Real data integration tests
+│   └── latex/              # LaTeX compilation tests
+└── docs/                   # Documentation (MkDocs)
 ```
 
 ## Types of Contributions
@@ -104,7 +103,7 @@ What you expected to happen.
 - Sample content that triggers the issue
 ```
 
-**Submit bug reports** at: https://github.com/sargeant/studiorum/issues
+**Submit bug reports** at: <https://github.com/sargeant/studiorum/issues>
 
 ### 💡 Feature Requests
 
@@ -140,6 +139,7 @@ Other approaches you've considered.
 #### Development Workflow
 
 1. **Create a feature branch**:
+
    ```bash
    git checkout -b feat/new-feature-name
    # or
@@ -149,6 +149,7 @@ Other approaches you've considered.
 2. **Make your changes** following our coding standards
 
 3. **Write tests** for your changes:
+
    ```bash
    # Unit tests (required)
    tests/unit/test_your_feature.py
@@ -158,6 +159,7 @@ Other approaches you've considered.
    ```
 
 4. **Ensure quality checks pass**:
+
    ```bash
    # Code formatting and linting
    uv run ruff check src/ tests/
@@ -174,6 +176,7 @@ Other approaches you've considered.
    ```
 
 5. **Commit your changes**:
+
    ```bash
    git add .
    git commit -m "feat: add new awesome feature
@@ -184,6 +187,7 @@ Other approaches you've considered.
    ```
 
 6. **Push and create pull request**:
+
    ```bash
    git push origin feat/new-feature-name
    ```
@@ -345,10 +349,12 @@ Documentation improvements are always welcome!
 1. **Fork and clone** the repository
 2. **Make changes** to files in `docs/`
 3. **Test locally**:
+
    ```bash
    uv run mkdocs serve
    # Visit http://127.0.0.1:8000 to preview
    ```
+
 4. **Submit pull request** with documentation changes
 
 **Documentation standards:**
@@ -418,6 +424,7 @@ def test_mcp():
 We follow [Conventional Commits](https://www.conventionalcommits.org/) for clear history:
 
 **Format:**
+
 ```
 <type>[optional scope]: <description>
 
@@ -427,6 +434,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/) for clear
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -469,6 +477,7 @@ We use [Semantic Versioning](https://semver.org/):
 **For maintainers:**
 
 1. **Create release branch**:
+
    ```bash
    git checkout develop
    git pull origin develop
@@ -476,6 +485,7 @@ We use [Semantic Versioning](https://semver.org/):
    ```
 
 2. **Update version and changelog**:
+
    ```bash
    # Update pyproject.toml version
    # Update CHANGELOG.md
@@ -483,6 +493,7 @@ We use [Semantic Versioning](https://semver.org/):
    ```
 
 3. **Final testing**:
+
    ```bash
    make test-all
    make docs-build
@@ -492,6 +503,7 @@ We use [Semantic Versioning](https://semver.org/):
 4. **Create pull request** to `main` branch
 
 5. **After merge, tag release**:
+
    ```bash
    git checkout main
    git pull origin main
@@ -516,12 +528,14 @@ We use [Semantic Versioning](https://semver.org/):
 ### Code Review Process
 
 **For contributors:**
+
 - Be open to feedback
 - Respond promptly to review comments
 - Make requested changes in additional commits
 - Don't force-push after review starts
 
 **For reviewers:**
+
 - Be constructive and specific
 - Focus on code quality and maintainability
 - Consider performance and security implications
@@ -541,6 +555,7 @@ We recognize contributors in several ways:
 ### IDE Setup
 
 **VS Code recommended extensions:**
+
 ```json
 {
   "recommendations": [
@@ -554,6 +569,7 @@ We recognize contributors in several ways:
 ```
 
 **VS Code settings:**
+
 ```json
 {
   "python.defaultInterpreterPath": ".venv/bin/python",
@@ -633,6 +649,7 @@ logging.getLogger('studiorum.core.omnidexer').setLevel(logging.DEBUG)
 ### Common Issues
 
 **Import errors after adding new dependencies:**
+
 ```bash
 # Regenerate lock file
 uv sync --upgrade
@@ -643,6 +660,7 @@ uv sync
 ```
 
 **Test failures in CI but not locally:**
+
 ```bash
 # Reset test environment
 uv run python -c "from studiorum.core.container import reset_global_container; reset_global_container()"
@@ -652,6 +670,7 @@ uv run pytest --maxfail=1 -v
 ```
 
 **Type checker errors:**
+
 ```bash
 # Run mypy on specific files
 uv run mypy src/studiorum/core/models/
@@ -661,6 +680,7 @@ grep -r "type: ignore" src/
 ```
 
 **Pre-commit hook failures:**
+
 ```bash
 # Run hooks manually
 uv run pre-commit run --all-files
@@ -669,7 +689,7 @@ uv run pre-commit run --all-files
 uv run pre-commit autoupdate
 ```
 
-## Thank You!
+## Thank You
 
 Thank you for contributing to studiorum! Your efforts help make D&D content more accessible and easier to work with for DMs and players around the world.
 

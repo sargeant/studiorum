@@ -85,16 +85,19 @@ uv add studiorum --extra all
 **Solution**:
 
 1. Check available sources:
+
    ```bash
    studiorum sources list
    ```
 
 2. Update content index:
+
    ```bash
    studiorum index refresh
    ```
 
 3. Verify exact naming:
+
    ```bash
    studiorum list creatures | grep -i dragon
    ```
@@ -139,17 +142,20 @@ sudo chown -R $USER ~/.studiorum/
 **Solution**:
 
 1. **Generate LaTeX only** to debug:
+
    ```bash
    studiorum convert creature "Beholder" --format latex --debug
    ```
 
 2. **Check LaTeX log** for specific errors:
+
    ```bash
    # Look for specific error patterns
    grep -i "error\|warning" creature_beholder.log
    ```
 
 3. **Try different compiler**:
+
    ```bash
    studiorum convert creature "Beholder" --compiler xelatex
    ```
@@ -157,17 +163,20 @@ sudo chown -R $USER ~/.studiorum/
 4. **Common LaTeX fixes**:
 
    - **Missing packages**: Install required LaTeX packages
+
      ```bash
      # Ubuntu/Debian
      sudo apt-get install texlive-fonts-extra texlive-latex-extra
      ```
 
    - **Unicode issues**: Use XeLaTeX or LuaLaTeX for Unicode content
+
      ```bash
      studiorum convert --compiler xelatex creature "Beholder"
      ```
 
    - **Memory issues**: Increase LaTeX memory limits
+
      ```bash
      export max_print_line=1000
      export error_line=254
@@ -180,12 +189,14 @@ sudo chown -R $USER ~/.studiorum/
 **Solution**:
 
 1. **Increase system limits**:
+
    ```bash
    # Set memory limit (4GB example)
    export STUDIORUM_MAX_MEMORY=4G
    ```
 
 2. **Process in chunks**:
+
    ```bash
    # Convert creatures by CR range
    for cr in {1..5} {6..10} {11..15} {16..20}; do
@@ -194,6 +205,7 @@ sudo chown -R $USER ~/.studiorum/
    ```
 
 3. **Use streaming mode**:
+
    ```bash
    studiorum convert adventure "Large Campaign" --stream --output campaign.tex
    ```
@@ -205,18 +217,21 @@ sudo chown -R $USER ~/.studiorum/
 **Solution**:
 
 1. **Set UTF-8 encoding**:
+
    ```bash
    export LC_ALL=en_US.UTF-8
    export LANG=en_US.UTF-8
    ```
 
 2. **Use proper LaTeX packages**:
+
    ```latex
    \usepackage[utf8]{inputenc}
    \usepackage[T1]{fontenc}
    ```
 
 3. **Clean problematic characters**:
+
    ```bash
    studiorum convert creature "Beholder" --clean-unicode --output beholder.tex
    ```
@@ -230,6 +245,7 @@ sudo chown -R $USER ~/.studiorum/
 **Solution**:
 
 1. **Enable caching**:
+
    ```yaml
    # ~/.studiorum/config.yaml
    cache:
@@ -239,19 +255,21 @@ sudo chown -R $USER ~/.studiorum/
    ```
 
 2. **Use parallel processing**:
+
    ```bash
    studiorum convert creatures --cr 1-20 --parallel --workers 4
    ```
 
 3. **Optimize sources**:
+
    ```yaml
    sources:
      enabled:
-       - PHB  # Only essential sources
-       - MM
+       - SRD
    ```
 
 4. **Profile performance**:
+
    ```bash
    studiorum convert adventure "Campaign" --profile --output profile.json
    ```
@@ -263,6 +281,7 @@ sudo chown -R $USER ~/.studiorum/
 **Solution**:
 
 1. **Monitor usage**:
+
    ```bash
    # Watch memory usage during conversion
    studiorum convert adventure "Large Campaign" &
@@ -270,12 +289,14 @@ sudo chown -R $USER ~/.studiorum/
    ```
 
 2. **Tune garbage collection**:
+
    ```bash
    export PYTHONHASHSEED=0
    export MALLOC_ARENA_MAX=2
    ```
 
 3. **Use incremental processing**:
+
    ```bash
    studiorum convert adventure "Campaign" --incremental --checkpoint-every 50
    ```
@@ -289,18 +310,21 @@ sudo chown -R $USER ~/.studiorum/
 **Solution**:
 
 1. **Check network connection**:
+
    ```bash
    ping github.com
    curl -I https://raw.githubusercontent.com/5etools-mirror-1/5etools-mirror-1.github.io/master/data/bestiary/bestiary-mm.json
    ```
 
 2. **Configure proxy** (if needed):
+
    ```bash
    export HTTP_PROXY=http://proxy.company.com:8080
    export HTTPS_PROXY=http://proxy.company.com:8080
    ```
 
 3. **Use local content sources**:
+
    ```yaml
    # ~/.studiorum/config.yaml
    sources:
@@ -309,6 +333,7 @@ sudo chown -R $USER ~/.studiorum/
    ```
 
 4. **Retry with backoff**:
+
    ```bash
    studiorum sources update --retry 3 --backoff-factor 2
    ```
@@ -322,6 +347,7 @@ sudo chown -R $USER ~/.studiorum/
 **Solution**:
 
 1. **Check configuration**:
+
    ```json
    {
      "mcpServers": {
@@ -335,12 +361,14 @@ sudo chown -R $USER ~/.studiorum/
    ```
 
 2. **Test server manually**:
+
    ```bash
    cd /correct/path/to/project
    uv run studiorum mcp run --debug
    ```
 
 3. **Check logs**:
+
    ```bash
    # Claude Desktop logs
    tail -f ~/.claude/logs/claude_desktop.log
@@ -356,11 +384,13 @@ sudo chown -R $USER ~/.studiorum/
 **Solution**:
 
 1. **Test tools directly**:
+
    ```bash
    studiorum mcp test lookup_creature "Ancient Red Dragon"
    ```
 
 2. **Check permissions**:
+
    ```bash
    # Ensure studiorum can write temporary files
    touch ~/.studiorum/temp/test.txt
@@ -368,6 +398,7 @@ sudo chown -R $USER ~/.studiorum/
    ```
 
 3. **Validate input**:
+
    ```bash
    # Check exact content names
    studiorum list creatures | grep -i "red dragon"
@@ -382,11 +413,13 @@ sudo chown -R $USER ~/.studiorum/
 **Solution**:
 
 1. **Validate YAML syntax**:
+
    ```bash
    python -c "import yaml; yaml.safe_load(open('~/.studiorum/config.yaml'))"
    ```
 
 2. **Reset to defaults**:
+
    ```bash
    # Backup current config
    mv ~/.studiorum/config.yaml ~/.studiorum/config.yaml.backup
@@ -396,6 +429,7 @@ sudo chown -R $USER ~/.studiorum/
    ```
 
 3. **Use schema validation**:
+
    ```bash
    studiorum config validate ~/.studiorum/config.yaml
    ```
@@ -407,17 +441,20 @@ sudo chown -R $USER ~/.studiorum/
 **Solution**:
 
 1. **Check environment variables**:
+
    ```bash
    echo $STUDIORUM_CONFIG_DIR
    echo $STUDIORUM_DATA_DIR
    ```
 
 2. **Create missing directories**:
+
    ```bash
    mkdir -p ~/.studiorum/{config,data,logs,temp,cache}
    ```
 
 3. **Fix permissions**:
+
    ```bash
    chmod 755 ~/.studiorum
    chmod 644 ~/.studiorum/config.yaml

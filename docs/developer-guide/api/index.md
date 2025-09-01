@@ -7,86 +7,10 @@ description: Complete API documentation for studiorum's models, services, and re
 
 Complete API documentation for all studiorum components, organized by functional area.
 
-## Quick Navigation
-
-<div class="feature-cards" markdown>
-
--   🏗️ **Core Services**
-
-    ---
-
-    Service container, dependency injection, omnidexer, and content
-    resolution systems
-
-    [Services API](services.md){ .btn-primary }
-
--   📋 **Content Models**
-
-    ---
-
-    Type-safe Pydantic models for all D&D content types: spells,
-    creatures, adventures, and more
-
-    [Models API](models.md){ .btn-primary }
-
--   🎨 **Rendering Systems**
-
-    ---
-
-    LaTeX rendering pipeline, template engine, and content processing
-    for PDF generation
-
-    [Renderers API](renderers.md){ .btn-primary }
-
--   🔧 **Utilities & Helpers**
-
-    ---
-
-    Configuration management, error handling, validation, and common
-    utility functions
-
-    [Utilities](utilities.md){ .btn-secondary }
-
-</div>
-
-## Architecture at a Glance
-
-```mermaid
-graph TB
-    A[5etools JSON] --> B[ContentMerger]
-    B --> C[Omnidexer]
-    C --> D[Content Models]
-    D --> E[Service Layer]
-    E --> F[Rendering Pipeline]
-    F --> G[LaTeX/PDF Output]
-
-    H[MCP Server] --> E
-    I[CLI Commands] --> E
-
-    subgraph "Core Services"
-        E
-        C
-        B
-    end
-
-    subgraph "Content Models"
-        D
-        J[Spell]
-        K[Creature]
-        L[Adventure]
-    end
-
-    subgraph "Rendering"
-        F
-        M[LaTeX Renderer]
-        N[Template Engine]
-        O[Tag Processor]
-    end
-```
-
 ## API Design Principles
 
 ### Type Safety First
+
 All APIs use modern Python typing with runtime validation:
 
 ```python
@@ -102,6 +26,7 @@ def get_creature(name: str) -> Result[Creature, str]:
 ```
 
 ### Protocol-Based Design
+
 Loose coupling through runtime checkable protocols:
 
 ```python
@@ -114,6 +39,7 @@ class OmnidexerProtocol(Protocol):
 ```
 
 ### Async/Sync Hybrid
+
 Optimized patterns for different use cases:
 
 ```python
@@ -126,6 +52,7 @@ async def mcp_handler(ctx: AsyncRequestContext) -> dict:
 ```
 
 ### Result Pattern
+
 Explicit error handling without exceptions:
 
 ```python
@@ -197,7 +124,7 @@ elif isinstance(result, Error):
     filter_params = {
         "level": {"min": 3, "max": 5},
         "school": ["evocation", "conjuration"],
-        "source": ["PHB", "XGE"]
+        "source": ["SRD", "MY-HOMEBREW"]
     }
 
     spells = omnidexer.filter_content(ContentType.SPELL, filter_params)
@@ -248,6 +175,7 @@ elif isinstance(result, Error):
 ## Error Handling Patterns
 
 ### Result Pattern Usage
+
 ```python
 from studiorum.core.result import Result, Success, Error
 
@@ -273,6 +201,7 @@ def safe_content_processing(name: str) -> Result[str, str]:
 ```
 
 ### Context-Aware Error Handling
+
 ```python
 # Error context chaining preserves full error history
 if isinstance(result, Error):

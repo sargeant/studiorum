@@ -373,7 +373,7 @@ rare_weapons = omnidexer.search_items(
 attunement_items = omnidexer.search_items(attunement=True)
 
 # Search by source
-phb_items = omnidexer.search_items(source="PHB")
+srd_items = omnidexer.search_items(source="SRD")
 
 for item in legendary_items[:5]:
     attune_str = " (attunement)" if item.requires_attunement else ""

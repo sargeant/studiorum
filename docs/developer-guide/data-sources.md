@@ -18,7 +18,7 @@ graph TB
     end
 
     subgraph "Content Attribution"
-        E[Source Metadata<br/>PHB, MM, XGE, etc.] --> F[ContentAttributionManager]
+        E[Source Metadata] --> F[ContentAttributionManager]
     end
 
     D --> G[UnifiedSourceManager]
@@ -74,7 +74,7 @@ config = DataSourcesConfig(
 
     # Content attribution (separate concern)
     source_attribution=SourceAttributionConfig(
-        default_priorities={"SRD": 100, "PHB": 10, "HOMEBREW": 1000},
+        default_priorities={"SRD": 100, "HOMEBREW": 1000},
         priority_resolution="highest"
     )
 )

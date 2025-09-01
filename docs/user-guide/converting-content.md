@@ -13,14 +13,14 @@ Studiorum supports converting various types of 5e content:
 
 ### Adventures
 
-Convert full adventures with automatic cross-references:
+Convert full adventures:
 
 ```bash
 # Basic adventure conversion
-studiorum convert adventure "sample-adventure"
+studiorum convert adventure TEST
 
 # With appendices for referenced content
-studiorum convert adventure "sample-adventure" \
+studiorum convert adventure "my-awesome-adventure" \
     --creatures --spells --items --output adventure.tex
 ```
 
@@ -30,13 +30,19 @@ Convert individual creatures or groups:
 
 ```bash
 # Single creature
-studiorum convert creature "Ancient Red Dragon"
+studiorum convert creatures "Young Red Dragon" --sources SRD
 
 # Multiple creatures by CR
-studiorum convert creatures --cr 15-20
+studiorum convert creatures --cr 15-20 --sources SRD
 
-# By type
-studiorum convert creatures --type dragon
+# By type, using the 2014 style statblocks
+studiorum convert creatures --type dragon --statblock 2014 --sources SRD
+
+# Low CR creatures who can see your invisible players
+studiorum convert creatures --cr 1-5 --blindsight --sources SRD
+
+# All SRD creatures
+studiorum convert creatures  --sources SRD
 ```
 
 ### Spells
@@ -45,13 +51,13 @@ Convert spells with automatic formatting:
 
 ```bash
 # Single spell
-studiorum convert spell "Fireball"
+studiorum convert spell "Fireball" --sources SRD
 
 # By level
-studiorum convert spells --level 3
+studiorum convert spells --level 3 --sources SRD
 
 # By school
-studiorum convert spells --school evocation
+studiorum convert spells --school evocation --sources SRD
 ```
 
 ### Items
@@ -60,10 +66,10 @@ Convert magic items and equipment:
 
 ```bash
 # Magic items
-studiorum convert items --type magic
+studiorum convert items --type magic --sources SRD
 
 # Specific rarity
-studiorum convert items --rarity legendary
+studiorum convert items --rarity legendary --sources SRD
 ```
 
 ## Output Formats
@@ -73,9 +79,15 @@ studiorum convert items --rarity legendary
 Generate LaTeX files for maximum customization:
 
 ```bash
-studiorum convert adventure "Storm King's Thunder" \
-    --format latex \
-    --output skt.tex
+studiorum convert adventure TEST --output test-adventure.tex
+```
+
+This allows you to edit `test-adventure.tex` to fix up any issues or revise the layout as you see fit. When ready, use your preferred LaTeX compiler to build:
+
+```bash
+## Two passes used so LaTeX can build the table-of-contents.
+## Studiorum handles this if you call with --pdf
+xelatex test-adventure.tex && xelatex test-adventure.tex
 ```
 
 ### PDF Output
@@ -83,78 +95,23 @@ studiorum convert adventure "Storm King's Thunder" \
 Generate PDFs directly using your preferred LaTeX compiler:
 
 ```bash
-studiorum convert adventure "Waterdeep Dragon Heist" \
-    --format pdf \
-    --compiler xelatex \
-    --output wdh.pdf
+# Edit ~/.studiorum/config.yml
+# Set rendering.latex.engine.primary_engine to
+# pdflatex, xelatex, lualatex, etc.
+studiorum convert adventure TEST \
+    --pdf
+    --output test.pdf
 ```
 
 ## Advanced Options
 
-### Templates
-
-Use different LaTeX templates:
-
-```bash
-# Official 5e template
-studiorum convert --template dnd-5e creature "Tarrasque"
-
-# Custom template
-studiorum convert --template custom.tex creature "Lich"
-```
-
 ### Content Filtering
 
-Filter content by source books:
+Filter content by source, assuming you have the data for it:
 
 ```bash
-# Only PHB content
-studiorum convert spells --sources PHB
-
-# Exclude certain sources
-studiorum convert creatures --exclude-sources UA,HB
-```
-
-### Cross-References
-
-Control automatic cross-referencing:
-
-```bash
-# Enable all cross-references
-studiorum convert adventure "Tomb of Annihilation" \
-    --cross-references all
-
-# Disable cross-references
-studiorum convert adventure "Out of the Abyss" \
-    --no-cross-references
-```
-
-## Batch Processing
-
-### Multiple Adventures
-
-Process multiple adventures:
-
-```bash
-#!/bin/bash
-for adventure in "LMoP" "HotDQ" "RoT" "PotA"; do
-    studiorum convert adventure "$adventure" \
-        --creatures --spells --items \
-        --output "${adventure,,}.tex"
-done
-```
-
-### Campaign Compendium
-
-Create a complete campaign compendium:
-
-```bash
-studiorum convert adventures \
-    --campaign "Tyranny of Dragons" \
-    --merge \
-    --toc \
-    --index \
-    --output tod-complete.tex
+# Only spells from my homebrew and their homebrew:
+studiorum convert spells --sources MY-HOMEBREW,THEIR-HOMEBREW
 ```
 
 ## Configuration
@@ -164,138 +121,15 @@ studiorum convert adventures \
 Configure default behavior in `~/.studiorum/config.yaml`:
 
 ```yaml
-conversion:
-  # Default appendices to include
-  default_appendices:
-    - creatures
-    - spells
-    - items
+rendering:
+  content:
+    default_sources:
+    # If you got bored of typing `--source srd` every time
+      - SRD
 
-  # Cross-reference settings
-  cross_references:
-    enabled: true
-    auto_detect: true
-
-  # Template settings
-  template:
-    default: dnd-5e
-    path: ~/.studiorum/templates/
-```
-
-### Per-Project Settings
-
-Use project-specific configuration:
-
-```yaml
-# project/.studiorum.yaml
-sources:
-  enabled:
-    - PHB
-    - XGtE
-    - TCE
-
-output:
-  format: pdf
-  compiler: xelatex
-
-conversion:
-  include_toc: true
-  include_index: false
-```
-
-## Integration Examples
-
-### GitHub Actions
-
-Automate PDF generation:
-
-```yaml
-name: Generate PDFs
-on: [push]
-jobs:
-  generate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-      - run: pip install studiorum
-      - run: studiorum convert adventure "Custom Campaign" --output campaign.pdf
-      - uses: actions/upload-artifact@v4
-        with:
-          path: campaign.pdf
-```
-
-### Docker
-
-Use in containerized environments:
-
-```dockerfile
-FROM python:3.12-slim
-RUN pip install studiorum
-RUN apt-get update && apt-get install -y texlive-latex-extra
-COPY . /campaign
-WORKDIR /campaign
-CMD ["studiorum", "convert", "adventure", "My Campaign", "--output", "campaign.pdf"]
-```
-
-## Best Practices
-
-### Performance
-
-- Use `--parallel` for batch operations
-- Cache frequently used content with `--cache`
-- Use `--incremental` for large documents
-
-### Quality
-
-- Validate content with `--strict`
-- Use `--lint` to check for issues
-- Enable `--verbose` for detailed logs
-
-### Organization
-
-- Use consistent naming conventions
-- Organize output files by campaign/session
-- Version control your configuration files
-
-## Troubleshooting
-
-Common issues and solutions:
-
-### Memory Issues
-
-For large conversions:
-
-```bash
-# Increase memory limit
-export STUDIORUM_MAX_MEMORY=4G
-studiorum convert adventure "Large Campaign"
-```
-
-### Missing Content
-
-When content is not found:
-
-```bash
-# Check available sources
-studiorum sources list
-
-# Update content index
-studiorum index refresh
-```
-
-### LaTeX Compilation Errors
-
-Debug LaTeX issues:
-
-```bash
-# Generate LaTeX only
-studiorum convert creature "Beholder" --format latex --debug
-
-# Use different compiler
-studiorum convert --compiler lualatex creature "Beholder"
+  latex:
+    engine:
+      primary_engine: xelatex
 ```
 
 ## Next Steps

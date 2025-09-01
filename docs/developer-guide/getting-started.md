@@ -309,7 +309,7 @@ uv run studiorum mcp test lookup_creature "Ancient Red Dragon"
    ```python
    # tests/unit/models/test_new_content.py
    def test_new_content_validation():
-       content = NewContent(name="Test", source="PHB")
+       content = NewContent(name="Test", source="MY-HOMEBREW")
        assert content.name == "Test"
        assert content.content_type == "new_content"
    ```
@@ -546,11 +546,13 @@ for protocol, instance in container.get_singleton_instances().items():
 ### Pull Request Process
 
 1. **Create feature branch**:
+
    ```bash
    git checkout -b feat/my-new-feature
    ```
 
 2. **Make changes with tests**:
+
    ```bash
    # Write code
    # Write tests
@@ -558,12 +560,14 @@ for protocol, instance in container.get_singleton_instances().items():
    ```
 
 3. **Quality checks**:
+
    ```bash
    make lint
    make test
    ```
 
 4. **Commit and push**:
+
    ```bash
    git add .
    git commit -m "feat: add new feature with comprehensive tests"
@@ -577,23 +581,27 @@ for protocol, instance in container.get_singleton_instances().items():
 For maintainers:
 
 1. **Create release branch**:
+
    ```bash
    git checkout -b release/1.2.0 develop
    ```
 
 2. **Update version and changelog**:
+
    ```bash
    # Update pyproject.toml version
    # Update CHANGELOG.md
    ```
 
 3. **Final testing**:
+
    ```bash
    make test-all
    make docs-build
    ```
 
 4. **Merge to main and tag**:
+
    ```bash
    git checkout main
    git merge release/1.2.0

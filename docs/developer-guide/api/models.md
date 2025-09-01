@@ -39,8 +39,8 @@ Source book information:
 class Source:
     """Immutable source book reference."""
 
-    abbreviation: str      # "PHB", "MM", "XGtE", etc.
-    full_name: str        # "Player's Handbook"
+    abbreviation: str      # "SRD", "MY-HOMEBREW", etc.
+    full_name: str        # "My Awesome Homebrew"
     version: str = "1.0"  # Source version
 
     def __str__(self) -> str:
@@ -807,7 +807,7 @@ def sample_creature() -> Creature:
 def sample_spell() -> Spell:
     """Create a sample spell for testing."""
     return Spell(
-        name="Magic Missile",
+        name="Butterfly Kiss",
         level=SpellLevel.FIRST,
         school=SpellSchool.EVOCATION,
         classes=[SpellClass.WIZARD, SpellClass.SORCERER],
@@ -816,10 +816,10 @@ def sample_spell() -> Spell:
         duration=Duration(duration="Instantaneous"),
         components=[Component.VERBAL, Component.SOMATIC],
         description=[
-            "You create three glowing darts of magical force.",
-            "Each dart hits a creature of your choice that you can see within range."
+            "You create a swarm of colorful butterflies that gently fly towards your target.",
+            "The butterflies land on the cheek of your target and gently flap their wings to tickle them."
         ],
-        source=Source("PHB", "Player's Handbook")
+        source=Source("MY-HOMEBREW", "My Awesome Homebrew")
     )
 ```
 

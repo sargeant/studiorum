@@ -5,6 +5,10 @@ description: Complete command-line interface reference for studiorum
 
 # CLI Reference
 
+!!! warning "Documentation is work in progress"
+    Some of the features described here are planned or got revised without the documentation being updated.
+    Use `studioum <command> --help` to see current capabilities.
+
 Complete reference for all studiorum command-line interface commands and options.
 
 ## Global Options
@@ -36,6 +40,7 @@ studiorum convert adventure [OPTIONS] ADVENTURE_NAME
 ```
 
 **Arguments:**
+
 - `ADVENTURE_NAME`: Name or abbreviation of the adventure
 
 **Options:**
@@ -81,6 +86,7 @@ studiorum convert creatures [OPTIONS]
 ```
 
 **Arguments:**
+
 - `CREATURE_NAME`: Name of the creature (for single conversion)
 
 **Options:**
@@ -102,16 +108,13 @@ studiorum convert creatures [OPTIONS]
 
 ```bash
 # Single creature
-studiorum convert creature "Ancient Red Dragon"
+studiorum convert creature "Adult Red Dragon"
 
 # Creatures by CR range
 studiorum convert creatures --cr 10-15
 
 # Dragons only
 studiorum convert creatures --type dragon --legendary
-
-# Specific environment
-studiorum convert creatures --environment "underdark" --cr 5-10
 ```
 
 ### convert spell
@@ -124,6 +127,7 @@ studiorum convert spells [OPTIONS]
 ```
 
 **Arguments:**
+
 - `SPELL_NAME`: Name of the spell (for single conversion)
 
 **Options:**
@@ -166,6 +170,7 @@ studiorum convert items [OPTIONS]
 ```
 
 **Arguments:**
+
 - `ITEM_NAME`: Name of the item (for single conversion)
 
 **Options:**
@@ -285,6 +290,7 @@ studiorum search [OPTIONS] QUERY
 ```
 
 **Arguments:**
+
 - `QUERY`: Search query string
 
 **Options:**
@@ -313,74 +319,6 @@ studiorum search "tarrasq" --fuzzy
 # Search specific sources
 studiorum search "fiend" --sources "MM,VGtM"
 ```
-
-## sources
-
-Manage content sources and data.
-
-### sources list
-
-List available and enabled sources:
-
-```bash
-studiorum sources list [OPTIONS]
-```
-
-**Options:**
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--enabled-only` | Show only enabled sources | `False` |
-| `--format FORMAT` | Output format | `table` |
-
-### sources enable
-
-Enable specific source books:
-
-```bash
-studiorum sources enable [OPTIONS] SOURCES
-```
-
-**Arguments:**
-- `SOURCES`: Comma-separated list of source abbreviations
-
-**Examples:**
-
-```bash
-# Enable specific sources
-studiorum sources enable PHB,MM,DMG
-
-# Enable all official sources
-studiorum sources enable --official
-```
-
-### sources disable
-
-Disable specific source books:
-
-```bash
-studiorum sources disable [OPTIONS] SOURCES
-```
-
-**Arguments:**
-- `SOURCES`: Comma-separated list of source abbreviations
-
-### sources update
-
-Update content from remote sources:
-
-```bash
-studiorum sources update [OPTIONS]
-```
-
-**Options:**
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--force` | Force update even if recent | `False` |
-| `--sources SOURCES` | Update specific sources only | All |
-| `--retry COUNT` | Retry failed downloads | 3 |
-| `--parallel` | Download in parallel | `True` |
 
 ## index
 
@@ -477,6 +415,7 @@ studiorum config validate [OPTIONS] [CONFIG_FILE]
 ```
 
 **Arguments:**
+
 - `CONFIG_FILE`: Configuration file to validate (optional)
 
 **Options:**
@@ -495,6 +434,7 @@ studiorum config set [OPTIONS] KEY VALUE
 ```
 
 **Arguments:**
+
 - `KEY`: Configuration key (e.g., "sources.default")
 - `VALUE`: Value to set
 
@@ -577,6 +517,7 @@ studiorum mcp test [OPTIONS] TOOL_NAME [ARGS...]
 ```
 
 **Arguments:**
+
 - `TOOL_NAME`: Name of the MCP tool to test
 - `ARGS`: Tool-specific arguments
 
@@ -711,6 +652,7 @@ Studiorum uses standard exit codes:
 ### Common Workflows
 
 **Campaign Preparation**:
+
 ```bash
 # Generate complete campaign materials
 studiorum convert adventure "my-campaign" \
@@ -723,23 +665,13 @@ studiorum convert creatures --sources SRD \
 ```
 
 **Custom Content**:
+
 ```bash
 # Convert homebrew content
-studiorum convert creatures --sources HB \
+studiorum convert creatures --sources MY-HOMEBREW \
     --template custom --output homebrew-monsters.tex
 
 # Merge with official content
 studiorum convert adventure "Custom Campaign" \
-    --sources "PHB,MM,HB" --output campaign.pdf
-```
-
-**Performance Optimization**:
-```bash
-# Parallel processing for large batches
-studiorum convert creatures --cr 1-30 \
-    --parallel --workers 8 --output all-creatures.tex
-
-# Use incremental builds
-studiorum convert adventure "Large Campaign" \
-    --incremental --cache --output campaign.pdf
+    --sources MY-HOMEBREW --output campaign.pdf
 ```

@@ -98,6 +98,7 @@ tag_resolver = container.get_tag_resolver_sync()
 ```
 
 **Context Separation**: CLI and MCP contexts use different service registration patterns:
+
 - **CLI**: Uses `SINGLETON` lifecycle with sync factories for performance
 - **MCP**: Uses `ASYNC_RESOURCE` lifecycle with async factories for request isolation
 
@@ -113,89 +114,6 @@ class ServiceLifecycle(Enum):
     TRANSIENT = "transient"     # New instance per request
     SCOPED = "scoped"          # One instance per scope
     ASYNC_RESOURCE = "async_resource"  # Async lifecycle for MCP contexts
-```
-
-## Service Architecture Changes
-
-### Phase 2 Improvements (August 2025)
-
-**Fallback Removal**: All service fallback patterns have been eliminated for better error visibility and performance:
-
-- **❌ REMOVED**: `asyncio.run()` fallbacks in CLI contexts
-- **❌ REMOVED**: ContentMerger fallback instance creation
-- **✅ ADDED**: Dedicated sync service factories for CLI usage
-- **✅ ADDED**: Clear context separation between CLI and MCP service patterns
-
-### Best Practices
-
-**CLI Service Registration**:
-```python
-# Use sync factories with SINGLETON lifecycle
-container.register_service(
-    SourceManagerProtocol,
-    create_data_source_manager_service_sync,
-    lifecycle=ServiceLifecycle.SINGLETON
-)
-```
-
-**MCP Service Registration**:
-```python
-# Use async factories with ASYNC_RESOURCE lifecycle
-container.register_service(
-    SourceManagerProtocol,
-    create_data_source_manager_service,
-    lifecycle=ServiceLifecycle.ASYNC_RESOURCE
-)
-```
-
-**Error Handling**: Services now fail fast with clear error messages instead of using expensive fallback patterns.
-
-**Singleton Services**
-
-```python
-# Registered once, reused across all requests
-container.register_service(
-    OmnidexerProtocol,
-    create_omnidexer,
-    ServiceLifecycle.SINGLETON
-)
-
-# Same instance returned for all calls
-omnidexer1 = await container.get_service(OmnidexerProtocol)
-omnidexer2 = await container.get_service(OmnidexerProtocol)
-assert omnidexer1 is omnidexer2  # Same instance
-```
-
-**Transient Services**
-
-```python
-# New instance for each request
-container.register_service(
-    ProcessorProtocol,
-    create_processor,
-    ServiceLifecycle.TRANSIENT
-)
-
-processor1 = await container.get_service(ProcessorProtocol)
-processor2 = await container.get_service(ProcessorProtocol)
-assert processor1 is not processor2  # Different instances
-```
-
-**Scoped Services**
-
-```python
-# One instance per request scope
-container.register_service(
-    RequestProcessorProtocol,
-    create_request_processor,
-    ServiceLifecycle.SCOPED
-)
-
-# Within same request context
-async with AsyncRequestContext() as ctx:
-    proc1 = await ctx.get_service(RequestProcessorProtocol)
-    proc2 = await ctx.get_service(RequestProcessorProtocol)
-    assert proc1 is proc2  # Same instance within scope
 ```
 
 ## Core Services
@@ -370,23 +288,18 @@ class TagResolverProtocol(Protocol):
 tag_resolver = container.get_tag_resolver_sync()
 
 # Resolve individual tags
-creature_tag = "{@creature Ancient Red Dragon|MM}"
+creature_tag = "{@creature Adult Red Dragon|SRD}"
 resolved = tag_resolver.resolve_tag(creature_tag)
-print(resolved)  # "Ancient Red Dragon"
+print(resolved)  # "Adult Red Dragon"
 
 # Resolve tags in full content
-content = "The {@creature goblin|MM} attacks with its {@item scimitar|PHB}."
+content = "The {@creature hobgoblin|SRD} attacks with its {@item scimitar|SRD}."
 resolved_content = tag_resolver.resolve_tags_in_content(content)
-print(resolved_content)  # "The goblin attacks with its scimitar."
+print(resolved_content)  # "The hobgoblin attacks with its scimitar."
 
 # Extract references for appendices
 references = tag_resolver.get_referenced_content(adventure_text)
 print(references)
-# {
-#   'creatures': ['goblin', 'hobgoblin'],
-#   'spells': ['magic missile', 'cure wounds'],
-#   'items': ['longsword', 'chain mail']
-# }
 ```
 
 ## Async Request Context

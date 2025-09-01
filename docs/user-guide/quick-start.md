@@ -9,19 +9,34 @@ Get up and running with studiorum to convert D&D 5e content into professional PD
 
 ## Installation
 
-Install studiorum using pip or uv:
+Install Studiorum by cloning the Github repository. In the future it will be available on PyPi so you can use `pip` or `uv`.
 
-=== "uv (Recommended)"
+=== "Clone Git Repo"
 
     ```bash
+    git clone https://github.com/sargeant/studiorum.git
+    cd studiorum
+    uv sync
+    . .venv/bin/activate
+    ```
+
+=== "uv"
+
+    ```bash
+    # Studiorum is not available on PyPi yet. Future feature.
     uv add studiorum
     ```
 
 === "pip"
 
     ```bash
+    # Studiorum is not available on PyPi yet. Future feature.
     pip install studiorum
     ```
+
+### LaTeX template
+
+We build on the great work of others by using an open source template for the LaTeX document processing language. In the future we plan to automatically handle the install, but for now please [install the template manually](https://github.com/ashonit/DND-5e-LaTeX-Template).
 
 ## Basic Usage
 
@@ -39,8 +54,6 @@ xelatex dragon.tex
 See what content is available:
 
 ```bash
-# List adventures
-studiorum list adventures
 
 # List creatures
 studiorum list content --type creature
@@ -51,11 +64,29 @@ studiorum list content --type spell
 # List items
 studiorum list content --type item
 
+# List adventures
+studiorum list adventures
+
+# List books
+studiorum list books
+
+```
+
+### Add More Content
+
+If you have a directory of 5etools compatible JSON, you can configure Studiorum to load that data as it's primary data-source.
+
+```bash
+studiorum data set-primary <path to 5etools data>
 ```
 
 ## Configuration
 
-> Needs content
+The user configuration is stored in `~/.studiorum/config.yml`. You can see your entire configuration setup (defaults + user settings) by running:
+
+```bash
+studiorum config show
+```
 
 ## Next Steps
 

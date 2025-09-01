@@ -881,12 +881,12 @@ class TestLaTeXRenderer:
 
     def test_tag_processing_in_text(self):
         """Test tag processing in adventure text."""
-        text_with_tags = "The {@creature goblin|MM} attacks with a {@item scimitar|PHB}."
+        text_with_tags = "The {@creature Hobgoblin|SRD} attacks with a {@item scimitar|SRD}."
 
         # Mock omnidexer responses
-        mock_goblin = Mock()
-        mock_goblin.name = "goblin"
-        self.mock_omnidexer.get_creature_by_name.return_value = mock_goblin
+        mock_hobgoblin = Mock()
+        mock_hobgoblin.name = "hobgoblin"
+        self.mock_omnidexer.get_creature_by_name.return_value = mock_hobgoblin
 
         mock_scimitar = Mock()
         mock_scimitar.name = "scimitar"
@@ -898,7 +898,7 @@ class TestLaTeXRenderer:
         )
 
         # Verify tags were processed
-        assert "goblin" in result
+        assert "hobgoblin" in result
         assert "scimitar" in result
         assert "{@creature" not in result  # Tags should be resolved
 ```

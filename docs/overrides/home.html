@@ -25,8 +25,13 @@
   {{ super() }}
   <style>
     .studiorum-landing-page {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
       height: 100vh;
       overflow-y: auto;
+      z-index: 1000;
     }
 
     .md-main--home {
@@ -37,6 +42,13 @@
       padding: 0;
     }
 
+    .studiorum-landing-page .md-main__inner,
+    .studiorum-landing-page .md-main__inner.md-grid,
+    .studiorum-landing-page .md-grid {
+      margin-top: 0 !important;
+      margin: 0 !important;
+    }
+
     .md-content--home {
       max-width: 1200px;
       width: 100%;
@@ -45,6 +57,7 @@
 
     .md-content__inner {
       margin: 0 auto;
+      padding-top: 0 !important;
     }
 
     /* Hide the default site navigation on homepage only */
