@@ -74,6 +74,23 @@ def _load_raw_config() -> dict[str, Any]:
         return {}
 
 
+def _convert_objects_to_strings(data: Any) -> Any:
+    """Convert Path objects and Enums to strings to prevent !!python serialization."""
+    from enum import Enum
+    from pathlib import Path
+
+    if isinstance(data, Path):
+        return str(data)
+    elif isinstance(data, Enum):
+        return data.value
+    elif isinstance(data, dict):
+        return {key: _convert_objects_to_strings(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [_convert_objects_to_strings(item) for item in data]
+    else:
+        return data
+
+
 def _save_config(config_data: dict[str, Any]) -> None:
     """Save configuration to file."""
     config_file = _get_config_file_path()
@@ -137,6 +154,9 @@ def show_config(
         else:
             section_data = app_config.model_dump()
             title = "Complete Configuration"
+
+        # Convert Python objects to strings to prevent !!python serialization
+        section_data = _convert_objects_to_strings(section_data)
 
         # Format output
         if output_format == "yaml":

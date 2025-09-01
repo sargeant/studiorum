@@ -290,6 +290,9 @@ class ConfigurationManager:
                 mode="json",  # Use JSON mode to serialize Path objects as strings
             )
 
+            # Convert any remaining Path objects to strings to prevent !!python serialization
+            config_data = self._convert_paths_to_strings(config_data)
+
             # Atomic write using temporary file
             temp_path = path.with_suffix(f".{uuid4().hex}.tmp")
 
@@ -612,6 +615,25 @@ class ConfigurationManager:
     ) -> dict[str, Any]:
         """Deep merge two dictionaries with override precedence."""
         return self._loader._deep_merge_dicts(base, override)
+
+    def _convert_paths_to_strings(self, data: Any) -> Any:
+        """Recursively convert Path objects and other Python objects to strings."""
+        from enum import Enum
+        from pathlib import Path
+
+        if isinstance(data, Path):
+            return str(data)
+        elif isinstance(data, Enum):
+            return data.value
+        elif isinstance(data, dict):
+            return {
+                key: self._convert_paths_to_strings(value)
+                for key, value in data.items()
+            }
+        elif isinstance(data, list):
+            return [self._convert_paths_to_strings(item) for item in data]
+        else:
+            return data
 
 
 # Global configuration manager instance

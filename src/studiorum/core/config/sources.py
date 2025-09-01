@@ -206,7 +206,6 @@ class ContentConfigManager:
 
         if not self.config_path.exists():
             self._config = self._create_default_config()
-            self.save_config()
         else:
             try:
                 with open(self.config_path, encoding="utf-8") as f:
@@ -230,8 +229,29 @@ class ContentConfigManager:
         # Convert to dict and handle Path objects
         data = self._config.model_dump(mode="json")
 
+        # Convert any remaining Path objects to strings to prevent !!python serialization
+        data = self._convert_paths_to_strings(data)
+
         with open(self.config_path, "w", encoding="utf-8") as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False)
+
+    def _convert_paths_to_strings(self, data: Any) -> Any:
+        """Recursively convert Path objects and other Python objects to strings."""
+        from enum import Enum
+
+        if isinstance(data, Path):
+            return str(data)
+        elif isinstance(data, Enum):
+            return data.value
+        elif isinstance(data, dict):
+            return {
+                key: self._convert_paths_to_strings(value)
+                for key, value in data.items()
+            }
+        elif isinstance(data, list):
+            return [self._convert_paths_to_strings(item) for item in data]
+        else:
+            return data
 
     def _create_default_config(self) -> ContentConfiguration:
         """Create default configuration with recommended sources."""
@@ -303,7 +323,6 @@ class ContentConfigManager:
     def reset_to_defaults(self) -> ContentConfiguration:
         """Reset configuration to defaults."""
         self._config = self._create_default_config()
-        self.save_config()
         return self._config
 
 
