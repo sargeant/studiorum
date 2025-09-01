@@ -126,7 +126,7 @@ def show_config(
             console.print(str(config_file))
             return
 
-        # Get the application configuration
+        # Get the application configuration (now loads from file automatically)
         app_config = get_app_config()
 
         if section:

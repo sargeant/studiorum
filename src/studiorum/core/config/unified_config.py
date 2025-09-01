@@ -664,13 +664,28 @@ def get_default_config_path() -> Path:
 def get_app_config() -> ApplicationConfig:
     """Get the global application configuration instance.
 
-    Note: This function provides basic default configuration.
-    For proper configuration management with file loading and hot-reload,
+    Loads configuration from file if available, otherwise uses defaults.
+    For advanced configuration management with hot-reload and change notifications,
     use the ConfigurationManager service through the service container.
     """
     global _app_config
     if _app_config is None:
-        _app_config = ApplicationConfig()
+        # Try to load from config file first
+        config_file = get_default_config_path()
+        if config_file.exists():
+            try:
+                from .loader import ConfigLoader
+
+                loader = ConfigLoader()
+                load_result = loader.load_from_file(config_file)
+                if not load_result.is_error():
+                    _app_config = load_result.unwrap()
+                else:
+                    _app_config = ApplicationConfig()
+            except Exception:
+                _app_config = ApplicationConfig()
+        else:
+            _app_config = ApplicationConfig()
     return _app_config
 
 
