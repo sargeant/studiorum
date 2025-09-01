@@ -78,13 +78,15 @@ class ContentSourceManager:
             )
             raise FileNotFoundError(f"Directory source path not found: {source.path}")
 
-        if not path.is_dir():
+        # Accept both directories and individual JSON files for homebrew support
+        if not path.is_dir() and not (path.is_file() and path.suffix == ".json"):
             logger.error(
-                f"Directory source '{source.name}' path is not a directory: {source.path}"
+                f"Directory source '{source.name}' path is neither a directory nor a JSON file: {source.path}"
             )
-            raise ValueError(f"Path is not a directory: {source.path}")
+            raise ValueError(f"Path must be a directory or JSON file: {source.path}")
 
-        logger.info(f"Directory source '{source.name}' is ready")
+        source_type = "directory" if path.is_dir() else "JSON file"
+        logger.info(f"Directory source '{source.name}' is ready ({source_type})")
 
     async def build_content_index(self, force_rebuild: bool = False) -> None:
         """Build index of all available content files."""
@@ -168,17 +170,30 @@ class ContentSourceManager:
             if not path.exists():
                 return []
 
-            # Find all JSON files in directory
-            json_files = []
-            for json_file in path.rglob("*.json"):
+            # Handle both directories and individual JSON files
+            if path.is_file() and path.suffix == ".json":
+                # Single JSON file (homebrew support)
                 try:
-                    if json_file.stat().st_size < 50:  # Skip very small files
-                        continue
-                    json_files.append(json_file)
+                    if path.stat().st_size >= 50:  # Skip very small files
+                        return [path]
                 except OSError:
-                    continue
+                    pass
+                return []
 
-            return sorted(json_files)
+            elif path.is_dir():
+                # Find all JSON files in directory
+                json_files = []
+                for json_file in path.rglob("*.json"):
+                    try:
+                        if json_file.stat().st_size < 50:  # Skip very small files
+                            continue
+                        json_files.append(json_file)
+                    except OSError:
+                        continue
+                return sorted(json_files)
+
+            else:
+                return []
 
         else:
             logger.warning(f"Unsupported source type: {source.type}")
@@ -210,17 +225,30 @@ class ContentSourceManager:
             if not path.exists():
                 return []
 
-            # Find all JSON files in directory
-            json_files = []
-            for json_file in path.rglob("*.json"):
+            # Handle both directories and individual JSON files (same as async version)
+            if path.is_file() and path.suffix == ".json":
+                # Single JSON file (homebrew support)
                 try:
-                    if json_file.stat().st_size < 50:  # Skip very small files
-                        continue
-                    json_files.append(json_file)
+                    if path.stat().st_size >= 50:  # Skip very small files
+                        return [path]
                 except OSError:
-                    continue
+                    pass
+                return []
 
-            return sorted(json_files)
+            elif path.is_dir():
+                # Find all JSON files in directory
+                json_files = []
+                for json_file in path.rglob("*.json"):
+                    try:
+                        if json_file.stat().st_size < 50:  # Skip very small files
+                            continue
+                        json_files.append(json_file)
+                    except OSError:
+                        continue
+                return sorted(json_files)
+
+            else:
+                return []
 
         else:
             logger.warning(f"Unsupported source type: {source.type}")

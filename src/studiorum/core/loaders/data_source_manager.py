@@ -174,11 +174,14 @@ class DataSourceManager(SourceManager):
 
         # Add extensions
         for i, ext in enumerate(data_sources_config.get_enabled_extensions()):
-            if ext.path:
-                ext_path = Path(ext.path)
+            if ext.source:
+                ext_path = Path(ext.source)
+                # For now, treat all extensions as DIRECTORY type since the old system
+                # doesn't have a FILE type. The ContentSource.path can handle both
+                # files and directories
                 config.add_source(
                     ContentSource(
-                        name=f"extension-{i + 1}",
+                        name=ext.name or f"extension-{i + 1}",
                         type=SourceType.DIRECTORY,
                         path=ext_path,
                         enabled=True,
