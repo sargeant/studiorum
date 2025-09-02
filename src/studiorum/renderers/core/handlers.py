@@ -1966,7 +1966,9 @@ class NoteTagHandler(BaseTagHandler):
         """Not a content reference - return None."""
         return None
 
-    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> FormattingNode | str:
+    def process_tag(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> FormattingNode | str:
         """Process note tags by returning formatted content."""
         note_text = getattr(tag_node, "name", "").strip()
         if note_text:
@@ -1975,10 +1977,14 @@ class NoteTagHandler(BaseTagHandler):
                 processed_text = context.tag_resolver.process_text(note_text, context)
                 # Return FormattingNode to avoid double-escaping of nested LaTeX commands
                 from studiorum.core.text.tag_types import FormattingNode, FormatType
-                return FormattingNode(format_type=FormatType.ITALIC, content=processed_text)
+
+                return FormattingNode(
+                    format_type=FormatType.ITALIC, content=processed_text
+                )
             else:
                 # No tag resolver - return FormattingNode with raw text
                 from studiorum.core.text.tag_types import FormattingNode, FormatType
+
                 return FormattingNode(format_type=FormatType.ITALIC, content=note_text)
         else:
             return ""
@@ -2347,18 +2353,20 @@ class StyleTagHandler:
         """Check if this handler processes the given tag type."""
         return tag_type == "style"
 
-    def process_tag(self, node: TagNode, context: RenderingContext) -> str | FormattingNode:
+    def process_tag(
+        self, node: TagNode, context: RenderingContext
+    ) -> str | FormattingNode:
         """Process style tags with format-aware styling."""
         # Style tags format: {@style Text content|style-options}
         name = getattr(node, "name", "")
         display_text = getattr(node, "display_text", None)
-        
+
         # Use display_text if available, otherwise use name
         text_content = display_text if display_text else name
-        
+
         if not text_content:
             return ""
-            
+
         # Split by pipe to separate content from style options
         if "|" in text_content:
             content_text, style_options = text_content.split("|", 1)
@@ -2367,7 +2375,7 @@ class StyleTagHandler:
         else:
             content_text = text_content.strip()
             style_ids = []
-        
+
         # For LaTeX output, return FormattingNode with raw content
         # Let the LaTeX renderer handle D&D formatting and escaping properly
         if context.output_format == "latex":
@@ -2375,24 +2383,31 @@ class StyleTagHandler:
         elif context.output_format in ["html", "markdown"]:
             # For HTML, we need to process nested tags first
             if content_text and context.tag_resolver:
-                processed_content = context.tag_resolver.process_text(content_text, context)
+                processed_content = context.tag_resolver.process_text(
+                    content_text, context
+                )
             else:
                 processed_content = content_text
             return self._apply_html_styling(processed_content, style_ids)
         else:
             # Unknown format - return raw content without styling
             return content_text
-    
-    def _create_latex_formatting_node(self, content: str, style_ids: list[str]) -> FormattingNode | str:
+
+    def _create_latex_formatting_node(
+        self, content: str, style_ids: list[str]
+    ) -> FormattingNode | str:
         """Create a FormattingNode for LaTeX output with raw content."""
         from studiorum.core.text.tag_types import FormattingNode, FormatType
-        
+
         if not style_ids:
             return content
-            
+
         # dnd-font and small-caps both map to SMALL_CAPS
         # The LaTeX renderer will handle D&D text formatting and proper escaping
-        if any(style_id in ["dnd-font", "small-caps", "capitalize"] for style_id in style_ids):
+        if any(
+            style_id in ["dnd-font", "small-caps", "capitalize"]
+            for style_id in style_ids
+        ):
             return FormattingNode(format_type=FormatType.SMALL_CAPS, content=content)
         elif "large" in style_ids:
             # For styles we can't map to FormatType, return formatted string
@@ -2404,12 +2419,12 @@ class StyleTagHandler:
             return f"\\textcolor{{gray}}{{{content}}}"
         else:
             return content
-    
+
     def _apply_html_styling(self, content: str, style_ids: list[str]) -> str:
         """Apply HTML-specific styling based on style IDs."""
         if not style_ids:
             return content
-            
+
         # Map style IDs to CSS classes (following 5etools pattern)
         css_classes = []
         for style_id in style_ids:
@@ -2425,7 +2440,7 @@ class StyleTagHandler:
                 css_classes.append("capitalize")
             elif style_id == "muted":
                 css_classes.append("ve-muted")
-                
+
         if css_classes:
             class_attr = " ".join(css_classes)
             return f'<span class="{class_attr}">{content}</span>'

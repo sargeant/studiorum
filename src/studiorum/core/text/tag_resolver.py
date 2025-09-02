@@ -53,7 +53,7 @@ class TagResolver(BaseModel):
             rendering_context=rendering_context,
             **data,
         )
-        
+
         # Set self-reference for recursive tag processing
         self.rendering_context.tag_resolver = self
 

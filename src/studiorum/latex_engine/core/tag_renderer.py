@@ -106,7 +106,7 @@ class LaTeXTagRenderer:
             # Content already contains LaTeX commands, use as-is
             content = node.content
         elif node.format_type == FormatType.SMALL_CAPS:
-            # For small-caps, use basic escaping without D&D transformation 
+            # For small-caps, use basic escaping without D&D transformation
             # since we're already applying small-caps formatting
             content = self._escape_latex_basic(node.content)
         else:
