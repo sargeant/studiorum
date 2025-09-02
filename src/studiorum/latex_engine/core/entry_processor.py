@@ -1744,6 +1744,7 @@ class RecursiveEntryProcessor:
                     if resolved_content:
                         # Handle displayName override
                         display_name = statblock.get("displayName")
+                        original_name = None
                         if display_name:
                             # Temporarily override the content's name for rendering
                             original_name = resolved_content.name
@@ -1780,13 +1781,13 @@ class RecursiveEntryProcessor:
                                 )
 
                             # Restore original name if we overrode it
-                            if display_name:
+                            if display_name and original_name is not None:
                                 resolved_content.name = original_name
 
                             return result
                         finally:
                             # Ensure name is restored even if rendering fails
-                            if display_name and "original_name" in locals():
+                            if display_name and original_name is not None:
                                 resolved_content.name = original_name
 
             except Exception as e:
