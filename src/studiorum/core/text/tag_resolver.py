@@ -37,12 +37,13 @@ class TagResolver(BaseModel):
         core_handlers = get_default_core_handlers()
         renderer = StandardUnifiedRenderer.create_latex_renderer(core_handlers)
 
-        # Create rendering context
+        # Create rendering context with self-reference for recursive processing
         rendering_context = RenderingContext(
             output_format="latex",
             omnidexer=omnidexer,
             content_tracker=None,  # Will be set if needed
             debug_mode=False,
+            tag_resolver=None,  # Will be set to self after construction
         )
 
         # Call parent constructor with computed fields
@@ -52,6 +53,9 @@ class TagResolver(BaseModel):
             rendering_context=rendering_context,
             **data,
         )
+        
+        # Set self-reference for recursive tag processing
+        self.rendering_context.tag_resolver = self
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

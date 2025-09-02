@@ -101,12 +101,16 @@ class LaTeXTagRenderer:
         # If so, don't escape it to avoid double-escaping
         if "\\" in node.content and any(
             cmd in node.content
-            for cmd in ["\\textbf", "\\textit", "\\texttt", "\\emph"]
+            for cmd in ["\\textbf", "\\textit", "\\texttt", "\\emph", "\\textsc"]
         ):
             # Content already contains LaTeX commands, use as-is
             content = node.content
+        elif node.format_type == FormatType.SMALL_CAPS:
+            # For small-caps, use basic escaping without D&D transformation 
+            # since we're already applying small-caps formatting
+            content = self._escape_latex_basic(node.content)
         else:
-            # Regular text content, escape it
+            # Regular text content, escape it (includes D&D transformation for non-small-caps)
             content = self._escape_latex(node.content)
 
         if node.format_type == FormatType.BOLD:
@@ -117,6 +121,8 @@ class LaTeXTagRenderer:
             return f"\\texttt{{{content}}}"
         elif node.format_type == FormatType.EMPHASIS:
             return f"\\emph{{{content}}}"
+        elif node.format_type == FormatType.SMALL_CAPS:
+            return f"\\textsc{{{content}}}"
         else:
             logger.warning(f"Unknown format type: {node.format_type}")
             return content

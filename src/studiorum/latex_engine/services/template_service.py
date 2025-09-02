@@ -100,6 +100,7 @@ class TemplateService:
             output_format="latex",
             omnidexer=self.omnidexer,
             content_tracker=content_tracker,
+            tag_resolver=self.tag_resolver,
             debug_mode=False,
         )
 
@@ -143,6 +144,7 @@ class TemplateService:
             output_format="latex",
             omnidexer=self.omnidexer,
             content_tracker=content_tracker,
+            tag_resolver=self.tag_resolver,
             debug_mode=False,
         )
 
@@ -176,6 +178,7 @@ class TemplateService:
             output_format="latex",
             omnidexer=self.omnidexer,
             content_tracker=None,  # Field text processing doesn't need appendix tracking
+            tag_resolver=self.tag_resolver,
             debug_mode=False,
         )
 

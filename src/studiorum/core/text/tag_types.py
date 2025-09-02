@@ -21,6 +21,7 @@ class FormatType(str, Enum):
     ITALIC = "italic"
     MONOSPACE = "monospace"
     EMPHASIS = "emphasis"
+    SMALL_CAPS = "small-caps"
 
 
 class ContentReference(BaseModel):
