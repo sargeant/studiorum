@@ -1311,7 +1311,7 @@ class AttackTagHandler(BaseTagHandler):
         # Get the attack type string (e.g., "mw", "rw,ms", "mw,rw")
         attack_types = getattr(tag_node, "name", "").strip()
         if not attack_types:
-            logger.warning("Empty attack type in @atk tag")
+            logger.debug("Empty attack type in @atk tag")
             return "Attack:"
 
         # Implementation based on 5etools attackTagToFull function
@@ -1385,7 +1385,7 @@ class AttackRollTagHandler(BaseTagHandler):
         # Get the attack type string (e.g., "mw", "m", "rw,ms")
         attack_types = getattr(tag_node, "name", "").strip()
         if not attack_types:
-            logger.warning("Empty attack type in @atkr tag")
+            logger.debug("Empty attack type in @atkr tag")
             return "Attack Roll:"
 
         # Implementation based on 5etools attackTagToFull function with isRoll=true
