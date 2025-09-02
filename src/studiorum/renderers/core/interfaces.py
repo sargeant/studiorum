@@ -368,6 +368,7 @@ class UnifiedTagRenderer:
                     # Direct string result - apply format-specific escaping
                     if context.output_format == "latex":
                         from studiorum.core.latex_utils import escape_latex_text
+
                         return escape_latex_text(result)
                     else:
                         # For other formats, return as-is (HTML, markdown, etc.)
