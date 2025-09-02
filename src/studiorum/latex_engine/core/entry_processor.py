@@ -1697,24 +1697,29 @@ class RecursiveEntryProcessor:
         """Process a statblock entry by resolving external content references.
 
         Args:
-            statblock: Statblock dictionary with tag, name, and source
+            statblock: Statblock dictionary with tag, name, source, and optional style
             context: Rendering context
 
         Returns:
-            LaTeX string with resolved content rendered inline
+            LaTeX string with resolved content rendered inline or as section
         """
         tag = statblock.get("tag", "")
         name = statblock.get("name", "")
         source = statblock.get("source", "")
+        style = statblock.get("style", "")
 
-        logger.debug(f"Processing statblock: tag={tag}, name={name}, source={source}")
+        logger.debug(
+            f"Processing statblock: tag={tag}, name={name}, source={source}, style={style}"
+        )
 
         # Try to resolve the external reference
         resolved_content = self._resolve_statblock_reference(tag, name, source, context)
 
         if resolved_content:
-            # Render the resolved content inline
-            return self._render_statblock_content(resolved_content, name, context)
+            # Render the resolved content with style information
+            return self._render_statblock_content(
+                resolved_content, name, context, style
+            )
         else:
             # Fallback: render just the name as a header (current behavior)
             logger.warning(
@@ -1783,37 +1788,58 @@ class RecursiveEntryProcessor:
         return None
 
     def _render_statblock_content(
-        self, content: dict[str, Any], name: str, context: RenderingContext
+        self,
+        content: dict[str, Any],
+        name: str,
+        context: RenderingContext,
+        style: str = "",
     ) -> str:
-        """Render resolved statblock content with appropriate section header.
+        """Render resolved statblock content with appropriate formatting based on style.
 
         Args:
             content: Resolved content dictionary
             name: Content name for header
             context: Rendering context
+            style: Style hint - "inset" for inline rendering, empty for section header
 
         Returns:
-            LaTeX string with section header and content
+            LaTeX string with appropriate formatting
         """
         entries = content.get("entries", [])
 
         if not entries:
-            # No entries found, render just the name
+            # No entries found
+            if style == "inset":
+                # For inset style, render just the processed name inline
+                return self._process_text_with_tags(name, context)
+            else:
+                # For regular style, render name as section header
+                section_cmd = self._get_section_command(self._depth, context)
+                processed_name = self._process_text_with_tags(name, context)
+                return f"\\{section_cmd}{{{processed_name}}}"
+
+        # Process the entries
+        processed_entries = self.process_entries(entries, context)
+        content_text = "\n\n".join(processed_entries)
+
+        if style == "inset":
+            # For inset style, render content inline without section header
+            # Use a simple paragraph with bold name if content exists
+            processed_name = self._process_text_with_tags(name, context)
+            if self.use_dnd_template:
+                # Use DND inset styling
+                return f"\\begin{{DndSidebar}}{{{processed_name}}}\\n{content_text}\\n\\end{{DndSidebar}}"
+            else:
+                # Use basic bold name + content
+                return f"\\textbf{{{processed_name}}}\\n\\n{content_text}"
+        else:
+            # Regular style: add section header for the statblock
             section_cmd = self._get_section_command(self._depth, context)
             processed_name = self._process_text_with_tags(name, context)
-            return f"\\{section_cmd}{{{processed_name}}}"
+            header = f"\\{section_cmd}{{{processed_name}}}"
 
-        # Add section header for the statblock
-        section_cmd = self._get_section_command(self._depth, context)
-        processed_name = self._process_text_with_tags(name, context)
-        header = f"\\{section_cmd}{{{processed_name}}}"
-
-        # Process the entries after the header
-        processed_entries = self.process_entries(entries, context)
-
-        # Combine header with content
-        content_text = "\n\n".join(processed_entries)
-        return f"{header}\n\n{content_text}"
+            # Combine header with content
+            return f"{header}\n\n{content_text}"
 
     def get_processing_statistics(self) -> dict[str, Any]:
         """Get processing statistics for this processor instance.

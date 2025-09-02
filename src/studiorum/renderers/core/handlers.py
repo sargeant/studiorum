@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from studiorum.core.error_types import ContentValidationError
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import ContentType
 
@@ -2457,6 +2458,54 @@ class ScaleDiceTagHandler:
         pass
 
 
+class HomebrewTagHandler(BaseTagHandler):
+    """Core handler for homebrew tags indicating content changes."""
+
+    def __init__(self) -> None:
+        # Homebrew tags don't reference specific content, so no content_type
+        super().__init__("homebrew", None)
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract homebrew tag information."""
+        # Homebrew tags can have format: {@homebrew} or {@homebrew text} or {@homebrew |removal}
+        display_text = self._extract_display_text(node, context)
+        
+        # If there's a pipe at the start, it's indicating a removal - show nothing
+        if display_text.startswith("|"):
+            return ContentReferenceInfo(
+                name="",
+                display_text="",
+                source=None,
+                page=None,
+                content_type=None,
+                format_style=FormatStyle.PLAIN,
+            )
+        
+        # Otherwise show the text (changes/additions)
+        return ContentReferenceInfo(
+            name=display_text,
+            display_text=display_text,
+            source=None,
+            page=None,
+            content_type=None,
+            format_style=FormatStyle.ITALIC,
+        )
+
+    def validate_content_references(
+        self, node: TagNode, context: RenderingContext
+    ) -> list[ContentValidationError]:
+        """Homebrew tags don't need content validation."""
+        return []
+
+    def track_content_for_appendix(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Homebrew tags don't need appendix tracking."""
+        pass
+
+
 # Registry of core handlers for easy access
 def get_default_core_handlers() -> list[TagHandler]:
     """Get the list of default core tag handlers."""
@@ -2513,4 +2562,5 @@ def get_default_core_handlers() -> list[TagHandler]:
         FilterTagHandler(),
         ScaleDamageTagHandler(),
         ScaleDiceTagHandler(),
+        HomebrewTagHandler(),
     ]
