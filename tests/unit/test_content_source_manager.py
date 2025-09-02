@@ -195,7 +195,7 @@ class TestContentSourceManager:
         with patch("studiorum.core.sources.manager.logger") as mock_logger:
             await manager._ensure_directory_source(directory_source)
             mock_logger.info.assert_called_with(
-                "Directory source 'test-directory' is ready"
+                "Directory source 'test-directory' is ready (directory)"
             )
 
     @pytest.mark.asyncio
@@ -232,7 +232,7 @@ class TestContentSourceManager:
         file_path.write_text("test")
         directory_source.path = file_path
 
-        with pytest.raises(ValueError, match="Path is not a directory"):
+        with pytest.raises(ValueError, match="Path must be a directory or JSON file"):
             await manager._ensure_directory_source(directory_source)
 
     # Content Index Building Tests

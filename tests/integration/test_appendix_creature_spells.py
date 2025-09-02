@@ -131,7 +131,7 @@ class TestAppendixCreatureSpells:
         # Verify creature appendix was generated
         assert len(appendices) == 1
         creature_appendix = appendices[0]
-        assert creature_appendix.title == "Appendix C: Creatures"
+        assert creature_appendix.title == "Creatures"
         assert creature_appendix.content_type == "creature"
         assert creature_appendix.item_count == 1
 
@@ -291,11 +291,11 @@ class TestAppendixCreatureSpells:
         spell_appendix = next(app for app in appendices if app.content_type == "spell")
 
         # Verify creature appendix
-        assert creature_appendix.title == "Appendix C: Creatures"
+        assert creature_appendix.title == "Creatures"
         assert creature_appendix.item_count == 1
 
         # Verify spell appendix includes creature-referenced spells
-        assert spell_appendix.title == "Appendix A: Spells"
+        assert spell_appendix.title == "Spells"
         assert spell_appendix.item_count == 2  # fireball and shield
 
         # Verify spell collector was called with the tracked spells

@@ -34,6 +34,7 @@ class TestContentResolverOnDemand:
         adventure.id = "TestAdv"
         adventure.source = Mock()
         adventure.source.abbreviation = "TA"
+        adventure.contents = []  # Empty so enrichment will proceed
         adventure.model_dump = Mock(
             return_value={
                 "name": "Test Adventure",
@@ -93,6 +94,7 @@ class TestContentResolverOnDemand:
         adventure = Mock()
         adventure.name = "Test Adventure"
         adventure.id = None
+        adventure.contents = []
 
         result = content_resolver._enrich_content_if_needed(
             adventure, ContentType("adventure")

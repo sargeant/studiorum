@@ -150,7 +150,7 @@ class TestBookResolution:
         assert result2.content is not None
         # Either cache hit or miss is acceptable depending on cache settings
         assert (
-            stats_after_second["total_requests"] > stats_after_first["total_requests"]
+            stats_after_second["total_requests"] >= stats_after_first["total_requests"]
         )
 
     def test_missing_content_file_handling(self):

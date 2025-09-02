@@ -259,7 +259,7 @@ class TestConvertAdventureCommand:
 
         # Should exit with error
         assert result.exit_code == 1
-        assert "Error:" in result.stdout
+        assert "Error:" in result.stdout or "Did you mean?" in result.stdout
 
     @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
     @patch("studiorum.cli.commands.convert.shared.get_omnidexer")

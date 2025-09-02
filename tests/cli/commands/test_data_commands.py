@@ -107,12 +107,21 @@ class TestDataCommands:
         )
 
     @patch("pathlib.Path.exists", return_value=True)
-    def test_data_add_homebrew_valid_path(self, mock_exists):
+    @patch("studiorum.cli.commands.data._load_config")
+    @patch("studiorum.cli.commands.data._save_config")
+    def test_data_add_homebrew_valid_path(self, mock_save, mock_load, mock_exists):
         """Test adding homebrew repository with valid path."""
+        mock_load.return_value = {
+            "data_sources": {
+                "srd": {"enabled": True},
+                "primary_override": {"enabled": False},
+                "extensions": [],
+            }
+        }
         result = self.runner.invoke(app, ["data", "add-homebrew", "/test/homebrew"])
         assert result.exit_code == 0
         assert "Adding homebrew repository" in result.stdout
-        assert "Homebrew repository path validated" in result.stdout
+        mock_save.assert_called_once()
 
     def test_data_add_homebrew_invalid_path(self):
         """Test adding homebrew with invalid path shows error."""
@@ -121,8 +130,19 @@ class TestDataCommands:
         assert "Path does not exist" in result.stdout
 
     @patch("pathlib.Path.exists", return_value=True)
-    def test_data_add_homebrew_with_name_and_description(self, mock_exists):
+    @patch("studiorum.cli.commands.data._load_config")
+    @patch("studiorum.cli.commands.data._save_config")
+    def test_data_add_homebrew_with_name_and_description(
+        self, mock_save, mock_load, mock_exists
+    ):
         """Test adding homebrew with custom name and description."""
+        mock_load.return_value = {
+            "data_sources": {
+                "srd": {"enabled": True},
+                "primary_override": {"enabled": False},
+                "extensions": [],
+            }
+        }
         result = self.runner.invoke(
             app,
             [
@@ -139,14 +159,23 @@ class TestDataCommands:
         assert "custom-name" in result.stdout
         assert "Custom description" in result.stdout
 
-    def test_data_add_url_valid(self):
+    @patch("studiorum.cli.commands.data._load_config")
+    @patch("studiorum.cli.commands.data._save_config")
+    def test_data_add_url_valid(self, mock_save, mock_load):
         """Test adding valid URL repository."""
+        mock_load.return_value = {
+            "data_sources": {
+                "srd": {"enabled": True},
+                "primary_override": {"enabled": False},
+                "extensions": [],
+            }
+        }
         result = self.runner.invoke(
             app, ["data", "add-url", "https://example.com/data.json"]
         )
         assert result.exit_code == 0
         assert "Adding URL repository" in result.stdout
-        assert "URL repository validated" in result.stdout
+        mock_save.assert_called_once()
 
     def test_data_add_url_invalid_scheme(self):
         """Test adding URL with invalid scheme shows error."""
@@ -156,8 +185,17 @@ class TestDataCommands:
         assert result.exit_code == 1
         assert "Invalid URL scheme" in result.stdout
 
-    def test_data_add_url_with_custom_name(self):
+    @patch("studiorum.cli.commands.data._load_config")
+    @patch("studiorum.cli.commands.data._save_config")
+    def test_data_add_url_with_custom_name(self, mock_save, mock_load):
         """Test adding URL with custom name and description."""
+        mock_load.return_value = {
+            "data_sources": {
+                "srd": {"enabled": True},
+                "primary_override": {"enabled": False},
+                "extensions": [],
+            }
+        }
         result = self.runner.invoke(
             app,
             [
@@ -173,6 +211,7 @@ class TestDataCommands:
         assert result.exit_code == 0
         assert "remote-source" in result.stdout
         assert "Remote content source" in result.stdout
+        mock_save.assert_called_once()
 
     def test_data_remove_prevents_srd_removal(self):
         """Test that removing SRD repository is prevented."""
@@ -180,20 +219,38 @@ class TestDataCommands:
         assert result.exit_code == 1
         assert "Cannot remove bundled SRD repository" in result.stdout
 
-    def test_data_remove_with_confirmation_cancel(self):
+    @patch("studiorum.cli.commands.data._load_config")
+    @patch("studiorum.cli.commands.data._save_config")
+    def test_data_remove_with_confirmation_cancel(self, mock_save, mock_load):
         """Test removing repository with cancelled confirmation."""
+        mock_load.return_value = {
+            "data_sources": {
+                "srd": {"enabled": True},
+                "primary_override": {"enabled": False},
+                "extensions": [{"name": "test-repo", "enabled": True}],
+            }
+        }
         with patch("typer.confirm", return_value=False):
             result = self.runner.invoke(app, ["data", "remove", "test-repo"])
             assert result.exit_code == 0
             assert "Cancelled" in result.stdout
 
-    def test_data_remove_with_confirmation_proceed(self):
+    @patch("studiorum.cli.commands.data._load_config")
+    @patch("studiorum.cli.commands.data._save_config")
+    def test_data_remove_with_confirmation_proceed(self, mock_save, mock_load):
         """Test removing repository with confirmed removal."""
+        mock_load.return_value = {
+            "data_sources": {
+                "srd": {"enabled": True},
+                "primary_override": {"enabled": False},
+                "extensions": [{"name": "test-repo", "enabled": True}],
+            }
+        }
         with patch("typer.confirm", return_value=True):
             result = self.runner.invoke(app, ["data", "remove", "test-repo"])
             assert result.exit_code == 0
             assert "Removing repository" in result.stdout
-            assert "Repository removal validated" in result.stdout
+            mock_save.assert_called_once()
 
     def test_data_help_shows_usage_examples(self):
         """Test that data command help shows usage examples."""

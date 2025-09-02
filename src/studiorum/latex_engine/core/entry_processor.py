@@ -1712,47 +1712,82 @@ class RecursiveEntryProcessor:
             f"Processing statblock: tag={tag}, name={name}, source={source}, style={style}"
         )
 
-        # Special handling for creature and item statblocks with inset style
-        if style == "inset" and context.omnidexer and tag in ["creature", "item"]:
+        # Special handling for all statblocks with inset style
+        if style == "inset" and context.omnidexer and tag:
             try:
                 from studiorum.core.models.content import ContentType
 
-                # Get content type and resolve content
-                content_type = (
-                    ContentType.CREATURE if tag == "creature" else ContentType.ITEM
-                )
-                resolved_content = context.omnidexer.find(content_type, name, source)
+                # Map tag to ContentType using existing mapping
+                tag_to_content_type = {
+                    "variantrule": ContentType.VARIANTRULE,
+                    "action": ContentType.ACTION,
+                    "condition": ContentType.CONDITION,
+                    "sense": ContentType.SENSE,
+                    "hazard": ContentType.HAZARD,
+                    "status": ContentType.STATUS,
+                    "item": ContentType.ITEM,
+                    "creature": ContentType.CREATURE,
+                    "reward": ContentType.REWARD,
+                    "deity": ContentType.DEITY,
+                    "charoption": ContentType.CHAROPTION,
+                }
 
-                if resolved_content:
-                    # Handle displayName override
-                    display_name = statblock.get("displayName")
-                    if display_name:
-                        # Temporarily override the content's name for rendering
-                        original_name = resolved_content.name
-                        resolved_content.name = display_name
+                content_type = tag_to_content_type.get(tag)
+                if not content_type:
+                    logger.debug(f"No ContentType mapping for statblock tag: {tag}")
+                    # Fall through to generic resolution
+                else:
+                    resolved_content = context.omnidexer.find(
+                        content_type, name, source
+                    )
 
-                    try:
-                        # Use appropriate renderer for full content rendering
-                        if tag == "creature":
-                            from .entry_renderers import CreatureEntryRenderer
-
-                            creature_renderer = CreatureEntryRenderer()
-                            result = creature_renderer.render(resolved_content, context)
-                        else:  # tag == "item"
-                            from .entry_renderers import ItemEntryRenderer
-
-                            item_renderer = ItemEntryRenderer()
-                            result = item_renderer.render(resolved_content, context)
-
-                        # Restore original name if we overrode it
+                    if resolved_content:
+                        # Handle displayName override
+                        display_name = statblock.get("displayName")
                         if display_name:
-                            resolved_content.name = original_name
+                            # Temporarily override the content's name for rendering
+                            original_name = resolved_content.name
+                            resolved_content.name = display_name
 
-                        return result
-                    finally:
-                        # Ensure name is restored even if rendering fails
-                        if display_name and "original_name" in locals():
-                            resolved_content.name = original_name
+                        try:
+                            # Use specialized renderer for creature/item, generic for others
+                            if tag == "creature":
+                                from .entry_renderers import CreatureEntryRenderer
+
+                                creature_renderer = CreatureEntryRenderer()
+                                result = creature_renderer.render(
+                                    resolved_content, context
+                                )
+                            elif tag == "item":
+                                from .entry_renderers import ItemEntryRenderer
+
+                                item_renderer = ItemEntryRenderer()
+                                result = item_renderer.render(resolved_content, context)
+                            else:
+                                # Generic rendering for other content types
+                                if hasattr(resolved_content, "model_dump"):
+                                    content_dict = resolved_content.model_dump()
+                                elif hasattr(resolved_content, "__dict__"):
+                                    content_dict = resolved_content.__dict__
+                                else:
+                                    content_dict = {
+                                        "name": name,
+                                        "entries": [str(resolved_content)],
+                                    }
+
+                                result = self._render_statblock_content(
+                                    content_dict, name, context, style
+                                )
+
+                            # Restore original name if we overrode it
+                            if display_name:
+                                resolved_content.name = original_name
+
+                            return result
+                        finally:
+                            # Ensure name is restored even if rendering fails
+                            if display_name and "original_name" in locals():
+                                resolved_content.name = original_name
 
             except Exception as e:
                 logger.warning(f"Error rendering {tag} statblock '{name}': {e}")

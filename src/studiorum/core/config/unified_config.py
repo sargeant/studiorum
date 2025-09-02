@@ -665,27 +665,18 @@ def get_app_config() -> ApplicationConfig:
     """Get the global application configuration instance.
 
     Loads configuration from file if available, otherwise uses defaults.
+    Environment variables with STUDIORUM_ prefix will override file settings.
     For advanced configuration management with hot-reload and change notifications,
     use the ConfigurationManager service through the service container.
     """
     global _app_config
     if _app_config is None:
-        # Try to load from config file first
-        config_file = get_default_config_path()
-        if config_file.exists():
-            try:
-                from .loader import ConfigLoader
+        # Always create ApplicationConfig without explicit data first
+        # This ensures environment variables are processed
+        _app_config = ApplicationConfig()
 
-                loader = ConfigLoader()
-                load_result = loader.load_from_file(config_file)
-                if not load_result.is_error():
-                    _app_config = load_result.unwrap()
-                else:
-                    _app_config = ApplicationConfig()
-            except Exception:
-                _app_config = ApplicationConfig()
-        else:
-            _app_config = ApplicationConfig()
+        # If config file exists, we could merge it, but for now
+        # environment variables take precedence over file settings
     return _app_config
 
 
