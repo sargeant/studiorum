@@ -358,6 +358,10 @@ class Item(BaseContent):
         else:
             rarity_text = str(self.rarity)
 
+        # Skip unknown rarity (may include additional text like "unknown (magic)")
+        if rarity_text.startswith("unknown"):
+            return ""
+
         return rarity_text
 
     def get_weight_text(self) -> str:

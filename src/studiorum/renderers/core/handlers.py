@@ -2327,6 +2327,56 @@ class RewardTagHandler(BaseTagHandler):
         )
 
 
+class StyleTagHandler:
+    """Core handler for style tags - formatting directives with text content."""
+
+    def __init__(self) -> None:
+        self.tag_type = "style"
+        self.supported_tags = ["style"]
+
+    def handles_tag_type(self, tag_type: str) -> bool:
+        """Check if this handler processes the given tag type."""
+        return tag_type == "style"
+
+    def process_tag(self, node: TagNode, context: RenderingContext) -> str:
+        """Process style tags by extracting the text content before the pipe."""
+        # Style tags format: {@style Text content|style-options}
+        # We want to extract "Text content" and ignore the style options
+        name = getattr(node, "name", "")
+        display_text = getattr(node, "display_text", None)
+
+        # Use display_text if available, otherwise use name
+        text_content = display_text if display_text else name
+
+        if text_content and "|" in text_content:
+            # Extract content before the pipe (style options come after)
+            return text_content.split("|")[0].strip()
+        else:
+            return text_content or ""
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for style tags, use process_tag instead."""
+        raise NotImplementedError("Use process_tag for style tags")
+
+    def should_include_page_reference(self, page: str | None) -> bool:
+        """Style tags don't have page references."""
+        return False
+
+    def validate_content_reference(
+        self, node: TagNode, context: RenderingContext
+    ) -> list[TagValidationError]:
+        """Style tags don't need content validation."""
+        return []
+
+    def track_content_for_appendix(
+        self, node: TagNode, context: RenderingContext
+    ) -> None:
+        """Style tags don't need appendix tracking."""
+        pass
+
+
 class FilterTagHandler:
     """Core handler for filter tags - custom processing tags."""
 
@@ -2471,7 +2521,7 @@ class HomebrewTagHandler(BaseTagHandler):
         """Extract homebrew tag information."""
         # Homebrew tags can have format: {@homebrew} or {@homebrew text} or {@homebrew |removal}
         display_text = self._extract_display_text(node, context)
-        
+
         # If there's a pipe at the start, it's indicating a removal - show nothing
         if display_text.startswith("|"):
             return ContentReferenceInfo(
@@ -2482,7 +2532,7 @@ class HomebrewTagHandler(BaseTagHandler):
                 content_type=None,
                 format_style=FormatStyle.PLAIN,
             )
-        
+
         # Otherwise show the text (changes/additions)
         return ContentReferenceInfo(
             name=display_text,
@@ -2559,6 +2609,7 @@ def get_default_core_handlers() -> list[TagHandler]:
         HazardTagHandler(),
         RecipeTagHandler(),
         RewardTagHandler(),
+        StyleTagHandler(),
         FilterTagHandler(),
         ScaleDamageTagHandler(),
         ScaleDiceTagHandler(),
