@@ -42,7 +42,9 @@ if [ -n "$violations" ]; then
     echo
     echo "${YELLOW}Exceptions are allowed for:${NC}"
     echo "  • LaTeX template styling (\\Dnd)"
-    echo "  • CSS aesthetic references"
+    echo "  • The landing page of the documentation"
+    echo "  • Use where the term includes both the ™ symbol and a disclaimer"
+    echo "  • This script"
     echo
     exit 1
 fi
