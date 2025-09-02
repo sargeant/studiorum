@@ -33,7 +33,20 @@ class TextExtractor:
                 is_spell = (
                     "level" in entry and "school" in entry and "components" in entry
                 )
-                if "name" in entry and entry["name"] and not is_spell:
+                is_item = "type" in entry and "rarity" in entry and "entries" in entry
+                is_creature = (
+                    "size" in entry
+                    and "ac" in entry
+                    and "hp" in entry
+                    and "speed" in entry
+                )
+                if (
+                    "name" in entry
+                    and entry["name"]
+                    and not is_spell
+                    and not is_item
+                    and not is_creature
+                ):
                     parts.append(entry["name"])
                 # Include the "by" field if present (author attribution)
                 if "by" in entry and entry["by"]:
@@ -42,7 +55,7 @@ class TextExtractor:
                     text = self.extract_from_entry(sub_entry)
                     if text:  # Only add non-empty text
                         parts.append(text)
-                return " ".join(parts)
+                return "\n\n".join(parts)
             elif "text" in entry:
                 # Include name if present for named text entries
                 if "name" in entry and entry["name"]:

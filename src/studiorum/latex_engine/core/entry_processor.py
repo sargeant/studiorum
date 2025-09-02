@@ -1712,7 +1712,52 @@ class RecursiveEntryProcessor:
             f"Processing statblock: tag={tag}, name={name}, source={source}, style={style}"
         )
 
-        # Try to resolve the external reference
+        # Special handling for creature and item statblocks with inset style
+        if style == "inset" and context.omnidexer and tag in ["creature", "item"]:
+            try:
+                from studiorum.core.models.content import ContentType
+
+                # Get content type and resolve content
+                content_type = (
+                    ContentType.CREATURE if tag == "creature" else ContentType.ITEM
+                )
+                resolved_content = context.omnidexer.find(content_type, name, source)
+
+                if resolved_content:
+                    # Handle displayName override
+                    display_name = statblock.get("displayName")
+                    if display_name:
+                        # Temporarily override the content's name for rendering
+                        original_name = resolved_content.name
+                        resolved_content.name = display_name
+
+                    try:
+                        # Use appropriate renderer for full content rendering
+                        if tag == "creature":
+                            from .entry_renderers import CreatureEntryRenderer
+
+                            creature_renderer = CreatureEntryRenderer()
+                            result = creature_renderer.render(resolved_content, context)
+                        else:  # tag == "item"
+                            from .entry_renderers import ItemEntryRenderer
+
+                            item_renderer = ItemEntryRenderer()
+                            result = item_renderer.render(resolved_content, context)
+
+                        # Restore original name if we overrode it
+                        if display_name:
+                            resolved_content.name = original_name
+
+                        return result
+                    finally:
+                        # Ensure name is restored even if rendering fails
+                        if display_name and "original_name" in locals():
+                            resolved_content.name = original_name
+
+            except Exception as e:
+                logger.warning(f"Error rendering {tag} statblock '{name}': {e}")
+
+        # Try to resolve the external reference for other content types
         resolved_content = self._resolve_statblock_reference(tag, name, source, context)
 
         if resolved_content:
@@ -1751,6 +1796,8 @@ class RecursiveEntryProcessor:
             "sense": "SENSE",
             "hazard": "HAZARD",
             "status": "STATUS",
+            "item": "ITEM",
+            "creature": "CREATURE",
         }
 
         content_type_name = tag_to_content_type.get(tag)
