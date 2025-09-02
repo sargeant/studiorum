@@ -291,6 +291,56 @@ class Omnidexer:
         load_stats: dict[str, int] = defaultdict(int)
         total_loaded = 0
 
+        # Track processed multi-type files to avoid duplicate processing
+        processed_multi_type_files: set[Path] = set()
+
+        # Check for multi-type homebrew files first
+        from .homebrew_loader import HomebrewMultiTypeLoader
+
+        homebrew_loader = HomebrewMultiTypeLoader()
+
+        # Get ALL discovered files, not just those assigned to content types
+        all_discovered_files: set[Path] = set()
+        if hasattr(self.source_manager, "_data_source_manager"):
+            # For UnifiedSourceManager
+            dsm = self.source_manager._data_source_manager
+            all_source_files = dsm.content_manager.get_all_content_files()
+            for source_files in all_source_files.values():
+                all_discovered_files.update(source_files)
+        else:
+            # Fallback to files in data_paths
+            for paths in data_paths.values():
+                all_discovered_files.update(paths)
+
+        logger.debug(
+            f"Checking {len(all_discovered_files)} discovered files for multi-type content"
+        )
+
+        # Scan ALL discovered files for multi-type content
+        for path in all_discovered_files:
+            if path in processed_multi_type_files:
+                continue
+
+            if homebrew_loader.is_multi_type_file(path):
+                logger.info(f"Detected multi-type homebrew file: {path}")
+                processed_multi_type_files.add(path)
+
+                # Load all content types from this file
+                multi_type_content = homebrew_loader.load(path)
+
+                for loaded_content_type, items in multi_type_content.items():
+                    # Index all items of this type
+                    for item in items:
+                        self._add_to_index(item, loaded_content_type)
+
+                    self._loaded_types.add(loaded_content_type)
+                    load_stats[loaded_content_type.value] += len(items)
+                    total_loaded += len(items)
+
+                    logger.debug(
+                        f"Loaded {len(items)} {loaded_content_type.value} items from multi-type file {path}"
+                    )
+
         # Load metadata files (adventures.json, books.json, etc.)
         for content_type, paths in data_paths.items():
             if content_type in self._loaders:
@@ -304,6 +354,13 @@ class Omnidexer:
                     )
 
                 for i, path in enumerate(paths):
+                    # Skip if already processed as multi-type file
+                    if path in processed_multi_type_files:
+                        logger.debug(
+                            f"Skipping {path} - already processed as multi-type file"
+                        )
+                        continue
+
                     if progress_callback and type_operation_id:
                         progress_callback.update_progress(
                             type_operation_id,
@@ -423,6 +480,43 @@ class Omnidexer:
                     self._load_content_only_file(content_type, content_file)
                     enriched_count += 1
                     continue
+
+                # Check if this adventure already has complete content from homebrew files
+                # If it does, skip dual-file enrichment to avoid overwriting
+                if (
+                    hasattr(metadata_item.content, "contents")
+                    and metadata_item.content.contents
+                    and len(metadata_item.content.contents) > 0
+                ):
+                    # Check if the content looks complete (has multiple entries or substantial content)
+                    first_section = metadata_item.content.contents[0]
+                    if (
+                        hasattr(first_section, "entries")
+                        and first_section.entries
+                        and len(first_section.entries) > 3
+                    ):  # More than just basic metadata
+                        logger.info(
+                            f"Skipping dual-file enrichment for {content_type.value} '{content_id}' "
+                            f"- already has complete content from homebrew file ({len(first_section.entries)} entries)"
+                        )
+                        continue
+
+                logger.debug(
+                    f"Proceeding with dual-file enrichment for {content_type.value} '{content_id}'"
+                )
+                if (
+                    hasattr(metadata_item.content, "contents")
+                    and metadata_item.content.contents
+                ):
+                    first_section = metadata_item.content.contents[0]
+                    entry_count = (
+                        len(first_section.entries)
+                        if hasattr(first_section, "entries") and first_section.entries
+                        else 0
+                    )
+                    logger.debug(
+                        f"Current content: {len(metadata_item.content.contents)} sections, first section has {entry_count} entries"
+                    )
 
                 # Load content file data
                 content_data = self._content_merger.load_content_file(
