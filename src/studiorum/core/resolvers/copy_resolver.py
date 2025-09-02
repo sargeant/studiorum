@@ -367,17 +367,35 @@ class CopyResolver:
     ) -> None:
         """Apply _mod transformations directly to the object to preserve types."""
         for prop_path, transformations in mod_data.items():
-            # Ensure transformations is a list
-            if isinstance(transformations, dict):
+            # Normalize transformations to list (following 5etools _normaliseMods pattern)
+            if isinstance(transformations, dict | str):
                 transformations = [transformations]
             elif not isinstance(transformations, list):
                 logger.warning(
-                    f"Invalid _mod format for {item_name}: {prop_path} should be dict or list"
+                    f"Invalid _mod format for {item_name}: {prop_path} should be dict, string, or list"
                 )
                 continue
 
             for transform in transformations:
+                # Handle string transformations (following 5etools pattern)
+                if isinstance(transform, str):
+                    if transform == "remove":
+                        # Remove the property entirely
+                        if hasattr(item, prop_path):
+                            delattr(item, prop_path)
+                        elif hasattr(item, "__dict__") and prop_path in item.__dict__:
+                            del item.__dict__[prop_path]
+                        logger.debug(f"Removed property '{prop_path}' from {item_name}")
+                    else:
+                        logger.debug(
+                            f"Unsupported string _mod operation '{transform}' for {item_name}"
+                        )
+                    continue
+
                 if not isinstance(transform, dict):
+                    logger.debug(
+                        f"Skipping invalid _mod transformation type for {item_name}: {type(transform)}"
+                    )
                     continue
 
                 mode = transform.get("mode")
