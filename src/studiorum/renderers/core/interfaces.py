@@ -365,8 +365,13 @@ class UnifiedTagRenderer:
                     latex_renderer = LaTeXTagRenderer()
                     return latex_renderer.render(result)
                 elif isinstance(result, str):
-                    # Direct string result - return as-is
-                    return result
+                    # Direct string result - apply format-specific escaping
+                    if context.output_format == "latex":
+                        from studiorum.core.latex_utils import escape_latex_text
+                        return escape_latex_text(result)
+                    else:
+                        # For other formats, return as-is (HTML, markdown, etc.)
+                        return result
 
             # Step 1: Extract core content information (business logic)
             content_info = core_handler.extract_content_info(node, context)
