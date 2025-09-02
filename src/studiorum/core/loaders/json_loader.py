@@ -1332,6 +1332,19 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     )
                     continue
 
+                # Defer validation for items that need copy resolution
+                # These items are incomplete and will be validated after copy resolution
+                if item.get("_needsCopyResolution"):
+                    logger.debug(
+                        f"Deferring validation for copy-resolution item {item.get('name', 'unknown')} in {path}"
+                    )
+                    # Create a placeholder object that will be resolved later
+                    placeholder = self._create_copy_placeholder(
+                        item, self._content_type
+                    )
+                    validated_content.append(placeholder)
+                    continue
+
                 # Ensure source information is present
                 item = self._ensure_source_info(item, path)
 

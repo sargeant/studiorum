@@ -779,6 +779,9 @@ class ContentResolver:
         with metadata to provide complete content. For other content types, returns
         the content unchanged.
 
+        For multi-type homebrew files, content is already complete and doesn't need
+        enrichment.
+
         Args:
             content: The content object (likely metadata-only for adventures/books)
             content_type: The type of content being resolved
@@ -790,6 +793,13 @@ class ContentResolver:
         adventure_type = ContentType("adventure")
         book_type = ContentType("book")
         if content_type not in [adventure_type, book_type]:
+            return content
+
+        # Check if content is already complete (multi-type homebrew or already enriched)
+        if hasattr(content, "contents") and content.contents:
+            logger.debug(
+                f"{content_type.value} '{content.name}' already has {len(content.contents)} content sections, skipping enrichment"
+            )
             return content
 
         # Extract content ID from the content object
