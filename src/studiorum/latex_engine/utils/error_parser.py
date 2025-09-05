@@ -6,18 +6,12 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field, field_validator
 
-
-class ErrorSeverity(Enum):
-    """Severity levels for LaTeX errors and warnings."""
-
-    INFO = "info"
-    WARNING = "warning"
-    ERROR = "error"
-    FATAL = "fatal"
+from studiorum.core.error_types import ErrorCategory, ErrorSeverity
 
 
-class ErrorCategory(Enum):
-    """Categories of LaTeX errors for better user guidance."""
+# LaTeX-specific error categories that extend the core categories
+class LaTeXErrorCategory(Enum):
+    """LaTeX-specific error categories for better user guidance."""
 
     MISSING_PACKAGE = "missing_package"
     MISSING_FILE = "missing_file"
@@ -33,7 +27,9 @@ class LaTeXError(BaseModel):
     """Represents a single LaTeX error or warning."""
 
     severity: ErrorSeverity = Field(description="Error severity level")
-    category: ErrorCategory = Field(description="Error category for user guidance")
+    category: LaTeXErrorCategory | ErrorCategory = Field(
+        description="Error category for user guidance"
+    )
     message: str = Field(min_length=1, description="Error message")
     file_path: str | None = Field(None, description="Path to file where error occurred")
     line_number: int | None = Field(None, ge=1, description="Line number in file")
@@ -148,8 +144,8 @@ class LaTeXErrorParser:
         if timeout_occurred:
             errors.append(
                 LaTeXError(
-                    severity=ErrorSeverity.FATAL,
-                    category=ErrorCategory.TIMEOUT_ERROR,
+                    severity=ErrorSeverity.CRITICAL,
+                    category=LaTeXErrorCategory.TIMEOUT_ERROR,
                     message="Compilation timed out",
                     suggestion="Document may be too large or complex. Try reducing content or using draft mode.",
                 )
@@ -168,8 +164,8 @@ class LaTeXErrorParser:
         if not errors and return_code != 0:
             errors.append(
                 LaTeXError(
-                    severity=ErrorSeverity.FATAL,
-                    category=ErrorCategory.COMPILATION_ERROR,
+                    severity=ErrorSeverity.CRITICAL,
+                    category=LaTeXErrorCategory.COMPILATION_ERROR,
                     message=f"Compilation failed with exit code {return_code}",
                     suggestion="Check the full compilation log for details.",
                 )
@@ -187,43 +183,43 @@ class LaTeXErrorParser:
             {
                 "pattern": re.compile(r"! LaTeX Error: File `(.+?)' not found"),
                 "severity": ErrorSeverity.ERROR,
-                "category": ErrorCategory.MISSING_FILE,
+                "category": LaTeXErrorCategory.MISSING_FILE,
                 "extract": lambda m: f"Missing file: {m.group(1)}",
             },
             {
                 "pattern": re.compile(r"! Package dnd Error: (.+)"),
                 "severity": ErrorSeverity.ERROR,
-                "category": ErrorCategory.TEMPLATE_ERROR,
+                "category": LaTeXErrorCategory.TEMPLATE_ERROR,
                 "extract": lambda m: f"DND template error: {m.group(1)}",
             },
             {
                 "pattern": re.compile(r"! Package (\w+) Error: (.+)"),
                 "severity": ErrorSeverity.ERROR,
-                "category": ErrorCategory.MISSING_PACKAGE,
+                "category": LaTeXErrorCategory.MISSING_PACKAGE,
                 "extract": lambda m: f"Package {m.group(1)} error: {m.group(2)}",
             },
             {
                 "pattern": re.compile(r"! Undefined control sequence"),
                 "severity": ErrorSeverity.ERROR,
-                "category": ErrorCategory.SYNTAX_ERROR,
+                "category": LaTeXErrorCategory.SYNTAX_ERROR,
                 "extract": lambda m: "Undefined command or macro",
             },
             {
                 "pattern": re.compile(r"! Font .* not loadable: (.+)"),
                 "severity": ErrorSeverity.ERROR,
-                "category": ErrorCategory.FONT_ERROR,
+                "category": LaTeXErrorCategory.FONT_ERROR,
                 "extract": lambda m: f"Font loading error: {m.group(1)}",
             },
             {
                 "pattern": re.compile(r"fontspec error: (.+)"),
                 "severity": ErrorSeverity.ERROR,
-                "category": ErrorCategory.FONT_ERROR,
+                "category": LaTeXErrorCategory.FONT_ERROR,
                 "extract": lambda m: f"Fontspec error: {m.group(1)}",
             },
             {
                 "pattern": re.compile(r"! Package fontspec Error: (.+)"),
                 "severity": ErrorSeverity.ERROR,
-                "category": ErrorCategory.FONT_ERROR,
+                "category": LaTeXErrorCategory.FONT_ERROR,
                 "extract": lambda m: f"Fontspec package error: {m.group(1)}",
             },
             {
@@ -231,64 +227,66 @@ class LaTeXErrorParser:
                     r"! Undefined control sequence.*\\usepackage.*fontspec", re.DOTALL
                 ),
                 "severity": ErrorSeverity.ERROR,
-                "category": ErrorCategory.FONT_ERROR,
+                "category": LaTeXErrorCategory.FONT_ERROR,
                 "extract": lambda m: "Fontspec package not available - requires XeLaTeX or LuaLaTeX",
             },
             {
                 "pattern": re.compile(r"! LaTeX Error: File `fontspec\.sty' not found"),
                 "severity": ErrorSeverity.ERROR,
-                "category": ErrorCategory.MISSING_PACKAGE,
+                "category": LaTeXErrorCategory.MISSING_PACKAGE,
                 "extract": lambda m: "Fontspec package not installed or not available with current engine",
             },
             {
                 "pattern": re.compile(r"LaTeX Warning: (.+)"),
                 "severity": ErrorSeverity.WARNING,
-                "category": ErrorCategory.UNKNOWN,
+                "category": LaTeXErrorCategory.UNKNOWN,
                 "extract": lambda m: f"Warning: {m.group(1)}",
             },
             {
                 "pattern": re.compile(r"! (.+)"),
                 "severity": ErrorSeverity.ERROR,
-                "category": ErrorCategory.SYNTAX_ERROR,
+                "category": LaTeXErrorCategory.SYNTAX_ERROR,
                 "extract": lambda m: m.group(1),
             },
         ]
 
-    def _build_suggestion_rules(self) -> dict[ErrorCategory, list[str]]:
+    def _build_suggestion_rules(
+        self,
+    ) -> dict[LaTeXErrorCategory | ErrorCategory, list[str]]:
         """Build suggestion rules for different error categories.
 
         Returns:
             Dictionary mapping error categories to suggestion lists
         """
         return {
-            ErrorCategory.MISSING_PACKAGE: [
+            LaTeXErrorCategory.MISSING_PACKAGE: [
                 "Install the DND-5e-LaTeX-Template following the guide at: docs/installation/latex_setup.md",
                 "Ensure LaTeX package repositories are up to date",
                 "Check if the package name is spelled correctly",
             ],
-            ErrorCategory.MISSING_FILE: [
+            LaTeXErrorCategory.MISSING_FILE: [
                 "Verify all input files exist and paths are correct",
                 "Check file permissions and accessibility",
                 "Ensure working directory is set correctly",
             ],
-            ErrorCategory.FONT_ERROR: [
+            LaTeXErrorCategory.FONT_ERROR: [
                 "Use XeLaTeX or LuaLaTeX engines for fontspec package support",
                 "PDFLaTeX does not support fontspec - switch engines or remove fontspec",
                 "Install template-compatible fonts or use fallback configuration",
                 "Check font installation in your system",
                 "Verify fontspec package is properly configured",
             ],
-            ErrorCategory.TEMPLATE_ERROR: [
+            LaTeXErrorCategory.TEMPLATE_ERROR: [
                 "Update DND-5e-LaTeX-Template to the latest version",
                 "Check template documentation for usage requirements",
                 "Verify template installation is complete",
             ],
-            ErrorCategory.SYNTAX_ERROR: [
+            LaTeXErrorCategory.SYNTAX_ERROR: [
                 "Check LaTeX syntax for typos and missing braces",
                 "Verify all commands are properly defined",
                 "Review recent changes for syntax issues",
             ],
-            ErrorCategory.TIMEOUT_ERROR: [
+            LaTeXErrorCategory.TIMEOUT_ERROR: [
                 "Try using draft mode for faster compilation",
                 "Reduce document content or split into smaller parts",
                 "Check for infinite loops in LaTeX code",
@@ -422,8 +420,8 @@ class LaTeXErrorParser:
         # Build summary
         parts: list[str] = []
 
-        if ErrorSeverity.FATAL in severity_counts:
-            parts.append(f"{severity_counts[ErrorSeverity.FATAL]} fatal error(s)")
+        if ErrorSeverity.CRITICAL in severity_counts:
+            parts.append(f"{severity_counts[ErrorSeverity.CRITICAL]} critical error(s)")
 
         if ErrorSeverity.ERROR in severity_counts:
             parts.append(f"{severity_counts[ErrorSeverity.ERROR]} error(s)")
@@ -437,7 +435,7 @@ class LaTeXErrorParser:
         critical_errors = [
             e
             for e in errors
-            if e.severity in [ErrorSeverity.FATAL, ErrorSeverity.ERROR]
+            if e.severity in [ErrorSeverity.CRITICAL, ErrorSeverity.ERROR]
         ]
         if critical_errors:
             summary += "\n\nMost critical issues:"

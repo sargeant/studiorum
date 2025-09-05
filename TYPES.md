@@ -126,6 +126,94 @@ return LegacyWrapper()  # No type ignore needed
 
 **Why Fixed**: Proper protocol implementation provides type safety and correctness
 
+## Result Pattern Best Practices
+
+### Recommended Pattern: `isinstance()` + `unwrap()`
+
+**Use this pattern for 90% of Result handling cases**:
+
+```python
+# ✅ RECOMMENDED: Type-checker friendly, clean, efficient
+result = some_operation()
+if isinstance(result, Error):
+    logger.warning(f"Operation failed: {result.error}")
+    return Error(f"Failed to process: {result.error}")
+
+value = result.unwrap()  # Type checker knows this is safe
+process(value)
+```
+
+**Why this is best**:
+- Type checker can track control flow and knows `unwrap()` is safe
+- No type ignores needed
+- Clear and readable
+- IDE autocomplete works correctly
+
+### Advanced Pattern: Match Statements
+
+**Use for complex multi-case logic or destructuring**:
+
+```python
+# ✅ Use match for complex branching or pattern extraction
+match result:
+    case Success(value) if value > 0:
+        return process_positive(value)
+    case Success(value):
+        return process_negative(value)
+    case Error(error) if "network" in error:
+        return retry_with_backoff()
+    case Error(error):
+        return handle_error(error)
+```
+
+**When to use match**:
+- Multiple conditions on success/error values
+- Need to destructure complex nested Results
+- Pattern matching adds clarity to complex logic
+
+### Anti-Pattern: `is_error()` + Cast
+
+**AVOID this pattern - leads to type ignore issues**:
+
+```python
+# ❌ ANTI-PATTERN: Requires casting and type ignores
+if result.is_error():
+    error = cast(Error, result)  # type: ignore[attr-defined]
+    return Error(f"Failed: {error.error}")  # Verbose and error-prone
+```
+
+**Why to avoid**:
+- Type checker can't track `is_error()` for narrowing
+- Requires manual casting
+- Often needs `# type: ignore` comments
+- More verbose than isinstance
+
+### Error Context Preservation
+
+**Always preserve error context when propagating errors**:
+
+```python
+# ✅ GOOD: Preserve error context
+if isinstance(result, Error):
+    return result.with_context(
+        "Failed to load adventure content",
+        adventure_id=adventure_id,
+        source=source_name
+    )
+
+# ❌ BAD: Lose error context
+if isinstance(result, Error):
+    return Error("Operation failed")  # Original error details lost!
+```
+
+### Quick Reference
+
+| Pattern | Use Case | Type Safety | Readability |
+|---------|----------|-------------|-------------|
+| `isinstance() + unwrap()` | Simple branching (90% of cases) | ✅ Excellent | ✅ Excellent |
+| `match` statements | Complex logic, destructuring | ✅ Excellent | ✅ Good for complex |
+| `is_error() + cast` | Never - anti-pattern | ❌ Poor | ❌ Verbose |
+
 ## Documentation Guidelines
 
 ### When Type Ignore is Acceptable

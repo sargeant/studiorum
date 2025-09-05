@@ -9,7 +9,7 @@ dependencies between core models and CLI utilities.
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 from ..error_types import BaseError, ProcessingError
-from ..result import Error as Failure, Result, Success
+from ..result import Error, Result, Success
 
 if TYPE_CHECKING:
     from ...renderers.core.interfaces import RenderingContext
@@ -69,7 +69,7 @@ class CreatureProcessor:
                 category=ErrorCategory.PROCESSING,
                 source="CreatureProcessor.resolve_tags",
             )
-            return Failure(error)
+            return Error(error)
 
     def _process_senses_with_tag_resolver(
         self, senses: list[str], tag_resolver: "TagResolver"
@@ -111,7 +111,7 @@ class CreatureProcessor:
         try:
             # Resolve tags first
             tag_result = self.resolve_tags(tag_resolver)
-            if tag_result.is_error():
+            if isinstance(tag_result, Error):
                 return tag_result
 
             processed_creature = tag_result.unwrap()
@@ -121,10 +121,9 @@ class CreatureProcessor:
                 legendary_result = self._lookup_legendary_group(
                     processed_creature.legendary_group, omnidexer
                 )
-                if legendary_result.is_error():
+                if isinstance(legendary_result, Error):
                     # Convert the legendary group error to a creature processing error
                     from ..error_types import ErrorCategory
-                    from ..result import Error
 
                     error_info = (
                         legendary_result.error
@@ -136,7 +135,7 @@ class CreatureProcessor:
                         category=ErrorCategory.PROCESSING,
                         source="CreatureProcessor.enrich_with_content",
                     )
-                    return Failure(error)
+                    return Error(error)
 
                 legendary_result.unwrap()
                 # For now, we don't modify the creature model directly
@@ -155,7 +154,7 @@ class CreatureProcessor:
                 category=ErrorCategory.PROCESSING,
                 source="CreatureProcessor.enrich_with_content",
             )
-            return Failure(error)
+            return Error(error)
 
     def _lookup_legendary_group(
         self, group_name: str, omnidexer: "Omnidexer"
@@ -174,7 +173,7 @@ class CreatureProcessor:
                     category=ErrorCategory.PROCESSING,
                     source="CreatureProcessor._lookup_legendary_group",
                 )
-                return Failure(error)
+                return Error(error)
 
             return Success(
                 legendary_group.model_dump()
@@ -190,7 +189,7 @@ class CreatureProcessor:
                 category=ErrorCategory.PROCESSING,
                 source="CreatureProcessor._lookup_legendary_group",
             )
-            return Failure(error)
+            return Error(error)
 
     def process_with_services(
         self, tag_resolver: "TagResolver", omnidexer: "Omnidexer | None" = None
@@ -228,7 +227,7 @@ class SpellProcessor:
                 category=ErrorCategory.PROCESSING,
                 source="SpellProcessor.resolve_tags",
             )
-            return Failure(error)
+            return Error(error)
 
     def get_description_with_context(
         self, tag_resolver: "TagResolver", context: "RenderingContext | None" = None
@@ -293,7 +292,7 @@ class SpellProcessor:
                 category=ErrorCategory.PROCESSING,
                 source="SpellProcessor.get_description_with_context",
             )
-            return Failure(error)
+            return Error(error)
 
     def get_higher_level_with_context(
         self, tag_resolver: "TagResolver", context: "RenderingContext | None" = None
@@ -346,7 +345,7 @@ class SpellProcessor:
                 category=ErrorCategory.PROCESSING,
                 source="SpellProcessor.get_higher_level_with_context",
             )
-            return Failure(error)
+            return Error(error)
 
     def process_with_services(
         self, tag_resolver: "TagResolver", omnidexer: "Omnidexer | None" = None
@@ -381,7 +380,7 @@ class ItemProcessor:
                 category=ErrorCategory.PROCESSING,
                 source="ItemProcessor.resolve_tags",
             )
-            return Failure(error)
+            return Error(error)
 
     def get_description_with_context(
         self, tag_resolver: "TagResolver", context: "RenderingContext | None" = None
@@ -465,7 +464,7 @@ class ItemProcessor:
                 category=ErrorCategory.PROCESSING,
                 source="ItemProcessor.get_description_with_context",
             )
-            return Failure(error)
+            return Error(error)
 
     def process_with_services(
         self, tag_resolver: "TagResolver", omnidexer: "Omnidexer | None" = None

@@ -407,10 +407,10 @@ Hello World
         # Should detect timeout
         error_categories = [error.category for error in errors]
         from studiorum.latex_engine.utils.error_parser import (
-            ErrorCategory,  # type: ignore
+            LaTeXErrorCategory,  # type: ignore
         )
 
-        assert ErrorCategory.TIMEOUT_ERROR in error_categories
+        assert LaTeXErrorCategory.TIMEOUT_ERROR in error_categories
 
 
 @pytest.mark.rendering

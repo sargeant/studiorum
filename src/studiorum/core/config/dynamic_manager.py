@@ -466,7 +466,7 @@ class ConfigurationManager:
             old_config = self.get_current_config()
 
             load_result = await self.load_config_from_file()
-            if load_result.is_error():
+            if isinstance(load_result, Error):
                 return load_result
 
             new_config = load_result.unwrap()
