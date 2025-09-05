@@ -499,6 +499,30 @@ class CustomCreatureHandler:
 
 ## Performance Architecture
 
+### Optimized Service Access
+
+The service container implements a dual-cache system for high-performance service resolution:
+
+```python
+class ServiceContainer:
+    def get_service_sync[T](self, protocol: type[T]) -> T:
+        """Optimized synchronous service access with dedicated caching."""
+        # Fast-path singleton cache eliminates async overhead
+        if cached := self._sync_singleton_cache.get(protocol):
+            return cached
+
+        # Cross-populate caches for future fast access
+        service = asyncio.run(self.get_service(protocol))
+        self._sync_singleton_cache[protocol] = service
+        return service
+```
+
+**Performance Features**:
+- **Fast-path caching**: Avoids expensive event loop creation for cached services
+- **Cross-cache population**: Services created async are automatically available sync
+- **Test optimization**: Direct synchronous creation in test environments
+- **Singleton persistence**: ContentMerger and other singletons maintain warm caches
+
 ### Caching Strategy
 
 Multi-level caching for optimal performance:
@@ -726,5 +750,23 @@ class ConfigurationManager:
             self.current_config = new_config
             self._notify_observers(new_config)
 ```
+
+### Error Handling
+
+Studiorum uses Result types with type-safe error handling patterns:
+
+```python
+# Type-safe error handling with isinstance
+if isinstance(result, Error):
+    return Error(f"Operation failed: {result.error}")
+
+# Type checker knows this is Success
+value = result.unwrap()
+```
+
+**Error Management Features**:
+- **Type-safe patterns**: Uses `isinstance()` checks rather than error predicates
+- **Unified error types**: Centralized error definitions in `core.error_types`
+- **No fallbacks**: System fails fast rather than using default fallback behavior
 
 This architecture provides a solid foundation for building on studiorum while maintaining type safety, performance, and extensibility.

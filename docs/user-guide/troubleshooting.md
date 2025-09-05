@@ -84,10 +84,10 @@ uv add studiorum --extra all
 
 **Solution**:
 
-1. Check available sources:
+1. Check available repositories:
 
    ```bash
-   studiorum sources list
+   studiorum data list
    ```
 
 2. Update content index:
@@ -99,7 +99,7 @@ uv add studiorum --extra all
 3. Verify exact naming:
 
    ```bash
-   studiorum list creatures | grep -i dragon
+   studiorum list content --type creature | grep -i dragon
    ```
 
 ### Outdated Content
@@ -109,8 +109,8 @@ uv add studiorum --extra all
 **Solution**: Update to the latest content:
 
 ```bash
-# Update content sources
-studiorum sources update
+# Check data repositories status
+studiorum data status
 
 # Rebuild index
 studiorum index rebuild
@@ -335,7 +335,8 @@ sudo chown -R $USER ~/.studiorum/
 4. **Retry with backoff**:
 
    ```bash
-   studiorum sources update --retry 3 --backoff-factor 2
+   # Add remote repository with retry logic
+   studiorum data add-url https://example.com/data.json --name "remote-source"
    ```
 
 ## MCP Server Issues
@@ -401,7 +402,7 @@ sudo chown -R $USER ~/.studiorum/
 
    ```bash
    # Check exact content names
-   studiorum list creatures | grep -i "red dragon"
+   studiorum list content --type creature | grep -i "red dragon"
    ```
 
 ## Configuration Issues
@@ -511,8 +512,8 @@ Prevent common issues:
 # Clean old temporary files
 find ~/.studiorum/temp -type f -mtime +7 -delete
 
-# Update content sources
-studiorum sources update --quiet
+# Check data repositories status
+studiorum data status
 
 # Rebuild index if needed
 if [ -z "$(find ~/.studiorum/index -name '*.db' -mtime -30)" ]; then

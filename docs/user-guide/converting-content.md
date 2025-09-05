@@ -22,6 +22,10 @@ studiorum convert adventure TEST
 # With appendices for referenced content
 studiorum convert adventure "my-awesome-adventure" \
     --creatures --spells --items --output adventure.tex
+
+# With recursive appendices (creatures include their spells, spells include creatures)
+studiorum convert adventure "my-awesome-adventure" \
+    --creatures --ultimate-appendix --output adventure.tex
 ```
 
 ### Creatures
@@ -112,6 +116,24 @@ Filter content by source, assuming you have the data for it:
 ```bash
 # Only spells from my homebrew and their homebrew:
 studiorum convert spells --sources MY-HOMEBREW,THEIR-HOMEBREW
+```
+
+### Adding Custom Content
+
+Add homebrew content repositories:
+
+```bash
+# Add homebrew directory
+studiorum data add-homebrew /path/to/homebrew --name "my-homebrew"
+
+# Add single homebrew JSON file
+studiorum data add-homebrew homebrew.json --name "custom-monsters"
+
+# List available repositories
+studiorum data list
+
+# Convert using custom content
+studiorum convert creatures --sources my-homebrew
 ```
 
 ## Configuration

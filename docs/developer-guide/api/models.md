@@ -1,11 +1,11 @@
 ---
 title: Models API
-description: Pydantic data models for D&D 5e content with full type safety and validation
+description: Pydantic data models for 5e content with full type safety and validation
 ---
 
 # Models API
 
-Studiorum uses Pydantic models to represent all D&D 5e content with comprehensive type safety, validation, and serialization support.
+Studiorum uses Pydantic models to represent all 5e content with comprehensive type safety, validation, and serialization support.
 
 ## Base Models
 
@@ -14,20 +14,21 @@ Studiorum uses Pydantic models to represent all D&D 5e content with comprehensiv
 All content models inherit from BaseContent:
 
 ```python
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Literal
 
 class BaseContent(BaseModel):
-    """Base class for all D&D content models."""
+    """Base class for all 5e content models."""
+
+    model_config = ConfigDict(
+        validate_assignment=True,  # Validate on attribute assignment
+        extra="forbid",           # Prevent extra fields
+        use_enum_values=True      # Serialize enums as values
+    )
 
     name: str = Field(description="Content name")
     source: Source = Field(description="Source book information")
     page: int | None = Field(default=None, description="Page number in source")
-
-    class Config:
-        validate_assignment = True  # Validate on attribute assignment
-        extra = "forbid"           # Prevent extra fields
-        use_enum_values = True     # Serialize enums as values
 ```
 
 ### Source
@@ -72,7 +73,7 @@ from studiorum.core.models.creatures import (
 )
 
 class Creature(BaseContent):
-    """Complete D&D 5e creature model."""
+    """Complete 5e creature model."""
 
     # Basic attributes
     size: CreatureSize
@@ -219,7 +220,7 @@ from studiorum.core.models.spells import (
 )
 
 class Spell(BaseContent):
-    """Complete D&D 5e spell model."""
+    """Complete 5e spell model."""
 
     # Basic properties
     level: SpellLevel

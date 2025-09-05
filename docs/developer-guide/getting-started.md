@@ -117,7 +117,7 @@ async def my_async_function(ctx: AsyncRequestContext):
 
 ### Content Models
 
-All D&D content uses Pydantic models for validation:
+All 5e content uses Pydantic models for validation:
 
 ```python
 from studiorum.core.models.creatures import Creature
@@ -237,8 +237,8 @@ make docs-deploy
 Some tests require 5etools data:
 
 ```bash
-# Download test data (first time only)
-uv run studiorum sources update
+# Check data repositories (first time only)
+uv run studiorum data status
 
 # Run integration tests
 uv run pytest tests/integration/ -v -m requires_data
@@ -259,7 +259,7 @@ uv run studiorum mcp test lookup_creature "Ancient Red Dragon"
    from typing import Literal
 
    class NewContent(BaseModel):
-       """Model for new D&D content type."""
+       """Model for new 5e content type."""
 
        name: str
        content_type: Literal["new_content"] = "new_content"

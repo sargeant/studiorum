@@ -74,7 +74,7 @@ Convert a single creature to PDF:
 
 ```bash
 studiorum convert creatures --type dragon --output dragons.tex
-xelatex dragon.tex
+xelatex dragons.tex && xelatex dragons.tex ## Yes, twice
 ```
 
 ### List Available Content
@@ -102,10 +102,17 @@ studiorum list books
 
 ### Add More Content
 
-If you have a directory of 5etools compatible JSON, you can configure Studiorum to load that data as it's primary data-source.
+Add homebrew content or additional data sources:
 
 ```bash
-studiorum data set-primary <path to 5etools data>
+# Add homebrew directory
+studiorum data add-homebrew /path/to/homebrew --name "my-homebrew"
+
+# Add single homebrew file
+studiorum data add-homebrew homebrew.json --name "custom-content"
+
+# List configured repositories
+studiorum data list
 ```
 
 ## Configuration

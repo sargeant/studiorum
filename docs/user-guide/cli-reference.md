@@ -53,6 +53,7 @@ studiorum convert adventure [OPTIONS] ADVENTURE_NAME
 | `--creatures` | Include creatures appendix | `False` |
 | `--spells` | Include spells appendix | `False` |
 | `--items` | Include magic items appendix | `False` |
+| `--ultimate-appendix` | Generate recursive appendices (creatures include spells, spells include creatures) | `False` |
 | `--template TEMPLATE` | LaTeX template to use | `dnd-5e` |
 | `--sources SOURCES` | Comma-separated source books | All enabled |
 | `--exclude-sources SOURCES` | Sources to exclude | None |
@@ -68,6 +69,9 @@ studiorum convert adventure "sample-adventure"
 
 # With all appendices
 studiorum convert adventure "example-adventure" --creatures --spells --items
+
+# With recursive appendices (ultimate mode)
+studiorum convert adventure "example-adventure" --creatures --ultimate-appendix
 
 # Generate PDF directly
 studiorum convert adventure "my-adventure" --format pdf --output adventure.pdf
@@ -219,12 +223,12 @@ studiorum list adventures [OPTIONS]
 | `--format FORMAT` | Output format (table, json, yaml) | `table` |
 | `--limit LIMIT` | Maximum results to show | 100 |
 
-### list creatures
+### list content --type creature
 
 List available creatures:
 
 ```bash
-studiorum list creatures [OPTIONS]
+studiorum list content --type creature [OPTIONS]
 ```
 
 **Options:**
@@ -241,12 +245,12 @@ studiorum list creatures [OPTIONS]
 | `--limit LIMIT` | Maximum results | 100 |
 | `--sort-by FIELD` | Sort field | `name` |
 
-### list spells
+### list content --type spell
 
 List available spells:
 
 ```bash
-studiorum list spells [OPTIONS]
+studiorum list content --type spell [OPTIONS]
 ```
 
 **Options:**
@@ -262,12 +266,12 @@ studiorum list spells [OPTIONS]
 | `--format FORMAT` | Output format | `table` |
 | `--limit LIMIT` | Maximum results | 100 |
 
-### list items
+### list content --type item
 
 List available items:
 
 ```bash
-studiorum list items [OPTIONS]
+studiorum list content --type item [OPTIONS]
 ```
 
 **Options:**
@@ -369,6 +373,90 @@ studiorum index refresh [OPTIONS]
 |--------|-------------|---------|
 | `--incremental` | Only update changed content | `True` |
 | `--sources SOURCES` | Refresh specific sources | All |
+
+## data
+
+Manage data repositories and sources.
+
+### data list
+
+List available data repositories:
+
+```bash
+studiorum data list [OPTIONS]
+```
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--format FORMAT` | Output format (table, json) | `table` |
+
+### data add-homebrew
+
+Add homebrew content repository:
+
+```bash
+studiorum data add-homebrew [OPTIONS] PATH
+```
+
+**Arguments:**
+
+- `PATH`: Path to homebrew content directory or file
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--name NAME` | Repository name | Auto-generated |
+| `--description, -d DESC` | Repository description | None |
+
+**Examples:**
+
+```bash
+# Add homebrew directory
+studiorum data add-homebrew /path/to/homebrew --name "my-homebrew"
+
+# Add single homebrew file
+studiorum data add-homebrew homebrew.json -d "Custom monsters"
+```
+
+### data add-url
+
+Add URL-based data repository:
+
+```bash
+studiorum data add-url [OPTIONS] URL
+```
+
+**Arguments:**
+
+- `URL`: URL to remote data repository
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--name NAME` | Repository name | Auto-generated |
+| `--description, -d DESC` | Repository description | None |
+
+### data remove
+
+Remove data repository:
+
+```bash
+studiorum data remove [OPTIONS] NAME
+```
+
+**Arguments:**
+
+- `NAME`: Name of repository to remove
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--force` | Skip confirmation prompt | `False` |
 
 ## config
 

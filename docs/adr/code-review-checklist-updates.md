@@ -1,6 +1,6 @@
 # Code Review Checklist: Data Modeling Updates
 
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2025-08-25
 **Integration**: Extends existing code review processes with data modeling guidance
 
@@ -198,7 +198,7 @@ class Bad(BaseModel):  # Missing ConfigDict
 
 # Should be:
 class Good(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid")  # Modern ConfigDict pattern
     name: str
 ```
 

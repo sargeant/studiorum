@@ -1,11 +1,11 @@
 ---
 title: Model Usage Guide
-description: Working with studiorum's Pydantic models for D&D 5e content
+description: Working with studiorum's Pydantic models for 5e content
 ---
 
 # Model Usage Guide
 
-Studiorum provides comprehensive Pydantic models for all D&D 5e content types, enabling type-safe operations with full validation and serialization support.
+Studiorum provides comprehensive Pydantic models for all 5e content types, enabling type-safe operations with full validation and serialization support.
 
 ## Basic Model Usage
 
@@ -257,6 +257,10 @@ for i, chapter in enumerate(adventure.contents):
     print(f"Chapter {i + 1}: {chapter.name}")
     print(f"  Entries: {len(chapter.entries)}")
 
+    # Get clean title for LaTeX native numbering
+    clean_title = chapter.get_clean_title(strip_manual_numbering=True)
+    print(f"  Clean title: {clean_title}")  # Removes "Chapter X:" prefix
+
     # Look at first few entries
     for j, entry in enumerate(chapter.entries[:3]):
         if entry.is_text:
@@ -314,6 +318,11 @@ item = omnidexer.get_item_by_name("Bag of Holding")
 print(f"Name: {item.name}")
 print(f"Type: {item.item_type.value}")  # e.g., "wondrous item"
 print(f"Rarity: {item.rarity.value}")  # e.g., "uncommon"
+
+# Rarity text handling (filters out unknown/invalid rarities)
+rarity_text = item.get_rarity_text()  # Returns "" for unknown rarities
+if rarity_text:
+    print(f"Rarity for display: {rarity_text}")
 
 # Attunement requirements
 if item.requires_attunement:

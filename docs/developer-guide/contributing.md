@@ -271,13 +271,13 @@ def risky_operation(data: str) -> Result[ProcessedData, str]:
     except ValueError as e:
         return Error(f"Processing failed: {e}")
 
-# ✅ Good - Handle Result types with isinstance
+# ✅ Good - Handle Result types with isinstance (current pattern)
 result = risky_operation(input_data)
 if isinstance(result, Error):
     logger.error(f"Operation failed: {result.error}")
     return
 
-processed = result.unwrap()
+processed = result.unwrap()  # Type checker knows this is Success
 ```
 
 **Testing Standards:**
@@ -316,7 +316,7 @@ def convert_adventure(
     output_format: str = "latex"
 ) -> Result[ConversionResult, str]:
     """
-    Convert a D&D adventure to the specified format.
+    Convert a 5e adventure to the specified format.
 
     Args:
         adventure_name: Name or abbreviation of the adventure
@@ -691,7 +691,7 @@ uv run pre-commit autoupdate
 
 ## Thank You
 
-Thank you for contributing to studiorum! Your efforts help make D&D content more accessible and easier to work with for DMs and players around the world.
+Thank you for contributing to studiorum! Your efforts help make 5e content more accessible and easier to work with for DMs and players around the world.
 
 Every contribution, no matter how small, makes a difference:
 

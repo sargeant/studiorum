@@ -1,8 +1,10 @@
 # Data Modeling Patterns Catalog
 
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2025-08-25
 **Purpose**: Comprehensive catalog of established patterns from P1-P6 migration analysis
+
+All Pydantic examples use the modern `model_config = ConfigDict()` syntax.
 
 ## Pattern Categories
 

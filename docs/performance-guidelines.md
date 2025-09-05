@@ -251,6 +251,17 @@ timeout 300s make test  # 5 minute timeout
 
 **Impact**: Prevents hanging on performance regressions and provides clear failure signals.
 
+### Adjust Performance Thresholds for Test Environments
+
+**✅ DO**: Account for test environment variability in performance benchmarks
+
+```python
+# Realistic thresholds accounting for CI/parallel execution variability
+PERFORMANCE_THRESHOLD_MULTIPLIER = 8.0  # Was 5.0x, increased for stability
+```
+
+**Rationale**: Performance tests under parallel execution and varying system loads need realistic thresholds that distinguish genuine performance regressions from environmental variations.
+
 ## Key Performance Metrics
 
 Based on the performance fixes implemented:

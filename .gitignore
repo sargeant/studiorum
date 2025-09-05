@@ -98,6 +98,7 @@ test-report.xml
 .gemini/
 CLAUDE.md
 .serena
+AGENTS.md
 
 # Local development overrides (keep .env.* files)
 !.env.dev

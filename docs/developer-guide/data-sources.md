@@ -190,6 +190,8 @@ studiorum data remove NAME      # Remove repository
 studiorum data status           # Repository status
 ```
 
+**CLI Implementation**: All data repository management commands are fully implemented with proper YAML serialization and configuration handling.
+
 ### Config Commands
 
 ```bash
@@ -212,6 +214,29 @@ class DataSourceType(str, Enum):
     URL = "url"
     GIT = "git"
 ```
+
+### Homebrew Content Support
+
+**Multi-Type File Support**: Single JSON files can contain multiple content types:
+
+```python
+# Example homebrew file with mixed content
+{
+    "adventure": [
+        {"name": "My Adventure", "id": "my-adventure", ...}
+    ],
+    "spell": [
+        {"name": "Custom Spell", "level": 3, ...}
+    ],
+    "monster": [
+        {"name": "Custom Monster", "cr": "5", ...}
+    ]
+}
+```
+
+**Single-File Detection**: The system automatically detects and indexes single-file homebrew content with proper content type separation and validation.
+
+**Adventure Metadata Merging**: Homebrew adventures support metadata/data merging patterns for enhanced content organization.
 
 ### Validation Rules
 

@@ -1,6 +1,6 @@
 # Data Modeling in Studiorum: Developer Onboarding Guide
 
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2025-08-25
 **Audience**: New team members, developers working on data structures
 

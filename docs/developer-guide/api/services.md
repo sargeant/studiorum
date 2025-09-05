@@ -118,6 +118,34 @@ class ServiceLifecycle(Enum):
 
 ## Core Services
 
+### AppendixGenerator Service
+
+Generates appendix sections for converted content.
+
+```python
+from studiorum.core.services.appendix_generator import AppendixGenerator
+
+class AppendixGenerator:
+    """Generates appendix content from tracked references."""
+
+    def generate_spell_appendix(self, collection_result) -> AppendixSection:
+        """Generate spells appendix section."""
+        # Returns AppendixSection with title "Spells"
+
+    def generate_item_appendix(self, collection_result) -> AppendixSection:
+        """Generate magic items appendix section."""
+        # Returns AppendixSection with title "Magic Items"
+
+    def generate_creature_appendix(self, collection_result) -> AppendixSection:
+        """Generate creatures appendix section."""
+        # Returns AppendixSection with title "Creatures"
+```
+
+**Key Changes**:
+- Appendix titles simplified from "Appendix A: Spells" to "Spells"
+- Enables LaTeX-native chapter/appendix numbering system
+- Cleaner presentation in generated documents
+
 ### Omnidexer Service
 
 Content indexing and search service.
@@ -301,6 +329,35 @@ print(resolved_content)  # "The hobgoblin attacks with its scimitar."
 references = tag_resolver.get_referenced_content(adventure_text)
 print(references)
 ```
+
+### TemplateService
+
+LaTeX template rendering service with tag processing.
+
+```python
+from studiorum.latex_engine.services.template_service import TemplateService
+
+class TemplateService:
+    """Handles template rendering with integrated tag resolution."""
+
+    def __init__(self, omnidexer, tag_resolver):
+        self.omnidexer = omnidexer
+        self.tag_resolver = tag_resolver  # Required dependency
+
+    def render_creature_template(self, creature, content_tracker=None):
+        """Render creature with tag processing."""
+
+    def render_spell_template(self, spell, content_tracker=None):
+        """Render spell with tag processing."""
+
+    def render_field_text(self, text):
+        """Process field text with tag resolution."""
+```
+
+**Key Changes**:
+- TagResolver now required dependency for all template operations
+- Integrated tag processing in creature, spell, and field text rendering
+- Ensures consistent tag resolution across all LaTeX output
 
 ## Async Request Context
 
