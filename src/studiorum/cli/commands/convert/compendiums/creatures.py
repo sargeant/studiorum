@@ -37,6 +37,7 @@ class CreatureSortMode(str, Enum):
 
     CR = "cr"  # Group by challenge rating (default)
     TYPE = "type"  # Group by creature type
+    GROUP = "group"  # Group by 5etools 'group' field
     NAME = "name"  # Alphabetical
     SIZE = "size"  # Group by size category
     ALIGNMENT = "alignment"  # Group by alignment
@@ -76,6 +77,20 @@ def _sort_creatures(
             return (type_str.lower(), creature.name.lower())
 
         return sorted(creatures, key=type_sort_key)
+
+    elif sort_mode == CreatureSortMode.GROUP:
+        # Sort by first group name (if any), then by name
+        def group_sort_key(creature: Creature) -> tuple[str, str]:
+            group_name = "ungrouped"
+            if hasattr(creature, "group") and creature.group:
+                # group is a list; use the first group for primary sort key
+                if isinstance(creature.group, list) and creature.group:
+                    group_name = str(creature.group[0])
+                else:
+                    group_name = str(creature.group)
+            return (group_name.lower(), creature.name.lower())
+
+        return sorted(creatures, key=group_sort_key)
 
     elif sort_mode == CreatureSortMode.SIZE:
         # Sort by size, then by name
@@ -200,6 +215,26 @@ def _render_bestiary(
             if type_title not in creatures_by_group:
                 creatures_by_group[type_title] = []
             creatures_by_group[type_title].append(creature)
+
+    elif sort_mode == CreatureSortMode.GROUP:
+        # Group by the 5etools 'group' attribute (list of strings)
+        for creature in creatures:
+            if hasattr(creature, "group") and creature.group:
+                groups = (
+                    creature.group
+                    if isinstance(creature.group, list)
+                    else [str(creature.group)]
+                )
+                for g in groups:
+                    g_name = str(g).strip() or "Ungrouped"
+                    if g_name not in creatures_by_group:
+                        creatures_by_group[g_name] = []
+                    creatures_by_group[g_name].append(creature)
+            else:
+                # Put creatures without a group under "Ungrouped"
+                if "Ungrouped" not in creatures_by_group:
+                    creatures_by_group["Ungrouped"] = []
+                creatures_by_group["Ungrouped"].append(creature)
 
     else:  # NAME, SIZE, ALIGNMENT - single flat group
         creatures_by_group = {"All Creatures": creatures}
