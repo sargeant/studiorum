@@ -4,10 +4,11 @@
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
 
 <@ macro render_creature(creature, template_service=template_service, content_tracker=content_tracker, latex_config=latex_config) @>
-<#-- Check if creature needs full-width layout --#>
-<@ if creature.requires_full_width_layout() @>
-% Large creature - switch to single column layout
-\onecolumn
+<#-- For wide creatures, temporarily break out of multicols instead of toggling document columns --#>
+<@ set using_multicols = (in_multicols if in_multicols is defined else False) @>
+<@ set needs_full_width = creature.requires_full_width_layout() @>
+<@ if needs_full_width and using_multicols @>
+\end{multicols}
 <@ endif @>
 
 <#-- Render using DndMonster environment with proper float placement --#>
@@ -234,8 +235,7 @@
 
 \end{DndMonster}
 
-<@ if creature.requires_full_width_layout() @>
-% Switch back to two column layout
-\twocolumn
+<@ if needs_full_width and using_multicols @>
+\begin{multicols}{2}
 <@ endif @>
 <@ endmacro @>

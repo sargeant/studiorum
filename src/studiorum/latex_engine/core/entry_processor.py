@@ -1509,79 +1509,104 @@ class RecursiveEntryProcessor:
         if render_header and name:
             result.append(f"\\textbf{{{self._escape_latex(name)}.}}")
 
-        # Header text
+        # Header text before spells block
         if header_entries:
             processed_headers = self.process_entries(header_entries, context)
             result.extend(processed_headers)
 
-        # Level-based spells
-        if spells:
-            for level, spell_data in sorted(
-                spells.items(), key=lambda x: int(x[0]) if str(x[0]).isdigit() else 999
-            ):
-                # Support both dict-based and Pydantic-based spell level data
-                if isinstance(spell_data, dict):
-                    spell_list = spell_data.get("spells", [])
-                    slots = spell_data.get("slots")
-                else:
-                    # Try attribute access for models (e.g., SpellcasterSpells)
-                    spell_list = getattr(spell_data, "spells", [])
-                    slots = getattr(spell_data, "slots", None)
+        # Begin structured spell blocks if any spell content exists
+        has_innate = bool(at_will or daily or constant)
+        has_leveled = bool(spells)
 
-                if not spell_list:
-                    continue
+        if has_innate or has_leveled:
+            result.append("\\begin{DndMonsterSpells}")
 
-                # Format spell level header
-                if str(level) == "0":
-                    level_header = "\\textbf{Cantrips (at will):}"
-                else:
-                    suffix_map = {"1": "st", "2": "nd", "3": "rd"}
-                    level_suffix = suffix_map.get(str(level), "th")
-                    if slots:
-                        level_header = (
-                            f"\\textbf{{{level}{level_suffix} level ({slots} slots):}}"
-                        )
+            # Innate spellcasting: at-will, daily, constant
+            if has_innate:
+                # At-will
+                if at_will:
+                    processed = self.process_entries(at_will, context)
+                    at_will_text = ", ".join(processed)
+                    result.append(f"  \\DndInnateSpellLevel{{{at_will_text}}}")
+
+                # Daily (e.g., {'3e': [...], '1': [...]})
+                if daily:
+
+                    def sort_key(k: str) -> int:
+                        m = re.match(r"(\d+)", str(k))
+                        return int(m.group(1)) if m else 999
+
+                    for freq in sorted(daily.keys(), key=sort_key):
+                        spell_list = daily.get(freq, [])
+                        processed = self.process_entries(spell_list, context)
+                        # Extract leading integer, ignore 'each' distinction for macro formatting
+                        m = re.match(r"(\d+)", str(freq).strip())
+                        if m:
+                            n = m.group(1)
+                            result.append(
+                                f"  \\DndInnateSpellLevel[{n}]{{{', '.join(processed)}}}"
+                            )
+                        else:
+                            # Fallback to plain text label
+                            result.append(
+                                f"  \\textbf{{{self._escape_latex(str(freq))}:}} {', '.join(processed)}"
+                            )
+
+                # Constant effects (no dedicated macro in template; format plainly)
+                if constant:
+                    processed = self.process_entries(constant, context)
+                    result.append("  " + "\\textbf{Constant:} " + ", ".join(processed))
+
+            # Prepared/leveled spellcasting
+            if has_leveled:
+                for level, spell_data in sorted(
+                    spells.items(),
+                    key=lambda x: int(x[0]) if str(x[0]).isdigit() else 999,
+                ):
+                    # Support both dict-based and model-based spell level data
+                    if isinstance(spell_data, dict):
+                        spell_list = spell_data.get("spells", [])
+                        slots = spell_data.get("slots")
                     else:
-                        level_header = f"\\textbf{{{level}{level_suffix} level:}}"
+                        spell_list = getattr(spell_data, "spells", [])
+                        slots = getattr(spell_data, "slots", None)
 
-                # Header + spells on the same line (no blank line)
-                processed_spells = self.process_entries(spell_list, context)
-                result.append(f"{level_header} " + ", ".join(processed_spells))
+                    if not spell_list:
+                        continue
 
-        # Constant effects
-        if constant:
-            processed = self.process_entries(constant, context)
-            result.append("\\textbf{Constant:} " + ", ".join(processed))
+                    processed_spells = self.process_entries(spell_list, context)
+                    spell_text = ", ".join(processed_spells)
 
-        # At-will spells (innate)
-        if at_will:
-            processed = self.process_entries(at_will, context)
-            result.append("\\textbf{At will:} " + ", ".join(processed))
+                    if str(level) == "0":
+                        # Cantrips at will: no optional args
+                        result.append(f"  \\DndMonsterSpellLevel{{{spell_text}}}")
+                    else:
+                        # Provide level (and slots if available) as optional args
+                        try:
+                            lvl = int(level)
+                        except Exception:
+                            lvl = None
 
-        # Daily spells (innate)
-        if daily:
+                        if lvl is not None and slots is not None:
+                            result.append(
+                                f"  \\DndMonsterSpellLevel[{lvl}][{slots}]{{{spell_text}}}"
+                            )
+                        elif lvl is not None:
+                            result.append(
+                                f"  \\DndMonsterSpellLevel[{lvl}]{{{spell_text}}}"
+                            )
+                        else:
+                            # Fallback to plain text if level unparsable
+                            result.append(f"  {spell_text}")
 
-            def sort_key(k: str) -> int:
-                m = re.match(r"(\d+)", str(k))
-                return int(m.group(1)) if m else 999
-
-            for freq in sorted(daily.keys(), key=sort_key):
-                spell_list = daily.get(freq, [])
-                processed = self.process_entries(spell_list, context)
-                m = re.match(r"(\d+)(?:\s*/?day)?\s*(e)?", str(freq).strip())
-                if m:
-                    n = m.group(1)
-                    label = f"{n}/day each" if m.group(2) else f"{n}/day"
-                else:
-                    label = self._escape_latex(str(freq))
-                result.append(f"\\textbf{{{label}:}} " + ", ".join(processed))
+            result.append("\\end{DndMonsterSpells}")
 
         # Footer text
         if footer_entries:
             processed_footers = self.process_entries(footer_entries, context)
             result.extend(processed_footers)
 
-        return "\n\n".join(result)
+        return "\n".join(result)
 
     def _process_bonus(self, bonus: dict[str, Any], context: RenderingContext) -> str:
         """Process a bonus entry for numerical bonuses.

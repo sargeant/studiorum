@@ -67,6 +67,10 @@ This bestiary contains <# creature_count #> creatures<@ if sources_used @> from 
 \vspace{0.5em}
 
 <#-- Creatures in this group --#>
+<@ if two_column @>
+\begin{multicols}{2}
+<@ set in_multicols = True @>
+<@ endif @>
 <@ for creature in creature_list @>
 <@ if show_creature_table_of_contents @>
 \addcontentsline{toc}{subsection}{<# creature.name | latex_escape #>}
@@ -85,6 +89,11 @@ This bestiary contains <# creature_count #> creatures<@ if sources_used @> from 
 <@ endif @>
 <@ endfor @>
 
+<@ if two_column @>
+\end{multicols}
+<@ set in_multicols = False @>
+<@ endif @>
+
 <@ if not loop.last @>
 \vspace{2em}
 <@ endif @>
@@ -97,6 +106,10 @@ This bestiary contains <# creature_count #> creatures<@ if sources_used @> from 
 <#-- Fallback: render creatures without grouping --#>
 \section{Creatures}
 
+<@ if two_column @>
+\begin{multicols}{2}
+<@ set in_multicols = True @>
+<@ endif @>
 <@ for creature in creatures @>
 <@ if show_creature_table_of_contents @>
 \addcontentsline{toc}{subsection}{<# creature.name | latex_escape #>}
@@ -114,6 +127,10 @@ This bestiary contains <# creature_count #> creatures<@ if sources_used @> from 
 \vspace{1.2em}
 <@ endif @>
 <@ endfor @>
+<@ if two_column @>
+\end{multicols}
+<@ set in_multicols = False @>
+<@ endif @>
 <@ endif @>
 
 <@ endblock @>

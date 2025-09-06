@@ -33,6 +33,7 @@
 
 <@ if two_column @>
 \begin{multicols}{2}
+<@ set in_multicols = True @>
 <@ endif @>
 
 <@ for creature in group.creatures @>
@@ -44,6 +45,7 @@
 
 <@ if two_column @>
 \end{multicols}
+<@ set in_multicols = False @>
 <@ endif @>
 
 <@ endfor @>
@@ -53,6 +55,7 @@
 
 <@ if two_column @>
 \begin{multicols}{2}
+<@ set in_multicols = True @>
 <@ endif @>
 
 <@ for creature in creatures @>
@@ -64,6 +67,7 @@
 
 <@ if two_column @>
 \end{multicols}
+<@ set in_multicols = False @>
 <@ endif @>
 <@ endif @>
 <@ endblock @>
