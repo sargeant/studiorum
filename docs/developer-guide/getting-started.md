@@ -98,21 +98,20 @@ studiorum/
 Studiorum uses dependency injection through a service container:
 
 ```python
-from studiorum.core.container import get_global_container
+from studiorum.core.services.container import ServiceContainer, create_mcp_request_container
 from studiorum.core.services.protocols import OmnidexerProtocol
 
 # Get the global container
-container = get_global_container()
+container = ServiceContainer.get_global_instance()
 
-# Resolve services by protocol
-omnidexer = container.get_omnidexer_sync()
+# Resolve services by protocol (sync)
+omnidexer = container.get_service_sync(OmnidexerProtocol)
 
 # For async contexts (MCP server)
-from studiorum.core.async_request_context import AsyncRequestContext
-
-async def my_async_function(ctx: AsyncRequestContext):
-    omnidexer = await ctx.get_service(OmnidexerProtocol)
-    # Use omnidexer...
+async def my_async_function(base_config):
+    async with await create_mcp_request_container(base_config) as ctx:
+        omnidexer = await ctx.get_service(OmnidexerProtocol)
+        # Use omnidexer...
 ```
 
 ### Content Models
@@ -519,9 +518,9 @@ tail -f ~/.studiorum/logs/mcp-debug-*.log
 Debug service resolution issues:
 
 ```python
-from studiorum.core.container import get_global_container
+from studiorum.core.services.container import ServiceContainer
 
-container = get_global_container()
+container = ServiceContainer.get_global_instance()
 
 # Check registered services
 print("Registered services:")

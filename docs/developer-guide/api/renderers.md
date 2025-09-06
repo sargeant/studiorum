@@ -5,35 +5,23 @@ description: Output rendering system for LaTeX, PDF, and custom formats
 
 # Renderers API
 
-Studiorum's rendering system provides flexible, extensible output generation from D&D content models to various formats including LaTeX, PDF, and custom formats.
+Studiorum's rendering system provides flexible, extensible output generation from 5e content models to various formats including LaTeX, PDF, and custom formats.
 
 ## Core Rendering Architecture
 
 ### RenderingContext
 
-The rendering context carries all necessary information for output generation:
+The rendering context carries services and metadata used during rendering:
 
 ```python
 from studiorum.renderers.core.interfaces import RenderingContext
-from typing import Any
 
-@dataclass(frozen=True)
-class RenderingContext:
-    """Immutable rendering context for output generation."""
-
-    output_format: str                          # "latex", "pdf", "markdown", etc.
-    omnidexer: OmnidexerProtocol               # Content lookup service
-    content_tracker: ContentTracker           # Cross-reference tracking
-    metadata: dict[str, Any]                   # Additional rendering metadata
-
-    def with_metadata(self, **kwargs: Any) -> RenderingContext:
-        """Create new context with additional metadata."""
-        new_metadata = {**self.metadata, **kwargs}
-        return replace(self, metadata=new_metadata)
-
-    def get_metadata[T](self, key: str, default: T = None) -> T:
-        """Type-safe metadata access."""
-        return self.metadata.get(key, default)
+context = RenderingContext(
+    output_format="latex",
+    omnidexer=None,        # Optional: provide if you need lookups
+    content_tracker=None,  # Optional: provide if you need tracking
+    metadata={"title": "My Document"},
+)
 ```
 
 ### DocumentRenderer Interface
@@ -76,14 +64,15 @@ class DocumentRenderer(Protocol):
 Primary renderer for LaTeX output:
 
 ```python
-from studiorum.renderers.latex.document import LaTeXDocumentRenderer
+from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
+from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
 class LaTeXDocumentRenderer:
     """Comprehensive LaTeX document renderer."""
 
     def __init__(self):
         self.entry_processor = RecursiveEntryProcessor()
-        self.template_engine = TemplateEngine()
+        self.template_engine = LaTeXTemplateEngine()
 
     def render_document(
         self,
@@ -151,13 +140,13 @@ class LaTeXDocumentRenderer:
 
 ### Entry Processing
 
-The entry processor handles the recursive structure of D&D content:
+The entry processor handles the recursive structure of 5e content:
 
 ```python
-from studiorum.renderers.latex.entry_processor import RecursiveEntryProcessor
+from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
 
 class RecursiveEntryProcessor:
-    """Processes nested D&D content entries with tag resolution."""
+    """Processes nested 5e content entries with tag resolution."""
 
     def __init__(self):
         self.tag_renderer = UnifiedTagRenderer()
@@ -255,82 +244,21 @@ class RecursiveEntryProcessor:
             return section_content
 ```
 
-### Tag Rendering System
+### Tag Rendering
 
-The unified tag renderer handles all D&D content tags:
+Use the TagResolver service to process {@...} tags within text:
 
 ```python
-from studiorum.renderers.latex.tag_renderer import UnifiedTagRenderer
+from studiorum.core.services.container import ServiceContainer
+from studiorum.core.services.protocols import TagResolverProtocol
+from studiorum.renderers.core.interfaces import RenderingContext
 
-class UnifiedTagRenderer:
-    """Unified tag rendering system for all content types."""
+container = ServiceContainer.get_global_instance()
+tag_resolver = container.get_service_sync(TagResolverProtocol)
 
-    def __init__(self):
-        self.handlers = self._register_handlers()
-
-    def render_tag(
-        self,
-        tag: ParsedTag,
-        context: RenderingContext
-    ) -> str:
-        """Render tag using appropriate handler."""
-
-        handler = self.handlers.get(tag.tag_type)
-        if handler:
-            return handler.render(tag, context)
-        else:
-            # Fallback to generic rendering
-            return self._render_generic_tag(tag, context)
-
-    def _register_handlers(self) -> dict[str, TagHandler]:
-        """Register all tag handlers."""
-        return {
-            "creature": CreatureTagHandler(),
-            "spell": SpellTagHandler(),
-            "item": ItemTagHandler(),
-            "adventure": AdventureTagHandler(),
-            "dice": DiceTagHandler(),
-            "damage": DamageTagHandler(),
-            "condition": ConditionTagHandler(),
-            "sense": SenseTagHandler(),
-            "skill": SkillTagHandler(),
-            "action": ActionTagHandler(),
-            "book": BookTagHandler(),
-            "quickref": QuickrefTagHandler(),
-            "note": NoteTagHandler(),
-        }
-
-# Example tag handler
-class CreatureTagHandler:
-    """Handler for {@creature} tags."""
-
-    def render(
-        self,
-        tag: ParsedTag,
-        context: RenderingContext
-    ) -> str:
-        """Render creature tag."""
-
-        creature_name = tag.name
-        source = tag.attributes.get("source")
-
-        # Look up creature
-        omnidexer = context.omnidexer
-        creature = omnidexer.get_creature_by_name(creature_name)
-
-        if not creature:
-            return f"\\textbf{{{creature_name}}} (creature not found)"
-
-        # Track for appendix
-        context.content_tracker.track_creature(creature)
-
-        # Format reference based on context
-        display_name = tag.attributes.get("displayText", creature.name)
-
-        if context.get_metadata("include_cr_in_references", False):
-            return f"\\textbf{{{display_name}}} (CR {creature.challenge_rating.rating})"
-        else:
-            return f"\\textbf{{{display_name}}}"
+context = RenderingContext(output_format="latex")
+text = "See {@creature hobgoblin|SRD} wielding a {@item scimitar|SRD}."
+rendered = tag_resolver.process_text(text, context)
 ```
 
 ## Template System
@@ -492,52 +420,18 @@ LaTeX templates follow a consistent structure:
 
 ## Content Tracking System
 
-### ContentTracker
-
 Tracks referenced content for appendices:
 
 ```python
 from studiorum.core.references.content_tracker import ContentTracker
 
-class ContentTracker:
-    """Tracks referenced content for appendix generation."""
+tracker = ContentTracker()
+tracker.add_content("creature", "Hobgoblin", "SRD")
+tracker.add_content("spell", "Fireball", "SRD")
+tracker.add_content("item", "Scimitar", "SRD")
 
-    def __init__(self):
-        self._tracked_creatures: set[str] = set()
-        self._tracked_spells: set[str] = set()
-        self._tracked_items: set[str] = set()
-        self._tracked_books: set[str] = set()
-
-    def track_creature(self, creature: Creature) -> None:
-        """Track a creature reference."""
-        self._tracked_creatures.add(creature.name)
-
-    def track_spell(self, spell: Spell) -> None:
-        """Track a spell reference."""
-        self._tracked_spells.add(spell.name)
-
-    def track_item(self, item: Item) -> None:
-        """Track an item reference."""
-        self._tracked_items.add(item.name)
-
-    def get_tracked_content(self) -> dict[str, set[str]]:
-        """Get all tracked content."""
-        return {
-            "creatures": self._tracked_creatures.copy(),
-            "spells": self._tracked_spells.copy(),
-            "items": self._tracked_items.copy(),
-            "books": self._tracked_books.copy()
-        }
-
-    def export_for_appendix(self) -> dict[str, list[dict[str, Any]]]:
-        """Export tracked content for appendix generation."""
-
-        # This would resolve names to full objects
-        return {
-            "creatures": self._resolve_creatures(),
-            "spells": self._resolve_spells(),
-            "items": self._resolve_items()
-        }
+print(tracker.get_statistics())
+data = tracker.export_for_appendix()
 ```
 
 ## Custom Renderers
@@ -650,7 +544,7 @@ class HTMLRenderer:
         template_engine = TemplateEngine(template_dir="templates/html")
 
         document_data = {
-            "title": context.get_metadata("title", "D&D Content"),
+            "title": context.get_metadata("title", "5e Content"),
             "content_items": [
                 self.render_single_item(item, context)
                 for item in content

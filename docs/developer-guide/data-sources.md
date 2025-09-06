@@ -113,7 +113,8 @@ from studiorum.core.services.protocols import (
 
 # CLI usage (synchronous)
 def cli_command():
-    container = get_global_container()
+    from studiorum.core.services.container import ServiceContainer
+    container = ServiceContainer.get_global_instance()
     manager = container.get_service_sync(SourceManagerProtocol)
     stats = manager.get_source_statistics()
 
@@ -290,11 +291,11 @@ config = DataSourcesConfig(
 ### Test Setup
 
 ```python
-from studiorum.core.container import reset_global_container
+from studiorum.core.services.container import ServiceContainer
 from studiorum.core.config.data_sources import DataSourcesConfig
 
 def setup_method():
-    reset_global_container()
+    ServiceContainer.reset_global_instance()
 
 # Mock data configuration for tests
 test_config = DataSourcesConfig(

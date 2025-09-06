@@ -355,7 +355,9 @@ class CLIContext:
     """Synchronous context for CLI operations."""
 
     def get_omnidexer(self) -> Omnidexer:
-        return get_global_container().get_omnidexer_sync()
+        from studiorum.core.services.container import ServiceContainer
+        from studiorum.core.services.protocols import OmnidexerProtocol
+        return ServiceContainer.get_global_instance().get_service_sync(OmnidexerProtocol)
 
 # MCP Context - Asynchronous by design
 class AsyncRequestContext:
@@ -645,8 +647,8 @@ Studiorum uses a layered testing approach:
 # Unit tests - Fast, isolated
 class TestContentResolver:
     def setup_method(self):
-        from studiorum.core.container import reset_global_container
-        reset_global_container()  # Ensure test isolation
+        from studiorum.core.services.container import ServiceContainer
+        ServiceContainer.reset_global_instance()  # Ensure test isolation
 
     def test_resolve_creature_success(self):
         # Test with mocked dependencies

@@ -698,7 +698,8 @@ class TaggedContentMixin:
         # Find all string fields and process tags
         for field_name, field_value in self.__dict__.items():
             if isinstance(field_value, str):
-                processed = tag_resolver.resolve_tags_in_content(field_value)
+                from studiorum.renderers.core.interfaces import RenderingContext
+                processed = tag_resolver.process_text(field_value, RenderingContext(output_format="latex"))
                 setattr(self, field_name, processed)
 
 # Apply mixins

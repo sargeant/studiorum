@@ -22,7 +22,7 @@ spells = list(omnidexer.get_all_by_type("spell"))
 
 # Find specific content
 light = list(omnidexer.find_all("spell", "Light"))[0]
-print(f"{light.name}: {light.level}th level cantrip")
+print(f"{light.name}: {light.get_level_text()}")
 ```
 
 ### Content Processing
@@ -30,17 +30,18 @@ print(f"{light.name}: {light.level}th level cantrip")
 Work with typed models and validation:
 
 ```python
+from studiorum.cli.utils import get_omnidexer
 from studiorum.core.models.spells import Spell
+
+omnidexer = get_omnidexer()
 
 # Access spell properties with full type safety
 spell: Spell = list(omnidexer.find_all("spell", "Sacred Flame"))[0]
-print(f"School: {spell.school}")  # "Evocation"
+print(f"School: {spell.school}")         # "Evocation"
 print(f"Verbal: {spell.components.verbal}")  # True
 
-# Process spell entries programmatically
-for entry in spell.entries:
-    if hasattr(entry, 'get_text'):
-        print(entry.get_text())
+# Render processed spell text using the template pipeline
+print(spell.get_text())
 ```
 
 ### Rendering Pipeline
@@ -48,22 +49,27 @@ for entry in spell.entries:
 Convert 5e content to LaTeX/PDF:
 
 ```python
-from studiorum.core.services.appendix_generator import AppendixGenerator
+from studiorum.cli.utils import get_omnidexer
 from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.core.services.appendix_generator import AppendixGenerator, AppendixFlags
+from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+
+# Services
+omnidexer = get_omnidexer()
+template_engine = LaTeXTemplateEngine()
 
 # Track content references
 tracker = ContentTracker()
 tracker.add_content("spell", "Guidance", "SRD")
 
-# Generate appendix with referenced content
-appendix_gen = AppendixGenerator(omnidexer)
-appendices = appendix_gen.generate_appendices(tracker, include_spells=True)
+# Generate appendices with referenced content
+generator = AppendixGenerator(omnidexer, template_engine)
+flags = AppendixFlags(spells=True)
+appendices = generator.generate_appendices(tracker, flags)
 
-# Convert to LaTeX
+# Each appendix contains ready-to-embed LaTeX content
 for appendix in appendices:
-    print(f"\\section{{{appendix.title}}}")
-    for item in appendix.items:
-        print(item.render_latex())
+    print(appendix.content)
 ```
 
 ## Development Path

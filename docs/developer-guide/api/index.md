@@ -44,7 +44,11 @@ Optimized patterns for different use cases:
 
 ```python
 # Synchronous CLI usage
-omnidexer = get_global_container().get_omnidexer_sync()
+from studiorum.core.services.container import ServiceContainer
+from studiorum.core.services.protocols import OmnidexerProtocol
+
+container = ServiceContainer.get_global_instance()
+omnidexer = container.get_service_sync(OmnidexerProtocol)
 
 # Asynchronous MCP usage
 async def mcp_handler(ctx: AsyncRequestContext) -> dict:
@@ -71,11 +75,15 @@ elif isinstance(result, Error):
 
 === "CLI Context (Sync)"
     ```python
-    from studiorum.core.container import get_global_container
+    from studiorum.core.services.container import ServiceContainer
+    from studiorum.core.services.protocols import (
+        OmnidexerProtocol,
+        ContentResolverProtocol,
+    )
 
-    container = get_global_container()
-    omnidexer = container.get_omnidexer_sync()
-    resolver = container.get_content_resolver_sync()
+    container = ServiceContainer.get_global_instance()
+    omnidexer = container.get_service_sync(OmnidexerProtocol)
+    resolver = container.get_service_sync(ContentResolverProtocol)
     ```
 
 === "MCP Context (Async)"
@@ -89,10 +97,10 @@ elif isinstance(result, Error):
 
 === "Testing Context"
     ```python
-    from studiorum.core.container import reset_global_container
+    from studiorum.core.services.container import ServiceContainer
 
     def test_setup():
-        reset_global_container()  # Clean isolation
+        ServiceContainer.reset_global_instance()  # Clean isolation
         # Your test setup here
     ```
 
@@ -134,12 +142,13 @@ elif isinstance(result, Error):
 
 === "Basic LaTeX Rendering"
     ```python
-    from studiorum.renderers.latex import LaTeXRenderer
+    from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
+    from studiorum.renderers.core.interfaces import RenderingContext
 
-    renderer = LaTeXRenderer()
+    renderer = LaTeXDocumentRenderer()
     context = RenderingContext(output_format="latex")
 
-    latex_output = renderer.render_adventure(adventure, context)
+    latex_output = renderer.render(adventure, context)
     ```
 
 === "Custom Rendering Context"
@@ -160,16 +169,16 @@ elif isinstance(result, Error):
 
 === "Template Customization"
     ```python
-    from studiorum.renderers.latex import TemplateEngine
+    from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
-    engine = TemplateEngine()
-    engine.add_template_path("/path/to/custom/templates")
-
-    # Use custom template
-    output = engine.render_template("custom_adventure.tex", {
-        "adventure": adventure,
-        "custom_data": my_data
-    })
+    engine = LaTeXTemplateEngine()
+    # Render a minimal article template with custom data
+    output = engine.render_dnd_template(
+        "article",  # template name
+        "article",  # content type
+        title="My Campaign Guide",
+        content_blocks=["Custom introduction text..."]
+    )
     ```
 
 ## Error Handling Patterns

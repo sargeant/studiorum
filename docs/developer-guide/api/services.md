@@ -14,12 +14,12 @@ Studiorum's service architecture provides a flexible, type-safe foundation for d
 The central service container manages all application services with full lifecycle support.
 
 ```python
-from studiorum.core.container import ServiceContainer, get_global_container
+from studiorum.core.services.container import ServiceContainer
 from studiorum.core.services.lifecycle import ServiceLifecycle
 from studiorum.core.services.protocols import OmnidexerProtocol
 
 # Get global container instance
-container = get_global_container()
+container = ServiceContainer.get_global_instance()
 
 # Register a service
 container.register_service(
@@ -30,8 +30,9 @@ container.register_service(
     hot_reloadable=True
 )
 
+from studiorum.core.services.protocols import OmnidexerProtocol
 # Resolve services (sync)
-omnidexer = container.get_omnidexer_sync()
+omnidexer = container.get_service_sync(OmnidexerProtocol)
 
 # Resolve services (async)
 async def get_service_async():
@@ -76,25 +77,30 @@ async def get_service[T](self, protocol: type[T]) -> T:
 
 **Sync Service Access**
 
-For CLI and synchronous contexts, use dedicated sync factories:
+For CLI and synchronous contexts, use dedicated sync factories and sync resolution:
 
 ```python
 from studiorum.core.services.factories import (
     create_omnidexer_service_sync,
-    create_data_source_manager_service_sync
+    create_data_source_manager_service_sync,
+)
+from studiorum.core.services.protocols import (
+    OmnidexerProtocol,
+    ContentResolverProtocol,
+    TagResolverProtocol,
 )
 
-# Register sync factories in CLI container
+# Register sync factories in CLI container (global instance already registers these)
 container.register_service(
     OmnidexerProtocol,
-    create_omnidexer_service_sync,        # Sync factory
-    lifecycle=ServiceLifecycle.SINGLETON
+    create_omnidexer_service_sync,
+    lifecycle=ServiceLifecycle.SINGLETON,
 )
 
-# Direct sync access methods
-omnidexer = container.get_omnidexer_sync()
-content_resolver = container.get_content_resolver_sync()
-tag_resolver = container.get_tag_resolver_sync()
+# Direct sync access via protocol tokens
+omnidexer = container.get_service_sync(OmnidexerProtocol)
+content_resolver = container.get_service_sync(ContentResolverProtocol)
+tag_resolver = container.get_service_sync(TagResolverProtocol)
 ```
 
 **Context Separation**: CLI and MCP contexts use different service registration patterns:
@@ -204,7 +210,8 @@ class OmnidexerProtocol(Protocol):
 
 ```python
 # Get omnidexer instance
-omnidexer = container.get_omnidexer_sync()
+from studiorum.core.services.protocols import OmnidexerProtocol
+omnidexer = container.get_service_sync(OmnidexerProtocol)
 
 # Load data if not already loaded
 if not omnidexer.is_loaded():
@@ -260,7 +267,8 @@ class ContentResolverProtocol(Protocol):
 ```python
 from studiorum.core.result import Success, Error
 
-resolver = container.get_content_resolver_sync()
+from studiorum.core.services.protocols import ContentResolverProtocol
+resolver = container.get_service_sync(ContentResolverProtocol)
 
 # Resolve with error handling
 result = resolver.resolve_creature("ancient-red-dragon")
@@ -280,84 +288,58 @@ if isinstance(adventure_result, Success):
 
 ### TagResolver Service
 
-Resolves 5e content tags and cross-references.
+Processes 5e content tags using the unified rendering pipeline.
 
 ```python
 from studiorum.core.services.protocols import TagResolverProtocol
+from studiorum.renderers.core.interfaces import RenderingContext
 
-@runtime_checkable
-class TagResolverProtocol(Protocol):
-    """Protocol for tag resolution."""
+tag_resolver = container.get_service_sync(TagResolverProtocol)
 
-    def resolve_tag(
-        self,
-        tag: str,
-        context: dict[str, Any] | None = None
-    ) -> str:
-        """Resolve a single tag to content."""
+# Process text with a minimal rendering context
+context = RenderingContext(output_format="latex")
+text = "The {@creature hobgoblin|SRD} attacks with its {@item scimitar|SRD}."
+rendered = tag_resolver.process_text(text, context)
+print(rendered)
 
-    def resolve_tags_in_content(
-        self,
-        content: str,
-        context: dict[str, Any] | None = None
-    ) -> str:
-        """Resolve all tags in content string."""
-
-    def get_referenced_content(
-        self,
-        content: str
-    ) -> dict[str, list[str]]:
-        """Extract all content references from text."""
-```
-
-**Usage Examples**
-
-```python
-tag_resolver = container.get_tag_resolver_sync()
-
-# Resolve individual tags
-creature_tag = "{@creature Adult Red Dragon|SRD}"
-resolved = tag_resolver.resolve_tag(creature_tag)
-print(resolved)  # "Adult Red Dragon"
-
-# Resolve tags in full content
-content = "The {@creature hobgoblin|SRD} attacks with its {@item scimitar|SRD}."
-resolved_content = tag_resolver.resolve_tags_in_content(content)
-print(resolved_content)  # "The hobgoblin attacks with its scimitar."
-
-# Extract references for appendices
-references = tag_resolver.get_referenced_content(adventure_text)
-print(references)
+# Discover supported tags
+print(tag_resolver.get_supported_tag_types())
 ```
 
 ### TemplateService
 
-LaTeX template rendering service with tag processing.
+LaTeX template rendering service with component injection and clean context binding.
 
 ```python
 from studiorum.latex_engine.services.template_service import TemplateService
+from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.core.services.protocols import (
+    TextExtractionProtocol,
+    LaTeXFormattingProtocol,
+    TagResolverProtocol,
+    OmnidexerProtocol,
+)
 
-class TemplateService:
-    """Handles template rendering with integrated tag resolution."""
+# Resolve dependencies from the container
+text_extractor = container.get_service_sync(TextExtractionProtocol)
+latex_formatter = container.get_service_sync(LaTeXFormattingProtocol)
+tag_resolver = container.get_service_sync(TagResolverProtocol)
+omnidexer = container.get_service_sync(OmnidexerProtocol)
 
-    def __init__(self, omnidexer, tag_resolver):
-        self.omnidexer = omnidexer
-        self.tag_resolver = tag_resolver  # Required dependency
+# Construct service and bind a ContentTracker context
+template_service = TemplateService(
+    text_extractor=text_extractor,
+    latex_formatter=latex_formatter,
+    tag_resolver=tag_resolver,
+    omnidexer=omnidexer,
+)
 
-    def render_creature_template(self, creature, content_tracker=None):
-        """Render creature with tag processing."""
+bound = template_service.bind_context(ContentTracker())
 
-    def render_spell_template(self, spell, content_tracker=None):
-        """Render spell with tag processing."""
-
-    def render_field_text(self, text):
-        """Process field text with tag resolution."""
+# Render one or many entries
+single = bound.render_entry(entry)
+many = bound.render_entries(entries)
 ```
-
-**Key Changes**:
-- TagResolver now required dependency for all template operations
-- Integrated tag processing in creature, spell, and field text rendering
-- Ensures consistent tag resolution across all LaTeX output
 
 ## Async Request Context
 
@@ -422,8 +404,6 @@ async def lookup_creature_tool(
 Register all core services:
 
 ```python
-from studiorum.core.container import register_core_services
-
 def register_core_services(container: ServiceContainer) -> None:
     """Register all core application services."""
 
@@ -597,12 +577,12 @@ Test services in isolation:
 ```python
 import pytest
 from unittest.mock import Mock
-from studiorum.core.container import ServiceContainer, reset_global_container
+from studiorum.core.services.container import ServiceContainer
 
 class TestMyService:
     def setup_method(self):
         """Reset container for each test."""
-        reset_global_container()
+        ServiceContainer.reset_global_instance()
 
     async def test_service_registration_and_resolution(self):
         """Test service container functionality."""

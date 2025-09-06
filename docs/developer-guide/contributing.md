@@ -287,7 +287,8 @@ processed = result.unwrap()  # Type checker knows this is Success
 class TestFeature:
     def setup_method(self):
         """Reset global state for test isolation."""
-        reset_global_container()
+        from studiorum.core.services.container import ServiceContainer
+        ServiceContainer.reset_global_instance()
 
     def test_feature_with_valid_input(self):
         """Test successful operation with valid data."""
@@ -663,7 +664,7 @@ uv sync
 
 ```bash
 # Reset test environment
-uv run python -c "from studiorum.core.container import reset_global_container; reset_global_container()"
+uv run python -c "from studiorum.core.services.container import ServiceContainer; ServiceContainer.reset_global_instance()"
 
 # Run tests in same environment as CI
 uv run pytest --maxfail=1 -v

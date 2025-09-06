@@ -14,13 +14,12 @@ Studiorum provides comprehensive Pydantic models for all 5e content types, enabl
 Get content through the Omnidexer service:
 
 ```python
-from studiorum.core.container import get_global_container
+from studiorum.cli.utils import get_omnidexer
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.spells import Spell
 
 # Get omnidexer service
-container = get_global_container()
-omnidexer = container.get_omnidexer_sync()
+omnidexer = get_omnidexer()
 
 # Load content by name
 dragon = omnidexer.get_creature_by_name("Ancient Red Dragon")
