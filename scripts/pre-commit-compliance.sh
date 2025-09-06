@@ -22,7 +22,20 @@ if [ -z "$staged_files" ]; then
 fi
 
 # Check for trademark violations
-violations=$(echo "$staged_files" | xargs rg -l -i "d&d|dungeons.*dragons|wizards.*coast" 2>/dev/null || true)
+# Allowlist specific files where controlled references are required
+# - Core handlers (branding detection logic)
+# - Website landing page (docs/index.md)
+ALLOWLIST_PATTERN='^(src/studiorum/renderers/core/handlers\.py|docs/index\.md)$'
+
+# Stricter branding patterns to reduce false positives:
+#  - Dungeons {&,\&,and} Dragons (flexible whitespace)
+#  - D {&,\&} D (escaped/unescaped ampersand)
+#  - Wizards of the Coast (flexible spacing)
+BRAND_REGEX='D\s*(?:&|\\&)+\s*D|Dungeons\s*(?:&|\\&|and)\s*Dragons|Wizards\s+of\s+the\s+Coast'
+
+violations=$(echo "$staged_files" \
+  | xargs rg -l -i "$BRAND_REGEX" 2>/dev/null \
+  | grep -v -E "$ALLOWLIST_PATTERN" || true)
 
 if [ -n "$violations" ]; then
     echo "${RED}❌ Trademark terms detected in staged files:${NC}"
@@ -31,7 +44,7 @@ if [ -n "$violations" ]; then
     # Show specific violations
     echo "$violations" | while read -r file; do
         echo "${YELLOW}$file:${NC}"
-        rg -n -i "d&d|dungeons.*dragons|wizards.*coast" "$file" | head -3
+        rg -n -i "$BRAND_REGEX" "$file" | head -3
         echo
     done
 

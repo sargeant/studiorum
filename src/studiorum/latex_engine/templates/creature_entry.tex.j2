@@ -1,6 +1,6 @@
 % Individual creature entry template using shared creature rendering macro
 % Imports the same rendering logic used by bestiary.tex.j2 for consistency
 
-<@ from "_creature_render_block.tex.j2" import render_creature @>
+<@ from "_creature_render_block.tex.j2" import render_creature with context @>
 
 <# render_creature(creature, template_service, content_tracker, latex_config) #>

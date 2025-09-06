@@ -149,11 +149,11 @@ def bulk(
                         context = RenderingContext(
                             output_format="latex",
                             omnidexer=omnidexer,
+                            tag_resolver=tag_resolver,
                             metadata={
                                 "title": f"{content.name}",
                                 "include_images": with_images,
                                 "include_toc": True,
-                                "tag_resolver": tag_resolver,
                             },
                         )
 

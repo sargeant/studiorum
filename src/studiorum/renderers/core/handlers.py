@@ -1147,9 +1147,14 @@ class FormattingTagHandler(BaseTagHandler):
                         child_content = self._extract_nested_content(child, context)
                         # Check if this is 5e branding text that should use small-caps instead of bold
                         if self._is_dnd_text(child_content):
-                            content_parts.append(
+                            formatted = (
                                 f"\\textsc{{{self._format_dnd_text(child_content)}}}"
                             )
+                            # Append one-time trademark disclaimer sidebar
+                            formatted += self._append_trademark_disclaimer_if_needed(
+                                context
+                            )
+                            content_parts.append(formatted)
                         else:
                             content_parts.append(f"\\textbf{{{child_content}}}")
                     elif child_tag_type == "italic":
@@ -1240,8 +1245,13 @@ class FormattingTagHandler(BaseTagHandler):
         """Check if text contains game branding references that should use small-caps."""
         import re
 
-        # Check for "Dungeons & Dragons" or "D&D" (case insensitive)
-        dnd_patterns = [r"Dungeons\s*&\s*Dragons", r"D&D"]
+        # Check for "Dungeons & Dragons" or "D&D" (case insensitive), allowing escaped ampersands
+        dnd_patterns = [
+            r"Dungeons\s*&\s*Dragons",
+            r"Dungeons\s*\\&\s*Dragons",
+            r"D\s*&\s*D",
+            r"D\s*\\&\s*D",
+        ]
 
         for pattern in dnd_patterns:
             if re.search(pattern, text, flags=re.IGNORECASE):
@@ -1250,18 +1260,56 @@ class FormattingTagHandler(BaseTagHandler):
         return False
 
     def _format_dnd_text(self, text: str) -> str:
-        """Format D&D text for small-caps, ensuring proper case."""
+        """Format 5e branding text for small-caps + trademark marks.
+
+        - Normalizes "Dungeons & Dragons" (handles escaped/unescaped &)
+        - Normalizes "D&D" (handles escaped/unescaped &)
+        - Appends \texttrademark{} to the terms
+        """
         import re
 
-        # Replace "Dungeons & Dragons" with proper case for small-caps
+        # Normalize "Dungeons & Dragons" (escaped or unescaped &) and add TM
         text = re.sub(
-            r"Dungeons\s*&\s*Dragons", "Dungeons & Dragons", text, flags=re.IGNORECASE
+            r"(?i)Dungeons\s*&\s*Dragons",
+            r"Dungeons \& Dragons\\texttrademark{}",
+            text,
+        )
+        text = re.sub(
+            r"(?i)Dungeons\s*\\&\s*Dragons",
+            r"Dungeons \& Dragons\\texttrademark{}",
+            text,
         )
 
-        # Replace "D&D" with lowercase for better small-caps appearance
-        text = re.sub(r"D&D", "d&d", text, flags=re.IGNORECASE)
+        # Normalize "D&D" (escaped or unescaped &) to small-caps-friendly + TM
+        text = re.sub(r"(?i)D\s*&\s*D", r"d\\&d\\texttrademark{}", text)
+        text = re.sub(r"(?i)D\s*\\&\s*D", r"d\\&d\\texttrademark{}", text)
 
         return text
+
+    def _append_trademark_disclaimer_if_needed(self, context: RenderingContext) -> str:
+        """Return a one-time sidebar disclaimer and mark it as inserted.
+
+        Inserts only once per document (tracked via context.metadata).
+        """
+        try:
+            if context and isinstance(getattr(context, "metadata", None), dict):
+                if not context.metadata.get("_dnd_trademark_notice_inserted"):
+                    context.metadata["_dnd_trademark_notice_inserted"] = True
+                    return (
+                        "\\begin{DndSidebar}[float=htbp]{Legal}\n"
+                        "\\small This document references Dungeons \\& Dragons\\texttrademark{} (D\\&D\\texttrademark{}), "
+                        "which is a trademark of Wizards of the Coast. "
+                        "This document is produced under the Creative Commons SRD license.\n"
+                        "\\end{DndSidebar}\n"
+                    )
+        except Exception as e:
+            # Non-fatal: log and skip to avoid disrupting rendering
+            logger.debug(
+                "Trademark disclaimer insertion skipped due to error: %s",
+                e,
+                exc_info=True,
+            )
+        return ""
 
     def _extract_nested_content(self, node: TagNode, context: RenderingContext) -> str:
         """Extract text content from a nested tag node."""
@@ -1502,7 +1550,7 @@ class HitResultTagHandler(BaseTagHandler):
 
     def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
         """Process hit result tags."""
-        return "Hit:"
+        return "Hit: "
 
 
 class HitOrMissTagHandler(BaseTagHandler):

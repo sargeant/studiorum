@@ -209,12 +209,20 @@ def _render_bestiary(
     template_engine.update_latex_config(latex_config)
 
     # Create DND template context with proper styling settings
+    # Include rendering_context and a recursive entry processor for template use
+    from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+
+    entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+
     template_context = template_engine.create_dnd_template_context(
         content_type="creature",
         # Document metadata
         title=context.metadata.get("title", "Creature Bestiary"),
         metadata=context.metadata.get("document_metadata"),
         latex_config=latex_config,
+        # Provide processing/context helpers to templates
+        rendering_context=context,
+        entry_processor=entry_processor,
         # Bestiary-specific data
         creatures=creatures,
         creatures_by_group=creatures_by_group,
@@ -953,11 +961,11 @@ def creatures(
                 output_format="latex",
                 omnidexer=omnidexer,
                 content_tracker=content_tracker,
+                tag_resolver=tag_resolver,
                 metadata={
                     "title": creature_title,
                     "include_images": with_images,
                     "include_toc": show_toc,
-                    "tag_resolver": tag_resolver,
                     "document_metadata": metadata,
                     "latex_config": latex_config,
                     "creature_count": len(sorted_creatures),

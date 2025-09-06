@@ -1,6 +1,8 @@
 % Shared spell rendering block for use in both spellbook and spell_entry templates
 % This macro can be included by both templates to ensure consistent rendering
 
+<@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+
 <@ macro render_spell(spell, template_service=template_service, content_tracker=content_tracker) @>
 \DndSpellHeader%
   {<# spell.name | latex_escape #>}
@@ -10,12 +12,16 @@
   {<# spell.get_components_text() | latex_escape #>}
   {<# spell.get_duration_text() | latex_escape #>}
 
+<@ if entry_processor is defined and rendering_context is defined @>
+<# smart_render_entry(spell, entry_processor, rendering_context) #>
+<@ else @>
 <# template_service.render_entry_description(spell, content_tracker) | safe #>
+<@ endif @>
 
 <@ if spell.higher_level @>
 <@ for hl_entry in spell.higher_level @>
 
-\paragraph{<# hl_entry.name | latex_escape #>} <# template_service.render_entry_content_only(hl_entry, content_tracker) | safe #>
+\paragraph{<# hl_entry.name | latex_escape #>} <@ if entry_processor is defined and rendering_context is defined @><# smart_render_entry(hl_entry, entry_processor, rendering_context) #><@ else @><# template_service.render_entry_content_only(hl_entry, content_tracker) | safe #><@ endif @>
 <@ endfor @>
 <@ endif @>
 <@ endmacro @>

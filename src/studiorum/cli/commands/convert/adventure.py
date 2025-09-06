@@ -320,8 +320,8 @@ def adventure(
             import traceback
 
             rprint(f"[red]Error:[/red] {e}")
-            if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
-                # In CI, print full traceback for debugging
+            # Only print traceback when explicitly requested for local diagnostics
+            if os.getenv("STUDIORUM_DEBUG_TRACEBACK") in {"1", "true", "True"}:
                 traceback.print_exc()
             raise typer.Exit(1)
 

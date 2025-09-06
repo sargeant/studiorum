@@ -25,11 +25,15 @@ from studiorum.cli.display_manager import display_manager
 from studiorum.cli.utils import get_omnidexer, get_tag_resolver
 from studiorum.core.config.latex_config import LaTeXConfig
 from studiorum.core.config.unified_config import get_app_config
+from studiorum.core.logging import get_logger
 from studiorum.core.models.spells import Spell
 from studiorum.renderers.core.interfaces import RenderingContext
 
 from ..base import AppendixMixin, BaseConvertCommand
 from ..shared import compile_pdf as compile_pdf_async
+
+# Module logger
+logger = get_logger(__name__)
 
 
 class SpellSortMode(str, Enum):
@@ -111,6 +115,33 @@ def _render_spellbook(
         # Pass rendering context for proper tag tracking
         rendering_context=context,
     )
+
+    # Provide entry_processor for shape-aware entry rendering in templates
+    from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+
+    template_context["entry_processor"] = RecursiveEntryProcessor(use_dnd_template=True)
+
+    # Ensure sectioning depth for spells: mark rendering_context with content_type="spell"
+    try:
+        from studiorum.renderers.core.interfaces import RenderingContext as RC
+
+        spell_metadata = dict(context.metadata or {})
+        spell_metadata["content_type"] = "spell"
+        template_context["rendering_context"] = RC(
+            output_format=context.output_format,
+            debug_mode=context.debug_mode,
+            omnidexer=context.omnidexer,
+            content_tracker=context.content_tracker,
+            tag_resolver=context.tag_resolver,
+            metadata=spell_metadata,
+        )
+    except Exception as e:
+        # Non-fatal: keep original context; log for diagnostics
+        logger.debug(
+            "Failed to set spell rendering_context content_type: %s",
+            e,
+            exc_info=True,
+        )
 
     # Render using spellbook template
     return template_engine.render_template("spellbook.tex.j2", template_context)
@@ -723,8 +754,7 @@ def spells(
             import traceback
 
             rprint(f"[red]Error:[/red] {e}")
-            if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
-                # In CI, print full traceback for debugging
+            if os.getenv("STUDIORUM_DEBUG_TRACEBACK") in {"1", "true", "True"}:
                 traceback.print_exc()
             raise typer.Exit(1)
 

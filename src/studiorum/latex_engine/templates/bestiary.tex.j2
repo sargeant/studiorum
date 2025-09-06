@@ -2,7 +2,7 @@
 % Uses dndbook document class with structured creature organization
 
 <@ extends "base.tex.j2" @>
-<@ from "_creature_render_block.tex.j2" import render_creature @>
+<@ from "_creature_render_block.tex.j2" import render_creature with context @>
 
 <@ block document_packages @>
 <# super() #>

@@ -70,6 +70,30 @@ class SpellEntryRenderer(BaseEntryRenderer):
 
             template_service = get_cli_template_service()
 
+        # Get entry processor for structured content handling
+        from .entry_processor import RecursiveEntryProcessor
+
+        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+        # Ensure sectioning depth for spells uses paragraph at depth 1
+        # by marking the rendering context with content_type="spell".
+        try:
+            spell_metadata = dict(context.metadata or {})
+            spell_metadata["content_type"] = "spell"
+            from studiorum.renderers.core.interfaces import RenderingContext as RC
+
+            rendering_context = RC(
+                output_format=context.output_format,
+                debug_mode=context.debug_mode,
+                omnidexer=context.omnidexer,
+                content_tracker=context.content_tracker,
+                tag_resolver=context.tag_resolver,
+                metadata=spell_metadata,
+            )
+        except Exception:
+            # Fallback: use original context unmodified
+            rendering_context = context
+
         # Provide both the spell object and preprocessed fields for compatibility
         return {
             "spell": content,
@@ -78,8 +102,9 @@ class SpellEntryRenderer(BaseEntryRenderer):
             "duration_text": content.get_enhanced_duration_text(),
             "description_text": description_text,
             "higher_level_text": higher_level_text,
-            "rendering_context": context,
+            "rendering_context": rendering_context,
             "template_service": template_service,
+            "entry_processor": entry_processor,
             "content_tracker": context.content_tracker or ContentTracker(),
         }
 
@@ -158,6 +183,30 @@ class ItemEntryRenderer(BaseEntryRenderer):
 
             template_service = get_cli_template_service()
 
+        # Get entry processor for structured content handling
+        from .entry_processor import RecursiveEntryProcessor
+
+        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+
+        # Ensure sectioning depth for items uses subparagraph for named subentries
+        # by marking the rendering context with content_type="item".
+        try:
+            item_metadata = dict(context.metadata or {})
+            item_metadata["content_type"] = "item"
+            from studiorum.renderers.core.interfaces import RenderingContext as RC
+
+            rendering_context = RC(
+                output_format=context.output_format,
+                debug_mode=context.debug_mode,
+                omnidexer=context.omnidexer,
+                content_tracker=context.content_tracker,
+                tag_resolver=context.tag_resolver,
+                metadata=item_metadata,
+            )
+        except Exception:
+            # Fallback: use original context unmodified
+            rendering_context = context
+
         # Provide both the item object and preprocessed fields for compatibility
         return {
             "item": content,
@@ -165,8 +214,9 @@ class ItemEntryRenderer(BaseEntryRenderer):
             "rarity_text": content.get_rarity_text(),
             "weight_text": content.get_weight_text(),
             "value_text": content.get_value_text(),
-            "rendering_context": context,
+            "rendering_context": rendering_context,
             "template_service": template_service,
+            "entry_processor": entry_processor,
             "content_tracker": context.content_tracker or ContentTracker(),
         }
 

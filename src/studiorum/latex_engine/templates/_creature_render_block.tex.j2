@@ -1,6 +1,8 @@
 % Shared creature rendering block for use in both bestiary and creature_entry templates
 % This macro can be included by both templates to ensure consistent rendering
 
+<@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+
 <@ macro render_creature(creature, template_service=template_service, content_tracker=content_tracker, latex_config=latex_config) @>
 <#-- Check if creature needs full-width layout --#>
 <@ if creature.requires_full_width_layout() @>
@@ -64,7 +66,16 @@
 <@ for spellcasting in creature.spellcasting @>
 <@ if not spellcasting.displayAs @>
 \DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
+<# smart_render_entry({
+    'type': 'spellcasting',
+    'name': spellcasting.name,
+    'headerEntries': spellcasting.headerEntries,
+    'footerEntries': spellcasting.footerEntries,
+    'spells': spellcasting.spells,
+    'will': spellcasting.will,
+    'daily': spellcasting.daily,
+    'renderHeader': False
+}, entry_processor, rendering_context) #>
 
 <@ endif @>
 <@ endfor @>
@@ -72,7 +83,11 @@
 <@ if creature.trait @>
 <@ for trait in creature.trait @>
 \DndMonsterAction{<# trait | safe_processed_name | safe #>}
-<# template_service.render_entry_content_only(trait, content_tracker) | safe #>
+<@ if trait.entries is defined and trait.entries @>
+<# smart_render_entry(trait.entries, entry_processor, rendering_context) #>
+<@ else @>
+<# smart_render_entry(trait, entry_processor, rendering_context) #>
+<@ endif @>
 
 <@ endfor @>
 <@ endif @>
@@ -97,13 +112,26 @@
 \DndMonsterSection{Actions}
 <@ for spellcasting in action_spells @>
 \DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
+<# smart_render_entry({
+    'type': 'spellcasting',
+    'name': spellcasting.name,
+    'headerEntries': spellcasting.headerEntries,
+    'footerEntries': spellcasting.footerEntries,
+    'spells': spellcasting.spells,
+    'will': spellcasting.will,
+    'daily': spellcasting.daily,
+    'renderHeader': False
+}, entry_processor, rendering_context) #>
 
 <@ endfor @>
 <@ if creature.action @>
 <@ for action in creature.action @>
 \DndMonsterAction{<# action | safe_processed_name | safe #>}
-<# template_service.render_entry_content_only(action, content_tracker) | safe #>
+<@ if action.entries is defined and action.entries @>
+<# smart_render_entry(action.entries, entry_processor, rendering_context) #>
+<@ else @>
+<# smart_render_entry(action, entry_processor, rendering_context) #>
+<@ endif @>
 
 <@ endfor @>
 <@ endif @>
@@ -113,13 +141,26 @@
 \DndMonsterSection{Bonus Actions}
 <@ for spellcasting in bonus_spells @>
 \DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
+<# smart_render_entry({
+    'type': 'spellcasting',
+    'name': spellcasting.name,
+    'headerEntries': spellcasting.headerEntries,
+    'footerEntries': spellcasting.footerEntries,
+    'spells': spellcasting.spells,
+    'will': spellcasting.will,
+    'daily': spellcasting.daily,
+    'renderHeader': False
+}, entry_processor, rendering_context) #>
 
 <@ endfor @>
 <@ if creature.bonus @>
 <@ for bonus in creature.bonus @>
 \DndMonsterAction{<# bonus | safe_processed_name | safe #>}
-<# template_service.render_entry_content_only(bonus, content_tracker) | safe #>
+<@ if bonus.entries is defined and bonus.entries @>
+<# smart_render_entry(bonus.entries, entry_processor, rendering_context) #>
+<@ else @>
+<# smart_render_entry(bonus, entry_processor, rendering_context) #>
+<@ endif @>
 
 <@ endfor @>
 <@ endif @>
@@ -129,13 +170,26 @@
 \DndMonsterSection{Reactions}
 <@ for spellcasting in reaction_spells @>
 \DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# template_service.render_entry_content_only(spellcasting, content_tracker) | safe #>
+<# smart_render_entry({
+    'type': 'spellcasting',
+    'name': spellcasting.name,
+    'headerEntries': spellcasting.headerEntries,
+    'footerEntries': spellcasting.footerEntries,
+    'spells': spellcasting.spells,
+    'will': spellcasting.will,
+    'daily': spellcasting.daily,
+    'renderHeader': False
+}, entry_processor, rendering_context) #>
 
 <@ endfor @>
 <@ if creature.reaction @>
 <@ for reaction in creature.reaction @>
 \DndMonsterAction{<# reaction | safe_processed_name | safe #>}
-<# template_service.render_entry_content_only(reaction, content_tracker) | safe #>
+<@ if reaction.entries is defined and reaction.entries @>
+<# smart_render_entry(reaction.entries, entry_processor, rendering_context) #>
+<@ else @>
+<# smart_render_entry(reaction, entry_processor, rendering_context) #>
+<@ endif @>
 
 <@ endfor @>
 <@ endif @>
@@ -145,7 +199,11 @@
 \DndMonsterSection{Legendary Actions}
 <@ for legendary in creature.legendary @>
 \DndMonsterAction{<# legendary | safe_processed_name | safe #>}
-<# template_service.render_entry_content_only(legendary, content_tracker) | safe #>
+<@ if legendary.entries is defined and legendary.entries @>
+<# smart_render_entry(legendary.entries, entry_processor, rendering_context) #>
+<@ else @>
+<# smart_render_entry(legendary, entry_processor, rendering_context) #>
+<@ endif @>
 
 <@ endfor @>
 <@ endif @>
@@ -154,13 +212,17 @@
 \DndMonsterSection{Lair Actions}
 <@ for lair_action in creature.lair_actions @>
 <@ if lair_action is string @>
-<# template_service.render_entry_content_only([lair_action], content_tracker) | safe #>
+<# smart_render_entry(lair_action, entry_processor, rendering_context) #>
 
 <@ else @>
 <@ if lair_action | safe_processed_name @>
 \DndMonsterAction{<# lair_action | safe_processed_name | safe #>}
 <@ endif @>
-<# template_service.render_entry_content_only(lair_action, content_tracker) | safe #>
+<@ if lair_action.entries is defined and lair_action.entries @>
+<# smart_render_entry(lair_action.entries, entry_processor, rendering_context) #>
+<@ else @>
+<# smart_render_entry(lair_action, entry_processor, rendering_context) #>
+<@ endif @>
 
 <@ endif @>
 <@ endfor @>

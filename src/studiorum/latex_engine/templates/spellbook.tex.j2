@@ -37,6 +37,8 @@
 <@ block document_structure @>
 <#-- Spellbook introduction --#>
 
+<@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+
 <#-- Main spellbook content organized by level --#>
 <@ if spells_by_level @>
 <@ for level, spell_list in spells_by_level.items() @>
@@ -65,12 +67,12 @@
   {<# spell.get_components_text() | latex_escape #>}
   {<# spell.get_duration_text() | latex_escape #>}
 
-<# template_service.render_entry_description(spell, content_tracker) | safe #>
+<# smart_render_entry(spell, entry_processor, rendering_context) #>
 
 <@ if spell.higher_level @>
 <@ for hl_entry in spell.higher_level @>
 
-\paragraph{<# hl_entry.name | latex_escape #>} <# template_service.render_entry_content_only(hl_entry, content_tracker) | safe #>
+\paragraph{<# hl_entry.name | latex_escape #>} <# smart_render_entry(hl_entry, entry_processor, rendering_context) #>
 <@ endfor @>
 <@ endif @>
 
@@ -98,12 +100,12 @@
   {<# spell.get_components_text() | latex_escape #>}
   {<# spell.get_duration_text() | latex_escape #>}
 
-<# template_service.render_entry_description(spell, content_tracker) | safe #>
+<# smart_render_entry(spell, entry_processor, rendering_context) #>
 
 <@ if spell.higher_level @>
 <@ for hl_entry in spell.higher_level @>
 
-\paragraph{<# hl_entry.name | latex_escape #>} <# template_service.render_entry_content_only(hl_entry, content_tracker) | safe #>
+\paragraph{<# hl_entry.name | latex_escape #>} <# smart_render_entry(hl_entry, entry_processor, rendering_context) #>
 <@ endfor @>
 <@ endif @>
 

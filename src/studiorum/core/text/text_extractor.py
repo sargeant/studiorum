@@ -25,6 +25,21 @@ class TextExtractor:
 
         if isinstance(entry, dict):
             # Handle common 5etools entry patterns
+            # Explicitly handle simple 'item' entries with name + text/entry early
+            if entry.get("type") == "item":
+                # Prefer 'entry' key when present, otherwise use 'text'
+                if "entry" in entry and entry["entry"]:
+                    base = self.extract_from_entry(
+                        entry["entry"]
+                    )  # may be str or nested
+                elif "text" in entry and entry["text"]:
+                    base = str(entry["text"])
+                else:
+                    base = ""
+                # Prepend name if available
+                if entry.get("name"):
+                    return f"{entry['name']} {base}".strip()
+                return base
             if "entries" in entry and entry["entries"] is not None:
                 # Recursively process nested entries
                 parts = []
@@ -81,6 +96,7 @@ class TextExtractor:
                             parts.append(text)
                 # Join itemSub entries with line breaks between items, but name+description on same line
                 return " ".join(parts) if len(parts) <= 1 else "\n\n".join(parts)
+            # (handled above) specific 'item' type cases
             elif "entries" in entry and isinstance(entry["entries"], list):
                 # Handle entries list
                 parts = []
@@ -161,6 +177,16 @@ class TextExtractor:
                             parts.append(item_entry)
                         elif item_name:
                             parts.append(f"{item_name}.")
+                    elif isinstance(item, dict) and item.get("type") == "item":
+                        # Handle 'item' type entries consistently with dict path
+                        item_name = item.get("name", "")
+                        item_entry = item.get("entry", "") or item.get("text", "")
+                        if item_name and item_entry:
+                            parts.append(f"{item_name}. {item_entry}")
+                        elif item_entry:
+                            parts.append(self.extract_from_entry(item_entry))
+                        elif item_name:
+                            parts.append(f"{item_name}.")
                     else:
                         text = self.extract_from_entry(item)
                         if text:  # Only add non-empty text
@@ -228,6 +254,20 @@ class TextExtractor:
 
         if isinstance(entry, dict):
             # Handle common 5etools entry patterns
+            # Explicitly handle simple 'item' entries with name + text/entry early
+            if entry.get("type") == "item":
+                if "entry" in entry and entry["entry"]:
+                    base = self.extract_from_entry(
+                        entry["entry"]
+                    )  # may be str or nested
+                elif "text" in entry and entry["text"]:
+                    base = str(entry["text"])
+                else:
+                    base = ""
+                # For content-only extraction, still include the name inline for readability
+                if entry.get("name"):
+                    return f"{entry['name']} {base}".strip()
+                return base
             if "entries" in entry and entry["entries"] is not None:
                 # Recursively process nested entries, but skip the name
                 parts = []
@@ -265,6 +305,7 @@ class TextExtractor:
                             parts.append(text)
                 # Join itemSub entries with line breaks between items, but name+description on same line
                 return " ".join(parts) if len(parts) <= 1 else "\n\n".join(parts)
+            # (handled above) specific 'item' type cases
             elif "entries" in entry and isinstance(entry["entries"], list):
                 # Handle entries list
                 parts = []

@@ -39,6 +39,8 @@
 <@ block document_structure @>
 <#-- Item compendium introduction --#>
 
+<@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+
 <#-- Main item compendium content organized by groups --#>
 <@ if items_by_group @>
 <@ for group_name, item_list in items_by_group.items() @>
@@ -75,8 +77,7 @@
 
 % Item description
 <@ if item.entries @>
-
-<# template_service.render_entry_description(item, content_tracker) | clean_jinja_comments | safe #>
+<# smart_render_entry(item, entry_processor, rendering_context) #>
 <@ endif @>
 
 <@ if not loop.last @>
@@ -115,8 +116,7 @@
 
 % Item description
 <@ if item.entries @>
-
-<# template_service.render_entry_description(item, content_tracker) | clean_jinja_comments | safe #>
+<# smart_render_entry(item, entry_processor, rendering_context) #>
 <@ endif @>
 
 <@ if not loop.last @>

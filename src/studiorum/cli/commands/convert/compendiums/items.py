@@ -17,11 +17,15 @@ from studiorum.cli.display_manager import display_manager
 from studiorum.cli.utils import get_omnidexer, get_tag_resolver
 from studiorum.core.config.latex_config import LaTeXConfig
 from studiorum.core.config.unified_config import get_app_config
+from studiorum.core.logging import get_logger
 from studiorum.core.models.items import Item
 from studiorum.renderers.core.interfaces import RenderingContext
 
 from ..base import BaseConvertCommand
 from ..shared import compile_pdf as compile_pdf_async
+
+# Module logger
+logger = get_logger(__name__)
 
 
 class ItemSortMode(str, Enum):
@@ -106,7 +110,36 @@ def _render_itemcompendium(
         rarity_summary=context.metadata.get("rarity_summary", ""),
         sources_used=context.metadata.get("sources_used", []),
         show_item_table_of_contents=show_toc,
+        # Pass rendering context for tag processing and appendices
+        rendering_context=context,
     )
+
+    # Provide entry_processor for shape-aware entry rendering in templates
+    from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+
+    template_context["entry_processor"] = RecursiveEntryProcessor(use_dnd_template=True)
+
+    # Ensure sectioning depth for items: mark rendering_context with content_type="item"
+    try:
+        from studiorum.renderers.core.interfaces import RenderingContext as RC
+
+        item_metadata = dict(context.metadata or {})
+        item_metadata["content_type"] = "item"
+        template_context["rendering_context"] = RC(
+            output_format=context.output_format,
+            debug_mode=context.debug_mode,
+            omnidexer=context.omnidexer,
+            content_tracker=context.content_tracker,
+            tag_resolver=context.tag_resolver,
+            metadata=item_metadata,
+        )
+    except Exception as e:
+        # Non-fatal: keep original context; log for diagnostics
+        logger.debug(
+            "Failed to set item rendering_context content_type: %s",
+            e,
+            exc_info=True,
+        )
 
     # Render using itemcompendium template
     return template_engine.render_template("itemcompendium.tex.j2", template_context)
@@ -657,11 +690,11 @@ def items(
             context = RenderingContext(
                 output_format="latex",
                 omnidexer=omnidexer,
+                tag_resolver=tag_resolver,
                 metadata={
                     "title": item_title,
                     "include_images": with_images,
                     "include_toc": True,
-                    "tag_resolver": tag_resolver,
                     "document_metadata": metadata,
                     "latex_config": latex_config,
                     "item_count": len(sorted_items),
@@ -709,8 +742,7 @@ def items(
             import traceback
 
             rprint(f"[red]Error:[/red] {e}")
-            if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
-                # In CI, print full traceback for debugging
+            if os.getenv("STUDIORUM_DEBUG_TRACEBACK") in {"1", "true", "True"}:
                 traceback.print_exc()
             raise typer.Exit(1)
 

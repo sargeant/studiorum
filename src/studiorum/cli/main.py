@@ -302,11 +302,12 @@ def quick_convert(
             context = RenderingContext(
                 output_format="latex",
                 omnidexer=omnidexer,
+                content_tracker=None,
+                tag_resolver=tag_resolver,
                 metadata={
                     "title": f"5e Content from {input_file.name}",
                     "include_images": with_images,
                     "include_toc": len(content_items) > 5,
-                    "tag_resolver": tag_resolver,
                 },
             )
 

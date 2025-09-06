@@ -1,7 +1,9 @@
 % Shared item rendering block for use in both itemcompendium and item_entry templates
 % This macro can be included by both templates to ensure consistent rendering
 
-<@ macro render_item(item, template_service=template_service, content_tracker=content_tracker) @>
+<@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+
+<@ macro render_item(item, template_service=template_service, content_tracker=content_tracker, entry_processor=entry_processor, rendering_context=rendering_context) @>
 % Item header with name and metadata
 <@ if item.get_item_metadata_line() @>
 \DndItemHeader{<# item.name | latex_escape #>}{<# item.get_item_metadata_line() | latex_escape #>}
@@ -16,6 +18,6 @@
 
 % Item description
 <@ if item.entries @>
-<# template_service.render_entry_description(item, content_tracker) | clean_jinja_comments | safe #>
+<# smart_render_entry(item, entry_processor, rendering_context) #>
 <@ endif @>
 <@ endmacro @>
