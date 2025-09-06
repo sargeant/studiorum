@@ -837,8 +837,93 @@ class Creature(BaseContent):
         return str(self.speed)
 
     def get_initiative_modifier(self) -> int:
-        """Get initiative modifier (dexterity modifier)."""
-        return self.get_ability_modifier(self.dexterity)
+        """Get initiative modifier for display.
+
+        Defaults to the Dexterity modifier, but if 5etools 2024 data provides
+        an `initiative` field with proficiency scaling (e.g.,
+        `{ "proficiency": 2 }`), include proficiency bonus accordingly to
+        match 2024 statblock conventions.
+        """
+
+        # Base from Dexterity modifier
+        base = self.get_ability_modifier(self.dexterity)
+
+        init_data = getattr(self, "initiative", None)
+        if init_data is None:
+            return base
+
+        # Helper: compute proficiency bonus from CR (2014/2024 ranges)
+        def _proficiency_bonus_from_cr(cr: Any) -> int:
+            # Convert CR to a numeric value
+            def _numeric_cr(val: Any) -> float:
+                if val is None:
+                    return 0.0
+                # Handle dict form { "cr": "X" } or { "special": "..." }
+                if isinstance(val, dict):
+                    if "cr" in val:
+                        return _numeric_cr(val["cr"])
+                    return 0.0
+                s = str(val).strip()
+                if "/" in s:
+                    try:
+                        num, den = s.split("/", 1)
+                        return float(num) / float(den)
+                    except Exception:
+                        return 0.0
+                try:
+                    return float(s)
+                except Exception:
+                    return 0.0
+
+            ncr = _numeric_cr(self.cr)
+            if ncr <= 4:
+                return 2
+            elif ncr <= 8:
+                return 3
+            elif ncr <= 12:
+                return 4
+            elif ncr <= 16:
+                return 5
+            elif ncr <= 20:
+                return 6
+            elif ncr <= 24:
+                return 7
+            elif ncr <= 28:
+                return 8
+            else:
+                return 9
+
+        # If initiative is a simple number, treat as override
+        if isinstance(init_data, int | float):
+            try:
+                return int(init_data)
+            except Exception:
+                return base
+
+        # If initiative is a string number, try to parse
+        if isinstance(init_data, str):
+            s = init_data.strip().lstrip("+")
+            if s and s.replace("-", "").isdigit():
+                try:
+                    return int(s)
+                except Exception:
+                    pass
+            return base
+
+        # If initiative is a dict, check for proficiency scaling per 5etools 2024
+        if isinstance(init_data, dict):
+            prof_mult = init_data.get("proficiency")
+            try:
+                if prof_mult is not None:
+                    pm = int(prof_mult)
+                    pb = _proficiency_bonus_from_cr(self.cr)
+                    return base + pm * pb
+            except Exception:
+                # Fall back to base if parsing fails
+                return base
+
+        # Fallback
+        return base
 
     def get_cr_text(self) -> str:
         """Get formatted challenge rating text."""
