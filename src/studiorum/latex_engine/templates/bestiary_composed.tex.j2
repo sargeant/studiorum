@@ -31,10 +31,7 @@
 
 <@ endif @>
 
-<@ if two_column @>
-\begin{multicols}{2}
-<@ set in_multicols = True @>
-<@ endif @>
+<#-- No global multicols; let document class handle columns --#>
 
 <@ for creature in group.creatures @>
 <@ include '_creature_render_block.tex.j2' @>
@@ -43,20 +40,14 @@
 <@ endif @>
 <@ endfor @>
 
-<@ if two_column @>
-\end{multicols}
-<@ set in_multicols = False @>
-<@ endif @>
+<#-- End of group --#>
 
 <@ endfor @>
 <@ else @>
 <#-- Single list of creatures --#>
 \chapter{Creatures}
 
-<@ if two_column @>
-\begin{multicols}{2}
-<@ set in_multicols = True @>
-<@ endif @>
+<#-- No global multicols; let document class handle columns --#>
 
 <@ for creature in creatures @>
 <@ include '_creature_render_block.tex.j2' @>
@@ -65,9 +56,6 @@
 <@ endif @>
 <@ endfor @>
 
-<@ if two_column @>
-\end{multicols}
-<@ set in_multicols = False @>
-<@ endif @>
+<#-- End of list --#>
 <@ endif @>
 <@ endblock @>

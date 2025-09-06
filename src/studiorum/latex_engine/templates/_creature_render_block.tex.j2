@@ -4,15 +4,15 @@
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
 
 <@ macro render_creature(creature, template_service=template_service, content_tracker=content_tracker, latex_config=latex_config) @>
-<#-- For wide creatures, temporarily break out of multicols instead of toggling document columns --#>
-<@ set using_multicols = (in_multicols if in_multicols is defined else False) @>
 <@ set needs_full_width = creature.requires_full_width_layout() @>
-<@ if needs_full_width and using_multicols @>
-\end{multicols}
-<@ endif @>
 
 <#-- Render using DndMonster environment with proper float placement --#>
+<@ if needs_full_width @>
+\begin{DndMonster}[float*=b,width=\textwidth + 8pt]{<# creature.name | latex_escape #>}
+\begin{multicols}{2}
+<@ else @>
 \begin{DndMonster}[float=htbp]{<# creature.name | latex_escape #>}
+<@ endif @>
 \noindent \DndMonsterType{<# creature.get_size_type_alignment() | latex_escape #>}
 \DndMonsterBasics[
     armor-class = {<# creature.get_processed_ac_text() | safe #>},
@@ -233,9 +233,12 @@
 \vspace{2pt}
 \noindent\hfill{\scriptsize\textcolor{gray}{<# creature.source.abbreviation | latex_escape #>}}
 
+<@ if needs_full_width @>
+\end{multicols}
 \end{DndMonster}
-
-<@ if needs_full_width and using_multicols @>
-\begin{multicols}{2}
+<@ else @>
+\end{DndMonster}
 <@ endif @>
+
+<#-- no-op: multicols handled inside DndMonster for wide layout --#>
 <@ endmacro @>
