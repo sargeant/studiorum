@@ -1578,9 +1578,13 @@ class HitOrMissTagHandler(BaseTagHandler):
         """Not a content reference - return None."""
         return None
 
-    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+    def process_tag(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> FormattingNode:
         """Process hit or miss tags."""
-        return "\\textit{Hit or Miss:}"
+        from studiorum.core.text.tag_types import FormattingNode, FormatType
+
+        return FormattingNode(format_type=FormatType.ITALIC, content="Hit or Miss:")
 
 
 class ActionSaveTagHandler(BaseTagHandler):
@@ -1608,13 +1612,19 @@ class ActionSaveTagHandler(BaseTagHandler):
         """Not a content reference - return None."""
         return None
 
-    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+    def process_tag(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> FormattingNode:
         """Process action save tags to ability saving throw."""
+        from studiorum.core.text.tag_types import FormattingNode, FormatType
+
         # Get the ability abbreviation
         ability_abv = getattr(tag_node, "name", "").strip()
         if not ability_abv:
             logger.warning("Empty ability in @actSave tag")
-            return "Saving Throw:"
+            return FormattingNode(
+                format_type=FormatType.ITALIC, content="Saving Throw:"
+            )
 
         # Convert ability abbreviation to full name (based on 5etools attAbvToFull)
         ABILITY_ABV_TO_FULL = {
@@ -1627,7 +1637,9 @@ class ActionSaveTagHandler(BaseTagHandler):
         }
 
         ability_full = ABILITY_ABV_TO_FULL.get(ability_abv.lower(), ability_abv.title())
-        return f"\\textit{{{ability_full} Saving Throw:}}"
+        return FormattingNode(
+            format_type=FormatType.ITALIC, content=f"{ability_full} Saving Throw:"
+        )
 
 
 class ActionSaveFailTagHandler(BaseTagHandler):
@@ -1655,8 +1667,12 @@ class ActionSaveFailTagHandler(BaseTagHandler):
         """Not a content reference - return None."""
         return None
 
-    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+    def process_tag(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> FormattingNode:
         """Process action save fail tags."""
+        from studiorum.core.text.tag_types import FormattingNode, FormatType
+
         # Check if there's an ordinal (like "2" for "Second Failure:")
         ordinal_text = getattr(tag_node, "name", "").strip()
         if ordinal_text:
@@ -1676,11 +1692,15 @@ class ActionSaveFailTagHandler(BaseTagHandler):
                     10: "Tenth",
                 }
                 ordinal_word = ordinal_words.get(ordinal, f"{ordinal}th")
-                return f"\\textit{{{ordinal_word} Failure:}}"
+                return FormattingNode(
+                    format_type=FormatType.ITALIC, content=f"{ordinal_word} Failure:"
+                )
             except ValueError:
-                return f"\\textit{{{ordinal_text} Failure:}}"
+                return FormattingNode(
+                    format_type=FormatType.ITALIC, content=f"{ordinal_text} Failure:"
+                )
         else:
-            return "\\textit{Failure:}"
+            return FormattingNode(format_type=FormatType.ITALIC, content="Failure:")
 
 
 class ActionSaveSuccessTagHandler(BaseTagHandler):
@@ -1708,9 +1728,13 @@ class ActionSaveSuccessTagHandler(BaseTagHandler):
         """Not a content reference - return None."""
         return None
 
-    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+    def process_tag(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> FormattingNode:
         """Process action save success tags."""
-        return "\\textit{Success:}"
+        from studiorum.core.text.tag_types import FormattingNode, FormatType
+
+        return FormattingNode(format_type=FormatType.ITALIC, content="Success:")
 
 
 class ActionSaveSuccessOrFailTagHandler(BaseTagHandler):
@@ -1738,9 +1762,15 @@ class ActionSaveSuccessOrFailTagHandler(BaseTagHandler):
         """Not a content reference - return None."""
         return None
 
-    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+    def process_tag(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> FormattingNode:
         """Process action save success or fail tags."""
-        return "\\textit{Success or Failure:}"
+        from studiorum.core.text.tag_types import FormattingNode, FormatType
+
+        return FormattingNode(
+            format_type=FormatType.ITALIC, content="Success or Failure:"
+        )
 
 
 class ActionSaveFailByTagHandler(BaseTagHandler):
@@ -1768,13 +1798,20 @@ class ActionSaveFailByTagHandler(BaseTagHandler):
         """Not a content reference - return None."""
         return None
 
-    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+    def process_tag(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> FormattingNode:
         """Process action save fail by amount tags."""
+        from studiorum.core.text.tag_types import FormattingNode, FormatType
+
         amount = getattr(tag_node, "name", "").strip()
         if amount:
-            return f"\\textit{{Failure by {amount} or more:}}"
+            return FormattingNode(
+                format_type=FormatType.ITALIC,
+                content=f"Failure by {amount} or more:",
+            )
         else:
-            return "\\textit{Failure:}"
+            return FormattingNode(format_type=FormatType.ITALIC, content="Failure:")
 
 
 class ActionTriggerTagHandler(BaseTagHandler):
@@ -1802,9 +1839,13 @@ class ActionTriggerTagHandler(BaseTagHandler):
         """Not a content reference - return None."""
         return None
 
-    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+    def process_tag(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> FormattingNode:
         """Process action trigger tags."""
-        return "\\textit{Trigger:}"
+        from studiorum.core.text.tag_types import FormattingNode, FormatType
+
+        return FormattingNode(format_type=FormatType.ITALIC, content="Trigger:")
 
 
 class ActionResponseTagHandler(BaseTagHandler):
@@ -1832,14 +1873,18 @@ class ActionResponseTagHandler(BaseTagHandler):
         """Not a content reference - return None."""
         return None
 
-    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+    def process_tag(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> FormattingNode:
         """Process action response tags."""
+        from studiorum.core.text.tag_types import FormattingNode, FormatType
+
         # Check if contains "d" for em-dash format
         response_text = getattr(tag_node, "name", "")
         if "d" in response_text:
-            return "\\textit{Response—}"
+            return FormattingNode(format_type=FormatType.ITALIC, content="Response—")
         else:
-            return "\\textit{Response:}"
+            return FormattingNode(format_type=FormatType.ITALIC, content="Response:")
 
 
 class RechargeTagHandler(BaseTagHandler):
