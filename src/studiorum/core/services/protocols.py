@@ -347,6 +347,18 @@ class TemplateServiceProtocol(ServiceProtocol, Protocol):
         """
         ...
 
+    def render_entry_content_only(
+        self,
+        entry: Any,
+        content_tracker: ContentTracker,
+    ) -> str:
+        """Render entry content without the entry name (backward compatibility).
+
+        This legacy API remains for compatibility with older templates/tests
+        that split heading rendering from body content.
+        """
+        ...
+
 
 @runtime_checkable
 class TextExtractionProtocol(ServiceProtocol, Protocol):

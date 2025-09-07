@@ -30,7 +30,7 @@ class TemplateServiceProtocol(Protocol):
     def render_entry_content_only(
         self, entry: Any, content_tracker: ContentTracker
     ) -> str:
-        """Render entry content without the entry name."""
+        """Render entry content without the entry name (backward compatibility)."""
         ...
 
     def bind_context(
@@ -44,12 +44,8 @@ class TemplateServiceProtocol(Protocol):
 class ContextBoundTemplateProtocol(Protocol):
     """Protocol for context-bound template services with clean APIs."""
 
-    def render_entry_description(self, entry: Any) -> str:
-        """Render entry description with bound context."""
-        ...
-
-    def render_entry_content_only(self, entry: Any) -> str:
-        """Render entry content without the entry name using bound context."""
+    def render_entry(self, entry: Any) -> str:
+        """Render entry with bound context (preferred API)."""
         ...
 
     @property

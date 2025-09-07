@@ -47,27 +47,6 @@ class ContextBoundTemplateService:
         """
         return self._service.render_entry_description(entry, self._tracker)
 
-    def render_entry_description(self, entry: Any) -> str:
-        """Render entry description with bound context.
-
-        Args:
-            entry: Entry object containing description data
-
-        Returns:
-            Rendered description text suitable for LaTeX templates
-
-        Note:
-            Deprecated: Use render_entry() instead for cleaner API
-        """
-        import warnings
-
-        warnings.warn(
-            "render_entry_description is deprecated. Use render_entry() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self._service.render_entry_description(entry, self._tracker)
-
     def render_entries(self, entries: list[Any]) -> str:
         """Render multiple entries efficiently with bound context.
 
@@ -88,15 +67,13 @@ class ContextBoundTemplateService:
 
         return "\n\n".join(rendered_parts)
 
+    # Backward-compatible legacy APIs used in tests
+    def render_entry_description(self, entry: Any) -> str:
+        """Render entry description with bound context (legacy name)."""
+        return self._service.render_entry_description(entry, self._tracker)
+
     def render_entry_content_only(self, entry: Any) -> str:
-        """Render entry content without the entry name using bound context.
-
-        Args:
-            entry: Entry object containing description data
-
-        Returns:
-            Rendered content text without the entry name
-        """
+        """Render entry content without the entry name (bound context, legacy)."""
         return self._service.render_entry_content_only(entry, self._tracker)
 
     @property
