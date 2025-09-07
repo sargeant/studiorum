@@ -18,6 +18,7 @@ SCRIPTS_DIR := scripts
 UV_SYNC_FLAGS := --no-progress
 UV_DEV_FLAGS := --group dev
 UV_DOCS_FLAGS := --group dev
+UV_LLM_FLAGS := --group llm
 UV_CI_FLAGS := --frozen
 
 # Environment detection
@@ -114,6 +115,10 @@ help:
 	@echo "  cache-info   - Show UV cache information"
 	@echo "  clean-cache  - Clean UV cache"
 	@echo "  upgrade      - Upgrade project dependencies"
+	@echo ""
+	@echo "MCP / LLM integration:"
+	@echo "  uv-llm      - Sync LLM tools (mcp-proxy)"
+	@echo "  mcp-ref-tools - Run mcp-proxy for ref.tools over stdio"
 
 # Run all pre-push checks
 all: check security test
@@ -132,6 +137,10 @@ uv:
 # Sync environment (docs dependencies)
 uv-docs:
 	@$(UV_SYNC_BASE) $(UV_DOCS_FLAGS)
+
+# Sync environment (LLM / MCP dependencies)
+uv-llm:
+	@$(UV_SYNC_BASE) $(UV_LLM_FLAGS)
 
 # Checks and tools
 
@@ -178,6 +187,11 @@ pip-audit: uv
 ## Static security analysis
 bandit: uv
 	@$(UV) bandit -c pyproject.toml --quiet -r $(SRC_DIR)/ || (echo "ERROR: bandit: security issues found"; exit 1)
+
+# MCP: ref.tools via mcp-proxy (stdio)
+mcp-ref-tools: uv-llm
+    @chmod +x $(SCRIPTS_DIR)/mcp-proxy-ref-tools.sh
+    @$(SCRIPTS_DIR)/mcp-proxy-ref-tools.sh
 
 # Run parallel-safe tests (safe for automation)
 test: uv
