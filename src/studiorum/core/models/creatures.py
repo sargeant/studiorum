@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Any, cast
 
 from pydantic import BaseModel, Field, field_validator
 
+from studiorum.core.logging import get_logger
+
 from ..registry import content_type
 from ..types import (
     AlignmentDict,
@@ -13,6 +15,8 @@ from ..types import (
     SpeedDict,
 )
 from .content import BaseContent
+
+logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from ..error_types import BaseError
@@ -907,7 +911,11 @@ class Creature(BaseContent):
                 try:
                     return int(s)
                 except Exception:
-                    pass
+                    logger.debug(
+                        "Failed to parse initiative override '%s' as int",
+                        init_data,
+                        exc_info=True,
+                    )
             return base
 
         # If initiative is a dict, check for proficiency scaling per 5etools 2024
