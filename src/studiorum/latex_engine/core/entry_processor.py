@@ -1520,6 +1520,19 @@ class RecursiveEntryProcessor:
 
         if has_innate or has_leveled:
             in_spells_env = False
+            # Use DnDMonsterSpells macros only when rendering in creature/bestiary contexts
+            macro_allowed = False
+            try:
+                if context and context.metadata:
+                    tmpl = context.metadata.get("template")
+                    ctype = context.metadata.get("content_type")
+                    macro_allowed = bool(
+                        tmpl == "bestiary"
+                        or ctype == "creature"
+                        or context.metadata.get("use_dnd_monster_macros")
+                    )
+            except Exception:
+                macro_allowed = False
 
             # Innate spellcasting: at-will, daily, constant
             if has_innate:
@@ -1540,11 +1553,14 @@ class RecursiveEntryProcessor:
                     if any("\\textit{" in s for s in processed):
                         result.append("\\textbf{At will:} " + ", ".join(processed))
                     else:
-                        if not in_spells_env:
-                            result.append("\\begin{DndMonsterSpells}")
-                            in_spells_env = True
-                        at_will_text = ", ".join(processed)
-                        result.append(f"  \\DndInnateSpellLevel{{{at_will_text}}}")
+                        if macro_allowed:
+                            if not in_spells_env:
+                                result.append("\\begin{DndMonsterSpells}")
+                                in_spells_env = True
+                            at_will_text = ", ".join(processed)
+                            result.append(f"  \\DndInnateSpellLevel{{{at_will_text}}}")
+                        else:
+                            result.append("\\textbf{At will:} " + ", ".join(processed))
 
                 # Daily (e.g., {'3e': [...], '1': [...]})
                 if daily:
@@ -1568,12 +1584,17 @@ class RecursiveEntryProcessor:
                             m = re.match(r"(\d+)", str(freq).strip())
                             if m:
                                 n = m.group(1)
-                                if not in_spells_env:
-                                    result.append("\\begin{DndMonsterSpells}")
-                                    in_spells_env = True
-                                result.append(
-                                    f"  \\DndInnateSpellLevel[{n}]{{{', '.join(processed)}}}"
-                                )
+                                if macro_allowed:
+                                    if not in_spells_env:
+                                        result.append("\\begin{DndMonsterSpells}")
+                                        in_spells_env = True
+                                    result.append(
+                                        f"  \\DndInnateSpellLevel[{n}]{{{', '.join(processed)}}}"
+                                    )
+                                else:
+                                    result.append(
+                                        f"\\textbf{{{n}/day:}} " + ", ".join(processed)
+                                    )
                             else:
                                 label = self._escape_latex(str(freq))
                                 result.append(
@@ -1620,29 +1641,53 @@ class RecursiveEntryProcessor:
                     else:
                         spell_text = ", ".join(processed_spells)
                         if str(level) == "0":
-                            if not in_spells_env:
-                                result.append("\\begin{DndMonsterSpells}")
-                                in_spells_env = True
-                            result.append(f"  \\DndMonsterSpellLevel{{{spell_text}}}")
+                            if macro_allowed:
+                                if not in_spells_env:
+                                    result.append("\\begin{DndMonsterSpells}")
+                                    in_spells_env = True
+                                result.append(
+                                    f"  \\DndMonsterSpellLevel{{{spell_text}}}"
+                                )
+                            else:
+                                result.append(
+                                    "\\textbf{Cantrips (at will):} " + spell_text
+                                )
                         else:
                             try:
                                 lvl = int(level)
                             except Exception:
                                 lvl = None
                             if lvl is not None and slots is not None:
-                                if not in_spells_env:
-                                    result.append("\\begin{DndMonsterSpells}")
-                                    in_spells_env = True
-                                result.append(
-                                    f"  \\DndMonsterSpellLevel[{lvl}][{slots}]{{{spell_text}}}"
-                                )
+                                if macro_allowed:
+                                    if not in_spells_env:
+                                        result.append("\\begin{DndMonsterSpells}")
+                                        in_spells_env = True
+                                    result.append(
+                                        f"  \\DndMonsterSpellLevel[{lvl}][{slots}]{{{spell_text}}}"
+                                    )
+                                else:
+                                    # Compose the ordinal suffix like earlier
+                                    suffix_map = {"1": "st", "2": "nd", "3": "rd"}
+                                    suffix = suffix_map.get(str(lvl), "th")
+                                    result.append(
+                                        f"\\textbf{{{lvl}{suffix} level ({slots} slots):}} "
+                                        + spell_text
+                                    )
                             elif lvl is not None:
-                                if not in_spells_env:
-                                    result.append("\\begin{DndMonsterSpells}")
-                                    in_spells_env = True
-                                result.append(
-                                    f"  \\DndMonsterSpellLevel[{lvl}]{{{spell_text}}}"
-                                )
+                                if macro_allowed:
+                                    if not in_spells_env:
+                                        result.append("\\begin{DndMonsterSpells}")
+                                        in_spells_env = True
+                                    result.append(
+                                        f"  \\DndMonsterSpellLevel[{lvl}]{{{spell_text}}}"
+                                    )
+                                else:
+                                    suffix_map = {"1": "st", "2": "nd", "3": "rd"}
+                                    suffix = suffix_map.get(str(lvl), "th")
+                                    result.append(
+                                        f"\\textbf{{{lvl}{suffix} level:}} "
+                                        + spell_text
+                                    )
                             else:
                                 result.append(f"  {spell_text}")
 
