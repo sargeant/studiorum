@@ -547,12 +547,14 @@ class AppendixGenerator:
             metadata=metadata,
         )
 
-        # Include latex_config for statblock options required by creature macro
+        # Include latex_config for statblock options required by creature macro (optional)
+        _latex_config = getattr(self.template_engine, "latex_config", None)
+
         template_context = self.template_engine.create_template_context(
             rendering_context=rendering_context,
             content_tracker=content_tracker,
             creature=creature,
-            latex_config=self.template_engine.latex_config,
+            latex_config=_latex_config,
         )
 
         return self.template_engine.render_template(
