@@ -1519,15 +1519,32 @@ class RecursiveEntryProcessor:
         has_leveled = bool(spells)
 
         if has_innate or has_leveled:
-            result.append("\\begin{DndMonsterSpells}")
+            in_spells_env = False
 
             # Innate spellcasting: at-will, daily, constant
             if has_innate:
                 # At-will
+                def _strip_textit(items: list[str]) -> list[str]:
+                    cleaned: list[str] = []
+                    for s in items:
+                        # Remove outer \textit{...} wrappers if present
+                        if s.startswith("\\textit{") and s.endswith("}"):
+                            cleaned.append(s[len("\\textit{") : -1])
+                        else:
+                            cleaned.append(s)
+                    return cleaned
+
                 if at_will:
                     processed = self.process_entries(at_will, context)
-                    at_will_text = ", ".join(processed)
-                    result.append(f"  \\DndInnateSpellLevel{{{at_will_text}}}")
+                    # If processed contains formatting commands, fall back to plain text
+                    if any("\\textit{" in s for s in processed):
+                        result.append("\\textbf{At will:} " + ", ".join(processed))
+                    else:
+                        if not in_spells_env:
+                            result.append("\\begin{DndMonsterSpells}")
+                            in_spells_env = True
+                        at_will_text = ", ".join(processed)
+                        result.append(f"  \\DndInnateSpellLevel{{{at_will_text}}}")
 
                 # Daily (e.g., {'3e': [...], '1': [...]})
                 if daily:
@@ -1539,18 +1556,29 @@ class RecursiveEntryProcessor:
                     for freq in sorted(daily.keys(), key=sort_key):
                         spell_list = daily.get(freq, [])
                         processed = self.process_entries(spell_list, context)
-                        # Extract leading integer, ignore 'each' distinction for macro formatting
-                        m = re.match(r"(\d+)", str(freq).strip())
-                        if m:
-                            n = m.group(1)
+                        if any("\\textit{" in s for s in processed):
+                            # Fallback to plain text label
+                            # Keep original frequency label
+                            label = self._escape_latex(str(freq))
                             result.append(
-                                f"  \\DndInnateSpellLevel[{n}]{{{', '.join(processed)}}}"
+                                f"\\textbf{{{label}:}} " + ", ".join(processed)
                             )
                         else:
-                            # Fallback to plain text label
-                            result.append(
-                                f"  \\textbf{{{self._escape_latex(str(freq))}:}} {', '.join(processed)}"
-                            )
+                            # Extract leading integer for macro formatting
+                            m = re.match(r"(\d+)", str(freq).strip())
+                            if m:
+                                n = m.group(1)
+                                if not in_spells_env:
+                                    result.append("\\begin{DndMonsterSpells}")
+                                    in_spells_env = True
+                                result.append(
+                                    f"  \\DndInnateSpellLevel[{n}]{{{', '.join(processed)}}}"
+                                )
+                            else:
+                                label = self._escape_latex(str(freq))
+                                result.append(
+                                    f"  \\textbf{{{label}:}} {', '.join(processed)}"
+                                )
 
                 # Constant effects (no dedicated macro in template; format plainly)
                 if constant:
@@ -1575,31 +1603,51 @@ class RecursiveEntryProcessor:
                         continue
 
                     processed_spells = self.process_entries(spell_list, context)
-                    spell_text = ", ".join(processed_spells)
-
-                    if str(level) == "0":
-                        # Cantrips at will: no optional args
-                        result.append(f"  \\DndMonsterSpellLevel{{{spell_text}}}")
-                    else:
-                        # Provide level (and slots if available) as optional args
-                        try:
-                            lvl = int(level)
-                        except Exception:
-                            lvl = None
-
-                        if lvl is not None and slots is not None:
-                            result.append(
-                                f"  \\DndMonsterSpellLevel[{lvl}][{slots}]{{{spell_text}}}"
-                            )
-                        elif lvl is not None:
-                            result.append(
-                                f"  \\DndMonsterSpellLevel[{lvl}]{{{spell_text}}}"
-                            )
+                    if any("\\textit{" in s for s in processed_spells):
+                        # Plain text fallback for formatted content
+                        if str(level) == "0":
+                            level_header = "\\textbf{Cantrips (at will):}"
                         else:
-                            # Fallback to plain text if level unparsable
-                            result.append(f"  {spell_text}")
+                            suffix_map = {"1": "st", "2": "nd", "3": "rd"}
+                            level_suffix = suffix_map.get(str(level), "th")
+                            if slots:
+                                level_header = f"\\textbf{{{level}{level_suffix} level ({slots} slots):}}"
+                            else:
+                                level_header = (
+                                    f"\\textbf{{{level}{level_suffix} level:}}"
+                                )
+                        result.append(f"{level_header} " + ", ".join(processed_spells))
+                    else:
+                        spell_text = ", ".join(processed_spells)
+                        if str(level) == "0":
+                            if not in_spells_env:
+                                result.append("\\begin{DndMonsterSpells}")
+                                in_spells_env = True
+                            result.append(f"  \\DndMonsterSpellLevel{{{spell_text}}}")
+                        else:
+                            try:
+                                lvl = int(level)
+                            except Exception:
+                                lvl = None
+                            if lvl is not None and slots is not None:
+                                if not in_spells_env:
+                                    result.append("\\begin{DndMonsterSpells}")
+                                    in_spells_env = True
+                                result.append(
+                                    f"  \\DndMonsterSpellLevel[{lvl}][{slots}]{{{spell_text}}}"
+                                )
+                            elif lvl is not None:
+                                if not in_spells_env:
+                                    result.append("\\begin{DndMonsterSpells}")
+                                    in_spells_env = True
+                                result.append(
+                                    f"  \\DndMonsterSpellLevel[{lvl}]{{{spell_text}}}"
+                                )
+                            else:
+                                result.append(f"  {spell_text}")
 
-            result.append("\\end{DndMonsterSpells}")
+            if in_spells_env:
+                result.append("\\end{DndMonsterSpells}")
 
         # Footer text
         if footer_entries:

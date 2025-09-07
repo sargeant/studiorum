@@ -8,10 +8,17 @@
 
 <#-- Render using DndMonster environment with proper float placement --#>
 <@ if needs_full_width @>
-\begin{DndMonster}[float*=b,width=\textwidth + 8pt]{<# creature.name | latex_escape #>}
+\begin{DndMonster}[float*=tp,width=\textwidth + 8pt, title to upper=0pt, top=1pt]{<# creature.name | latex_escape #>}
+\vspace*{-1.8\baselineskip}
 \begin{multicols}{2}
+\raggedcolumns
+\begingroup
+\setlength{\premulticols}{0pt}
+\setlength{\postmulticols}{0pt}
+\setlength{\multicolsep}{0pt}
+\setlength{\parskip}{0pt}
 <@ else @>
-\begin{DndMonster}[float=htbp]{<# creature.name | latex_escape #>}
+\begin{DndMonster}[float=tp]{<# creature.name | latex_escape #>}
 <@ endif @>
 \noindent \DndMonsterType{<# creature.get_size_type_alignment() | latex_escape #>}
 \DndMonsterBasics[
@@ -234,6 +241,7 @@
 \noindent\hfill{\scriptsize\textcolor{gray}{<# creature.source.abbreviation | latex_escape #>}}
 
 <@ if needs_full_width @>
+\endgroup
 \end{multicols}
 \end{DndMonster}
 <@ else @>
