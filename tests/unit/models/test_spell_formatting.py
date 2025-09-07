@@ -307,3 +307,201 @@ class TestSpellFormattingMethods:
         assert minimal_spell.get_higher_level_scaling_text() == ""
         assert minimal_spell.get_spell_list_classes() == ""
         assert minimal_spell.is_concentration() is False
+
+    def test_is_ritual(self, sample_spell_data: dict[str, Any]) -> None:
+        """Test ritual spell detection."""
+        # Test spell without meta (not ritual)
+        spell = Spell.model_validate(sample_spell_data)
+        assert spell.is_ritual() is False
+
+        # Test spell with ritual meta
+        ritual_data = {**sample_spell_data, "meta": {"ritual": True}}
+        ritual_spell = Spell.model_validate(ritual_data)
+        assert ritual_spell.is_ritual() is True
+
+        # Test spell with meta but no ritual flag
+        non_ritual_meta_data = {**sample_spell_data, "meta": {"technomagic": True}}
+        non_ritual_spell = Spell.model_validate(non_ritual_meta_data)
+        assert non_ritual_spell.is_ritual() is False
+
+    def test_get_full_level_text(self, sample_spell_data: dict[str, Any]) -> None:
+        """Test full level text with ritual notation."""
+        # Test regular spell
+        spell = Spell.model_validate(sample_spell_data)
+        assert spell.get_full_level_text() == "3rd-level evocation"
+        assert spell.get_full_level_text(include_ritual=True) == "3rd-level evocation"
+
+        # Test ritual spell
+        ritual_data = {**sample_spell_data, "meta": {"ritual": True}}
+        ritual_spell = Spell.model_validate(ritual_data)
+        assert ritual_spell.get_full_level_text() == "3rd-level evocation (ritual)"
+        assert (
+            ritual_spell.get_full_level_text(include_ritual=False)
+            == "3rd-level evocation"
+        )
+
+    def test_get_material_cost(self, sample_spell_data: dict[str, Any]) -> None:
+        """Test material component cost extraction."""
+        # Test spell without material components
+        no_material_data = {**sample_spell_data, "components": {"v": True, "s": True}}
+        no_material_spell = Spell.model_validate(no_material_data)
+        assert no_material_spell.get_material_cost() is None
+
+        # Test spell with material but no cost
+        material_no_cost_data = {
+            **sample_spell_data,
+            "components": {"v": True, "s": True, "m": {"text": "a piece of string"}},
+        }
+        material_spell = Spell.model_validate(material_no_cost_data)
+        assert material_spell.get_material_cost() is None
+
+        # Test spell with cost in material description
+        expensive_material_data = {
+            **sample_spell_data,
+            "components": {
+                "v": True,
+                "s": True,
+                "m": {"text": "a diamond worth at least 300 gp"},
+            },
+        }
+        expensive_spell = Spell.model_validate(expensive_material_data)
+        assert expensive_spell.get_material_cost() == (300, "gp")
+
+        # Test different cost formats
+        cost_formats = [
+            ("a ruby worth 50 gp", (50, "gp")),
+            ("materials worth at least 1000 gp", (1000, "gp")),
+            ("components worth 25 gp", (25, "gp")),
+            ("100 gp worth of materials", (100, "gp")),
+        ]
+
+        for material_text, expected_cost in cost_formats:
+            cost_data = {
+                **sample_spell_data,
+                "components": {"v": True, "s": True, "m": {"text": material_text}},
+            }
+            cost_spell = Spell.model_validate(cost_data)
+            assert cost_spell.get_material_cost() == expected_cost
+
+    def test_has_expensive_components(self, sample_spell_data: dict[str, Any]) -> None:
+        """Test expensive component detection."""
+        # Test spell without material components
+        no_material_data = {**sample_spell_data, "components": {"v": True, "s": True}}
+        no_material_spell = Spell.model_validate(no_material_data)
+        assert no_material_spell.has_expensive_components() is False
+        assert no_material_spell.has_expensive_components(threshold=100) is False
+
+        # Test spell with expensive components
+        expensive_data = {
+            **sample_spell_data,
+            "components": {
+                "v": True,
+                "s": True,
+                "m": {"text": "a diamond worth 300 gp"},
+            },
+        }
+        expensive_spell = Spell.model_validate(expensive_data)
+        assert expensive_spell.has_expensive_components() is True  # Default threshold 1
+        assert expensive_spell.has_expensive_components(threshold=100) is True
+        assert expensive_spell.has_expensive_components(threshold=500) is False
+
+    def test_get_higher_level_header(self, sample_spell_data: dict[str, Any]) -> None:
+        """Test higher level header with XPHB awareness."""
+        # Test regular PHB spell
+        phb_spell = Spell.model_validate(sample_spell_data)
+        assert phb_spell.get_higher_level_header() == "At Higher Levels"
+
+        # Test XPHB spell (non-cantrip)
+        xphb_data = {
+            **sample_spell_data,
+            "source": {
+                "abbreviation": "XPHB",
+                "name": "Player's Handbook (2024)",
+                "page": 241,
+            },
+        }
+        xphb_spell = Spell.model_validate(xphb_data)
+        assert xphb_spell.get_higher_level_header() == "Using a Higher-Level Spell Slot"
+
+        # Test XPHB cantrip
+        xphb_cantrip_data = {
+            **sample_spell_data,
+            "level": 0,
+            "source": {
+                "abbreviation": "XPHB",
+                "name": "Player's Handbook (2024)",
+                "page": 241,
+            },
+        }
+        xphb_cantrip = Spell.model_validate(xphb_cantrip_data)
+        assert xphb_cantrip.get_higher_level_header() == "Cantrip Upgrade"
+
+    def test_is_modern_rules(self, sample_spell_data: dict[str, Any]) -> None:
+        """Test modern rules detection."""
+        # Test regular PHB spell
+        phb_spell = Spell.model_validate(sample_spell_data)
+        assert phb_spell.is_modern_rules() is False
+
+        # Test XPHB spell
+        xphb_data = {
+            **sample_spell_data,
+            "source": {
+                "abbreviation": "XPHB",
+                "name": "Player's Handbook (2024)",
+                "page": 241,
+            },
+        }
+        xphb_spell = Spell.model_validate(xphb_data)
+        assert xphb_spell.is_modern_rules() is True
+
+        # Test spell with 2024 basic rules flag
+        basic_rules_2024_data = {**sample_spell_data, "basicRules2024": True}
+        basic_rules_spell = Spell.model_validate(basic_rules_2024_data)
+        assert basic_rules_spell.is_modern_rules() is True
+
+        # Test spell with SRD52 flag
+        srd52_data = {**sample_spell_data, "srd52": True}
+        srd52_spell = Spell.model_validate(srd52_data)
+        assert srd52_spell.is_modern_rules() is True
+
+    def test_get_scaling_table(self, sample_spell_data: dict[str, Any]) -> None:
+        """Test scaling table extraction."""
+        # Test spell without scaling
+        spell = Spell.model_validate(sample_spell_data)
+        assert spell.get_scaling_table() is None
+
+        # Test spell with scaling level dice
+        scaling_data = {
+            **sample_spell_data,
+            "scalingLevelDice": {
+                "label": "fire damage",
+                "scaling": {"3": "8d6", "4": "9d6", "5": "10d6"},
+            },
+        }
+        scaling_spell = Spell.model_validate(scaling_data)
+        expected_table = {3: "8d6", 4: "9d6", 5: "10d6"}
+        assert scaling_spell.get_scaling_table() == expected_table
+
+    def test_get_affected_creatures_text(
+        self, sample_spell_data: dict[str, Any]
+    ) -> None:
+        """Test affected creature types text."""
+        # Test spell without affected creature types
+        spell = Spell.model_validate(sample_spell_data)
+        assert spell.get_affected_creatures_text() == ""
+
+        # Test spell with affected creature types
+        creature_data = {
+            **sample_spell_data,
+            "affectsCreatureType": ["undead", "construct"],
+        }
+        creature_spell = Spell.model_validate(creature_data)
+        assert creature_spell.get_affected_creatures_text() == "undead, construct"
+
+        # Test single affected creature type
+        single_creature_data = {
+            **sample_spell_data,
+            "affectsCreatureType": ["humanoid"],
+        }
+        single_creature_spell = Spell.model_validate(single_creature_data)
+        assert single_creature_spell.get_affected_creatures_text() == "humanoid"

@@ -494,7 +494,10 @@ class AppendixGenerator:
                 spell_renderer = self.entry_registry.get_renderer("spell")
                 return spell_renderer.render(spell, rendering_context)
             except Exception:
-                pass
+                logger.debug(
+                    "Failed to render spell entry using fallback renderer",
+                    exc_info=True,
+                )
 
         return rendered or ""
 
@@ -542,7 +545,9 @@ class AppendixGenerator:
                 item_renderer = self.entry_registry.get_renderer("item")
                 return item_renderer.render(item, rendering_context)
             except Exception:
-                pass
+                logger.debug(
+                    "Failed to render item entry using fallback renderer", exc_info=True
+                )
 
         return rendered or ""
 
@@ -596,6 +601,9 @@ class AppendixGenerator:
                 creature_renderer = self.entry_registry.get_renderer("creature")
                 return creature_renderer.render(creature, rendering_context)
             except Exception:
-                pass
+                logger.debug(
+                    "Failed to render creature entry using fallback renderer",
+                    exc_info=True,
+                )
 
         return rendered or ""

@@ -3,13 +3,12 @@
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
-    from ...renderers.core.interfaces import RenderingContext
     from ..error_types import BaseError
     from ..result import Result
     from ..text.tag_resolver import TagResolver
     from .processors import SpellProcessor
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from ..registry import content_type
 from .content import BaseContent
@@ -49,6 +48,29 @@ class SpellClassList(BaseModel):
 
 # Use the new typed Entry system
 # EntryContent is replaced by the discriminated union in entry_types.py
+
+
+class SourceReference(BaseModel):
+    """Reference to another source for a spell."""
+
+    source: str = Field(..., description="Source abbreviation (e.g., PHB)")
+    page: int | None = Field(None, description="Page number in the source")
+
+
+class ScalingLevelDice(BaseModel):
+    """Structured dice scaling by level (5etools: scalingLevelDice)."""
+
+    label: str = Field(..., description="Scaling label (e.g., 'fire damage')")
+    scaling: dict[str, str] = Field(
+        ..., description="Level-to-dice mapping (e.g., {'1': '1d6', '5': '2d6'})"
+    )
+
+
+class SpellMeta(BaseModel):
+    """Spell metadata flags (e.g., ritual)."""
+
+    ritual: bool | None = Field(None, description="Can be cast as a ritual")
+    technomagic: bool | None = Field(None, description="Is a technomagic spell")
 
 
 class SpellComponent(BaseModel):
@@ -179,6 +201,59 @@ class Spell(BaseContent):
         None, alias="areaTags", description="Area of effect tags"
     )
 
+    # Optional parity fields (5etools compatibility)
+    scaling_level_dice: ScalingLevelDice | None = Field(
+        None,
+        alias="scalingLevelDice",
+        description="Structured level-based dice scaling",
+    )
+    affects_creature_type: list[str] | None = Field(
+        None,
+        alias="affectsCreatureType",
+        description="Creature types affected or excluded",
+    )
+    misc_tags: list[str] | None = Field(
+        None, alias="miscTags", description="Miscellaneous spell tags"
+    )
+    meta: SpellMeta | None = Field(
+        None, description="Spell metadata (ritual, technomagic, etc.)"
+    )
+    ability_check: list[str] | None = Field(
+        None, alias="abilityCheck", description="Ability checks required"
+    )
+    damage_resist: list[str] | None = Field(
+        None, alias="damageResist", description="Damage resistances granted"
+    )
+    damage_immune: list[str] | None = Field(
+        None, alias="damageImmune", description="Damage immunities granted"
+    )
+    damage_vulnerable: list[str] | None = Field(
+        None, alias="damageVulnerable", description="Damage vulnerabilities inflicted"
+    )
+    condition_immune: list[str] | None = Field(
+        None, alias="conditionImmune", description="Condition immunities granted"
+    )
+    other_sources: list[SourceReference] | None = Field(
+        None, alias="otherSources", description="Additional source references"
+    )
+    srd: bool | None = Field(None, description="Is SRD content")
+    srd52: bool | None = Field(None, description="Is 5.2 SRD content")
+    basic_rules: bool | None = Field(
+        None, alias="basicRules", description="Is basic rules content"
+    )
+    basic_rules_2024: bool | None = Field(
+        None, alias="basicRules2024", description="Is 2024 basic rules content"
+    )
+    reprinted_as: list[str] | None = Field(
+        None, alias="reprintedAs", description="Reprint references"
+    )
+    subschools: list[str] | None = Field(
+        None, description="Spell subschools (if applicable)"
+    )
+    has_fluff_images: bool | None = Field(
+        None, alias="hasFluffImages", description="Has associated artwork"
+    )
+
     @field_validator("school", mode="before")
     @classmethod
     def parse_school(cls, v: Any) -> str:
@@ -243,6 +318,42 @@ class Spell(BaseContent):
             return SpellClassList.model_validate(v)
         # For unexpected types, return None rather than Any
         return None
+
+    @field_validator("scaling_level_dice", mode="before")
+    @classmethod
+    def parse_scaling_level_dice(cls, v: Any) -> ScalingLevelDice | Any:
+        """Parse scalingLevelDice from dict if present."""
+        if v is None or isinstance(v, ScalingLevelDice):
+            return v
+        if isinstance(v, dict):
+            return ScalingLevelDice.model_validate(v)
+        return v
+
+    @field_validator("meta", mode="before")
+    @classmethod
+    def parse_meta(cls, v: Any) -> SpellMeta | Any:
+        """Parse meta from dict if present."""
+        if v is None or isinstance(v, SpellMeta):
+            return v
+        if isinstance(v, dict):
+            return SpellMeta.model_validate(v)
+        return v
+
+    @field_validator("other_sources", mode="before")
+    @classmethod
+    def parse_other_sources(cls, v: Any) -> list[SourceReference] | None | Any:
+        """Parse otherSources list of dicts into typed SourceReference objects."""
+        if v is None:
+            return None
+        if isinstance(v, list):
+            parsed: list[SourceReference] = []
+            for item in v:
+                if isinstance(item, dict):
+                    parsed.append(SourceReference.model_validate(item))
+                elif isinstance(item, SourceReference):
+                    parsed.append(item)
+            return parsed
+        return v
 
     @field_validator("entries", mode="before")
     @classmethod
@@ -366,6 +477,69 @@ class Spell(BaseContent):
             return ", ".join(formatted_areas)
         return ""
 
+    # Phase 3 - Helper Methods (XPHB-aware)
+    def is_ritual(self) -> bool:
+        """Check if spell can be cast as a ritual."""
+        return bool(self.meta and self.meta.ritual)
+
+    def get_full_level_text(self, include_ritual: bool = True) -> str:
+        """Get complete level text with ritual notation."""
+        base = self.get_level_text()
+        if include_ritual and self.is_ritual():
+            return f"{base} (ritual)"
+        return base
+
+    def get_scaling_table(self) -> dict[int, str] | None:
+        """Get scaling table from scalingLevelDice."""
+        if not self.scaling_level_dice:
+            return None
+        return {
+            int(level): dice for level, dice in self.scaling_level_dice.scaling.items()
+        }
+
+    def get_affected_creatures_text(self) -> str:
+        """Get formatted list of affected creature types."""
+        if not self.affects_creature_type:
+            return ""
+        return ", ".join(self.affects_creature_type)
+
+    def get_material_cost(self) -> tuple[int, str] | None:
+        """Extract material component cost if present."""
+        if not self.has_material_components():
+            return None
+
+        material = self.components.material
+        if not isinstance(material, str):
+            return None
+
+        # Parse patterns like "worth at least 50 gp" or "50 gp"
+        import re
+
+        match = re.search(r"(\d+)\s*gp", material.lower())
+        if match:
+            return int(match.group(1)), "gp"
+        return None
+
+    def has_expensive_components(self, threshold: int = 1) -> bool:
+        """Check if spell has expensive material components."""
+        cost = self.get_material_cost()
+        return cost is not None and cost[0] >= threshold
+
+    def get_higher_level_header(self) -> str:
+        """Get appropriate header for higher level casting (XPHB-aware)."""
+        if self.source.abbreviation == "XPHB":
+            if self.level == 0:
+                return "Cantrip Upgrade"
+            else:
+                return "Using a Higher-Level Spell Slot"
+        return "At Higher Levels"
+
+    def is_modern_rules(self) -> bool:
+        """Check if spell uses 2024/modern rules."""
+        return self.source.abbreviation == "XPHB" or bool(
+            self.basic_rules_2024 or self.srd52
+        )
+
     def get_enhanced_level_text(self) -> str:
         """Get enhanced level text with additional information."""
         base_level = self.get_level_text()
@@ -400,9 +574,8 @@ class Spell(BaseContent):
         # Try modern processor pattern first, fallback to simple text extraction
         try:
             # Try to get tag resolver from service container
-            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
+            from ...cli.services import get_cli_tag_resolver
             from ..result import Error
-            from ..text.tag_resolver import TagResolver
 
             # Use sync access since this method is sync
             tag_resolver = get_cli_tag_resolver()

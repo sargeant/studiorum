@@ -3,13 +3,47 @@
 
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
 
-<@ macro render_spell(spell, template_service=template_service, content_tracker=content_tracker) @>
+<@ macro render_spell_header(spell) @>
+<@ if spell.get_full_level_text is defined @>
+  <@ set level_text = spell.get_full_level_text(include_ritual=True) @>
+<@ else @>
+  <@ set level_text = spell.get_level_text() @>
+<@ endif @>
+<@ if spell.subschools @>
+  <@ set level_text = level_text ~ " (" ~ spell.subschools|join(", ") ~ ")" @>
+<@ endif @>
+\textit{<# level_text | latex_escape #>}
+<@ endmacro @>
+
+<@ macro render_higher_level_section(spell) @>
+<#-- Let the processor handle heading depth; avoid duplicate headers --#>
+<@ if spell.higher_level @>
+  <# smart_render_entry(spell.higher_level, entry_processor, rendering_context) #>
+<@ endif @>
+<@ endmacro @>
+
+<@ macro render_spell_components(spell) @>
+<@ set components = spell.get_components_text() @>
+<@ if spell.get_material_cost is defined @>
+  <@ set cost = spell.get_material_cost() @>
+<@ else @>
+  <@ set cost = none @>
+<@ endif @>
+<@ if cost @>
+  <# components | latex_escape #> (<# cost[0] #> <# cost[1] #>)
+<@ else @>
+  <# components | latex_escape #>
+<@ endif @>
+<@ endmacro @>
+
+
+<@ macro render_spell(spell, template_service=none, content_tracker=none) @>
 \DndSpellHeader%
   {<# spell.name | latex_escape #>}
-  {<# spell.get_level_text() | latex_escape #>}
-  {<# template_service.process_field_text(spell.get_casting_time_text()) | safe #>}
+  {<# render_spell_header(spell) | safe #>}
+  {<# spell.get_casting_time_text() | latex_escape #>}
   {<# spell.get_range_text() | latex_escape #>}
-  {<# spell.get_components_text() | latex_escape #>}
+  {<# render_spell_components(spell) | safe #>}
   {<# spell.get_duration_text() | latex_escape #>}
 
 <@ if (spell is defined and spell is not string and spell.entries is defined and spell.entries) or (spell is sequence and spell is not string) @>
@@ -20,10 +54,5 @@
 <# '' #>
 <@ endif @>
 
-<@ if spell.higher_level @>
-<@ for hl_entry in spell.higher_level @>
-
-\paragraph{<# hl_entry.name | latex_escape #>} <# smart_render_entry(hl_entry, entry_processor, rendering_context) #>
-<@ endfor @>
-<@ endif @>
+<# render_higher_level_section(spell) | safe #>
 <@ endmacro @>

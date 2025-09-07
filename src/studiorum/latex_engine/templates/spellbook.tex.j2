@@ -38,6 +38,7 @@
 <#-- Spellbook introduction --#>
 
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+<@ from "_spell_render_block.tex.j2" import render_spell with context @>
 
 <#-- Main spellbook content organized by level --#>
 <@ if spells_by_level @>
@@ -59,22 +60,7 @@
 <@ if show_spell_table_of_contents @>
 \addcontentsline{toc}{subsection}{<# spell.name | latex_escape #>}
 <@ endif @>
-\DndSpellHeader%
-  {<# spell.name | latex_escape #>}
-  {<# spell.get_level_text() | latex_escape #>}
-  {<# spell.get_casting_time_text() | latex_escape #>}
-  {<# spell.get_range_text() | latex_escape #>}
-  {<# spell.get_components_text() | latex_escape #>}
-  {<# spell.get_duration_text() | latex_escape #>}
-
-<# smart_render_entry(spell, entry_processor, rendering_context) #>
-
-<@ if spell.higher_level @>
-<@ for hl_entry in spell.higher_level @>
-
-\paragraph{<# hl_entry.name | latex_escape #>} <# smart_render_entry(hl_entry, entry_processor, rendering_context) #>
-<@ endfor @>
-<@ endif @>
+<# render_spell(spell) #>
 
 <@ if not loop.last @>
 \vspace{0.8em}
@@ -92,22 +78,7 @@
 <@ if show_spell_table_of_contents @>
 \addcontentsline{toc}{subsection}{<# spell.name | latex_escape #>}
 <@ endif @>
-\DndSpellHeader%
-  {<# spell.name | latex_escape #>}
-  {<# spell.get_level_text() | latex_escape #>}
-  {<# spell.get_casting_time_text() | latex_escape #>}
-  {<# spell.get_range_text() | latex_escape #>}
-  {<# spell.get_components_text() | latex_escape #>}
-  {<# spell.get_duration_text() | latex_escape #>}
-
-<# smart_render_entry(spell, entry_processor, rendering_context) #>
-
-<@ if spell.higher_level @>
-<@ for hl_entry in spell.higher_level @>
-
-\paragraph{<# hl_entry.name | latex_escape #>} <# smart_render_entry(hl_entry, entry_processor, rendering_context) #>
-<@ endfor @>
-<@ endif @>
+<# render_spell(spell) #>
 
 <@ if not loop.last @>
 \vspace{1em}
