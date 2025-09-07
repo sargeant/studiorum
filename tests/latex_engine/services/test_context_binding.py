@@ -46,14 +46,7 @@ class TestContextBinding:
                 )
                 return f"Rendered: {entry_name} (tracker: {id(content_tracker)})"
 
-            def render_entry_content_only(self, entry, content_tracker):
-                # Simple mock that returns content + tracker status
-                content = (
-                    entry.get("content", "no content")
-                    if isinstance(entry, dict)
-                    else str(entry)
-                )
-                return f"Content: {content} (tracker: {id(content_tracker)})"
+            # Legacy content-only API intentionally not implemented in mock
 
             def bind_context(self, content_tracker):
                 return ContextBoundTemplateService(self, content_tracker)
@@ -75,17 +68,14 @@ class TestContextBinding:
         # Test clean API without tracker parameter
         test_entry = {"name": "Fireball", "content": "A bright flame"}
 
-        result_description = bound_service.render_entry_description(test_entry)
-        result_content = bound_service.render_entry_content_only(test_entry)
+        result_description = bound_service.render_entry(test_entry)
 
         # Verify results contain expected content
         assert "Fireball" in result_description
-        assert "A bright flame" in result_content
 
         # Verify the same tracker was used (ID should match)
         tracker_id_str = str(id(content_tracker))
         assert tracker_id_str in result_description
-        assert tracker_id_str in result_content
 
     def test_bound_service_tracker_access(self, mock_template_service, content_tracker):
         """Test that bound service provides access to the bound ContentTracker."""
@@ -154,9 +144,6 @@ class TestContextFlowValidation:
                     "render_entry_description": lambda self,
                     entry,
                     tracker: f"rendered:{entry}",
-                    "render_entry_content_only": lambda self,
-                    entry,
-                    tracker: f"content:{entry}",
                 },
             )(),
             content_tracker=content_tracker,
@@ -165,11 +152,10 @@ class TestContextFlowValidation:
         # Test that context flows correctly
         test_entry = {"name": "Test Entry"}
 
-        result_description = template_service.render_entry_description(test_entry)
-        result_content = template_service.render_entry_content_only(test_entry)
+        result_description = template_service.render_entry(test_entry)
 
         assert "rendered:" in result_description
-        assert "content:" in result_content
+        # content-only path removed; description rendering remains
 
 
 class TestPerformanceValidation:

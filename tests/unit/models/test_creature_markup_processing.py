@@ -81,9 +81,8 @@ class TestCreatureMarkupProcessing:
             # Use template service for description rendering
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            description = template_service.render_entry_description(
-                ability.entries, content_tracker
-            )
+            bound = template_service.bind_context(content_tracker)
+            description = bound.render_entry(ability.entries)
             assert "Melee Weapon Attack:" in description
             assert "1d8+4 slashing damage" in description
 
@@ -187,9 +186,8 @@ class TestCreatureMarkupProcessing:
 
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            fallback_description = template_service.render_entry_description(
-                ability.entries, content_tracker
-            )
+            bound = template_service.bind_context(content_tracker)
+            fallback_description = bound.render_entry(ability.entries)
             assert "magic missile" in fallback_description
             assert "1d4+1" in fallback_description
 
@@ -242,9 +240,8 @@ class TestCreatureMarkupProcessing:
 
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            processed_text = template_service.render_entry_description(
-                complex_ability.entries, content_tracker
-            )
+            bound = template_service.bind_context(content_tracker)
+            processed_text = bound.render_entry(complex_ability.entries)
             assert "18th-level spellcaster" in processed_text
             assert "mage hand" in processed_text
             assert "magic missile" in processed_text
@@ -285,7 +282,7 @@ class TestCreatureMarkupProcessing:
 
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            template_service.render_entry_description(ability.entries, content_tracker)
+            template_service.bind_context(content_tracker).render_entry(ability.entries)
 
             # Verify RenderingContext was created with correct parameters
             mock_context_class.assert_called_once()
@@ -330,9 +327,9 @@ class TestCreatureMarkupProcessing:
 
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            processed_text = template_service.render_entry_description(
-                ability.entries, content_tracker
-            )
+            processed_text = template_service.bind_context(
+                content_tracker
+            ).render_entry(ability.entries)
             assert "Melee Weapon Attack" in processed_text
             assert "+7 to hit" in processed_text
             assert "1d8 + 3 slashing damage" in processed_text
@@ -471,9 +468,9 @@ class TestCreatureMarkupProcessing:
 
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            processed_description = template_service.render_entry_description(
-                ability.entries, content_tracker
-            )
+            processed_description = template_service.bind_context(
+                content_tracker
+            ).render_entry(ability.entries)
             assert "12d8 acid damage" in processed_description
 
 
@@ -497,8 +494,8 @@ class TestCreatureMarkupEdgeCases:
 
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            description = template_service.render_entry_description(
-                ability.entries, content_tracker
+            description = template_service.bind_context(content_tracker).render_entry(
+                ability.entries
             )
             assert description == ""
 
@@ -524,8 +521,8 @@ class TestCreatureMarkupEdgeCases:
 
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            description = template_service.render_entry_description(
-                ability.entries, content_tracker
+            description = template_service.bind_context(content_tracker).render_entry(
+                ability.entries
             )
             assert "String entry" in description
             assert "Subsection" in description
@@ -556,8 +553,8 @@ class TestCreatureMarkupEdgeCases:
 
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            description = template_service.render_entry_description(
-                ability.entries, content_tracker
+            description = template_service.bind_context(content_tracker).render_entry(
+                ability.entries
             )
             assert "Valid string" in description
             # Other entries should be converted to strings or handled gracefully
@@ -586,8 +583,8 @@ class TestCreatureMarkupEdgeCases:
 
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            description = template_service.render_entry_description(
-                ability.entries, content_tracker
+            description = template_service.bind_context(content_tracker).render_entry(
+                ability.entries
             )
             assert "Test entry" in description
 
@@ -614,7 +611,7 @@ class TestCreatureMarkupEdgeCases:
 
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            description = template_service.render_entry_description(
-                ability.entries, content_tracker
+            description = template_service.bind_context(content_tracker).render_entry(
+                ability.entries
             )
             assert "Test entry" in description

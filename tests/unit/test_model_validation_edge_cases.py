@@ -101,9 +101,8 @@ class TestModelValidationEdgeCases:
             # Test text extraction using new template service pattern
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            description = template_service.render_entry_description(
-                spell.entries, content_tracker
-            )
+            bound = template_service.bind_context(content_tracker)
+            description = bound.render_entry(spell.entries)
             assert description, f"Failed to extract description for test case {i}"
             assert len(description) > 10, f"Description too short for test case {i}"
 
@@ -177,10 +176,9 @@ class TestModelValidationEdgeCases:
             # Test higher level text extraction using template service
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
+            bound = template_service.bind_context(content_tracker)
             if spell.higher_level:
-                higher_text = template_service.render_entry_description(
-                    spell.higher_level, content_tracker
-                )
+                higher_text = bound.render_entry(spell.higher_level)
                 assert higher_text, (
                     f"Failed to extract higher level text for test case {i}"
                 )

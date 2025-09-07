@@ -114,43 +114,7 @@ class TemplateService:
             # Fallback to escaped raw text
             return self.latex_formatter.escape_latex_chars(text)
 
-    def render_entry_content_only(
-        self,
-        entry: Any,
-        content_tracker: ContentTracker,
-    ) -> str:
-        """Render entry content without the entry name (legacy compatibility).
-
-        This remains for compatibility with callers that split heading
-        rendering from body content. New templates should prefer
-        smart_render_entry via entry processors.
-        """
-        if entry is None:
-            return ""
-
-        # 1. Extract only the content from entry using injected component
-        text = self.text_extractor.extract_content_only_from_entry(entry)
-        if not text:
-            return ""
-
-        # 2. Create rendering context with content tracker
-        rendering_context = RenderingContext(
-            output_format="latex",
-            omnidexer=self.omnidexer,
-            content_tracker=content_tracker,
-            tag_resolver=self.tag_resolver,
-            debug_mode=False,
-        )
-
-        # 3. Process the text using the tag resolver with explicit context
-        try:
-            processed_text = self.tag_resolver.process_text(text, rendering_context)
-            # 4. Apply LaTeX formatting using injected component
-            return self.latex_formatter.format_text(processed_text, entry)
-        except Exception as e:
-            logger.warning(f"Failed to process entry text: {e}")
-            # Fallback to escaped raw text
-            return self.latex_formatter.escape_latex_chars(text)
+    # Legacy API removed: render_entry_content_only
 
     # Legacy API removed: render_entry_content_only
 

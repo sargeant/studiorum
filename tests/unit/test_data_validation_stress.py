@@ -288,16 +288,13 @@ class TestDataValidationStress:
         # Use template service for description extraction
         template_service = get_cli_template_service()
         content_tracker = ContentTracker()
-        description_text = template_service.render_entry_description(
-            spell.entries, content_tracker
-        )
+        bound = template_service.bind_context(content_tracker)
+        description_text = bound.render_entry(spell.entries)
         assert description_text  # Should extract text from complex structure
 
         # Use template service for higher level text extraction
         if spell.higher_level:
-            higher_level_text = template_service.render_entry_description(
-                spell.higher_level, content_tracker
-            )
+            higher_level_text = bound.render_entry(spell.higher_level)
             assert higher_level_text  # Should extract text from complex structure
 
         # Test creature validation

@@ -609,9 +609,8 @@ class TestAbility:
         # Test description extraction using template service
         template_service = get_cli_template_service()
         content_tracker = ContentTracker()
-        description = template_service.render_entry_description(
-            ability.entries, content_tracker
-        )
+        bound = template_service.bind_context(content_tracker)
+        description = bound.render_entry(ability.entries)
         assert description == "The dragon makes three attacks."
 
     def test_ability_complex_entries(self) -> None:
@@ -628,9 +627,8 @@ class TestAbility:
         # Test complex entries using template service
         template_service = get_cli_template_service()
         content_tracker = ContentTracker()
-        result = template_service.render_entry_description(
-            ability.entries, content_tracker
-        )
+        bound = template_service.bind_context(content_tracker)
+        result = bound.render_entry(ability.entries)
         assert "The dragon breathes fire in a cone." in result
         assert "Fire Breath" in result  # LaTeX format: \subsection{Fire Breath}
         assert "Each creature in the area must make a saving throw." in result
@@ -645,9 +643,8 @@ class TestAbility:
         # Test text entries using template service
         template_service = get_cli_template_service()
         content_tracker = ContentTracker()
-        result = template_service.render_entry_description(
-            ability.entries, content_tracker
-        )
+        bound = template_service.bind_context(content_tracker)
+        result = bound.render_entry(ability.entries)
         # Note: {"text": "..."} entries are not rendering properly in current implementation
         # This is a known issue with the entry processing system
         # assert "This is a text entry." in result
@@ -709,21 +706,14 @@ class TestAbility:
         # Test empty entries using template service
         template_service = get_cli_template_service()
         content_tracker = ContentTracker()
-        assert (
-            template_service.render_entry_description(ability1.entries, content_tracker)
-            == ""
-        )
+        bound = template_service.bind_context(content_tracker)
+        assert bound.render_entry(ability1.entries) == ""
 
         # None/empty dict entries
         ability2: Any = Ability(name="Minimal", entries=[{}])
-        assert (
-            template_service.render_entry_description(ability2.entries, content_tracker)
-            == ""
-        )
+        assert bound.render_entry(ability2.entries) == ""
 
         # Mixed empty and valid entries
         ability3: Any = Ability(name="Mixed", entries=["Valid text", {}, ""])
-        result = template_service.render_entry_description(
-            ability3.entries, content_tracker
-        )
+        result = bound.render_entry(ability3.entries)
         assert "Valid text" in result

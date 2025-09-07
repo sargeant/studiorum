@@ -67,14 +67,7 @@ class ContextBoundTemplateService:
 
         return "\n\n".join(rendered_parts)
 
-    # Backward-compatible legacy APIs used in tests
-    def render_entry_description(self, entry: Any) -> str:
-        """Render entry description with bound context (legacy name)."""
-        return self._service.render_entry_description(entry, self._tracker)
-
-    def render_entry_content_only(self, entry: Any) -> str:
-        """Render entry content without the entry name (bound context, legacy)."""
-        return self._service.render_entry_content_only(entry, self._tracker)
+    # Legacy bound APIs removed in favor of render_entry()
 
     @property
     def content_tracker(self) -> ContentTracker:

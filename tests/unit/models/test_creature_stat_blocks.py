@@ -401,9 +401,8 @@ class TestCreatureAbilities:
             # Use template service for text extraction
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            text = template_service.render_entry_description(
-                simple_ability.entries, content_tracker
-            )
+            bound = template_service.bind_context(content_tracker)
+            text = bound.render_entry(simple_ability.entries)
             assert "advantage on Wisdom (Perception)" in text
 
     def test_ability_name_processing(self):
@@ -445,9 +444,8 @@ class TestCreatureAbilities:
             # Use template service for text extraction
             template_service = get_cli_template_service()
             content_tracker = ContentTracker()
-            text = template_service.render_entry_description(
-                complex_ability.entries, content_tracker
-            )
+            bound = template_service.bind_context(content_tracker)
+            text = bound.render_entry(complex_ability.entries)
             assert "18th-level spellcaster" in text
             assert "Cantrips" in text
             assert "magic missile" in text

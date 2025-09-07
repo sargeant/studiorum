@@ -27,12 +27,6 @@ class TemplateServiceProtocol(Protocol):
         """Render entry description with explicit context passing."""
         ...
 
-    def render_entry_content_only(
-        self, entry: Any, content_tracker: ContentTracker
-    ) -> str:
-        """Render entry content without the entry name (backward compatibility)."""
-        ...
-
     def bind_context(
         self, content_tracker: ContentTracker
     ) -> ContextBoundTemplateProtocol:

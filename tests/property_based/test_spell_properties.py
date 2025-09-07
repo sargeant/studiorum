@@ -450,9 +450,8 @@ class TestSpellDataIntegrity:
         # Use template service for description extraction
         template_service = get_cli_template_service()
         content_tracker = ContentTracker()
-        description_text = template_service.render_entry_description(
-            spell.entries, content_tracker
-        )
+        bound = template_service.bind_context(content_tracker)
+        description_text = bound.render_entry(spell.entries)
         assert len(description_text.strip()) > 0
 
     @given(valid_spells())
