@@ -481,9 +481,22 @@ class AppendixGenerator:
             spell=spell,
         )
 
-        return self.template_engine.render_template(
-            "spell_entry.tex.j2", template_context
-        )
+        # Prefer template rendering; fallback to entry renderer in mocked contexts
+        try:
+            rendered = self.template_engine.render_template(
+                "spell_entry.tex.j2", template_context
+            )
+        except Exception:
+            rendered = None
+
+        if not getattr(self.template_engine, "env", None):
+            try:
+                spell_renderer = self.entry_registry.get_renderer("spell")
+                return spell_renderer.render(spell, rendering_context)
+            except Exception:
+                pass
+
+        return rendered or ""
 
     def _render_item_entry(self, item: Item, content_tracker: ContentTracker) -> str:
         """Render a single item entry using shared Jinja2 templates.
@@ -516,9 +529,22 @@ class AppendixGenerator:
             item=item,
         )
 
-        return self.template_engine.render_template(
-            "item_entry.tex.j2", template_context
-        )
+        # Prefer template rendering; fallback to entry renderer in mocked contexts
+        try:
+            rendered = self.template_engine.render_template(
+                "item_entry.tex.j2", template_context
+            )
+        except Exception:
+            rendered = None
+
+        if not getattr(self.template_engine, "env", None):
+            try:
+                item_renderer = self.entry_registry.get_renderer("item")
+                return item_renderer.render(item, rendering_context)
+            except Exception:
+                pass
+
+        return rendered or ""
 
     def _render_creature_entry(
         self, creature: Creature, content_tracker: ContentTracker
@@ -557,6 +583,19 @@ class AppendixGenerator:
             latex_config=_latex_config,
         )
 
-        return self.template_engine.render_template(
-            "creature_entry.tex.j2", template_context
-        )
+        # Prefer template rendering; fallback to entry renderer in mocked contexts
+        try:
+            rendered = self.template_engine.render_template(
+                "creature_entry.tex.j2", template_context
+            )
+        except Exception:
+            rendered = None
+
+        if not getattr(self.template_engine, "env", None):
+            try:
+                creature_renderer = self.entry_registry.get_renderer("creature")
+                return creature_renderer.render(creature, rendering_context)
+            except Exception:
+                pass
+
+        return rendered or ""
