@@ -13,6 +13,7 @@ from studiorum.core.latex_utils import (
     escape_latex_text,
     validate_safe_latex,
 )
+from studiorum.core.logging import get_logger
 from studiorum.core.types import LaTeXConfig as LaTeXConfigDict, TemplateData
 
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
@@ -59,6 +60,9 @@ class LaTeXTemplateEngine:
 
         # Initialize the environment
         self.update_latex_config(None)
+
+        # Logger
+        self._logger = get_logger(__name__)
 
     def update_latex_config(self, latex_config: LaTeXConfig | None) -> None:
         """Update the LaTeX configuration.
@@ -500,8 +504,11 @@ class LaTeXTemplateEngine:
                     use_dnd_template=True
                 )
             except Exception:
-                # Leave undefined if import fails; rendering will surface an error
-                pass
+                # Non-fatal: log and continue; missing processor will surface at render
+                self._logger.debug(
+                    "Failed to initialize entry_processor default in template context",
+                    exc_info=True,
+                )
 
         # Provide a default RenderingContext when not explicitly supplied
         if "rendering_context" not in kwargs and "rendering_context" not in context:
@@ -518,8 +525,11 @@ class LaTeXTemplateEngine:
                     metadata=dict(kwargs.get("metadata", {}) or {}),
                 )
             except Exception:
-                # Leave undefined; templates that require it will raise clearly
-                pass
+                # Non-fatal: log and continue; missing context will surface at render
+                self._logger.debug(
+                    "Failed to initialize rendering_context default in template context",
+                    exc_info=True,
+                )
 
         context.update(kwargs)
         return context
