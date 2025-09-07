@@ -190,8 +190,8 @@ bandit: uv
 
 # MCP: ref.tools via mcp-proxy (stdio)
 mcp-ref-tools: uv-llm
-    @chmod +x $(SCRIPTS_DIR)/mcp-proxy-ref-tools.sh
-    @$(SCRIPTS_DIR)/mcp-proxy-ref-tools.sh
+	@chmod +x $(SCRIPTS_DIR)/mcp-proxy-ref-tools.sh
+	@$(SCRIPTS_DIR)/mcp-proxy-ref-tools.sh
 
 # Run parallel-safe tests (safe for automation)
 test: uv

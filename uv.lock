@@ -1160,6 +1160,19 @@ wheels = [
 ]
 
 [[package]]
+name = "mcp-proxy"
+version = "0.8.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mcp" },
+    { name = "uvicorn" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6a/94/0d4a824f33562f59cb83f55227857539238b63f6175fce4b66920e4227d5/mcp_proxy-0.8.2.tar.gz", hash = "sha256:5d113da6c965bef04202ed2525c6642cfbb786e2517fff8b7c209d58d5a6d00e", size = 30526, upload-time = "2025-07-05T13:48:37.749Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/87/e3/5daf3248a82036ebafcce0387de4098c97102383562dc3f86f19429a6702/mcp_proxy-0.8.2-py3-none-any.whl", hash = "sha256:6974fee896267c6a2444c064b80818a68e08629adc2acf35ac147abd6ae435b2", size = 19276, upload-time = "2025-07-05T13:48:36.677Z" },
+]
+
+[[package]]
 name = "mdurl"
 version = "0.1.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2621,6 +2634,9 @@ dev = [
 images = [
     { name = "pillow" },
 ]
+llm = [
+    { name = "mcp-proxy" },
+]
 xml = [
     { name = "lxml" },
 ]
@@ -2681,6 +2697,7 @@ dev = [
     { name = "types-pyyaml", specifier = ">=6.0.12.20250516" },
 ]
 images = [{ name = "pillow", specifier = ">=9.0.0" }]
+llm = [{ name = "mcp-proxy", specifier = ">=0.2.0" }]
 xml = [{ name = "lxml", specifier = ">=4.9.0" }]
 
 [[package]]

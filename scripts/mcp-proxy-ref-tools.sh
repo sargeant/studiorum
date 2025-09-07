@@ -17,6 +17,5 @@ API_KEY="${REF_TOOLS_API_KEY}"
 URL="https://api.ref.tools/mcp?apiKey=${API_KEY}"
 
 exec uv run --group llm mcp-proxy \
-  --server-name ref-tools \
-  --url "${URL}" \
-  --stdio
+  --transport streamablehttp \
+  "${URL}"
