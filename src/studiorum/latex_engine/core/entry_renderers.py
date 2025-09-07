@@ -208,12 +208,20 @@ class ItemEntryRenderer(BaseEntryRenderer):
             rendering_context = context
 
         # Provide both the item object and preprocessed fields for compatibility
+        # Include a simple description_text fallback (no tag processing) for templates
+        try:
+            description_text = content._extract_simple_text_from_entries(
+                content.entries or []
+            )
+        except Exception:
+            description_text = ""
         return {
             "item": content,
             "type_text": content.get_type_text(),
             "rarity_text": content.get_rarity_text(),
             "weight_text": content.get_weight_text(),
             "value_text": content.get_value_text(),
+            "description_text": description_text,
             "rendering_context": rendering_context,
             "template_service": template_service,
             "entry_processor": entry_processor,

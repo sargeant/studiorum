@@ -5,10 +5,7 @@ set -euo pipefail
 
 PATTERN='template_service\.render_entry_(description|content_only)\s*\('
 
-# Allowlist for legacy usage where explicitly justified (temporary or test needs)
-ALLOWLIST_TEMPLATES=(
-  "src/studiorum/latex_engine/templates/_spell_render_block.tex.j2"
-)
+# No allowlist: all templates must use smart_render_entry with processor/context.
 
 
 files=("$@")
@@ -22,12 +19,7 @@ violations=()
 
 for f in "${files[@]}"; do
   [[ -f "$f" ]] || continue
-  # Skip explicit allowlist
-  for allowed in "${ALLOWLIST_TEMPLATES[@]}"; do
-    if [[ "$f" == "$allowed" ]]; then
-      continue 2
-    fi
-  done
+  # No allowlist: scan all template files
   # Strip Jinja2 comment blocks (<#-- ... --#>) before scanning
   filtered=$(awk '
     BEGIN{incomment=0}

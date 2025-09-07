@@ -12,16 +12,18 @@
   {<# spell.get_components_text() | latex_escape #>}
   {<# spell.get_duration_text() | latex_escape #>}
 
-<@ if entry_processor is defined and rendering_context is defined @>
+<@ if (spell is defined and spell is not string and spell.entries is defined and spell.entries) or (spell is sequence and spell is not string) @>
 <# smart_render_entry(spell, entry_processor, rendering_context) #>
+<@ elif description_text is defined and description_text @>
+<# description_text | latex_escape #>
 <@ else @>
-<# template_service.render_entry_description(spell, content_tracker) | safe #>
+<# '' #>
 <@ endif @>
 
 <@ if spell.higher_level @>
 <@ for hl_entry in spell.higher_level @>
 
-\paragraph{<# hl_entry.name | latex_escape #>} <@ if entry_processor is defined and rendering_context is defined @><# smart_render_entry(hl_entry, entry_processor, rendering_context) #><@ else @><# template_service.render_entry_content_only(hl_entry, content_tracker) | safe #><@ endif @>
+\paragraph{<# hl_entry.name | latex_escape #>} <# smart_render_entry(hl_entry, entry_processor, rendering_context) #>
 <@ endfor @>
 <@ endif @>
 <@ endmacro @>

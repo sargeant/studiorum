@@ -362,8 +362,9 @@ class LaTeXTemplateEngine:
             # Get template from cache or load from file
             template = self._get_template(template_name)
 
-            # Render template with context
-            rendered = template.render(context)
+            # Render template with a context that includes required defaults
+            merged_context = self.create_template_context(**context)
+            rendered = template.render(merged_context)
 
             # Post-process rendered output if needed
             return self._post_process_output(rendered)
@@ -489,6 +490,36 @@ class LaTeXTemplateEngine:
             from ...core.references.content_tracker import ContentTracker
 
             context["content_tracker"] = ContentTracker()
+
+        # Ensure entry processor is available for templates that rely on it
+        if "entry_processor" not in kwargs and "entry_processor" not in context:
+            try:
+                from ..core.entry_processor import RecursiveEntryProcessor
+
+                context["entry_processor"] = RecursiveEntryProcessor(
+                    use_dnd_template=True
+                )
+            except Exception:
+                # Leave undefined if import fails; rendering will surface an error
+                pass
+
+        # Provide a default RenderingContext when not explicitly supplied
+        if "rendering_context" not in kwargs and "rendering_context" not in context:
+            try:
+                from studiorum.renderers.core.interfaces import RenderingContext as RC
+
+                tmpl_service = context.get("template_service")
+                context["rendering_context"] = RC(
+                    output_format="latex",
+                    omnidexer=getattr(tmpl_service, "omnidexer", None),
+                    content_tracker=context.get("content_tracker"),
+                    tag_resolver=getattr(tmpl_service, "tag_resolver", None),
+                    debug_mode=bool(self.debug),
+                    metadata=dict(kwargs.get("metadata", {}) or {}),
+                )
+            except Exception:
+                # Leave undefined; templates that require it will raise clearly
+                pass
 
         context.update(kwargs)
         return context

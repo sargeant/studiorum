@@ -19,5 +19,7 @@
 % Item description
 <@ if item.entries @>
 <# smart_render_entry(item, entry_processor, rendering_context) #>
+<@ elif description_text is defined and description_text @>
+<# description_text | latex_escape #>
 <@ endif @>
 <@ endmacro @>
