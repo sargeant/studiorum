@@ -126,31 +126,37 @@ class ServiceLifecycle(Enum):
 
 ### AppendixGenerator Service
 
-Generates appendix sections for converted content.
+Generates appendix sections from tracked references using shared Jinja templates for entries.
 
 ```python
-from studiorum.core.services.appendix_generator import AppendixGenerator
+from studiorum.core.services.appendix_generator import AppendixGenerator, AppendixFlags
+from studiorum.core.references.content_tracker import ContentTracker
 
-class AppendixGenerator:
-    """Generates appendix content from tracked references."""
+tracker = ContentTracker()
+# ... add tracked content (spells/items/creatures) ...
 
-    def generate_spell_appendix(self, collection_result) -> AppendixSection:
-        """Generate spells appendix section."""
-        # Returns AppendixSection with title "Spells"
+generator = AppendixGenerator(omnidexer, template_engine)
+flags = AppendixFlags(spells=True, items=True, creatures=True)
 
-    def generate_item_appendix(self, collection_result) -> AppendixSection:
-        """Generate magic items appendix section."""
-        # Returns AppendixSection with title "Magic Items"
+# Single-level appendices
+appendices = generator.generate_appendices(tracker, flags)
 
-    def generate_creature_appendix(self, collection_result) -> AppendixSection:
-        """Generate creatures appendix section."""
-        # Returns AppendixSection with title "Creatures"
+# Recursive (e.g., creatures→spells, spells→creatures)
+appendices_recursive = generator.generate_recursive_appendices(tracker, flags, max_depth=2)
+
+# Each AppendixSection has fields: title, content (LaTeX), content_type, item_count
+for section in appendices:
+    print(section.title, section.item_count)
 ```
 
-**Key Changes**:
-- Appendix titles simplified from "Appendix A: Spells" to "Spells"
-- Enables LaTeX-native chapter/appendix numbering system
-- Cleaner presentation in generated documents
+Rendering details:
+- Spells use `templates/spell_entry.tex.j2` which imports `_spell_render_block.tex.j2`.
+- Items use `templates/item_entry.tex.j2` which imports `_item_render_block.tex.j2`.
+- Creatures use `templates/creature_entry.tex.j2` which imports `_creature_render_block.tex.j2`.
+
+Appendix layout:
+- Current implementation assembles sections programmatically and embeds the per-entry rendered content.
+- Planned unification will render complete sections via `templates/components/appendix_enhanced.tex.j2` for full template-driven assembly.
 
 ### Omnidexer Service
 
