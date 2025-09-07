@@ -109,7 +109,24 @@
   Requires: engine-injected entry_processor and rendering_context.
 --#>
 <@ macro render_creature(creature, template_service=template_service, content_tracker=content_tracker, latex_config=latex_config) @>
-<@ set needs_full_width = creature.requires_full_width_layout() @>
+<#-- Resolve common lists safely up-front --#>
+<@ set traits_list = creature | attr('trait') | default([], true) @>
+<@ set actions_list = creature | attr('action') | default([], true) @>
+<@ set bonus_list = creature | attr('bonus') | default([], true) @>
+<@ set reaction_list = creature | attr('reaction') | default([], true) @>
+<@ set legendary_list = creature | attr('legendary') | default([], true) @>
+<@ set lair_actions_list = creature | attr('lair_actions') | default([], true) @>
+<@ set _spellcasting = creature | attr('spellcasting') | default([], true) @>
+
+<#-- Compute full-width heuristic locally (avoid method attr access) --#>
+<@ set needs_full_width = False @>
+<@ if legendary_list and legendary_list | length > 0 @>
+<@ set needs_full_width = True @>
+<@ elif traits_list and traits_list | length > 6 @>
+<@ set needs_full_width = True @>
+<@ elif actions_list and actions_list | length > 6 @>
+<@ set needs_full_width = True @>
+<@ endif @>
 
 <#-- Render using DndMonster environment with proper float placement --#>
 <@ if needs_full_width @>
@@ -174,21 +191,22 @@
 <@ endif @>
 
 <@ set traits_spellcasting = [] @>
-<@ if creature.spellcasting @>
-<@ for spellcasting in creature.spellcasting @>
+<@ if _spellcasting @>
+<@ for spellcasting in _spellcasting @>
 <@ if not spellcasting.displayAs @>
 <@ set _ = traits_spellcasting.append(spellcasting) @>
 <@ endif @>
 <@ endfor @>
 <@ endif @>
 
-<# render_section('Traits', creature.trait, traits_spellcasting) #>
+<@ set traits_list = traits_list if traits_list else None @>
+<# render_section('Traits', traits_list, traits_spellcasting) #>
 
 <@ set action_spells = [] @>
 <@ set bonus_spells = [] @>
 <@ set reaction_spells = [] @>
-<@ if creature.spellcasting @>
-<@ for spellcasting in creature.spellcasting @>
+<@ if _spellcasting @>
+<@ for spellcasting in _spellcasting @>
 <@ if spellcasting.displayAs == "action" @>
 <@ set _ = action_spells.append(spellcasting) @>
 <@ elif spellcasting.displayAs == "bonus" @>
@@ -199,19 +217,28 @@
 <@ endfor @>
 <@ endif @>
 
-<# render_section('Actions', creature.action, action_spells) #>
+<@ set actions_list = actions_list if actions_list else None @>
+<# render_section('Actions', actions_list, action_spells) #>
 
-<# render_section('Bonus Actions', creature.bonus, bonus_spells) #>
+<@ set bonus_list = bonus_list if bonus_list else None @>
+<# render_section('Bonus Actions', bonus_list, bonus_spells) #>
 
-<# render_section('Reactions', creature.reaction, reaction_spells) #>
+<@ set reaction_list = reaction_list if reaction_list else None @>
+<# render_section('Reactions', reaction_list, reaction_spells) #>
 
-<# render_section('Legendary Actions', creature.legendary, None) #>
+<@ set legendary_list = legendary_list if legendary_list else None @>
+<# render_section('Legendary Actions', legendary_list, None) #>
 
-<# render_lair_actions_section(creature.lair_actions) #>
+<@ set lair_actions_list = lair_actions_list if lair_actions_list else None @>
+<# render_lair_actions_section(lair_actions_list) #>
 
 % Add source abbreviation at the bottom
+<@ set _source = creature | attr('source') | default(None, true) @>
+<@ set _source_abbrev = _source | attr('abbreviation') | default(None, true) @>
+<@ if _source_abbrev @>
 \vspace{2pt}
-\noindent\hfill{\scriptsize\textcolor{gray}{<# creature.source.abbreviation | latex_escape #>}}
+\noindent\hfill{\scriptsize\textcolor{gray}{<# _source_abbrev | latex_escape #>}}
+<@ endif @>
 
 <@ if needs_full_width @>
 \endgroup

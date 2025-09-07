@@ -449,7 +449,10 @@ class AppendixGenerator:
         )
 
     def _render_spell_entry(self, spell: Spell, content_tracker: ContentTracker) -> str:
-        """Render a single spell entry using the entry renderer system.
+        """Render a single spell entry using shared Jinja2 templates.
+
+        Uses `templates/spell_entry.tex.j2` which imports `_spell_render_block.tex.j2`
+        to ensure consistency with spellbook rendering.
 
         Args:
             spell: Spell object to render
@@ -458,24 +461,35 @@ class AppendixGenerator:
         Returns:
             LaTeX content for the spell entry
         """
-        # Use existing entry renderer for consistent rendering
         from studiorum.cli.utils import get_tag_resolver
-        from studiorum.renderers.core.interfaces import RenderingContext
+        from studiorum.renderers.core.interfaces import RenderingContext as RC
 
-        # Create rendering context with ContentTracker for tracking references
-        context = RenderingContext(
+        # Ensure rendering context carries proper content type for heading depth
+        metadata = {"content_type": "spell"}
+        rendering_context = RC(
             output_format="latex",
             omnidexer=self.omnidexer,
             content_tracker=content_tracker,
             tag_resolver=get_tag_resolver(),
+            metadata=metadata,
         )
 
-        # Get spell renderer and render
-        spell_renderer = self.entry_registry.get_renderer("spell")
-        return spell_renderer.render(spell, context)
+        # Build template context (engine injects entry_processor/template_service defaults)
+        template_context = self.template_engine.create_template_context(
+            rendering_context=rendering_context,
+            content_tracker=content_tracker,
+            spell=spell,
+        )
+
+        return self.template_engine.render_template(
+            "spell_entry.tex.j2", template_context
+        )
 
     def _render_item_entry(self, item: Item, content_tracker: ContentTracker) -> str:
-        """Render a single item entry using the entry renderer system.
+        """Render a single item entry using shared Jinja2 templates.
+
+        Uses `templates/item_entry.tex.j2` which imports `_item_render_block.tex.j2`
+        to ensure consistency with itemcompendium rendering.
 
         Args:
             item: Item object to render
@@ -484,26 +498,35 @@ class AppendixGenerator:
         Returns:
             LaTeX content for the item entry
         """
-        # Use existing entry renderer for consistent rendering
         from studiorum.cli.utils import get_tag_resolver
-        from studiorum.renderers.core.interfaces import RenderingContext
+        from studiorum.renderers.core.interfaces import RenderingContext as RC
 
-        # Create rendering context with ContentTracker for tracking references
-        context = RenderingContext(
+        metadata = {"content_type": "item"}
+        rendering_context = RC(
             output_format="latex",
             omnidexer=self.omnidexer,
             content_tracker=content_tracker,
             tag_resolver=get_tag_resolver(),
+            metadata=metadata,
         )
 
-        # Get item renderer and render
-        item_renderer = self.entry_registry.get_renderer("item")
-        return item_renderer.render(item, context)
+        template_context = self.template_engine.create_template_context(
+            rendering_context=rendering_context,
+            content_tracker=content_tracker,
+            item=item,
+        )
+
+        return self.template_engine.render_template(
+            "item_entry.tex.j2", template_context
+        )
 
     def _render_creature_entry(
         self, creature: Creature, content_tracker: ContentTracker
     ) -> str:
-        """Render a single creature entry using the entry renderer system.
+        """Render a single creature entry using shared Jinja2 templates.
+
+        Uses `templates/creature_entry.tex.j2` which imports `_creature_render_block.tex.j2`
+        to ensure consistency with bestiary rendering.
 
         Args:
             creature: Creature object to render
@@ -512,18 +535,26 @@ class AppendixGenerator:
         Returns:
             LaTeX content for the creature entry
         """
-        # Use existing entry renderer for consistent rendering
         from studiorum.cli.utils import get_tag_resolver
-        from studiorum.renderers.core.interfaces import RenderingContext
+        from studiorum.renderers.core.interfaces import RenderingContext as RC
 
-        # Create rendering context with ContentTracker for tracking references
-        context = RenderingContext(
+        metadata = {"content_type": "creature"}
+        rendering_context = RC(
             output_format="latex",
             omnidexer=self.omnidexer,
             content_tracker=content_tracker,
             tag_resolver=get_tag_resolver(),
+            metadata=metadata,
         )
 
-        # Get creature renderer and render
-        creature_renderer = self.entry_registry.get_renderer("creature")
-        return creature_renderer.render(creature, context)
+        # Include latex_config for statblock options required by creature macro
+        template_context = self.template_engine.create_template_context(
+            rendering_context=rendering_context,
+            content_tracker=content_tracker,
+            creature=creature,
+            latex_config=self.template_engine.latex_config,
+        )
+
+        return self.template_engine.render_template(
+            "creature_entry.tex.j2", template_context
+        )
