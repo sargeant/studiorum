@@ -3,6 +3,111 @@
 
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
 
+<#--
+  Helper macros to reduce duplication and improve readability.
+  These do not change behavior; they centralize repeated rendering patterns
+  for spellcasting blocks and named entries, and gate section headers.
+--#>
+
+<#--
+  Macro: render_spellcasting_block(spellcasting)
+  Purpose: Render a spellcasting block as a DndMonsterAction heading,
+           followed by structured content via smart_render_entry with
+           renderHeader=False (header already printed by the action line).
+  Requires: engine-injected entry_processor and rendering_context.
+--#>
+<@ macro render_spellcasting_block(spellcasting) @>
+\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
+<# smart_render_entry({
+    'type': 'spellcasting',
+    'name': spellcasting.name,
+    'headerEntries': spellcasting.headerEntries,
+    'footerEntries': spellcasting.footerEntries,
+    'spells': spellcasting.spells,
+    'will': spellcasting.will,
+    'daily': spellcasting.daily,
+    'renderHeader': False
+}, entry_processor, rendering_context) #>
+
+<@ endmacro @>
+
+<#--
+  Macro: render_named_entry(entry)
+  Purpose: Print the entry name as a DndMonsterAction heading and render
+           either entry.entries (if present) or the entry itself.
+  Notes:   Keeps behavior identical to prior inline branches.
+--#>
+<@ macro render_named_entry(entry) @>
+\DndMonsterAction{<# entry | safe_processed_name | safe #>}
+<@ if entry.entries is defined and entry.entries @>
+<# smart_render_entry(entry.entries, entry_processor, rendering_context) #>
+<@ else @>
+<# smart_render_entry(entry, entry_processor, rendering_context) #>
+<@ endif @>
+
+<@ endmacro @>
+
+<#--
+  Macro: render_section(title, entries_list, spell_list)
+  Purpose: Conditionally render a section header when content exists, then
+           render any spellcasting blocks followed by named entries.
+  Params:  title (string), entries_list (list or None), spell_list (list or None)
+--#>
+<@ macro render_section(title, entries_list, spell_list) @>
+<@ if (entries_list) or (spell_list) @>
+\DndMonsterSection{<# title #>}
+<@ for spellcasting in (spell_list or []) @>
+<# render_spellcasting_block(spellcasting) #>
+
+<@ endfor @>
+<@ if entries_list @>
+<@ for entry in entries_list @>
+<# render_named_entry(entry) #>
+
+<@ endfor @>
+<@ endif @>
+<@ endif @>
+<@ endmacro @>
+
+<#-- Legendary Actions handled via render_section helper. --#>
+
+<#--
+  Macro: render_lair_actions_section(lair_actions)
+  Purpose: Render the Lair Actions section; supports both raw string entries
+           and objects with optional names + entries.
+  Notes:   Matches previous special-casing for string lair actions.
+--#>
+<@ macro render_lair_actions_section(lair_actions) @>
+<@ if lair_actions @>
+\DndMonsterSection{Lair Actions}
+<@ for lair_action in lair_actions @>
+<@ if lair_action is string @>
+<# smart_render_entry(lair_action, entry_processor, rendering_context) #>
+
+<@ else @>
+<@ if lair_action | safe_processed_name @>
+\DndMonsterAction{<# lair_action | safe_processed_name | safe #>}
+<@ endif @>
+<@ if lair_action.entries is defined and lair_action.entries @>
+<# smart_render_entry(lair_action.entries, entry_processor, rendering_context) #>
+<@ else @>
+<# smart_render_entry(lair_action, entry_processor, rendering_context) #>
+<@ endif @>
+
+<@ endif @>
+<@ endfor @>
+<@ endif @>
+<@ endmacro @>
+
+<#--
+  Macro: render_creature(creature, template_service, content_tracker, latex_config)
+  Purpose: Top-level creature renderer. Sets up wide/narrow DndMonster layout,
+           prints core fields (type, basics, ability scores, details), and then
+           delegates sections to helper macros. Honors modern statblock save
+           placement and wide layout multicols configuration.
+  Inputs:  creature (object with accessors), latex_config (for statblock mode).
+  Requires: engine-injected entry_processor and rendering_context.
+--#>
 <@ macro render_creature(creature, template_service=template_service, content_tracker=content_tracker, latex_config=latex_config) @>
 <@ set needs_full_width = creature.requires_full_width_layout() @>
 
@@ -68,38 +173,16 @@
 ]
 <@ endif @>
 
-<@ if creature.trait or (creature.spellcasting and creature.spellcasting | selectattr('displayAs', 'undefined') | list) @>
-\DndMonsterSection{Traits}
+<@ set traits_spellcasting = [] @>
 <@ if creature.spellcasting @>
 <@ for spellcasting in creature.spellcasting @>
 <@ if not spellcasting.displayAs @>
-\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# smart_render_entry({
-    'type': 'spellcasting',
-    'name': spellcasting.name,
-    'headerEntries': spellcasting.headerEntries,
-    'footerEntries': spellcasting.footerEntries,
-    'spells': spellcasting.spells,
-    'will': spellcasting.will,
-    'daily': spellcasting.daily,
-    'renderHeader': False
-}, entry_processor, rendering_context) #>
-
+<@ set _ = traits_spellcasting.append(spellcasting) @>
 <@ endif @>
 <@ endfor @>
 <@ endif @>
-<@ if creature.trait @>
-<@ for trait in creature.trait @>
-\DndMonsterAction{<# trait | safe_processed_name | safe #>}
-<@ if trait.entries is defined and trait.entries @>
-<# smart_render_entry(trait.entries, entry_processor, rendering_context) #>
-<@ else @>
-<# smart_render_entry(trait, entry_processor, rendering_context) #>
-<@ endif @>
 
-<@ endfor @>
-<@ endif @>
-<@ endif @>
+<# render_section('Traits', creature.trait, traits_spellcasting) #>
 
 <@ set action_spells = [] @>
 <@ set bonus_spells = [] @>
@@ -116,125 +199,15 @@
 <@ endfor @>
 <@ endif @>
 
-<@ if creature.action or action_spells @>
-\DndMonsterSection{Actions}
-<@ for spellcasting in action_spells @>
-\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# smart_render_entry({
-    'type': 'spellcasting',
-    'name': spellcasting.name,
-    'headerEntries': spellcasting.headerEntries,
-    'footerEntries': spellcasting.footerEntries,
-    'spells': spellcasting.spells,
-    'will': spellcasting.will,
-    'daily': spellcasting.daily,
-    'renderHeader': False
-}, entry_processor, rendering_context) #>
+<# render_section('Actions', creature.action, action_spells) #>
 
-<@ endfor @>
-<@ if creature.action @>
-<@ for action in creature.action @>
-\DndMonsterAction{<# action | safe_processed_name | safe #>}
-<@ if action.entries is defined and action.entries @>
-<# smart_render_entry(action.entries, entry_processor, rendering_context) #>
-<@ else @>
-<# smart_render_entry(action, entry_processor, rendering_context) #>
-<@ endif @>
+<# render_section('Bonus Actions', creature.bonus, bonus_spells) #>
 
-<@ endfor @>
-<@ endif @>
-<@ endif @>
+<# render_section('Reactions', creature.reaction, reaction_spells) #>
 
-<@ if creature.bonus or bonus_spells @>
-\DndMonsterSection{Bonus Actions}
-<@ for spellcasting in bonus_spells @>
-\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# smart_render_entry({
-    'type': 'spellcasting',
-    'name': spellcasting.name,
-    'headerEntries': spellcasting.headerEntries,
-    'footerEntries': spellcasting.footerEntries,
-    'spells': spellcasting.spells,
-    'will': spellcasting.will,
-    'daily': spellcasting.daily,
-    'renderHeader': False
-}, entry_processor, rendering_context) #>
+<# render_section('Legendary Actions', creature.legendary, None) #>
 
-<@ endfor @>
-<@ if creature.bonus @>
-<@ for bonus in creature.bonus @>
-\DndMonsterAction{<# bonus | safe_processed_name | safe #>}
-<@ if bonus.entries is defined and bonus.entries @>
-<# smart_render_entry(bonus.entries, entry_processor, rendering_context) #>
-<@ else @>
-<# smart_render_entry(bonus, entry_processor, rendering_context) #>
-<@ endif @>
-
-<@ endfor @>
-<@ endif @>
-<@ endif @>
-
-<@ if creature.reaction or reaction_spells @>
-\DndMonsterSection{Reactions}
-<@ for spellcasting in reaction_spells @>
-\DndMonsterAction{<# spellcasting | safe_processed_name | safe #>}
-<# smart_render_entry({
-    'type': 'spellcasting',
-    'name': spellcasting.name,
-    'headerEntries': spellcasting.headerEntries,
-    'footerEntries': spellcasting.footerEntries,
-    'spells': spellcasting.spells,
-    'will': spellcasting.will,
-    'daily': spellcasting.daily,
-    'renderHeader': False
-}, entry_processor, rendering_context) #>
-
-<@ endfor @>
-<@ if creature.reaction @>
-<@ for reaction in creature.reaction @>
-\DndMonsterAction{<# reaction | safe_processed_name | safe #>}
-<@ if reaction.entries is defined and reaction.entries @>
-<# smart_render_entry(reaction.entries, entry_processor, rendering_context) #>
-<@ else @>
-<# smart_render_entry(reaction, entry_processor, rendering_context) #>
-<@ endif @>
-
-<@ endfor @>
-<@ endif @>
-<@ endif @>
-
-<@ if creature.legendary @>
-\DndMonsterSection{Legendary Actions}
-<@ for legendary in creature.legendary @>
-\DndMonsterAction{<# legendary | safe_processed_name | safe #>}
-<@ if legendary.entries is defined and legendary.entries @>
-<# smart_render_entry(legendary.entries, entry_processor, rendering_context) #>
-<@ else @>
-<# smart_render_entry(legendary, entry_processor, rendering_context) #>
-<@ endif @>
-
-<@ endfor @>
-<@ endif @>
-
-<@ if creature.lair_actions @>
-\DndMonsterSection{Lair Actions}
-<@ for lair_action in creature.lair_actions @>
-<@ if lair_action is string @>
-<# smart_render_entry(lair_action, entry_processor, rendering_context) #>
-
-<@ else @>
-<@ if lair_action | safe_processed_name @>
-\DndMonsterAction{<# lair_action | safe_processed_name | safe #>}
-<@ endif @>
-<@ if lair_action.entries is defined and lair_action.entries @>
-<# smart_render_entry(lair_action.entries, entry_processor, rendering_context) #>
-<@ else @>
-<# smart_render_entry(lair_action, entry_processor, rendering_context) #>
-<@ endif @>
-
-<@ endif @>
-<@ endfor @>
-<@ endif @>
+<# render_lair_actions_section(creature.lair_actions) #>
 
 % Add source abbreviation at the bottom
 \vspace{2pt}
