@@ -328,24 +328,7 @@ class TemplateServiceProtocol(ServiceProtocol, Protocol):
     all template rendering operations.
     """
 
-    def render_entry_description(
-        self,
-        entry: Any,
-        content_tracker: ContentTracker,
-    ) -> str:
-        """Render entry description with explicit context passing.
-
-        This method replaces the problematic get_description_text() pattern
-        that relied on stack inspection to find rendering context.
-
-        Args:
-            entry: Entry object containing description data
-            content_tracker: Content tracker for appendix generation
-
-        Returns:
-            Rendered description text suitable for LaTeX templates
-        """
-        ...
+    # Legacy method render_entry_description removed - use RecursiveEntryProcessor instead
 
 
 @runtime_checkable

@@ -21,11 +21,7 @@ class TemplateServiceProtocol(Protocol):
         """Return service name for debugging."""
         ...
 
-    def render_entry_description(
-        self, entry: Any, content_tracker: ContentTracker
-    ) -> str:
-        """Render entry description with explicit context passing."""
-        ...
+    # Legacy method render_entry_description removed - use RecursiveEntryProcessor instead
 
     def bind_context(
         self, content_tracker: ContentTracker

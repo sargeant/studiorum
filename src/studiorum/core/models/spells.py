@@ -681,39 +681,9 @@ class Spell(BaseContent):
         bound_service = concrete_service.bind_context(content_tracker)  # type: ignore[attr-defined]
         return bound_service.render_entry(self.entries)
 
-    def get_description_text(self) -> str:
-        """Get spell description text using TemplateService (backward compatibility).
+    # Legacy method get_description_text removed - access .entries directly and use RecursiveEntryProcessor
 
-        Note:
-            Deprecated: Use get_text() instead for cleaner API
-        """
-        import warnings
-
-        warnings.warn(
-            "get_description_text is deprecated. Use get_text() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        from ...cli.services import get_cli_template_service
-        from ...core.references.content_tracker import ContentTracker
-
-        template_service = get_cli_template_service()
-        content_tracker = ContentTracker()
-        return template_service.render_entry_description(self.entries, content_tracker)
-
-    def get_higher_level_text(self) -> str:
-        """Get spell higher level text using TemplateService (backward compatibility)."""
-        if not self.higher_level:
-            return ""
-
-        from ...cli.services import get_cli_template_service
-        from ...core.references.content_tracker import ContentTracker
-
-        template_service = get_cli_template_service()
-        content_tracker = ContentTracker()
-        return template_service.render_entry_description(
-            self.higher_level, content_tracker
-        )
+    # Legacy method get_higher_level_text removed - access .higher_level directly and use RecursiveEntryProcessor
 
     def get_spell_list_classes(self) -> str:
         """Get formatted list of classes that can cast this spell."""

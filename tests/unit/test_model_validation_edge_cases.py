@@ -357,11 +357,23 @@ class TestModelValidationEdgeCases:
             assert ability.name == cast(dict, ability_data)["name"]
 
             # Test ability description extraction using template service
-            template_service = get_cli_template_service()
-            content_tracker = ContentTracker()
-            description = template_service.render_entry_description(
-                ability.entries, content_tracker
+            from studiorum.cli.utils import get_omnidexer
+            from studiorum.latex_engine.core.entry_processor import (
+                RecursiveEntryProcessor,
             )
+            from studiorum.renderers.core.interfaces import RenderingContext
+
+            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+            content_tracker = ContentTracker()
+            rendering_context = RenderingContext(
+                output_format="latex",
+                omnidexer=get_omnidexer(),
+                content_tracker=content_tracker,
+            )
+            processed_entries = entry_processor.process_entries(
+                ability.entries, rendering_context
+            )
+            description = "\n\n".join(processed_entries)
             assert description, (
                 f"Failed to extract description for ability test case {i}"
             )
@@ -435,12 +447,25 @@ class TestModelValidationEdgeCases:
             assert item.name == item_data["name"]
 
             if item.entries:
-                # Test item description extraction using template service
-                template_service = get_cli_template_service()
-                content_tracker = ContentTracker()
-                description = template_service.render_entry_description(
-                    item.entries, content_tracker
+                # Test item description extraction using modern RecursiveEntryProcessor
+                from studiorum.cli.utils import get_omnidexer
+                from studiorum.core.references.content_tracker import ContentTracker
+                from studiorum.latex_engine.core.entry_processor import (
+                    RecursiveEntryProcessor,
                 )
+                from studiorum.renderers.core.interfaces import RenderingContext
+
+                entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+                content_tracker = ContentTracker()
+                rendering_context = RenderingContext(
+                    output_format="latex",
+                    omnidexer=get_omnidexer(),
+                    content_tracker=content_tracker,
+                )
+                processed_entries = entry_processor.process_entries(
+                    item.entries, rendering_context
+                )
+                description = "\n\n".join(processed_entries)
                 assert description, (
                     f"Failed to extract description for item test case {i}"
                 )

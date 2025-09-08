@@ -13,10 +13,14 @@ from tests.test_helpers import reset_test_environment
 
 
 class TestImageSource:
-    """Test the image source configuration."""
+    """Test the legacy image source compatibility layer.
+
+    NOTE: ImageSource is an internal compatibility shim, but we test it to ensure
+    the compatibility layer works correctly during the transition to ImageSourceRegistry.
+    """
 
     def test_image_source_creation(self):
-        """Test creating an image source."""
+        """Test creating a legacy image source."""
         source = ImageSource(
             name="test-source",
             base_url="https://example.com/images",
@@ -29,7 +33,7 @@ class TestImageSource:
         assert source.priority == 50
 
     def test_image_source_with_local_path(self):
-        """Test image source with local path."""
+        """Test legacy image source with local path."""
         source = ImageSource(
             name="local-source",
             base_url="file:///tmp/images",
@@ -41,10 +45,14 @@ class TestImageSource:
 
 
 class TestImageAsset:
-    """Test the image asset model."""
+    """Test the legacy image asset compatibility layer.
+
+    NOTE: ImageAsset is an internal compatibility shim, but we test it to ensure
+    the compatibility layer works correctly during the transition to ImageSourceRegistry.
+    """
 
     def test_image_asset_creation(self):
-        """Test creating an image asset."""
+        """Test creating a legacy image asset."""
         asset = ImageAsset(
             original_url="https://example.com/test.png",
             local_path=Path("/cache/test.png"),

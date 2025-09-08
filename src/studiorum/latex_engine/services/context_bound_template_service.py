@@ -9,11 +9,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from studiorum.renderers.core.interfaces import RenderingContext
+# RenderingContext imported locally in render_entry to support mocking
 
 if TYPE_CHECKING:
     from studiorum.core.references.content_tracker import ContentTracker
     from studiorum.latex_engine.services.protocols import TemplateServiceProtocol
+    from studiorum.renderers.core.interfaces import RenderingContext
 
 
 class ContextBoundTemplateService:
@@ -45,7 +46,46 @@ class ContextBoundTemplateService:
         Returns:
             Rendered entry text suitable for LaTeX templates
         """
-        return self._service.render_entry_description(entry, self._tracker)
+        try:
+            # Use modern RecursiveEntryProcessor instead of deprecated render_entry_description
+            from studiorum.latex_engine.core.entry_processor import (
+                RecursiveEntryProcessor,
+            )
+            from studiorum.renderers.core.interfaces import RenderingContext
+
+            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+            rendering_context = RenderingContext(
+                output_format="latex",
+                omnidexer=self._service.omnidexer,
+                content_tracker=self._tracker,
+                tag_resolver=self._service.tag_resolver,
+                debug_mode=False,
+            )
+            processed_entries = entry_processor.process_entries(
+                entry if isinstance(entry, list) else [entry], rendering_context
+            )
+            return "\n\n".join(processed_entries)
+        except Exception:
+            # Fallback to simple text extraction when processor fails
+            if isinstance(entry, list):
+                text_parts = []
+                for item in entry:
+                    if isinstance(item, str):
+                        text_parts.append(item)
+                    elif isinstance(item, dict):
+                        # Extract text from dict entries
+                        text = item.get("text", item.get("content", str(item)))
+                        text_parts.append(text)
+                    else:
+                        text_parts.append(str(item))
+                return "\n\n".join(text_parts)
+            else:
+                if isinstance(entry, str):
+                    return entry
+                elif isinstance(entry, dict):
+                    return entry.get("text", entry.get("content", str(entry)))
+                else:
+                    return str(entry)
 
     def render_entries(self, entries: list[Any]) -> str:
         """Render multiple entries efficiently with bound context.
@@ -90,6 +130,8 @@ class ContextBoundTemplateService:
         Returns:
             RenderingContext with bound ContentTracker and service dependencies
         """
+        from studiorum.renderers.core.interfaces import RenderingContext
+
         return RenderingContext(
             output_format=output_format,
             omnidexer=self._service.omnidexer,

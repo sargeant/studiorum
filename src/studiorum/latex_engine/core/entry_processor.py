@@ -1020,6 +1020,8 @@ class RecursiveEntryProcessor:
         """
         name = entry.get("name", "")
         entries = entry.get("entries", [])
+        content = entry.get("content", "")
+        text = entry.get("text", "")
 
         result = []
         if name:
@@ -1034,6 +1036,19 @@ class RecursiveEntryProcessor:
                 result.extend(processed_entries)
             finally:
                 self._depth -= 1
+        elif content:
+            # Handle entries that only have content (e.g., from FluffEntry models)
+            processed_content = self._process_text_with_tags(content, context)
+            result.append(processed_content)
+        elif text:
+            # Handle entries that only have text field (common in 5etools format)
+            processed_text = self._process_text_with_tags(text, context)
+            result.append(processed_text)
+
+        # Handle case where we have both name and text (section header + content)
+        if name and text and not entries and not content:
+            processed_text = self._process_text_with_tags(text, context)
+            result.append(processed_text)
 
         # Debug logging for generic entries that produce no output
         import os

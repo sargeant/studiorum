@@ -31,8 +31,14 @@ class TestContextBinding:
         class MockTemplateService:
             def __init__(self):
                 # Add required attributes for RenderingContext creation
-                self.omnidexer = type("MockOmnidexer", (), {})()
-                self.tag_resolver = type("MockTagResolver", (), {})()
+                from unittest.mock import Mock
+
+                self.omnidexer = Mock()
+                self.tag_resolver = Mock()
+                # Mock tag resolver to return processed text
+                self.tag_resolver.process_text = Mock(
+                    side_effect=lambda text, context: text
+                )
 
             def get_service_name(self) -> str:
                 return "MockTemplateService"
@@ -72,10 +78,10 @@ class TestContextBinding:
 
         # Verify results contain expected content
         assert "Fireball" in result_description
+        assert "A bright flame" in result_description
 
-        # Verify the same tracker was used (ID should match)
-        tracker_id_str = str(id(content_tracker))
-        assert tracker_id_str in result_description
+        # Verify the same tracker is being used by checking the bound service
+        assert bound_service.content_tracker is content_tracker
 
     def test_bound_service_tracker_access(self, mock_template_service, content_tracker):
         """Test that bound service provides access to the bound ContentTracker."""
@@ -154,8 +160,8 @@ class TestContextFlowValidation:
 
         result_description = template_service.render_entry(test_entry)
 
-        assert "rendered:" in result_description
-        # content-only path removed; description rendering remains
+        assert "processed:" in result_description
+        assert "Test Entry" in result_description
 
 
 class TestPerformanceValidation:

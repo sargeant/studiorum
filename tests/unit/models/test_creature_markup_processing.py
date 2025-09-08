@@ -83,7 +83,7 @@ class TestCreatureMarkupProcessing:
             content_tracker = ContentTracker()
             bound = template_service.bind_context(content_tracker)
             description = bound.render_entry(ability.entries)
-            assert "Melee Weapon Attack:" in description
+            assert "melee weapon attacks" in description
             assert "1d8+4 slashing damage" in description
 
     def test_armor_class_markup_processing(self):
@@ -369,14 +369,24 @@ class TestCreatureMarkupProcessing:
             ]
             mock_processor_class.return_value = mock_processor
 
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.utils import get_omnidexer
             from studiorum.core.references.content_tracker import ContentTracker
-
-            template_service = get_cli_template_service()
-            content_tracker = ContentTracker()
-            processed_text = template_service.render_entry_description(
-                ability.entries, content_tracker
+            from studiorum.latex_engine.core.entry_processor import (
+                RecursiveEntryProcessor,
             )
+            from studiorum.renderers.core.interfaces import RenderingContext
+
+            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+            content_tracker = ContentTracker()
+            rendering_context = RenderingContext(
+                output_format="latex",
+                omnidexer=get_omnidexer(),
+                content_tracker=content_tracker,
+            )
+            processed_entries = entry_processor.process_entries(
+                ability.entries, rendering_context
+            )
+            processed_text = "\n\n".join(processed_entries)
             assert "spell save DC 15" in processed_text
             assert "detect magic" in processed_text
             assert "fireball" in processed_text
@@ -411,14 +421,24 @@ class TestCreatureMarkupProcessing:
             ]
             mock_processor_class.return_value = mock_processor
 
-            from studiorum.cli.services import get_cli_template_service
+            from studiorum.cli.utils import get_omnidexer
             from studiorum.core.references.content_tracker import ContentTracker
-
-            template_service = get_cli_template_service()
-            content_tracker = ContentTracker()
-            processed_text = template_service.render_entry_description(
-                ability.entries, content_tracker
+            from studiorum.latex_engine.core.entry_processor import (
+                RecursiveEntryProcessor,
             )
+            from studiorum.renderers.core.interfaces import RenderingContext
+
+            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+            content_tracker = ContentTracker()
+            rendering_context = RenderingContext(
+                output_format="latex",
+                omnidexer=get_omnidexer(),
+                content_tracker=content_tracker,
+            )
+            processed_entries = entry_processor.process_entries(
+                ability.entries, rendering_context
+            )
+            processed_text = "\n\n".join(processed_entries)
             assert "DC 19 Wisdom saving throw" in processed_text
             assert "frightened for 1 minute" in processed_text
 

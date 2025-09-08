@@ -32,7 +32,11 @@ logger = get_logger(__name__)
 
 # Legacy classes for backward compatibility
 class ImageSource(BaseModel):
-    """Legacy configuration for an image source (backward compatibility)."""
+    """Legacy configuration for an image source (backward compatibility).
+
+    WARNING: This is an internal compatibility shim. Use ImageManager.add_source()
+    or the modern ImageSourceRegistry/ImageSourceConfig system instead.
+    """
 
     name: str = Field(description="Source name")
     base_url: str = Field(description="Base URL for images")
@@ -43,7 +47,11 @@ class ImageSource(BaseModel):
 
 
 class ImageAsset(BaseModel):
-    """Legacy representation of a managed image asset (backward compatibility)."""
+    """Legacy representation of a managed image asset (backward compatibility).
+
+    WARNING: This is an internal compatibility shim. Access image assets through
+    ImageManager.get_cache_info() or the modern ImageSourceRegistry instead.
+    """
 
     original_url: str
     local_path: Path

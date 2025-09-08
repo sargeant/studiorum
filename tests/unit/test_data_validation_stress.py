@@ -430,15 +430,23 @@ class TestDataValidationStress:
 
         item = Item.model_validate(complex_item)
         assert item.name == "Complex Item"
-        # Use template service for item description extraction
-        from studiorum.cli.services import get_cli_template_service
+        # Use modern RecursiveEntryProcessor for item description extraction
+        from studiorum.cli.utils import get_omnidexer
         from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+        from studiorum.renderers.core.interfaces import RenderingContext
 
-        template_service = get_cli_template_service()
+        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
         content_tracker = ContentTracker()
-        assert template_service.render_entry_description(
-            item.entries, content_tracker
-        )  # Should extract text from complex structure
+        rendering_context = RenderingContext(
+            output_format="latex",
+            omnidexer=get_omnidexer(),
+            content_tracker=content_tracker,
+        )
+        processed_entries = entry_processor.process_entries(
+            item.entries, rendering_context
+        )
+        assert processed_entries  # Should extract text from complex structure
 
         print("✅ Edge case data structures validated successfully")
 

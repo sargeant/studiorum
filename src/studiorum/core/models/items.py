@@ -430,37 +430,7 @@ class Item(BaseContent):
         bound_service = concrete_service.bind_context(content_tracker)  # type: ignore[attr-defined]
         return bound_service.render_entry(self.entries)
 
-    def get_description_text(self) -> str:
-        """Get item description text using modern service patterns.
-
-        Note:
-            Deprecated: Use get_text() instead for cleaner API
-        """
-        import warnings
-
-        warnings.warn(
-            "get_description_text is deprecated. Use get_text() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        processor = self.get_processor()
-
-        try:
-            # Try to get tag resolver from service container
-            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
-            from ..result import Error
-            from ..text.tag_resolver import TagResolver
-
-            tag_resolver = get_cli_tag_resolver()
-
-            result = processor.get_description_with_context(tag_resolver)
-            if isinstance(result, Error):
-                return ""
-            return result.unwrap()
-
-        except Exception:
-            # Fallback to simple text extraction
-            return self._extract_simple_text_from_entries(self.entries or [])
+    # Legacy method get_description_text removed - access .entries directly and use RecursiveEntryProcessor
 
     @staticmethod
     def _extract_simple_text_from_entries(entries: list[Any]) -> str:

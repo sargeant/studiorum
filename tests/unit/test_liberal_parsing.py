@@ -224,8 +224,25 @@ class TestLiberalParsing:
             assert fluff_items[0].name == "Test Spell"
             assert fluff_items[1].name == "Incomplete Fluff"
 
-            # Test text extraction
-            description = fluff_items[0].get_description_text()
+            # Test text extraction using modern RecursiveEntryProcessor
+            from studiorum.cli.utils import get_omnidexer
+            from studiorum.core.references.content_tracker import ContentTracker
+            from studiorum.latex_engine.core.entry_processor import (
+                RecursiveEntryProcessor,
+            )
+            from studiorum.renderers.core.interfaces import RenderingContext
+
+            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+            content_tracker = ContentTracker()
+            rendering_context = RenderingContext(
+                output_format="latex",
+                omnidexer=get_omnidexer(),
+                content_tracker=content_tracker,
+            )
+            processed_entries = entry_processor.process_entries(
+                fluff_items[0].entries, rendering_context
+            )
+            description = "\n\n".join(processed_entries)
             assert "This is fluff text" in description
             assert "Historical information" in description
 
@@ -332,8 +349,23 @@ class TestLiberalParsing:
 
         spell = Spell.model_validate(complex_spell_data)
 
-        # Test main description extraction
-        description = spell.get_description_text()
+        # Test main description extraction using modern RecursiveEntryProcessor
+        from studiorum.cli.utils import get_omnidexer
+        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+        from studiorum.renderers.core.interfaces import RenderingContext
+
+        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+        content_tracker = ContentTracker()
+        rendering_context = RenderingContext(
+            output_format="latex",
+            omnidexer=get_omnidexer(),
+            content_tracker=content_tracker,
+        )
+        processed_entries = entry_processor.process_entries(
+            spell.entries, rendering_context
+        )
+        description = " ".join(processed_entries)
         assert "Base spell description" in description
         assert "Special Rules" in description
         assert "Special rule description" in description
@@ -343,11 +375,15 @@ class TestLiberalParsing:
         # assert "List item 2 with text key" in description
         assert "Named Item" in description
 
-        # Test higher level extraction
-        higher_text = spell.get_higher_level_text()
-        assert "At Higher Levels" in higher_text
-        assert "Higher level description" in higher_text
-        assert "Higher level benefit 1" in higher_text
+        # Test higher level extraction using modern RecursiveEntryProcessor
+        if spell.higher_level:
+            higher_processed = entry_processor.process_entries(
+                spell.higher_level, rendering_context
+            )
+            higher_text = " ".join(higher_processed)
+            assert "At Higher Levels" in higher_text
+            assert "Higher level description" in higher_text
+            assert "Higher level benefit 1" in higher_text
 
         print("✅ Complex spell entry text extraction working")
 
@@ -385,7 +421,24 @@ class TestLiberalParsing:
 
         ability = Ability.model_validate(complex_ability_data)
 
-        description = ability.get_description_text()
+        # Define entry_processor and rendering_context in this scope
+        from studiorum.cli.utils import get_omnidexer
+        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+        from studiorum.renderers.core.interfaces import RenderingContext
+
+        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+        content_tracker = ContentTracker()
+        rendering_context = RenderingContext(
+            output_format="latex",
+            omnidexer=get_omnidexer(),
+            content_tracker=content_tracker,
+        )
+
+        processed_entries = entry_processor.process_entries(
+            ability.entries, rendering_context
+        )
+        description = "\n\n".join(processed_entries)
         assert "Base ability description" in description
         assert "Ability effect 1" in description
         assert "Special Effect" in description
@@ -439,7 +492,24 @@ class TestLiberalParsing:
 
         item = Item.model_validate(complex_item_data)
 
-        description = item.get_description_text()
+        # Define entry_processor and rendering_context in this scope
+        from studiorum.cli.utils import get_omnidexer
+        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+        from studiorum.renderers.core.interfaces import RenderingContext
+
+        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+        content_tracker = ContentTracker()
+        rendering_context = RenderingContext(
+            output_format="latex",
+            omnidexer=get_omnidexer(),
+            content_tracker=content_tracker,
+        )
+
+        processed_entries = entry_processor.process_entries(
+            item.entries, rendering_context
+        )
+        description = "\n\n".join(processed_entries)
         assert "This magic item has multiple properties" in description
         assert "Property 1: Basic enhancement" in description
         assert "Charges" in description
@@ -705,15 +775,38 @@ class TestLiberalParsing:
             assert spell.name == "Ultra Complex Spell"
 
             # Test text extraction works with highly nested structure
-            description = spell.get_description_text()
+            # Define entry_processor and rendering_context in this scope
+            from studiorum.cli.utils import get_omnidexer
+            from studiorum.core.references.content_tracker import ContentTracker
+            from studiorum.latex_engine.core.entry_processor import (
+                RecursiveEntryProcessor,
+            )
+            from studiorum.renderers.core.interfaces import RenderingContext
+
+            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+            content_tracker = ContentTracker()
+            rendering_context = RenderingContext(
+                output_format="latex",
+                omnidexer=get_omnidexer(),
+                content_tracker=content_tracker,
+            )
+
+            processed_entries = entry_processor.process_entries(
+                spell.entries, rendering_context
+            )
+            description = "\n\n".join(processed_entries)
             assert "extremely complex spell" in description
             assert "Quick Cast" in description
             assert "Ritual Cast" in description
             assert "Archmage Testarius" in description
 
-            higher_text = spell.get_higher_level_text()
-            assert "10th level or higher" in higher_text
-            assert "Legendary Effect" in higher_text
+            if spell.higher_level:
+                higher_processed = entry_processor.process_entries(
+                    spell.higher_level, rendering_context
+                )
+                higher_text = "\n\n".join(higher_processed)
+                assert "10th level or higher" in higher_text
+                assert "Legendary Effect" in higher_text
 
         Path(f.name).unlink()  # Clean up
         print("✅ Liberal parsing stress test passed")

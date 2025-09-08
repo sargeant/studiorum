@@ -664,12 +664,22 @@ class TestAbility:
             }
         ]
         ability: Any = Ability(name="List Ability", entries=entries)
-        # Test list entries using template service
-        template_service = get_cli_template_service()
+        # Test list entries using modern RecursiveEntryProcessor
+        from studiorum.cli.utils import get_omnidexer
+        from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+        from studiorum.renderers.core.interfaces import RenderingContext
+
+        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
         content_tracker = ContentTracker()
-        result = template_service.render_entry_description(
-            ability.entries, content_tracker
+        rendering_context = RenderingContext(
+            output_format="latex",
+            omnidexer=get_omnidexer(),
+            content_tracker=content_tracker,
         )
+        processed_entries = entry_processor.process_entries(
+            ability.entries, rendering_context
+        )
+        result = "\n\n".join(processed_entries)
         assert "Simple string item" in result  # LaTeX format: \item Simple string item
         assert "Named Item" in result  # LaTeX format: \subsection{Named Item}
         # Note: {"text": "..."} items are not rendering properly in current implementation
@@ -686,12 +696,23 @@ class TestAbility:
             }
         ]
         ability: Any = Ability(name="Nested Ability", entries=entries)
-        # Test nested entries using template service
-        template_service = get_cli_template_service()
+        # Test nested entries using modern RecursiveEntryProcessor
+        from studiorum.cli.utils import get_omnidexer
+        from studiorum.core.references.content_tracker import ContentTracker
+        from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
+        from studiorum.renderers.core.interfaces import RenderingContext
+
+        entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
         content_tracker = ContentTracker()
-        result = template_service.render_entry_description(
-            ability.entries, content_tracker
+        rendering_context = RenderingContext(
+            output_format="latex",
+            omnidexer=get_omnidexer(),
+            content_tracker=content_tracker,
         )
+        processed_entries = entry_processor.process_entries(
+            ability.entries, rendering_context
+        )
+        result = "\n\n".join(processed_entries)
         # Note: {"text": "..."} entries are not rendering properly in current implementation
         # assert "Deeply nested text" in result
         assert (

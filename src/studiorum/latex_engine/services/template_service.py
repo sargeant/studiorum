@@ -70,49 +70,7 @@ class TemplateService:
 
         return ContextBoundTemplateService(self, content_tracker)
 
-    def render_entry_description(
-        self,
-        entry: Any,
-        content_tracker: ContentTracker,
-    ) -> str:
-        """Render entry description with explicit context passing.
-
-        This method provides a context-aware alternative to the problematic
-        get_description_text() methods that used stack inspection.
-
-        Args:
-            entry: Entry object containing description data
-            content_tracker: Content tracker for appendix generation
-
-        Returns:
-            Rendered description text suitable for LaTeX templates
-        """
-        if entry is None:
-            return ""
-
-        # 1. Extract text from entry using injected component
-        text = self.text_extractor.extract_from_entry(entry)
-        if not text:
-            return ""
-
-        # 2. Create rendering context with content tracker
-        rendering_context = RenderingContext(
-            output_format="latex",
-            omnidexer=self.omnidexer,
-            content_tracker=content_tracker,
-            tag_resolver=self.tag_resolver,
-            debug_mode=False,
-        )
-
-        # 3. Process the text using the tag resolver with explicit context
-        try:
-            processed_text = self.tag_resolver.process_text(text, rendering_context)
-            # 4. Apply LaTeX formatting using injected component
-            return self.latex_formatter.format_text(processed_text, entry)
-        except Exception as e:
-            logger.warning(f"Failed to process entry text: {e}")
-            # Fallback to escaped raw text
-            return self.latex_formatter.escape_latex_chars(text)
+    # Legacy method render_entry_description removed - use RecursiveEntryProcessor instead
 
     # Legacy API removed: render_entry_content_only
 

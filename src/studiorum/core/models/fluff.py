@@ -178,24 +178,7 @@ class BaseFluff(BaseContent):
                 text_parts.append(str(entry.content))
         return "\n\n".join(text_parts)
 
-    def get_description_text(self) -> str:
-        """Extract all descriptive text from entries.
-
-        Note:
-            Deprecated: Use get_text() instead for cleaner API
-        """
-        import warnings
-
-        warnings.warn(
-            "get_description_text is deprecated. Use get_text() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        text_parts = []
-        for entry in self.entries:
-            if entry.content:
-                text_parts.append(str(entry.content))
-        return "\n\n".join(text_parts)
+    # Legacy method get_description_text removed - access .entries directly and use RecursiveEntryProcessor
 
     def get_image_paths(self) -> list[str]:
         """Get all image paths."""

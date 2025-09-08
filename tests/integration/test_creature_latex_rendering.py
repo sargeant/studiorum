@@ -186,7 +186,24 @@ class TestCreatureLaTeXRendering:
 
             trait = creature.trait[0]
             processed_name = trait.get_processed_name()
-            processed_desc = trait.get_description_text()
+            from studiorum.cli.utils import get_omnidexer
+            from studiorum.core.references.content_tracker import ContentTracker
+            from studiorum.latex_engine.core.entry_processor import (
+                RecursiveEntryProcessor,
+            )
+            from studiorum.renderers.core.interfaces import RenderingContext
+
+            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+            content_tracker = ContentTracker()
+            rendering_context = RenderingContext(
+                output_format="latex",
+                omnidexer=get_omnidexer(),
+                content_tracker=content_tracker,
+            )
+            processed_entries = entry_processor.process_entries(
+                trait.entries, rendering_context
+            )
+            processed_desc = "\n\n".join(processed_entries)
 
             assert "Legendary Resistance" in processed_name
             assert "saving throw" in processed_desc
@@ -203,7 +220,27 @@ class TestCreatureLaTeXRendering:
             mock_processor_class.return_value = mock_processor
 
             bite_action = creature.action[1]  # Bite attack
-            processed_desc = bite_action.get_description_text()
+
+            # Define entry_processor and rendering_context in this scope
+            from studiorum.cli.utils import get_omnidexer
+            from studiorum.core.references.content_tracker import ContentTracker
+            from studiorum.latex_engine.core.entry_processor import (
+                RecursiveEntryProcessor,
+            )
+            from studiorum.renderers.core.interfaces import RenderingContext
+
+            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+            content_tracker = ContentTracker()
+            rendering_context = RenderingContext(
+                output_format="latex",
+                omnidexer=get_omnidexer(),
+                content_tracker=content_tracker,
+            )
+
+            processed_entries = entry_processor.process_entries(
+                bite_action.entries, rendering_context
+            )
+            processed_desc = "\n\n".join(processed_entries)
 
             assert "Melee Weapon Attack" in processed_desc
             assert "+11 to hit" in processed_desc
@@ -374,7 +411,27 @@ class TestCreatureLaTeXRendering:
             mock_processor_class.return_value = mock_processor
 
             poison_breath = creature.action[3]  # Poison Breath action
-            processed_desc = poison_breath.get_description_text()
+
+            # Define entry_processor and rendering_context in this scope
+            from studiorum.cli.utils import get_omnidexer
+            from studiorum.core.references.content_tracker import ContentTracker
+            from studiorum.latex_engine.core.entry_processor import (
+                RecursiveEntryProcessor,
+            )
+            from studiorum.renderers.core.interfaces import RenderingContext
+
+            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+            content_tracker = ContentTracker()
+            rendering_context = RenderingContext(
+                output_format="latex",
+                omnidexer=get_omnidexer(),
+                content_tracker=content_tracker,
+            )
+
+            processed_entries = entry_processor.process_entries(
+                poison_breath.entries, rendering_context
+            )
+            processed_desc = "\n\n".join(processed_entries)
 
             assert "poisonous gas" in processed_desc
             assert "Constitution saving throw" in processed_desc

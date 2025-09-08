@@ -332,7 +332,24 @@ class TestCreatureRealDataIntegration:
             mock_processor_class.return_value = mock_processor
 
             greataxe_action = orc.action[0]
-            processed_desc = greataxe_action.get_description_text()
+            from studiorum.cli.utils import get_omnidexer
+            from studiorum.core.references.content_tracker import ContentTracker
+            from studiorum.latex_engine.core.entry_processor import (
+                RecursiveEntryProcessor,
+            )
+            from studiorum.renderers.core.interfaces import RenderingContext
+
+            entry_processor = RecursiveEntryProcessor(use_dnd_template=True)
+            content_tracker = ContentTracker()
+            rendering_context = RenderingContext(
+                output_format="latex",
+                omnidexer=get_omnidexer(),
+                content_tracker=content_tracker,
+            )
+            processed_entries = entry_processor.process_entries(
+                greataxe_action.entries, rendering_context
+            )
+            processed_desc = "\n\n".join(processed_entries)
 
             assert "Melee Weapon Attack" in processed_desc
             assert "+5 to hit" in processed_desc

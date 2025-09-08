@@ -390,25 +390,7 @@ class Ability(BaseModel):
         bound_service = concrete_service.bind_context(content_tracker)  # type: ignore[attr-defined]
         return bound_service.render_entry(self.entries)
 
-    def get_description_text(self) -> str:
-        """Get description text using TemplateService (backward compatibility).
-
-        Note:
-            Deprecated: Use get_text() instead for cleaner API
-        """
-        import warnings
-
-        warnings.warn(
-            "get_description_text is deprecated. Use get_text() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        from ...cli.services import get_cli_template_service
-        from ...core.references.content_tracker import ContentTracker
-
-        template_service = get_cli_template_service()
-        content_tracker = ContentTracker()
-        return template_service.render_entry_description(self.entries, content_tracker)
+    # Legacy method get_description_text removed - access .entries directly and use RecursiveEntryProcessor
 
 
 class SpellcasterSpells(BaseModel):
