@@ -794,7 +794,7 @@ This content type is not yet fully supported by the rendering system.
             )
 
             omnidexer = context.omnidexer
-            appendix_generator = AppendixGenerator(omnidexer, self.template_engine)
+            appendix_generator = AppendixGenerator(omnidexer)
 
             # Check if ultimate appendix mode is enabled
             ultimate_appendix = context.metadata.get("ultimate_appendix", False)
@@ -824,11 +824,15 @@ This content type is not yet fully supported by the rendering system.
                 logger.warning(
                     "Could not find \\end{document}, appending appendices at end"
                 )
-                appendix_content = self._render_appendix_sections(appendix_sections)
+                appendix_content = self._render_appendix_sections(
+                    appendix_sections, context
+                )
                 return document + "\n" + appendix_content
 
             # Insert appendices before \end{document}
-            appendix_content = self._render_appendix_sections(appendix_sections)
+            appendix_content = self._render_appendix_sections(
+                appendix_sections, context
+            )
             return (
                 document[:end_doc_pos]
                 + "\n"
@@ -841,11 +845,14 @@ This content type is not yet fully supported by the rendering system.
             logger.error(f"Failed to generate appendices: {e}")
             return document
 
-    def _render_appendix_sections(self, appendix_sections: list) -> str:
+    def _render_appendix_sections(
+        self, appendix_sections: list, context: RenderingContext
+    ) -> str:
         """Render appendix sections as LaTeX content.
 
         Args:
-            appendix_sections: List of AppendixSection objects
+            appendix_sections: List of ContentSection objects with content_items
+            context: Rendering context for content item rendering
 
         Returns:
             LaTeX content for all appendices
@@ -854,13 +861,117 @@ This content type is not yet fully supported by the rendering system.
             return ""
 
         appendix_latex = "% Generated appendices\n"
-        appendix_latex += "\\appendix\n\n"
 
         for section in appendix_sections:
             appendix_latex += f"\\chapter{{{section.title}}}\n"
-            appendix_latex += section.content + "\n\n"
+
+            # Use appropriate multi-item template based on content type
+            if section.content_items:
+                content_type = self._get_section_content_type(section.content_items[0])
+
+                if content_type == "creature":
+                    # Render creatures with float barriers (adapted from bestiary template logic)
+                    appendix_latex += self._render_creatures_with_float_barriers(
+                        section.content_items, context
+                    )
+                elif content_type == "spell":
+                    # Render spells with float barriers
+                    appendix_latex += self._render_items_with_float_barriers(
+                        section.content_items, context
+                    )
+                elif content_type == "item":
+                    # Render items with float barriers
+                    appendix_latex += self._render_items_with_float_barriers(
+                        section.content_items, context
+                    )
+                else:
+                    # Fallback to individual rendering for unknown content types
+                    for item in section.content_items:
+                        rendered_item = self.render_content_item(item, context)
+                        if rendered_item:
+                            appendix_latex += rendered_item + "\n\n"
 
         return appendix_latex
+
+    def _get_section_content_type(self, content_item: Any) -> str:
+        """Determine the content type of a section's items.
+
+        Args:
+            content_item: A sample content item from the section
+
+        Returns:
+            Content type string (creature, spell, item, etc.)
+        """
+        try:
+            from studiorum.core.models.content import ContentType
+
+            content_type = ContentType.from_content(content_item)
+            return content_type.value
+        except ValueError:
+            # Fallback for unknown content types
+            return "unknown"
+
+    def _render_creatures_with_float_barriers(
+        self, creatures: list, context: RenderingContext
+    ) -> str:
+        """Render creatures with float barriers using bestiary template logic.
+
+        Args:
+            creatures: List of creature objects to render
+            context: Rendering context
+
+        Returns:
+            Rendered LaTeX content with float barriers
+        """
+        content = ""
+
+        for i, creature in enumerate(creatures, 1):
+            # Render individual creature
+            rendered_creature = self.render_content_item(creature, context)
+            if rendered_creature:
+                content += rendered_creature + "\n\n"
+
+                # Add float barrier every 10 creatures (from bestiary template logic)
+                if i % 10 == 0 and i < len(creatures):
+                    content += "\\FloatBarrier\n\n"
+
+                # Add spacing between creatures (from bestiary template)
+                if i < len(creatures):
+                    content += "\\vspace{1.2em}\n\n"
+
+        # Add final float barrier at end (from bestiary template logic)
+        content += "\\FloatBarrier\n\n"
+
+        return content
+
+    def _render_items_with_float_barriers(
+        self, items: list, context: RenderingContext
+    ) -> str:
+        """Render items/spells with float barriers using template logic.
+
+        Args:
+            items: List of item or spell objects to render
+            context: Rendering context
+
+        Returns:
+            Rendered LaTeX content with float barriers
+        """
+        content = ""
+
+        for i, item in enumerate(items, 1):
+            # Render individual item
+            rendered_item = self.render_content_item(item, context)
+            if rendered_item:
+                content += rendered_item + "\n\n"
+
+                # Add float barrier every 10 items (following bestiary pattern)
+                if i % 10 == 0 and i < len(items):
+                    content += "\\FloatBarrier\n\n"
+
+        # Add final float barrier at end
+        content += "\\FloatBarrier\n\n"
+
+        return content
 
     def validate_latex_environment(self) -> dict[str, bool]:
         """Validate the LaTeX compilation environment.

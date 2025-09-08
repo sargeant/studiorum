@@ -1034,23 +1034,14 @@ def creatures(
                     AppendixFlags,
                     AppendixGenerator,
                 )
-                from studiorum.latex_engine.core.template_engine import (
-                    LaTeXTemplateEngine,
-                )
-
-                # Create template engine for appendix generation
-                template_engine = LaTeXTemplateEngine()
 
                 # Create appendix flags
                 appendix_flags = AppendixFlags(
                     spells=True, creatures=False, items=False
                 )
 
-                # Create AppendixGenerator with omnidexer and template engine
-                appendix_generator = AppendixGenerator(
-                    omnidexer=omnidexer,
-                    template_engine=template_engine,
-                )
+                # Create AppendixGenerator with omnidexer
+                appendix_generator = AppendixGenerator(omnidexer=omnidexer)
 
                 # Unified Reference Tracking:
                 # Use the unified reference system to automatically track spell references
@@ -1073,12 +1064,12 @@ def creatures(
                     with display_manager.progress("Processing appendix") as _:
                         # Handle different possible return types
                         if hasattr(spell_appendix, "content"):
-                            # It's an AppendixSection object
+                            # It's a ContentSection object
                             appendix_content = spell_appendix.content
                         elif (
                             isinstance(spell_appendix, list) and len(spell_appendix) > 0
                         ):
-                            # It's a list of AppendixSection objects
+                            # It's a list of ContentSection objects
                             appendix_content = "\n\n".join(
                                 section.content
                                 for section in spell_appendix

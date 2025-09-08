@@ -221,18 +221,8 @@ class ContentMerger:
             # Strategy 1: Exact match (existing behavior)
             matching_content = content_by_name.get(content_name)
 
-            # Strategy 2: Chapter prefix matching (NEW)
-            if not matching_content:
-                normalized_metadata_name = self._normalize_chapter_name(content_name)
-                for section_name, content_section in content_by_name.items():
-                    normalized_content_name = self._normalize_chapter_name(section_name)
-                    if normalized_metadata_name == normalized_content_name:
-                        matching_content = content_section
-                        matched_content_name = section_name
-                        logger.debug(
-                            f"Chapter match: '{content_name}' -> '{section_name}'"
-                        )
-                        break
+            # Strategy 2: Direct matching without normalization
+            # The 5etools data already provides consistent naming
 
             # Strategy 3: Appendix matching (existing behavior)
             if not matching_content and "ordinal" in metadata_content:
@@ -360,27 +350,6 @@ class ContentMerger:
         except (OSError, FileNotFoundError, json.JSONDecodeError) as e:
             logger.error(f"Error loading content file {matching_file}: {e}")
             return None
-
-    def _normalize_chapter_name(self, name: str) -> str:
-        """Remove chapter prefixes for smart matching.
-
-        Args:
-            name: Chapter name that may contain "Chapter X: " prefix
-
-        Returns:
-            Normalized name with chapter prefix removed
-
-        Examples:
-            "Chapter 1: Playing the Game" -> "Playing the Game"
-            "Playing the Game" -> "Playing the Game"
-            "Appendix A: Conditions" -> "Appendix A: Conditions" (unchanged)
-        """
-        if not name:
-            return name
-
-        # Remove "Chapter X: " prefix but preserve other prefixes like "Appendix"
-        normalized = re.sub(r"^Chapter \d+:\s*", "", name)
-        return normalized.strip()
 
     def _is_cache_valid(self, cache_key: str) -> bool:
         """Check if cached content is still valid.

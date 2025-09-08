@@ -1,8 +1,20 @@
 """Shared chapter model for books and adventures."""
 
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
+
+
+class ChapterType(str, Enum):
+    """Type of chapter for special LaTeX handling."""
+
+    INTRODUCTION = (
+        "introduction"  # Unnumbered, in ToC (Introduction, Foreword, Preface, etc.)
+    )
+    CHAPTER = "chapter"  # Standard numbered chapter
+    APPENDIX = "appendix"  # Appendix section
+    PART = "part"  # Part (for multi-part books)
 
 
 class Chapter(BaseModel):
@@ -94,3 +106,102 @@ class Chapter(BaseModel):
             else:
                 result.append(str(header))
         return result
+
+    def get_chapter_type(self) -> ChapterType:
+        """Determine chapter type from name pattern and content.
+
+        Logic:
+        - If name contains "Chapter N:" or "Ch. N:" → CHAPTER (numbered)
+        - If name contains "Appendix X:" or "App. X:" → APPENDIX
+        - Smart content detection for common appendix types → APPENDIX
+        - Introduction-like content → INTRODUCTION
+        - Otherwise → INTRODUCTION (default)
+        """
+        import re
+
+        # Check for explicit numbered chapter pattern
+        if re.search(r"(?:Chapter|Ch\.)\s+\d+:", self.name):
+            return ChapterType.CHAPTER
+
+        # Check for explicit appendix pattern
+        if re.search(r"(?:Appendix|App\.)\s+[A-Z]:", self.name):
+            return ChapterType.APPENDIX
+
+        # Check ordinal field for additional hints (if present)
+        if self.ordinal and isinstance(self.ordinal, dict):
+            ordinal_type = self.ordinal.get("type", "").lower()
+            if ordinal_type == "appendix":
+                return ChapterType.APPENDIX
+            elif ordinal_type == "part":
+                return ChapterType.PART
+            elif ordinal_type == "chapter":
+                return ChapterType.CHAPTER
+
+        # Smart content-based detection for 5etools data
+        title_lower = self.name.lower()
+
+        # Appendix-like content (should become lettered appendices)
+        appendix_like_names = [
+            "creatures",
+            "npcs",
+            "monsters",
+            "bestiary",
+            "magic items",
+            "items",
+            "equipment",
+            "treasures",
+            "spells",
+            "artifacts",
+            "credits",
+            "handouts",
+            "maps",
+            "poster map",
+            "story concept art",
+            "concept art",
+            "medals of merit",
+            "fragments of suffering",
+            "dm materials",
+            "dungeon master",
+            "bibliography",
+        ]
+
+        # Introduction-like content (should be unnumbered but in ToC)
+        introduction_like_names = [
+            "introduction",
+            "foreword",
+            "preface",
+            "prologue",
+            "epilogue",
+            "conclusion",
+            "afterword",
+            "world of",
+            "what is",
+            "story overview",
+            "running the adventure",
+            "character advancement",
+            "how to use",
+            "about this",
+        ]
+
+        # Check for appendix-like content
+        if any(appendix_name in title_lower for appendix_name in appendix_like_names):
+            return ChapterType.APPENDIX
+
+        # Check for introduction-like content
+        if any(intro_name in title_lower for intro_name in introduction_like_names):
+            return ChapterType.INTRODUCTION
+
+        # Check if title starts with "appendix" (catch-all)
+        if title_lower.startswith("appendix"):
+            return ChapterType.APPENDIX
+
+        # Default to CHAPTER (numbered) for regular content chapters
+        # Only specific introduction-like content should be unnumbered
+        return ChapterType.CHAPTER
+
+    def get_appendix_letter(self) -> str | None:
+        """Extract appendix letter (A, B, C, etc.) from name."""
+        import re
+
+        match = re.match(r"^(?:Appendix|App\.)\s+([A-Z]):", self.name)
+        return match.group(1) if match else None

@@ -260,6 +260,7 @@ class ContentTrackerEnhancer:
         Returns:
             Original display text (tracking is a side effect)
         """
+        # Debug: Log every call to this method
         # Get content tracker from context
         content_tracker: ContentTracker | None = context.metadata.get("content_tracker")
 
@@ -269,7 +270,6 @@ class ContentTrackerEnhancer:
             return content_info.display_text
 
         if not content_tracker:
-            logger.debug("No content tracker available")
             return content_info.display_text
 
         try:
@@ -281,8 +281,6 @@ class ContentTrackerEnhancer:
                 source=content_info.source,
                 page=content_info.page,
             )
-
-            logger.debug(f"Tracked {content_type_str}: {content_info.name}")
 
         except Exception as e:
             logger.warning(f"Failed to track content {content_info.name}: {e}")

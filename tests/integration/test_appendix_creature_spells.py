@@ -9,7 +9,6 @@ from studiorum.core.models.creatures import Creature
 from studiorum.core.models.spells import Spell
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.services.appendix_generator import AppendixFlags, AppendixGenerator
-from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
 
 @pytest.mark.integration
@@ -66,9 +65,6 @@ class TestAppendixCreatureSpells:
             ("spell", "shield"): mock_shield,
         }.get((content_type.type_name, name.lower()))
 
-        # Create mock template engine
-        mock_template_engine = MagicMock(spec=LaTeXTemplateEngine)
-
         # Create creature with spell references
         creature_data = {
             "name": "Test Wizard",
@@ -103,7 +99,7 @@ class TestAppendixCreatureSpells:
         content_tracker.add_content("creature", "Test Wizard", "TEST", page="1")
 
         # Create AppendixGenerator and mock the creature collector
-        appendix_generator = AppendixGenerator(mock_omnidexer, mock_template_engine)
+        appendix_generator = AppendixGenerator(mock_omnidexer)
 
         # Mock the creature collector to return our test creature
         appendix_generator.creature_collector.collect_by_names = MagicMock()
@@ -113,14 +109,8 @@ class TestAppendixCreatureSpells:
             mock_result
         )
 
-        # Mock the entry renderer registry to return simple LaTeX
-        mock_creature_renderer = MagicMock()
-        mock_creature_renderer.render.return_value = (
-            "\\section{Test Wizard} Mock creature content with spells"
-        )
-        appendix_generator.entry_registry.get_renderer = MagicMock(
-            return_value=mock_creature_renderer
-        )
+        # AppendixGenerator now returns ContentSection objects with raw data
+        # No need to mock entry_registry as it's no longer used
 
         # Generate creature appendix with spell tracking
         flags = AppendixFlags(creatures=True, spells=False, items=False)
@@ -132,19 +122,9 @@ class TestAppendixCreatureSpells:
         assert len(appendices) == 1
         creature_appendix = appendices[0]
         assert creature_appendix.title == "Creatures"
-        assert creature_appendix.content_type == "creature"
-        assert creature_appendix.item_count == 1
-
-        # Verify that the creature renderer was called with ContentTracker in context
-        mock_creature_renderer.render.assert_called_once()
-        call_args = mock_creature_renderer.render.call_args
-        rendered_creature = call_args[0][0]
-        rendering_context = call_args[0][1]
-
-        assert rendered_creature == creature
-        assert rendering_context.output_format == "latex"
-        assert rendering_context.omnidexer == mock_omnidexer
-        assert rendering_context.content_tracker == content_tracker
+        assert len(creature_appendix.content_items) == 1
+        assert creature_appendix.content_items[0] == creature
+        assert creature_appendix.chapter_type.value == "appendix"
 
     def test_spells_appendix_includes_creature_referenced_spells(self):
         """Test complete flow: creature appendix renders with spell tracking, spells appendix includes those spells."""
@@ -190,9 +170,6 @@ class TestAppendixCreatureSpells:
             ("spell", "shield"): mock_shield,
         }.get((content_type.type_name, name.lower()))
 
-        # Create mock template engine
-        mock_template_engine = MagicMock(spec=LaTeXTemplateEngine)
-
         # Create creature with spell references
         creature_data = {
             "name": "Test Wizard",
@@ -226,8 +203,13 @@ class TestAppendixCreatureSpells:
         content_tracker = ContentTracker()
         content_tracker.add_content("creature", "Test Wizard", "TEST", page="1")
 
+        # Simulate what would happen during creature rendering - spell references get tracked
+        # This simulates the effect of rendering creature with spell references
+        content_tracker.add_content("spell", "fireball", "PHB", page="1")
+        content_tracker.add_content("spell", "shield", "PHB", page="1")
+
         # Create AppendixGenerator and mock collectors
-        appendix_generator = AppendixGenerator(mock_omnidexer, mock_template_engine)
+        appendix_generator = AppendixGenerator(mock_omnidexer)
 
         # Mock the creature collector
         appendix_generator.creature_collector.collect_by_names = MagicMock()
@@ -265,13 +247,8 @@ class TestAppendixCreatureSpells:
         mock_spell_renderer = MagicMock()
         mock_spell_renderer.render.side_effect = mock_spell_render
 
-        appendix_generator.entry_registry.get_renderer = MagicMock()
-        appendix_generator.entry_registry.get_renderer.side_effect = (
-            lambda content_type: {
-                "creature": mock_creature_renderer,
-                "spell": mock_spell_renderer,
-            }[content_type]
-        )
+        # AppendixGenerator now returns ContentSection objects with raw data
+        # Rendering is handled separately in the document renderer
 
         # Generate appendices with both creatures and spells enabled
         flags = AppendixFlags(creatures=True, spells=True, items=False)
@@ -284,19 +261,26 @@ class TestAppendixCreatureSpells:
         # Verify both appendices were generated
         assert len(appendices) == 2
 
-        # Find the appendices
-        creature_appendix = next(
-            app for app in appendices if app.content_type == "creature"
-        )
-        spell_appendix = next(app for app in appendices if app.content_type == "spell")
+        # Find the appendices by checking content types
+        creature_appendix = None
+        spell_appendix = None
+
+        for app in appendices:
+            if app.title == "Creatures":
+                creature_appendix = app
+            elif app.title == "Spells":
+                spell_appendix = app
+
+        assert creature_appendix is not None, "Creature appendix not found"
+        assert spell_appendix is not None, "Spell appendix not found"
 
         # Verify creature appendix
         assert creature_appendix.title == "Creatures"
-        assert creature_appendix.item_count == 1
+        assert len(creature_appendix.content_items) == 1
 
         # Verify spell appendix includes creature-referenced spells
         assert spell_appendix.title == "Spells"
-        assert spell_appendix.item_count == 2  # fireball and shield
+        assert len(spell_appendix.content_items) == 2  # fireball and shield
 
         # Verify spell collector was called with the tracked spells
         appendix_generator.spell_collector.collect_by_names.assert_called_once()

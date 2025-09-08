@@ -10,7 +10,20 @@
 \part{<# section.title | latex_escape #>}<@ if section.label @>\label{<# section.label #>}<@ endif @>
 
 <@ elif section.level == 'chapter' @>
-<@ if section.numbered @>
+<#-- Handle appendix mode transition for source appendices --#>
+<@ if section.is_first_appendix @>
+\appendix
+<@ endif @>
+
+<@ if section.chapter_type == 'introduction' @>
+<#-- Unnumbered chapter but in ToC --#>
+\chapter*{<# section.title | latex_escape #>}
+\addcontentsline{toc}{chapter}{<# section.title | latex_escape #>}
+<@ if section.label @>\label{<# section.label #>}<@ endif @>
+<@ elif section.chapter_type == 'appendix' @>
+<#-- Appendix chapters use \chapter{} after \appendix for automatic lettering --#>
+\chapter{<# section.title | latex_escape #>}<@ if section.label @>\label{<# section.label #>}<@ endif @>
+<@ elif section.numbered @>
 <@ if numbered_sections | default(true) @>
 \chapter{<# section.get_clean_title(strip_manual_numbering=true) | latex_escape #>}<@ if section.label @>\label{<# section.label #>}<@ endif @>
 <@ else @>

@@ -7,6 +7,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from .chapter import ChapterType
+
 
 class DocumentType(str, Enum):
     """Document type enumeration for different 5e content organizations."""
@@ -217,6 +219,16 @@ class ContentSection(BaseModel):
     level: SectionLevel = Field(..., description="Section level")
     numbered: bool = Field(True, description="Include section in numbering")
     label: str | None = Field(None, description="LaTeX label for cross-references")
+    chapter_type: ChapterType | None = Field(
+        None, description="Type of chapter for special LaTeX handling"
+    )
+    appendix_letter: str | None = Field(
+        None, description="Letter designation for appendix chapters"
+    )
+    is_first_appendix: bool = Field(
+        False,
+        description="Whether this is the first appendix (triggers \\appendix command)",
+    )
 
     # Content organization
     content_items: list[Any] = Field(

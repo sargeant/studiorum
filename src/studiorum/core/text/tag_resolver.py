@@ -33,9 +33,13 @@ class TagResolver(BaseModel):
     )
 
     def __init__(self, omnidexer: Any = None, **data: Any) -> None:
-        # Create renderer with core handlers
+        # Create renderer with core handlers and content tracking enabled
         core_handlers = get_default_core_handlers()
-        renderer = StandardUnifiedRenderer.create_latex_renderer(core_handlers)
+        renderer = StandardUnifiedRenderer.create_latex_renderer(
+            core_handlers,
+            enable_content_tracking=True,  # Enable content tracking
+            enable_hyperlinks=False,  # Keep hyperlinks disabled for CLI simplicity
+        )
 
         # Create rendering context with self-reference for recursive processing
         rendering_context = RenderingContext(
@@ -94,12 +98,8 @@ class TagResolver(BaseModel):
                 )
 
                 # Update renderer's enhancement configuration with new ContentTracker
-                if context.content_tracker and hasattr(
-                    self.renderer, "enhancement_config"
-                ):
-                    self.renderer.enhancement_config.content_tracker = (
-                        context.content_tracker
-                    )
+                if context.content_tracker and hasattr(self.renderer, "config"):
+                    self.renderer.config.content_tracker = context.content_tracker
 
             # Render each node in the document
             result_parts = []

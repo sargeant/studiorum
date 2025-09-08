@@ -271,15 +271,19 @@ class TestDocumentStructureBuilder:
     def test_build_adventure_structure(self) -> None:
         """Test building adventure document structure."""
         # Create mock adventure content with proper attributes
+        from studiorum.core.models.chapter import ChapterType
+
         chapter1: Any = Mock()
         chapter1.name = "Chapter 1"
         chapter1.headers = ["Introduction", "Background"]
         chapter1.entries = []
+        chapter1.get_chapter_type.return_value = ChapterType.CHAPTER
 
         chapter2: Any = Mock()
         chapter2.name = "Chapter 2"
         chapter2.headers = ["The Quest Begins"]
         chapter2.entries = []
+        chapter2.get_chapter_type.return_value = ChapterType.CHAPTER
 
         adventure: Any = Mock()
         adventure.name = "Test Adventure"
@@ -453,7 +457,7 @@ class TestDocumentStructureIntegration:
             title="Player's Handbook",
             subtitle="Core Rules",
             document_type=DocumentType.BOOK,
-            authors=[DocumentAuthor(name="Wizards of the Coast")],
+            authors=[DocumentAuthor(name="Test Author")],
             include_toc=True,
             include_index=True,
         )

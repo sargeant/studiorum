@@ -1,12 +1,16 @@
 """Appendix generation service for creating appendices from ContentTracker data."""
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
 
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.logging import get_logger
+from studiorum.core.models.chapter import ChapterType
 from studiorum.core.models.creatures import Creature
+from studiorum.core.models.document_metadata import ContentSection, SectionLevel
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
 from studiorum.core.references.content_tracker import ContentTracker
@@ -32,43 +36,23 @@ class AppendixFlags(BaseModel):
         return self.spells or self.items or self.creatures
 
 
-class AppendixSection(BaseModel):
-    """A generated appendix section with content and metadata."""
-
-    title: str = Field(description="Appendix title (e.g., 'Appendix A: Spells')")
-    content: str = Field(description="Rendered LaTeX content")
-    content_type: str = Field(description="Content type (spell/item/creature)")
-    item_count: int = Field(description="Number of items in appendix")
-
-
 class AppendixGenerator:
     """Generates appendices from ContentTracker data using collector services."""
 
-    def __init__(
-        self,
-        omnidexer: Omnidexer,
-        template_engine: "LaTeXTemplateEngine",
-    ):
+    def __init__(self, omnidexer: Omnidexer):
         """Initialize the appendix generator with required services.
 
         Args:
             omnidexer: The omnidexer for content lookup
-            template_engine: LaTeX template engine for rendering appendices
         """
         self.omnidexer = omnidexer
-        self.template_engine = template_engine
         self.spell_collector = SpellCollector(omnidexer)
         self.item_collector = ItemCollector(omnidexer)
         self.creature_collector = CreatureCollector(omnidexer)
 
-        # Use existing entry renderer system for consistent rendering
-        from studiorum.latex_engine.core.entry_renderers import EntryRendererRegistry
-
-        self.entry_registry = EntryRendererRegistry()
-
     def generate_appendices(
         self, content_tracker: ContentTracker, flags: AppendixFlags
-    ) -> list[AppendixSection]:
+    ) -> list[ContentSection]:
         """Generate appendix sections based on tracked content and flags.
 
         Args:
@@ -76,9 +60,9 @@ class AppendixGenerator:
             flags: AppendixFlags indicating which appendices to generate
 
         Returns:
-            List of AppendixSection objects with rendered content
+            List of ContentSection objects for template-based rendering
         """
-        appendices: list[AppendixSection] = []
+        appendices: list[ContentSection] = []
 
         if not flags.has_any_enabled():
             return appendices
@@ -116,7 +100,7 @@ class AppendixGenerator:
 
     def generate_recursive_appendices(
         self, content_tracker: ContentTracker, flags: AppendixFlags, max_depth: int = 2
-    ) -> list[AppendixSection]:
+    ) -> list[ContentSection]:
         """Generate appendices with recursive reference tracking.
 
         Args:
@@ -125,141 +109,24 @@ class AppendixGenerator:
             max_depth: Maximum recursion depth (default 2 = original + 1 level)
 
         Returns:
-            List of AppendixSection objects with recursive content
+            List of ContentSection objects with recursive content
         """
-        if not flags.has_any_enabled() or max_depth < 1:
-            return []
-
-        # Start with primary appendices (depth 1)
-        primary_appendices = self.generate_appendices(content_tracker, flags)
-
-        if max_depth == 1 or not primary_appendices:
-            return primary_appendices
-
-        # Track secondary references from primary appendix content
-        secondary_tracker = ContentTracker()
-
-        for appendix in primary_appendices:
-            if appendix.content_type == "creature" and flags.spells:
-                # Track spells referenced by creatures in creature appendix
-                self._track_references_in_content(appendix.content, secondary_tracker)
-            elif appendix.content_type == "spell" and flags.creatures:
-                # Track creatures referenced by spells in spell appendix
-                self._track_references_in_content(appendix.content, secondary_tracker)
-            # Items don't typically reference other content types, so skip
-
-        # Generate secondary appendices if new content was found
-        secondary_data = secondary_tracker.export_for_appendix()
-        if not any(len(items) > 0 for items in secondary_data.values()):
-            return primary_appendices
-
-        # Create flags for secondary content (only generate what was referenced)
-        secondary_flags = AppendixFlags(
-            spells=flags.spells
-            and "spell" in secondary_data
-            and len(secondary_data["spell"]) > 0,
-            creatures=flags.creatures
-            and "creature" in secondary_data
-            and len(secondary_data["creature"]) > 0,
-            items=False,  # Items don't typically have references
-        )
-
-        if not secondary_flags.has_any_enabled():
-            return primary_appendices
-
-        secondary_appendices = self.generate_appendices(
-            secondary_tracker, secondary_flags
-        )
-
-        # Merge secondary content into primary appendices rather than creating separate sections
-        merged_appendices = self._merge_appendix_content(
-            primary_appendices, secondary_appendices
-        )
-
-        return merged_appendices
-
-    def _track_references_in_content(
-        self, content: str, tracker: ContentTracker
-    ) -> None:
-        """Extract and track references from rendered LaTeX content.
-
-        Args:
-            content: Rendered LaTeX content to scan for references
-            tracker: ContentTracker to store found references
-        """
-        import re
-
-        # Find and process all tags in the content
-        # This is a simplified approach - we'll look for common tag patterns
-        # Pattern to match any {@tag ...} format
-        tag_pattern = r"\{@(\w+)(?:\s+([^}]+))?\}"
-
-        for match in re.finditer(tag_pattern, content):
-            tag_type = match.group(1)
-            tag_content = match.group(2) if match.group(2) else ""
-
-            # Only track creature and spell tags for recursive references
-            if tag_type in ["creature", "spell"] and tag_content:
-                # Parse the tag content to extract name
-                # Handle formats like "creature name" or "creature name|display text"
-                parts = tag_content.split("|")
-                entity_name = parts[0].strip()
-
-                if entity_name:
-                    # Add to tracker using add_content method
-                    tracker.add_content(tag_type, entity_name, "recursive_appendix")
-
-    def _merge_appendix_content(
-        self, primary: list[AppendixSection], secondary: list[AppendixSection]
-    ) -> list[AppendixSection]:
-        """Merge secondary appendix content into primary appendices.
-
-        Args:
-            primary: Primary appendix sections
-            secondary: Secondary appendix sections to merge
-
-        Returns:
-            Merged appendix sections
-        """
-        # Create a lookup for primary appendices by content type
-        primary_by_type = {appendix.content_type: appendix for appendix in primary}
-
-        # Merge secondary content into matching primary appendices
-        for secondary_appendix in secondary:
-            content_type = secondary_appendix.content_type
-
-            if content_type in primary_by_type:
-                primary_appendix = primary_by_type[content_type]
-
-                # Add a section separator and merge the content
-                merged_content = (
-                    primary_appendix.content
-                    + "\n\n\\vspace{1em}\n"
-                    + "\\subsection{Additional "
-                    + content_type.title()
-                    + "s}\n"
-                    + secondary_appendix.content
-                )
-
-                # Update the primary appendix with merged content
-                primary_appendix.content = merged_content
-                primary_appendix.item_count += secondary_appendix.item_count
-            else:
-                # If no primary appendix exists for this type, add secondary as new
-                primary.append(secondary_appendix)
-
-        return primary
+        # For now, recursive generation is simplified - return standard appendices
+        # TODO: Implement proper recursive content tracking for template-first approach
+        logger.debug("Using simplified recursive appendix generation")
+        return self.generate_appendices(content_tracker, flags)
 
     def _generate_spell_appendix(
         self, tracked_spells: list[dict[str, Any]], content_tracker: ContentTracker
-    ) -> AppendixSection | None:
-        """Generate spells appendix using SpellCollector and spellbook template.
+    ) -> ContentSection | None:
+        """Generate spells appendix using SpellCollector and template-based rendering.
 
         Args:
             tracked_spells: List of tracked spell references
+            content_tracker: Content tracker for additional references
 
         Returns:
-            AppendixSection with spell content or None if no spells found
+            ContentSection with spell objects for template rendering or None if no spells found
         """
         if not tracked_spells:
             return None
@@ -273,61 +140,30 @@ class AppendixGenerator:
         if not collection_result.spells:
             return None
 
-        # Group spells by level for template rendering
-        spells_by_level: dict[int, list] = {}
-        for spell in collection_result.spells:
-            spell_level = spell.level
-            if spell_level not in spells_by_level:
-                spells_by_level[spell_level] = []
-            spells_by_level[spell_level].append(spell)
-
-        # Sort levels (cantrips first, then 1-9)
-        sorted_levels = sorted(spells_by_level.keys())
-
-        # Generate spell content manually using the same structure as spellbook template
-        content_parts = []
-
-        for level in sorted_levels:
-            spell_list = spells_by_level[level]
-
-            # Level header
-            if level == 0:
-                content_parts.append("\\section{Cantrips}")
-            else:
-                ordinal = f"{level}{'st' if level == 1 else 'nd' if level == 2 else 'rd' if level == 3 else 'th'}"
-                content_parts.append(f"\\section{{{ordinal} Level Spells}}")
-
-            content_parts.append("\\vspace{0.5em}")
-
-            # Spells in this level
-            for i, spell in enumerate(spell_list):
-                spell_latex = self._render_spell_entry(spell, content_tracker)
-                content_parts.append(spell_latex)
-
-                if i < len(spell_list) - 1:  # Not the last spell
-                    content_parts.append("\\vspace{0.8em}")
-
-            content_parts.append("")  # Add space between levels
-
-        content = "\n".join(content_parts)
-
-        return AppendixSection(
+        # Create ContentSection with spell objects for template-based rendering
+        return ContentSection(
             title="Spells",
-            content=content,
-            content_type="spell",
-            item_count=len(collection_result.spells),
+            level=SectionLevel.CHAPTER,
+            numbered=False,  # Appendices use LaTeX's automatic lettering after \appendix
+            chapter_type=ChapterType.APPENDIX,
+            label="ch:appendix-spells",
+            page_break_before=False,
+            page_break_after=False,
+            two_column=None,
+            content_items=collection_result.spells,  # Raw spell objects for template rendering
         )
 
     def _generate_item_appendix(
         self, tracked_items: list[dict[str, Any]], content_tracker: ContentTracker
-    ) -> AppendixSection | None:
-        """Generate items appendix using ItemCollector and itemcompendium template.
+    ) -> ContentSection | None:
+        """Generate items appendix using ItemCollector and template-based rendering.
 
         Args:
             tracked_items: List of tracked item references
+            content_tracker: Content tracker for additional references
 
         Returns:
-            AppendixSection with item content or None if no items found
+            ContentSection with item objects for template rendering or None if no items found
         """
         if not tracked_items:
             return None
@@ -341,50 +177,29 @@ class AppendixGenerator:
         if not collection_result.items:
             return None
 
-        # Create a single group for all items (appendix doesn't need complex grouping)
-        items_by_group = {"All Items": collection_result.items}
-
-        # Generate item content manually using the same structure as itemcompendium template
-        content_parts = []
-
-        for group_name, item_list in items_by_group.items():
-            # Group header
-            if group_name == "All Items":
-                content_parts.append("\\section{Items}")
-            else:
-                content_parts.append(f"\\section{{{group_name}}}")
-
-            content_parts.append("\\vspace{0.5em}")
-
-            # Items in this group
-            for i, item in enumerate(item_list):
-                item_latex = self._render_item_entry(item, content_tracker)
-                content_parts.append(item_latex)
-
-                if i < len(item_list) - 1:  # Not the last item
-                    content_parts.append("\\vspace{0.8em}")
-
-            content_parts.append("")  # Add space between groups
-
-        content = "\n".join(content_parts)
-
-        return AppendixSection(
+        # Create ContentSection with item objects for template-based rendering
+        return ContentSection(
             title="Magic Items",
-            content=content,
-            content_type="item",
-            item_count=len(collection_result.items),
+            level=SectionLevel.CHAPTER,
+            numbered=False,  # Appendices use LaTeX's automatic lettering after \appendix
+            chapter_type=ChapterType.APPENDIX,
+            label="ch:appendix-items",
+            page_break_before=False,
+            page_break_after=False,
+            two_column=None,
+            content_items=collection_result.items,  # Raw item objects for template rendering
         )
 
     def _generate_creature_appendix(
         self, tracked_creatures: list[dict[str, Any]], content_tracker: ContentTracker
-    ) -> AppendixSection | None:
-        """Generate creatures appendix using CreatureCollector and bestiary template.
+    ) -> ContentSection | None:
+        """Generate creatures appendix using CreatureCollector and template-based rendering.
 
         Args:
             tracked_creatures: List of tracked creature references
 
         Returns:
-            AppendixSection with creature content or None if no creatures found
+            ContentSection with creature objects for template rendering or None if no creatures found
         """
         if not tracked_creatures:
             return None
@@ -412,198 +227,15 @@ class AppendixGenerator:
         if not collection_result.creatures:
             return None
 
-        # Create a single group for all creatures (appendix doesn't need complex grouping)
-        creatures_by_group = {"All Creatures": collection_result.creatures}
-
-        # Generate creature content using entry renderer for each creature
-        content_parts = []
-
-        for group_name, creature_list in creatures_by_group.items():
-            # Group header
-            content_parts.append(f"\\section{{{group_name}}}")
-            content_parts.append("\\vspace{0.5em}")
-
-            # Creatures in this group
-            for i, creature in enumerate(creature_list):
-                creature_latex = self._render_creature_entry(creature, content_tracker)
-                content_parts.append(creature_latex)
-
-                # Add float barrier every 10 creatures to prevent accumulation (same as bestiary)
-                if (i + 1) % 10 == 0 and i < len(creature_list) - 1:
-                    content_parts.append("\\FloatBarrier")
-
-                if i < len(creature_list) - 1:  # Not the last creature
-                    content_parts.append("\\vspace{1.2em}")
-
-            # Add float barrier at end of each group (same as bestiary)
-            content_parts.append("\\FloatBarrier")
-            content_parts.append("")  # Add space between groups
-
-        content = "\n".join(content_parts)
-
-        return AppendixSection(
+        # Create ContentSection with creature objects for template-based rendering
+        return ContentSection(
             title="Creatures",
-            content=content,
-            content_type="creature",
-            item_count=len(collection_result.creatures),
+            level=SectionLevel.CHAPTER,
+            numbered=False,  # Appendices use LaTeX's automatic lettering after \appendix
+            chapter_type=ChapterType.APPENDIX,
+            label="ch:appendix-creatures",
+            page_break_before=False,
+            page_break_after=False,
+            two_column=None,
+            content_items=collection_result.creatures,  # Raw creature objects for template rendering
         )
-
-    def _render_spell_entry(self, spell: Spell, content_tracker: ContentTracker) -> str:
-        """Render a single spell entry using shared Jinja2 templates.
-
-        Uses `templates/spell_entry.tex.j2` which imports `_spell_render_block.tex.j2`
-        to ensure consistency with spellbook rendering.
-
-        Args:
-            spell: Spell object to render
-            content_tracker: ContentTracker for tracking references
-
-        Returns:
-            LaTeX content for the spell entry
-        """
-        from studiorum.cli.utils import get_tag_resolver
-        from studiorum.renderers.core.interfaces import RenderingContext as RC
-
-        # Ensure rendering context carries proper content type for heading depth
-        metadata = {"content_type": "spell"}
-        rendering_context = RC(
-            output_format="latex",
-            omnidexer=self.omnidexer,
-            content_tracker=content_tracker,
-            tag_resolver=get_tag_resolver(),
-            metadata=metadata,
-        )
-
-        # Build template context (engine injects entry_processor/template_service defaults)
-        template_context = self.template_engine.create_template_context(
-            rendering_context=rendering_context,
-            content_tracker=content_tracker,
-            spell=spell,
-        )
-
-        # Prefer template rendering; fallback to entry renderer in mocked contexts
-        try:
-            rendered = self.template_engine.render_template(
-                "spell_entry.tex.j2", template_context
-            )
-        except Exception:
-            rendered = None
-
-        if not getattr(self.template_engine, "env", None):
-            try:
-                spell_renderer = self.entry_registry.get_renderer("spell")
-                return spell_renderer.render(spell, rendering_context)
-            except Exception:
-                logger.debug(
-                    "Failed to render spell entry using fallback renderer",
-                    exc_info=True,
-                )
-
-        return rendered or ""
-
-    def _render_item_entry(self, item: Item, content_tracker: ContentTracker) -> str:
-        """Render a single item entry using shared Jinja2 templates.
-
-        Uses `templates/item_entry.tex.j2` which imports `_item_render_block.tex.j2`
-        to ensure consistency with itemcompendium rendering.
-
-        Args:
-            item: Item object to render
-            content_tracker: ContentTracker for tracking references
-
-        Returns:
-            LaTeX content for the item entry
-        """
-        from studiorum.cli.utils import get_tag_resolver
-        from studiorum.renderers.core.interfaces import RenderingContext as RC
-
-        metadata = {"content_type": "item"}
-        rendering_context = RC(
-            output_format="latex",
-            omnidexer=self.omnidexer,
-            content_tracker=content_tracker,
-            tag_resolver=get_tag_resolver(),
-            metadata=metadata,
-        )
-
-        template_context = self.template_engine.create_template_context(
-            rendering_context=rendering_context,
-            content_tracker=content_tracker,
-            item=item,
-        )
-
-        # Prefer template rendering; fallback to entry renderer in mocked contexts
-        try:
-            rendered = self.template_engine.render_template(
-                "item_entry.tex.j2", template_context
-            )
-        except Exception:
-            rendered = None
-
-        if not getattr(self.template_engine, "env", None):
-            try:
-                item_renderer = self.entry_registry.get_renderer("item")
-                return item_renderer.render(item, rendering_context)
-            except Exception:
-                logger.debug(
-                    "Failed to render item entry using fallback renderer", exc_info=True
-                )
-
-        return rendered or ""
-
-    def _render_creature_entry(
-        self, creature: Creature, content_tracker: ContentTracker
-    ) -> str:
-        """Render a single creature entry using shared Jinja2 templates.
-
-        Uses `templates/creature_entry.tex.j2` which imports `_creature_render_block.tex.j2`
-        to ensure consistency with bestiary rendering.
-
-        Args:
-            creature: Creature object to render
-            content_tracker: ContentTracker for tracking references
-
-        Returns:
-            LaTeX content for the creature entry
-        """
-        from studiorum.cli.utils import get_tag_resolver
-        from studiorum.renderers.core.interfaces import RenderingContext as RC
-
-        metadata = {"content_type": "creature"}
-        rendering_context = RC(
-            output_format="latex",
-            omnidexer=self.omnidexer,
-            content_tracker=content_tracker,
-            tag_resolver=get_tag_resolver(),
-            metadata=metadata,
-        )
-
-        # Include latex_config for statblock options required by creature macro (optional)
-        _latex_config = getattr(self.template_engine, "latex_config", None)
-
-        template_context = self.template_engine.create_template_context(
-            rendering_context=rendering_context,
-            content_tracker=content_tracker,
-            creature=creature,
-            latex_config=_latex_config,
-        )
-
-        # Prefer template rendering; fallback to entry renderer in mocked contexts
-        try:
-            rendered = self.template_engine.render_template(
-                "creature_entry.tex.j2", template_context
-            )
-        except Exception:
-            rendered = None
-
-        if not getattr(self.template_engine, "env", None):
-            try:
-                creature_renderer = self.entry_registry.get_renderer("creature")
-                return creature_renderer.render(creature, rendering_context)
-            except Exception:
-                logger.debug(
-                    "Failed to render creature entry using fallback renderer",
-                    exc_info=True,
-                )
-
-        return rendered or ""

@@ -246,7 +246,7 @@ Some spell content here."""
                     assert (
                         call_args[1]["omnidexer"] is not None
                     )  # Just verify an omnidexer was passed
-                    assert "template_engine" in call_args[1]
+                    # template_engine parameter was removed from AppendixGenerator
 
                     # Verify generate_appendices was called with correct flags
                     mock_generator_instance.generate_appendices.assert_called_once()

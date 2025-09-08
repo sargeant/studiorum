@@ -4,7 +4,7 @@ import asyncio
 import os
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import typer
 
@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from studiorum.core.references.content_reference_manager import (
         ContentReferenceManager,
     )
-    from studiorum.core.services.appendix_generator import AppendixSection
 from rich import print as rprint
 
 from studiorum.cli.config_factory import (
@@ -44,15 +43,15 @@ class SpellSortMode(str, Enum):
 
 
 def _combine_spellbook_and_appendix(
-    spellbook_content: str, appendix_content: str | list["AppendixSection"]
+    spellbook_content: str, appendix_content: str | list[Any]
 ) -> str:
     """Combine spellbook and creature appendix content."""
     # Handle different possible return types from appendix generation
     if hasattr(appendix_content, "content"):
-        # It's an AppendixSection object
+        # It's a ContentSection object
         appendix_latex = appendix_content.content
     elif isinstance(appendix_content, list) and len(appendix_content) > 0:
-        # It's a list of AppendixSection objects
+        # It's a list of ContentSection objects
         appendix_latex = "\n\n".join(
             section.content
             for section in appendix_content
@@ -713,16 +712,12 @@ def spells(
                     AppendixFlags,
                     AppendixGenerator,
                 )
-                from studiorum.latex_engine.core.template_engine import (
-                    LaTeXTemplateEngine,
-                )
 
                 # Generate creature appendix (reference tracking happens automatically during template rendering)
                 appendix_flags = AppendixFlags(
                     creatures=True, spells=False, items=False
                 )
-                template_engine = LaTeXTemplateEngine()
-                appendix_generator = AppendixGenerator(omnidexer, template_engine)
+                appendix_generator = AppendixGenerator(omnidexer)
                 creature_appendix = appendix_generator.generate_appendices(
                     content_tracker, appendix_flags
                 )

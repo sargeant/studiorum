@@ -130,7 +130,7 @@
 
 <#-- Render using DndMonster environment with proper float placement --#>
 <@ if needs_full_width @>
-\begin{DndMonster}[float*=tp,width=\textwidth + 8pt, title to upper=0pt, top=1pt]{<# creature.name | latex_escape #>}
+\begin{DndMonster}[float*=tp,width=\textwidth + 8pt, toptitle=0pt, top=1pt]{<# creature.name | latex_escape #>}
 \vspace*{-1.8\baselineskip}
 \begin{multicols}{2}
 \raggedcolumns

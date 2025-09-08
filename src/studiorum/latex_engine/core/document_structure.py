@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from studiorum.core.models.chapter import ChapterType
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.document_metadata import (
     ContentSection,
@@ -24,6 +25,8 @@ class DocumentStructureBuilder:
         """
         self.metadata = metadata
         self._section_counter = 0
+        self._appendix_mode = False  # Track when we've entered appendix mode
+        self._has_source_appendices = False  # Track if source content has appendices
 
     def build_document_structure(
         self, content_items: list[BaseContent], context: RenderingContext
@@ -43,8 +46,14 @@ class DocumentStructureBuilder:
         # Build section hierarchy based on document type
         sections = self._build_section_hierarchy(organized_content, context)
 
+        # Note: Auto-generated appendices are handled by LaTeXDocumentRenderer._append_appendices()
+        # after content rendering, when ContentTracker is fully populated
+
         # Create document context for templates
         document_context = self._create_document_context(sections, context)
+
+        # Pass appendix information to context for template coordination
+        document_context["has_source_appendices"] = self._has_source_appendices
 
         return sections, document_context
 
@@ -123,11 +132,19 @@ class DocumentStructureBuilder:
             for adventure in organized_content[adventure_type]:
                 if hasattr(adventure, "contents") and adventure.contents:
                     # Process adventure chapters
+                    adventure_sections = []
                     for i, chapter in enumerate(adventure.contents):
                         chapter_section = self._create_chapter_section(
                             chapter, i + 1, context
                         )
-                        sections.append(chapter_section)
+                        adventure_sections.append(chapter_section)
+
+                    # Smart ordering: move appendices to end while preserving story flow
+                    # This handles 5etools data where appendices appear before story chapters
+                    ordered_sections = self._reorder_adventure_chapters(
+                        adventure_sections
+                    )
+                    sections.extend(ordered_sections)
 
         # Add other content types as separate chapters
         content_chapters = self._create_content_type_chapters(
@@ -346,12 +363,45 @@ class DocumentStructureBuilder:
         else:
             title = f"Chapter {chapter_num}"
 
+        # Determine chapter type - Chapter model handles all the smart detection
+        if hasattr(chapter_data, "get_chapter_type"):
+            chapter_type = chapter_data.get_chapter_type()
+            appendix_letter = None
+            if chapter_type == ChapterType.APPENDIX:
+                appendix_letter = chapter_data.get_appendix_letter()
+        else:
+            # Simple fallback for raw dicts (shouldn't happen with proper models)
+            import re
+
+            if re.search(r"(?:Chapter|Ch\.)\s+\d+:", title):
+                chapter_type = ChapterType.CHAPTER
+                appendix_letter = None
+            elif re.search(r"(?:Appendix|App\.)\s+[A-Z]:", title):
+                chapter_type = ChapterType.APPENDIX
+                match = re.match(r"^(?:Appendix|App\.)\s+([A-Z]):", title)
+                appendix_letter = match.group(1) if match else None
+            else:
+                chapter_type = ChapterType.INTRODUCTION
+                appendix_letter = None
+
+        # Track if we have source appendices
+        if chapter_type == ChapterType.APPENDIX:
+            self._has_source_appendices = True
+
+        # Only numbered chapters get LaTeX numbering
+        numbered = chapter_type == ChapterType.CHAPTER
+
+        # Clean title for LaTeX (remove manual numbering)
+        clean_title = self._get_clean_title(title, chapter_type)
+
         # Create chapter section
         section = ContentSection(
-            title=title,
+            title=clean_title,
             level=SectionLevel.CHAPTER,
-            numbered=True,
-            label=f"ch:{self._generate_label(title)}-{chapter_num}",
+            numbered=numbered,
+            chapter_type=chapter_type,
+            appendix_letter=appendix_letter,
+            label=f"ch:{self._generate_label(clean_title)}-{chapter_num}",
             page_break_before=False,
             page_break_after=False,
             two_column=None,
@@ -434,6 +484,49 @@ class DocumentStructureBuilder:
                     entry_names.update(self._extract_all_entry_names(nested_entries))
 
         return entry_names
+
+    def _get_clean_title(self, title: str, chapter_type: ChapterType) -> str:
+        """Remove redundant numbering from title based on type."""
+        import re
+
+        if chapter_type == ChapterType.INTRODUCTION:
+            # Remove "Introduction:" prefix if present
+            title = re.sub(r"^Introduction:\s*", "", title)
+        elif chapter_type == ChapterType.CHAPTER:
+            # Remove "Chapter N:" prefix
+            title = re.sub(r"^Chapter\s+\d+:\s*", "", title)
+            title = re.sub(r"^Ch\.\s+\d+:\s*", "", title)
+        elif chapter_type == ChapterType.APPENDIX:
+            # Remove "Appendix X:" or "App. X:" prefix
+            title = re.sub(r"^(?:Appendix|App\.)\s+[A-Z]:\s*", "", title)
+
+        return title
+
+    def _reorder_adventure_chapters(
+        self, chapters: list[ContentSection]
+    ) -> list[ContentSection]:
+        """Reorder adventure chapters to place appendices at end while preserving story flow.
+
+        This handles 5etools data where appendices may appear before story chapters.
+        We separate appendices from other chapters and move appendices to the end,
+        but preserve the original relative order within each group.
+        """
+        story_chapters = []
+        appendices = []
+
+        for chapter in chapters:
+            if chapter.chapter_type == ChapterType.APPENDIX:
+                appendices.append(chapter)
+            else:
+                # Include introductions, story chapters, epilogues in original order
+                story_chapters.append(chapter)
+
+        # Mark the first appendix to trigger \appendix command
+        if appendices:
+            appendices[0].is_first_appendix = True
+
+        # Combine: story chapters first, then appendices
+        return story_chapters + appendices
 
     def _create_content_type_chapters(
         self, organized_content: dict[str, list[BaseContent]], context: RenderingContext
