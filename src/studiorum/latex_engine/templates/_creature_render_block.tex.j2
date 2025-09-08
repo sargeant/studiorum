@@ -69,7 +69,58 @@
 <@ endif @>
 <@ endmacro @>
 
-<#-- Legendary Actions handled via render_section helper. --#>
+<#--
+  Macro: render_legendary_actions_section(creature, legendary_list)
+  Purpose: Render the Legendary Actions section with creature-specific header.
+           Uses creature.get_legendary_actions_header() for custom header content.
+  Params:  creature (object), legendary_list (list of legendary action entries)
+--#>
+<@ macro render_legendary_actions_section(creature, legendary_list) @>
+<@ if legendary_list @>
+\DndMonsterSection{Legendary Actions}
+<@ set header_entries = creature.get_legendary_actions_header() @>
+<@ if header_entries @>
+<@ for header_entry in header_entries @>
+<# smart_render_entry(header_entry, entry_processor, rendering_context) #>
+
+<@ endfor @>
+<@ endif @>
+<@ for entry in legendary_list @>
+<# render_named_entry(entry) #>
+
+<@ endfor @>
+<@ endif @>
+<@ endmacro @>
+
+<#--
+  Macro: render_section_with_custom_header(title, entries_list, spell_list, creature, section_name)
+  Purpose: Render a section with custom header content from creature.get_section_header().
+           Prints section header only when content exists, renders custom header if present,
+           then renders spellcasting blocks and named entries.
+  Params:  title (string), entries_list (list), spell_list (list), creature (object), section_name (string)
+--#>
+<@ macro render_section_with_custom_header(title, entries_list, spell_list, creature, section_name) @>
+<@ if (entries_list) or (spell_list) @>
+\DndMonsterSection{<# title #>}
+<@ set custom_header = creature.get_section_header(section_name) @>
+<@ if custom_header @>
+<@ for header_entry in custom_header @>
+<# smart_render_entry(header_entry, entry_processor, rendering_context) #>
+
+<@ endfor @>
+<@ endif @>
+<@ for spellcasting in (spell_list or []) @>
+<# render_spellcasting_block(spellcasting) #>
+
+<@ endfor @>
+<@ if entries_list @>
+<@ for entry in entries_list @>
+<# render_named_entry(entry) #>
+
+<@ endfor @>
+<@ endif @>
+<@ endif @>
+<@ endmacro @>
 
 <#--
   Macro: render_lair_actions_section(lair_actions)
@@ -200,7 +251,7 @@
 <@ endif @>
 
 <@ set traits_list = traits_list if traits_list else None @>
-<# render_section('Traits', traits_list, traits_spellcasting) #>
+<# render_section_with_custom_header('Traits', traits_list, traits_spellcasting, creature, 'traits') #>
 
 <@ set action_spells = [] @>
 <@ set bonus_spells = [] @>
@@ -218,16 +269,16 @@
 <@ endif @>
 
 <@ set actions_list = actions_list if actions_list else None @>
-<# render_section('Actions', actions_list, action_spells) #>
+<# render_section_with_custom_header('Actions', actions_list, action_spells, creature, 'actions') #>
 
 <@ set bonus_list = bonus_list if bonus_list else None @>
-<# render_section('Bonus Actions', bonus_list, bonus_spells) #>
+<# render_section_with_custom_header('Bonus Actions', bonus_list, bonus_spells, creature, 'bonus') #>
 
 <@ set reaction_list = reaction_list if reaction_list else None @>
-<# render_section('Reactions', reaction_list, reaction_spells) #>
+<# render_section_with_custom_header('Reactions', reaction_list, reaction_spells, creature, 'reactions') #>
 
 <@ set legendary_list = legendary_list if legendary_list else None @>
-<# render_section('Legendary Actions', legendary_list, None) #>
+<# render_legendary_actions_section(creature, legendary_list) #>
 
 <@ set lair_actions_list = lair_actions_list if lair_actions_list else None @>
 <# render_lair_actions_section(lair_actions_list) #>

@@ -262,8 +262,9 @@ class CreatureCollector:
             return False
 
         # Source filtering
-        if criteria.sources and not self._matches_sources(creature, criteria.sources):
-            return False
+        if criteria.sources:
+            if not self._matches_sources(creature, criteria.sources):
+                return False
 
         return True
 
@@ -283,7 +284,9 @@ class CreatureCollector:
                 return False
             return True
 
-        cr_value = self._parse_cr_value(str(creature.cr))
+        # Extract CR value from potentially complex CR data structure
+        cr_str = self._extract_cr_string(creature.cr)
+        cr_value = self._parse_cr_value(cr_str)
 
         # Handle variable CR exclusion
         if cr_value is None and criteria.exclude_variable_cr:
@@ -563,6 +566,22 @@ class CreatureCollector:
                 return False
 
         return True
+
+    def _extract_cr_string(self, cr_data: Any) -> str:
+        """Extract CR string from various CR data formats.
+
+        Args:
+            cr_data: CR data which may be string, int, float, or dict
+
+        Returns:
+            String representation of the CR value
+        """
+        if isinstance(cr_data, dict):
+            # Handle dictionary format: {'cr': '24', 'xpLair': 75000}
+            return str(cr_data.get("cr", "varies"))
+        else:
+            # Handle simple formats: string, int, float
+            return str(cr_data)
 
     def _parse_cr_value(self, cr_string: str) -> float | None:
         """Parse CR values including fractions: '1/4', '1/2', '0', '10', 'varies'."""

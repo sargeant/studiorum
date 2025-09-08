@@ -224,12 +224,22 @@ class AlignmentDict(TypedDict, total=False):
 
 
 class ChallengeRatingDict(TypedDict, total=False):
-    """Dict structure for complex challenge ratings."""
+    """Dict structure for complex challenge ratings.
 
-    cr: str
-    lair: str
-    coven: str
-    special: str
+    Supports various CR formats from 5etools:
+    - Base CR with optional XP override
+    - Lair variant with optional xpLair
+    - Coven variant with optional xpCoven
+    - Special text for custom displays
+    """
+
+    cr: str  # Base challenge rating (e.g., "24", "1/4")
+    xp: int | None  # Optional base XP override
+    lair: str | None  # Lair CR value (e.g., "24" for same CR in lair)
+    xpLair: int | None  # Lair XP override (e.g., 75000 for Ancient Red Dragon)
+    coven: str | None  # Coven CR value (e.g., "5" for Green Hag)
+    xpCoven: int | None  # Coven XP override
+    special: str | None  # Special text override for entire CR display
 
 
 class SkillValue(TypedDict, total=False):

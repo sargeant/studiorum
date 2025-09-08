@@ -780,7 +780,9 @@ def creatures(
             if sources:
                 parsed_sources = []
                 for src_list in sources:
-                    parsed_sources.extend([s.strip() for s in src_list.split(",")])
+                    parsed_sources.extend(
+                        [s.strip().upper() for s in src_list.split(",")]
+                    )
 
             parsed_creature_types = None
             if creature_types:

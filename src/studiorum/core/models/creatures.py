@@ -545,6 +545,40 @@ class Creature(BaseContent):
     reaction: list[Ability] | None = Field(None, description="Reactions")
     bonus: list[Ability] | None = Field(None, description="Bonus actions")
 
+    # 5etools parity fields
+    legendary_actions_lair: int | None = Field(
+        None, alias="legendaryActionsLair", description="Legendary actions when in lair"
+    )
+    legendary_header: list[CreatureEntry] | None = Field(
+        None,
+        alias="legendaryHeader",
+        description="Custom legendary actions header entries",
+    )
+    traits_header: list[CreatureEntry] | None = Field(
+        None, alias="traitsHeader", description="Custom Traits header entries"
+    )
+    actions_header: list[CreatureEntry] | None = Field(
+        None, alias="actionsHeader", description="Custom Actions header entries"
+    )
+    reactions_header: list[CreatureEntry] | None = Field(
+        None, alias="reactionsHeader", description="Custom Reactions header entries"
+    )
+    bonus_header: list[CreatureEntry] | None = Field(
+        None, alias="bonusHeader", description="Custom Bonus Actions header entries"
+    )
+    is_named_creature: bool | None = Field(
+        None,
+        alias="isNamedCreature",
+        description="Named/unique creature (affects pronouns)",
+    )
+    short_name: str | bool | None = Field(
+        None, alias="shortName", description="Short reference name"
+    )
+
+    # Optional read-only compatibility (not yet wired)
+    display_name: str | None = Field(None, alias="_displayName")
+    display_short_name: str | None = Field(None, alias="_displayShortName")
+
     # Spellcasting abilities
     spellcasting: list[Spellcasting] | None = Field(
         None, description="Spellcasting features"
@@ -1237,7 +1271,18 @@ class Creature(BaseContent):
         return ""
 
     def get_enhanced_cr_text(self) -> str:
-        """Get enhanced challenge rating text with XP calculation."""
+        """Get enhanced challenge rating text with XP calculation.
+
+        Supports multiple CR variants:
+        - Base CR with optional XP override
+        - Lair variant with "when encountered in lair"
+        - Coven variant with "when part of a coven"
+
+        Returns formatted text like:
+        - "24 (62,000 XP)"
+        - "24 (62,000 XP) or 24 (75,000 XP) when encountered in lair"
+        - "3 (700 XP) or 5 (1,800 XP) when part of a coven"
+        """
         if not self.cr:
             return "0 (10 XP)"
 
@@ -1279,22 +1324,65 @@ class Creature(BaseContent):
             "30": 155000,
         }
 
-        cr_value = None
+        def format_cr_with_xp(cr: str | None, xp_override: int | None = None) -> str:
+            """Format a single CR value with XP."""
+            if not cr:
+                return ""
+
+            # Use override XP if provided, otherwise look up from table
+            if xp_override is not None:
+                xp = xp_override
+            elif cr in xp_table:
+                xp = xp_table[cr]
+            else:
+                return f"{cr} (XP varies)"
+
+            return f"{cr} ({xp:,} XP)"
+
+        # Handle dictionary format with variants
         if isinstance(self.cr, dict):
-            if "special" in self.cr:
+            # Special override takes precedence
+            if "special" in self.cr and self.cr["special"]:
                 return str(self.cr["special"])
-            elif "cr" in self.cr:
-                cr_value = str(self.cr["cr"])
+
+            # Build list of CR variants
+            variants = []
+
+            # Base CR
+            base_cr = self.cr.get("cr")
+            if base_cr:
+                base_xp = self.cr.get("xp")
+                variants.append(format_cr_with_xp(base_cr, base_xp))
+
+            # Lair variant
+            lair_cr = self.cr.get("lair")
+            xp_lair = self.cr.get("xpLair")
+            if lair_cr or xp_lair:
+                # If only xpLair is provided, use base CR
+                lair_cr_value = lair_cr if lair_cr else base_cr
+                lair_text = format_cr_with_xp(lair_cr_value, xp_lair)
+                if lair_text:
+                    variants.append(f"{lair_text} when encountered in lair")
+
+            # Coven variant
+            coven_cr = self.cr.get("coven")
+            xp_coven = self.cr.get("xpCoven")
+            if coven_cr or xp_coven:
+                # If only xpCoven is provided, use coven CR
+                coven_text = format_cr_with_xp(coven_cr, xp_coven)
+                if coven_text:
+                    variants.append(f"{coven_text} when part of a coven")
+
+            # Join variants with " or "
+            if variants:
+                return " or ".join(variants)
+            else:
+                return "0 (10 XP)"
+
+        # Handle simple string/int format
         else:
             cr_value = str(self.cr)
-
-        if cr_value and cr_value in xp_table:
-            xp = xp_table[cr_value]
-            return f"{cr_value} ({xp:,} XP)"
-        elif cr_value:
-            return f"{cr_value} (XP varies)"
-        else:
-            return "0 (10 XP)"
+            return format_cr_with_xp(cr_value)
 
     def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
         """Extract spell references from creature traits and actions."""
@@ -1459,3 +1547,91 @@ class Creature(BaseContent):
         """Enrich creature using provided services."""
         processor = self.get_processor()
         return processor.enrich_with_content(omnidexer, tag_resolver)
+
+    def get_pronoun_subject(self) -> str:
+        """Subject pronoun for the creature: they/it (5etools parity)."""
+        return "they" if self.is_named_creature else "it"
+
+    def get_pronoun_object(self) -> str:
+        """Object pronoun for the creature: them/its (5etools uses 'its' for generic)."""
+        return "them" if self.is_named_creature else "its"
+
+    def get_pronoun_possessive(self) -> str:
+        """Possessive pronoun: their/its."""
+        return "their" if self.is_named_creature else "its"
+
+    def get_short_name(
+        self, *, is_title_case: bool = False, is_sentence_case: bool = False
+    ) -> str:
+        """Short name compatible with 5etools behavior (approximate casing rules).
+
+        - Use self.short_name if provided (True→use self.name; str→use value).
+        - Else: first segment before a comma in self.name.
+        - Named: do not prefix; Generic: prefix with 'the/The' depending on case.
+        - Title/sentence casing simplified; acceptable for parity in output.
+        """
+        base_name = None
+        if self.short_name is True:
+            base_name = self.name
+        elif isinstance(self.short_name, str):
+            base_name = self.short_name
+        else:
+            base_name = (self.name or "").split(",")[0]
+
+        if self.is_named_creature and base_name:
+            base_name = base_name.split(" ")[0]
+
+        if is_title_case and base_name:
+            base_name = base_name.title()
+        elif is_sentence_case and base_name:
+            base_name = base_name[:1].upper() + base_name[1:].lower()
+        elif not self.is_named_creature and base_name:
+            base_name = base_name.lower()
+
+        if not self.is_named_creature:
+            prefix = "The " if (is_title_case or is_sentence_case) else "the "
+            return f"{prefix}{base_name}"
+        return base_name or ""
+
+    def get_section_header(self, section_name: str) -> list[CreatureEntry] | None:
+        """Return custom header entries for a section name, if present."""
+        field_name = f"{section_name}_header"
+        return getattr(self, field_name, None)
+
+    def get_legendary_actions_header(
+        self, *, style_hint: str | None = "classic"
+    ) -> list[CreatureEntry] | None:
+        """Generate classic legendary actions header entries.
+
+        Precedence: legendary_header → generic 'legendary' section header → generated text.
+        Defaults: action_count = (legendary_actions or 3), lair_count = (legendary_actions_lair or action_count).
+        """
+        if not getattr(self, "legendary", None):
+            return None
+        if self.legendary_header:
+            return self.legendary_header
+        generic = self.get_section_header("legendary")
+        if generic:
+            return generic
+
+        action_count = (
+            self.legendary_actions if getattr(self, "legendary_actions", None) else 3
+        )
+        lair_count = (
+            self.legendary_actions_lair
+            if getattr(self, "legendary_actions_lair", None)
+            else action_count
+        )
+
+        name_title = self.get_short_name(is_title_case=True)
+        pro_poss = self.get_pronoun_possessive()
+
+        header = f"{name_title} can take {action_count} legendary action"
+        if action_count != 1:
+            header += "s"
+        if lair_count != action_count:
+            header += f" (or {lair_count} when in {pro_poss} lair)"
+        header += ", choosing from the options below. Only one legendary action can be used at a time and only at the end of another creature's turn. "
+        header += f"{name_title} regains spent legendary actions at the start of {pro_poss} turn."
+
+        return [header]
