@@ -101,9 +101,19 @@ class ImageProcessor:
             title = image_entry.get("title", "")
             return f"% Image placeholder: {title}" if title else "% Image placeholder"
 
+        # Extract actual path from href structure
+        image_path = self._extract_image_path(href)
+        if not image_path:
+            title = image_entry.get("title", "")
+            return (
+                f"% Image placeholder (invalid href): {title}"
+                if title
+                else "% Image placeholder (invalid href)"
+            )
+
         try:
             # Process the image through the pipeline
-            processed = self._process_image_pipeline(href, image_entry, context)
+            processed = self._process_image_pipeline(image_path, image_entry, context)
             return processed.latex_command
 
         except Exception as e:
@@ -266,12 +276,18 @@ class ImageProcessor:
         Returns:
             LaTeX command string
         """
+        # Check if we're in a gallery context
+        in_gallery = context.metadata.get("in_gallery", False)
+
         if not self.config.enable_placement_optimization:
             # Use basic placement
             title = image_entry.get("title", "")
             width_spec = self._calculate_width_spec(image_entry)
 
-            if title:
+            if in_gallery:
+                # In gallery context, don't wrap in figure - just return the image
+                return f"\\includegraphics[width={width_spec}]{{{image_path}}}"
+            elif title:
                 return f"""\\begin{{figure}}[htbp]
     \\centering
     \\includegraphics[width={width_spec}]{{{image_path}}}
@@ -290,6 +306,21 @@ class ImageProcessor:
             # Use intelligent placement
             # TODO: Extract context hint from image entry or content
             result = self._placer.place_image(image_path, image_entry)
+
+            # Check if we're in a gallery context and need to unwrap figure
+            if in_gallery and result.latex_command:
+                latex_cmd = result.latex_command
+                # Extract just the includegraphics command from figure environment
+                if "\\includegraphics" in latex_cmd:
+                    import re
+
+                    # Find the includegraphics line (handle multiline with re.DOTALL)
+                    match = re.search(
+                        r"\\includegraphics\[.*?\]\{.*?\}", latex_cmd, re.DOTALL
+                    )
+                    if match:
+                        return match.group(0)
+
             return result.latex_command
 
         except Exception:
@@ -297,7 +328,10 @@ class ImageProcessor:
             title = image_entry.get("title", "")
             width_spec = self._calculate_width_spec(image_entry)
 
-            if title:
+            if in_gallery:
+                # In gallery context, don't wrap in figure - just return the image
+                return f"\\includegraphics[width={width_spec}]{{{image_path}}}"
+            elif title:
                 return f"""\\begin{{figure}}[htbp]
     \\centering
     \\includegraphics[width={width_spec}]{{{image_path}}}
@@ -318,3 +352,29 @@ class ImageProcessor:
         # TODO: Add intelligent sizing based on image type and content
         # For now, use simple default
         return "0.8\\textwidth"
+
+    def _extract_image_path(self, href: str | dict[str, Any]) -> str:
+        """Extract the actual image path from href structure.
+
+        Args:
+            href: Either a string path or a dictionary with 'type' and 'path' keys
+
+        Returns:
+            String path to the image, or empty string if extraction fails
+        """
+        if isinstance(href, str):
+            return href
+        elif isinstance(href, dict):
+            # Handle 5etools href structure: {"type": "internal", "path": "..."}
+            if href.get("type") == "internal" and "path" in href:
+                return href["path"]
+            # Handle other possible href structures
+            elif "path" in href:
+                return href["path"]
+            elif "href" in href:
+                return href["href"]
+            elif "url" in href:
+                return href["url"]
+
+        # If we can't extract a path, return empty string
+        return ""
