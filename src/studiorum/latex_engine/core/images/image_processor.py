@@ -182,12 +182,25 @@ class ImageProcessor:
             # For now, return a placeholder path
             return Path("placeholder.png")
 
-        # Local path - resolve relative to assets directory from metadata
+        # Try to resolve relative to configured image directory first
+        from studiorum.core.config.unified_config import get_app_config
+
+        app_config = get_app_config()
+
+        if app_config.image.image_directory:
+            image_file_path = app_config.image.image_directory / image_path
+            if image_file_path.exists():
+                return image_file_path
+
+        # Fallback to assets directory from metadata
         assets_dir = context.metadata.get("assets_dir")
         if assets_dir:
-            return Path(assets_dir) / image_path
-        else:
-            return Path(image_path)
+            fallback_path = Path(assets_dir) / image_path
+            if fallback_path.exists():
+                return fallback_path
+
+        # Last resort: return the path as-is (may not exist)
+        return Path(image_path)
 
     def _convert_format_if_needed(self, image_path: Path) -> Path:
         """Convert image format if needed (e.g., WebP to PNG).

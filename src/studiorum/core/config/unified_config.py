@@ -340,6 +340,10 @@ class ImageConfig(BaseModel):
     sources: list[ImageSourceConfig] = Field(
         default_factory=list, description="Configured image sources"
     )
+    image_directory: Path | None = Field(
+        default=None,
+        description="Local directory to search for images (simple directory-based image resolution)",
+    )
 
     # Phase 4: Image Processing Options
     image_quality: str = Field(
