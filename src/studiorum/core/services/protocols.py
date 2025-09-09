@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from studiorum.core.loaders.content_factory import ContentFactory
     from studiorum.core.loaders.omnidexer import Omnidexer
     from studiorum.core.models.content import BaseContent, ContentType
+    from studiorum.core.models.fluff import BaseFluff
     from studiorum.core.protocols.progress import ProgressCallback
     from studiorum.core.references.content_tracker import ContentTracker
     from studiorum.core.result import Result
@@ -1139,6 +1140,120 @@ class AsyncResourceMonitorProtocol(ServiceProtocol, Protocol):
         ...
 
 
+@runtime_checkable
+class FluffDeduplicatorProtocol(ServiceProtocol, Protocol):
+    """Protocol for fluff deduplication services.
+
+    Handles deduplication of fluff content to prevent duplicate
+    narrative content in compendiums, particularly useful for
+    shared content like dragon lairs that appear across multiple creatures.
+    """
+
+    def should_include(self, fluff: BaseFluff) -> bool:
+        """Check if fluff content is unique and should be included.
+
+        Args:
+            fluff: The fluff entry to check
+
+        Returns:
+            True if the fluff content should be included, False if it's a duplicate
+        """
+        ...
+
+    def get_duplicate_references(self, fluff: BaseFluff) -> list[str]:
+        """Get list of content names that reference the same fluff.
+
+        Args:
+            fluff: The fluff entry to check
+
+        Returns:
+            List of content names that would have shown the same fluff content
+        """
+        ...
+
+    def get_statistics(self) -> dict[str, int]:
+        """Get deduplication statistics.
+
+        Returns:
+            Dictionary with statistics about processed and deduplicated content
+        """
+        ...
+
+
+@runtime_checkable
+class FluffImageExtractorProtocol(ServiceProtocol, Protocol):
+    """Protocol for fluff image extraction services (Phase 5).
+
+    Handles extraction of images from fluff content for integration
+    with the image processing system.
+    """
+
+    def extract_images_from_fluff(self, fluff: BaseFluff) -> list[Any]:
+        """Extract all images from a fluff entry.
+
+        Args:
+            fluff: The fluff entry to extract images from
+
+        Returns:
+            List of FluffImageInfo objects with image details
+        """
+        ...
+
+    def filter_images_by_type(
+        self, images: list[Any], image_types: list[str]
+    ) -> list[Any]:
+        """Filter images by their type.
+
+        Args:
+            images: List of image info objects
+            image_types: List of image types to include
+
+        Returns:
+            Filtered list of images
+        """
+        ...
+
+    def filter_images_by_format(
+        self, images: list[Any], supported_only: bool = True
+    ) -> list[Any]:
+        """Filter images by format support.
+
+        Args:
+            images: List of image info objects
+            supported_only: Whether to include only supported formats
+
+        Returns:
+            Filtered list of images
+        """
+        ...
+
+    def get_image_statistics(self, images: list[Any]) -> dict[str, Any]:
+        """Get statistics about extracted images.
+
+        Args:
+            images: List of image info objects
+
+        Returns:
+            Dictionary with image statistics
+        """
+        ...
+
+    def create_image_manifest(self, images: list[Any]) -> dict[str, Any]:
+        """Create a manifest of all extracted images for future processing.
+
+        Args:
+            images: List of image info objects
+
+        Returns:
+            Image manifest dictionary suitable for JSON serialization
+        """
+        ...
+
+    def reset(self) -> None:
+        """Reset the deduplicator state for a new document."""
+        ...
+
+
 # Export all protocols
 __all__ = [
     # Base protocols
@@ -1164,6 +1279,9 @@ __all__ = [
     "TemplateServiceProtocol",
     "TextExtractionProtocol",
     "LaTeXFormattingProtocol",
+    # Fluff service protocols (Phase 5)
+    "FluffDeduplicatorProtocol",
+    "FluffImageExtractorProtocol",
     # Image service protocols
     "ImageSourceRegistryProtocol",
     "EnhancedImagePlacerProtocol",

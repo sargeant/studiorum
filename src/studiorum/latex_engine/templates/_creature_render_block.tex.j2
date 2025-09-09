@@ -2,6 +2,7 @@
 % This macro can be included by both templates to ensure consistent rendering
 
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+<@ from "_fluff_block.tex.j2" import render_fluff_for_content with context @>
 
 <#--
   Helper macros to reduce duplication and improve readability.
@@ -160,6 +161,11 @@
   Requires: engine-injected entry_processor and rendering_context.
 --#>
 <@ macro render_creature(creature, template_service=template_service, content_tracker=content_tracker, latex_config=latex_config) @>
+<#-- Render fluff content before stat block if available --#>
+<@ if rendering_context and rendering_context.metadata and rendering_context.metadata.get('fluff') @>
+<# render_fluff_for_content(creature.name, rendering_context.metadata['fluff'], use_comment=False) #>
+<@ endif @>
+
 <#-- Resolve common lists safely up-front --#>
 <@ set traits_list = creature | attr('trait') | default([], true) @>
 <@ set actions_list = creature | attr('action') | default([], true) @>

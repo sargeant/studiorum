@@ -72,6 +72,41 @@ class ProcessingConfig(BaseModel):
     )
 
 
+class FluffRenderingConfig(BaseModel):
+    """Configuration for fluff content rendering (Phase 5)."""
+
+    enabled: bool = Field(
+        default=False, description="Enable fluff rendering by default"
+    )
+    placement: Literal["before", "after", "sidebar"] = Field(
+        default="before", description="Default fluff placement relative to main content"
+    )
+    deduplication: bool = Field(
+        default=True,
+        description="Enable fluff deduplication to avoid repetitive content",
+    )
+    include_images: bool = Field(
+        default=True, description="Include images from fluff content when available"
+    )
+    sections: list[str] = Field(
+        default_factory=list,
+        description="Optional section filtering - if specified, only these sections will be included",
+    )
+    allowed_sources: list[str] = Field(
+        default_factory=list,
+        description="Optional source filtering - if specified, only fluff from these sources will be included",
+    )
+    max_images_per_entry: int = Field(
+        default=5,
+        ge=0,
+        le=20,
+        description="Maximum number of images to include per fluff entry",
+    )
+    image_placement: Literal["inline", "float", "gallery"] = Field(
+        default="inline", description="How to place images within fluff content"
+    )
+
+
 class ContentConfig(BaseModel):
     """Configuration for content inclusion."""
 
@@ -85,6 +120,11 @@ class ContentConfig(BaseModel):
     )
     appendix_creatures: bool = Field(
         default=False, description="Generate creature appendices by default"
+    )
+    # Fluff configuration (Phase 5)
+    fluff: FluffRenderingConfig = Field(
+        default_factory=FluffRenderingConfig,
+        description="Fluff content rendering configuration",
     )
     # Default source resolution
     default_sources: list[str] = Field(

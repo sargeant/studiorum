@@ -18,6 +18,7 @@ from ..cache import cached
 from ..interfaces import DeepIndexable
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
+from ..models.fluff import BaseFluff
 from .base import DataLoader, SourceManager
 from .fluff_loader import FluffDataLoader
 from .json_loader import JsonDataLoader
@@ -1108,6 +1109,128 @@ class Omnidexer:
             )
 
         return self._content_merger
+
+    def get_fluff_for_content(
+        self, content: BaseContent, content_type: ContentType
+    ) -> BaseFluff | None:
+        """Get fluff entry for the given content, if available.
+
+        Args:
+            content: The content to find fluff for
+            content_type: The type of the content
+
+        Returns:
+            The matching fluff entry, or None if no match found
+
+        Example:
+            >>> creature = omnidexer.find(ContentType("creature"), "Ancient Red Dragon")
+            >>> if creature:
+            ...     fluff = omnidexer.get_fluff_for_content(creature, ContentType("creature"))
+            ...     if fluff:
+            ...         print(f"Found fluff for {creature.name}")
+        """
+        try:
+            # Handle None content gracefully
+            if content is None:
+                logger.debug("Cannot find fluff for None content")
+                return None
+
+            # Map content type to corresponding fluff content type
+            fluff_content_type = self._get_fluff_content_type(content_type)
+            if not fluff_content_type:
+                logger.debug(
+                    f"No fluff content type mapping found for {content_type.value}"
+                )
+                return None
+
+            # Get all fluff entries of the corresponding type
+            all_fluff = self.get_all_by_type(fluff_content_type)
+            if not all_fluff:
+                logger.debug(
+                    f"No {fluff_content_type.value} entries loaded in omnidexer"
+                )
+                return None
+
+            # Filter to BaseFluff instances
+            fluff_entries = [f for f in all_fluff if isinstance(f, BaseFluff)]
+            if not fluff_entries:
+                logger.debug(
+                    f"No valid fluff entries found for type {fluff_content_type.value}"
+                )
+                return None
+
+            # Create FluffMatcher and find matching fluff
+            from ..services.fluff_matcher import FluffMatcher
+
+            matcher = FluffMatcher(self)
+            matched_fluff = matcher.match_fluff_for_content(content, fluff_entries)
+
+            if matched_fluff:
+                logger.debug(
+                    f"Found fluff match for {content.name}: {matched_fluff.name} "
+                    f"from {matched_fluff.source.abbreviation}"
+                )
+            else:
+                logger.debug(f"No fluff match found for {content.name}")
+
+            return matched_fluff
+
+        except Exception as e:
+            # Never raise exceptions - gracefully handle all errors
+            content_name = getattr(content, "name", "unknown") if content else "None"
+            content_type_value = (
+                getattr(content_type, "value", str(content_type))
+                if content_type
+                else "unknown"
+            )
+            logger.debug(
+                f"Error finding fluff for {content_name} ({content_type_value}): {e}",
+                exc_info=True,
+            )
+            return None
+
+    def _get_fluff_content_type(self, content_type: ContentType) -> ContentType | None:
+        """Map content type to corresponding fluff content type.
+
+        Args:
+            content_type: The base content type
+
+        Returns:
+            The corresponding fluff content type, or None if no mapping exists
+        """
+        # Standard fluff type mappings based on existing fluff models
+        fluff_mappings = {
+            "creature": "creatureFluff",
+            "spell": "spellFluff",
+            "item": "itemFluff",
+            "race": "raceFluff",
+            "feat": "featFluff",
+            "class": "classFluff",
+            "background": "backgroundFluff",
+            "optionalfeature": "optionalfeatureFluff",
+            "vehicle": "vehicleFluff",
+            "object": "objectFluff",
+            "language": "languageFluff",
+            "reward": "rewardFluff",
+            "conditionDisease": "conditionDiseaseFluff",
+            "trapHazard": "trapHazardFluff",
+            "bastion": "bastionFluff",
+            "recipe": "recipeFluff",
+            "charoption": "charoptionFluff",
+        }
+
+        fluff_type_name = fluff_mappings.get(content_type.value)
+        if not fluff_type_name:
+            return None
+
+        try:
+            return ContentType(fluff_type_name)
+        except ValueError:
+            # Fluff content type not registered - this is expected for some types
+            logger.debug(
+                f"Fluff content type {fluff_type_name} not registered in ContentType enum"
+            )
+            return None
 
     def _log_index_stats(self) -> None:
         """Log statistics about the loaded index."""

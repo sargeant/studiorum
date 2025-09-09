@@ -67,6 +67,8 @@ class UnifiedSourceManager(SourceManager):
 
     async def initialize(self) -> None:
         """Initialize both data source and attribution managers."""
+        # Propagate content patterns before initializing data source manager
+        self._propagate_content_patterns()
         await self._data_source_manager.initialize()
         # ContentAttributionManager doesn't require async initialization
         self._is_initialized = True
@@ -104,6 +106,8 @@ class UnifiedSourceManager(SourceManager):
 
         # In test environments, skip async initialization to avoid event loop issues
         if os.getenv("PYTEST_CURRENT_TEST"):
+            # Propagate content patterns before any initialization work
+            self._propagate_content_patterns()
             # For tests, do the actual initialization work synchronously
             try:
                 # Build content index synchronously for tests
@@ -171,6 +175,8 @@ class UnifiedSourceManager(SourceManager):
         except RuntimeError:
             # No event loop running, try sync initialization first
             try:
+                # Propagate content patterns before sync initialization
+                self._propagate_content_patterns()
                 self._initialize_data_sources_sync()
                 self._is_initialized = True
                 logger.debug("Unified source manager initialized synchronously")

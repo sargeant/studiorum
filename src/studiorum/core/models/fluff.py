@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from studiorum.core.logging import get_logger
 
@@ -28,6 +28,8 @@ class FluffImage(BaseModel):
 
 class FluffEntry(BaseModel):
     """Liberal model for fluff text entries."""
+
+    model_config = ConfigDict(extra="allow")
 
     # Accept any structure - we'll extract text liberally
     content: str | dict[str, Any] | list[Any] = Field(default="")
@@ -192,7 +194,13 @@ class BaseFluff(BaseContent):
 
 @content_type(
     enum_value="spellFluff",
-    file_patterns=["spellFluff", "spell-fluff", "fluff-spell"],
+    file_patterns=[
+        "spellFluff",
+        "spell-fluff",
+        "fluff-spell",
+        "fluff-spells",
+        "spells",
+    ],
     statblock_tags=["spellFluff"],
     loader_type="fluff",
 )
@@ -204,7 +212,7 @@ class SpellFluff(BaseFluff):
 
 @content_type(
     enum_value="creatureFluff",
-    file_patterns=["creatureFluff", "creature-fluff", "bestiary", "fluff"],
+    file_patterns=["fluff-bestiary", "creatureFluff", "creature-fluff"],
     statblock_tags=["creatureFluff"],
     loader_type="fluff",
 )
@@ -216,7 +224,7 @@ class CreatureFluff(BaseFluff):
 
 @content_type(
     enum_value="itemFluff",
-    file_patterns=["itemFluff", "item-fluff", "fluff-items", "fluff"],
+    file_patterns=["fluff-items", "itemFluff", "item-fluff"],
     statblock_tags=["itemFluff"],
     loader_type="fluff",
 )
@@ -228,7 +236,7 @@ class ItemFluff(BaseFluff):
 
 @content_type(
     enum_value="raceFluff",
-    file_patterns=["raceFluff", "race-fluff", "races", "fluff-races"],
+    file_patterns=["fluff-races", "raceFluff", "race-fluff"],
     statblock_tags=["raceFluff"],
     loader_type="fluff",
 )
@@ -240,7 +248,7 @@ class RaceFluff(BaseFluff):
 
 @content_type(
     enum_value="featFluff",
-    file_patterns=["featFluff", "feat-fluff", "feats", "fluff-feats"],
+    file_patterns=["fluff-feats", "featFluff", "feat-fluff"],
     statblock_tags=["featFluff"],
     loader_type="fluff",
 )
@@ -252,7 +260,7 @@ class FeatFluff(BaseFluff):
 
 @content_type(
     enum_value="classFluff",
-    file_patterns=["classFluff", "class-fluff", "classes", "fluff-class"],
+    file_patterns=["fluff-class", "classFluff", "class-fluff"],
     statblock_tags=["classFluff"],
     loader_type="fluff",
 )
@@ -265,10 +273,9 @@ class ClassFluff(BaseFluff):
 @content_type(
     enum_value="backgroundFluff",
     file_patterns=[
+        "fluff-backgrounds",
         "backgroundFluff",
         "background-fluff",
-        "backgrounds",
-        "fluff-backgrounds",
     ],
     statblock_tags=["backgroundFluff"],
     loader_type="fluff",

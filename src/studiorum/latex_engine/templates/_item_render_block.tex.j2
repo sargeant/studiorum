@@ -2,6 +2,7 @@
 % This macro can be included by both templates to ensure consistent rendering
 
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+<@ from "_fluff_block.tex.j2" import render_fluff_for_content with context @>
 
 <@ macro render_item(item, template_service=template_service, content_tracker=content_tracker, entry_processor=entry_processor, rendering_context=rendering_context) @>
 % Item header with name and metadata
@@ -21,5 +22,10 @@
 <# smart_render_entry(item, entry_processor, rendering_context) #>
 <@ elif description_text is defined and description_text @>
 <# description_text | latex_escape #>
+<@ endif @>
+
+<#-- Render fluff content after item description if available --#>
+<@ if rendering_context and rendering_context.metadata and rendering_context.metadata.get('fluff') @>
+<# render_fluff_for_content(item.name, rendering_context.metadata['fluff']) #>
 <@ endif @>
 <@ endmacro @>

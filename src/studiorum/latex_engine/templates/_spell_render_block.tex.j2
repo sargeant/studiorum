@@ -2,6 +2,7 @@
 % This macro can be included by both templates to ensure consistent rendering
 
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+<@ from "_fluff_block.tex.j2" import render_fluff_for_content with context @>
 
 <@ macro render_spell_header(spell) @>
 <@ if spell.get_full_level_text is defined @>
@@ -47,6 +48,7 @@
   {<# spell.get_duration_text() | latex_escape #>}
 
 <@ if (spell is defined and spell is not string and spell.entries is defined and spell.entries) or (spell is sequence and spell is not string) @>
+\noindent
 <# smart_render_entry(spell, entry_processor, rendering_context) #>
 <@ elif description_text is defined and description_text @>
 <# description_text | latex_escape #>
@@ -55,4 +57,9 @@
 <@ endif @>
 
 <# render_higher_level_section(spell) | safe #>
+
+<#-- Render fluff content after spell description if available --#>
+<@ if rendering_context and rendering_context.metadata and rendering_context.metadata.get('fluff') @>
+<# render_fluff_for_content(spell.name, rendering_context.metadata['fluff']) #>
+<@ endif @>
 <@ endmacro @>

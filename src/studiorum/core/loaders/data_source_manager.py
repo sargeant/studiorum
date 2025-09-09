@@ -616,6 +616,13 @@ class DataSourceManager(SourceManager):
                             and "monsterfeature" in file_name
                         ):
                             continue
+
+                        # Special case: For fluff content types, be more restrictive
+                        # Only match files that actually have "fluff" in the name
+                        if content_type.value.endswith("Fluff"):
+                            if "fluff" not in file_name:
+                                continue
+
                         type_paths.append(file_path)
                         # Only mark as assigned if it's not a shared file
                         if not (
@@ -675,6 +682,13 @@ class DataSourceManager(SourceManager):
                             and "monsterfeature" in file_name
                         ):
                             continue
+
+                        # Special case: For fluff content types, be more restrictive
+                        # Only match files that actually have "fluff" in the name
+                        if content_type.value.endswith("Fluff"):
+                            if "fluff" not in file_name:
+                                continue
+
                         type_paths.append(file_path)
                         # Only mark as assigned if it's not a shared file
                         if not (

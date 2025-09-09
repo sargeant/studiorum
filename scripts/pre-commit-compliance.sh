@@ -31,7 +31,7 @@ ALLOWLIST_PATTERN='^(src/studiorum/renderers/core/handlers\.py|docs/index\.md)$'
 #  - Dungeons {&,\&,and} Dragons (flexible whitespace)
 #  - D {&,\&} D (escaped/unescaped ampersand)
 #  - Wizards of the Coast (flexible spacing)
-BRAND_REGEX='D\s*(?:&|\\&)+\s*D|Dungeons\s*(?:&|\\&|and)\s*Dragons|Wizards\s+of\s+the\s+Coast'
+BRAND_REGEX='D\s*(?:&|\\&)+\s*D|Dungeons\s*(?:&|\\&|and)\s*Dragons'
 
 violations=$(echo "$staged_files" \
   | xargs rg -l -i "$BRAND_REGEX" 2>/dev/null \

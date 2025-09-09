@@ -27,6 +27,7 @@ from .factories import (
     create_data_source_manager_service,
     create_display_manager_service,
     create_entry_registry_service,
+    create_fluff_deduplicator_service,
     create_omnidexer_service,
     create_reference_manager_service,
     create_tag_resolver_service,
@@ -40,6 +41,7 @@ from .protocols import (
     ContentTypeRegistryProtocol,
     DisplayManagerProtocol,
     EntryTypeRegistryProtocol,
+    FluffDeduplicatorProtocol,
     OmnidexerProtocol,
     ReferenceManagerProtocol,
     SourceManagerProtocol,
@@ -194,6 +196,18 @@ async def register_modern_services(container: ServiceContainer) -> None:
         cleanup_priority=CleanupPriority.REQUEST_SCOPED,
     )
     logger.debug("Registered ReferenceManagerProtocol as scoped")
+
+    # Fluff services (Phase 4 - Fluff Deduplication)
+    # Register after core services are available
+    container.register_service(
+        FluffDeduplicatorProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_fluff_deduplicator_service,
+        lifecycle=ServiceLifecycle.SCOPED,
+        dependencies=(),  # Can be enhanced later to depend on ContentTracker
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.REQUEST_SCOPED,
+    )
+    logger.debug("Registered FluffDeduplicatorProtocol as scoped")
 
     # Encounter building services (Package 2.3)
     # Register after core services are available

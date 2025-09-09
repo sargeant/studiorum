@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING, Any
 
 import typer
 
+from studiorum.cli.utils import resolve_option
+
 if TYPE_CHECKING:
     from studiorum.core.interfaces import TagResolver
     from studiorum.core.references.content_reference_manager import (
@@ -25,6 +27,7 @@ from studiorum.cli.utils import get_omnidexer, get_tag_resolver
 from studiorum.core.config.latex_config import LaTeXConfig
 from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.logging import get_logger
+from studiorum.core.models.content import ContentType
 from studiorum.core.models.spells import Spell
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -377,6 +380,31 @@ def spells(
         help="Generate creatures appendix with spell-referenced creatures",
         rich_help_panel="Output Control",
     ),
+    # Fluff content options (Phase 5 enhancements)
+    fluff: bool = typer.Option(
+        False,
+        "--fluff",
+        help="Include narrative fluff content",
+        rich_help_panel="Content Enhancement",
+    ),
+    fluff_sections: list[str] = typer.Option(
+        None,
+        "--fluff-sections",
+        help="Specific fluff sections to include (e.g., 'lore,history,variants')",
+        rich_help_panel="Content Enhancement",
+    ),
+    fluff_sources: list[str] = typer.Option(
+        None,
+        "--fluff-sources",
+        help="Filter fluff content by specific sources (e.g., 'PHB,XPHB')",
+        rich_help_panel="Content Enhancement",
+    ),
+    with_fluff_images: bool = typer.Option(
+        False,
+        "--with-fluff-images",
+        help="Include images from fluff content (prepares for future image system)",
+        rich_help_panel="Content Enhancement",
+    ),
 ) -> None:
     """
     🔮 Convert spells to LaTeX spell book
@@ -407,6 +435,67 @@ def spells(
 
     def _convert() -> None:
         try:
+            # Handle test calls - resolve ALL Typer OptionInfo objects when called directly
+            # This is necessary when tests call CLI functions directly, bypassing Typer's
+            # normal parameter resolution. In normal CLI usage, these are already resolved.
+            nonlocal spell_names, from_file, from_stdin, classes, level, max_level
+            nonlocal \
+                schools, \
+                verbal, \
+                somatic, \
+                material, \
+                no_material, \
+                concentration, \
+                ritual
+            nonlocal damage_types, saving_throws, attack_spells, sources
+            nonlocal output_file, title, compile_pdf, open_pdf
+            nonlocal document_class, paper, fonts, no_outline, font_size, background
+            nonlocal high_contrast, two_column, justified, statblock, with_images
+            nonlocal sort, show_toc, include_optional, creatures
+            nonlocal fluff, fluff_sections, fluff_sources, with_fluff_images
+
+            # Resolve all parameters using the resolve_option utility
+            spell_names = resolve_option(spell_names)
+            from_file = resolve_option(from_file)
+            from_stdin = resolve_option(from_stdin)
+            classes = resolve_option(classes)
+            level = resolve_option(level)
+            max_level = resolve_option(max_level)
+            schools = resolve_option(schools)
+            verbal = resolve_option(verbal)
+            somatic = resolve_option(somatic)
+            material = resolve_option(material)
+            no_material = resolve_option(no_material)
+            concentration = resolve_option(concentration)
+            ritual = resolve_option(ritual)
+            damage_types = resolve_option(damage_types)
+            saving_throws = resolve_option(saving_throws)
+            attack_spells = resolve_option(attack_spells)
+            sources = resolve_option(sources)
+            output_file = resolve_option(output_file)
+            title = resolve_option(title)
+            compile_pdf = resolve_option(compile_pdf)
+            open_pdf = resolve_option(open_pdf)
+            document_class = resolve_option(document_class)
+            paper = resolve_option(paper)
+            fonts = resolve_option(fonts)
+            no_outline = resolve_option(no_outline)
+            font_size = resolve_option(font_size)
+            background = resolve_option(background)
+            high_contrast = resolve_option(high_contrast)
+            two_column = resolve_option(two_column)
+            justified = resolve_option(justified)
+            statblock = resolve_option(statblock)
+            with_images = resolve_option(with_images)
+            sort = resolve_option(sort)
+            show_toc = resolve_option(show_toc)
+            include_optional = resolve_option(include_optional)
+            creatures = resolve_option(creatures)
+            fluff = resolve_option(fluff)
+            fluff_sections = resolve_option(fluff_sections)
+            fluff_sources = resolve_option(fluff_sources)
+            with_fluff_images = resolve_option(with_fluff_images)
+
             # Import spell-specific modules
             from studiorum.core.models.spell_filters import SpellFilterCriteria
             from studiorum.core.parsers.spell_input import SpellInputParser
@@ -657,6 +746,115 @@ def spells(
                 use_parts=False,
             )
 
+            # Parse fluff sections and sources for Phase 5
+            parsed_fluff_sections = None
+            if fluff_sections:
+                parsed_fluff_sections = []
+                for section_list in fluff_sections:
+                    parsed_fluff_sections.extend(
+                        [s.strip() for s in section_list.split(",")]
+                    )
+
+            parsed_fluff_sources = None
+            if fluff_sources:
+                parsed_fluff_sources = []
+                for source_list in fluff_sources:
+                    parsed_fluff_sources.extend(
+                        [s.strip().upper() for s in source_list.split(",")]
+                    )
+
+            # Process fluff content if requested
+            spell_fluff_map = {}
+            spell_image_map = {}
+            if fluff:
+                with display_manager.progress("Processing fluff content") as _:
+                    fluff_task = display_manager.add_task(
+                        "[cyan]Loading spell fluff...", total=len(sorted_spells)
+                    )
+
+                    # Initialize Phase 5 services
+                    from studiorum.core.services.fluff_image_extractor import (
+                        FluffImageExtractor,
+                    )
+                    from studiorum.core.services.fluff_matcher import FluffMatcher
+
+                    fluff_matcher = FluffMatcher(omnidexer)
+                    image_extractor = (
+                        FluffImageExtractor(omnidexer) if with_fluff_images else None
+                    )
+
+                    fluff_found_count = 0
+                    total_fluff_images = 0
+
+                    for i, spell in enumerate(sorted_spells):
+                        try:
+                            # Use enhanced fluff matcher with Phase 5 features
+                            spell_fluff = fluff_matcher.match_spell_fluff(
+                                spell,
+                                allowed_sections=parsed_fluff_sections,
+                                allowed_sources=parsed_fluff_sources,
+                            )
+                            if spell_fluff:
+                                spell_fluff_map[spell.name] = spell_fluff
+                                fluff_found_count += 1
+
+                                # Extract images if requested
+                                if image_extractor:
+                                    spell_images = (
+                                        image_extractor.extract_images_from_fluff(
+                                            spell_fluff
+                                        )
+                                    )
+                                    if spell_images:
+                                        total_fluff_images += len(spell_images)
+                                        # Store image info for rendering pipeline
+                                        spell_image_map[spell.name] = [
+                                            img.to_dict() for img in spell_images
+                                        ]
+                        except Exception as e:
+                            # Gracefully handle fluff lookup errors
+                            logger.debug(
+                                f"Failed to get fluff for {spell.name}: {e}",
+                                exc_info=True,
+                            )
+
+                        display_manager.update_task(fluff_task, completed=i + 1)
+
+                    display_manager.update_task(
+                        fluff_task, completed=len(sorted_spells)
+                    )
+
+                    if fluff_found_count > 0:
+                        rprint(
+                            f"[green]✓[/green] Found fluff content for {fluff_found_count} spells"
+                        )
+
+                        # Report section filtering if applied
+                        if parsed_fluff_sections:
+                            rprint(
+                                f"[blue]ℹ[/blue] Filtered to sections: {', '.join(parsed_fluff_sections)}"
+                            )
+
+                        # Report source filtering if applied
+                        if parsed_fluff_sources:
+                            rprint(
+                                f"[blue]ℹ[/blue] Filtered to sources: {', '.join(parsed_fluff_sources)}"
+                            )
+
+                        # Report image extraction if performed
+                        if with_fluff_images and total_fluff_images > 0:
+                            rprint(
+                                f"[green]✓[/green] Extracted {total_fluff_images} images from fluff content"
+                            )
+                    else:
+                        rprint(
+                            "[yellow]Warning:[/yellow] No fluff content found for any spells"
+                        )
+                        if parsed_fluff_sections or parsed_fluff_sources:
+                            rprint(
+                                "[yellow]Note:[/yellow] This might be due to section or source filtering"
+                            )
+
             # Create ContentTracker for creature reference tracking if needed
             appendix_mixin = AppendixMixin()
             reference_manager = (
@@ -688,6 +886,15 @@ def spells(
                     else [],
                     "template": "spellbook",  # Use spellbook template
                     "creatures": creatures,  # Pass flag to rendering pipeline
+                    "fluff": spell_fluff_map
+                    if fluff
+                    else {},  # Pass fluff data to rendering pipeline
+                    "fluff_images": spell_image_map
+                    if fluff
+                    else {},  # Pass fluff image data to rendering pipeline
+                    "fluff_sections": parsed_fluff_sections,  # Pass section filtering info
+                    "fluff_sources": parsed_fluff_sources,  # Pass source filtering info
+                    "fluff_images_enabled": with_fluff_images,  # Pass image extraction flag
                 },
             )
 

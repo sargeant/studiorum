@@ -18,12 +18,17 @@ from studiorum.cli.display_manager import display_manager
 from studiorum.cli.utils import get_omnidexer, get_tag_resolver
 from studiorum.core.config.latex_config import LaTeXConfig
 from studiorum.core.config.unified_config import get_app_config
+from studiorum.core.logging import get_logger
+from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Creature
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.renderers.core.interfaces import RenderingContext
 
 from ..base import AppendixMixin, BaseConvertCommand
 from ..shared import compile_pdf as compile_pdf_async
+
+# Module logger
+logger = get_logger(__name__)
 
 
 class TyperOptionInfo(Protocol):
@@ -557,6 +562,37 @@ def creatures(
         help="Generate spellbook appendix with creature-referenced spells",
         rich_help_panel="Output Control",
     ),
+    # Fluff content options (Phase 5 enhancements)
+    fluff: bool = typer.Option(
+        False,
+        "--fluff",
+        help="Include narrative fluff content",
+        rich_help_panel="Content Enhancement",
+    ),
+    deduplicate_fluff: bool = typer.Option(
+        True,
+        "--deduplicate-fluff/--no-deduplicate-fluff",
+        help="Deduplicate shared fluff content (e.g., dragon lairs)",
+        rich_help_panel="Content Enhancement",
+    ),
+    fluff_sections: list[str] = typer.Option(
+        None,
+        "--fluff-sections",
+        help="Specific fluff sections to include (e.g., 'lair,regional,tactics')",
+        rich_help_panel="Content Enhancement",
+    ),
+    fluff_sources: list[str] = typer.Option(
+        None,
+        "--fluff-sources",
+        help="Filter fluff content by specific sources (e.g., 'MM,XPHB')",
+        rich_help_panel="Content Enhancement",
+    ),
+    with_fluff_images: bool = typer.Option(
+        False,
+        "--with-fluff-images",
+        help="Include images from fluff content (prepares for future image system)",
+        rich_help_panel="Content Enhancement",
+    ),
 ) -> None:
     """
     🐉 Convert creatures to LaTeX bestiary
@@ -582,6 +618,12 @@ def creatures(
       studiorum convert creatures --legendary --min-cr 15
       studiorum convert creatures --fly --darkvision --type beast
       studiorum convert creatures --spellcasting --type humanoid
+
+      # Fluff content with Phase 5 features
+      studiorum convert creatures "Ancient Red Dragon" --fluff
+      studiorum convert creatures "Aboleth" --fluff --fluff-sections "lair,regional,tactics"
+      studiorum convert creatures "Aboleth" --fluff --with-fluff-images
+      studiorum convert creatures "Ancient Red Dragon" --fluff --fluff-sources "MM,XPHB"
 
       # Sorting options
       studiorum convert creatures --type dragon --sort cr     # Group by CR (default)
@@ -646,7 +688,12 @@ def creatures(
                 justified, \
                 statblock, \
                 with_images, \
-                spells
+                spells, \
+                fluff, \
+                deduplicate_fluff, \
+                fluff_sections, \
+                fluff_sources, \
+                with_fluff_images
 
             from_file = normalize_typer_param(from_file)
             from_stdin = normalize_typer_param(from_stdin)
@@ -697,6 +744,11 @@ def creatures(
             statblock = normalize_typer_param(statblock)
             with_images = normalize_typer_param(with_images)
             spells = normalize_typer_param(spells)
+            fluff = normalize_typer_param(fluff)
+            deduplicate_fluff = normalize_typer_param(deduplicate_fluff)
+            fluff_sections = normalize_typer_param(fluff_sections)
+            fluff_sources = normalize_typer_param(fluff_sources)
+            with_fluff_images = normalize_typer_param(with_fluff_images)
 
             # Import creature-specific modules
             from studiorum.core.models.creature_filters import CreatureFilterCriteria
@@ -993,6 +1045,181 @@ def creatures(
                 reference_manager.get_content_tracker() if reference_manager else None
             )
 
+            # Parse fluff sections and sources
+            parsed_fluff_sections = None
+            if fluff_sections:
+                parsed_fluff_sections = []
+                for section_list in fluff_sections:
+                    parsed_fluff_sections.extend(
+                        [s.strip() for s in section_list.split(",")]
+                    )
+
+            parsed_fluff_sources = None
+            if fluff_sources:
+                parsed_fluff_sources = []
+                for source_list in fluff_sources:
+                    parsed_fluff_sources.extend(
+                        [s.strip().upper() for s in source_list.split(",")]
+                    )
+
+            # Process fluff content if requested
+            creature_fluff_map = {}
+            creature_image_map = {}
+            fluff_deduplication_stats = {}
+            if fluff:
+                with display_manager.progress("Processing fluff content") as _:
+                    fluff_task = display_manager.add_task(
+                        "[cyan]Loading creature fluff...", total=len(sorted_creatures)
+                    )
+
+                    # Initialize fluff deduplicator if requested
+                    from studiorum.core.services.fluff_deduplicator import (
+                        DeduplicationStrategy,
+                        FluffDeduplicator,
+                    )
+                    from studiorum.core.services.fluff_image_extractor import (
+                        FluffImageExtractor,
+                    )
+                    from studiorum.core.services.fluff_matcher import FluffMatcher
+
+                    # Initialize enhanced fluff matcher with Phase 5 features
+                    fluff_matcher = FluffMatcher(omnidexer)
+
+                    # Initialize image extractor if requested
+                    image_extractor = (
+                        FluffImageExtractor(omnidexer) if with_fluff_images else None
+                    )
+
+                    deduplicator = None
+                    if deduplicate_fluff:
+                        deduplicator = FluffDeduplicator(
+                            strategy=DeduplicationStrategy.STRICT,
+                            content_tracker=content_tracker,
+                        )
+
+                    fluff_found_count = 0
+                    fluff_included_count = 0
+                    total_fluff_images = 0
+
+                    for i, creature in enumerate(sorted_creatures):
+                        try:
+                            # Use enhanced fluff matcher with Phase 5 features
+                            creature_fluff = fluff_matcher.match_creature_fluff(
+                                creature,
+                                allowed_sections=parsed_fluff_sections,
+                                allowed_sources=parsed_fluff_sources,
+                            )
+
+                            if creature_fluff:
+                                fluff_found_count += 1
+
+                                # Check if fluff should be included (deduplication)
+                                include_fluff = True
+                                if deduplicator:
+                                    include_fluff = deduplicator.should_include(
+                                        creature_fluff
+                                    )
+
+                                if include_fluff:
+                                    creature_fluff_map[creature.name] = creature_fluff
+                                    fluff_included_count += 1
+
+                                    # Extract images if requested
+                                    if image_extractor:
+                                        creature_images = (
+                                            image_extractor.extract_images_from_fluff(
+                                                creature_fluff
+                                            )
+                                        )
+                                        if creature_images:
+                                            total_fluff_images += len(creature_images)
+                                            # Store image info for rendering pipeline
+                                            creature_image_map[creature.name] = [
+                                                img.to_dict() for img in creature_images
+                                            ]
+                                else:
+                                    # Store reference for duplicate tracking
+                                    if deduplicator:
+                                        duplicate_refs = (
+                                            deduplicator.get_duplicate_references(
+                                                creature_fluff
+                                            )
+                                        )
+                                        logger.debug(
+                                            f"Duplicate fluff for {creature.name}, references: {duplicate_refs}"
+                                        )
+
+                        except Exception as e:
+                            # Gracefully handle fluff lookup errors
+                            logger.debug(
+                                f"Failed to get fluff for {creature.name}: {e}",
+                                exc_info=True,
+                            )
+
+                        display_manager.update_task(fluff_task, completed=i + 1)
+
+                    display_manager.update_task(
+                        fluff_task, completed=len(sorted_creatures)
+                    )
+
+                    if fluff_found_count > 0:
+                        rprint(
+                            f"[green]✓[/green] Found fluff content for {fluff_found_count} creatures"
+                        )
+
+                        # Report section filtering if applied
+                        if parsed_fluff_sections:
+                            rprint(
+                                f"[blue]ℹ[/blue] Filtered to sections: {', '.join(parsed_fluff_sections)}"
+                            )
+
+                        # Report source filtering if applied
+                        if parsed_fluff_sources:
+                            rprint(
+                                f"[blue]ℹ[/blue] Filtered to sources: {', '.join(parsed_fluff_sources)}"
+                            )
+
+                        # Report image extraction if performed
+                        if with_fluff_images and total_fluff_images > 0:
+                            rprint(
+                                f"[green]✓[/green] Extracted {total_fluff_images} images from fluff content"
+                            )
+
+                        if deduplicate_fluff and deduplicator:
+                            fluff_deduplication_stats = deduplicator.get_statistics()
+                            if (
+                                fluff_deduplication_stats["duplicate_fluff_detected"]
+                                > 0
+                            ):
+                                rprint(
+                                    f"[blue]ℹ[/blue] Included {fluff_included_count} unique fluff entries, "
+                                    f"deduplicated {fluff_deduplication_stats['duplicate_fluff_detected']} duplicates"
+                                )
+                            else:
+                                rprint(
+                                    f"[blue]ℹ[/blue] Included {fluff_included_count} unique fluff entries"
+                                )
+                        else:
+                            # Count actual fluff entries (excluding image metadata)
+                            actual_fluff_count = len(
+                                [
+                                    k
+                                    for k in creature_fluff_map.keys()
+                                    if not k.endswith("_images")
+                                ]
+                            )
+                            rprint(
+                                f"[blue]ℹ[/blue] Included {actual_fluff_count} fluff entries"
+                            )
+                    else:
+                        rprint(
+                            "[yellow]Warning:[/yellow] No fluff content found for any creatures"
+                        )
+                        if parsed_fluff_sections or parsed_fluff_sources:
+                            rprint(
+                                "[yellow]Note:[/yellow] This might be due to section or source filtering"
+                            )
+
             # Create render context with bestiary-specific data
             context = RenderingContext(
                 output_format="latex",
@@ -1013,6 +1240,13 @@ def creatures(
                     else [],
                     "template": "bestiary",  # Use bestiary template
                     "spells": spells,  # Pass flag to rendering pipeline
+                    "fluff": creature_fluff_map
+                    if fluff
+                    else {},  # Pass fluff data to rendering pipeline
+                    "fluff_deduplication_stats": fluff_deduplication_stats,  # Pass deduplication statistics
+                    "fluff_sections": parsed_fluff_sections,  # Pass section filtering info
+                    "fluff_sources": parsed_fluff_sources,  # Pass source filtering info
+                    "fluff_images_enabled": with_fluff_images,  # Pass image extraction flag
                 },
             )
 

@@ -1,0 +1,45 @@
+% Shared fluff rendering block for use in creature, spell, and item templates
+% Renders narrative fluff content using the DndComment environment
+
+<@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+
+<#--
+  Macro: render_fluff_block(fluff_content, use_comment=True)
+  Purpose: Render fluff content with optional DndComment wrapper.
+           Creatures: use_comment=False (plain rendering)
+           Items/Spells: use_comment=True (styled comment block)
+  Requires: engine-injected entry_processor and rendering_context.
+  Params:  fluff_content - BaseFluff object with .entries attribute
+           use_comment - Whether to wrap in DndComment (default: True)
+--#>
+<@ macro render_fluff_block(fluff_content, use_comment=True) @>
+<@ if fluff_content @>
+<@ if fluff_content.entries @>
+<@ if use_comment @>
+\begin{DndComment}{<@ if fluff_content.name @><# fluff_content.name #><@ else @>Lore<@ endif @>}
+<@ endif @>
+<@ for entry in fluff_content.entries @>
+<# smart_render_entry(entry, entry_processor, rendering_context) #>
+<@ endfor @>
+<@ if use_comment @>
+\end{DndComment}
+<@ endif @>
+<@ endif @>
+<@ endif @>
+<@ endmacro @>
+
+<#--
+  Macro: render_fluff_for_content(content_name, fluff_map, use_comment=True)
+  Purpose: Look up and render fluff content for a specific content item (creature, spell, item).
+           Uses content name to find matching fluff in the fluff_map.
+  Requires: engine-injected entry_processor and rendering_context.
+  Params:  content_name - Name of the content (e.g., creature.name, spell.name)
+           fluff_map - Dictionary mapping names to BaseFluff objects
+           use_comment - Whether to wrap in DndComment (default: True)
+--#>
+<@ macro render_fluff_for_content(content_name, fluff_map, use_comment=True) @>
+<@ if fluff_map and content_name in fluff_map @>
+<@ set fluff_content = fluff_map[content_name] @>
+<# render_fluff_block(fluff_content, use_comment) #>
+<@ endif @>
+<@ endmacro @>

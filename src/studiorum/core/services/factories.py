@@ -30,6 +30,7 @@ from studiorum.core.error_types import (
 )
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.models.fluff import BaseFluff
 from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.result import Error, Result, Success
 
@@ -43,6 +44,7 @@ from .protocols import (
     ContentTypeRegistryProtocol,
     DisplayManagerProtocol,
     EntryTypeRegistryProtocol,
+    FluffDeduplicatorProtocol,
     OmnidexerProtocol,
     ReferenceManagerProtocol,
     ServiceProtocol,
@@ -567,6 +569,18 @@ def create_omnidexer_service_sync(
                 raise RuntimeError("Omnidexer not initialized")
             result = self.get_content(content_type, name)
             return {"success": True, "data": result}
+
+        def get_fluff_for_content(
+            self, content: BaseContent, content_type: ContentType
+        ) -> BaseFluff | None:
+            """Get fluff entry for the given content, if available."""
+            if not self._omnidexer:
+                raise RuntimeError("Omnidexer not initialized")
+
+            # Lazy load data when first accessed
+            self._ensure_data_loaded()
+
+            return self._omnidexer.get_fluff_for_content(content, content_type)
 
         def get_performance_statistics(self) -> dict[str, object]:
             """Get comprehensive performance statistics."""
@@ -1439,3 +1453,35 @@ def create_context_bound_template_service(
     bound_service = ContextBoundTemplateService(template_service, content_tracker)
     logger.debug("ContextBoundTemplateService initialized successfully")
     return bound_service
+
+
+# Fluff Services
+
+
+def create_fluff_deduplicator_service(
+    container: ServiceContainer | None = None,
+) -> FluffDeduplicatorProtocol:
+    """Factory for fluff deduplication service.
+
+    The FluffDeduplicator helps prevent duplicate narrative content
+    in compendiums by detecting identical fluff entries and providing
+    cross-references instead of duplicating content.
+
+    Args:
+        container: Service container for dependency injection (optional)
+
+    Returns:
+        FluffDeduplicator service instance
+    """
+    from .fluff_deduplicator import (
+        DeduplicationStrategy,
+        create_fluff_deduplicator_service,
+    )
+
+    # Use strict deduplication by default - can be configured via service creation
+    service = create_fluff_deduplicator_service(
+        strategy=DeduplicationStrategy.STRICT,
+        content_tracker=None,  # Will be injected when needed
+    )
+    logger.debug("FluffDeduplicator service initialized successfully")
+    return service
