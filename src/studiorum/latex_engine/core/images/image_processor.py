@@ -144,6 +144,11 @@ class ImageProcessor:
         # Step 1: Resolve and download image if needed
         resolved_path = self._resolve_image_path(image_path, context)
 
+        # Check if image was found
+        if resolved_path is None:
+            # Image not found, raise exception to trigger fallback
+            raise FileNotFoundError(f"Image file not found: {image_path}")
+
         # Step 2: Convert format if needed (WebP -> PNG)
         converted_path = self._convert_format_if_needed(resolved_path)
 
@@ -164,7 +169,9 @@ class ImageProcessor:
             caption=image_entry.get("title"),
         )
 
-    def _resolve_image_path(self, image_path: str, context: RenderingContext) -> Path:
+    def _resolve_image_path(
+        self, image_path: str, context: RenderingContext
+    ) -> Path | None:
         """Resolve image path, handling URLs and local paths.
 
         Args:
@@ -172,15 +179,15 @@ class ImageProcessor:
             context: Rendering context
 
         Returns:
-            Local path to the image file
+            Local path to the image file, or None if not found
         """
         # For now, implement basic local path resolution
         # TODO: Add URL downloading and 5etools-img integration
 
         if image_path.startswith(("http://", "https://")):
             # URL - would need to download
-            # For now, return a placeholder path
-            return Path("placeholder.png")
+            # For now, return None to indicate we can't handle URLs yet
+            return None
 
         # Try to resolve relative to configured image directory first
         from studiorum.core.config.unified_config import get_app_config
@@ -199,8 +206,8 @@ class ImageProcessor:
             if fallback_path.exists():
                 return fallback_path
 
-        # Last resort: return the path as-is (may not exist)
-        return Path(image_path)
+        # If we get here, the file doesn't exist in any of our search locations
+        return None
 
     def _convert_format_if_needed(self, image_path: Path) -> Path:
         """Convert image format if needed (e.g., WebP to PNG).
@@ -289,6 +296,10 @@ class ImageProcessor:
         Returns:
             LaTeX command string
         """
+        # Final validation: ensure the image file actually exists
+        if not image_path.exists():
+            raise FileNotFoundError(f"Processed image file not found: {image_path}")
+
         # Check if we're in a gallery context
         in_gallery = context.metadata.get("in_gallery", False)
 
