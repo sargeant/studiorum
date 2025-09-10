@@ -173,8 +173,8 @@ class TestImageProcessor:
             "https://example.com/test.png", self.context
         )
 
-        # For now, should return placeholder
-        assert result == Path("placeholder.png")
+        # URLs are not supported yet, should return None
+        assert result is None
 
     def test_convert_format_disabled(self):
         """Test format conversion when disabled."""
@@ -205,29 +205,49 @@ class TestImageProcessor:
     def test_generate_latex_basic_with_title(self):
         """Test basic LaTeX generation with title."""
         self.processor.config.enable_placement_optimization = False
-        image_path = Path("test.png")
-        image_entry = {"title": "Test Image"}
 
-        result = self.processor._generate_latex_command(
-            image_path, image_entry, self.context
-        )
+        # Create a temporary test image file
+        import tempfile
 
-        assert "\\begin{figure}[htbp]" in result
-        assert "\\includegraphics[width=0.8\\textwidth]{test.png}" in result
-        assert "\\caption{Test Image}" in result
-        assert "\\end{figure}" in result
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
+            image_path = Path(temp_file.name)
+
+        try:
+            image_entry = {"title": "Test Image"}
+
+            result = self.processor._generate_latex_command(
+                image_path, image_entry, self.context
+            )
+
+            assert "\\begin{figure}[htbp]" in result
+            assert f"\\includegraphics[width=0.8\\textwidth]{{{image_path}}}" in result
+            assert "\\caption{Test Image}" in result
+            assert "\\end{figure}" in result
+        finally:
+            # Clean up temp file
+            image_path.unlink(missing_ok=True)
 
     def test_generate_latex_basic_no_title(self):
         """Test basic LaTeX generation without title."""
         self.processor.config.enable_placement_optimization = False
-        image_path = Path("test.png")
-        image_entry = {}
 
-        result = self.processor._generate_latex_command(
-            image_path, image_entry, self.context
-        )
+        # Create a temporary test image file
+        import tempfile
 
-        assert result == "\\includegraphics[width=0.8\\textwidth]{test.png}"
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
+            image_path = Path(temp_file.name)
+
+        try:
+            image_entry = {}
+
+            result = self.processor._generate_latex_command(
+                image_path, image_entry, self.context
+            )
+
+            assert result == f"\\includegraphics[width=0.8\\textwidth]{{{image_path}}}"
+        finally:
+            # Clean up temp file
+            image_path.unlink(missing_ok=True)
 
     def test_calculate_width_spec_default(self):
         """Test default width specification calculation."""

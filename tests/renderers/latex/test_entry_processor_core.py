@@ -132,27 +132,22 @@ class TestRecursiveEntryProcessor:
         entry = {"type": "image", "href": "path/to/image.png", "title": "Test Image"}
         result = self.processor.process_entry_dict(entry, self.context)
 
-        # Using enhanced image processor with improved formatting
-        assert "\\begin{figure}" in result
-        assert "\\centering" in result
-        assert "\\includegraphics" in result
-        assert "path/to/image.png" in result
-        assert "\\caption{Test Image}" in result
-        assert "\\end{figure}" in result
+        # With enhanced error handling, non-existent images generate fallback comments
+        assert (
+            "% Image processing failed (Image file not found: path/to/image.png): Test Image"
+            in result
+        )
 
     def test_process_entry_dict_image_without_title(self):
         """Test processing image without title."""
         entry = {"type": "image", "href": "path/to/image.png"}
         result = self.processor.process_entry_dict(entry, self.context)
 
-        # Using enhanced image processor - images without title still use figure environment
-        assert "\\begin{figure}" in result
-        assert "\\centering" in result
-        assert "\\includegraphics" in result
-        assert "path/to/image.png" in result
-        assert "\\end{figure}" in result
-        # Should not have caption for images without title
-        assert "\\caption{" not in result
+        # With enhanced error handling, non-existent images generate fallback comments
+        assert (
+            "% Image processing failed: Image file not found: path/to/image.png"
+            in result
+        )
 
     def test_process_entry_dict_image_no_href(self):
         """Test processing image without href."""
