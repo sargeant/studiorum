@@ -254,6 +254,19 @@ class Spell(BaseContent):
         None, alias="hasFluffImages", description="Has associated artwork"
     )
 
+    @field_validator("srd52", mode="before")
+    @classmethod
+    def parse_srd52(cls, v: Any) -> bool | None:
+        """Parse srd52 field which can be bool or string."""
+        if v is None:
+            return None
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            # If it's a string, treat it as True (the spell has an SRD52 name)
+            return True
+        return bool(v)
+
     @field_validator("school", mode="before")
     @classmethod
     def parse_school(cls, v: Any) -> str:
