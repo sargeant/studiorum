@@ -183,7 +183,7 @@ class ImageProcessor:
             original_path=Path(image_path),
             processed_path=optimized_path,
             latex_command=latex_command,
-            width_specification=self._calculate_width_spec(image_entry),
+            width_specification=self._calculate_width_spec(image_entry, context),
             placement_hint=image_entry.get("placement"),
             caption=image_entry.get("title"),
         )
@@ -332,7 +332,7 @@ class ImageProcessor:
         if not self.config.enable_placement_optimization:
             # Use basic placement
             title = image_entry.get("title", "")
-            width_spec = self._calculate_width_spec(image_entry)
+            width_spec = self._calculate_width_spec(image_entry, context)
 
             if in_gallery:
                 # In gallery context, don't wrap in figure - just return the image
@@ -346,16 +346,30 @@ class ImageProcessor:
             else:
                 return f"\\includegraphics[width={width_spec}]{{{image_path}}}"
 
-        # Initialize placer lazily
+        # Initialize placer lazily - use enhanced placer with ContentAwarePlacementStrategy
         if self._placer is None:
-            from .image_placer import ImagePlacer
+            try:
+                from .enhanced_image_placer import EnhancedImagePlacer
 
-            self._placer = ImagePlacer()
+                self._placer = EnhancedImagePlacer()
+            except ImportError:
+                # Fallback to basic placer if enhanced version not available
+                from .image_placer import ImagePlacer
+
+                self._placer = ImagePlacer()
 
         try:
-            # Use intelligent placement
-            # TODO: Extract context hint from image entry or content
-            result = self._placer.place_image(image_path, image_entry)
+            # Use intelligent placement with enhanced context
+            # Extract context information for better placement decisions
+            placement_context = self._build_placement_context(image_entry, context)
+
+            if hasattr(self._placer, "place_image_with_context"):
+                result = self._placer.place_image_with_context(
+                    image_path, image_entry, placement_context
+                )
+            else:
+                # Fallback for basic placer
+                result = self._placer.place_image(image_path, image_entry)
 
             # Check if we're in a gallery context and need to unwrap figure
             if in_gallery and result.latex_command:
@@ -376,7 +390,7 @@ class ImageProcessor:
         except Exception:
             # Fallback to basic placement
             title = image_entry.get("title", "")
-            width_spec = self._calculate_width_spec(image_entry)
+            width_spec = self._calculate_width_spec(image_entry, context)
 
             if in_gallery:
                 # In gallery context, don't wrap in figure - just return the image
@@ -390,18 +404,96 @@ class ImageProcessor:
             else:
                 return f"\\includegraphics[width={width_spec}]{{{image_path}}}"
 
-    def _calculate_width_spec(self, image_entry: dict[str, Any]) -> str:
+    def _calculate_width_spec(
+        self, image_entry: dict[str, Any], context: RenderingContext | None = None
+    ) -> str:
         """Calculate LaTeX width specification for image.
 
         Args:
             image_entry: Image entry data
+            context: Rendering context for layout awareness
 
         Returns:
-            LaTeX width specification (e.g., "0.8\\textwidth")
+            LaTeX width specification with both width and height constraints
         """
-        # TODO: Add intelligent sizing based on image type and content
-        # For now, use simple default
-        return "0.8\\textwidth"
+        # Check if we're in a gallery context (different sizing rules)
+        if context and context.metadata.get("in_gallery", False):
+            # Gallery images should fill subfigure but respect aspect ratio
+            return "width=\\textwidth,height=0.25\\textheight,keepaspectratio"
+
+        # Check if we're in a two-column layout (most 5e content)
+        layout_mode = (
+            context.metadata.get("layout_mode", "twocolumn") if context else "twocolumn"
+        )
+
+        # For item compendiums and similar content, use column-aware sizing
+        if layout_mode == "twocolumn":
+            # In two-column layout, textwidth spans both columns
+            # We want images to fit within a single column
+            content_type = context.metadata.get("content_type") if context else None
+
+            if content_type == "item":
+                # Item images should be smaller and not dominate the layout
+                # Constrain both width and height to prevent page overflow
+                return "width=0.6\\columnwidth,height=0.2\\textheight,keepaspectratio"
+            elif content_type == "spell":
+                # Spell images also conservative sizing
+                return "width=0.7\\columnwidth,height=0.25\\textheight,keepaspectratio"
+            elif content_type == "creature":
+                # Creature images can be larger but still within column
+                return "width=0.9\\columnwidth,height=0.3\\textheight,keepaspectratio"
+            else:
+                # General content in two-column layout
+                return "width=0.8\\columnwidth,height=0.3\\textheight,keepaspectratio"
+
+        # Single column or full-width layouts
+        return "width=0.8\\textwidth,height=0.4\\textheight,keepaspectratio"
+
+    def _build_placement_context(
+        self, image_entry: dict[str, Any], context: RenderingContext
+    ) -> dict[str, Any]:
+        """Build placement context for ContentAwarePlacementStrategy.
+
+        Args:
+            image_entry: Image entry data
+            context: Rendering context
+
+        Returns:
+            Dictionary with context information for placement decisions
+        """
+        placement_context = {
+            "content_type": context.metadata.get("content_type", "unknown"),
+            "layout_mode": context.metadata.get("layout_mode", "twocolumn"),
+            "image_context": context.metadata.get("image_context", "illustration"),
+            "placement_hint": image_entry.get("placement_hint", "auto"),
+            "content_name": context.metadata.get("item_name")
+            or image_entry.get("title", ""),
+            "in_gallery": context.metadata.get("in_gallery", False),
+            "current_section": context.metadata.get("current_section", ""),
+            # Add sizing preferences based on content type
+            "preferred_size": self._get_preferred_size_for_content(
+                context.metadata.get("content_type")
+            ),
+        }
+        return placement_context
+
+    def _get_preferred_size_for_content(self, content_type: str | None) -> str:
+        """Get preferred size category based on content type.
+
+        Args:
+            content_type: Type of content being processed
+
+        Returns:
+            Size preference string
+        """
+        size_preferences = {
+            "item": "small",
+            "spell": "small",
+            "creature": "medium",
+            "adventure": "large",
+            "chapter": "large",
+        }
+        return size_preferences.get(content_type or "unknown", "medium")
 
     def _extract_image_path(self, href: str | dict[str, Any]) -> str:
         """Extract the actual image path from href structure.

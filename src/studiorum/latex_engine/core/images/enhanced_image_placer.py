@@ -244,13 +244,30 @@ class EnhancedImagePlacer(ImagePlacer):
             if self.layout_analyzer and page_ctx:
                 layout_impact = await self._analyze_layout_impact(decision, page_ctx)
 
-            # Generate LaTeX command using base class method
-            latex_command = self._generate_placement_command(
-                image_path,
-                image_entry,
-                decision.placement,
-                self._size_to_spec(decision.size),
-            )
+            # Generate LaTeX command using enhanced methods
+            size_spec = self._size_to_spec(decision.size, content_ctx)
+
+            # Use our enhanced wrap command for wrap placements
+            if (
+                hasattr(decision.placement, "value")
+                and "wrap" in decision.placement.value
+            ):
+                latex_command = self._generate_wrap_command(
+                    image_path,
+                    image_entry.get("title", ""),
+                    decision.placement,
+                    size_spec,
+                    self._generate_label(image_entry),
+                    content_ctx,
+                )
+            else:
+                # Use base class method for other placements
+                latex_command = self._generate_placement_command(
+                    image_path,
+                    image_entry,
+                    decision.placement,
+                    size_spec,
+                )
 
             # Apply output optimization if enabled
             optimization_applied = False
@@ -266,7 +283,7 @@ class EnhancedImagePlacer(ImagePlacer):
             result = EnhancedPlacementResult(
                 latex_command=latex_command,
                 placement=decision.placement,
-                size_spec=self._size_to_spec(decision.size),
+                size_spec=self._size_to_spec(decision.size, content_ctx),
                 requires_packages=self._get_required_packages(decision.placement),
                 caption=image_entry.get("title"),
                 confidence=decision.confidence,
@@ -574,11 +591,126 @@ class EnhancedImagePlacer(ImagePlacer):
         except Exception as e:
             return Error(f"Fallback placement failed: {str(e)}")
 
-    def _size_to_spec(self, size: Any) -> str:
-        """Convert size enum to LaTeX specification."""
-        # This would map ImageSize enums to LaTeX size specifications
-        # For now, return a reasonable default
-        return "0.6\\textwidth"
+    def _size_to_spec(
+        self, size: Any, content_context: ContentContext | None = None
+    ) -> str:
+        """Convert size enum to LaTeX specification with context-aware sizing.
+
+        Args:
+            size: Size specification from placement decision
+            content_context: Content context for intelligent sizing
+
+        Returns:
+            LaTeX width specification compatible with wrapfigure environment
+        """
+        # Determine layout mode - default to two-column for 5e content
+        layout_mode = "twocolumn"  # Most 5e content uses two-column layout
+        content_type = None
+
+        if content_context:
+            content_type = (
+                content_context.content_type.value
+                if content_context.content_type
+                else None
+            )
+
+        # For item compendiums and similar content, use column-aware sizing
+        # Note: wrapfigure size parameter must be a simple width, not complex includegraphics parameters
+        if layout_mode == "twocolumn":
+            # In two-column layout, textwidth spans both columns
+            # We want images to fit within a single column
+
+            if content_type == "item":
+                # Item images should be smaller and not dominate the layout
+                return "0.6\\columnwidth"
+            elif content_type == "spell":
+                # Spell images also conservative sizing
+                return "0.7\\columnwidth"
+            elif content_type == "creature":
+                # Creature images can be larger but still within column
+                return "0.9\\columnwidth"
+            else:
+                # General content in two-column layout
+                return "0.8\\columnwidth"
+
+        # Single column or full-width layouts (fallback)
+        return "0.8\\textwidth"
+
+    def _get_includegraphics_params(
+        self, size: Any, content_context: ContentContext | None = None
+    ) -> str:
+        """Get includegraphics parameters with height constraints.
+
+        Args:
+            size: Size specification from placement decision
+            content_context: Content context for intelligent sizing
+
+        Returns:
+            LaTeX includegraphics parameters with width and height constraints
+        """
+        # Determine layout mode - default to two-column for 5e content
+        layout_mode = "twocolumn"  # Most 5e content uses two-column layout
+        content_type = None
+
+        if content_context:
+            content_type = (
+                content_context.content_type.value
+                if content_context.content_type
+                else None
+            )
+
+        # For item compendiums and similar content, use column-aware sizing with height constraints
+        if layout_mode == "twocolumn":
+            if content_type == "item":
+                # Item images: constrain both width and height to prevent page overflow
+                return "width=0.6\\columnwidth,height=0.2\\textheight,keepaspectratio"
+            elif content_type == "spell":
+                # Spell images: conservative sizing with height constraint
+                return "width=0.7\\columnwidth,height=0.25\\textheight,keepaspectratio"
+            elif content_type == "creature":
+                # Creature images: larger but still constrained
+                return "width=0.9\\columnwidth,height=0.3\\textheight,keepaspectratio"
+            else:
+                # General content in two-column layout
+                return "width=0.8\\columnwidth,height=0.3\\textheight,keepaspectratio"
+
+        # Single column or full-width layouts (fallback)
+        return "width=0.8\\textwidth,height=0.4\\textheight,keepaspectratio"
+
+    def _generate_wrap_command(
+        self,
+        image_path: Path,
+        title: str,
+        placement: Any,  # ImagePlacement
+        size_spec: str,
+        label: str | None = None,
+        content_context: ContentContext | None = None,
+    ) -> str:
+        """Generate wrapped image command with enhanced sizing.
+
+        Override base class method to use improved sizing with height constraints.
+        """
+        side = (
+            "l"
+            if str(placement).endswith("WRAP_LEFT") or "wrap-left" in str(placement)
+            else "r"
+        )
+
+        # Get improved includegraphics parameters with height constraints
+        graphics_params = self._get_includegraphics_params(None, content_context)
+
+        command = f"""\\begin{{wrapfigure}}{{{side}}}{{{size_spec}}}
+    \\centering
+    \\includegraphics[{graphics_params}]{{{image_path}}}"""
+
+        if title:
+            command += f"\n    \\caption{{{title}}}"
+
+        if label:
+            command += f"\n    \\label{{{label}}}"
+
+        command += "\n\\end{wrapfigure}"
+        return command
 
     def get_placement_statistics(self) -> dict[str, Any]:
         """Get statistics about placement decisions made."""

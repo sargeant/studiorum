@@ -16,12 +16,20 @@
 % Fluff images for <# content_name | latex_escape #>
 <@ for image_info in images @>
 <@ if image_info.path @>
+<@- set enhanced_context = context.copy() -@>
+<@- set _ = enhanced_context.metadata.update({
+    'content_type': 'item',
+    'layout_mode': 'twocolumn',
+    'image_context': 'fluff_illustration',
+    'item_name': content_name
+}) -@>
 <@- set image_entry = {
     'type': 'image',
     'href': {'type': 'internal', 'path': image_info.path},
-    'title': image_info.title or content_name
+    'title': image_info.title or content_name,
+    'placement_hint': 'inline_small'
 } -@>
-<# entry_processor._image_processor.process_image_entry(image_entry, context) #>
+<# entry_processor._image_processor.process_image_entry(image_entry, enhanced_context) #>
 <@ endif @>
 <@ endfor @>
 <@ endif @>
