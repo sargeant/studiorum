@@ -7,7 +7,10 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
 
+from studiorum.core.logging import get_logger
 from studiorum.renderers.core.interfaces import RenderingContext
+
+logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from .format_converter import FormatConverter
@@ -99,26 +102,40 @@ class ImageProcessor:
         href = image_entry.get("href", "")
         if not href:
             title = image_entry.get("title", "")
+            logger.error(f"Image entry missing href: {title or 'untitled'}")
             return f"% Image placeholder: {title}" if title else "% Image placeholder"
 
         # Extract actual path from href structure
         image_path = self._extract_image_path(href)
         if not image_path:
             title = image_entry.get("title", "")
+            logger.error(
+                f"Invalid href structure for image: {title or 'untitled'}, href={href}"
+            )
             return (
                 f"% Image placeholder (invalid href): {title}"
                 if title
                 else "% Image placeholder (invalid href)"
             )
 
+        title = image_entry.get("title", "")
+        logger.info(f"Processing image: {title or 'untitled'} from path: {image_path}")
+
         try:
             # Process the image through the pipeline
             processed = self._process_image_pipeline(image_path, image_entry, context)
+            logger.info(
+                f"Successfully processed image: {title or 'untitled'} -> {processed.processed_path}"
+            )
             return processed.latex_command
 
         except Exception as e:
             # Fallback to basic image handling
             title = image_entry.get("title", "")
+            logger.error(
+                f"Failed to process image '{title or 'untitled'}' from {image_path}: {e}",
+                exc_info=True,
+            )
             return (
                 f"% Image processing failed ({e}): {title}"
                 if title
@@ -142,11 +159,13 @@ class ImageProcessor:
             Processed image with LaTeX command
         """
         # Step 1: Resolve and download image if needed
+        logger.debug(f"Resolving image path: {image_path}")
         resolved_path = self._resolve_image_path(image_path, context)
 
         # Check if image was found
         if resolved_path is None:
             # Image not found, raise exception to trigger fallback
+            logger.error(f"Image file not found: {image_path}")
             raise FileNotFoundError(f"Image file not found: {image_path}")
 
         # Step 2: Convert format if needed (WebP -> PNG)
@@ -196,17 +215,24 @@ class ImageProcessor:
 
         if app_config.image.image_directory:
             image_file_path = app_config.image.image_directory / image_path
+            logger.debug(f"Looking for image at: {image_file_path}")
             if image_file_path.exists():
+                logger.debug(f"Found image at configured directory: {image_file_path}")
                 return image_file_path
+            else:
+                logger.debug(f"Image not found at: {image_file_path}")
 
         # Fallback to assets directory from metadata
         assets_dir = context.metadata.get("assets_dir")
         if assets_dir:
             fallback_path = Path(assets_dir) / image_path
+            logger.debug(f"Looking for image in assets dir: {fallback_path}")
             if fallback_path.exists():
+                logger.debug(f"Found image at assets directory: {fallback_path}")
                 return fallback_path
 
         # If we get here, the file doesn't exist in any of our search locations
+        logger.warning(f"Image not found in any search location: {image_path}")
         return None
 
     def _convert_format_if_needed(self, image_path: Path) -> Path:

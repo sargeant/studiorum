@@ -40,6 +40,7 @@
 <#-- Item compendium introduction --#>
 
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
+<@ from "_fluff_images.tex.j2" import render_fluff_images with context @>
 
 <#-- Main item compendium content organized by groups --#>
 <@ if items_by_group @>
@@ -80,6 +81,11 @@
 <# smart_render_entry(item, entry_processor, rendering_context) #>
 <@ endif @>
 
+<#-- Render fluff images if available --#>
+<@ if rendering_context and rendering_context.metadata.get('fluff_images') and rendering_context.metadata.get('fluff_images_enabled') @>
+<# render_fluff_images(item.name, rendering_context.metadata['fluff_images'], entry_processor, rendering_context) #>
+<@ endif @>
+
 <@ if not loop.last @>
 \vspace{0.8em}
 <@ endif @>
@@ -117,6 +123,11 @@
 % Item description
 <@ if item.entries @>
 <# smart_render_entry(item, entry_processor, rendering_context) #>
+<@ endif @>
+
+<#-- Render fluff images if available --#>
+<@ if rendering_context and rendering_context.metadata.get('fluff_images') and rendering_context.metadata.get('fluff_images_enabled') @>
+<# render_fluff_images(item.name, rendering_context.metadata['fluff_images'], entry_processor, rendering_context) #>
 <@ endif @>
 
 <@ if not loop.last @>

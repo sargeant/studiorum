@@ -27,22 +27,22 @@ class FluffDataLoader(DataLoader[BaseFluff]):
     def __init__(self, content_type: ContentType):
         self._content_type = content_type
         self._fluff_model_map = {
-            "spell": SpellFluff,
-            "creature": CreatureFluff,
-            "item": ItemFluff,
-            "race": RaceFluff,
-            "feat": FeatFluff,
-            "class": ClassFluff,
-            "background": BackgroundFluff,
+            "spellFluff": SpellFluff,
+            "creatureFluff": CreatureFluff,
+            "itemFluff": ItemFluff,
+            "raceFluff": RaceFluff,
+            "featFluff": FeatFluff,
+            "classFluff": ClassFluff,
+            "backgroundFluff": BackgroundFluff,
         }
         self._fluff_key_map = {
-            "spell": ["spellFluff", "spell_fluff"],
-            "creature": ["monsterFluff", "monster_fluff", "creatureFluff"],
-            "item": ["itemFluff", "item_fluff"],
-            "race": ["raceFluff", "race_fluff"],
-            "feat": ["featFluff", "feat_fluff"],
-            "class": ["classFluff", "class_fluff"],
-            "background": ["backgroundFluff", "background_fluff"],
+            "spellFluff": ["spellFluff", "spell_fluff"],
+            "creatureFluff": ["monsterFluff", "monster_fluff", "creatureFluff"],
+            "itemFluff": ["itemFluff", "item_fluff"],
+            "raceFluff": ["raceFluff", "race_fluff"],
+            "featFluff": ["featFluff", "feat_fluff"],
+            "classFluff": ["classFluff", "class_fluff"],
+            "backgroundFluff": ["backgroundFluff", "background_fluff"],
         }
 
     def load(self, path: Path) -> list[BaseFluff]:
