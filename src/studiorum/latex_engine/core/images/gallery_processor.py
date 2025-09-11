@@ -326,8 +326,18 @@ class GalleryProcessor:
 
         # Calculate image width based on columns
         # Account for separation between images
-        separation_total = f"{columns - 1} * {self.config.image_separation}"
-        image_width = f"(\\textwidth - {separation_total})/{columns}"
+        if columns == 1:
+            image_width = "0.9\\textwidth"
+        elif columns == 2:
+            image_width = "0.48\\textwidth"  # Roughly (1 - 0.02*1)/2
+        elif columns == 3:
+            image_width = "0.31\\textwidth"  # Roughly (1 - 0.02*2)/3
+        else:
+            # For more columns, use calc package syntax
+            separation_total = f"{columns - 1} * {self.config.image_separation}"
+            image_width = (
+                f"\\dimexpr(\\textwidth - {separation_total})/{columns}\\relax"
+            )
 
         # Start the figure environment
         latex_parts = ["\\begin{figure}[htbp]", "    \\centering"]
