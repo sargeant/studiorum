@@ -2111,11 +2111,17 @@ class QuickrefTagHandler(BaseTagHandler):
             format_style=FormatStyle.ITALIC,  # Rules references are italicized
         )
 
-    def process_tag(self, tag_node: TagNode, context: RenderingContext) -> str:
+    def process_tag(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> FormattingNode | str:
         """Process quickref tags by returning italicized text."""
         content_info = self.extract_content_info(tag_node, context)
         if content_info:
-            return f"\\textit{{{content_info.display_text}}}"
+            from studiorum.core.text.tag_types import FormattingNode, FormatType
+
+            return FormattingNode(
+                format_type=FormatType.ITALIC, content=content_info.display_text
+            )
         else:
             return ""
 
