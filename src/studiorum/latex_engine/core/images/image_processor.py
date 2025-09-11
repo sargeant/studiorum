@@ -336,15 +336,15 @@ class ImageProcessor:
 
             if in_gallery:
                 # In gallery context, don't wrap in figure - just return the image
-                return f"\\includegraphics[width={width_spec}]{{{image_path}}}"
+                return f"\\includegraphics[{width_spec}]{{{image_path}}}"
             elif title:
                 return f"""\\begin{{figure}}[htbp]
     \\centering
-    \\includegraphics[width={width_spec}]{{{image_path}}}
+    \\includegraphics[{width_spec}]{{{image_path}}}
     \\caption{{{title}}}
 \\end{{figure}}"""
             else:
-                return f"\\includegraphics[width={width_spec}]{{{image_path}}}"
+                return f"\\includegraphics[{width_spec}]{{{image_path}}}"
 
         # Initialize placer lazily - use enhanced placer with ContentAwarePlacementStrategy
         if self._placer is None:
@@ -394,15 +394,15 @@ class ImageProcessor:
 
             if in_gallery:
                 # In gallery context, don't wrap in figure - just return the image
-                return f"\\includegraphics[width={width_spec}]{{{image_path}}}"
+                return f"\\includegraphics[{width_spec}]{{{image_path}}}"
             elif title:
                 return f"""\\begin{{figure}}[htbp]
     \\centering
-    \\includegraphics[width={width_spec}]{{{image_path}}}
+    \\includegraphics[{width_spec}]{{{image_path}}}
     \\caption{{{title}}}
 \\end{{figure}}"""
             else:
-                return f"\\includegraphics[width={width_spec}]{{{image_path}}}"
+                return f"\\includegraphics[{width_spec}]{{{image_path}}}"
 
     def _calculate_width_spec(
         self, image_entry: dict[str, Any], context: RenderingContext | None = None

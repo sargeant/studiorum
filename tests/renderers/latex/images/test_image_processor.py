@@ -220,7 +220,10 @@ class TestImageProcessor:
             )
 
             assert "\\begin{figure}[htbp]" in result
-            assert f"\\includegraphics[width=0.8\\textwidth]{{{image_path}}}" in result
+            assert (
+                f"\\includegraphics[width=0.8\\columnwidth,height=0.3\\textheight,keepaspectratio]{{{image_path}}}"
+                in result
+            )
             assert "\\caption{Test Image}" in result
             assert "\\end{figure}" in result
         finally:
@@ -244,7 +247,10 @@ class TestImageProcessor:
                 image_path, image_entry, self.context
             )
 
-            assert result == f"\\includegraphics[width=0.8\\textwidth]{{{image_path}}}"
+            assert (
+                result
+                == f"\\includegraphics[width=0.8\\columnwidth,height=0.3\\textheight,keepaspectratio]{{{image_path}}}"
+            )
         finally:
             # Clean up temp file
             image_path.unlink(missing_ok=True)
@@ -255,7 +261,7 @@ class TestImageProcessor:
 
         result = self.processor._calculate_width_spec(image_entry)
 
-        assert result == "0.8\\textwidth"
+        assert result == "width=0.8\\columnwidth,height=0.3\\textheight,keepaspectratio"
 
 
 @pytest.mark.integration
