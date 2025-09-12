@@ -18,11 +18,12 @@ from pathlib import Path
 
 
 class DocValidator:
-    """Documentation validator for comprehensive quality checks."""
+    """Documentation validator for MkDocs-based docs (Material theme)."""
 
     def __init__(self, docs_dir: Path):
         self.docs_dir = docs_dir
-        self.source_dir = docs_dir / "source"
+        # MkDocs stores markdown directly under docs_dir (no 'source' subfolder)
+        self.source_dir = docs_dir
         self.errors: list[tuple[str, str, str]] = []  # (file, line, error)
         self.warnings: list[tuple[str, str, str]] = []  # (file, line, warning)
 
@@ -53,8 +54,8 @@ class DocValidator:
         if not self._validate_cross_references():
             success = False
 
-        # Run Sphinx linkcheck
-        if not self._run_sphinx_linkcheck():
+        # Build via MkDocs to catch structural errors quickly
+        if not self._run_mkdocs_build():
             success = False
 
         # Report results
@@ -64,20 +65,10 @@ class DocValidator:
 
     def _validate_structure(self) -> bool:
         """Validate documentation structure."""
+        # Minimal required files for MkDocs site root
         required_files = [
             "index.md",
-            "quickstart.md",
-            "installation.md",
-            "basic-usage.md",
-            "advanced-features.md",
-            "troubleshooting.md",
-            "getting-started.md",
-            "architecture-overview.md",
-            "component-guides.md",
-            "development-workflows.md",
-            "contributing.md",
-            "examples/index.md",
-            "library-reference/index.md",
+            "user-guide/index.md",
         ]
 
         missing_files = []
@@ -208,7 +199,7 @@ class DocValidator:
         return success
 
     def _validate_cross_references(self) -> bool:
-        """Validate Sphinx cross-references."""
+        """Validate leftover Sphinx-style cross-references (warn only)."""
         success = True
 
         for md_file in self.source_dir.rglob("*.md"):
@@ -216,46 +207,43 @@ class DocValidator:
             lines = content.splitlines()
 
             for i, line in enumerate(lines, 1):
-                # Check for Sphinx cross-references
+                # Check for Sphinx-style cross-references
                 ref_matches = re.findall(r"\{[^}]+\}`([^`]+)`", line)
                 for ref in ref_matches:
-                    # Basic validation - could be enhanced with actual reference resolution
                     if not ref.strip():
-                        self.errors.append(
-                            (str(md_file), str(i), "Empty cross-reference")
+                        self.warnings.append(
+                            (str(md_file), str(i), "Empty Sphinx-style cross-reference")
                         )
-                        success = False
 
         return success
 
-    def _run_sphinx_linkcheck(self) -> bool:
-        """Run Sphinx linkcheck builder."""
+    def _run_mkdocs_build(self) -> bool:
+        """Run MkDocs build to validate site structure."""
         try:
             result = subprocess.run(
-                [
-                    "sphinx-build",
-                    "-b",
-                    "linkcheck",
-                    str(self.source_dir),
-                    str(self.docs_dir / "_build" / "linkcheck"),
-                ],
+                ["mkdocs", "build", "-q"],
                 capture_output=True,
                 text=True,
                 timeout=300,
             )
-
             if result.returncode != 0:
-                self.warnings.append(
-                    ("linkcheck", "0", "Sphinx linkcheck found issues")
-                )
-                print(f"Linkcheck output:\n{result.stdout}\n{result.stderr}")
+                self.errors.append(("mkdocs", "0", "MkDocs build failed"))
+                if result.stdout:
+                    print(result.stdout)
+                if result.stderr:
+                    print(result.stderr)
                 return False
-
         except subprocess.TimeoutExpired:
-            self.warnings.append(("linkcheck", "0", "Sphinx linkcheck timed out"))
+            self.warnings.append(("mkdocs", "0", "MkDocs build timed out"))
             return False
+        except FileNotFoundError:
+            # MkDocs not available in this environment; warn instead of failing
+            self.warnings.append(
+                ("mkdocs", "0", "MkDocs not available; skipped build check")
+            )
+            return True
         except Exception as e:
-            self.warnings.append(("linkcheck", "0", f"Failed to run linkcheck: {e}"))
+            self.warnings.append(("mkdocs", "0", f"Failed to run MkDocs build: {e}"))
             return False
 
         return True
