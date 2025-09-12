@@ -1,123 +1,89 @@
-% Studiorum Image Macros (Phase 1)
-% Conservative, user-driven placement with simple defaults.
+% Studiorum Image Macros — simplified, stable placements
+% Conservative defaults; no wrapfigure by default to avoid layout issues.
 
-% Default configuration
-% Usage: \StudiorumImageDefault[output=digital|print,draft=true|false]
-\newcommand{\StudiorumImageDefault}[1][]{%
-  % Currently minimal: parameters reserved for future expansion
+% Default configuration (reserved for doc-wide tweaks)
+% Usage: \StudiorumImageDefault[output=digital|print]
+\newcommand{\StudiorumImageDefault}[1][]{% no-op for now
 }
 
 % Core macro: \StudiorumImage[options]{placement}{path}{caption}
 % options:
-%   label=fig:...      (optional)
-%   draft=true|false   (optional; when true, LaTeX shows a placeholder box)
-%   caption=below|above|none (optional; default below if caption text provided)
-%   scale=...          (reserved)
-%   offset=..., wraplines=..., clearance=... (reserved)
-% placement: inline | pagewidth-top | pagewidth-bottom | fullpage | column-left | column-right | anchor-NW | anchor-NE | anchor-SW | anchor-SE | fullpage-nomargin
+%   label=fig:...      (optional; applied to float placements)
+%   draft=true         (optional; includegraphics draft placeholder)
+% placement: inline | pagewidth-top | pagewidth-bottom | fullpage
+% Notes:
+% - Unknown/legacy placements (e.g., column-left/right, wrap-*) fall back to inline.
+% - Caption is added only if non-empty.
 
 % Internal helper: includegraphics params with keepaspectratio and conservative sizing
 \newcommand{\StudiorumImageParams}{width=0.8\columnwidth,height=0.3\textheight,keepaspectratio}
 
+% Internal helper: test if argument is empty (robust against spaces)
+% Usage: \SR@ifempty{<arg>}{<if-empty>}{<if-not-empty>}
+\newcommand{\SR@ifempty}[3]{\if\relax\detokenize{#1}\relax #2\else #3\fi}
+
+% ---------------------------------------------------------------------------
+% Optional wrapfigure support (opt-in only)
+% ---------------------------------------------------------------------------
+% Disabled by default for layout stability in two-column documents.
+\newif\ifSRwrapenabled
+\SRwrapenabledfalse
+% Default wrap box width and includegraphics params
+\newcommand{\SRWrapBoxWidth}{0.45\textwidth}
+\newcommand{\SRWrapIncludeParams}{width=\linewidth,height=0.25\textheight,keepaspectratio}
+
+% Enable/disable helpers for wrap images (authors may toggle per document)
+\newcommand{\SRWrapImagesEnable}{\SRwrapenabledtrue}
+\newcommand{\SRWrapImagesDisable}{\SRwrapenabledfalse}
+
+% Allow adjusting inline and wrap defaults without key parsing
+% - Inline size (width,height): applies to \StudiorumImage inline variant
+% - Wrap width (box width): applies to \SRWrapImage environment width
+\newcommand{\SRSetInlineImageSize}[2]{\renewcommand{\StudiorumImageParams}{width=#1,height=#2,keepaspectratio}}
+\newcommand{\SRSetWrapWidth}[1]{\renewcommand{\SRWrapBoxWidth}{#1}}
+
 \newcommand{\StudiorumImage}[4][]{%
-  % Parse options
+  % Extract supported options from #1 (comma-separated key=val list)
   \def\SR@label{}
   \def\SR@draft{}
-  \def\SR@captionpos{below}
-  \def\SR@haslabel{0}
-  \def\SR@hasdraft{0}
-  \begingroup
-    % Simple key parsing (very light-weight; expects comma-separated key=val)
-    % We keep this minimal to avoid heavy TeX parsing packages.
-    \def\process@kv##1={\def\SR@key{##1}\process@val}
-    \def\process@val##1,{
-      \def\SR@val{##1}%
-      \expandafter\ifx\SR@key\string label\relax\def\SR@label{\SR@val}\def\SR@haslabel{1}\fi
-      \expandafter\ifx\SR@key\string draft\relax\def\SR@draft{draft}\def\SR@hasdraft{1}\fi
-      \expandafter\ifx\SR@key\string caption\relax\def\SR@captionpos{\SR@val}\fi
-    }
-    \def\process@opts#1{\def\SR@opts{#1}\expandafter\process@opts@i\SR@opts,}
-    \def\process@opts@i#1,{
-      \def\SR@tmp{#1}%
-      \ifx\SR@tmp\empty\else\expandafter\process@kv#1=,\expandafter\process@opts@i\fi
-    }
-    \process@opts{#1}
-  \endgroup
+  % Parse label=...
+  \def\SR@parse@label#1label=#2,#3\@nil{\def\SR@label{#2}}
+  \expandafter\SR@parse@label\expandafter{#1,}\@nil
+  % Parse draft=true (only true enables draft placeholder)
+  \def\SR@parse@drafttrue#1draft=true,#2\@nil{\def\SR@draft{draft}}
+  \expandafter\SR@parse@drafttrue\expandafter{#1,}\@nil
 
   % Switch by placement
   \def\SR@placement{#2}
+  \def\SR@inline{inline}
+  \def\SR@pwtop{pagewidth-top}
+  \def\SR@pwbot{pagewidth-bottom}
+  \def\SR@fullpage{fullpage}
 
-  % Inline (within column)
-  \def\SR@doInline{%
-    \ifx\SR@label\empty
-      \includegraphics[\ifx\SR@draft\empty\else draft,\fi \StudiorumImageParams]{#3}%
-    \else
-      \includegraphics[\ifx\SR@draft\empty\else draft,\fi \StudiorumImageParams]{#3}%
-      \label{\SR@label}%
-    \fi
-  }
+  % Inline (within current column; no float)
+  \def\SR@doInline{\includegraphics[\if\relax\detokenize{\SR@draft}\relax\else draft,\fi \StudiorumImageParams]{#3}}
 
-  % Full page width at top/bottom (two-column spanning figure)
+  % Pagewidth top/bottom (two-column spanning float)
   \def\SR@doPagewidth#1{%
     \begin{figure*}[#1]
       \centering
-      \includegraphics[\ifx\SR@draft\empty\else draft,\fi width=\textwidth,keepaspectratio]{#3}%
-      \ifx\SR@label\empty\else\label{\SR@label}\fi
-      \ifx\SR@captionpos\string above
-        \caption{#4}
-      \else\ifx\SR@captionpos\string none
-        % no caption
-      \else
-        \caption{#4}
-      \fi\fi
-    \end{figure*}
+      \includegraphics[\if\relax\detokenize{\SR@draft}\relax\else draft,\fi width=\textwidth,keepaspectratio]{#3}%
+      \SR@ifempty{#4}{}{\caption{#4}}%
+      \SR@ifempty{\SR@label}{}{\label{\SR@label}}%
+    \end{figure*}%
   }
 
   % Full page float
   \def\SR@doFullpage{%
     \begin{figure}[p]
       \centering
-      \includegraphics[\ifx\SR@draft\empty\else draft,\fi width=\textwidth,keepaspectratio]{#3}%
-      \ifx\SR@label\empty\else\label{\SR@label}\fi
-      \ifx\SR@captionpos\string above
-        \caption{#4}
-      \else\ifx\SR@captionpos\string none
-        % no caption
-      \else
-        \caption{#4}
-      \fi\fi
-    \end{figure}
+      \includegraphics[\if\relax\detokenize{\SR@draft}\relax\else draft,\fi width=\textwidth,keepaspectratio]{#3}%
+      \SR@ifempty{#4}{}{\caption{#4}}%
+      \SR@ifempty{\SR@label}{}{\label{\SR@label}}%
+    \end{figure}%
   }
 
-  % Column wrap (left/right)
-  \def\SR@doWrap#1{%
-    % #1 is l or r
-    \begin{wrapfigure}{#1}{0.45\textwidth}
-      \centering
-      \includegraphics[\ifx\SR@draft\empty\else draft,\fi \StudiorumImageParams]{#3}%
-      \ifx\SR@captionpos\string above
-        \caption{#4}
-      \else\ifx\SR@captionpos\string none
-        % no caption
-      \else
-        \caption{#4}
-      \fi\fi
-      \ifx\SR@label\empty\else\label{\SR@label}\fi
-    \end{wrapfigure}
-  }
-
-  % Dispatch
-  \def\SR@pwtop{pagewidth-top}
-  \def\SR@pwbot{pagewidth-bottom}
-  \def\SR@inline{inline}
-  \def\SR@fullpage{fullpage}
-  \def\SR@wleft{column-left}
-  \def\SR@wright{column-right}
-  \def\SR@anw{anchor-NW}
-  \def\SR@ane{anchor-NE}
-  \def\SR@asw{anchor-SW}
-  \def\SR@ase{anchor-SE}
-  \def\SR@fpnom{fullpage-nomargin}
+  % Dispatch — unknown/legacy placements fall back to inline
   \ifx\SR@placement\SR@inline
     \SR@doInline
   \else\ifx\SR@placement\SR@pwtop
@@ -126,27 +92,48 @@
     \SR@doPagewidth{b}
   \else\ifx\SR@placement\SR@fullpage
     \SR@doFullpage
-  \else\ifx\SR@placement\SR@wleft
-    \SR@doWrap{l}
-  \else\ifx\SR@placement\SR@wright
-    \SR@doWrap{r}
-  \else\ifx\SR@placement\SR@anw
-    % Approximate NW anchor using left column wrap
-    \SR@doWrap{l}
-  \else\ifx\SR@placement\SR@ane
-    % Approximate NE anchor using right column wrap
-    \SR@doWrap{r}
-  \else\ifx\SR@placement\SR@asw
-    % Approximate SW anchor using left column wrap
-    \SR@doWrap{l}
-  \else\ifx\SR@placement\SR@ase
-    % Approximate SE anchor using right column wrap
-    \SR@doWrap{r}
-  \else\ifx\SR@placement\SR@fpnom
-    % Fullpage no-margin not supported yet: fallback to fullpage
-    \SR@doFullpage
   \else
-    % Fallback: inline
+    % Legacy hints (column-left/right, wrap-*, here/top/bottom/page, full-width)
+    % are treated as inline for stability in two-column layouts.
     \SR@doInline
-  \fi\fi\fi\fi\fi\fi\fi\fi\fi
+  \fi\fi\fi\fi
+}
+
+% ---------------------------------------------------------------------------
+% Opt-in wrap macro: \SRWrapImage[options]{side}{path}{caption}
+% - side: l or r
+% - options: label=fig:..., draft=true (optional)
+% Behavior:
+% - Disabled by default; call \SRWrapImagesEnable to allow.
+% - In two-column mode, degrades to inline for safety.
+% ---------------------------------------------------------------------------
+\newcommand{\SRWrapImage}[4][]{%
+  % Parse supported options (label, draft=true)
+  \def\SR@label{}
+  \def\SR@draft{}
+  \def\SR@parse@label#1label=#2,#3\@nil{\def\SR@label{#2}}
+  \expandafter\SR@parse@label\expandafter{#1,}\@nil
+  \def\SR@parse@drafttrue#1draft=true,#2\@nil{\def\SR@draft{draft}}
+  \expandafter\SR@parse@drafttrue\expandafter{#1,}\@nil
+
+  \ifSRwrapenabled
+    % In two-column layouts, wrapfig can cause layout issues — fallback to inline
+    \makeatletter
+    \if@twocolumn
+      \makeatother
+      \includegraphics[\if\relax\detokenize{\SR@draft}\relax\else draft,\fi \StudiorumImageParams]{#3}%
+    \else
+      \makeatother
+      % Wrapfigure with conservative width and includegraphics params
+      \begin{wrapfigure}{#2}{\SRWrapBoxWidth}
+        \centering
+        \includegraphics[\if\relax\detokenize{\SR@draft}\relax\else draft,\fi \SRWrapIncludeParams]{#3}%
+        \SR@ifempty{#4}{}{\caption{#4}}%
+        \SR@ifempty{\SR@label}{}{\label{\SR@label}}%
+      \end{wrapfigure}%
+    \fi
+  \else
+    % Disabled: inline fallback
+    \includegraphics[\if\relax\detokenize{\SR@draft}\relax\else draft,\fi \StudiorumImageParams]{#3}%
+  \fi
 }
