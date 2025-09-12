@@ -9,14 +9,19 @@
     % Gallery: <# title | latex_escape #>
 <@ endif @>
 
+<@ if caption and layout != 'showcase' and caption_position == 'above' @>
+    \caption{<# caption | latex_escape #>}
+<@ endif @>
+
 <@ if layout == 'grid' @>
     <@ set cols = columns or 2 @>
     <@ for image in images @>
     \begin{subfigure}{<# image.subfigure_width or image_width or '0.48\\textwidth' #>}
         \centering
         % Inline placement macro inside subfigure
+        <@ if image.title and thumb_caption_position == 'above' @>\caption{<# image.title | latex_escape #>}<@ endif @>
         \StudiorumImage<@ if image.options @>[<# image.options #>]<@ endif @>{inline}{<# image.path #>}{ }
-        <@ if image.title @>\caption{<# image.title | latex_escape #>}<@ endif @>
+        <@ if image.title and thumb_caption_position != 'above' and thumb_caption_position != 'none' @>\caption{<# image.title | latex_escape #>}<@ endif @>
     \end{subfigure}
     <@ if not loop.last @>
         <@ if (loop.index0 + 1) % cols != 0 @>\hfill<@ else @>\\[1em]<@ endif @>
@@ -26,8 +31,9 @@
     <@ for image in images @>
     \begin{subfigure}{<# image.subfigure_width or image_width or '0.8\\textwidth' #>}
         \centering
+        <@ if image.title and thumb_caption_position == 'above' @>\caption{<# image.title | latex_escape #>}<@ endif @>
         \StudiorumImage<@ if image.options @>[<# image.options #>]<@ endif @>{inline}{<# image.path #>}{ }
-        <@ if image.title @>\caption{<# image.title | latex_escape #>}<@ endif @>
+        <@ if image.title and thumb_caption_position != 'above' and thumb_caption_position != 'none' @>\caption{<# image.title | latex_escape #>}<@ endif @>
     \end{subfigure}
     <@ if not loop.last @>\\[<# gallery_margin or '1em' #>]<@ endif @>
     <@ endfor @>
@@ -35,8 +41,9 @@
     <@ for image in images @>
     \begin{subfigure}{<# image.subfigure_width or per_image_width or '0.45\\textwidth' #>}
         \centering
+        <@ if image.title and thumb_caption_position == 'above' @>\caption{<# image.title | latex_escape #>}<@ endif @>
         \StudiorumImage<@ if image.options @>[<# image.options #>]<@ endif @>{inline}{<# image.path #>}{ }
-        <@ if image.title @>\caption{<# image.title | latex_escape #>}<@ endif @>
+        <@ if image.title and thumb_caption_position != 'above' and thumb_caption_position != 'none' @>\caption{<# image.title | latex_escape #>}<@ endif @>
     \end{subfigure}
     <@ if not loop.last @>\hfill<@ endif @>
     <@ endfor @>
@@ -53,6 +60,18 @@
 
     <@ if images and images|length > 0 @>
     <@ set main = images[0] @>
+
+    <@ if caption and caption_position == 'above' @>
+        <@ if decorative_enabled @>
+        \\\\[1em]
+        % Decorative caption (above)
+        \textcolor{<# decorative_color #>}{\rule{0.3\textwidth}{0.5pt}}
+        \caption{\textit{<# caption | latex_escape #>}}
+        \textcolor{<# decorative_color #>}{\rule{0.3\textwidth}{0.5pt}}
+        <@ else @>
+        \caption{<# caption | latex_escape #>}
+        <@ endif @>
+    <@ endif @>
     <@ if decorative_enabled and featured_borders @>
     % Featured image with decorative border
     \begin{tikzpicture}
@@ -111,7 +130,7 @@
     <@ endif @>
     <@ endif @>
 
-    <@ if caption @>
+    <@ if caption and caption_position != 'above' and caption_position != 'none' @>
         <@ if decorative_enabled @>
         \\\\[1em]
         % Decorative caption
@@ -136,7 +155,7 @@
     <@ endfor @>
 <@ endif @>
 
-<@ if caption and layout != 'showcase' @>
+<@ if caption and layout != 'showcase' and caption_position != 'none' and caption_position != 'above' @>
     \caption{<# caption | latex_escape #>}
 <@ endif @>
 \end{figure}

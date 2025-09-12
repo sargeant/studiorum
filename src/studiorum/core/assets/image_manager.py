@@ -95,6 +95,8 @@ class ImageManager:
         logger.info(
             f"Initialised ImageManager with enhanced registry (cache: {self.cache_dir})"
         )
+        # Emit legacy fallback warning at most once per instance to avoid log spam
+        self._legacy_warning_emitted: bool = False
 
     def _configure_default_sources(self) -> None:
         """Configure default 5etools image sources."""
@@ -153,6 +155,13 @@ class ImageManager:
 
         Returns:
             Local path to image file, or None if not found
+
+        Resolution order (temporary during migration):
+        1) Local path resolution (assets_dir/images_dir/paths_config.assets_dir)
+        2) ImageSourceRegistry (preferred; HTTP/Git/Local sources)
+        3) Legacy URL download/cache (deprecated) — retained only for test compatibility
+
+        The legacy fallback emits a single warning per ImageManager instance to avoid log spam.
         """
         logger.debug(f"Resolving image: {image_path}")
 
@@ -186,9 +195,15 @@ class ImageManager:
             return asset_info.local_path
 
         # 3) Legacy fallback path (URL-based download/cached) for backward compatibility
-        logger.warning(
-            f"Could not resolve via registry: {image_path}; using legacy fallback"
-        )
+        if not self._legacy_warning_emitted:
+            logger.warning(
+                f"Could not resolve via registry: {image_path}; using legacy fallback"
+            )
+            self._legacy_warning_emitted = True
+        else:
+            logger.debug(
+                f"Registry miss for {image_path}; continuing with legacy fallback"
+            )
         if is_url:
             # Check legacy in-memory cache and ensure file exists
             cache_key = self._generate_cache_key(image_path)

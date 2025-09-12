@@ -60,6 +60,19 @@ class GalleryConfig(BaseModel):
     image_separation: str = Field(
         default="0.02\\textwidth", description="Separation between images"
     )
+    # Template polish toggles
+    gallery_caption_position: str = Field(
+        default="below", description="Gallery caption position: above|below|none"
+    )
+    thumb_caption_position: str = Field(
+        default="below", description="Per-thumb caption position: above|below|none"
+    )
+    default_main_width: str = Field(
+        default="0.7\\textwidth", description="Default main image width for showcase"
+    )
+    default_thumb_width: str = Field(
+        default="0.15\\textwidth", description="Default thumbnail width for showcase"
+    )
     # Enhanced decorative options for Phase 3
     enable_decorative_elements: bool = Field(
         default=True,
@@ -155,7 +168,7 @@ class GalleryProcessor:
 
             # Generate LaTeX based on layout
             latex_result = self._generate_gallery_latex(
-                processed_images, layout, gallery_entry
+                processed_images, layout, gallery_entry, context
             )
 
             if latex_result.is_error():
@@ -295,17 +308,26 @@ class GalleryProcessor:
         processed_images: list[dict[str, Any]],
         layout: GalleryLayout,
         gallery_entry: dict[str, Any],
+        context: RenderingContext | None = None,
     ) -> Result[str, str]:
         """Generate LaTeX code for the complete gallery."""
         try:
             if layout == GalleryLayout.GRID:
-                return self._generate_grid_layout(processed_images, gallery_entry)
+                return self._generate_grid_layout(
+                    processed_images, gallery_entry, context
+                )
             elif layout == GalleryLayout.SHOWCASE:
-                return self._generate_showcase_layout(processed_images, gallery_entry)
+                return self._generate_showcase_layout(
+                    processed_images, gallery_entry, context
+                )
             elif layout == GalleryLayout.SEQUENTIAL:
-                return self._generate_sequential_layout(processed_images, gallery_entry)
+                return self._generate_sequential_layout(
+                    processed_images, gallery_entry, context
+                )
             elif layout == GalleryLayout.COMPARISON:
-                return self._generate_comparison_layout(processed_images, gallery_entry)
+                return self._generate_comparison_layout(
+                    processed_images, gallery_entry, context
+                )
             else:
                 return Error(f"Unsupported layout: {layout}")
 
@@ -313,7 +335,10 @@ class GalleryProcessor:
             return Error(f"LaTeX generation failed: {str(e)}")
 
     def _generate_grid_layout(
-        self, processed_images: list[dict[str, Any]], gallery_entry: dict[str, Any]
+        self,
+        processed_images: list[dict[str, Any]],
+        gallery_entry: dict[str, Any],
+        context: RenderingContext | None = None,
     ) -> Result[str, str]:
         """Generate grid layout LaTeX using the gallery template."""
         columns = min(
@@ -324,46 +349,69 @@ class GalleryProcessor:
         title = gallery_entry.get("title", "")
         caption = gallery_entry.get("caption", "")
 
-        # Calculate image width based on columns
+        # Calculate image width based on columns (allow override via entry)
         # Account for separation between images
-        if columns == 1:
-            image_width = "0.9\\textwidth"
-        elif columns == 2:
-            image_width = "0.48\\textwidth"  # Roughly (1 - 0.02*1)/2
-        elif columns == 3:
-            image_width = "0.31\\textwidth"  # Roughly (1 - 0.02*2)/3
+        override_image_width = gallery_entry.get("image_width")
+        if isinstance(override_image_width, str) and override_image_width.strip():
+            image_width = override_image_width
         else:
-            # For more columns, use calc package syntax
-            separation_total = f"{columns - 1} * {self.config.image_separation}"
-            image_width = (
-                f"\\dimexpr(\\textwidth - {separation_total})/{columns}\\relax"
-            )
+            if columns == 1:
+                image_width = "0.9\\textwidth"
+            elif columns == 2:
+                image_width = "0.48\\textwidth"  # Roughly (1 - 0.02*1)/2
+            elif columns == 3:
+                image_width = "0.31\\textwidth"  # Roughly (1 - 0.02*2)/3
+            else:
+                # For more columns, use calc package syntax
+                separation_total = f"{columns - 1} * {self.config.image_separation}"
+                image_width = (
+                    f"\\dimexpr(\\textwidth - {separation_total})/{columns}\\relax"
+                )
 
         # Render via gallery template
         return self._render_gallery_template(
             layout="grid",
             processed_images=processed_images,
             gallery_entry=gallery_entry,
+            context=context,
             template_params={
                 "columns": columns,
                 "image_width": image_width,
                 "title": title,
                 "caption": caption,
+                "caption_position": gallery_entry.get(
+                    "caption_position", self.config.gallery_caption_position
+                ),
+                "thumb_caption_position": gallery_entry.get(
+                    "thumb_caption_position", self.config.thumb_caption_position
+                ),
             },
         )
 
     def _generate_showcase_layout(
-        self, processed_images: list[dict[str, Any]], gallery_entry: dict[str, Any]
+        self,
+        processed_images: list[dict[str, Any]],
+        gallery_entry: dict[str, Any],
+        context: RenderingContext | None = None,
     ) -> Result[str, str]:
         """Generate enhanced showcase layout via gallery template (no inline LaTeX)."""
         title = gallery_entry.get("title", "")
         caption = gallery_entry.get("caption", "")
+
+        # Allow width overrides via entry
+        main_width = cast(
+            str, gallery_entry.get("main_width") or self.config.default_main_width
+        )
+        thumb_width = cast(
+            str, gallery_entry.get("thumb_width") or self.config.default_thumb_width
+        )
 
         # Render via gallery template
         return self._render_gallery_template(
             layout="showcase",
             processed_images=processed_images,
             gallery_entry=gallery_entry,
+            context=context,
             template_params={
                 "title": title,
                 "caption": caption,
@@ -371,33 +419,52 @@ class GalleryProcessor:
                 "decorative_style": self.config.showcase_decorative_style,
                 "decorative_color": self.config.decorative_color_scheme,
                 "featured_borders": self.config.enable_featured_borders,
-                "main_width": "0.7\\textwidth",
-                "thumb_width": "0.15\\textwidth",
+                "main_width": main_width,
+                "thumb_width": thumb_width,
+                "caption_position": gallery_entry.get(
+                    "caption_position", self.config.gallery_caption_position
+                ),
+                "thumb_caption_position": gallery_entry.get(
+                    "thumb_caption_position", self.config.thumb_caption_position
+                ),
             },
         )
 
     def _generate_sequential_layout(
-        self, processed_images: list[dict[str, Any]], gallery_entry: dict[str, Any]
+        self,
+        processed_images: list[dict[str, Any]],
+        gallery_entry: dict[str, Any],
+        context: RenderingContext | None = None,
     ) -> Result[str, str]:
         """Generate sequential layout using the gallery template."""
         title = gallery_entry.get("title", "")
         caption = gallery_entry.get("caption", "")
-        image_width = "0.8\\textwidth"
+        image_width = cast(str, gallery_entry.get("image_width") or "0.8\\textwidth")
 
         return self._render_gallery_template(
             layout="sequential",
             processed_images=processed_images,
             gallery_entry=gallery_entry,
+            context=context,
             template_params={
                 "image_width": image_width,
                 "title": title,
                 "caption": caption,
                 "gallery_margin": self.config.gallery_margin,
+                "caption_position": gallery_entry.get(
+                    "caption_position", self.config.gallery_caption_position
+                ),
+                "thumb_caption_position": gallery_entry.get(
+                    "thumb_caption_position", self.config.thumb_caption_position
+                ),
             },
         )
 
     def _generate_comparison_layout(
-        self, processed_images: list[dict[str, Any]], gallery_entry: dict[str, Any]
+        self,
+        processed_images: list[dict[str, Any]],
+        gallery_entry: dict[str, Any],
+        context: RenderingContext | None = None,
     ) -> Result[str, str]:
         """Generate comparison layout using the gallery template."""
         title = gallery_entry.get("title", "")
@@ -405,16 +472,30 @@ class GalleryProcessor:
 
         # Use equal width for all images
         num_images = min(len(processed_images), self.config.max_images_per_row)
-        per_image_width = f"{0.9 / max(1, num_images)}\\textwidth"
+        override_per_image_width = gallery_entry.get("per_image_width")
+        if (
+            isinstance(override_per_image_width, str)
+            and override_per_image_width.strip()
+        ):
+            per_image_width = override_per_image_width
+        else:
+            per_image_width = f"{0.9 / max(1, num_images)}\\textwidth"
 
         return self._render_gallery_template(
             layout="comparison",
             processed_images=processed_images,
             gallery_entry=gallery_entry,
+            context=context,
             template_params={
                 "per_image_width": per_image_width,
                 "title": title,
                 "caption": caption,
+                "caption_position": gallery_entry.get(
+                    "caption_position", self.config.gallery_caption_position
+                ),
+                "thumb_caption_position": gallery_entry.get(
+                    "thumb_caption_position", self.config.thumb_caption_position
+                ),
             },
         )
 
@@ -424,6 +505,7 @@ class GalleryProcessor:
         layout: str,
         processed_images: list[dict[str, Any]],
         gallery_entry: dict[str, Any],
+        context: RenderingContext | None = None,
         template_params: dict[str, Any] | None = None,
     ) -> Result[str, str]:
         r"""Render the gallery via the Jinja2 template.
@@ -437,7 +519,9 @@ class GalleryProcessor:
             template = engine.env.get_template("_gallery_render_block.tex.j2")
 
             # Prepare image data for template
-            include_images = True  # entry processor guards disabled images earlier
+            include_images = (
+                bool(context.metadata.get("include_images", True)) if context else True
+            )
             draft_flag = "draft=true" if not include_images else None
 
             images_for_template: list[dict[str, Any]] = []
@@ -470,6 +554,12 @@ class GalleryProcessor:
                 "images": images_for_template,
                 "env_placement": "htbp",
                 "gallery_margin": self.config.gallery_margin,
+                "caption_position": gallery_entry.get(
+                    "caption_position", self.config.gallery_caption_position
+                ),
+                "thumb_caption_position": gallery_entry.get(
+                    "thumb_caption_position", self.config.thumb_caption_position
+                ),
             }
             if template_params:
                 params.update(template_params)

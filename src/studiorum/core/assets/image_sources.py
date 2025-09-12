@@ -1099,7 +1099,7 @@ class ImageSourceRegistry:
             return Error(
                 create_image_resolution_error(
                     image_path,
-                    f"HTTP download failed: {str(e)}",
+                    f"HTTP download failed for {remote_url}: {str(e)}",
                     attempted_sources=[config.name],
                 )
             )
