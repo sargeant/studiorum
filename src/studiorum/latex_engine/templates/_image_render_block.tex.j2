@@ -1,0 +1,5 @@
+% StudiorumImage placement options: inline, pagewidth-top, pagewidth-bottom, fullpage, column-left, column-right
+% Documentation: <# docs_url #>
+<@ if label @>% Auto-generated label: <# label #> (use \ref{<# label #>})
+@>
+\StudiorumImage<@ if options @>[<# options #>]<@ endif @>{<# placement #>}{<# path #>}{<# caption | latex_escape #>}

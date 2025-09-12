@@ -999,13 +999,101 @@ class ImageSourceRegistry:
         self, image_path: str, source_info: ImageSourceInfo, cache_key: str
     ) -> Result[ImageAssetInfo, ImageResolutionError]:
         """Resolve an image from an HTTP API source."""
-        # HTTP API implementation would go here
-        return Error(
-            create_image_resolution_error(
-                image_path,
-                "HTTP API source resolution not implemented yet",
+        if not isinstance(source_info.config, HttpApiImageSourceConfig):
+            return Error(
+                create_image_resolution_error(
+                    image_path, "Invalid HTTP source configuration"
+                )
             )
-        )
+
+        config = source_info.config
+        if not source_info.local_cache_path:
+            return Error(
+                create_image_resolution_error(
+                    image_path, "No local cache path configured for HTTP source"
+                )
+            )
+
+        # Build remote URL
+        rel_path = image_path.lstrip("/")
+        try:
+            path_part = config.path_template.format(image_path=rel_path)
+        except Exception:
+            path_part = rel_path
+        if not path_part.startswith("/"):
+            path_part = "/" + path_part
+        remote_url = f"{config.base_url}{path_part}"
+
+        # Compute cache file path
+        from pathlib import Path as _Path
+
+        cache_dir = source_info.local_cache_path / "http"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+
+        # Preserve extension when possible
+        from urllib.parse import urlparse as _urlparse
+
+        parsed = _urlparse(remote_url)
+        ext = _Path(parsed.path).suffix or ".img"
+        cache_file = cache_dir / f"{cache_key}{ext}"
+
+        # Reuse cached file if it exists (TTL enforcement can be added later)
+        if cache_file.exists():
+            asset_info = ImageAssetInfo(
+                original_path=image_path,
+                resolved_path=str(cache_file.relative_to(source_info.local_cache_path)),
+                local_path=cache_file,
+                source_name=config.name,
+                file_size=cache_file.stat().st_size,
+                last_accessed=time.time(),
+                cache_key=cache_key,
+            )
+            self._asset_cache[cache_key] = asset_info
+            return Success(asset_info)
+
+        # Download file
+        try:
+            import aiohttp  # type: ignore
+
+            timeout = aiohttp.ClientTimeout(total=config.timeout_seconds)
+            headers = config.headers or {}
+            if config.api_key:
+                headers = {**headers, "Authorization": f"Bearer {config.api_key}"}
+
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(remote_url, headers=headers) as resp:
+                    if resp.status != 200:
+                        return Error(
+                            create_image_resolution_error(
+                                image_path,
+                                f"HTTP {resp.status} for {remote_url}",
+                                attempted_sources=[config.name],
+                            )
+                        )
+                    data = await resp.read()
+                    with open(cache_file, "wb") as f:
+                        f.write(data)
+
+            asset_info = ImageAssetInfo(
+                original_path=image_path,
+                resolved_path=str(cache_file.relative_to(source_info.local_cache_path)),
+                local_path=cache_file,
+                source_name=config.name,
+                file_size=cache_file.stat().st_size,
+                last_accessed=time.time(),
+                cache_key=cache_key,
+            )
+            self._asset_cache[cache_key] = asset_info
+            return Success(asset_info)
+
+        except Exception as e:
+            return Error(
+                create_image_resolution_error(
+                    image_path,
+                    f"HTTP download failed: {str(e)}",
+                    attempted_sources=[config.name],
+                )
+            )
 
     async def _resolve_from_s3_source(
         self, image_path: str, source_info: ImageSourceInfo, cache_key: str

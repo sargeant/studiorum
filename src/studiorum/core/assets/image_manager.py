@@ -156,15 +156,11 @@ class ImageManager:
         """
         logger.debug(f"Resolving image: {image_path}")
 
-        # First try the enhanced registry system
+        # Resolve via registry only (legacy fallbacks removed)
         registry_result = await self._registry.resolve_image(image_path)
         if registry_result.is_success():
-            if not hasattr(registry_result, "value"):
-                logger.error("Success result missing value attribute")
-                return None
-            asset_info: ImageAssetInfo = registry_result.value
-
-            # Update legacy cache for backward compatibility
+            asset_info: ImageAssetInfo = registry_result.value  # type: ignore[attr-defined]
+            # Back-compat: update legacy in-memory cache record only
             legacy_asset = ImageAsset(
                 original_url=asset_info.original_path,
                 local_path=asset_info.local_path,
@@ -174,29 +170,12 @@ class ImageManager:
                 source_name=asset_info.source_name,
             )
             self._asset_cache[asset_info.cache_key] = legacy_asset
-
             logger.debug(
                 f"Resolved image '{image_path}' from source '{asset_info.source_name}'"
             )
-            resolved_path: Path = asset_info.local_path
-            return resolved_path
+            return asset_info.local_path
 
-        # Fallback to legacy resolution for local paths
-        if not image_path.startswith(("http://", "https://")):
-            legacy_path = await self._resolve_local_path(image_path, context)
-            if legacy_path:
-                logger.debug(
-                    f"Resolved image '{image_path}' via legacy local resolution"
-                )
-                return legacy_path
-
-        # Fallback to legacy download and cache
-        legacy_path = await self._download_and_cache(image_path)
-        if legacy_path:
-            logger.debug(f"Resolved image '{image_path}' via legacy download")
-            return legacy_path
-
-        logger.warning(f"Could not resolve image: {image_path}")
+        logger.warning(f"Could not resolve image via registry: {image_path}")
         return None
 
     async def _resolve_local_path(

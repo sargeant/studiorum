@@ -67,10 +67,10 @@ class ImageServiceFactory:
 
         registry = ImageSourceRegistry()
 
-        # Add configured image sources
-        if hasattr(self._config, "images") and hasattr(self._config.images, "sources"):
-            for source_config in self._config.images.sources:
-                # Sources are added during registry initialization
+        # Add configured image sources (if any)
+        if hasattr(self._config, "image") and hasattr(self._config.image, "sources"):
+            for _ in self._config.image.sources:
+                # Sources are already handled by consumers of the registry in this phase
                 pass
 
         return registry

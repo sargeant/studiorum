@@ -24,6 +24,8 @@
 <@ endif @>
 
 % Additional packages for enhanced functionality
+\usepackage{graphicx}
+\usepackage{wrapfig}
 \usepackage{hyperref}
 \usepackage{bookmark}
 \usepackage{makeidx}
@@ -95,6 +97,11 @@
 \linenumbers
 <@ endif @>
 <@ endblock @>
+
+<#-- Studiorum image macros --#>
+<@ include '_studiorum_image_macros.tex.j2' @>
+% Optional document-wide defaults for image placement (currently minimal)
+\StudiorumImageDefault[]
 
 <#-- Document structure --#>
 \begin{document}

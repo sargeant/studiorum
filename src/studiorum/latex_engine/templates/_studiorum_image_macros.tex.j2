@@ -1,0 +1,152 @@
+% Studiorum Image Macros (Phase 1)
+% Conservative, user-driven placement with simple defaults.
+
+% Default configuration
+% Usage: \StudiorumImageDefault[output=digital|print,draft=true|false]
+\newcommand{\StudiorumImageDefault}[1][]{%
+  % Currently minimal: parameters reserved for future expansion
+}
+
+% Core macro: \StudiorumImage[options]{placement}{path}{caption}
+% options:
+%   label=fig:...      (optional)
+%   draft=true|false   (optional; when true, LaTeX shows a placeholder box)
+%   caption=below|above|none (optional; default below if caption text provided)
+%   scale=...          (reserved)
+%   offset=..., wraplines=..., clearance=... (reserved)
+% placement: inline | pagewidth-top | pagewidth-bottom | fullpage | column-left | column-right | anchor-NW | anchor-NE | anchor-SW | anchor-SE | fullpage-nomargin
+
+% Internal helper: includegraphics params with keepaspectratio and conservative sizing
+\newcommand{\StudiorumImageParams}{width=0.8\columnwidth,height=0.3\textheight,keepaspectratio}
+
+\newcommand{\StudiorumImage}[4][]{%
+  % Parse options
+  \def\SR@label{}
+  \def\SR@draft{}
+  \def\SR@captionpos{below}
+  \def\SR@haslabel{0}
+  \def\SR@hasdraft{0}
+  \begingroup
+    % Simple key parsing (very light-weight; expects comma-separated key=val)
+    % We keep this minimal to avoid heavy TeX parsing packages.
+    \def\process@kv##1={\def\SR@key{##1}\process@val}
+    \def\process@val##1,{
+      \def\SR@val{##1}%
+      \expandafter\ifx\SR@key\string label\relax\def\SR@label{\SR@val}\def\SR@haslabel{1}\fi
+      \expandafter\ifx\SR@key\string draft\relax\def\SR@draft{draft}\def\SR@hasdraft{1}\fi
+      \expandafter\ifx\SR@key\string caption\relax\def\SR@captionpos{\SR@val}\fi
+    }
+    \def\process@opts#1{\def\SR@opts{#1}\expandafter\process@opts@i\SR@opts,}
+    \def\process@opts@i#1,{
+      \def\SR@tmp{#1}%
+      \ifx\SR@tmp\empty\else\expandafter\process@kv#1=,\expandafter\process@opts@i\fi
+    }
+    \process@opts{#1}
+  \endgroup
+
+  % Switch by placement
+  \def\SR@placement{#2}
+
+  % Inline (within column)
+  \def\SR@doInline{%
+    \ifx\SR@label\empty
+      \includegraphics[\ifx\SR@draft\empty\else draft,\fi \StudiorumImageParams]{#3}%
+    \else
+      \includegraphics[\ifx\SR@draft\empty\else draft,\fi \StudiorumImageParams]{#3}%
+      \label{\SR@label}%
+    \fi
+  }
+
+  % Full page width at top/bottom (two-column spanning figure)
+  \def\SR@doPagewidth#1{%
+    \begin{figure*}[#1]
+      \centering
+      \includegraphics[\ifx\SR@draft\empty\else draft,\fi width=\textwidth,keepaspectratio]{#3}%
+      \ifx\SR@label\empty\else\label{\SR@label}\fi
+      \ifx\SR@captionpos\string above
+        \caption{#4}
+      \else\ifx\SR@captionpos\string none
+        % no caption
+      \else
+        \caption{#4}
+      \fi\fi
+    \end{figure*}
+  }
+
+  % Full page float
+  \def\SR@doFullpage{%
+    \begin{figure}[p]
+      \centering
+      \includegraphics[\ifx\SR@draft\empty\else draft,\fi width=\textwidth,keepaspectratio]{#3}%
+      \ifx\SR@label\empty\else\label{\SR@label}\fi
+      \ifx\SR@captionpos\string above
+        \caption{#4}
+      \else\ifx\SR@captionpos\string none
+        % no caption
+      \else
+        \caption{#4}
+      \fi\fi
+    \end{figure}
+  }
+
+  % Column wrap (left/right)
+  \def\SR@doWrap#1{%
+    % #1 is l or r
+    \begin{wrapfigure}{#1}{0.45\textwidth}
+      \centering
+      \includegraphics[\ifx\SR@draft\empty\else draft,\fi \StudiorumImageParams]{#3}%
+      \ifx\SR@captionpos\string above
+        \caption{#4}
+      \else\ifx\SR@captionpos\string none
+        % no caption
+      \else
+        \caption{#4}
+      \fi\fi
+      \ifx\SR@label\empty\else\label{\SR@label}\fi
+    \end{wrapfigure}
+  }
+
+  % Dispatch
+  \def\SR@pwtop{pagewidth-top}
+  \def\SR@pwbot{pagewidth-bottom}
+  \def\SR@inline{inline}
+  \def\SR@fullpage{fullpage}
+  \def\SR@wleft{column-left}
+  \def\SR@wright{column-right}
+  \def\SR@anw{anchor-NW}
+  \def\SR@ane{anchor-NE}
+  \def\SR@asw{anchor-SW}
+  \def\SR@ase{anchor-SE}
+  \def\SR@fpnom{fullpage-nomargin}
+  \ifx\SR@placement\SR@inline
+    \SR@doInline
+  \else\ifx\SR@placement\SR@pwtop
+    \SR@doPagewidth{t}
+  \else\ifx\SR@placement\SR@pwbot
+    \SR@doPagewidth{b}
+  \else\ifx\SR@placement\SR@fullpage
+    \SR@doFullpage
+  \else\ifx\SR@placement\SR@wleft
+    \SR@doWrap{l}
+  \else\ifx\SR@placement\SR@wright
+    \SR@doWrap{r}
+  \else\ifx\SR@placement\SR@anw
+    % Approximate NW anchor using left column wrap
+    \SR@doWrap{l}
+  \else\ifx\SR@placement\SR@ane
+    % Approximate NE anchor using right column wrap
+    \SR@doWrap{r}
+  \else\ifx\SR@placement\SR@asw
+    % Approximate SW anchor using left column wrap
+    \SR@doWrap{l}
+  \else\ifx\SR@placement\SR@ase
+    % Approximate SE anchor using right column wrap
+    \SR@doWrap{r}
+  \else\ifx\SR@placement\SR@fpnom
+    % Fullpage no-margin not supported yet: fallback to fullpage
+    \SR@doFullpage
+  \else
+    % Fallback: inline
+    \SR@doInline
+  \fi\fi\fi\fi\fi\fi\fi\fi\fi
+}

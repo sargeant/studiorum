@@ -158,7 +158,22 @@ class ImageProcessor:
         Returns:
             Processed image with LaTeX command
         """
-        # Step 1: Resolve and download image if needed
+        # Manual placement mode emits macros without resolving files
+        placement_mode = str(context.metadata.get("placement_mode", "manual")).lower()
+        if placement_mode == "manual":
+            macro = self._generate_studiorum_image_macro(
+                Path(image_path), image_entry, context
+            )
+            return ProcessedImage(
+                original_path=Path(image_path),
+                processed_path=Path(image_path),
+                latex_command=macro,
+                width_specification="",
+                placement_hint=image_entry.get("placement"),
+                caption=image_entry.get("title"),
+            )
+
+        # Step 1: Resolve and download image if needed (smart/legacy paths)
         logger.debug(f"Resolving image path: {image_path}")
         resolved_path = self._resolve_image_path(image_path, context)
 
@@ -322,7 +337,14 @@ class ImageProcessor:
         Returns:
             LaTeX command string
         """
-        # Final validation: ensure the image file actually exists
+        # Check placement mode first (manual macros do not require file existence)
+        placement_mode = str(context.metadata.get("placement_mode", "manual")).lower()
+        if placement_mode == "manual":
+            return self._generate_studiorum_image_macro(
+                image_path, image_entry, context
+            )
+
+        # For non-manual modes, ensure the file exists
         if not image_path.exists():
             raise FileNotFoundError(f"Processed image file not found: {image_path}")
 
@@ -336,14 +358,6 @@ class ImageProcessor:
 
             if in_gallery:
                 # In gallery context, don't wrap in figure - just return the image
-                return f"\\includegraphics[{width_spec}]{{{image_path}}}"
-            elif title:
-                return f"""\\begin{{figure}}[htbp]
-    \\centering
-    \\includegraphics[{width_spec}]{{{image_path}}}
-    \\caption{{{title}}}
-\\end{{figure}}"""
-            else:
                 return f"\\includegraphics[{width_spec}]{{{image_path}}}"
 
         # Initialize placer lazily - use enhanced placer with ContentAwarePlacementStrategy
@@ -360,7 +374,6 @@ class ImageProcessor:
 
         try:
             # Use intelligent placement with enhanced context
-            # Extract context information for better placement decisions
             placement_context = self._build_placement_context(image_entry, context)
 
             if hasattr(self._placer, "place_image_with_context"):
@@ -371,14 +384,12 @@ class ImageProcessor:
                 # Fallback for basic placer
                 result = self._placer.place_image(image_path, image_entry)
 
-            # Check if we're in a gallery context and need to unwrap figure
+            # In gallery context, unwrap includegraphics if present
             if in_gallery and result.latex_command:
                 latex_cmd = result.latex_command
-                # Extract just the includegraphics command from figure environment
                 if "\\includegraphics" in latex_cmd:
                     import re
 
-                    # Find the includegraphics line (handle multiline with re.DOTALL)
                     match = re.search(
                         r"\\includegraphics\[.*?\]\{.*?\}", latex_cmd, re.DOTALL
                     )
@@ -388,12 +399,11 @@ class ImageProcessor:
             return result.latex_command
 
         except Exception:
-            # Fallback to basic placement
+            # Fallback to basic placement on error
             title = image_entry.get("title", "")
             width_spec = self._calculate_width_spec(image_entry, context)
 
             if in_gallery:
-                # In gallery context, don't wrap in figure - just return the image
                 return f"\\includegraphics[{width_spec}]{{{image_path}}}"
             elif title:
                 return f"""\\begin{{figure}}[htbp]
@@ -403,6 +413,65 @@ class ImageProcessor:
 \\end{{figure}}"""
             else:
                 return f"\\includegraphics[{width_spec}]{{{image_path}}}"
+
+    def _generate_studiorum_image_macro(
+        self,
+        image_path: Path,
+        image_entry: dict[str, Any],
+        context: RenderingContext,
+    ) -> str:
+        """Render image block via Jinja2 partial template (manual mode)."""
+        title = image_entry.get("title", "")
+        include_images = context.metadata.get("include_images", True)
+        draft_flag = "draft=true" if not include_images else None
+
+        # Build label from entry title or filename
+        label = self._build_auto_label(image_entry, image_path)
+        options = ",".join(
+            [
+                opt
+                for opt in ([f"label={label}"] if label else [])
+                + ([draft_flag] if draft_flag else [])
+                if opt
+            ]
+        )
+
+        try:
+            from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+
+            engine = LaTeXTemplateEngine()
+            template = engine.env.get_template("_image_render_block.tex.j2")
+            return template.render(
+                path=str(image_path),
+                caption=title or "",
+                label=label,
+                placement="inline",
+                options=options,
+                docs_url="https://studiorum.dev/image-placement/",
+            )
+        except Exception as e:
+            # Fallback to a minimal macro line if template rendering fails
+            logger.warning(f"Image block template render failed: {e}")
+            opt = f"[{options}]" if options else ""
+            return f"% Fallback render\n\\StudiorumImage{opt}{{inline}}{{{image_path}}}{{{title}}}"
+
+    def _build_auto_label(
+        self, image_entry: dict[str, Any], image_path: Path
+    ) -> str | None:
+        """Create a figure label slug from title or filename."""
+        base = image_entry.get("id") or image_entry.get("title") or image_path.stem
+        if not base:
+            return None
+        slug = "".join(c if c.isalnum() else "-" for c in str(base).lower())
+        # collapse multiple dashes
+        while "--" in slug:
+            slug = slug.replace("--", "-")
+        slug = slug.strip("-")
+        if not slug:
+            return None
+        return f"fig:{slug}"
+
+        # (legacy intelligent placement logic lives in _generate_latex_command for non-manual modes)
 
     def _calculate_width_spec(
         self, image_entry: dict[str, Any], context: RenderingContext | None = None

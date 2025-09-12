@@ -112,6 +112,9 @@ class EnhancedImagePlacer(ImagePlacer):
         Args:
             config: Enhanced placement configuration
         """
+        logger.warning(
+            "EnhancedImagePlacer is deprecated; use --placement-mode=manual to emit macros instead."
+        )
         # Initialize base class with compatible config
         base_config = PlacementConfig()
         if config:
@@ -194,6 +197,9 @@ class EnhancedImagePlacer(ImagePlacer):
         Returns:
             Enhanced placement result with detailed information
         """
+        logger.warning(
+            "place_image_enhanced is deprecated; prefer manual placement macros."
+        )
         try:
             # Create image metadata
             image_metadata = await self._create_image_metadata(image_path, image_entry)
@@ -325,6 +331,9 @@ class EnhancedImagePlacer(ImagePlacer):
         This method provides the same API as the base ImagePlacer while
         optionally using enhanced features when available.
         """
+        logger.warning(
+            "place_image (smart) is deprecated; prefer --placement-mode=manual."
+        )
         # If intelligent placement is disabled, use base implementation
         if not self.enhanced_config.enable_intelligent_placement:
             return super().place_image(image_path, image_entry, context_hint)

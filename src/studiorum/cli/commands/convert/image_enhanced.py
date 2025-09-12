@@ -38,6 +38,13 @@ def get_enhanced_image_options() -> dict[str, Any]:
             help="Include images in the document",
             rich_help_panel="Image Options",
         ),
+        # Placement mode: manual macros (default) vs smart (deprecated)
+        "placement_mode": typer.Option(
+            None,
+            "--placement-mode",
+            help="Placement mode: manual (default) or smart (deprecated)",
+            rich_help_panel="Image Options",
+        ),
         # Image quality and optimization
         "image_quality": typer.Option(
             None,
@@ -128,6 +135,7 @@ def apply_image_config_hierarchy(**cli_args: Any) -> dict[str, Any]:
     with_images = cli_args.get("with_images")
     image_quality = cli_args.get("image_quality")
     image_placement = cli_args.get("image_placement")
+    placement_mode = cli_args.get("placement_mode")
     gallery_layout = cli_args.get("gallery_layout")
     image_sources = cli_args.get("image_sources")
     preload_images = cli_args.get("preload_images")
@@ -139,9 +147,7 @@ def apply_image_config_hierarchy(**cli_args: Any) -> dict[str, Any]:
     chapter_art = cli_args.get("chapter_art")
 
     # Get app config defaults
-    images_config = (
-        getattr(app_config, "images", None) if hasattr(app_config, "images") else None
-    )
+    image_config = getattr(app_config, "image", None)
     rendering_config = getattr(app_config.rendering, "content", None)
 
     # Apply hierarchy for each configuration option
@@ -170,74 +176,75 @@ def apply_image_config_hierarchy(**cli_args: Any) -> dict[str, Any]:
         ),
         # Placement strategy
         "placement_strategy": (
-            image_placement
-            or getattr(images_config, "placement_strategy", "intelligent")
-            if images_config
-            else "intelligent"
+            image_placement or getattr(image_config, "placement_strategy", "manual")
+            if image_config
+            else "manual"
         ),
+        # Placement mode (manual default)
+        "placement_mode": ((placement_mode or "manual").lower()),
         # Gallery settings
         "gallery_layout": (
-            gallery_layout or getattr(images_config, "gallery_layout", "grid")
-            if images_config
+            gallery_layout or getattr(image_config, "gallery_layout", "grid")
+            if image_config
             else "grid"
         ),
         # Source management
         "image_sources": (
             image_sources.split(",")
             if image_sources
-            else None or getattr(images_config, "enabled_sources", None)
-            if images_config
+            else None or getattr(image_config, "enabled_sources", None)
+            if image_config
             else None
         ),
         # Performance options
         "preload_images": (
             preload_images
             if preload_images is not None
-            else getattr(images_config, "preload_images", True)
-            if images_config
+            else getattr(image_config, "preload_images", True)
+            if image_config
             else True
         ),
         "use_cache": (
             image_cache
             if image_cache is not None
-            else getattr(images_config, "use_cache", True)
-            if images_config
+            else getattr(image_config, "use_cache", True)
+            if image_config
             else True
         ),
         "sync_sources": (
             sync_sources
             if sync_sources is not None
-            else getattr(images_config, "sync_sources", False)
-            if images_config
+            else getattr(image_config, "sync_sources", False)
+            if image_config
             else False
         ),
         # Content-specific options
         "enable_bestiary_images": (
             bestiary_images
             if bestiary_images is not None
-            else getattr(images_config, "bestiary_images", True)
-            if images_config
+            else getattr(image_config, "bestiary_images", True)
+            if image_config
             else True
         ),
         "enable_item_images": (
             item_images
             if item_images is not None
-            else getattr(images_config, "item_images", True)
-            if images_config
+            else getattr(image_config, "item_images", True)
+            if image_config
             else True
         ),
         "enable_adventure_images": (
             adventure_images
             if adventure_images is not None
-            else getattr(images_config, "adventure_images", True)
-            if images_config
+            else getattr(image_config, "adventure_images", True)
+            if image_config
             else True
         ),
         "enable_chapter_art": (
             chapter_art
             if chapter_art is not None
-            else getattr(images_config, "chapter_art", True)
-            if images_config
+            else getattr(image_config, "chapter_art", True)
+            if image_config
             else True
         ),
     }
@@ -386,9 +393,8 @@ class EnhancedImageProcessor:
             "image_optimization_target": self.config.get(
                 "optimization_target", OptimizationTarget.HYBRID
             ),
-            "image_placement_strategy": self.config.get(
-                "placement_strategy", "intelligent"
-            ),
+            "image_placement_strategy": self.config.get("placement_strategy", "manual"),
+            "placement_mode": self.config.get("placement_mode", "manual"),
             "gallery_layout_type": self.config.get("gallery_layout", "grid"),
             "bestiary_images_enabled": self.config.get("enable_bestiary_images", True),
             "item_images_enabled": self.config.get("enable_item_images", True),
@@ -426,7 +432,8 @@ def display_image_config_summary(image_config: dict[str, Any]) -> None:
 
     rprint("[green]Enhanced Image Configuration:[/green]")
     rprint(f"  Quality: {image_config.get('image_quality', 'hybrid')}")
-    rprint(f"  Placement: {image_config.get('placement_strategy', 'intelligent')}")
+    rprint(f"  Placement Mode: {image_config.get('placement_mode', 'manual')}")
+    rprint(f"  Placement Strategy: {image_config.get('placement_strategy', 'manual')}")
     rprint(f"  Gallery Layout: {image_config.get('gallery_layout', 'grid')}")
     rprint(f"  Preload Images: {image_config.get('preload_images', True)}")
     rprint(f"  Use Cache: {image_config.get('use_cache', True)}")
