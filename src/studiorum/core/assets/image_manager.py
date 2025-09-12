@@ -156,11 +156,21 @@ class ImageManager:
         """
         logger.debug(f"Resolving image: {image_path}")
 
-        # Resolve via registry only (legacy fallbacks removed)
+        # Branch based on whether this looks like a URL
+        is_url = str(image_path).startswith(("http://", "https://"))
+
+        # 1) Local path handling first
+        if not is_url:
+            # Try simple local resolution
+            local = await self._resolve_local_path(image_path, context)
+            if local is not None:
+                return local
+
+        # 2) Try enhanced registry for any kind of path
         registry_result = await self._registry.resolve_image(image_path)
         if registry_result.is_success():
             asset_info: ImageAssetInfo = registry_result.value  # type: ignore[attr-defined]
-            # Back-compat: update legacy in-memory cache record only
+            # Back-compat: update legacy in-memory cache as a mirror of registry result
             legacy_asset = ImageAsset(
                 original_url=asset_info.original_path,
                 local_path=asset_info.local_path,
@@ -175,7 +185,24 @@ class ImageManager:
             )
             return asset_info.local_path
 
-        logger.warning(f"Could not resolve image via registry: {image_path}")
+        # 3) Legacy fallback path (URL-based download/cached) for backward compatibility
+        logger.warning(
+            f"Could not resolve via registry: {image_path}; using legacy fallback"
+        )
+        if is_url:
+            # Check legacy in-memory cache and ensure file exists
+            cache_key = self._generate_cache_key(image_path)
+            cached = self._asset_cache.get(cache_key)
+            if cached and cached.local_path.exists():
+                # Even if cached, refresh/ensure present via download call (back-compat behavior)
+                await self._download_and_cache(image_path)
+                return cached.local_path
+
+            # Attempt download and cache now
+            downloaded = await self._download_and_cache(image_path)
+            return downloaded
+
+        # 4) No resolution found
         return None
 
     async def _resolve_local_path(

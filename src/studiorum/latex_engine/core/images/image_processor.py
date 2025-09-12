@@ -93,10 +93,17 @@ class ImageProcessor:
         Returns:
             LaTeX code for the processed image
         """
-        # If images are disabled, return placeholder
+        # If images are disabled, either emit draft macro (manual) or placeholder
         include_images = context.metadata.get("include_images", True)
+        placement_mode = str(context.metadata.get("placement_mode", "smart")).lower()
         if not include_images:
             title = image_entry.get("title", "")
+            if placement_mode == "manual":
+                # Emit macro with draft=true option for layout iteration
+                image_path = self._extract_image_path(image_entry.get("href", "")) or ""
+                return self._generate_studiorum_image_macro(
+                    Path(image_path or (title or "image")), image_entry, context
+                )
             return f"% Image placeholder: {title}" if title else "% Image placeholder"
 
         href = image_entry.get("href", "")
@@ -159,7 +166,7 @@ class ImageProcessor:
             Processed image with LaTeX command
         """
         # Manual placement mode emits macros without resolving files
-        placement_mode = str(context.metadata.get("placement_mode", "manual")).lower()
+        placement_mode = str(context.metadata.get("placement_mode", "smart")).lower()
         if placement_mode == "manual":
             macro = self._generate_studiorum_image_macro(
                 Path(image_path), image_entry, context
@@ -338,7 +345,7 @@ class ImageProcessor:
             LaTeX command string
         """
         # Check placement mode first (manual macros do not require file existence)
-        placement_mode = str(context.metadata.get("placement_mode", "manual")).lower()
+        placement_mode = str(context.metadata.get("placement_mode", "smart")).lower()
         if placement_mode == "manual":
             return self._generate_studiorum_image_macro(
                 image_path, image_entry, context
@@ -352,13 +359,11 @@ class ImageProcessor:
         in_gallery = context.metadata.get("in_gallery", False)
 
         if not self.config.enable_placement_optimization:
-            # Use basic placement
-            title = image_entry.get("title", "")
-            width_spec = self._calculate_width_spec(image_entry, context)
-
-            if in_gallery:
-                # In gallery context, don't wrap in figure - just return the image
-                return f"\\includegraphics[{width_spec}]{{{image_path}}}"
+            # Always emit StudiorumImage macro via Jinja template for basic placement
+            # This keeps all LaTeX structure in templates, not Python.
+            return self._generate_studiorum_image_macro(
+                image_path, image_entry, context
+            )
 
         # Initialize placer lazily - use enhanced placer with ContentAwarePlacementStrategy
         if self._placer is None:

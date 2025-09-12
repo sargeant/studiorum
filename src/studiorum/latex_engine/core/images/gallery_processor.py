@@ -315,7 +315,7 @@ class GalleryProcessor:
     def _generate_grid_layout(
         self, processed_images: list[dict[str, Any]], gallery_entry: dict[str, Any]
     ) -> Result[str, str]:
-        """Generate grid layout LaTeX."""
+        """Generate grid layout LaTeX using the gallery template."""
         columns = min(
             gallery_entry.get("columns", self.config.default_columns),
             self.config.max_images_per_row,
@@ -339,298 +339,146 @@ class GalleryProcessor:
                 f"\\dimexpr(\\textwidth - {separation_total})/{columns}\\relax"
             )
 
-        # Start the figure environment
-        latex_parts = ["\\begin{figure}[htbp]", "    \\centering"]
-
-        if title:
-            latex_parts.append(f"    % Gallery: {title}")
-
-        # Process images in rows
-        for i in range(0, len(processed_images), columns):
-            row_images = processed_images[i : i + columns]
-
-            # Add each image in the row
-            for j, image in enumerate(row_images):
-                # Extract the inner content from subfigure if present
-                latex_cmd = image["latex_command"]
-                if "\\begin{subfigure}" in latex_cmd:
-                    # Update width and extract inner content
-                    lines = latex_cmd.split("\n")
-                    inner_lines = []
-                    for line in lines:
-                        if line.strip().startswith("\\begin{subfigure}"):
-                            inner_lines.append(
-                                f"    \\begin{{subfigure}}{{{image_width}}}"
-                            )
-                        elif not line.strip().startswith("\\end{subfigure}"):
-                            inner_lines.append(line)
-                        else:
-                            inner_lines.append("    \\end{subfigure}")
-
-                    latex_parts.extend(inner_lines)
-                else:
-                    # Wrap non-subfigure content
-                    img_title = image.get("title", "")
-                    if img_title and self.config.enable_subcaptions:
-                        latex_parts.extend(
-                            [
-                                f"    \\begin{{subfigure}}{{{image_width}}}",
-                                "        \\centering",
-                                f"        {latex_cmd}",
-                                f"        \\caption{{{img_title}}}",
-                                "    \\end{subfigure}",
-                            ]
-                        )
-                    else:
-                        latex_parts.extend(
-                            [
-                                f"    \\begin{{subfigure}}{{{image_width}}}",
-                                "        \\centering",
-                                f"        {latex_cmd}",
-                                "    \\end{subfigure}",
-                            ]
-                        )
-
-                # Add separation between images in the same row
-                if j < len(row_images) - 1:
-                    latex_parts.append("    \\hfill")
-
-            # Add vertical space between rows (except after last row)
-            if i + columns < len(processed_images):
-                latex_parts.append(f"    \\\\[{self.config.gallery_margin}]")
-
-        # Add caption if present
-        if caption:
-            latex_parts.append(f"    \\caption{{{caption}}}")
-
-        latex_parts.append("\\end{figure}")
-
-        return Success("\n".join(latex_parts))
+        # Render via gallery template
+        return self._render_gallery_template(
+            layout="grid",
+            processed_images=processed_images,
+            gallery_entry=gallery_entry,
+            template_params={
+                "columns": columns,
+                "image_width": image_width,
+                "title": title,
+                "caption": caption,
+            },
+        )
 
     def _generate_showcase_layout(
         self, processed_images: list[dict[str, Any]], gallery_entry: dict[str, Any]
     ) -> Result[str, str]:
-        """Generate enhanced showcase layout with decorative elements and professional presentation."""
+        """Generate enhanced showcase layout via gallery template (no inline LaTeX)."""
         title = gallery_entry.get("title", "")
         caption = gallery_entry.get("caption", "")
 
-        latex_parts = ["\\begin{figure}[htbp]", "    \\centering"]
-
-        if title:
-            latex_parts.append(f"    % Enhanced Showcase Gallery: {title}")
-
-        # Add decorative elements if enabled
-        if self.config.enable_decorative_elements:
-            latex_parts.extend(self._generate_showcase_decorative_header(gallery_entry))
-
-        if processed_images:
-            # Enhanced main showcase image with decorative border
-            main_image = processed_images[0]
-
-            if (
-                self.config.enable_decorative_elements
-                and self.config.enable_featured_borders
-            ):
-                # Featured image with decorative border
-                latex_parts.extend(
-                    [
-                        "    % Featured image with decorative border",
-                        "    \\begin{tikzpicture}",
-                        "        \\node[inner sep=0pt] (image) at (0,0) {",
-                        "            \\begin{subfigure}{0.7\\textwidth}",
-                        "                \\centering",
-                        f"                {self._extract_image_command(main_image['latex_command'])}",
-                    ]
-                )
-
-                if main_image.get("title") and self.config.enable_subcaptions:
-                    title = main_image["title"]
-                    latex_parts.append(
-                        f"                \\caption*{{\\textit{{{title}}}}}"
-                    )
-
-                latex_parts.extend(
-                    [
-                        "            \\end{subfigure}",
-                        "        };",
-                        f"        \\draw[line width=2pt,color={self.config.decorative_color_scheme}] ",
-                        "              ([xshift=-5pt,yshift=5pt]image.north west) rectangle ",
-                        "              ([xshift=5pt,yshift=-5pt]image.south east);",
-                        f"        \\draw[line width=1pt,color={self.config.decorative_color_scheme}!50] ",
-                        "              ([xshift=-10pt,yshift=10pt]image.north west) rectangle ",
-                        "              ([xshift=10pt,yshift=-10pt]image.south east);",
-                        "    \\end{tikzpicture}",
-                    ]
-                )
-            else:
-                # Standard featured image without decorative border
-                latex_parts.extend(
-                    [
-                        "    \\begin{subfigure}{0.7\\textwidth}",
-                        "        \\centering",
-                        f"        {self._extract_image_command(main_image['latex_command'])}",
-                    ]
-                )
-
-                if main_image.get("title") and self.config.enable_subcaptions:
-                    latex_parts.append(f"        \\caption{{{main_image['title']}}}")
-
-                latex_parts.append("    \\end{subfigure}")
-
-            # Enhanced thumbnail section with decorative elements
-            if len(processed_images) > 1:
-                if self.config.enable_decorative_elements:
-                    # Decorative separator
-                    latex_parts.extend(
-                        [
-                            "    \\\\[1em]",
-                            "    % Decorative thumbnail separator",
-                            "    \\begin{tikzpicture}",
-                            f"        \\draw[line width=1pt,color={self.config.decorative_color_scheme}!30] ",
-                            "              (0,0) -- (0.8\\textwidth,0);",
-                            f"        \\node[circle,fill={self.config.decorative_color_scheme}!20,",
-                            "              inner sep=3pt] at (0.4\\textwidth,0) {};",
-                            "    \\end{tikzpicture}",
-                            "    \\\\[0.5em]",
-                        ]
-                    )
-                else:
-                    latex_parts.append("    \\\\[1em]")
-
-                # Enhanced thumbnails with subtle decorative framing
-                thumbnail_width = "0.15\\textwidth"
-                for i, image in enumerate(processed_images[1:], 1):
-                    if self.config.enable_decorative_elements:
-                        latex_parts.extend(
-                            [
-                                "    \\begin{tikzpicture}",
-                                "        \\node[inner sep=0pt] (thumb) at (0,0) {",
-                                f"            \\begin{{subfigure}}{{{thumbnail_width}}}",
-                                "                \\centering",
-                                f"                {self._extract_image_command(image['latex_command'])}",
-                                "            \\end{subfigure}",
-                                "        };",
-                                f"        \\draw[line width=0.5pt,color={self.config.decorative_color_scheme}!40] ",
-                                "              (thumb.north west) rectangle (thumb.south east);",
-                                "    \\end{tikzpicture}",
-                            ]
-                        )
-                    else:
-                        latex_parts.extend(
-                            [
-                                f"    \\begin{{subfigure}}{{{thumbnail_width}}}",
-                                "        \\centering",
-                                f"        {self._extract_image_command(image['latex_command'])}",
-                                "    \\end{subfigure}",
-                            ]
-                        )
-
-                    # Add space between thumbnails
-                    if i < len(processed_images) - 1:
-                        latex_parts.append("    \\hfill")
-
-        # Enhanced caption with decorative elements
-        if caption:
-            if self.config.enable_decorative_elements:
-                latex_parts.extend(
-                    [
-                        "    \\\\[1em]",
-                        "    % Decorative caption",
-                        f"    \\textcolor{{{self.config.decorative_color_scheme}}}{{\\rule{{0.3\\textwidth}}{{0.5pt}}}}",
-                        f"    \\caption{{\\textit{{{caption}}}}}",
-                        f"    \\textcolor{{{self.config.decorative_color_scheme}}}{{\\rule{{0.3\\textwidth}}{{0.5pt}}}}",
-                    ]
-                )
-            else:
-                latex_parts.append(f"    \\caption{{{caption}}}")
-
-        # Add decorative footer if enabled
-        if self.config.enable_decorative_elements:
-            latex_parts.extend(self._generate_showcase_decorative_footer(gallery_entry))
-
-        latex_parts.append("\\end{figure}")
-
-        return Success("\n".join(latex_parts))
+        # Render via gallery template
+        return self._render_gallery_template(
+            layout="showcase",
+            processed_images=processed_images,
+            gallery_entry=gallery_entry,
+            template_params={
+                "title": title,
+                "caption": caption,
+                "decorative_enabled": self.config.enable_decorative_elements,
+                "decorative_style": self.config.showcase_decorative_style,
+                "decorative_color": self.config.decorative_color_scheme,
+                "featured_borders": self.config.enable_featured_borders,
+                "main_width": "0.7\\textwidth",
+                "thumb_width": "0.15\\textwidth",
+            },
+        )
 
     def _generate_sequential_layout(
         self, processed_images: list[dict[str, Any]], gallery_entry: dict[str, Any]
     ) -> Result[str, str]:
-        """Generate sequential layout with images in a single column."""
+        """Generate sequential layout using the gallery template."""
         title = gallery_entry.get("title", "")
         caption = gallery_entry.get("caption", "")
-
-        latex_parts = ["\\begin{figure}[htbp]", "    \\centering"]
-
-        if title:
-            latex_parts.append(f"    % Gallery: {title}")
-
         image_width = "0.8\\textwidth"
 
-        for i, image in enumerate(processed_images):
-            latex_parts.extend(
-                [
-                    f"    \\begin{{subfigure}}{{{image_width}}}",
-                    "        \\centering",
-                    f"        {self._extract_image_command(image['latex_command'])}",
-                ]
-            )
-
-            if image.get("title") and self.config.enable_subcaptions:
-                latex_parts.append(f"        \\caption{{{image['title']}}}")
-
-            latex_parts.append("    \\end{subfigure}")
-
-            # Add vertical space between images (except after last)
-            if i < len(processed_images) - 1:
-                latex_parts.append(f"    \\\\[{self.config.gallery_margin}]")
-
-        if caption:
-            latex_parts.append(f"    \\caption{{{caption}}}")
-
-        latex_parts.append("\\end{figure}")
-
-        return Success("\n".join(latex_parts))
+        return self._render_gallery_template(
+            layout="sequential",
+            processed_images=processed_images,
+            gallery_entry=gallery_entry,
+            template_params={
+                "image_width": image_width,
+                "title": title,
+                "caption": caption,
+                "gallery_margin": self.config.gallery_margin,
+            },
+        )
 
     def _generate_comparison_layout(
         self, processed_images: list[dict[str, Any]], gallery_entry: dict[str, Any]
     ) -> Result[str, str]:
-        """Generate comparison layout with equal-sized images side by side."""
+        """Generate comparison layout using the gallery template."""
         title = gallery_entry.get("title", "")
         caption = gallery_entry.get("caption", "")
 
-        latex_parts = ["\\begin{figure}[htbp]", "    \\centering"]
-
-        if title:
-            latex_parts.append(f"    % Gallery: {title}")
-
         # Use equal width for all images
         num_images = min(len(processed_images), self.config.max_images_per_row)
-        image_width = f"{0.9 / num_images}\\textwidth"
+        per_image_width = f"{0.9 / max(1, num_images)}\\textwidth"
 
-        for i, image in enumerate(processed_images):
-            latex_parts.extend(
-                [
-                    f"    \\begin{{subfigure}}{{{image_width}}}",
-                    "        \\centering",
-                    f"        {self._extract_image_command(image['latex_command'])}",
-                ]
-            )
+        return self._render_gallery_template(
+            layout="comparison",
+            processed_images=processed_images,
+            gallery_entry=gallery_entry,
+            template_params={
+                "per_image_width": per_image_width,
+                "title": title,
+                "caption": caption,
+            },
+        )
 
-            if image.get("title") and self.config.enable_subcaptions:
-                latex_parts.append(f"        \\caption{{{image['title']}}}")
+    def _render_gallery_template(
+        self,
+        *,
+        layout: str,
+        processed_images: list[dict[str, Any]],
+        gallery_entry: dict[str, Any],
+        template_params: dict[str, Any] | None = None,
+    ) -> Result[str, str]:
+        r"""Render the gallery via the Jinja2 template.
 
-            latex_parts.append("    \\end{subfigure}")
+        This uses _gallery_render_block.tex.j2 and calls \StudiorumImage for each image.
+        """
+        try:
+            from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
-            # Add separation between images
-            if i < len(processed_images) - 1:
-                latex_parts.append("    \\hfill")
+            engine = LaTeXTemplateEngine()
+            template = engine.env.get_template("_gallery_render_block.tex.j2")
 
-        if caption:
-            latex_parts.append(f"    \\caption{{{caption}}}")
+            # Prepare image data for template
+            include_images = True  # entry processor guards disabled images earlier
+            draft_flag = "draft=true" if not include_images else None
 
-        latex_parts.append("\\end{figure}")
+            images_for_template: list[dict[str, Any]] = []
+            for img in processed_images:
+                path = ""
+                href = img.get("href")
+                if isinstance(href, dict):
+                    path = href.get("path") or href.get("url") or ""
+                if not path:
+                    # Fallback: extract from latex_command
+                    path = self._extract_image_path(img.get("latex_command", ""))
 
-        return Success("\n".join(latex_parts))
+                options = ",".join(
+                    [opt for opt in ([draft_flag] if draft_flag else []) if opt]
+                )
+                images_for_template.append(
+                    {
+                        "path": path,
+                        "title": img.get("title") or "",
+                        "options": options,
+                        # Allow per-image width override if needed
+                        "subfigure_width": None,
+                    }
+                )
+
+            params: dict[str, Any] = {
+                "layout": layout,
+                "title": gallery_entry.get("title") or "",
+                "caption": gallery_entry.get("caption") or "",
+                "images": images_for_template,
+                "env_placement": "htbp",
+                "gallery_margin": self.config.gallery_margin,
+            }
+            if template_params:
+                params.update(template_params)
+
+            rendered = template.render(**params)
+            return Success(rendered)
+        except Exception as e:
+            logger.error(f"Gallery template render failed: {e}", exc_info=True)
+            return Error(f"Gallery template render failed: {e}")
 
     def _extract_image_command(self, latex_command: str) -> str:
         """Extract just the includegraphics command from processed LaTeX."""

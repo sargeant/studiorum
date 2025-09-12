@@ -309,6 +309,15 @@ class ImageSourceRegistry:
         self._asset_cache: dict[str, ImageAssetInfo] = {}
         self._sync_locks: dict[str, asyncio.Lock] = {}
 
+        # Ensure a default asyncio event loop exists for callers that use
+        # asyncio.get_event_loop().run_until_complete(...). Some test environments
+        # (Python 3.12+) do not create a default loop for the main thread.
+        try:
+            asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
         logger.info(f"Initialised ImageSourceRegistry with cache dir: {self.cache_dir}")
 
     def _is_safe_git_branch(self, branch: str) -> bool:

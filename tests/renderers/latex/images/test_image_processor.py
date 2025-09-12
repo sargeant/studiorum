@@ -203,7 +203,7 @@ class TestImageProcessor:
         assert result == image_path
 
     def test_generate_latex_basic_with_title(self):
-        """Test basic LaTeX generation with title."""
+        """Basic generation uses StudiorumImage macro via template."""
         self.processor.config.enable_placement_optimization = False
 
         # Create a temporary test image file
@@ -219,19 +219,15 @@ class TestImageProcessor:
                 image_path, image_entry, self.context
             )
 
-            assert "\\begin{figure}[htbp]" in result
-            assert (
-                f"\\includegraphics[width=0.8\\columnwidth,height=0.3\\textheight,keepaspectratio]{{{image_path}}}"
-                in result
-            )
-            assert "\\caption{Test Image}" in result
-            assert "\\end{figure}" in result
+            assert "\\StudiorumImage" in result
+            assert str(image_path) in result
+            assert "Test Image" in result
         finally:
             # Clean up temp file
             image_path.unlink(missing_ok=True)
 
     def test_generate_latex_basic_no_title(self):
-        """Test basic LaTeX generation without title."""
+        """Basic generation without title returns StudiorumImage macro."""
         self.processor.config.enable_placement_optimization = False
 
         # Create a temporary test image file
@@ -247,10 +243,8 @@ class TestImageProcessor:
                 image_path, image_entry, self.context
             )
 
-            assert (
-                result
-                == f"\\includegraphics[width=0.8\\columnwidth,height=0.3\\textheight,keepaspectratio]{{{image_path}}}"
-            )
+            assert "\\StudiorumImage" in result
+            assert str(image_path) in result
         finally:
             # Clean up temp file
             image_path.unlink(missing_ok=True)
