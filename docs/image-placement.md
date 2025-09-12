@@ -8,6 +8,10 @@ This page documents the Studiorum manual image placement system using LaTeX macr
 - Options: `label=fig:...`, `draft=true|false`, `caption=below|above|none`.
 - Draft mode shows placeholders for faster compilation.
 
+See also:
+
+- User guide: [Images and Galleries](user-guide/images-and-galleries.md) for multi‑image layouts (grid, sequential, comparison, showcase).
+
 Example:
 
 ```latex
