@@ -70,7 +70,7 @@ help:
 	@echo "  test-xdist-incompatible - Run tests that fail with xdist (sequential execution)"
 	@echo "  test-latex-integration - Run LaTeX integration tests (requires LaTeX installation)"
 	@echo "  format       - Format code with ruff"
-	@echo "  docs         - Build and open documentation"
+	@echo "  docs         - Build and open documentation (MkDocs)"
 	@echo "  clean        - Clean build artifacts"
 	@echo "  clean-all    - Deep clean including virtual environment"
 	@echo ""
@@ -335,20 +335,20 @@ test-quality-strict: uv
 # Documentation
 ## Build HTML docs and open in browser
 docs: uv-docs
-	@echo "Building documentation..."
-	cd $(DOCS_DIR) && sphinx-build -j auto -b html source _build/html || (echo "Documentation build failed"; exit 1)
-	@echo "Documentation built and opened"
+	@echo "Building documentation with MkDocs..."
+	@$(UV) mkdocs build || (echo "Documentation build failed"; exit 1)
+	@echo "Documentation built at ./site"
+	@open site/index.html 2>/dev/null || true
 
 ## Start documentation auto-rebuild server
 docs-serve: uv-docs
-	@echo "Starting documentation auto-rebuild server..."
-	@echo "Server will be available at http://localhost:8000"
-	cd $(DOCS_DIR) && sphinx-autobuild source _build/html --host 0.0.0.0 --port 8000 --open-browser || (echo "Documentation server failed to start"; exit 1)
+	@echo "Starting MkDocs dev server (http://127.0.0.1:8000)..."
+	@$(UV) mkdocs serve -a 127.0.0.1:8000 || (echo "Documentation server failed to start"; exit 1)
 
 ## Clean documentation build artifacts
 docs-clean:
 	@echo "Cleaning documentation build artifacts..."
-	rm -rf $(DOCS_DIR)/_build $(DOCS_DIR)/build
+	rm -rf site $(DOCS_DIR)/_build $(DOCS_DIR)/build
 	@echo "Documentation artifacts cleaned"
 
 ## Build docs with clean rebuild
@@ -357,9 +357,8 @@ docs-rebuild: docs-clean docs
 
 ## Check documentation for issues (broken links, syntax)
 docs-check: uv-docs
-	@echo "Checking documentation for issues..."
-	cd $(DOCS_DIR) && sphinx-build -b linkcheck source _build/linkcheck || (echo "Link check failed"; exit 1)
-	cd $(DOCS_DIR) && sphinx-build -W -b html source _build/html || (echo "Documentation syntax check failed"; exit 1)
+	@echo "Checking MkDocs documentation build..."
+	@$(UV) mkdocs build -q || (echo "MkDocs build check failed"; exit 1)
 	@echo "Documentation checks passed"
 
 ## Validate documentation quality and structure
