@@ -835,6 +835,73 @@ class Omnidexer:
         name_key = content.name.lower()
         self._by_name[name_key].append(entry)
 
+        # Reprint alias indexing (5etools reprintedAs)
+        # Some content types include a list of reprint targets (e.g., DMG item reprinted in XDMG).
+        # To align with 5etools behavior, index aliases under the target source (and optional name)
+        # so source filters like --sources XDMG include the aliased content.
+        try:
+            # Accept both normalized field (reprinted_as) and raw extra (reprintedAs)
+            reprints: list[Any] = []
+            if hasattr(content, "reprinted_as") and isinstance(
+                content.reprinted_as, list
+            ):
+                reprints = content.reprinted_as
+            elif hasattr(content, "reprintedAs") and isinstance(
+                content.reprintedAs, list
+            ):
+                reprints = content.reprintedAs
+
+            if reprints:
+                for rp in reprints:
+                    # Normalize to UID string "Name|SRC"
+                    uid: str | None = None
+                    if isinstance(rp, str):
+                        uid = rp
+                    elif isinstance(rp, dict):
+                        uid = rp.get("uid") or rp.get("UID")
+                    if not uid or "|" not in uid:
+                        continue
+
+                    target_name, target_src = uid.split("|", 1)
+                    target_name = (target_name or content.name).strip()
+                    target_src = (target_src or source_abbrev).strip()
+
+                    # Create a shallow alias copy with updated name/source and without further reprints
+                    try:
+                        # Pydantic v2 BaseModel provides model_copy
+                        alias = content.model_copy(deep=True)
+                    except AttributeError:
+                        # Fallback for non-BaseModel content
+                        import copy
+
+                        alias = copy.deepcopy(content)
+
+                    # Prevent recursive aliasing
+                    if hasattr(alias, "reprinted_as"):
+                        try:
+                            alias.reprinted_as = []
+                        except Exception:
+                            pass
+                    if hasattr(alias, "reprintedAs"):
+                        try:
+                            alias.reprintedAs = []
+                        except Exception:
+                            pass
+
+                    # Update identity
+                    try:
+                        alias.name = target_name
+                        if hasattr(alias, "source"):
+                            alias.source.abbreviation = target_src
+                            alias.source.name = target_src
+                    except Exception:
+                        pass
+
+                    # Index the alias (cycle prevention covers duplicates)
+                    self._add_to_index(alias, content_type)
+        except Exception as e:
+            logger.debug(f"Reprint alias indexing failed for {content.name}: {e}")
+
         # Deep indexing: if enabled and content supports it, index nested content
         if self.enable_deep_indexing and isinstance(content, DeepIndexable):
             try:

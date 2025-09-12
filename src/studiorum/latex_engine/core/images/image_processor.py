@@ -236,7 +236,14 @@ class ImageProcessor:
         app_config = get_app_config()
 
         if app_config.image.image_directory:
-            image_file_path = app_config.image.image_directory / image_path
+            # Expand '~' and environment variables for user-provided paths
+            base_dir = app_config.image.image_directory
+            try:
+                base_dir = Path(str(base_dir)).expanduser()
+            except Exception:
+                base_dir = Path(base_dir)
+
+            image_file_path = base_dir / image_path
             logger.debug(f"Looking for image at: {image_file_path}")
             if image_file_path.exists():
                 logger.debug(f"Found image at configured directory: {image_file_path}")
@@ -244,10 +251,21 @@ class ImageProcessor:
             else:
                 logger.debug(f"Image not found at: {image_file_path}")
 
+            # Common 5etools-img layout uses an 'img' subdirectory at the repo root
+            img_prefixed_path = base_dir / "img" / image_path
+            logger.debug(f"Trying img/ prefix: {img_prefixed_path}")
+            if img_prefixed_path.exists():
+                logger.debug(f"Found image at: {img_prefixed_path}")
+                return img_prefixed_path
+
         # Fallback to assets directory from metadata
         assets_dir = context.metadata.get("assets_dir")
         if assets_dir:
-            fallback_path = Path(assets_dir) / image_path
+            try:
+                fallback_base = Path(str(assets_dir)).expanduser()
+            except Exception:
+                fallback_base = Path(assets_dir)
+            fallback_path = fallback_base / image_path
             logger.debug(f"Looking for image in assets dir: {fallback_path}")
             if fallback_path.exists():
                 logger.debug(f"Found image at assets directory: {fallback_path}")
