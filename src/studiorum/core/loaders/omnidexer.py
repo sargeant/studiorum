@@ -881,12 +881,20 @@ class Omnidexer:
                         try:
                             alias.reprinted_as = []
                         except Exception:
-                            pass
+                            logger.debug(
+                                "Failed to clear alias reprinted_as for %s",
+                                content.name,
+                                exc_info=True,
+                            )
                     if hasattr(alias, "reprintedAs"):
                         try:
                             alias.reprintedAs = []
                         except Exception:
-                            pass
+                            logger.debug(
+                                "Failed to clear alias reprintedAs for %s",
+                                content.name,
+                                exc_info=True,
+                            )
 
                     # Update identity
                     try:
@@ -895,7 +903,11 @@ class Omnidexer:
                             alias.source.abbreviation = target_src
                             alias.source.name = target_src
                     except Exception:
-                        pass
+                        logger.debug(
+                            "Failed to update alias identity for %s",
+                            content.name,
+                            exc_info=True,
+                        )
 
                     # Index the alias (cycle prevention covers duplicates)
                     self._add_to_index(alias, content_type)
