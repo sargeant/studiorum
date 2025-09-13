@@ -33,7 +33,7 @@ theme:
   name: material
   custom_dir: docs/overrides
   palette:
-    # Primary colors matching D&D theme
+    # Primary colors matching 5e theme
     primary: deep purple
     accent: amber
   font:
@@ -110,11 +110,7 @@ markdown_extensions:
       repo: studiorum
   - pymdownx.mark
   - pymdownx.smartsymbols
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
       combine_header_slug: true
@@ -138,6 +134,7 @@ nav:
     - Architecture: developer-guide/architecture.md
     - Data Sources: developer-guide/data-sources.md
     - Getting Started: developer-guide/getting-started.md
+    - Performance Guidelines: performance-guidelines.md
     - API Reference:
       - developer-guide/api/index.md
       - Core Services: developer-guide/api/services.md

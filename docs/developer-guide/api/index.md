@@ -230,7 +230,6 @@ if isinstance(result, Error):
 | **[Services](services.md)** | Core services and dependency injection | Omnidexer, ContentResolver, ServiceContainer |
 | **[Models](models.md)** | Content models and data structures | Spell, Creature, Adventure, Book |
 | **[Renderers](renderers.md)** | Rendering pipeline and LaTeX generation | LaTeXRenderer, TemplateEngine, TagProcessor |
-| **[Utilities](utilities.md)** | Configuration, validation, and helpers | Config, Validation, Error handling |
 
 ---
 
