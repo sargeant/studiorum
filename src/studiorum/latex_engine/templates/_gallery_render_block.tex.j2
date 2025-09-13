@@ -1,4 +1,10 @@
 % Studiorum Gallery Render Block (Phase 3)
+% When simple_output is true, emit one-line simple image commands per image.
+<@ if simple_output @>
+<@ for image in images @>
+\StudiorumImageInline{<# image.path #>}{<# image.title | latex_escape #>}
+<@ endfor @>
+<@ else @>
 % Renders multi-image galleries using simple image commands inside subfigure containers.
 % Supported layouts here: grid, sequential, comparison.
 
@@ -159,3 +165,4 @@
     \caption{<# caption | latex_escape #>}
 <@ endif @>
 \end{figure}
+<@ endif @>

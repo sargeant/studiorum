@@ -515,16 +515,17 @@ class GalleryProcessor:
             engine = LaTeXTemplateEngine()
             template = engine.env.get_template("_gallery_render_block.tex.j2")
 
-            # Prepare image data for template
+            # Prepare image data for template. Prefer the resolved path from latex_command
+            # (produced by ImageProcessor) and fall back to href when absent.
             images_for_template: list[dict[str, Any]] = []
             for img in processed_images:
-                path = ""
-                href = img.get("href")
-                if isinstance(href, dict):
-                    path = href.get("path") or href.get("url") or ""
+                path = self._extract_image_path(img.get("latex_command", ""))
                 if not path:
-                    # Fallback: extract from latex_command
-                    path = self._extract_image_path(img.get("latex_command", ""))
+                    href = img.get("href")
+                    if isinstance(href, dict):
+                        path = href.get("path") or href.get("url") or ""
+                    elif isinstance(href, str):
+                        path = href
                 images_for_template.append(
                     {
                         "path": path,
@@ -547,6 +548,13 @@ class GalleryProcessor:
                 "thumb_caption_position": gallery_entry.get(
                     "thumb_caption_position", self.config.thumb_caption_position
                 ),
+                # Simple one-line output when in manual placement mode
+                "simple_output": str(
+                    context.metadata.get("placement_mode") if context else "smart"
+                )
+                .lower()
+                .strip()
+                == "manual",
             }
             if template_params:
                 params.update(template_params)
@@ -809,25 +817,33 @@ class GalleryProcessor:
             return Error(f"Chapter opener showcase creation failed: {str(e)}")
 
     def _extract_image_path(self, latex_command: str) -> str:
-        """Extract image path from includegraphics command.
+        """Extract image path from our simple macros or includegraphics.
 
         Args:
-            latex_command: LaTeX command containing includegraphics
+            latex_command: LaTeX command string
 
         Returns:
-            Image path or placeholder if not found
+            Image path or empty string if not found
         """
         import re
 
-        # Look for includegraphics with path
-        match = re.search(r"\\includegraphics\[[^\]]*\]\{([^}]+)\}", latex_command)
-        if match:
-            return match.group(1)
+        # Prefer our simple macros: \StudiorumImageInline{path}{...} etc.
+        macro_match = re.search(
+            r"\\StudiorumImage(?:Inline|Float|Wide|FullpageBleed|Fullpage)\*?\{([^}]+)\}",
+            latex_command,
+        )
+        if macro_match:
+            return macro_match.group(1)
 
-        # Simple pattern without options
-        match = re.search(r"\\includegraphics\{([^}]+)\}", latex_command)
-        if match:
-            return match.group(1)
+        # Fallback: includegraphics with options
+        inc_match = re.search(r"\\includegraphics\[[^\]]*\]\{([^}]+)\}", latex_command)
+        if inc_match:
+            return inc_match.group(1)
 
-        # Fallback
-        return "placeholder_chapter_opener"
+        # Fallback: includegraphics without options
+        inc_simple = re.search(r"\\includegraphics\{([^}]+)\}", latex_command)
+        if inc_simple:
+            return inc_simple.group(1)
+
+        # Not found
+        return ""
