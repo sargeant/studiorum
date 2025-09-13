@@ -95,7 +95,7 @@ class ImageProcessor:
         """
         # If images are disabled: manual mode emits draft macro; otherwise placeholder
         include_images = context.metadata.get("include_images", True)
-        placement_mode = str(context.metadata.get("placement_mode", "smart")).lower()
+        placement_mode = str(context.metadata.get("placement_mode", "manual")).lower()
         if not include_images:
             title = image_entry.get("title", "")
             if placement_mode == "manual":

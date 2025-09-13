@@ -550,7 +550,7 @@ class GalleryProcessor:
                 ),
                 # Simple one-line output when in manual placement mode
                 "simple_output": str(
-                    context.metadata.get("placement_mode") if context else "smart"
+                    context.metadata.get("placement_mode") if context else "manual"
                 )
                 .lower()
                 .strip()
