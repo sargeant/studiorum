@@ -508,10 +508,7 @@ class GalleryProcessor:
         context: RenderingContext | None = None,
         template_params: dict[str, Any] | None = None,
     ) -> Result[str, str]:
-        r"""Render the gallery via the Jinja2 template.
-
-        This uses _gallery_render_block.tex.j2 and calls \StudiorumImage for each image.
-        """
+        r"""Render the gallery via the Jinja2 template using simple image commands."""
         try:
             from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 
@@ -519,11 +516,6 @@ class GalleryProcessor:
             template = engine.env.get_template("_gallery_render_block.tex.j2")
 
             # Prepare image data for template
-            include_images = (
-                bool(context.metadata.get("include_images", True)) if context else True
-            )
-            draft_flag = "draft=true" if not include_images else None
-
             images_for_template: list[dict[str, Any]] = []
             for img in processed_images:
                 path = ""
@@ -533,15 +525,10 @@ class GalleryProcessor:
                 if not path:
                     # Fallback: extract from latex_command
                     path = self._extract_image_path(img.get("latex_command", ""))
-
-                options = ",".join(
-                    [opt for opt in ([draft_flag] if draft_flag else []) if opt]
-                )
                 images_for_template.append(
                     {
                         "path": path,
                         "title": img.get("title") or "",
-                        "options": options,
                         # Allow per-image width override if needed
                         "subfigure_width": None,
                     }

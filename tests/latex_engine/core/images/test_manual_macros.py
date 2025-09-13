@@ -22,7 +22,7 @@ def make_context(
     )
 
 
-def test_emits_studiorum_image_macro_manual_mode() -> None:
+def test_emits_simple_image_command_manual_mode() -> None:
     ctx = make_context(include_images=True, placement_mode="manual")
     proc = RecursiveEntryProcessor()
     img_entry = {
@@ -33,21 +33,19 @@ def test_emits_studiorum_image_macro_manual_mode() -> None:
 
     out = proc.process_entry_dict(img_entry, ctx)
 
-    assert "\\StudiorumImage" in out
-    assert "StudiorumImage placement options" in out
+    # Should emit the new simple inline command and an auto-label comment
+    assert "\\StudiorumImageInline" in out
+    assert "Auto-generated label" in out
     # Auto label should be derived from title
     assert "fig:ancient-red-dragon" in out
 
 
-def test_macro_draft_flag_when_images_disabled() -> None:
+def test_label_is_appended_when_present() -> None:
     ctx = make_context(include_images=False, placement_mode="manual")
     proc = RecursiveEntryProcessor()
     img_entry = {"type": "image", "href": "images/map.png", "title": "Dungeon Map"}
 
     out = proc.process_entry_dict(img_entry, ctx)
 
-    # Options should include draft=true
-    assert (
-        "[label=fig:dungeon-map,draft=true]" in out
-        or "[draft=true,label=fig:dungeon-map]" in out
-    )
+    # Label should appear as the optional trailing argument
+    assert "]" in out and "[fig:dungeon-map]" in out

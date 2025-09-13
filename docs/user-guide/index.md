@@ -22,8 +22,8 @@ Transform 5e content into professional PDFs with studiorum's LaTeX-based typeset
 
 Learn how Studiorum handles images and galleries using LaTeX macros:
 
-- [Images and Galleries](images-and-galleries.md) — single images via `\StudiorumImage`, and gallery layouts (grid, sequential, comparison, showcase).
-- [Image Placement Reference](../image-placement.md) — macro options, placements, and draft mode.
+- [Images and Galleries](images-and-galleries.md) — single images via simple commands (e.g., `\StudiorumImageInline`), and gallery layouts (grid, sequential, comparison, showcase).
+- [Image Placement Reference](../image-placement.md) — simple commands and examples.
 
 ## Before You Begin
 

@@ -377,7 +377,7 @@ class ImageProcessor:
         in_gallery = context.metadata.get("in_gallery", False)
 
         if not self.config.enable_placement_optimization:
-            # Always emit StudiorumImage macro via Jinja template for basic placement
+            # Always emit simple image command via Jinja template for basic placement
             # This keeps all LaTeX structure in templates, not Python.
             return self._generate_studiorum_image_macro(
                 image_path, image_entry, context
@@ -445,19 +445,8 @@ class ImageProcessor:
     ) -> str:
         """Render image block via Jinja2 partial template (manual mode)."""
         title = image_entry.get("title", "")
-        include_images = context.metadata.get("include_images", True)
-        draft_flag = "draft=true" if not include_images else None
-
         # Build label from entry title or filename
         label = self._build_auto_label(image_entry, image_path)
-        options = ",".join(
-            [
-                opt
-                for opt in ([f"label={label}"] if label else [])
-                + ([draft_flag] if draft_flag else [])
-                if opt
-            ]
-        )
 
         try:
             from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
@@ -469,14 +458,16 @@ class ImageProcessor:
                 caption=title or "",
                 label=label,
                 placement="inline",
-                options=options,
                 docs_url="https://studiorum.dev/image-placement/",
             )
         except Exception as e:
             # Fallback to a minimal macro line if template rendering fails
             logger.warning(f"Image block template render failed: {e}")
-            opt = f"[{options}]" if options else ""
-            return f"% Fallback render\n\\StudiorumImage{opt}{{inline}}{{{image_path}}}{{{title}}}"
+            return (
+                f"% Fallback render\n"
+                f"\\StudiorumImageInline{{{image_path}}}{{{title}}}"
+                + (f"[{label}]" if label else "")
+            )
 
     def _build_auto_label(
         self, image_entry: dict[str, Any], image_path: Path

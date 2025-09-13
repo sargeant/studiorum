@@ -1,6 +1,12 @@
-% StudiorumImage placement options: inline, pagewidth-top, pagewidth-bottom, fullpage
-% Note: legacy hints (column-left/right, wrap-*) safely fall back to inline.
+% Studiorum Images: simple commands (Inline/Float/Wide/Fullpage/FullpageBleed)
 % Documentation: <# docs_url #>
 <@ if label @>% Auto-generated label: <# label #> (use \ref{<# label #>})
 <@ endif @>
-\StudiorumImage<@ if options @>[<# options #>]<@ endif @>{<# placement #>}{<# path #>}{<# caption | latex_escape #>}
+<@ set p = (placement or 'inline') @>
+<@ if p == 'fullpage' @>
+\StudiorumImageFullpage{<# path #>}{<# caption | latex_escape #>}<@ if label @>[<# label #>]<@ endif @>
+<@ elif p == 'pagewidth-top' or p == 'pagewidth-bottom' @>
+\StudiorumImageWide{<# path #>}{<# caption | latex_escape #>}<@ if label @>[<# label #>]<@ endif @>
+<@ else @>
+\StudiorumImageInline{<# path #>}{<# caption | latex_escape #>}<@ if label @>[<# label #>]<@ endif @>
+<@ endif @>

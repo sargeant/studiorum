@@ -1,5 +1,5 @@
 % Studiorum Gallery Render Block (Phase 3)
-% Renders multi-image galleries using \StudiorumImage inside subfigure containers.
+% Renders multi-image galleries using simple image commands inside subfigure containers.
 % Supported layouts here: grid, sequential, comparison.
 
 <@ set fig_place = env_placement or "htbp" @>
@@ -18,9 +18,9 @@
     <@ for image in images @>
     \begin{subfigure}{<# image.subfigure_width or image_width or '0.48\\textwidth' #>}
         \centering
-        % Inline placement macro inside subfigure
+        % Inline placement inside subfigure (no caption in macro)
         <@ if image.title and thumb_caption_position == 'above' @>\caption{<# image.title | latex_escape #>}<@ endif @>
-        \StudiorumImage<@ if image.options @>[<# image.options #>]<@ endif @>{inline}{<# image.path #>}{ }
+        \StudiorumImageInlineNoCaption{<# image.path #>}
         <@ if image.title and thumb_caption_position != 'above' and thumb_caption_position != 'none' @>\caption{<# image.title | latex_escape #>}<@ endif @>
     \end{subfigure}
     <@ if not loop.last @>
@@ -32,7 +32,7 @@
     \begin{subfigure}{<# image.subfigure_width or image_width or '0.8\\textwidth' #>}
         \centering
         <@ if image.title and thumb_caption_position == 'above' @>\caption{<# image.title | latex_escape #>}<@ endif @>
-        \StudiorumImage<@ if image.options @>[<# image.options #>]<@ endif @>{inline}{<# image.path #>}{ }
+        \StudiorumImageInlineNoCaption{<# image.path #>}
         <@ if image.title and thumb_caption_position != 'above' and thumb_caption_position != 'none' @>\caption{<# image.title | latex_escape #>}<@ endif @>
     \end{subfigure}
     <@ if not loop.last @>\\[<# gallery_margin or '1em' #>]<@ endif @>
@@ -42,7 +42,7 @@
     \begin{subfigure}{<# image.subfigure_width or per_image_width or '0.45\\textwidth' #>}
         \centering
         <@ if image.title and thumb_caption_position == 'above' @>\caption{<# image.title | latex_escape #>}<@ endif @>
-        \StudiorumImage<@ if image.options @>[<# image.options #>]<@ endif @>{inline}{<# image.path #>}{ }
+        \StudiorumImageInlineNoCaption{<# image.path #>}
         <@ if image.title and thumb_caption_position != 'above' and thumb_caption_position != 'none' @>\caption{<# image.title | latex_escape #>}<@ endif @>
     \end{subfigure}
     <@ if not loop.last @>\hfill<@ endif @>
@@ -78,7 +78,7 @@
         \node[inner sep=0pt] (image) at (0,0) {
             \begin{subfigure}{<# main_width or '0.7\\textwidth' #>}
                 \centering
-                \StudiorumImage<@ if main.options @>[<# main.options #>]<@ endif @>{inline}{<# main.path #>}{ }
+                \StudiorumImageInlineNoCaption{<# main.path #>}
                 <@ if main.title @>\caption*{\textit{<# main.title | latex_escape #>}}<@ endif @>
             \end{subfigure}
         };
@@ -89,7 +89,7 @@
     % Standard featured image (plain)
     \begin{subfigure}{<# main_width or '0.7\\textwidth' #>}
         \centering
-        \StudiorumImage<@ if main.options @>[<# main.options #>]<@ endif @>{inline}{<# main.path #>}{ }
+        \StudiorumImageInlineNoCaption{<# main.path #>}
         <@ if main.title @>\caption{<# main.title | latex_escape #>}<@ endif @>
     \end{subfigure}
     <@ endif @>
@@ -114,7 +114,7 @@
             \node[inner sep=0pt] (thumb) at (0,0) {
                 \begin{subfigure}{<# iw #>}
                     \centering
-                    \StudiorumImage<@ if image.options @>[<# image.options #>]<@ endif @>{inline}{<# image.path #>}{ }
+                    \StudiorumImageInlineNoCaption{<# image.path #>}
                 \end{subfigure}
             };
             \draw[line width=0.5pt,color=<# decorative_color #>!40] (thumb.north west) rectangle (thumb.south east);
@@ -122,7 +122,7 @@
         <@ else @>
         \begin{subfigure}{<# iw #>}
             \centering
-            \StudiorumImage<@ if image.options @>[<# image.options #>]<@ endif @>{inline}{<# image.path #>}{ }
+            \StudiorumImageInlineNoCaption{<# image.path #>}
         \end{subfigure}
         <@ endif @>
         <@ if not loop.last @>\hfill<@ endif @>
@@ -148,7 +148,7 @@
     <@ for image in images @>
     \begin{subfigure}{<# image.subfigure_width or image_width or '0.8\\textwidth' #>}
         \centering
-        \StudiorumImage<@ if image.options @>[<# image.options #>]<@ endif @>{inline}{<# image.path #>}{ }
+        \StudiorumImageInlineNoCaption{<# image.path #>}
         <@ if image.title @>\caption{<# image.title | latex_escape #>}<@ endif @>
     \end{subfigure}
     <@ if not loop.last @>\\[<# gallery_margin or '1em' #>]<@ endif @>
