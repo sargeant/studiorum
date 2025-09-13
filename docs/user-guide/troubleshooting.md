@@ -7,6 +7,84 @@ description: Common issues and solutions when using studiorum
 
 Common issues you might encounter when using studiorum and how to resolve them. Check the list of [known issues](known-issues.md) first.
 
+## Quick Diagnosis
+
+Before diving into specific issues, try these quick diagnostic steps:
+
+```bash
+# Check system status
+studiorum health check
+
+# Verify installation
+studiorum --version
+
+# Test basic functionality
+studiorum list creatures --limit 1
+```
+
+If these basic commands fail, start with [Installation Issues](#installation-issues).
+
+## Common Errors
+
+### "Content not found" Errors
+
+**Error**: `Content not found: Ancient Red Dragon`
+
+**Quick Fix**:
+```bash
+# Check exact name
+studiorum list creatures | grep -i "red dragon"
+
+# Use exact match
+studiorum convert creatures "Ancient Red Dragon"
+```
+
+**See**: [Missing Source Data](#missing-source-data) for detailed solutions.
+
+### LaTeX Compilation Errors
+
+**Error**: `! LaTeX Error: File not found` or `pdflatex: command not found`
+
+**Quick Fix**:
+```bash
+# Test LaTeX installation
+pdflatex --version
+
+# Install LaTeX (macOS)
+brew install --cask mactex
+```
+
+**See**: [LaTeX Installation](#latex-installation) and [LaTeX Compilation Failures](#latex-compilation-failures).
+
+### Image Processing Failures
+
+**Error**: Images missing from output or `Image processing failed`
+
+**Quick Fix**:
+```bash
+# Check image directory
+echo $STUDIORUM_IMAGE__IMAGE_DIRECTORY
+
+# Test with simple command
+studiorum convert items "Bag of Holding" --images
+```
+
+**See**: [Image Issues](#image-issues) for comprehensive solutions.
+
+### MCP Connection Problems
+
+**Error**: `MCP server connection failed` in Claude Desktop
+
+**Quick Fix**:
+```bash
+# Test MCP server manually
+uv run studiorum mcp run --debug
+```
+
+**See**: [MCP Server Issues](#mcp-server-issues) for detailed troubleshooting.
+
+---
+
 ## Installation Issues
 
 ### Python Version Compatibility
@@ -339,7 +417,94 @@ sudo chown -R $USER ~/.studiorum/
    studiorum data add-url https://example.com/data.json --name "remote-source"
    ```
 
+## Image Issues
+
+### Images Not Appearing
+
+**Problem**: Generated PDFs don't include expected images
+
+**Solution**:
+
+1. **Check image directory**:
+
+   ```bash
+   # Verify image directory is set
+   echo $STUDIORUM_IMAGE__IMAGE_DIRECTORY
+
+   # Check if directory exists
+   ls "$STUDIORUM_IMAGE__IMAGE_DIRECTORY"
+   ```
+
+2. **Enable images explicitly**:
+
+   ```bash
+   studiorum convert adventure cos --images
+   ```
+
+3. **Test image processing**:
+
+   ```bash
+   # Convert single item with images
+   STUDIORUM_LOGGING_LEVEL=DEBUG studiorum convert items "Bag of Holding" --images --fluff --with-fluff-images
+
+   # Look for "Successfully processed image" messages
+   ```
+
+### Image Conversion Failures
+
+**Problem**: WebP images fail to convert to PNG
+
+**Solution**:
+
+1. **Install Pillow with WebP support**:
+
+   ```bash
+   pip install --upgrade Pillow[webp]
+   ```
+
+2. **Check format support**:
+
+   ```bash
+   python -c "from PIL import Image; print(Image.EXTENSION)"
+   ```
+
+3. **Test single image conversion**:
+
+   ```bash
+   # Manual conversion test
+   python -c "from PIL import Image; Image.open('test.webp').save('test.png')"
+   ```
+
+### Image Layout Problems
+
+**Problem**: Images break column layout or extend off pages
+
+**Solution**:
+
+1. **Use column-aware sizing**:
+
+   ```bash
+   # Items use smaller sizing for columns
+   studiorum convert items --images --image-quality digital
+   ```
+
+2. **Check for oversized images**:
+
+   ```bash
+   # Enable debug logging to see image processing
+   STUDIORUM_LOGGING_LEVEL=DEBUG studiorum convert creatures --images
+   ```
+
+3. **Use intelligent placement**:
+
+   ```bash
+   studiorum convert adventure cos --images --image-placement intelligent
+   ```
+
 ## MCP Server Issues
+
+!!! warning "Experimental Feature"
+    MCP features are experimental and may not work as expected. Report issues on GitHub.
 
 ### Connection Problems
 

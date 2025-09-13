@@ -125,6 +125,8 @@ nav:
     - user-guide/index.md
     - Quick Start: user-guide/quick-start.md
     - Converting Content: user-guide/converting-content.md
+    - Images & Media: user-guide/images.md
+    - Configuration: user-guide/configuration.md
     - MCP Integration: user-guide/mcp-setup.md
     - Troubleshooting: user-guide/troubleshooting.md
     - Known Issues: user-guide/known-issues.md
@@ -134,6 +136,7 @@ nav:
     - Architecture: developer-guide/architecture.md
     - Data Sources: developer-guide/data-sources.md
     - Getting Started: developer-guide/getting-started.md
+    - Testing: developer-guide/testing.md
     - Performance Guidelines: performance-guidelines.md
     - API Reference:
       - developer-guide/api/index.md
@@ -143,3 +146,4 @@ nav:
     - AI Agent Development: developer-guide/ai-agents.md
     - Contributing: developer-guide/contributing.md
     - Model Usage: developer-guide/models.md
+  - Glossary: glossary.md
