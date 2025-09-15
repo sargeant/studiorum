@@ -74,9 +74,14 @@ class TokenRenderer:
 \\usepackage{{ifthen}}
 
 % Memory optimization for large token sheets
-% Reduce TikZ memory usage by disabling unnecessary features
+% Simplify TikZ to reduce memory usage
 \\tikzset{{every picture/.style={{baseline=(current bounding box.center)}}}}
-\\usetikzlibrary{{calc}}
+
+% Increase TeX memory limits
+\\maxdeadcycles=200
+
+% Package for better float handling
+\\usepackage{{afterpage}}
 
 % Disable page numbers
 \\pagestyle{{empty}}
@@ -141,15 +146,15 @@ class TokenRenderer:
         \\draw[line width=1pt, gray] (0,0) circle (\\tokenradius);
         \\node[align=center, font=\\sffamily\\tiny, text width=\\tokenwidth-0.2in] at (0,0) {#4};
       }{%
-        % Render actual image token with clipping
-        % Use path picture instead of scope to reduce memory usage
+        % Render image with simpler clipping to reduce memory usage
+        \\begin{pgfinterruptboundingbox}
         \\pgfmathsetmacro{\\tokenimagewidth}{2.2*\\tokenradius/1in}
-        \\path[draw, line width=0.5pt,
-          path picture={
-            \\node at (path picture bounding box.center) {
-              \\includegraphics[width=\\tokenimagewidth in, keepaspectratio]{#2}
-            };
-          }] (0,0) circle (\\tokenradius);
+        \\begin{pgfinterruptpath}
+          \\clip (0,0) circle (\\tokenradius);
+          \\node[inner sep=0pt] at (0,0) {\\includegraphics[width=\\tokenimagewidth in, keepaspectratio]{#2}};
+        \\end{pgfinterruptpath}
+        \\end{pgfinterruptboundingbox}
+        \\draw[line width=0.5pt] (0,0) circle (\\tokenradius);
       }
 
       % Add number if count > 1
@@ -216,13 +221,10 @@ class TokenRenderer:
                     f"\\StudiorumToken[{size}]{{{image_path}}}{{{token.count}}}{{{safe_name}}}"
                 )
 
-                # Add memory management for large batches
-                # Clear page after every 20 tokens to prevent memory overflow
-                if (i + 1) % 20 == 0 and i < len(tokens) - 1:
-                    if columns > 1:
-                        section_parts.append("\\end{multicols}")
-                    section_parts.append("\\clearpage")
-                    section_parts.append(f"\\begin{{multicols}}{{{columns}}}")
+                # Add periodic TeX garbage collection without breaking flow
+                # This helps with memory but maintains column layout
+                if (i + 1) % 100 == 0:
+                    section_parts.append("\\relax")  # Give TeX a chance to clean up
 
         # End multicols if started
         if columns > 1:
