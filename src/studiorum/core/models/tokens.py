@@ -15,7 +15,7 @@ class TokenData:
 
     creature_name: str
     image_path: Path | None
-    size: str
+    size: str | list[str]  # Creatures can have multiple sizes
     count: int = 1
     source: str = ""
     cr: str = ""
