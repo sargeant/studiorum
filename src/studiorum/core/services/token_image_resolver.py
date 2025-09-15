@@ -47,11 +47,11 @@ class TokenImageResolver:
     def resolve_token_image(self, creature: "Creature") -> Path | None:
         """Resolve token image for a creature with fallback strategy.
 
-        Token images are stored in:
-        - /5etools-img/bestiary/tokens/{SOURCE}/{CreatureName}.webp
-
-        Falls back to main creature image if no token exists:
-        - /5etools-img/bestiary/{SOURCE}/{CreatureName}.webp
+        Token images can be:
+        1. External URLs (e.g., FleeMortals uses tokenHref with GitHub URLs)
+        2. Local token images in /5etools-img/bestiary/tokens/{SOURCE}/{CreatureName}.webp
+        3. Special paths like FleeMortals/monsterToken/
+        4. Fallback to main creature image in /5etools-img/bestiary/{SOURCE}/{CreatureName}.webp
 
         Args:
             creature: Creature to resolve image for
@@ -69,8 +69,58 @@ class TokenImageResolver:
             elif isinstance(creature.source, str):
                 source = creature.source
 
+        # Check for external token URL (e.g., FleeMortals)
+        if hasattr(creature, "tokenHref") and creature.tokenHref:
+            # Download and cache external token
+            return self._resolve_external_token(creature.tokenHref, creature.name)
+
+        # Check for explicit token property
+        if hasattr(creature, "token") and creature.token:
+            # Token with explicit source and name
+            token_source = creature.token.get("source", source)
+            token_name = creature.token.get("name", creature.name)
+            token_name_clean = self._clean_name_for_path(token_name)
+
+            # Try standard token path
+            token_path = (
+                self.base_path
+                / "bestiary"
+                / "tokens"
+                / token_source
+                / f"{token_name_clean}.webp"
+            )
+            if token_path.exists():
+                logger.debug(f"Found explicit token image: {token_path}")
+                converted_path = self._convert_webp_to_png(token_path)
+                return converted_path if converted_path else token_path
+
         # Clean creature name for file path
         creature_name = self._clean_name_for_path(creature.name)
+
+        # Special handling for FleeMortals and similar sources with different directory structure
+        if source == "FleeMortals":
+            # Try FleeMortals/monsterToken path structure
+            special_token_path = (
+                self.base_path / source / "monsterToken" / f"{creature_name}.webp"
+            )
+            if special_token_path.exists():
+                logger.debug(f"Found FleeMortals token image: {special_token_path}")
+                converted_path = self._convert_webp_to_png(special_token_path)
+                return converted_path if converted_path else special_token_path
+
+            # Also try with URL encoding for spaces
+            import urllib.parse
+
+            encoded_name = urllib.parse.quote(creature.name)
+            special_token_path_encoded = (
+                self.base_path / source / "monsterToken" / f"{encoded_name}.webp"
+            )
+            if special_token_path_encoded.exists():
+                logger.debug(
+                    f"Found FleeMortals token image (URL encoded): {special_token_path_encoded}"
+                )
+                converted_path = self._convert_webp_to_png(special_token_path_encoded)
+                return converted_path if converted_path else special_token_path_encoded
 
         # Try dedicated token image first (PNG preferred for LaTeX compatibility)
         token_png_path = (
@@ -129,6 +179,85 @@ class TokenImageResolver:
         # Replace spaces with underscores or keep as-is based on 5etools convention
         # 5etools typically uses spaces in filenames
         return cleaned.strip()
+
+    def _resolve_external_token(
+        self, token_href: dict, creature_name: str
+    ) -> Path | None:
+        """Resolve and cache external token images.
+
+        Args:
+            token_href: Token href dictionary with 'type' and 'url' keys
+            creature_name: Creature name for caching
+
+        Returns:
+            Path to cached image file, or None if not available
+        """
+        if not isinstance(token_href, dict):
+            return None
+
+        # Extract URL from tokenHref structure
+        url = None
+        if token_href.get("type") == "external":
+            url = token_href.get("url")
+        elif isinstance(token_href, str):
+            url = token_href
+
+        if not url:
+            return None
+
+        # Create cache key from URL
+        import hashlib
+
+        url_hash = hashlib.md5(url.encode()).hexdigest()[:8]
+        cache_filename = f"{self._clean_name_for_path(creature_name)}_{url_hash}.webp"
+        cached_webp_path = self._cache_dir / cache_filename
+
+        # Check if already cached
+        cached_png_path = cached_webp_path.with_suffix(".png")
+        if cached_png_path.exists():
+            logger.debug(f"Using cached external token (PNG): {cached_png_path}")
+            return cached_png_path
+
+        if cached_webp_path.exists():
+            # Convert cached WebP to PNG
+            converted_path = self._convert_webp_to_png(cached_webp_path)
+            if converted_path:
+                return converted_path
+
+        # Download the external image
+        try:
+            import urllib.parse
+            import urllib.request
+
+            # Ensure URL is properly encoded
+            parsed_url = urllib.parse.urlparse(url)
+            # Encode the path component while preserving the rest
+            encoded_path = urllib.parse.quote(parsed_url.path, safe="/")
+            encoded_url = urllib.parse.urlunparse(
+                (
+                    parsed_url.scheme,
+                    parsed_url.netloc,
+                    encoded_path,
+                    parsed_url.params,
+                    parsed_url.query,
+                    parsed_url.fragment,
+                )
+            )
+            logger.debug(f"Downloading external token from: {encoded_url}")
+            urllib.request.urlretrieve(encoded_url, cached_webp_path)
+
+            # Convert to PNG for LaTeX
+            converted_path = self._convert_webp_to_png(cached_webp_path)
+            if converted_path:
+                # Remove the WebP version to save space
+                cached_webp_path.unlink(missing_ok=True)
+                return converted_path
+            else:
+                return cached_webp_path
+
+        except Exception as e:
+            logger.warning(f"Failed to download external token from {url}: {e}")
+            return None
 
     def _convert_webp_to_png(self, webp_path: Path) -> Path | None:
         """Convert WebP image to PNG using cached conversion.
