@@ -230,7 +230,7 @@ class TokenImageResolver:
             import urllib.parse
             import urllib.request
 
-            # Ensure URL is properly encoded
+            # Parse URL and validate scheme
             parsed_url = urllib.parse.urlparse(url)
 
             # Security: Only allow HTTP and HTTPS schemes
@@ -240,18 +240,25 @@ class TokenImageResolver:
                 )
                 return None
 
-            # Encode the path component while preserving the rest
-            encoded_path = urllib.parse.quote(parsed_url.path, safe="/")
-            encoded_url = urllib.parse.urlunparse(
-                (
-                    parsed_url.scheme,
-                    parsed_url.netloc,
-                    encoded_path,
-                    parsed_url.params,
-                    parsed_url.query,
-                    parsed_url.fragment,
+            # Only encode if not already encoded
+            # Check if the path contains percent-encoded characters
+            if "%" in parsed_url.path:
+                # Already encoded, use as-is
+                encoded_url = url
+            else:
+                # Encode the path component while preserving the rest
+                encoded_path = urllib.parse.quote(parsed_url.path, safe="/")
+                encoded_url = urllib.parse.urlunparse(
+                    (
+                        parsed_url.scheme,
+                        parsed_url.netloc,
+                        encoded_path,
+                        parsed_url.params,
+                        parsed_url.query,
+                        parsed_url.fragment,
+                    )
                 )
-            )
+
             logger.debug(f"Downloading external token from: {encoded_url}")
             # Safe: URL scheme validated above to only allow http/https
             urllib.request.urlretrieve(encoded_url, cached_webp_path)  # nosec B310
