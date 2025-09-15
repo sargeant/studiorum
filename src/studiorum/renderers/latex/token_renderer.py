@@ -72,6 +72,10 @@ class TokenRenderer:
 \\usepackage{{calc}}
 \\usepackage{{ifthen}}
 
+% Memory optimization for large token sheets
+\\pgfmathsetmacro{{\\pgfpictureid}}{{0}}
+\\tikzset{{every picture/.style={{execute at end picture={{\\global\\let\\pgfpictureid\\relax}}}}}}
+
 % Disable page numbers
 \\pagestyle{{empty}}
 \\setlength{{\\parindent}}{{0pt}}
@@ -136,16 +140,14 @@ class TokenRenderer:
         \\node[align=center, font=\\sffamily\\tiny, text width=\\tokenwidth-0.2in] at (0,0) {#4};
       }{%
         % Render actual image token with clipping
-        \\begin{scope}
-          \\clip (0,0) circle (\\tokenradius);
-          % Scale to slightly larger than diameter to fill circle nicely
-          % Calculate size: 2*radius + 10% = 2.2*radius
-          % Using pgfmath to handle the multiplication properly
-          \\pgfmathsetmacro{\\tokenimagewidth}{2.2*\\tokenradius/1in}
-          \\node at (0,0) {\\includegraphics[width=\\tokenimagewidth in, keepaspectratio]{#2}};
-        \\end{scope}
-        % Draw border after image
-        \\draw[line width=0.5pt] (0,0) circle (\\tokenradius);
+        % Use path picture instead of scope to reduce memory usage
+        \\pgfmathsetmacro{\\tokenimagewidth}{2.2*\\tokenradius/1in}
+        \\path[draw, line width=0.5pt,
+          path picture={
+            \\node at (path picture bounding box.center) {
+              \\includegraphics[width=\\tokenimagewidth in, keepaspectratio]{#2}
+            };
+          }] (0,0) circle (\\tokenradius);
       }
 
       % Add number if count > 1
@@ -196,7 +198,7 @@ class TokenRenderer:
             section_parts.append(f"\\begin{{multicols}}{{{columns}}}")
 
         # Render each token
-        for token in tokens:
+        for i, token in enumerate(tokens):
             if isinstance(token, TokenData):
                 # Use actual image path if available
                 image_path = (
@@ -208,6 +210,14 @@ class TokenRenderer:
                 section_parts.append(
                     f"\\StudiorumToken[{size}]{{{image_path}}}{{{token.count}}}{{{token.creature_name}}}"
                 )
+
+                # Add memory management for large batches
+                # Clear page after every 20 tokens to prevent memory overflow
+                if (i + 1) % 20 == 0 and i < len(tokens) - 1:
+                    if columns > 1:
+                        section_parts.append("\\end{multicols}")
+                    section_parts.append("\\clearpage")
+                    section_parts.append(f"\\begin{{multicols}}{{{columns}}}")
 
         # End multicols if started
         if columns > 1:
