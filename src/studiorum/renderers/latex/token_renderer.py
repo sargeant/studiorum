@@ -111,6 +111,12 @@ class TokenRenderer:
   % #3 = count
   % #4 = creature name
   \\setcounter{tokencount}{0}%
+  % Set spacing based on size (outside TikZ environment)
+  \\ifthenelse{\\equal{#1}{tiny} \\OR \\equal{#1}{small} \\OR \\equal{#1}{medium}}{%
+    \\def\\tokenspacing{0.1in}%
+  }{%
+    \\def\\tokenspacing{0.05in}%  % Reduced spacing for large/huge/gargantuan
+  }%
   \\whiledo{\\value{tokencount} < #3}{%
     \\stepcounter{tokencount}%
     \\begin{tikzpicture}[baseline=(current bounding box.center)]
@@ -184,7 +190,7 @@ class TokenRenderer:
         \\draw[gray, dashed, very thin] (0,0) circle (0.5in);  % 1" guide circle
       }{}
     \\end{tikzpicture}%
-    \\hspace{0.1in}%
+    \\hspace{\\tokenspacing}%
   }%
 }"""
 
@@ -202,6 +208,10 @@ class TokenRenderer:
 
         # Start multicols if more than 1 column
         if columns > 1:
+            # For huge tokens, we need to reduce column separation to fit properly
+            if size == "huge":
+                # Reduce column separation for huge tokens to prevent overlap
+                section_parts.append("\\setlength{\\columnsep}{0.1in}")
             section_parts.append(f"\\begin{{multicols}}{{{columns}}}")
 
         # Render each token
@@ -229,6 +239,11 @@ class TokenRenderer:
         # End multicols if started
         if columns > 1:
             section_parts.append("\\end{multicols}")
+            # Reset column separation if we changed it
+            if size == "huge":
+                section_parts.append(
+                    "\\setlength{\\columnsep}{10pt}"
+                )  # Back to default
 
         return "\n".join(section_parts)
 
