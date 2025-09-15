@@ -218,7 +218,12 @@ class TestGalleryProcessor:
         ]
         gallery_entry = {"columns": 2, "caption": "Grid Gallery"}
 
-        result = self.processor._generate_grid_layout(processed_images, gallery_entry)
+        # Set placement_mode to automatic to get figure environments
+        self.context.metadata["placement_mode"] = "automatic"
+
+        result = self.processor._generate_grid_layout(
+            processed_images, gallery_entry, self.context
+        )
 
         assert result.is_success()
         latex = result.unwrap()
@@ -235,8 +240,11 @@ class TestGalleryProcessor:
         ]
         gallery_entry = {"caption": "Showcase Gallery"}
 
+        # Set placement_mode to automatic to get figure environments
+        self.context.metadata["placement_mode"] = "automatic"
+
         result = self.processor._generate_showcase_layout(
-            processed_images, gallery_entry
+            processed_images, gallery_entry, self.context
         )
 
         assert result.is_success()
@@ -253,8 +261,11 @@ class TestGalleryProcessor:
         ]
         gallery_entry = {"caption": "Sequential Gallery"}
 
+        # Set placement_mode to automatic to get figure environments
+        self.context.metadata["placement_mode"] = "automatic"
+
         result = self.processor._generate_sequential_layout(
-            processed_images, gallery_entry
+            processed_images, gallery_entry, self.context
         )
 
         assert result.is_success()
@@ -271,8 +282,11 @@ class TestGalleryProcessor:
         ]
         gallery_entry = {"caption": "Comparison Gallery"}
 
+        # Set placement_mode to automatic to get figure environments
+        self.context.metadata["placement_mode"] = "automatic"
+
         result = self.processor._generate_comparison_layout(
-            processed_images, gallery_entry
+            processed_images, gallery_entry, self.context
         )
 
         assert result.is_success()

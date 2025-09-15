@@ -165,10 +165,11 @@ class TestRecursiveEntryProcessor:
 
     def test_process_entry_dict_image_disabled(self):
         """Test processing image when images are disabled."""
-        # Create context with images disabled
-        context = RenderingContext(output_format="latex")
+        # Create context with images disabled and placement_mode set to automatic
+        # to get placeholder comments instead of draft macros
         context = RenderingContext(
-            output_format="latex", metadata={"include_images": False}
+            output_format="latex",
+            metadata={"include_images": False, "placement_mode": "automatic"},
         )
 
         # Mock tag resolver

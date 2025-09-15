@@ -110,8 +110,12 @@ class TestGalleryProcessorDecorative:
             "caption": "A collection of featured images",
         }
 
+        # Set placement_mode to automatic to get decorative elements
+        context = RenderingContext(output_format="latex")
+        context.metadata["placement_mode"] = "automatic"
+
         result = self.processor._generate_showcase_layout(
-            processed_images, gallery_entry
+            processed_images, gallery_entry, context
         )
 
         assert isinstance(result, Success)
@@ -273,10 +277,10 @@ class TestGalleryProcessorDecorative:
         path = self.processor._extract_image_path(latex_cmd)
         assert path == "simple_image.png"
 
-        # Test fallback
+        # Test fallback - returns empty string when no image found
         latex_cmd = "\\someothercommand{not_an_image}"
         path = self.processor._extract_image_path(latex_cmd)
-        assert path == "placeholder_chapter_opener"
+        assert path == ""
 
 
 class TestChapterOpenerShowcase:
@@ -489,7 +493,13 @@ class TestDecorativeElementIntegration:
 
         gallery_entry = {"columns": 2}
 
-        result = processor._generate_grid_layout(processed_images, gallery_entry)
+        # Set placement_mode to automatic to get figure environments
+        context = RenderingContext(output_format="latex")
+        context.metadata["placement_mode"] = "automatic"
+
+        result = processor._generate_grid_layout(
+            processed_images, gallery_entry, context
+        )
 
         assert isinstance(result, Success)
         latex = result.value
@@ -545,7 +555,13 @@ class TestDecorativeElementIntegration:
             }
         ]
 
-        result = processor._generate_showcase_layout(processed_images, gallery_entry)
+        # Set placement_mode to automatic to get decorative elements
+        context = RenderingContext(output_format="latex")
+        context.metadata["placement_mode"] = "automatic"
+
+        result = processor._generate_showcase_layout(
+            processed_images, gallery_entry, context
+        )
         assert isinstance(result, Success)
         assert "testcolor" in result.value
 
@@ -557,7 +573,13 @@ class TestDecorativeElementIntegration:
         processed_images = []
         gallery_entry = {"title": "Empty Gallery"}
 
-        result = processor._generate_showcase_layout(processed_images, gallery_entry)
+        # Set placement_mode to automatic to get decorative elements
+        context = RenderingContext(output_format="latex")
+        context.metadata["placement_mode"] = "automatic"
+
+        result = processor._generate_showcase_layout(
+            processed_images, gallery_entry, context
+        )
 
         assert isinstance(result, Success)
         latex = result.value

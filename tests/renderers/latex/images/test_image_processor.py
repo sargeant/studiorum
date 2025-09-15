@@ -117,9 +117,11 @@ class TestImageProcessor:
 
     def test_process_image_entry_disabled(self):
         """Test processing when images are disabled."""
-        # Create context with images disabled
+        # Create context with images disabled and placement_mode set to automatic
+        # to get placeholder comments instead of draft macros
         context = RenderingContext(
-            output_format="latex", metadata={"include_images": False}
+            output_format="latex",
+            metadata={"include_images": False, "placement_mode": "automatic"},
         )
         image_entry = {"href": "test.png", "title": "Test Image"}
 
