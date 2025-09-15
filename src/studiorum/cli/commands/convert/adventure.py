@@ -152,6 +152,13 @@ def adventure(
         help="Generate recursive appendices (creatures include spells, spells include creatures)",
         rich_help_panel="Appendices",
     ),
+    # Level scaling for tiered creatures
+    creature_level: int = typer.Option(
+        1,
+        "--creature-level",
+        help="Creature level for proficiency bonus scaling (1-20)",
+        rich_help_panel="Appendices",
+    ),
 ) -> None:
     """
     📖 Convert adventure to LaTeX
@@ -285,6 +292,7 @@ def adventure(
                     "appendix_items": appendix_items,
                     "appendix_creatures": appendix_creatures,
                     "ultimate_appendix": ultimate_appendix,
+                    "creature_level": creature_level,
                 },
             )
 

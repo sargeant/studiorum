@@ -996,6 +996,7 @@ class Creature(BaseContent):
 
         Returns:
             Save bonus as integer, or None if not proficient
+            Note: Returns None for expressions containing "PB" (proficiency bonus)
         """
         if not hasattr(self, "save") or not self.save:
             return None
@@ -1003,6 +1004,103 @@ class Creature(BaseContent):
         save_value = self.save.get(ability.lower())
         if save_value is None:
             return None
+
+        # Handle proficiency bonus expressions (e.g., "3 plus PB", "+2 plus PB")
+        if isinstance(save_value, str) and "PB" in save_value:
+            # Default to level 1 if no context provided
+            return self._evaluate_pb_expression(save_value, creature_level=1)
+
+        # Convert string format ("+5" or "5") to integer
+        if isinstance(save_value, str):
+            return int(save_value.replace("+", ""))
+        return int(save_value)
+
+    def _calculate_proficiency_bonus(self, creature_level: int) -> int:
+        """Calculate proficiency bonus for a given creature level.
+
+        Args:
+            creature_level: Creature level (1-20)
+
+        Returns:
+            Proficiency bonus (+2 to +6)
+        """
+        # 5e proficiency bonus progression
+        if creature_level >= 17:
+            return 6
+        elif creature_level >= 13:
+            return 5
+        elif creature_level >= 9:
+            return 4
+        elif creature_level >= 5:
+            return 3
+        else:
+            return 2
+
+    def _evaluate_pb_expression(self, expression: str, creature_level: int) -> int:
+        """Evaluate a proficiency bonus expression like '3 plus PB' or '+2 plus PB'.
+
+        Args:
+            expression: String expression containing PB
+            creature_level: Creature level for calculating PB
+
+        Returns:
+            Evaluated integer value
+        """
+        import re
+
+        pb = self._calculate_proficiency_bonus(creature_level)
+
+        # Normalize the expression
+        expr = expression.strip().lower()
+        expr = expr.replace("plus", "+")
+
+        # Handle patterns like "3 plus PB", "+2 plus PB", "PB", etc.
+        # Replace PB with the actual proficiency bonus value
+        expr = expr.replace("pb", str(pb))
+
+        # Evaluate simple arithmetic expressions
+        # Remove any extra whitespace around operators
+        expr = re.sub(r"\s*([+\-])\s*", r"\1", expr)
+
+        try:
+            # Use eval for simple arithmetic (safe since we control the input)
+            # Only allow numbers, +, -, and whitespace
+            if re.match(r"^[+\-\d\s]+$", expr):
+                return int(eval(expr))
+            else:
+                raise ValueError(f"Invalid PB expression: {expression}")
+        except Exception:
+            # Fallback: try to extract base number and add PB
+            base_match = re.search(r"([+\-]?\d+)", expression)
+            if base_match:
+                base = int(base_match.group(1))
+                return base + pb
+            else:
+                # If we can't parse it, just return the PB
+                return pb
+
+    def get_save_value_with_level(
+        self, ability: str, creature_level: int
+    ) -> int | None:
+        """Get saving throw bonus for a specific ability at a given creature level.
+
+        Args:
+            ability: Ability name (str, dex, con, int, wis, cha)
+            creature_level: Creature level for PB calculations
+
+        Returns:
+            Save bonus as integer, or None if not proficient
+        """
+        if not hasattr(self, "save") or not self.save:
+            return None
+
+        save_value = self.save.get(ability.lower())
+        if save_value is None:
+            return None
+
+        # Handle proficiency bonus expressions
+        if isinstance(save_value, str) and "PB" in save_value:
+            return self._evaluate_pb_expression(save_value, creature_level)
 
         # Convert string format ("+5" or "5") to integer
         if isinstance(save_value, str):

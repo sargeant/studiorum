@@ -215,12 +215,12 @@
     int = <# creature.intelligence #>,
     wis = <# creature.wisdom #>,
     cha = <# creature.charisma #><@ if is_modern @>,
-<@ if creature.get_save_value('str') is not none @>    str save = <@ if creature.get_save_value('str') >= 0 @>+<@ endif @><# creature.get_save_value('str') #>,
-<@ endif @><@ if creature.get_save_value('dex') is not none @>    dex save = <@ if creature.get_save_value('dex') >= 0 @>+<@ endif @><# creature.get_save_value('dex') #>,
-<@ endif @><@ if creature.get_save_value('con') is not none @>    con save = <@ if creature.get_save_value('con') >= 0 @>+<@ endif @><# creature.get_save_value('con') #>,
-<@ endif @><@ if creature.get_save_value('int') is not none @>    int save = <@ if creature.get_save_value('int') >= 0 @>+<@ endif @><# creature.get_save_value('int') #>,
-<@ endif @><@ if creature.get_save_value('wis') is not none @>    wis save = <@ if creature.get_save_value('wis') >= 0 @>+<@ endif @><# creature.get_save_value('wis') #>,
-<@ endif @><@ if creature.get_save_value('cha') is not none @>    cha save = <@ if creature.get_save_value('cha') >= 0 @>+<@ endif @><# creature.get_save_value('cha') #>
+<@ set creature_level = rendering_context.metadata.get('creature_level', 1) if rendering_context and rendering_context.metadata else 1 @><@ if creature.get_save_value_with_level('str', creature_level) is not none @>    str save = <@ if creature.get_save_value_with_level('str', creature_level) >= 0 @>+<@ endif @><# creature.get_save_value_with_level('str', creature_level) #>,
+<@ endif @><@ if creature.get_save_value_with_level('dex', creature_level) is not none @>    dex save = <@ if creature.get_save_value_with_level('dex', creature_level) >= 0 @>+<@ endif @><# creature.get_save_value_with_level('dex', creature_level) #>,
+<@ endif @><@ if creature.get_save_value_with_level('con', creature_level) is not none @>    con save = <@ if creature.get_save_value_with_level('con', creature_level) >= 0 @>+<@ endif @><# creature.get_save_value_with_level('con', creature_level) #>,
+<@ endif @><@ if creature.get_save_value_with_level('int', creature_level) is not none @>    int save = <@ if creature.get_save_value_with_level('int', creature_level) >= 0 @>+<@ endif @><# creature.get_save_value_with_level('int', creature_level) #>,
+<@ endif @><@ if creature.get_save_value_with_level('wis', creature_level) is not none @>    wis save = <@ if creature.get_save_value_with_level('wis', creature_level) >= 0 @>+<@ endif @><# creature.get_save_value_with_level('wis', creature_level) #>,
+<@ endif @><@ if creature.get_save_value_with_level('cha', creature_level) is not none @>    cha save = <@ if creature.get_save_value_with_level('cha', creature_level) >= 0 @>+<@ endif @><# creature.get_save_value_with_level('cha', creature_level) #>
 <@ endif @><@ endif @>
 ]
 

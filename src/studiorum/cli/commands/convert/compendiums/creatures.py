@@ -593,6 +593,13 @@ def creatures(
         help="Include images from fluff content (prepares for future image system)",
         rich_help_panel="Content Enhancement",
     ),
+    # Level scaling for tiered creatures
+    creature_level: int = typer.Option(
+        1,
+        "--creature-level",
+        help="Creature level for proficiency bonus scaling (1-20)",
+        rich_help_panel="Content Enhancement",
+    ),
 ) -> None:
     """
     🐉 Convert creatures to LaTeX bestiary
@@ -693,7 +700,8 @@ def creatures(
                 deduplicate_fluff, \
                 fluff_sections, \
                 fluff_sources, \
-                with_fluff_images
+                with_fluff_images, \
+                creature_level
 
             from_file = normalize_typer_param(from_file)
             from_stdin = normalize_typer_param(from_stdin)
@@ -749,6 +757,7 @@ def creatures(
             fluff_sections = normalize_typer_param(fluff_sections)
             fluff_sources = normalize_typer_param(fluff_sources)
             with_fluff_images = normalize_typer_param(with_fluff_images)
+            creature_level = normalize_typer_param(creature_level)
 
             # Import creature-specific modules
             from studiorum.core.models.creature_filters import CreatureFilterCriteria
@@ -1247,6 +1256,7 @@ def creatures(
                     "fluff_sections": parsed_fluff_sections,  # Pass section filtering info
                     "fluff_sources": parsed_fluff_sources,  # Pass source filtering info
                     "fluff_images_enabled": with_fluff_images,  # Pass image extraction flag
+                    "creature_level": creature_level,  # Pass creature level for PB scaling
                 },
             )
 
