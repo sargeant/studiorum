@@ -208,7 +208,8 @@ class TokenImageResolver:
         # Create cache key from URL
         import hashlib
 
-        url_hash = hashlib.md5(url.encode()).hexdigest()[:8]
+        # MD5 is only used for cache filenames, not security
+        url_hash = hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()[:8]
         cache_filename = f"{self._clean_name_for_path(creature_name)}_{url_hash}.webp"
         cached_webp_path = self._cache_dir / cache_filename
 
@@ -231,6 +232,14 @@ class TokenImageResolver:
 
             # Ensure URL is properly encoded
             parsed_url = urllib.parse.urlparse(url)
+
+            # Security: Only allow HTTP and HTTPS schemes
+            if parsed_url.scheme not in ("http", "https"):
+                logger.warning(
+                    f"Refusing to download from non-HTTP(S) URL scheme: {parsed_url.scheme}"
+                )
+                return None
+
             # Encode the path component while preserving the rest
             encoded_path = urllib.parse.quote(parsed_url.path, safe="/")
             encoded_url = urllib.parse.urlunparse(
@@ -244,7 +253,8 @@ class TokenImageResolver:
                 )
             )
             logger.debug(f"Downloading external token from: {encoded_url}")
-            urllib.request.urlretrieve(encoded_url, cached_webp_path)
+            # Safe: URL scheme validated above to only allow http/https
+            urllib.request.urlretrieve(encoded_url, cached_webp_path)  # nosec B310
 
             # Convert to PNG for LaTeX
             converted_path = self._convert_webp_to_png(cached_webp_path)
