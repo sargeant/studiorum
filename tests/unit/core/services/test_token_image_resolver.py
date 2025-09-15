@@ -60,6 +60,9 @@ class TestTokenImageResolver:
             mock_creature.name = "Ancient Red Dragon"
             mock_creature.source = Mock()
             mock_creature.source.abbreviation = "MM"
+            # Ensure new token properties are not present
+            mock_creature.tokenHref = None
+            mock_creature.token = None
 
             result = resolver.resolve_token_image(mock_creature)
 
@@ -90,6 +93,9 @@ class TestTokenImageResolver:
                 mock_creature.name = "Ancient Red Dragon"
                 mock_creature.source = Mock()
                 mock_creature.source.abbreviation = "MM"
+                # Ensure new token properties are not present
+                mock_creature.tokenHref = None
+                mock_creature.token = None
 
                 result = resolver.resolve_token_image(mock_creature)
 
@@ -256,6 +262,9 @@ class TestTokenImageResolver:
                 mock_creature.name = "Ancient Red Dragon"
                 mock_creature.source = Mock()
                 mock_creature.source.abbreviation = "MM"
+                # Ensure new token properties are not present
+                mock_creature.tokenHref = None
+                mock_creature.token = None
 
                 result = resolver.resolve_token_image(mock_creature)
 
