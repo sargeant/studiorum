@@ -8,6 +8,7 @@ the 5etools dataset, ensuring correctness and functionality.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, create_autospec
@@ -21,11 +22,13 @@ from studiorum.core.text.tag_ast import TagNode
 from studiorum.renderers.core.handlers import get_default_core_handlers
 from studiorum.renderers.core.interfaces import RenderingContext
 from studiorum.renderers.core.unified_renderer import StandardUnifiedRenderer
-from tests.test_data_helpers import requires_full_5etools_data
+from tests.test_data_helpers import requires_full_dataset
 from tests.test_helpers import reset_test_environment
 
+pytestmark = pytest.mark.requires_data
 
-@requires_full_5etools_data()
+
+@requires_full_dataset()
 @pytest.mark.rendering
 class TestRealDataIntegration:
     """Integration tests with real 5etools data."""
@@ -36,12 +39,21 @@ class TestRealDataIntegration:
         # Reset global state for complete isolation
         reset_test_environment()
 
-        # Set up paths to real data
-        self.data_root = Path("/Users/sam/Code/5etools-src/data")
+        # Optional path to full dataset for direct file reads when needed
+        env_path = os.getenv("STUDIORUM_FULL_DATA_PATH", "")
+        self.data_root = Path(env_path).expanduser() if env_path else None
 
-        # Skip if data not available
-        if not self.data_root.exists():
-            pytest.skip("5etools data not available")
+        # Fallback to application-configured data path
+        if self.data_root is None or not self.data_root.exists():
+            try:
+                from studiorum.core.config.unified_config import get_app_config
+
+                cfg = get_app_config()
+                if cfg.paths.data_path:
+                    self.data_root = cfg.paths.data_path.expanduser()
+            except Exception:
+                # Leave as None; methods will skip if not available
+                self.data_root = None
 
         # Initialize omnidexer with real data
         self.omnidexer = Omnidexer()
@@ -70,7 +82,24 @@ class TestRealDataIntegration:
         if content_type not in content_files:
             return []
 
-        file_path = self.data_root / content_files[content_type]
+        # Determine root path for direct file reads
+        root: Path | None = None
+        if self.data_root and self.data_root.exists():
+            root = self.data_root
+        else:
+            try:
+                from studiorum.core.config.unified_config import get_app_config
+
+                cfg = get_app_config()
+                if cfg.paths.data_path and cfg.paths.data_path.exists():
+                    root = cfg.paths.data_path
+            except Exception:
+                root = None
+
+        if root is None:
+            return []
+
+        file_path = root / content_files[content_type]
         if not file_path.exists():
             return []
 
@@ -347,7 +376,7 @@ class TestRealDataIntegration:
             pytest.skip(f"Omnidexer integration failed: {e}")
 
 
-@requires_full_5etools_data()
+@requires_full_dataset()
 @pytest.mark.rendering
 class TestRealDataPerformance:
     """Performance-focused integration tests with real data."""
@@ -358,19 +387,27 @@ class TestRealDataPerformance:
         # Reset global state for complete isolation
         reset_test_environment()
 
-        self.data_root = Path("/Users/sam/Code/5etools-src/data")
-        if not self.data_root.exists():
-            pytest.skip("5etools data not available")
+        # Prefer explicit env var, then fallback to app config
+        env_path = os.getenv("STUDIORUM_FULL_DATA_PATH", "")
+        data_root = Path(env_path).expanduser() if env_path else None
+        if data_root is None or not data_root.exists():
+            try:
+                from studiorum.core.config.unified_config import get_app_config
 
+                cfg = get_app_config()
+                data_root = cfg.paths.data_path
+            except Exception:
+                data_root = None
+
+        if not data_root or not data_root.exists():
+            pytest.skip("Large creature dataset not available")
+
+        self.data_root = data_root
+
+    @pytest.mark.xdist_incompatible
     def test_memory_usage_with_large_content(self):
         """Test memory usage patterns with large content sets."""
-        import os
-
         import psutil
-
-        # Skip when running with pytest-xdist to avoid resource contention
-        if os.getenv("PYTEST_XDIST_WORKER"):
-            pytest.skip("Memory monitoring tests incompatible with parallel execution")
 
         # Get baseline memory
         process = psutil.Process(os.getpid())

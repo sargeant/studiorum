@@ -1,5 +1,6 @@
 """Performance benchmarks for EntryRenderer system to ensure no regression."""
 
+import os
 import time
 from pathlib import Path
 from typing import Any
@@ -252,16 +253,12 @@ class TestRenderingPerformance:
         print(f"\\nMixed content rendering: {avg_time_per_render * 1000:.1f}ms average")
 
     @pytest.mark.slow
+    @pytest.mark.xdist_incompatible
     def test_memory_usage_stability(self, sample_spell: Any) -> None:
         """Test that memory usage remains stable during repeated rendering."""
         import gc
-        import os
 
         import psutil
-
-        # Skip when running with pytest-xdist to avoid resource contention
-        if os.getenv("PYTEST_XDIST_WORKER"):
-            pytest.skip("Memory monitoring tests incompatible with parallel execution")
 
         process = psutil.Process(os.getpid())
         context = RenderingContext(

@@ -180,7 +180,7 @@ class TestConvertCommandsWithReducedMocking:
 
     @pytest.mark.slow
     @pytest.mark.ci_broken
-    @pytest.mark.latex_required
+    @pytest.mark.requires_latex
     @patch("studiorum.cli.commands.convert.get_omnidexer")
     @patch("studiorum.cli.commands.convert.get_tag_resolver")
     @patch("studiorum.cli.commands.convert.adventure.compile_pdf_async")

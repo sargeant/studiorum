@@ -5,6 +5,7 @@ creature conversion pipeline works correctly with real-world data patterns
 and edge cases found in the actual dataset.
 """
 
+import os
 import time
 from pathlib import Path
 from typing import Any
@@ -17,7 +18,7 @@ from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Creature
 from studiorum.core.services.creature_collector import CreatureCollector
 from tests.test_data_helpers import (
-    requires_full_5etools_data,
+    requires_full_dataset,
     requires_minimum_creatures,
 )
 from tests.test_helpers import reset_test_environment
@@ -26,7 +27,7 @@ from tests.test_helpers import reset_test_environment
 @pytest.mark.requires_data
 @pytest.mark.integration
 @pytest.mark.slow
-@requires_full_5etools_data()
+@requires_full_dataset()
 @requires_minimum_creatures(50)
 class TestCreatureReal5etoolsDataIntegration:
     """Test creature functionality with actual 5etools data files."""
@@ -35,12 +36,9 @@ class TestCreatureReal5etoolsDataIntegration:
         """Set up test fixtures with real data access."""
         reset_test_environment()
 
-        # Path to 5etools data
-        self.data_root = Path("/Users/sam/Code/5etools-src/data")
-
-        # Skip if data not available
-        if not self.data_root.exists():
-            pytest.skip("5etools data not available at expected location")
+        # Optional path to full dataset for direct file reads (if needed by a test)
+        env_path = os.getenv("STUDIORUM_FULL_DATA_PATH", "")
+        self.data_root = Path(env_path) if env_path else None
 
         # Initialize omnidexer with real data
         self.omnidexer = None
@@ -358,16 +356,12 @@ class TestCreatureReal5etoolsDataIntegration:
             f"Too slow: {per_creature_time:.4f}s per creature"
         )
 
+    @pytest.mark.xdist_incompatible
     def test_real_data_memory_usage_patterns(self):
         """Test memory usage patterns with real data."""
         import gc
-        import os
 
         import psutil
-
-        # Skip when running with pytest-xdist to avoid resource contention
-        if os.getenv("PYTEST_XDIST_WORKER"):
-            pytest.skip("Memory monitoring tests incompatible with parallel execution")
 
         process = psutil.Process(os.getpid())
 

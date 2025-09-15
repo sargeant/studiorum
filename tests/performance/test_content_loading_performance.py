@@ -5,7 +5,6 @@ This module tests the performance characteristics of the new
 dual-file architecture content loading system.
 """
 
-import os
 import time
 
 import pytest
@@ -28,10 +27,6 @@ class TestContentLoadingPerformance:
 
     @pytest.mark.slow
     @pytest.mark.requires_data
-    @pytest.mark.skipif(
-        os.getenv("STUDIORUM_CONFIG_FILE") == "test-config.yaml",
-        reason="Performance tests require full 5etools dataset, not test data",
-    )
     def test_omnidexer_loading_performance(self):
         """Test that omnidexer loading completes in reasonable time."""
         start_time = time.time()
@@ -57,10 +52,6 @@ class TestContentLoadingPerformance:
 
     @pytest.mark.slow
     @pytest.mark.requires_data
-    @pytest.mark.skipif(
-        os.getenv("STUDIORUM_CONFIG_FILE") == "test-config.yaml",
-        reason="Performance tests require full 5etools dataset, not test data",
-    )
     def test_content_resolution_performance(self):
         """Test that content resolution is reasonably fast."""
         source_manager = UnifiedSourceManager()
@@ -108,10 +99,6 @@ class TestContentLoadingPerformance:
         assert book_time < 15, f"Book resolution took too long: {book_time:.2f}s"
 
     @pytest.mark.requires_data
-    @pytest.mark.skipif(
-        os.getenv("STUDIORUM_CONFIG_FILE") == "test-config.yaml",
-        reason="Performance tests require full 5etools dataset, not test data",
-    )
     def test_repeated_resolution_consistency(self):
         """Test that repeated resolutions are consistent."""
         source_manager = UnifiedSourceManager()

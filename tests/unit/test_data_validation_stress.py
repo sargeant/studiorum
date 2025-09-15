@@ -5,6 +5,7 @@ can handle all available data without warnings or unknown data structures.
 """
 
 import asyncio
+import os
 from collections.abc import Generator
 from typing import Any
 
@@ -451,18 +452,13 @@ class TestDataValidationStress:
         print("✅ Edge case data structures validated successfully")
 
     @pytest.mark.slow
+    @pytest.mark.xdist_incompatible
     def test_memory_usage_during_full_load(self) -> None:
         """Test memory usage doesn't grow excessively during full data load."""
         try:
-            import os
-
             import psutil  # type: ignore
         except ImportError:
             pytest.skip("psutil not installed - skipping memory usage test")
-
-        # Skip when running with pytest-xdist to avoid resource contention
-        if os.getenv("PYTEST_XDIST_WORKER"):
-            pytest.skip("Memory monitoring tests incompatible with parallel execution")
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB

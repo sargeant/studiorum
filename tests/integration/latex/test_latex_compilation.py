@@ -85,7 +85,7 @@ def compile_latex(tex_content: str, output_dir: Path) -> tuple[bool, str, str]:
         return False, "", f"LaTeX compilation failed with exception: {e}"
 
 
-@pytest.mark.needs_latex
+@pytest.mark.latex_compilation
 @requires_latex_template()
 class TestLaTeXCompilation:
     """Integration tests that perform actual LaTeX compilation."""
@@ -277,7 +277,7 @@ This section contains basic text to ensure the DND template is working correctly
             assert pdf_file.stat().st_size > 0, "PDF file is empty"
 
 
-@pytest.mark.needs_latex
+@pytest.mark.latex_compilation
 class TestCLILaTeXIntegration:
     """Integration tests for CLI LaTeX compilation."""
 

@@ -23,16 +23,13 @@ from tests.test_helpers import reset_test_environment
 
 @pytest.mark.performance
 @pytest.mark.slow
+@pytest.mark.xdist_incompatible
 class TestCreatureDatasetScaling:
     """Test how creature processing scales with dataset size."""
 
     def setup_method(self):
         """Set up test fixtures."""
         reset_test_environment()
-
-        # Skip when running with pytest-xdist to avoid resource contention
-        if os.getenv("PYTEST_XDIST_WORKER"):
-            pytest.skip("Memory monitoring tests incompatible with parallel execution")
 
         # Track process for memory monitoring
         self.process = psutil.Process(os.getpid())
@@ -451,16 +448,13 @@ class TestCreatureDatasetScaling:
 
 @pytest.mark.performance
 @pytest.mark.slow
+@pytest.mark.xdist_incompatible
 class TestMemoryUsageValidation:
     """Test memory usage patterns and detect memory leaks."""
 
     def setup_method(self):
         """Set up test fixtures."""
         reset_test_environment()
-
-        # Skip when running with pytest-xdist to avoid resource contention
-        if os.getenv("PYTEST_XDIST_WORKER"):
-            pytest.skip("Memory monitoring tests incompatible with parallel execution")
 
         self.process = psutil.Process(os.getpid())
 

@@ -5,6 +5,7 @@ efficiently and provide good performance for typical use cases.
 """
 
 import gc
+import os
 import time
 from unittest.mock import Mock, patch
 
@@ -298,15 +299,10 @@ class TestCreatureCollectionPerformance:
         )
         assert len(validated_creatures) == len(creature_data_list)
 
+    @pytest.mark.xdist_incompatible
     def test_memory_usage_during_collection(self):
         """Test memory usage patterns during large collections."""
-        import os
-
         import psutil
-
-        # Skip when running with pytest-xdist to avoid resource contention
-        if os.getenv("PYTEST_XDIST_WORKER"):
-            pytest.skip("Memory monitoring tests incompatible with parallel execution")
 
         process = psutil.Process(os.getpid())
         process.memory_info().rss / 1024 / 1024  # MB

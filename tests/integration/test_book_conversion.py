@@ -503,13 +503,10 @@ class TestBookConversion:
             )
 
     @pytest.mark.slow
+    @pytest.mark.xdist_incompatible
     def test_book_memory_usage_reasonable(self):
         """Test that book conversion doesn't use excessive memory."""
         import psutil
-
-        # Skip when running with pytest-xdist to avoid resource contention
-        if os.getenv("PYTEST_XDIST_WORKER"):
-            pytest.skip("Memory monitoring tests incompatible with parallel execution")
 
         # Get initial memory usage
         process = psutil.Process(os.getpid())

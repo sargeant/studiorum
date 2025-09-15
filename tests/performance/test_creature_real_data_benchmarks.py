@@ -5,6 +5,7 @@ with actual creature data patterns and complexity found in 5etools.
 """
 
 import gc
+import os
 import time
 from pathlib import Path
 from typing import Any
@@ -16,13 +17,16 @@ from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Creature
 from studiorum.core.services.creature_collector import CreatureCollector
 from tests.test_data_helpers import (
-    requires_full_5etools_data,
+    requires_full_dataset,
     requires_minimum_creatures,
 )
 from tests.test_helpers import reset_test_environment
 
+# Full dataset required for these benchmarks
+pytestmark = pytest.mark.requires_data
 
-@requires_full_5etools_data()
+
+@requires_full_dataset()
 @requires_minimum_creatures(100)
 @pytest.mark.performance
 @pytest.mark.slow
@@ -288,15 +292,10 @@ class TestCreatureRealDataPerformanceBenchmarks:
                 f"{scenario_name} collection too slow: {collection_time:.3f}s"
             )
 
+    @pytest.mark.xdist_incompatible
     def test_real_data_memory_usage_patterns(self):
         """Test memory usage patterns with real creature data."""
-        import os
-
         import psutil
-
-        # Skip when running with pytest-xdist to avoid resource contention
-        if os.getenv("PYTEST_XDIST_WORKER"):
-            pytest.skip("Memory monitoring tests incompatible with parallel execution")
 
         process = psutil.Process(os.getpid())
 
