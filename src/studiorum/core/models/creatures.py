@@ -1063,10 +1063,12 @@ class Creature(BaseContent):
         expr = re.sub(r"\s*([+\-])\s*", r"\1", expr)
 
         try:
-            # Use eval for simple arithmetic (safe since we control the input)
+            # Use ast.literal_eval for safe arithmetic evaluation
             # Only allow numbers, +, -, and whitespace
             if re.match(r"^[+\-\d\s]+$", expr):
-                return int(eval(expr))
+                import ast
+
+                return int(ast.literal_eval(expr))
             else:
                 raise ValueError(f"Invalid PB expression: {expression}")
         except Exception:
