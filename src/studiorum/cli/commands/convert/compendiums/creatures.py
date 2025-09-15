@@ -280,6 +280,13 @@ def _render_bestiary(
 def creatures(
     # Direct selection
     creature_names: list[str] = typer.Argument(None, help="Creature names to include"),
+    # Token generation mode
+    tokens: bool = typer.Option(
+        False,
+        "--tokens",
+        help="Generate tokens instead of statblocks",
+        rich_help_panel="Output Control",
+    ),
     # Input sources
     from_file: Path | None = typer.Option(
         None,
@@ -600,12 +607,67 @@ def creatures(
         help="Creature level for proficiency bonus scaling (1-20)",
         rich_help_panel="Content Enhancement",
     ),
+    # Token-specific options
+    token_count: int = typer.Option(
+        1,
+        "--token-count",
+        help="Default number of tokens per creature",
+        rich_help_panel="Token Generation",
+    ),
+    columns_tiny: int = typer.Option(
+        6,
+        "--columns-tiny",
+        help="Columns for tiny tokens",
+        rich_help_panel="Token Generation",
+    ),
+    columns_small: int = typer.Option(
+        6,
+        "--columns-small",
+        help="Columns for small tokens",
+        rich_help_panel="Token Generation",
+    ),
+    columns_medium: int = typer.Option(
+        5,
+        "--columns-medium",
+        help="Columns for medium tokens",
+        rich_help_panel="Token Generation",
+    ),
+    columns_large: int = typer.Option(
+        3,
+        "--columns-large",
+        help="Columns for large tokens",
+        rich_help_panel="Token Generation",
+    ),
+    columns_huge: int = typer.Option(
+        2,
+        "--columns-huge",
+        help="Columns for huge tokens",
+        rich_help_panel="Token Generation",
+    ),
+    columns_gargantuan: int = typer.Option(
+        1,
+        "--columns-gargantuan",
+        help="Columns for gargantuan tokens",
+        rich_help_panel="Token Generation",
+    ),
+    token_margins: float = typer.Option(
+        0.25,
+        "--token-margins",
+        help="Page margins in inches",
+        rich_help_panel="Token Generation",
+    ),
+    token_paper_size: str = typer.Option(
+        "letter",
+        "--token-paper-size",
+        help="Paper size (letter, a4)",
+        rich_help_panel="Token Generation",
+    ),
 ) -> None:
     """
-    🐉 Convert creatures to LaTeX bestiary
+    🐉 Convert creatures to LaTeX bestiary or token sheets
 
-    Create beautifully formatted creature compendiums from 5e.tools data.
-    Supports encounter building, DM reference, and adventure appendices.
+    Create beautifully formatted creature compendiums or printable token sheets from 5e.tools data.
+    Supports encounter building, DM reference, adventure appendices, and tabletop tokens.
 
     \\b
     Examples:
@@ -625,6 +687,11 @@ def creatures(
       studiorum convert creatures --legendary --min-cr 15
       studiorum convert creatures --fly --darkvision --type beast
       studiorum convert creatures --spellcasting --type humanoid
+
+      # Token generation (tabletop play)
+      studiorum convert creatures "Goblin" "Orc" "Owlbear" --tokens
+      studiorum convert creatures --cr 1-5 --tokens --token-count 4
+      studiorum convert creatures --type beast --tokens --columns-medium 4
 
       # Fluff content with Phase 5 features
       studiorum convert creatures "Ancient Red Dragon" --fluff
@@ -701,7 +768,17 @@ def creatures(
                 fluff_sections, \
                 fluff_sources, \
                 with_fluff_images, \
-                creature_level
+                creature_level, \
+                tokens, \
+                token_count, \
+                columns_tiny, \
+                columns_small, \
+                columns_medium, \
+                columns_large, \
+                columns_huge, \
+                columns_gargantuan, \
+                token_margins, \
+                token_paper_size
 
             from_file = normalize_typer_param(from_file)
             from_stdin = normalize_typer_param(from_stdin)
@@ -758,6 +835,16 @@ def creatures(
             fluff_sources = normalize_typer_param(fluff_sources)
             with_fluff_images = normalize_typer_param(with_fluff_images)
             creature_level = normalize_typer_param(creature_level)
+            tokens = normalize_typer_param(tokens)
+            token_count = normalize_typer_param(token_count)
+            columns_tiny = normalize_typer_param(columns_tiny)
+            columns_small = normalize_typer_param(columns_small)
+            columns_medium = normalize_typer_param(columns_medium)
+            columns_large = normalize_typer_param(columns_large)
+            columns_huge = normalize_typer_param(columns_huge)
+            columns_gargantuan = normalize_typer_param(columns_gargantuan)
+            token_margins = normalize_typer_param(token_margins)
+            token_paper_size = normalize_typer_param(token_paper_size)
 
             # Import creature-specific modules
             from studiorum.core.models.creature_filters import CreatureFilterCriteria
@@ -973,7 +1060,10 @@ def creatures(
 
             # Determine output file
             if output_file is None:
-                output_path = Path("output/creatures") / "bestiary.tex"
+                if tokens:
+                    output_path = Path("output/creatures") / "tokens.tex"
+                else:
+                    output_path = Path("output/creatures") / "bestiary.tex"
             else:
                 output_path = output_file
 
@@ -1229,50 +1319,100 @@ def creatures(
                                 "[yellow]Note:[/yellow] This might be due to section or source filtering"
                             )
 
-            # Create render context with bestiary-specific data
-            context = RenderingContext(
-                output_format="latex",
-                omnidexer=omnidexer,
-                content_tracker=content_tracker,
-                tag_resolver=tag_resolver,
-                metadata={
-                    "title": creature_title,
-                    "include_images": with_images,
-                    "include_toc": show_toc,
-                    "document_metadata": metadata,
-                    "latex_config": latex_config,
-                    "creature_count": len(sorted_creatures),
-                    "cr_summary": result.get_cr_summary(),
-                    "type_summary": result.get_type_summary(),
-                    "sources_used": list(result.sources_used)
-                    if result.sources_used
-                    else [],
-                    "template": "bestiary",  # Use bestiary template
-                    "spells": spells,  # Pass flag to rendering pipeline
-                    "fluff": creature_fluff_map
-                    if fluff
-                    else {},  # Pass fluff data to rendering pipeline
-                    "fluff_deduplication_stats": fluff_deduplication_stats,  # Pass deduplication statistics
-                    "fluff_sections": parsed_fluff_sections,  # Pass section filtering info
-                    "fluff_sources": parsed_fluff_sources,  # Pass source filtering info
-                    "fluff_images_enabled": with_fluff_images,  # Pass image extraction flag
-                    "creature_level": creature_level,  # Pass creature level for PB scaling
-                },
-            )
+            # Fork rendering path based on tokens flag
+            if tokens:
+                # Token generation path
+                with display_manager.progress("Generating tokens") as _:
+                    render_task = display_manager.add_task(
+                        "[green]Rendering token sheet...", total=None
+                    )
 
-            # Render document using custom bestiary rendering
-            with display_manager.progress("Rendering bestiary") as _:
-                render_task = display_manager.add_task(
-                    "[green]Rendering bestiary...", total=None
+                    # Import token rendering modules
+                    from studiorum.core.models.tokens import TokenSheet
+                    from studiorum.core.services.token_image_resolver import (
+                        TokenImageResolver,
+                    )
+                    from studiorum.renderers.latex.token_renderer import TokenRenderer
+
+                    # Create token image resolver
+                    image_resolver = TokenImageResolver()
+
+                    # Create token renderer
+                    token_renderer = TokenRenderer()
+
+                    # Configure column settings
+                    column_config = {
+                        "tiny": columns_tiny,
+                        "small": columns_small,
+                        "medium": columns_medium,
+                        "large": columns_large,
+                        "huge": columns_huge,
+                        "gargantuan": columns_gargantuan,
+                    }
+
+                    # Create token sheet data
+                    token_sheet = TokenSheet.from_creatures(
+                        sorted_creatures,
+                        image_resolver,
+                        default_count=token_count,
+                        paper_size=token_paper_size,
+                        margins=token_margins,
+                        column_config=column_config,
+                    )
+
+                    # Render token sheet
+                    latex_result = token_renderer.render(token_sheet)
+
+                    display_manager.update_task(render_task, completed=100)
+
+                # Skip spell appendix for tokens
+                spells = False
+            else:
+                # Regular bestiary generation path
+                # Create render context with bestiary-specific data
+                context = RenderingContext(
+                    output_format="latex",
+                    omnidexer=omnidexer,
+                    content_tracker=content_tracker,
+                    tag_resolver=tag_resolver,
+                    metadata={
+                        "title": creature_title,
+                        "include_images": with_images,
+                        "include_toc": show_toc,
+                        "document_metadata": metadata,
+                        "latex_config": latex_config,
+                        "creature_count": len(sorted_creatures),
+                        "cr_summary": result.get_cr_summary(),
+                        "type_summary": result.get_type_summary(),
+                        "sources_used": list(result.sources_used)
+                        if result.sources_used
+                        else [],
+                        "template": "bestiary",  # Use bestiary template
+                        "spells": spells,  # Pass flag to rendering pipeline
+                        "fluff": creature_fluff_map
+                        if fluff
+                        else {},  # Pass fluff data to rendering pipeline
+                        "fluff_deduplication_stats": fluff_deduplication_stats,  # Pass deduplication statistics
+                        "fluff_sections": parsed_fluff_sections,  # Pass section filtering info
+                        "fluff_sources": parsed_fluff_sources,  # Pass source filtering info
+                        "fluff_images_enabled": with_fluff_images,  # Pass image extraction flag
+                        "creature_level": creature_level,  # Pass creature level for PB scaling
+                    },
                 )
-                latex_result = _render_bestiary(
-                    sorted_creatures,
-                    context,
-                    latex_config,
-                    sort,
-                    show_toc,
-                )
-                display_manager.update_task(render_task, completed=100)
+
+                # Render document using custom bestiary rendering
+                with display_manager.progress("Rendering bestiary") as _:
+                    render_task = display_manager.add_task(
+                        "[green]Rendering bestiary...", total=None
+                    )
+                    latex_result = _render_bestiary(
+                        sorted_creatures,
+                        context,
+                        latex_config,
+                        sort,
+                        show_toc,
+                    )
+                    display_manager.update_task(render_task, completed=100)
 
             # Generate spell appendix if requested
             if spells and content_tracker:
@@ -1337,7 +1477,8 @@ def creatures(
             if latex_result:
                 with open(output_path, "w", encoding="utf-8") as f:
                     f.write(latex_result)
-                rprint(f"[green]✓[/green] Bestiary generated: {output_path}")
+                output_type = "Token sheet" if tokens else "Bestiary"
+                rprint(f"[green]✓[/green] {output_type} generated: {output_path}")
             else:
                 rprint("[red]Error:[/red] No LaTeX content was generated")
                 raise typer.Exit(1)
