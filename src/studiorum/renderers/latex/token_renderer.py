@@ -2,6 +2,7 @@
 
 from typing import TYPE_CHECKING
 
+from studiorum.core.latex_utils import escape_latex_text
 from studiorum.core.logging import get_logger
 
 if TYPE_CHECKING:
@@ -73,8 +74,9 @@ class TokenRenderer:
 \\usepackage{{ifthen}}
 
 % Memory optimization for large token sheets
-\\pgfmathsetmacro{{\\pgfpictureid}}{{0}}
-\\tikzset{{every picture/.style={{execute at end picture={{\\global\\let\\pgfpictureid\\relax}}}}}}
+% Reduce TikZ memory usage by disabling unnecessary features
+\\tikzset{{every picture/.style={{baseline=(current bounding box.center)}}}}
+\\usetikzlibrary{{calc}}
 
 % Disable page numbers
 \\pagestyle{{empty}}
@@ -207,8 +209,11 @@ class TokenRenderer:
                     else ""
                 )
 
+                # Escape special LaTeX characters in creature name
+                safe_name = escape_latex_text(token.creature_name)
+
                 section_parts.append(
-                    f"\\StudiorumToken[{size}]{{{image_path}}}{{{token.count}}}{{{token.creature_name}}}"
+                    f"\\StudiorumToken[{size}]{{{image_path}}}{{{token.count}}}{{{safe_name}}}"
                 )
 
                 # Add memory management for large batches
