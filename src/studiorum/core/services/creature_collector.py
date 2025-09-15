@@ -72,12 +72,16 @@ class CreatureCollector:
             if criteria.sources:
                 all_creatures = []
                 creature_type = ContentType("creature")
-                for source in criteria.sources:
-                    source_creatures = self.omnidexer.get_all_by_source(source)
-                    # Filter to only creatures of the correct type
-                    for creature in source_creatures:
-                        if isinstance(creature, Creature):
-                            all_creatures.append(creature)
+
+                # Get all creatures first, then filter by source case-insensitively
+                # This fixes the case sensitivity mismatch where criteria.sources are normalized to uppercase
+                # but omnidexer sources maintain their original case
+                all_content = self.omnidexer.get_all_by_type(creature_type)
+                for creature in all_content:
+                    if isinstance(creature, Creature) and self._matches_sources(
+                        creature, criteria.sources
+                    ):
+                        all_creatures.append(creature)
             else:
                 # Get all creatures from all sources
                 creature_type = ContentType("creature")
