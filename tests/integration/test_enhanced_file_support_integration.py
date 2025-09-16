@@ -163,7 +163,10 @@ class TestEnhancedFileSupportIntegration:
         with patch(
             "studiorum.cli.commands.convert.adventure.create_latex_engine"
         ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            # Mock the LaTeX engine properly
+            mock_engine = Mock()
+            mock_engine.render.return_value = "Mock LaTeX output"
+            mock_template.return_value = mock_engine
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -225,8 +228,9 @@ class TestEnhancedFileSupportIntegration:
 
     @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
     @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
+    @patch("studiorum.cli.config_factory.get_default_sources")
     def test_content_list_to_spells_conversion_workflow(
-        self, mock_tag_resolver, mock_get_omnidexer
+        self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer
     ):
         """Test workflow from content list file to spell conversion."""
         # Create enhanced format content list
@@ -245,23 +249,40 @@ class TestEnhancedFileSupportIntegration:
         mock_omnidexer = Mock()
 
         def mock_get_spell(name):
-            mock_spell = Mock()
+            from studiorum.core.models.spells import Spell
+
+            # Create a more realistic mock that behaves like a Spell
+            mock_spell = Mock(spec=Spell)
             mock_spell.name = name
             mock_spell.source = Mock()
             mock_spell.source.abbreviation = "PHB"
             mock_spell.level = 3 if name == "Fireball" else 1
+            # Add other common spell attributes
+            mock_spell.school = "evocation"
+            mock_spell.time = "1 action"
+            mock_spell.range = "150 feet"
+            mock_spell.components = "V, S, M"
+            mock_spell.duration = "Instantaneous"
+            mock_spell.entries = [f"A mock {name} spell for testing."]
             return mock_spell
 
+        def mock_find_all(content_type, name):
+            # Return a list containing one mock spell for the given name
+            return [mock_get_spell(name)]
+
         mock_omnidexer.get_spell.side_effect = mock_get_spell
+        mock_omnidexer.find_all.side_effect = mock_find_all
         mock_get_omnidexer.return_value = mock_omnidexer
         mock_tag_resolver.return_value = Mock()
 
+        # Mock default sources to return a list of source abbreviations
+        mock_get_default_sources.return_value = ["PHB", "MM", "XGE"]
+
         with patch(
-            "studiorum.latex_engine.core.template_engine.LaTeXTemplateEngine"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = (
-                "Mock LaTeX output for spells"
-            )
+            "studiorum.cli.commands.convert.compendiums.spells._render_spellbook"
+        ) as mock_render_spellbook:
+            # Mock the render spellbook function to return a simple string
+            mock_render_spellbook.return_value = "Mock LaTeX output for spells"
 
             output_file = self.temp_dir / "spells_compendium.tex"
 
@@ -284,12 +305,14 @@ class TestEnhancedFileSupportIntegration:
             assert output_file.exists()
 
             # Verify all spells were loaded (counts ignored for spells)
-            assert mock_omnidexer.get_spell.call_count == 3
+            # SpellCollector uses find_all, not get_spell
+            assert mock_omnidexer.find_all.call_count == 3
 
     @patch("studiorum.cli.commands.convert.compendiums.creatures.get_omnidexer")
     @patch("studiorum.cli.commands.convert.compendiums.creatures.get_tag_resolver")
+    @patch("studiorum.cli.config_factory.get_default_sources")
     def test_content_list_to_creatures_conversion_workflow(
-        self, mock_tag_resolver, mock_get_omnidexer
+        self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer
     ):
         """Test workflow from content list file to creature conversion."""
         # Create enhanced format content list
@@ -308,23 +331,57 @@ class TestEnhancedFileSupportIntegration:
         mock_omnidexer = Mock()
 
         def mock_get_creature(name):
-            mock_creature = Mock()
+            from studiorum.core.models.creatures import Creature
+
+            mock_creature = Mock(spec=Creature)
             mock_creature.name = name
             mock_creature.source = Mock()
             mock_creature.source.abbreviation = "MM"
             mock_creature.cr = "1/4" if "Goblin" in name else "1"
             return mock_creature
 
+        def mock_find_all_creatures(content_type, name):
+            # Return a list containing one mock creature for the given name
+            # Only return creatures if the name matches our test data
+            test_creatures = ["Goblin", "Hobgoblin Captain", "Orc"]
+            if name in test_creatures:
+                return [mock_get_creature(name)]
+            return []
+
+        def mock_find_creature(content_type, name, source=None):
+            # Mock for omnidexer.find() method - this is used when specific sources are provided
+            test_creatures = ["Goblin", "Hobgoblin Captain", "Orc"]
+            if name in test_creatures and (source is None or source == "MM"):
+                return mock_get_creature(name)
+            return None
+
         mock_omnidexer.get_creature.side_effect = mock_get_creature
+        mock_omnidexer.find_all.side_effect = mock_find_all_creatures
+        mock_omnidexer.find.side_effect = mock_find_creature
+
+        # Mock get_all_by_type and get_all_by_source methods that CreatureCollector uses
+        mock_omnidexer.get_all_by_type.return_value = [
+            mock_get_creature("Goblin"),
+            mock_get_creature("Hobgoblin Captain"),
+            mock_get_creature("Orc"),
+        ]
+        mock_omnidexer.get_all_by_source.return_value = [
+            mock_get_creature("Goblin"),
+            mock_get_creature("Hobgoblin Captain"),
+            mock_get_creature("Orc"),
+        ]
+
         mock_get_omnidexer.return_value = mock_omnidexer
         mock_tag_resolver.return_value = Mock()
 
+        # Mock default sources to return a list of source abbreviations
+        mock_get_default_sources.return_value = ["PHB", "MM", "XGE"]
+
         with patch(
-            "studiorum.latex_engine.core.template_engine.LaTeXTemplateEngine"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = (
-                "Mock LaTeX output for creatures"
-            )
+            "studiorum.cli.commands.convert.compendiums.creatures._render_bestiary"
+        ) as mock_render_creatures:
+            # Mock the render bestiary function to return a simple string
+            mock_render_creatures.return_value = "Mock LaTeX output for creatures"
 
             output_file = self.temp_dir / "creatures_statblocks.tex"
 
@@ -347,12 +404,14 @@ class TestEnhancedFileSupportIntegration:
             assert output_file.exists()
 
             # Verify all creatures were loaded
-            assert mock_omnidexer.get_creature.call_count == 3
+            # CreatureCollector uses find() when specific sources are provided (like "Goblin|MM")
+            assert mock_omnidexer.find.call_count == 3
 
     @patch("studiorum.cli.commands.convert.compendiums.items.get_omnidexer")
     @patch("studiorum.cli.commands.convert.compendiums.items.get_tag_resolver")
+    @patch("studiorum.cli.config_factory.get_default_sources")
     def test_content_list_to_items_conversion_workflow(
-        self, mock_tag_resolver, mock_get_omnidexer
+        self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer
     ):
         """Test workflow from content list file to item conversion."""
         # Create enhanced format content list
@@ -371,23 +430,70 @@ class TestEnhancedFileSupportIntegration:
         mock_omnidexer = Mock()
 
         def mock_get_item(name):
-            mock_item = Mock()
+            # Copy the exact pattern from spells test but for items
+            from studiorum.core.models.items import Item
+
+            # Create a more realistic mock that behaves like an Item
+            mock_item = Mock(spec=Item)
             mock_item.name = name
             mock_item.source = Mock()
             mock_item.source.abbreviation = "PHB"
             mock_item.type = "weapon"
+            # Add other common item attributes (like spells test adds spell attributes)
+            mock_item.weight = 1.0
+            mock_item.value = 200
+            mock_item.rarity = "common"
+            mock_item.is_magic_item.return_value = False
             return mock_item
 
+        def mock_find_all_items(content_type, name):
+            # Return a list containing one mock item for the given name
+            test_items = ["Shortsword", "Longsword", "Dagger"]
+            if name in test_items:
+                return [mock_get_item(name)]
+            return []
+
+        def mock_find_item(content_type, name, source=None):
+            # Mock for omnidexer.find() method - not actually used by ItemCollector
+            test_items = ["Shortsword", "Longsword", "Dagger"]
+            if name in test_items and (source is None or source == "PHB"):
+                return mock_get_item(name)
+            return None
+
         mock_omnidexer.get_item.side_effect = mock_get_item
+        mock_omnidexer.find_all.side_effect = mock_find_all_items
+        mock_omnidexer.find.side_effect = mock_find_item
+
+        # Mock get_all_by_type and get_all_by_source methods that ItemCollector uses
+        mock_omnidexer.get_all_by_type.return_value = [
+            mock_get_item("Shortsword"),
+            mock_get_item("Longsword"),
+            mock_get_item("Dagger"),
+        ]
+        mock_omnidexer.get_all_by_source.return_value = [
+            mock_get_item("Shortsword"),
+            mock_get_item("Longsword"),
+            mock_get_item("Dagger"),
+        ]
+
         mock_get_omnidexer.return_value = mock_omnidexer
         mock_tag_resolver.return_value = Mock()
 
-        with patch(
-            "studiorum.latex_engine.core.template_engine.LaTeXTemplateEngine"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = (
-                "Mock LaTeX output for items"
-            )
+        # Mock default sources to return a list of source abbreviations
+        mock_get_default_sources.return_value = ["PHB", "MM", "XGE"]
+
+        with (
+            patch(
+                "studiorum.cli.commands.convert.compendiums.items._render_itemcompendium"
+            ) as mock_render_items,
+            patch(
+                "studiorum.core.services.item_collector.ItemCollector._get_item_value_in_gp"
+            ) as mock_get_value,
+        ):
+            # Mock the render itemcompendium function to return a simple string
+            mock_render_items.return_value = "Mock LaTeX output for items"
+            # Mock the value getter to avoid Mock comparison issues
+            mock_get_value.return_value = 2.0  # 2 GP
 
             output_file = self.temp_dir / "items_compendium.tex"
 
@@ -410,7 +516,8 @@ class TestEnhancedFileSupportIntegration:
             assert output_file.exists()
 
             # Verify all items were loaded
-            assert mock_omnidexer.get_item.call_count == 3
+            # ItemCollector uses find_all(), not find() like CreatureCollector does
+            assert mock_omnidexer.find_all.call_count == 3
 
     def test_round_trip_workflow_without_mocks(self):
         """Test round-trip workflow without heavy mocking (file format only)."""
