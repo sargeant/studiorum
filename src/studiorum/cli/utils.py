@@ -9,6 +9,7 @@ from typing import Any, TypeVar
 
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.protocols.progress import ProgressCallback
+from studiorum.core.services.protocols import ContentListWriterProtocol
 from studiorum.core.text.tag_resolver import TagResolver
 
 T = TypeVar("T")
@@ -41,6 +42,19 @@ def get_tag_resolver() -> TagResolver:
     from studiorum.cli.services import get_cli_tag_resolver
 
     return get_cli_tag_resolver()
+
+
+def get_content_list_writer() -> ContentListWriterProtocol:
+    """Get content list writer instance for CLI commands.
+
+    Delegates to CLI services module for proper service access patterns.
+
+    Returns:
+        ContentListWriterProtocol instance ready for use
+    """
+    from studiorum.cli.services import get_cli_content_list_writer
+
+    return get_cli_content_list_writer()
 
 
 def resolve_option[T](value: T) -> T:

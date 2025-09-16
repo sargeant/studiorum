@@ -41,6 +41,7 @@ from .protocols import (
     ConfigurationProtocol,
     ContentAttributionProtocol,
     ContentFactoryProtocol,
+    ContentListWriterProtocol,
     ContentTypeRegistryProtocol,
     DisplayManagerProtocol,
     EntryTypeRegistryProtocol,
@@ -1485,3 +1486,24 @@ def create_fluff_deduplicator_service(
     )
     logger.debug("FluffDeduplicator service initialized successfully")
     return service
+
+
+def create_content_list_writer_service(
+    container: ServiceProtocol | None = None,
+) -> ContentListWriterProtocol:
+    """Create ContentListWriter service.
+
+    Creates a ContentListWriter service for writing tracked content to files
+    in enhanced format with reference counts and source information.
+
+    Args:
+        container: Service container for dependency injection (optional)
+
+    Returns:
+        ContentListWriter service instance
+    """
+    from studiorum.core.services.content_list_writer import ContentListWriter
+
+    service = ContentListWriter()
+    logger.debug("ContentListWriter service initialized successfully")
+    return service  # type: ignore[return-value]

@@ -18,10 +18,12 @@ from studiorum.cli.config_factory import (
     get_with_images_default,
 )
 from studiorum.cli.display_manager import display_manager
-from studiorum.cli.utils import get_omnidexer, get_tag_resolver
+from studiorum.cli.utils import get_content_list_writer, get_omnidexer, get_tag_resolver
 from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.resolvers import ContentResolutionResult, ContentResolver
+from studiorum.core.result import Error, Success
 from studiorum.latex_engine import create_latex_engine
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -158,6 +160,25 @@ def adventure(
         "--creature-level",
         help="Creature level for proficiency bonus scaling (1-20)",
         rich_help_panel="Appendices",
+    ),
+    # Content output options
+    output_spells: Path | None = typer.Option(
+        None,
+        "--output-spells",
+        help="Save list of referenced spells to file",
+        rich_help_panel="Content Output",
+    ),
+    output_creatures: Path | None = typer.Option(
+        None,
+        "--output-creatures",
+        help="Save list of referenced creatures to file",
+        rich_help_panel="Content Output",
+    ),
+    output_items: Path | None = typer.Option(
+        None,
+        "--output-items",
+        help="Save list of referenced items to file",
+        rich_help_panel="Content Output",
     ),
 ) -> None:
     """
@@ -317,6 +338,15 @@ def adventure(
                 rprint("[red]Error:[/red] No content was generated")
                 raise typer.Exit(1)
 
+            # Write content output files if requested
+            _write_content_outputs(
+                content_tracker=content_tracker,
+                title=title or f"{content_items[0].name}",
+                output_spells=output_spells,
+                output_creatures=output_creatures,
+                output_items=output_items,
+            )
+
             # Compile PDF if requested
             if compile_pdf:
                 asyncio.run(compile_pdf_async(output_path, open_pdf))
@@ -334,3 +364,63 @@ def adventure(
             raise typer.Exit(1)
 
     _convert()
+
+
+def _write_content_outputs(
+    *,
+    content_tracker: ContentTracker,
+    title: str,
+    output_spells: Path | None,
+    output_creatures: Path | None,
+    output_items: Path | None,
+) -> None:
+    """Write content output files based on tracked content.
+
+    Args:
+        content_tracker: ContentTracker instance with tracked content
+        title: Title to include in file headers
+        output_spells: Optional path for spells output file
+        output_creatures: Optional path for creatures output file
+        output_items: Optional path for items output file
+    """
+
+    # Check if any output options were specified
+    output_requests = [
+        ("spell", output_spells),
+        ("creature", output_creatures),
+        ("item", output_items),
+    ]
+
+    # Filter to only requested outputs
+    requested_outputs = [
+        (content_type, path)
+        for content_type, path in output_requests
+        if path is not None
+    ]
+
+    if not requested_outputs:
+        # No output files requested, nothing to do
+        return
+
+    # Get ContentListWriter service
+    content_list_writer = get_content_list_writer()
+
+    # Write each requested content type
+    for content_type, output_path in requested_outputs:
+        result = content_list_writer.write_content_list(
+            content_tracker=content_tracker,
+            output_path=output_path,
+            content_type_filter=content_type,
+            title=title,
+            sort_by_count=True,  # Sort by usage frequency
+        )
+
+        if isinstance(result, Success):
+            count = result.unwrap()
+            rprint(
+                f"[green]✓[/green] {content_type.title()} list written: {output_path} ({count} entries)"
+            )
+        elif isinstance(result, Error):
+            error_msg = str(result.error)
+            rprint(f"[red]Error writing {content_type} list:[/red] {error_msg}")
+            # Don't exit on content output errors - they're optional features

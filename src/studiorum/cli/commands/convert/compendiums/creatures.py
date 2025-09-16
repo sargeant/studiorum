@@ -862,21 +862,94 @@ def creatures(
 
             # Parse input sources and build criteria
             all_creature_names = []
+            source_info = {}  # Initialize source mapping for enhanced file parsing
+            creature_counts: dict[
+                str, int
+            ] = {}  # Track per-creature counts for token generation
 
             # Collect creature names from arguments
             if creature_names:
                 all_creature_names.extend(creature_names)
 
-            # Collect from file using ContentLoader system
+            # Collect from file using enhanced ContentLoader system
             if from_file and isinstance(from_file, Path):
                 command_instance = BaseConvertCommand()
-                file_creatures = command_instance.get_name_list_from_file(
+                file_creature_data = command_instance.get_enhanced_name_list_from_file(
                     from_file, "creature"
                 )
-                all_creature_names.extend(file_creatures)
-                rprint(
-                    f"[green]Loaded {len(file_creatures)} creatures from {from_file}[/green]"
-                )
+
+                # Process enhanced file data based on output mode
+                if tokens:
+                    # For tokens: preserve count information for template rendering
+                    file_creatures = []
+                    total_creature_count = 0
+
+                    for count, name, source in file_creature_data:
+                        # For tokens, we need to track counts for each creature
+                        if name not in file_creatures:
+                            file_creatures.append(name)
+                            creature_counts[name] = count
+                        else:
+                            # If creature already exists, add to its count
+                            creature_counts[name] += count
+
+                        total_creature_count += count
+
+                        # Track source information
+                        if source:
+                            source_info[name] = source
+
+                    # Store count information for token generation
+                    # This will be used later in the token generation pipeline
+                    all_creature_names.extend(file_creatures)
+
+                    rprint(
+                        f"[green]Loaded {len(file_creatures)} unique creatures from {from_file}[/green]"
+                    )
+                    rprint(
+                        f"[blue]ℹ[/blue] Total tokens to generate: {total_creature_count}"
+                    )
+                    if source_info:
+                        rprint(
+                            f"[blue]ℹ[/blue] Found source specifications for {len(source_info)} creatures"
+                        )
+
+                    # creature_counts now populated and will be passed to token generation
+
+                else:
+                    # For statblocks: deduplicate by name+source combination
+                    file_creatures = []
+                    total_creature_count = 0
+                    unique_combinations = set()
+
+                    for count, name, source in file_creature_data:
+                        # Create unique key from name and source
+                        combination_key = (name, source or "default")
+
+                        if combination_key not in unique_combinations:
+                            unique_combinations.add(combination_key)
+                            file_creatures.append(name)
+
+                            # Track source information for content resolution
+                            if source:
+                                source_info[name] = source
+
+                        # Track total count for progress reporting
+                        total_creature_count += count
+
+                    all_creature_names.extend(file_creatures)
+
+                    rprint(
+                        f"[green]Loaded {len(file_creatures)} unique creatures from {from_file}[/green]"
+                    )
+                    if total_creature_count != len(file_creatures):
+                        rprint(
+                            f"[blue]ℹ[/blue] Total creature references: {total_creature_count} (deduplicated for statblocks)"
+                        )
+                    if source_info:
+                        rprint(
+                            f"[blue]ℹ[/blue] Found source specifications for {len(source_info)} creatures"
+                        )
 
             # Collect from stdin using ContentLoader system
             if from_stdin:
@@ -974,7 +1047,9 @@ def creatures(
                 for skill_list in has_skill:
                     parsed_has_skill.extend([s.strip() for s in skill_list.split(",")])
 
-            # Build filter criteria
+            # Build filter criteria with source mapping from enhanced file parsing
+            creature_source_map = source_info if source_info else None
+
             try:
                 criteria = CreatureFilterCriteria(
                     min_cr=effective_min_cr,
@@ -1002,6 +1077,7 @@ def creatures(
                     has_skill=parsed_has_skill,
                     sources=parsed_sources,
                     creature_names=all_creature_names if all_creature_names else None,
+                    creature_source_map=creature_source_map,
                 )
             except ValueError as e:
                 rprint(f"[red]Error:[/red] Invalid filter criteria: {e}")
@@ -1358,6 +1434,7 @@ def creatures(
                         paper_size=token_paper_size,
                         margins=token_margins,
                         column_config=column_config,
+                        creature_counts=creature_counts if creature_counts else None,
                     )
 
                     # Render token sheet

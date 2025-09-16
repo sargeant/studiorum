@@ -124,6 +124,9 @@ class CreatureFilterCriteria(BaseModel):
     creature_names: list[str] | None = Field(
         None, description="Specific creature names to include"
     )
+    creature_source_map: dict[str, str] | None = Field(
+        None, description="Per-creature source specifications (creature_name -> source)"
+    )
 
     @field_validator("cr_range")
     @classmethod
@@ -316,6 +319,7 @@ class CreatureFilterCriteria(BaseModel):
                 self.has_skill is not None,
                 self.sources is not None,
                 self.creature_names is not None,
+                self.creature_source_map is not None,
             ]
         )
 
@@ -331,7 +335,8 @@ class CreatureFilterCriteria(BaseModel):
         return self.creature_names is not None and all(
             criterion is None or (isinstance(criterion, bool) and not criterion)
             for attr, criterion in self.__dict__.items()
-            if attr not in {"creature_names", "exclude_variable_cr"}
+            if attr
+            not in {"creature_names", "exclude_variable_cr", "creature_source_map"}
         )
 
     def matches_creature_type(

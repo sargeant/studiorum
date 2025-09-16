@@ -20,11 +20,13 @@ from studiorum.core.loaders.content_sources import (
     ContentSourceMetadata,
     FileContentSource,
     InlineContentSource,
+    NameListFileSource,
     OmnidexerContentSource,
     StdinContentSource,
     ValidationResult,
     create_file_source,
     create_inline_source,
+    create_name_list_source,
     create_omnidexer_source,
     create_stdin_source,
 )
@@ -615,3 +617,225 @@ class TestContentSourceIntegration:
                 assert len(content) == 3
         finally:
             file_path.unlink()
+
+
+class TestNameListFileSource:
+    """Test NameListFileSource functionality."""
+
+    def setup_method(self):
+        """Reset test environment before each test."""
+        reset_test_environment()
+
+    def test_init(self):
+        """Test NameListFileSource initialization."""
+        test_file = Path("/tmp/test.txt")
+        source = NameListFileSource(test_file, ContentType.CREATURE)
+
+        assert source.file_path == test_file
+        assert source.content_type == ContentType.CREATURE
+        assert str(test_file) in source.location
+        assert "Name list:" in source.description
+
+    def test_load_simple_names(self):
+        """Test loading simple names (backward compatibility)."""
+        content = """# Simple names
+Goblin
+Ogre
+
+# Comment only
+Strahd von Zarovich"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            names = source.load()
+
+            assert len(names) == 3
+            assert names == ["Goblin", "Ogre", "Strahd von Zarovich"]
+        finally:
+            file_path.unlink()
+
+    def test_load_structured_with_counts(self):
+        """Test loading structured data with counts."""
+        content = """# With counts
+3 Goblin
+1 Ogre
+5 Orc"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            structured = source.load_structured()
+
+            assert len(structured) == 3
+            assert structured == [
+                (3, "Goblin", None),
+                (1, "Ogre", None),
+                (5, "Orc", None),
+            ]
+        finally:
+            file_path.unlink()
+
+    def test_load_structured_with_sources(self):
+        """Test loading structured data with sources."""
+        content = """# With sources
+Goblin|MM
+Strahd von Zarovich|CoS
+Xorranax|FleeMortals"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            structured = source.load_structured()
+
+            assert len(structured) == 3
+            assert structured == [
+                (1, "Goblin", "MM"),
+                (1, "Strahd von Zarovich", "CoS"),
+                (1, "Xorranax", "FleeMortals"),
+            ]
+        finally:
+            file_path.unlink()
+
+    def test_load_structured_mixed_formats(self):
+        """Test loading mixed format data."""
+        content = """# Mixed formats
+Goblin
+3 Hobgoblin
+Strahd|CoS
+2 Bugbear|MM
+
+# Comments and empty lines
+0 Zero Count|TEST
+Trailing Spaces   |   MM   """
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            structured = source.load_structured()
+
+            assert len(structured) == 6
+            assert structured == [
+                (1, "Goblin", None),
+                (3, "Hobgoblin", None),
+                (1, "Strahd", "CoS"),
+                (2, "Bugbear", "MM"),
+                (0, "Zero Count", "TEST"),
+                (1, "Trailing Spaces", "MM"),
+            ]
+        finally:
+            file_path.unlink()
+
+    def test_backward_compatibility_load_method(self):
+        """Test that load() method extracts names correctly from structured data."""
+        content = """# Mixed format test
+3 Goblin|MM
+1 Ogre
+Strahd|CoS
+Dragon Turtle"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            names = source.load()
+
+            # Should extract just the names, ignoring counts and sources
+            assert len(names) == 4
+            assert names == ["Goblin", "Ogre", "Strahd", "Dragon Turtle"]
+        finally:
+            file_path.unlink()
+
+    def test_metadata_counting(self):
+        """Test metadata counting includes quantities."""
+        content = """# Count test
+3 Goblin
+5 Orc
+1 Dragon"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            metadata = source.get_metadata()
+
+            # Should count total items: 3 + 5 + 1 = 9
+            assert metadata.content_count == 9
+            assert metadata.source_type == "name_list"
+            assert str(file_path) in metadata.location
+        finally:
+            file_path.unlink()
+
+    def test_validation_nonexistent_file(self):
+        """Test validation of nonexistent file."""
+        source = NameListFileSource(Path("/nonexistent/file.txt"), ContentType.CREATURE)
+        result = source.validate()
+
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert "does not exist" in result.errors[0]
+
+    def test_validation_empty_file(self):
+        """Test validation of empty file."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write("# Only comments\n\n# Nothing else")
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+            result = source.validate()
+
+            assert not result.is_valid
+            assert len(result.errors) == 1
+            assert "No names found" in result.errors[0]
+        finally:
+            file_path.unlink()
+
+    def test_caching_behavior(self):
+        """Test that results are cached properly."""
+        content = """Goblin\nOgre"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            file_path = Path(f.name)
+
+        try:
+            source = NameListFileSource(file_path, ContentType.CREATURE)
+
+            # First load should populate cache
+            names1 = source.load()
+            structured1 = source.load_structured()
+
+            # Second load should use cache (same objects)
+            names2 = source.load()
+            structured2 = source.load_structured()
+
+            assert names1 is names2  # Same object, from cache
+            assert structured1 is structured2  # Same object, from cache
+        finally:
+            file_path.unlink()
+
+    def test_factory_function(self):
+        """Test the factory function for creating name list sources."""
+        test_file = Path("/tmp/test.txt")
+        source = create_name_list_source(test_file, ContentType.SPELL)
+
+        assert isinstance(source, NameListFileSource)
+        assert source.file_path == test_file
+        assert source.content_type == ContentType.SPELL

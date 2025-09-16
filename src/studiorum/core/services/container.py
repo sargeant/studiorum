@@ -1027,6 +1027,7 @@ class ServiceContainer:
             create_configuration_service_sync,
             create_content_attribution_service,
             create_content_factory_service,
+            create_content_list_writer_service,
             create_content_type_registry_service,
             create_data_source_manager_service_sync,
             create_display_manager_service,
@@ -1044,6 +1045,7 @@ class ServiceContainer:
             ConfigurationProtocol,
             ContentAttributionProtocol,
             ContentFactoryProtocol,
+            ContentListWriterProtocol,
             ContentTypeRegistryProtocol,
             DisplayManagerProtocol,
             EntryTypeRegistryProtocol,
@@ -1120,6 +1122,16 @@ class ServiceContainer:
         container.register_service(
             EntryTypeRegistryProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
             create_entry_registry_service,
+            lifecycle=ServiceLifecycle.SINGLETON,
+            dependencies=(),
+            hot_reloadable=False,
+            cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+        )
+
+        # Content list writer service (utility service)
+        container.register_service(
+            ContentListWriterProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+            create_content_list_writer_service,
             lifecycle=ServiceLifecycle.SINGLETON,
             dependencies=(),
             hot_reloadable=False,

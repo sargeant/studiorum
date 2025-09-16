@@ -10,6 +10,7 @@ This module provides a unified interface for loading content from various source
 All sources provide consistent error handling, validation, and content discovery.
 """
 
+import re
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
@@ -500,6 +501,7 @@ class NameListFileSource(BaseContentSource):
         self.file_path = file_path
         self.content_type = content_type
         self._cached_names: list[str] | None = None
+        self._cached_structured_names: list[tuple[int, str, str | None]] | None = None
 
     def get_metadata(self) -> ContentSourceMetadata:
         """Get metadata about this name list source."""
@@ -516,8 +518,9 @@ class NameListFileSource(BaseContentSource):
                 size_str = f"{size_bytes // (1024 * 1024)} MB"
 
             try:
-                names = self._load_names()
-                content_count = len(names)
+                structured_names = self._load_structured_names()
+                # Count total items including quantities
+                content_count = sum(count for count, _, _ in structured_names)
             # Optional metadata counting for books, graceful degradation
             except Exception:  # nosec B110
                 pass
@@ -543,8 +546,8 @@ class NameListFileSource(BaseContentSource):
             return result
 
         try:
-            names = self._load_names()
-            if not names:
+            structured_names = self._load_structured_names()
+            if not structured_names:
                 result.add_warning(f"No names found in file: {self.file_path}")
         except Exception as e:
             result.add_error(f"Failed to read file: {e}")
@@ -555,10 +558,41 @@ class NameListFileSource(BaseContentSource):
         """Load names from the file."""
         return self._load_names()
 
+    def load_structured(self) -> list[tuple[int, str, str | None]]:
+        """Load structured data with count and source information.
+
+        Returns:
+            List of tuples containing (count, name, source).
+            count: Number of items (defaults to 1)
+            name: The name
+            source: Source abbreviation (None if not specified)
+        """
+        return self._load_structured_names()
+
     def _load_names(self) -> list[str]:
-        """Load and parse names from file."""
+        """Load and parse names from file (backward compatibility)."""
         if self._cached_names is not None:
             return self._cached_names
+
+        # Extract just the names from structured data
+        structured_data = self._load_structured_names()
+        self._cached_names = [name for _, name, _ in structured_data]
+        return self._cached_names
+
+    def _load_structured_names(self) -> list[tuple[int, str, str | None]]:
+        """Load and parse structured data from file.
+
+        Supports formats:
+        - Simple name: "Goblin"
+        - With count: "3 Goblin"
+        - With source: "Goblin|MM"
+        - With both: "3 Goblin|MM"
+
+        Returns:
+            List of tuples containing (count, name, source)
+        """
+        if self._cached_structured_names is not None:
+            return self._cached_structured_names
 
         if not self.file_path.exists():
             raise FileNotFoundError(f"File not found: {self.file_path}")
@@ -569,7 +603,9 @@ class NameListFileSource(BaseContentSource):
         except PermissionError:
             raise PermissionError(f"Cannot read file: {self.file_path}")
 
-        names = []
+        structured_names = []
+        count_pattern = re.compile(r"^(\d+)\s+(.+)$")
+
         for line_num, line in enumerate(lines, 1):
             line = line.strip()
 
@@ -583,13 +619,32 @@ class NameListFileSource(BaseContentSource):
                 if not line:
                     continue
 
-            names.append(line)
+            # Parse count (optional, defaults to 1)
+            count = 1
+            remainder = line
 
-        if not names:
+            count_match = count_pattern.match(line)
+            if count_match:
+                count = int(count_match.group(1))
+                remainder = count_match.group(2)
+
+            # Parse source (optional, defaults to None)
+            source = None
+            name = remainder
+
+            if "|" in remainder:
+                name_part, source_part = remainder.split("|", 1)
+                name = name_part.strip()
+                source = source_part.strip() if source_part.strip() else None
+
+            if name:  # Only add if we have a non-empty name
+                structured_names.append((count, name, source))
+
+        if not structured_names:
             raise ValueError(f"No names found in file: {self.file_path}")
 
-        self._cached_names = names
-        return names
+        self._cached_structured_names = structured_names
+        return structured_names
 
 
 class StdinContentSource(BaseContentSource):

@@ -256,7 +256,7 @@ class TokenRenderer:
         return {
             "tiny": 6,
             "small": 6,
-            "medium": 5,
+            "medium": 6,
             "large": 3,
             "huge": 2,
             "gargantuan": 1,

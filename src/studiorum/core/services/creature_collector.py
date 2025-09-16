@@ -45,12 +45,14 @@ class CreatureCollector:
 
         # Handle name-only filtering (encounter building use case)
         if criteria.is_name_only_filter() and criteria.creature_names:
-            return self._collect_by_names(criteria.creature_names, criteria.sources)
+            return self._collect_by_names(
+                criteria.creature_names, criteria.sources, criteria.creature_source_map
+            )
 
         # Handle creature names with additional filtering
         if criteria.creature_names:
             name_result = self._collect_by_names(
-                criteria.creature_names, criteria.sources
+                criteria.creature_names, criteria.sources, criteria.creature_source_map
             )
             # Filter the name-based results by the same criteria (excluding name and source filters)
             for creature in name_result.creatures:
@@ -123,18 +125,22 @@ class CreatureCollector:
         return result
 
     def collect_by_names(
-        self, names: list[str], sources: list[str] | None = None
+        self,
+        names: list[str],
+        sources: list[str] | None = None,
+        creature_source_map: dict[str, str] | None = None,
     ) -> CreatureCollectionResult:
         """Collect specific creatures by name with fuzzy matching.
 
         Args:
             names: List of creature names to find
             sources: Optional list of source abbreviations to limit search
+            creature_source_map: Optional per-creature source specifications
 
         Returns:
             CreatureCollectionResult with found creatures and unresolved names
         """
-        return self._collect_by_names(names, sources)
+        return self._collect_by_names(names, sources, creature_source_map)
 
     def collect_by_cr_range(
         self, min_cr: float, max_cr: float
@@ -168,13 +174,17 @@ class CreatureCollector:
         return self.collect_creatures(criteria)
 
     def _collect_by_names(
-        self, names: list[str], sources: list[str] | None = None
+        self,
+        names: list[str],
+        sources: list[str] | None = None,
+        creature_source_map: dict[str, str] | None = None,
     ) -> CreatureCollectionResult:
         """Internal method to collect creatures by specific names.
 
         Args:
             names: List of creature names to find
             sources: Optional list of source abbreviations to limit search
+            creature_source_map: Optional per-creature source specifications
         """
         result = CreatureCollectionResult()
         creature_type = ContentType("creature")
@@ -186,34 +196,55 @@ class CreatureCollector:
             sources = get_default_sources()
 
         for name in names:
-            # Try exact match first
-            matches = self.omnidexer.find_all(creature_type, name)
+            # Check if there's a specific source for this creature
+            specific_source = None
+            if creature_source_map and name in creature_source_map:
+                specific_source = creature_source_map[name]
 
-            if matches:
-                # Filter by sources (now always specified, either from parameter or default)
-                filtered_matches: list[Creature] = []
-                for creature in matches:
-                    if isinstance(creature, Creature) and self._matches_sources(
-                        creature, sources
-                    ):
-                        filtered_matches.append(creature)
-                creature_matches = filtered_matches
-
-                # Add all matching creatures
-                for creature in creature_matches:
+            # Try exact match with specific source if available
+            if specific_source:
+                # Use find() with specific source for targeted lookup
+                creature = self.omnidexer.find(creature_type, name, specific_source)
+                if creature and isinstance(creature, Creature):
                     source_abbrev = None
                     if hasattr(creature.source, "abbreviation"):
                         source_abbrev = creature.source.abbreviation
                     result.add_creature(creature, source_abbrev)
-
-                # If no matches after source filtering, treat as unresolved
-                if sources and not creature_matches:
-                    suggestions = self._find_creature_suggestions(name, sources)
+                else:
+                    # Creature not found with specific source
+                    suggestions = self._find_creature_suggestions(
+                        name, [specific_source] if specific_source else sources
+                    )
                     result.add_unresolved(name, suggestions)
             else:
-                # No exact match, try fuzzy matching
-                suggestions = self._find_creature_suggestions(name, sources)
-                result.add_unresolved(name, suggestions)
+                # Use original logic for creatures without specific sources
+                matches = self.omnidexer.find_all(creature_type, name)
+
+                if matches:
+                    # Filter by sources (now always specified, either from parameter or default)
+                    filtered_matches: list[Creature] = []
+                    for creature in matches:
+                        if isinstance(creature, Creature) and self._matches_sources(
+                            creature, sources
+                        ):
+                            filtered_matches.append(creature)
+                    creature_matches = filtered_matches
+
+                    # Add all matching creatures
+                    for creature in creature_matches:
+                        source_abbrev = None
+                        if hasattr(creature.source, "abbreviation"):
+                            source_abbrev = creature.source.abbreviation
+                        result.add_creature(creature, source_abbrev)
+
+                    # If no matches after source filtering, treat as unresolved
+                    if sources and not creature_matches:
+                        suggestions = self._find_creature_suggestions(name, sources)
+                        result.add_unresolved(name, suggestions)
+                else:
+                    # No exact match, try fuzzy matching
+                    suggestions = self._find_creature_suggestions(name, sources)
+                    result.add_unresolved(name, suggestions)
 
         # Populate lair actions for all collected creatures
         if result.creatures:

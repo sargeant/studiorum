@@ -342,6 +342,69 @@ class BaseConvertCommand:
             rprint(f"[red]Error:[/red] Failed to load names from {file_path}: {e}")
             raise typer.Exit(1)
 
+    def get_enhanced_name_list_from_file(
+        self, file_path: Path, content_type: str
+    ) -> list[tuple[int, str, str | None]]:
+        """Load enhanced name list with count and source information.
+
+        This method extends get_name_list_from_file() to return structured data
+        that includes count and source information parsed from the file.
+
+        Args:
+            file_path: Path to file containing names with optional counts and sources
+            content_type: Type of content (for validation and metadata)
+
+        Returns:
+            List of tuples containing (count, name, source) where:
+            - count: Number of items (defaults to 1 if not specified)
+            - name: The content name
+            - source: Source abbreviation (None if not specified)
+
+        Raises:
+            typer.Exit: If file cannot be loaded or validated
+
+        Examples:
+            Input file formats supported:
+            - "Goblin" → (1, "Goblin", None)
+            - "3 Goblin" → (3, "Goblin", None)
+            - "Goblin|MM" → (1, "Goblin", "MM")
+            - "3 Goblin|MM" → (3, "Goblin", "MM")
+        """
+        import typer
+        from rich import print as rprint
+
+        from studiorum.core.loaders.content_sources import create_name_list_source
+        from studiorum.core.models.content import ContentType
+
+        try:
+            content_type_enum = ContentType(content_type.lower())
+        except ValueError:
+            rprint(f"[red]Error:[/red] Invalid content type: {content_type}")
+            raise typer.Exit(1)
+
+        name_source = create_name_list_source(file_path, content_type_enum)
+
+        # Validate the source
+        validation = name_source.validate()
+        if not validation.is_valid:
+            for error in validation.errors:
+                rprint(f"[red]Error:[/red] {error}")
+            raise typer.Exit(1)
+
+        # Show warnings if any
+        for warning in validation.warnings:
+            rprint(f"[yellow]Warning:[/yellow] {warning}")
+
+        try:
+            # Use the new structured loading method
+            structured_data = name_source.load_structured()
+            return structured_data
+        except Exception as e:
+            rprint(
+                f"[red]Error:[/red] Failed to load enhanced names from {file_path}: {e}"
+            )
+            raise typer.Exit(1)
+
     def validate_and_load_content(
         self, loader: ContentLoader, show_validation: bool = True
     ) -> Any:

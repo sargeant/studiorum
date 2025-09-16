@@ -519,14 +519,42 @@ def items(
             if item_names:
                 all_item_names.extend(item_names)
 
-            # Collect from file using ContentLoader system
+            # Collect from file using enhanced ContentLoader system
             if from_file:
                 command_instance = BaseConvertCommand()
-                file_items = command_instance.get_name_list_from_file(from_file, "item")
+                file_item_data = command_instance.get_enhanced_name_list_from_file(
+                    from_file, "item"
+                )
+
+                # Process enhanced file data - extract names and handle count/source
+                file_items = []
+                total_item_count = 0
+                source_info = {}
+
+                for count, name, source in file_item_data:
+                    # For items, we just need the unique names (ignore count for content lists)
+                    if name not in file_items:
+                        file_items.append(name)
+
+                    # Track total count for progress reporting
+                    total_item_count += count
+
+                    # Track source information for potential use in filtering
+                    if source:
+                        source_info[name] = source
+
                 all_item_names.extend(file_items)
                 rprint(
-                    f"[green]Loaded {len(file_items)} items from {from_file}[/green]"
+                    f"[green]Loaded {len(file_items)} unique items from {from_file}[/green]"
                 )
+                if total_item_count != len(file_items):
+                    rprint(
+                        f"[blue]ℹ[/blue] Total item references: {total_item_count} (including duplicates)"
+                    )
+                if source_info:
+                    rprint(
+                        f"[blue]ℹ[/blue] Found source specifications for {len(source_info)} items"
+                    )
 
             # Collect from stdin using ContentLoader system
             if from_stdin:

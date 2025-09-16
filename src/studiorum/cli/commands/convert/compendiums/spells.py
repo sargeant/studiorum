@@ -517,16 +517,42 @@ def spells(
             if spell_names:
                 all_spell_names.extend(spell_names)
 
-            # Collect from file using ContentLoader system
+            # Collect from file using enhanced ContentLoader system
             if from_file:
                 command_instance = BaseConvertCommand()
-                file_spells = command_instance.get_name_list_from_file(
+                file_spell_data = command_instance.get_enhanced_name_list_from_file(
                     from_file, "spell"
                 )
+
+                # Process enhanced file data - extract names and handle count/source
+                file_spells = []
+                total_spell_count = 0
+                source_info = {}
+
+                for count, name, source in file_spell_data:
+                    # For spells, we just need the unique names (ignore count for content lists)
+                    if name not in file_spells:
+                        file_spells.append(name)
+
+                    # Track total count for progress reporting
+                    total_spell_count += count
+
+                    # Track source information for potential use in filtering
+                    if source:
+                        source_info[name] = source
+
                 all_spell_names.extend(file_spells)
                 rprint(
-                    f"[green]Loaded {len(file_spells)} spells from {from_file}[/green]"
+                    f"[green]Loaded {len(file_spells)} unique spells from {from_file}[/green]"
                 )
+                if total_spell_count != len(file_spells):
+                    rprint(
+                        f"[blue]ℹ[/blue] Total spell references: {total_spell_count} (including duplicates)"
+                    )
+                if source_info:
+                    rprint(
+                        f"[blue]ℹ[/blue] Found source specifications for {len(source_info)} spells"
+                    )
 
             # Collect from stdin using ContentLoader system
             if from_stdin:

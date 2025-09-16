@@ -1254,6 +1254,64 @@ class FluffImageExtractorProtocol(ServiceProtocol, Protocol):
         ...
 
 
+@runtime_checkable
+class ContentListWriterProtocol(ServiceProtocol, Protocol):
+    """Protocol for content list writing services.
+
+    Handles writing tracked content to files in enhanced format with counts,
+    sources, and metadata. Supports filtering by content type and various
+    output formatting options.
+    """
+
+    def write_content_list(
+        self,
+        content_tracker: ContentTracker,
+        output_path: Path,
+        *,
+        content_type_filter: str | None = None,
+        title: str | None = None,
+        sort_by_count: bool = False,
+        include_zero_counts: bool = False,
+    ) -> Result[int, Any]:
+        """Write tracked content to a file in enhanced format.
+
+        Args:
+            content_tracker: ContentTracker instance containing tracked content
+            output_path: Path where the content list should be written
+            content_type_filter: Optional filter to include only specific content type
+            title: Optional title for the content list (e.g., adventure name)
+            sort_by_count: If True, sort by reference count (descending), else by name
+            include_zero_counts: If True, include content with zero reference counts
+
+        Returns:
+            Result containing the number of entries written, or an error
+        """
+        ...
+
+    def write_all_content_types(
+        self,
+        content_tracker: ContentTracker,
+        output_directory: Path,
+        *,
+        title: str | None = None,
+        sort_by_count: bool = False,
+        include_zero_counts: bool = False,
+    ) -> Result[dict[str, int], Any]:
+        """Write separate files for each content type.
+
+        Args:
+            content_tracker: ContentTracker instance containing tracked content
+            output_directory: Directory where content type files should be written
+            title: Optional title for the content lists
+            sort_by_count: If True, sort by reference count (descending), else by name
+            include_zero_counts: If True, include content with zero reference counts
+
+        Returns:
+            Result containing a dict mapping content type to number of entries written
+        """
+        ...
+
+
 # Export all protocols
 __all__ = [
     # Base protocols
@@ -1295,4 +1353,6 @@ __all__ = [
     "ImageServiceFactoryProtocol",
     "ImageObservabilityProtocol",
     "AsyncResourceMonitorProtocol",
+    # Content list writer protocol
+    "ContentListWriterProtocol",
 ]

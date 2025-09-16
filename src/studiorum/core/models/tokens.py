@@ -65,8 +65,22 @@ class TokenSheet:
         paper_size: str = "letter",
         margins: float = 0.25,
         column_config: dict[str, int] | None = None,
+        creature_counts: dict[str, int] | None = None,
     ) -> "TokenSheet":
-        """Create token sheet from creature list."""
+        """Create token sheet from creature list.
+
+        Args:
+            creatures: List of creatures to create tokens for
+            image_resolver: Service to resolve token images
+            default_count: Default number of tokens per creature
+            paper_size: Paper size for the token sheet
+            margins: Page margins in inches
+            column_config: Number of columns per size category
+            creature_counts: Optional per-creature token counts (name -> count)
+
+        Returns:
+            Configured token sheet
+        """
         if column_config is None:
             column_config = {
                 "tiny": 6,
@@ -96,12 +110,19 @@ class TokenSheet:
                 creature.get_cr_text() if hasattr(creature, "get_cr_text") else ""
             )
 
+            # Determine token count - use per-creature count if available, otherwise default
+            token_count = (
+                creature_counts.get(creature.name, default_count)
+                if creature_counts
+                else default_count
+            )
+
             # Create token data
             token = TokenData(
                 creature_name=creature.name,
                 image_path=image_path,  # Already converted to PNG if needed
                 size=creature_size,
-                count=default_count,
+                count=token_count,
                 source=creature_source,
                 cr=creature_cr,
             )

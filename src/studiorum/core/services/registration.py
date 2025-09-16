@@ -23,6 +23,7 @@ from .factories import (
     create_configuration_service,
     create_content_attribution_service,
     create_content_factory_service,
+    create_content_list_writer_service,
     create_content_type_registry_service,
     create_data_source_manager_service,
     create_display_manager_service,
@@ -38,6 +39,7 @@ from .protocols import (
     ConfigurationProtocol,
     ContentAttributionProtocol,
     ContentFactoryProtocol,
+    ContentListWriterProtocol,
     ContentTypeRegistryProtocol,
     DisplayManagerProtocol,
     EntryTypeRegistryProtocol,
@@ -208,6 +210,18 @@ async def register_modern_services(container: ServiceContainer) -> None:
         cleanup_priority=CleanupPriority.REQUEST_SCOPED,
     )
     logger.debug("Registered FluffDeduplicatorProtocol as scoped")
+
+    # Content list writer service (utility service)
+    # Register as singleton since it's stateless
+    container.register_service(
+        ContentListWriterProtocol,  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        create_content_list_writer_service,
+        lifecycle=ServiceLifecycle.SINGLETON,
+        dependencies=(),
+        hot_reloadable=False,
+        cleanup_priority=CleanupPriority.INFRASTRUCTURE,
+    )
+    logger.debug("Registered ContentListWriterProtocol as singleton")
 
     # Encounter building services (Package 2.3)
     # Register after core services are available
