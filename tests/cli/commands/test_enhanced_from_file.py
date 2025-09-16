@@ -108,9 +108,11 @@ class TestEnhancedFromFileSupport:
         mock_tag_resolver.return_value = Mock()
 
         with patch(
-            "studiorum.cli.commands.convert.compendiums.spells.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.latex_engine.core.template_engine.LaTeXTemplateEngine"
+        ) as mock_template_class:
+            mock_template = Mock()
+            mock_template.render_template.return_value = "Mock LaTeX output"
+            mock_template_class.return_value = mock_template
 
             output_file = self.temp_dir / "spells_output.tex"
             result = self.runner.invoke(
@@ -144,9 +146,11 @@ class TestEnhancedFromFileSupport:
         mock_tag_resolver.return_value = Mock()
 
         with patch(
-            "studiorum.cli.commands.convert.compendiums.spells.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.latex_engine.core.template_engine.LaTeXTemplateEngine"
+        ) as mock_template_class:
+            mock_template = Mock()
+            mock_template.render_template.return_value = "Mock LaTeX output"
+            mock_template_class.return_value = mock_template
 
             output_file = self.temp_dir / "spells_enhanced_output.tex"
             result = self.runner.invoke(
@@ -184,9 +188,11 @@ class TestEnhancedFromFileSupport:
         mock_tag_resolver.return_value = Mock()
 
         with patch(
-            "studiorum.cli.commands.convert.compendiums.spells.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.latex_engine.core.template_engine.LaTeXTemplateEngine"
+        ) as mock_template_class:
+            mock_template = Mock()
+            mock_template.render_template.return_value = "Mock LaTeX output"
+            mock_template_class.return_value = mock_template
 
             output_file = self.temp_dir / "spells_sources_output.tex"
             result = self.runner.invoke(
@@ -220,9 +226,11 @@ class TestEnhancedFromFileSupport:
         mock_tag_resolver.return_value = Mock()
 
         with patch(
-            "studiorum.cli.commands.convert.compendiums.creatures.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.latex_engine.core.template_engine.LaTeXTemplateEngine"
+        ) as mock_template_class:
+            mock_template = Mock()
+            mock_template.render_template.return_value = "Mock LaTeX output"
+            mock_template_class.return_value = mock_template
 
             output_file = self.temp_dir / "creatures_enhanced_output.tex"
             result = self.runner.invoke(
@@ -260,9 +268,11 @@ class TestEnhancedFromFileSupport:
         mock_tag_resolver.return_value = Mock()
 
         with patch(
-            "studiorum.cli.commands.convert.compendiums.items.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.latex_engine.core.template_engine.LaTeXTemplateEngine"
+        ) as mock_template_class:
+            mock_template = Mock()
+            mock_template.render_template.return_value = "Mock LaTeX output"
+            mock_template_class.return_value = mock_template
 
             output_file = self.temp_dir / "items_enhanced_output.tex"
             result = self.runner.invoke(

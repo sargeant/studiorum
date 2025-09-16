@@ -104,11 +104,22 @@ class TestAdventureContentOutput:
         )  # Success with 2 entries
         mock_get_writer.return_value = mock_writer
 
-        # Mock template rendering
+        # Mock LaTeX engine rendering
         with patch(
-            "studiorum.cli.commands.convert.adventure.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+        ) as mock_engine_factory:
+            mock_engine = Mock()
+            mock_engine.render_document.return_value = "Mock LaTeX output"
+            mock_engine_factory.return_value = mock_engine
+
+            # Mock resolve_content_or_file
+            with patch(
+                "studiorum.cli.commands.convert.adventure.resolve_content_or_file"
+            ) as mock_resolve:
+                # Mock adventure content
+                mock_adventure = Mock()
+                mock_adventure.name = "Test Adventure"
+                mock_resolve.return_value = ([mock_adventure], "test adventure")
 
             # Mock ContentTracker creation and tracking
             with patch(

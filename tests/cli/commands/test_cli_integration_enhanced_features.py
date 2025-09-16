@@ -100,7 +100,7 @@ class TestCLIIntegrationEnhancedFeatures:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.TemplateService"
+            "studiorum.cli.commands.convert.adventure.create_latex_engine"
         ) as mock_template:
             mock_template.return_value.render.return_value = "Mock LaTeX output"
 
@@ -178,7 +178,7 @@ class TestCLIIntegrationEnhancedFeatures:
         mock_tag_resolver.return_value = Mock()
 
         with patch(
-            "studiorum.cli.commands.convert.compendiums.spells.TemplateService"
+            "studiorum.latex_engine.core.template_engine.LaTeXTemplateEngine"
         ) as mock_template:
             mock_template.return_value.render.return_value = "Mock LaTeX output"
 
@@ -257,7 +257,7 @@ class TestCLIIntegrationEnhancedFeatures:
                     mock_get_writer.return_value = mock_writer
 
                     with patch(
-                        "studiorum.cli.commands.convert.adventure.TemplateService"
+                        "studiorum.cli.commands.convert.adventure.create_latex_engine"
                     ) as mock_template:
                         mock_template.return_value.render.return_value = (
                             "Mock LaTeX output"
@@ -360,7 +360,7 @@ class TestCLIIntegrationEnhancedFeatures:
                     mock_get_writer.return_value = mock_writer
 
                     with patch(
-                        "studiorum.cli.commands.convert.adventure.TemplateService"
+                        "studiorum.cli.commands.convert.adventure.create_latex_engine"
                     ) as mock_template:
                         mock_template.return_value.render.return_value = (
                             "Mock LaTeX output"
@@ -430,7 +430,7 @@ class TestCLIIntegrationEnhancedFeatures:
                 mock_tag_resolver.return_value = Mock()
 
                 with patch(
-                    "studiorum.cli.commands.convert.compendiums.spells.TemplateService"
+                    "studiorum.latex_engine.core.template_engine.LaTeXTemplateEngine"
                 ) as mock_template:
                     mock_template.return_value.render.return_value = "Mock LaTeX output"
 
@@ -499,7 +499,7 @@ class TestCLIIntegrationEnhancedFeatures:
                     mock_get_writer.return_value = mock_writer
 
                     with patch(
-                        "studiorum.cli.commands.convert.adventure.TemplateService"
+                        "studiorum.cli.commands.convert.adventure.create_latex_engine"
                     ) as mock_template:
                         mock_template.return_value.render.return_value = (
                             "Mock adventure LaTeX"
@@ -554,7 +554,7 @@ class TestCLIIntegrationEnhancedFeatures:
                 mock_tag_resolver.return_value = Mock()
 
                 with patch(
-                    "studiorum.cli.commands.convert.compendiums.spells.TemplateService"
+                    "studiorum.latex_engine.core.template_engine.LaTeXTemplateEngine"
                 ) as mock_template:
                     mock_template.return_value.render.return_value = "Mock spells LaTeX"
 

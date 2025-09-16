@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import Mock
 
+import click
 import pytest
 
 from studiorum.cli.commands.convert.base import BaseConvertCommand
@@ -275,7 +276,7 @@ Baba Yaga's Hut|CoS
         content = "Fireball|PHB"
         file_path = self.create_test_file(content)
 
-        with pytest.raises(SystemExit):  # typer.Exit(1)
+        with pytest.raises(click.exceptions.Exit):  # typer.Exit(1)
             self.base_command.get_enhanced_name_list_from_file(
                 file_path, "invalid_type"
             )
@@ -284,14 +285,14 @@ Baba Yaga's Hut|CoS
         """Test error handling for missing file."""
         missing_file = self.temp_dir / "nonexistent.txt"
 
-        with pytest.raises(SystemExit):  # typer.Exit(1)
+        with pytest.raises(click.exceptions.Exit):  # typer.Exit(1)
             self.base_command.get_enhanced_name_list_from_file(missing_file, "spell")
 
     def test_get_enhanced_name_list_from_file_empty_file(self) -> None:
         """Test error handling for empty file."""
         empty_file = self.create_test_file("")
 
-        with pytest.raises(SystemExit):  # typer.Exit(1)
+        with pytest.raises(click.exceptions.Exit):  # typer.Exit(1)
             self.base_command.get_enhanced_name_list_from_file(empty_file, "spell")
 
     def test_get_enhanced_name_list_from_file_comments_only(self) -> None:
@@ -299,7 +300,7 @@ Baba Yaga's Hut|CoS
         content = "# Only comments\n# No actual content\n\n# More comments"
         file_path = self.create_test_file(content)
 
-        with pytest.raises(SystemExit):  # typer.Exit(1)
+        with pytest.raises(click.exceptions.Exit):  # typer.Exit(1)
             self.base_command.get_enhanced_name_list_from_file(file_path, "spell")
 
     def test_backward_compatibility_with_existing_method(self) -> None:
@@ -355,7 +356,9 @@ Shield"""
         file_path.chmod(0o000)
 
         try:
-            with pytest.raises(SystemExit):  # Should handle permission error gracefully
+            with pytest.raises(
+                click.exceptions.Exit
+            ):  # Should handle permission error gracefully
                 self.base_command.get_enhanced_name_list_from_file(file_path, "spell")
         finally:
             # Restore permissions for cleanup
@@ -363,7 +366,7 @@ Shield"""
 
     def test_source_parsing_edge_cases(self) -> None:
         """Test edge cases in source parsing."""
-        content = """Name with | in it|PHB
+        content = """Name with complex desc|PHB
 Name|Source|With|Pipes
 Normal Name|PHB"""
         file_path = self.create_test_file(content)
@@ -372,9 +375,9 @@ Normal Name|PHB"""
             file_path, "spell"
         )
 
-        # First pipe should be the delimiter, rest should be part of name or source
+        # First pipe should be the delimiter, rest should be part of source
         expected = [
-            (1, "Name with | in it", "PHB"),
+            (1, "Name with complex desc", "PHB"),
             (1, "Name", "Source|With|Pipes"),  # Only first | is delimiter
             (1, "Normal Name", "PHB"),
         ]
