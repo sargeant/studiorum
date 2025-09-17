@@ -150,7 +150,7 @@ class TestAdventureContentOutput:
                 # Verify ContentListWriter was called for spells
                 mock_writer.write_content_list.assert_called_once()
                 call_args = mock_writer.write_content_list.call_args
-                assert call_args[0][1] == spells_output  # output_path
+                assert call_args[1]["output_path"] == spells_output  # keyword argument
                 assert call_args[1]["content_type_filter"] == "spell"
                 assert call_args[1]["title"] == "Test Adventure"
 
@@ -179,9 +179,11 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+        ) as mock_create_engine:
+            mock_engine = Mock()
+            mock_engine.render_document.return_value = "Mock LaTeX output"
+            mock_create_engine.return_value = mock_engine
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -211,7 +213,9 @@ class TestAdventureContentOutput:
                 # Verify ContentListWriter was called for creatures
                 mock_writer.write_content_list.assert_called_once()
                 call_args = mock_writer.write_content_list.call_args
-                assert call_args[0][1] == creatures_output  # output_path
+                assert (
+                    call_args[1]["output_path"] == creatures_output
+                )  # keyword argument
                 assert call_args[1]["content_type_filter"] == "creature"
 
     @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
@@ -239,9 +243,11 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+        ) as mock_create_engine:
+            mock_engine = Mock()
+            mock_engine.render_document.return_value = "Mock LaTeX output"
+            mock_create_engine.return_value = mock_engine
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -271,7 +277,7 @@ class TestAdventureContentOutput:
                 # Verify ContentListWriter was called for items
                 mock_writer.write_content_list.assert_called_once()
                 call_args = mock_writer.write_content_list.call_args
-                assert call_args[0][1] == items_output  # output_path
+                assert call_args[1]["output_path"] == items_output  # keyword argument
                 assert call_args[1]["content_type_filter"] == "item"
 
     @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
@@ -297,9 +303,11 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+        ) as mock_create_engine:
+            mock_engine = Mock()
+            mock_engine.render_document.return_value = "Mock LaTeX output"
+            mock_create_engine.return_value = mock_engine
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -358,9 +366,11 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+        ) as mock_create_engine:
+            mock_engine = Mock()
+            mock_engine.render_document.return_value = "Mock LaTeX output"
+            mock_create_engine.return_value = mock_engine
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -421,9 +431,11 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+        ) as mock_create_engine:
+            mock_engine = Mock()
+            mock_engine.render_document.return_value = "Mock LaTeX output"
+            mock_create_engine.return_value = mock_engine
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -450,7 +462,7 @@ class TestAdventureContentOutput:
 
                 # Should still succeed with main conversion, but show warning about content list
                 assert result.exit_code == 0
-                assert "Warning" in result.stdout or "Failed" in result.stdout
+                assert "Error" in result.stdout or "Warning" in result.stdout
 
     @patch("studiorum.cli.commands.convert.adventure.get_content_list_writer")
     @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
@@ -477,9 +489,11 @@ class TestAdventureContentOutput:
         mock_get_writer.return_value = mock_writer
 
         with patch(
-            "studiorum.cli.commands.convert.adventure.TemplateService"
-        ) as mock_template:
-            mock_template.return_value.render.return_value = "Mock LaTeX output"
+            "studiorum.cli.commands.convert.adventure.create_latex_engine"
+        ) as mock_create_engine:
+            mock_engine = Mock()
+            mock_engine.render_document.return_value = "Mock LaTeX output"
+            mock_create_engine.return_value = mock_engine
 
             with patch(
                 "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -538,11 +552,11 @@ class TestAdventureContentOutput:
                     mock_get_writer.return_value = mock_writer
 
                     with patch(
-                        "studiorum.cli.commands.convert.adventure.TemplateService"
-                    ) as mock_template:
-                        mock_template.return_value.render.return_value = (
-                            "Mock LaTeX output"
-                        )
+                        "studiorum.cli.commands.convert.adventure.create_latex_engine"
+                    ) as mock_create_engine:
+                        mock_engine = Mock()
+                        mock_engine.render_document.return_value = "Mock LaTeX output"
+                        mock_create_engine.return_value = mock_engine
 
                         with patch(
                             "studiorum.cli.commands.convert.adventure.ContentTracker"
@@ -576,7 +590,7 @@ class TestAdventureContentOutput:
                             # Verify the path was passed to ContentListWriter
                             # (ContentListWriter itself handles directory creation)
                             call_args = mock_writer.write_content_list.call_args
-                            assert call_args[0][1] == spells_output
+                            assert call_args[1]["output_path"] == spells_output
 
     def test_adventure_no_content_output_options(self):
         """Test adventure conversion without any content output options (normal behavior)."""
@@ -604,11 +618,11 @@ class TestAdventureContentOutput:
                     mock_get_writer.return_value = mock_writer
 
                     with patch(
-                        "studiorum.cli.commands.convert.adventure.TemplateService"
-                    ) as mock_template:
-                        mock_template.return_value.render.return_value = (
-                            "Mock LaTeX output"
-                        )
+                        "studiorum.cli.commands.convert.adventure.create_latex_engine"
+                    ) as mock_create_engine:
+                        mock_engine = Mock()
+                        mock_engine.render_document.return_value = "Mock LaTeX output"
+                        mock_create_engine.return_value = mock_engine
 
                         with patch(
                             "studiorum.cli.commands.convert.adventure.ContentTracker"
