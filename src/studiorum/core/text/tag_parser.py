@@ -1,4 +1,4 @@
-"""Lark-based parser for D&D 5e.tools tags."""
+"""Lark-based parser for 5e.tools tags."""
 
 from pathlib import Path
 from typing import Any
@@ -130,6 +130,7 @@ class TagASTTransformer(Transformer):
         "underline": (1, 1),
         "code": (1, 1),
         "note": (1, 1),  # note_text
+        "link": (2, 2),  # title|url
         "quickref": (1, 5),
         "loader": (1, 1),
         "filter": (1, 5),
@@ -534,6 +535,15 @@ class TagASTTransformer(Transformer):
             node.name = name  # Contains note text
             return node
 
+        elif tag_type == "link":
+            # Link tags have format: title|url
+            node = TagNode(tag_type)
+            node.name = name  # Contains title text
+            node.source = source  # Contains URL
+            # Display text is the title
+            node.display_text_nodes = [TextNode(name)] if name else []
+            return node
+
         # Tarokka and card-specific tags
         elif tag_type == "card":
             # Card tags have format: card_name|deck|source
@@ -645,7 +655,7 @@ class TagASTTransformer(Transformer):
 
 
 class TagParser:
-    """Main parser class for D&D 5e.tools tags."""
+    """Main parser class for 5e.tools tags."""
 
     def __init__(self) -> None:
         # Load grammar from file

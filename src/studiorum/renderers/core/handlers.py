@@ -2083,6 +2083,44 @@ class NoteTagHandler(BaseTagHandler):
             return ""
 
 
+class LinkTagHandler(BaseTagHandler):
+    """Handler for link tags like {@link Title | URL}."""
+
+    def __init__(self) -> None:
+        super().__init__("link")
+
+    def extract_content_info(
+        self, node: TagNode, context: RenderingContext
+    ) -> ContentReferenceInfo:
+        """Extract content info - not used for this tag type, use process_tag instead."""
+        return ContentReferenceInfo(
+            name="link",
+            display_text="link",
+            source=None,
+            page=None,
+            content_type=None,
+            format_style=FormatStyle.PLAIN,
+        )
+
+    def process_tag(
+        self, tag_node: TagNode, context: RenderingContext
+    ) -> FormattingNode | str:
+        """Process link tags by returning a SpecialTag with link metadata."""
+        from studiorum.core.text.tag_types import SpecialTag
+
+        # Extract title (first parameter) and URL (second parameter)
+        title = getattr(tag_node, "name", "").strip()
+        url = getattr(tag_node, "source", "").strip()
+
+        if not title or not url:
+            # If either title or URL is missing, return the title text without link
+            return title if title else ""
+
+        # Return as SpecialTag with link metadata
+        # The LaTeXTagRenderer will handle the actual LaTeX generation
+        return SpecialTag(tag_type="link", value=title, metadata={"url": url})
+
+
 class QuickrefTagHandler(BaseTagHandler):
     """Handle @quickref tags for rules and game mechanics references."""
 
@@ -2789,9 +2827,9 @@ def get_default_core_handlers() -> list[TagHandler]:
         DiseaseTagHandler(),
         TableTagHandler(),
         NoteTagHandler(),
+        LinkTagHandler(),
         QuickrefTagHandler(),
         HitYourSpellAttackTagHandler(),
-        # New handlers for previously missing tag types
         ActionTagHandler(),
         AreaTagHandler(),
         SkillTagHandler(),

@@ -89,11 +89,11 @@ class LaTeXTagRenderer:
 
     def _render_formatting_node(self, node: FormattingNode) -> str:
         """Render a formatting node with appropriate LaTeX commands."""
-        # Special handling for bold D&D text - use small-caps instead
+        # Special handling for bold 5e branding text - use small-caps instead
         if node.format_type == FormatType.BOLD and self._is_dnd_text(node.content):
-            # Format D&D text for small-caps and escape manually without auto-transformation
+            # Format 5e branding text for small-caps and escape manually without auto-transformation
             formatted_text = self._format_dnd_text(node.content)
-            # Use basic LaTeX escaping without the D&D small-caps transformation
+            # Use basic LaTeX escaping without the 5e small-caps transformation
             escaped_text = self._escape_latex_basic(formatted_text)
             return f"\\textsc{{{escaped_text}}}"
 
@@ -106,11 +106,11 @@ class LaTeXTagRenderer:
             # Content already contains LaTeX commands, use as-is
             content = node.content
         elif node.format_type == FormatType.SMALL_CAPS:
-            # For small-caps, use basic escaping without D&D transformation
+            # For small-caps, use basic escaping without 5e branding transformation
             # since we're already applying small-caps formatting
             content = self._escape_latex_basic(node.content)
         else:
-            # Regular text content, escape it (includes D&D transformation for non-small-caps)
+            # Regular text content, escape it (includes 5e branding transformation for non-small-caps)
             content = self._escape_latex(node.content)
 
         if node.format_type == FormatType.BOLD:
@@ -156,6 +156,20 @@ class LaTeXTagRenderer:
         elif tag.tag_type == "loader":
             # Loader tags are UI elements - omitted in print
             return ""
+        elif tag.tag_type == "link":
+            # Hyperlink tags: {@link Title | URL}
+            url = tag.metadata.get("url", "") if tag.metadata else ""
+            if url:
+                # Escape LaTeX special characters in title
+                escaped_title = self._escape_latex(tag.effective_value)
+                # URL needs special handling - escape only characters that break LaTeX
+                escaped_url = (
+                    url.replace("#", "\\#").replace("%", "\\%").replace("&", "\\&")
+                )
+                return f"\\href{{{escaped_url}}}{{{escaped_title}}}"
+            else:
+                # No URL provided, just render the title
+                return self._escape_latex(tag.effective_value)
         else:
             logger.debug(f"Unknown special tag type: {tag.tag_type}")
             return self._escape_latex(tag.effective_value)
@@ -165,11 +179,11 @@ class LaTeXTagRenderer:
         return escape_latex_text(text)
 
     def _escape_latex_basic(self, text: str) -> str:
-        """Escape LaTeX special characters without D&D small-caps transformation."""
+        """Escape LaTeX special characters without 5e branding small-caps transformation."""
         if not text:
             return ""
 
-        # LaTeX special characters (same as in latex_utils.py but without D&D transformation)
+        # LaTeX special characters (same as in latex_utils.py but without 5e branding transformation)
         latex_chars = {
             "{": "\\{",
             "}": "\\}",
@@ -206,17 +220,17 @@ class LaTeXTagRenderer:
         return result
 
     def _is_dnd_text(self, text: str) -> bool:
-        """Check if text is ONLY D&D references that should use small-caps."""
+        """Check if text is ONLY 5e branding references that should use small-caps."""
         import re
 
         # Strip and normalize whitespace
         text = text.strip()
 
-        # Check if the ENTIRE text is just D&D references (case insensitive)
+        # Check if the ENTIRE text is just 5e branding references (case insensitive)
         # Handle both escaped and unescaped ampersands
         exact_patterns = [
-            r"^Dungeons\s*\\?&\s*Dragons$",  # Exactly "Dungeons & Dragons" or "Dungeons \& Dragons"
-            r"^D\\?&D$",  # Exactly "D&D" or "D\&D"
+            r"^Dungeons\s*\\?&\s*Dragons$",  # Pattern for the full game name
+            r"^D\\?&D$",  # Pattern for the abbreviated game name
         ]
 
         for pattern in exact_patterns:
@@ -226,10 +240,10 @@ class LaTeXTagRenderer:
         return False
 
     def _format_dnd_text(self, text: str) -> str:
-        """Format D&D text for small-caps, ensuring proper case."""
+        """Format 5e branding text for small-caps, ensuring proper case."""
         import re
 
-        # Replace "Dungeons & Dragons" variants with proper case for small-caps
+        # Replace full game name variants with proper case for small-caps
         # Don't escape the ampersand here - let _escape_latex_basic handle it
         text = re.sub(
             r"^Dungeons\s*\\?&\s*Dragons$",
@@ -238,7 +252,7 @@ class LaTeXTagRenderer:
             flags=re.IGNORECASE,
         )
 
-        # Replace "D&D" variants with lowercase for better small-caps appearance
+        # Replace abbreviated name variants with lowercase for better small-caps appearance
         text = re.sub(r"^D\\?&D$", "d&d", text, flags=re.IGNORECASE)
 
         return text
