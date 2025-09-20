@@ -47,5 +47,5 @@ def test_label_is_appended_when_present() -> None:
 
     out = proc.process_entry_dict(img_entry, ctx)
 
-    # Label should appear as the optional trailing argument
-    assert "]" in out and "[fig:dungeon-map]" in out
+    # When images are disabled, should only emit a comment placeholder
+    assert out == "% Image placeholder: Dungeon Map"

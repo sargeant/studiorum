@@ -2104,7 +2104,7 @@ class LinkTagHandler(BaseTagHandler):
 
     def process_tag(
         self, tag_node: TagNode, context: RenderingContext
-    ) -> FormattingNode | str:
+    ) -> FormattingNode | SpecialTag | str:
         """Process link tags by returning a SpecialTag with link metadata."""
         from studiorum.core.text.tag_types import SpecialTag
 

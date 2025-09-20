@@ -93,16 +93,10 @@ class ImageProcessor:
         Returns:
             LaTeX code for the processed image
         """
-        # If images are disabled: manual mode emits draft macro; otherwise placeholder
+        # If images are disabled, always emit a comment placeholder regardless of placement mode
         include_images = context.metadata.get("include_images", True)
-        placement_mode = str(context.metadata.get("placement_mode", "manual")).lower()
         if not include_images:
             title = image_entry.get("title", "")
-            if placement_mode == "manual":
-                image_path = self._extract_image_path(image_entry.get("href", "")) or ""
-                return self._generate_studiorum_image_macro(
-                    Path(image_path or (title or "image")), image_entry, context
-                )
             return f"% Image placeholder: {title}" if title else "% Image placeholder"
 
         href = image_entry.get("href", "")
