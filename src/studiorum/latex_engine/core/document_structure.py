@@ -394,6 +394,24 @@ class DocumentStructureBuilder:
         # Clean title for LaTeX (remove manual numbering)
         clean_title = self._get_clean_title(title, chapter_type)
 
+        # Check for explicit chapter numbering (from filtered adventures)
+        explicit_number = None
+        if chapter_type == ChapterType.CHAPTER and numbered:
+            # Look for adventure in context metadata
+            source_adventure = context.metadata.get("_source_adventure")
+            if (
+                source_adventure
+                and hasattr(source_adventure, "metadata")
+                and source_adventure.metadata
+            ):
+                custom_fields = getattr(source_adventure.metadata, "custom_fields", {})
+                chapter_number_map = custom_fields.get("chapter_number_map", {})
+
+                # chapter_num is 1-indexed position in filtered contents
+                chapter_index = chapter_num - 1
+                if chapter_index in chapter_number_map:
+                    explicit_number = chapter_number_map[chapter_index]
+
         # Create chapter section
         section = ContentSection(
             title=clean_title,
@@ -401,6 +419,7 @@ class DocumentStructureBuilder:
             numbered=numbered,
             chapter_type=chapter_type,
             appendix_letter=appendix_letter,
+            explicit_chapter_number=explicit_number,
             label=f"ch:{self._generate_label(clean_title)}-{chapter_num}",
             page_break_before=False,
             page_break_after=False,

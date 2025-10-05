@@ -15,6 +15,12 @@
 \appendix
 <@ endif @>
 
+<#-- Set explicit chapter counter for filtered chapters --#>
+<#-- Only for numbered story chapters, not introductions or appendices --#>
+<@ if section.explicit_chapter_number and section.chapter_type == 'chapter' @>
+\setcounter{chapter}{<# section.explicit_chapter_number - 1 #>}
+<@ endif @>
+
 <@ if section.chapter_type == 'introduction' @>
 <#-- Unnumbered chapter but in ToC --#>
 \chapter*{<# section.title | latex_escape #>}

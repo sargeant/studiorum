@@ -21,6 +21,9 @@ class AdventureMetadata(BaseModel):
     level: dict[str, Any] | None = Field(None, description="Level range")
     group: str | None = Field(None, description="Adventure group")
     cover: dict[str, Any] | None = Field(None, description="Cover image")
+    custom_fields: dict[str, Any] = Field(
+        default_factory=dict, description="Custom metadata fields"
+    )
 
     def get_level_range(self) -> str:
         """Get formatted level range text for display.
@@ -59,7 +62,7 @@ class AdventureMetadata(BaseModel):
     loader_type="json",
 )
 class Adventure(BaseContent):
-    """Represents a D&D adventure with unified metadata and content structure.
+    """Represents a 5e adventure with unified metadata and content structure.
 
     This model handles adventures from the 5etools dual-file architecture:
     - Metadata files (adventures.json) provide structure, names, and publishing info

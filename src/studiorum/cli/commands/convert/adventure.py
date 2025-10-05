@@ -55,6 +55,18 @@ def adventure(
         help="Include images",
         rich_help_panel="Content Options",
     ),
+    chapters: str | None = typer.Option(
+        None,
+        "--chapters",
+        help="Chapter numbers to convert (e.g., '1,5,8-9'). Always sorted.",
+        rich_help_panel="Content Options",
+    ),
+    with_introduction: bool = typer.Option(
+        False,
+        "--with-introduction",
+        help="Include introduction when filtering chapters",
+        rich_help_panel="Content Options",
+    ),
     compile_pdf: bool = typer.Option(
         get_compile_pdf_default(),
         "--pdf",
@@ -217,14 +229,64 @@ def adventure(
                 )  # Get cached instance since data is already loaded
                 tag_resolver = get_tag_resolver()
 
+            # Apply chapter filter if specified
+            chapter_numbers: list[int] | None = None
+            if chapters:
+                try:
+                    from studiorum.core.models.adventures import Adventure
+                    from studiorum.core.utils.chapters import (
+                        filter_adventure_chapters,
+                        parse_chapter_spec,
+                    )
+
+                    chapter_numbers = parse_chapter_spec(chapters)
+
+                    # Type guard: ensure we have an Adventure
+                    if not isinstance(content_items[0], Adventure):
+                        rprint(
+                            "[red]Error:[/red] Chapter filtering only works with adventures"
+                        )
+                        raise typer.Exit(1)
+
+                    filtered_adventure, warnings = filter_adventure_chapters(
+                        content_items[0],
+                        chapter_numbers,
+                        include_introduction=with_introduction,
+                    )
+
+                    # Replace content with filtered version
+                    content_items[0] = filtered_adventure
+
+                    # Display what we're doing
+                    chapter_list = ", ".join(str(n) for n in chapter_numbers)
+                    rprint(f"[green]Filtering to chapters:[/green] {chapter_list}")
+                    if with_introduction:
+                        rprint("[green]Including:[/green] Introduction")
+
+                    # Display warnings
+                    for warning in warnings:
+                        rprint(f"[yellow]Warning:[/yellow] {warning}")
+
+                except ValueError as e:
+                    rprint(f"[red]Error:[/red] {e}")
+                    raise typer.Exit(1)
+
             # Determine output file
             if output_file is None:
                 if "file:" in source_desc:
                     # Use input filename for file-based sources
-                    input_name = Path(content_source).with_suffix(".tex").name
+                    base_name = Path(content_source).stem
                 else:
                     # Use content name for abbreviation-based sources
-                    input_name = f"{content_source}.tex"
+                    base_name = content_source
+
+                # Add chapter suffix if filtering
+                if chapters and chapter_numbers is not None:
+                    chapter_suffix = "-ch" + "-".join(str(n) for n in chapter_numbers)
+                    input_name = f"{base_name}{chapter_suffix}.tex"
+                else:
+                    input_name = f"{base_name}.tex"
+
                 output_path = Path("output/adventures") / input_name
             else:
                 output_path = output_file
@@ -314,6 +376,9 @@ def adventure(
                     "appendix_creatures": appendix_creatures,
                     "ultimate_appendix": ultimate_appendix,
                     "creature_level": creature_level,
+                    "_source_adventure": content_items[
+                        0
+                    ],  # Pass for chapter number lookup
                 },
             )
 

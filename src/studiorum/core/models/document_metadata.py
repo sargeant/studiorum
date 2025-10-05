@@ -229,6 +229,9 @@ class ContentSection(BaseModel):
         False,
         description="Whether this is the first appendix (triggers \\appendix command)",
     )
+    explicit_chapter_number: int | None = Field(
+        None, description="Explicit chapter number to set LaTeX counter"
+    )
 
     # Content organization
     content_items: list[Any] = Field(
