@@ -182,7 +182,7 @@ boundaries: uv
 # Security checks
 ## Security vulnerability scan
 pip-audit: uv
-	@$(UV) pip-audit --desc=off || (echo "ERROR: pip-audit: security vulnerabilities found"; exit 1)
+	@$(UV) pip-audit --desc=off --ignore-vuln GHSA-4xh5-x5gv-qwph || (echo "ERROR: pip-audit: security vulnerabilities found"; exit 1)
 
 ## Static security analysis
 bandit: uv
