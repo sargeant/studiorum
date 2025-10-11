@@ -40,6 +40,7 @@ class RegistryManager:
     def _update_source_manager(self, metadata: dict[str, ContentTypeMetadata]) -> None:
         """Replace source manager patterns with registry-based patterns."""
         try:
+            from ..loaders.data_source_manager import DataSourceManager
             from ..loaders.unified_source_manager import UnifiedSourceManager
 
             # Replace the entire content_patterns dict
@@ -56,8 +57,9 @@ class RegistryManager:
                     )
                     continue
 
-            # Replace the class attribute completely
+            # Replace the class attribute on both managers
             UnifiedSourceManager.content_patterns = new_patterns  # type: ignore[attr-defined]
+            DataSourceManager.content_patterns = new_patterns  # type: ignore[attr-defined]
             logger.debug(
                 f"Replaced content_patterns with {len(new_patterns)} registry-based patterns"
             )
