@@ -201,6 +201,10 @@ def loaded_omnidexer(
     # Use full reset sequence for complete isolation
     reset_test_environment()
 
+    # Create test data directories
+    (temp_data_dir / "spells").mkdir(parents=True, exist_ok=True)
+    (temp_data_dir / "bestiary").mkdir(parents=True, exist_ok=True)
+
     # Create test data files and ensure they're written to disk
     spell_file = temp_data_dir / "spells" / "test-spells.json"
     spell_file.write_text(json.dumps({"spell": [sample_spell_data]}))
@@ -208,9 +212,31 @@ def loaded_omnidexer(
     creature_file = temp_data_dir / "bestiary" / "test-creatures.json"
     creature_file.write_text(json.dumps({"monster": [sample_creature_data]}))
 
-    # Create source manager pointing to temp directory
-    source_manager = DataSourceManager(temp_data_dir.parent)
-    source_manager.path_config.data_path = temp_data_dir
+    # Create source manager with proper config pointing to temp directory
+    from studiorum.core.config.unified_config import ApplicationConfig, PathsConfig
+    from studiorum.core.sources import ContentSourceManager
+
+    # Create a test content source pointing to temp directory
+    test_source = ContentSource(
+        name="test",
+        type=SourceType.DIRECTORY,
+        path=temp_data_dir,
+        enabled=True,
+        priority=0,
+    )
+
+    content_config = ContentConfiguration(
+        content_sources=[test_source], cache_dir=temp_data_dir.parent / "cache"
+    )
+
+    test_config = ApplicationConfig(paths=PathsConfig(data_path=temp_data_dir))
+    source_manager = DataSourceManager(test_config)
+
+    # Override content manager with our test config
+    source_manager.content_manager = ContentSourceManager(content_config)
+
+    # Build content index before loading data
+    source_manager.content_manager.build_content_index_sync()
 
     # Create and load omnidexer
     omnidexer = Omnidexer(source_manager)

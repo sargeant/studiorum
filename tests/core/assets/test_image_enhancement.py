@@ -191,9 +191,6 @@ class TestEnhancedImageManager:
 
     def test_initialization(self):
         """Test that ImageManager initializes with default sources."""
-        # Should have legacy sources
-        assert len(self.manager.sources) > 0
-
         # Should have registry with sources
         registry = self.manager.get_registry()
         sources = registry.list_sources()
@@ -223,18 +220,15 @@ class TestEnhancedImageManager:
         assert result.exists()
         assert result.name == "test.png"
 
-    def test_add_legacy_local_source(self):
-        """Test adding a local source using legacy method."""
+    def test_add_local_source(self):
+        """Test adding a local source."""
         test_dir = self.temp_dir / "custom_images"
         test_dir.mkdir(parents=True)
 
-        # Add using legacy method
+        # Add local source
         self.manager.add_local_source("custom", test_dir, priority=50)
 
-        # Should be added to both legacy and registry
-        legacy_source_names = {s.name for s in self.manager.sources}
-        assert "custom" in legacy_source_names
-
+        # Should be added to registry
         registry_source_names = {
             s.config.name for s in self.manager.get_registry().list_sources()
         }
@@ -258,16 +252,12 @@ class TestEnhancedImageManager:
         assert result is True
 
     def test_cache_info_integration(self):
-        """Test that cache info includes both registry and legacy data."""
+        """Test that cache info includes registry data."""
         cache_info = self.manager.get_cache_info()
 
         # Should have registry stats
         assert "total_cached_assets" in cache_info
         assert "sources" in cache_info
-
-        # Should have legacy compatibility info
-        assert "legacy_assets_in_memory" in cache_info
-        assert "legacy_sources" in cache_info
 
     @pytest.mark.asyncio
     async def test_cleanup_delegation(self):

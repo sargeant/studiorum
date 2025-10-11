@@ -112,8 +112,10 @@ class TestOmnidexer:
 
     def test_empty_data_loading(self, temp_data_dir: Any) -> None:
         """Test loading with no data files."""
-        source_manager: Any = DataSourceManager(temp_data_dir.parent)
-        source_manager.path_config.data_path = temp_data_dir
+        from studiorum.core.config.unified_config import ApplicationConfig, PathsConfig
+
+        test_config = ApplicationConfig(paths=PathsConfig(data_path=temp_data_dir))
+        source_manager: Any = DataSourceManager(test_config)
 
         omnidexer: Any = Omnidexer(source_manager)
         stats = load_all_data_sync(omnidexer)
