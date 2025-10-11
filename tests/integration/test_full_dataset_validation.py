@@ -14,11 +14,9 @@ from typing import Any
 import pytest
 from logfire.testing import CaptureLogfire
 
+from studiorum.core.loaders.data_source_manager import DataSourceManager
 from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
-from studiorum.core.loaders.source_manager import (
-    FileSystemSourceManager,  # type: ignore
-)
 from studiorum.core.logging import get_logger  # type: ignore
 from studiorum.core.models.content import ContentType  # type: ignore
 from tests.test_data_helpers import requires_full_dataset
@@ -155,7 +153,7 @@ class TestFullDatasetValidation:
         """Test validation of the complete spell dataset."""
         report: Any = ValidationReport()  # Initialize report
 
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         data_paths = source_manager.get_data_paths()
         spell_files = data_paths.get(ContentType("spell"), [])
 
@@ -202,7 +200,7 @@ class TestFullDatasetValidation:
         """Test validation of the complete creature dataset."""
         report: Any = ValidationReport()  # Initialize report
 
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         data_paths = source_manager.get_data_paths()
         creature_files = data_paths.get(ContentType("creature"), [])
 
@@ -251,7 +249,7 @@ class TestFullDatasetValidation:
         """Test validation of the complete item dataset."""
         report: Any = ValidationReport()  # Initialize report
 
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         data_paths = source_manager.get_data_paths()
         item_files = data_paths.get(ContentType("item"), [])
 
@@ -296,7 +294,7 @@ class TestFullDatasetValidation:
     @pytest.mark.slow
     def test_omnidexer_full_dataset_load(self) -> None:
         """Test the omnidexer loading the complete dataset."""
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         omnidexer: Any = Omnidexer(source_manager)
 
         print("\n🌟 Testing omnidexer full dataset load...")
@@ -381,7 +379,7 @@ class TestFullDatasetValidation:
     @pytest.mark.slow
     def test_data_consistency_across_loaders(self) -> None:
         """Test that different loaders produce consistent results."""
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         data_paths = source_manager.get_data_paths()
 
         # Test spell consistency
@@ -417,7 +415,7 @@ class TestFullDatasetValidation:
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
 
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         omnidexer: Any = Omnidexer(source_manager)
 
         # Load full dataset
@@ -458,7 +456,7 @@ class TestFullDatasetValidation:
     @pytest.mark.slow
     def test_concurrent_dataset_loading(self) -> None:
         """Test concurrent loading of dataset doesn't cause issues."""
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
 
         def load_subset() -> int:
             """Load a subset of the data."""

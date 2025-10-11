@@ -233,6 +233,7 @@ class CreatureType(BaseModel):
         obj: Any,
         *,
         strict: bool | None = None,
+        extra: Any = None,
         from_attributes: bool | None = None,
         context: Any | None = None,
         by_alias: bool | None = None,

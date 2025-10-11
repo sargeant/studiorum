@@ -11,10 +11,8 @@ from studiorum.core.config.sources import (  # type: ignore
     ContentSource,
     SourceType,
 )
+from studiorum.core.loaders.data_source_manager import DataSourceManager
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
-from studiorum.core.loaders.source_manager import (
-    FileSystemSourceManager,  # type: ignore
-)
 from studiorum.core.loaders.unified_source_manager import (
     UnifiedSourceManager,  # type: ignore
 )
@@ -211,7 +209,7 @@ def loaded_omnidexer(
     creature_file.write_text(json.dumps({"monster": [sample_creature_data]}))
 
     # Create source manager pointing to temp directory
-    source_manager = FileSystemSourceManager(temp_data_dir.parent)
+    source_manager = DataSourceManager(temp_data_dir.parent)
     source_manager.path_config.data_path = temp_data_dir
 
     # Create and load omnidexer
@@ -249,7 +247,7 @@ def make_omnidexer():
             creature_file.write_text(json.dumps({"monster": creature_data}))
 
         # Create source manager pointing to temp directory
-        source_manager = FileSystemSourceManager(temp_data_dir.parent)
+        source_manager = DataSourceManager(temp_data_dir.parent)
         source_manager.path_config.data_path = temp_data_dir
 
         # Create and load omnidexer

@@ -5,11 +5,9 @@ from typing import Any
 
 import pytest
 
+from studiorum.core.loaders.data_source_manager import DataSourceManager
 from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from studiorum.core.loaders.omnidexer import IndexEntry, Omnidexer  # type: ignore
-from studiorum.core.loaders.source_manager import (
-    FileSystemSourceManager,  # type: ignore
-)
 from studiorum.core.models.classes import (  # type: ignore
     Class,
     ClassFeature,
@@ -114,7 +112,7 @@ class TestOmnidexer:
 
     def test_empty_data_loading(self, temp_data_dir: Any) -> None:
         """Test loading with no data files."""
-        source_manager: Any = FileSystemSourceManager(temp_data_dir.parent)
+        source_manager: Any = DataSourceManager(temp_data_dir.parent)
         source_manager.path_config.data_path = temp_data_dir
 
         omnidexer: Any = Omnidexer(source_manager)

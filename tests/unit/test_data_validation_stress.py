@@ -13,11 +13,9 @@ import pytest
 from logfire.testing import CaptureLogfire
 
 from studiorum.cli.services import get_cli_template_service
+from studiorum.core.loaders.data_source_manager import DataSourceManager
 from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
-from studiorum.core.loaders.source_manager import (
-    FileSystemSourceManager,  # type: ignore
-)
 from studiorum.core.logging import get_logger  # type: ignore
 from studiorum.core.models.content import ContentType  # type: ignore
 from studiorum.core.references.content_tracker import ContentTracker
@@ -68,7 +66,7 @@ class TestDataValidationStress:
 
     def test_load_all_spells_no_validation_errors(self) -> None:
         """Test loading all spell data without validation errors."""
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         spell_loader = JsonDataLoader.create_for_type(ContentType("spell"))
         data_paths = source_manager.get_data_paths()
         spell_files = data_paths.get(ContentType("spell"), [])
@@ -102,7 +100,7 @@ class TestDataValidationStress:
 
     def test_load_all_creatures_no_validation_errors(self) -> None:
         """Test loading all creature data without validation errors."""
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         creature_loader = JsonDataLoader.create_for_type(ContentType("creature"))
         data_paths = source_manager.get_data_paths()
         creature_files = data_paths.get(ContentType("creature"), [])
@@ -136,7 +134,7 @@ class TestDataValidationStress:
 
     def test_load_all_items_no_validation_errors(self) -> None:
         """Test loading all item data without validation errors."""
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         item_loader = JsonDataLoader.create_for_type(ContentType("item"))
         data_paths = source_manager.get_data_paths()
         item_files = data_paths.get(ContentType("item"), [])
@@ -170,7 +168,7 @@ class TestDataValidationStress:
 
     def test_omnidexer_full_data_load(self) -> None:
         """Test loading all available data through the omnidexer."""
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         omnidexer: Any = Omnidexer(source_manager)
 
         # Load all data
@@ -309,7 +307,7 @@ class TestDataValidationStress:
 
     def test_file_format_detection_accuracy(self) -> None:
         """Test that file format detection correctly identifies different file types."""
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         spell_loader = JsonDataLoader.create_for_type(ContentType("spell"))
 
         # Get all data files
@@ -463,7 +461,7 @@ class TestDataValidationStress:
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
 
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
         omnidexer: Any = Omnidexer(source_manager)
 
         # Load all data
@@ -491,7 +489,7 @@ class TestDataValidationStress:
     @pytest.mark.slow
     def test_concurrent_data_loading(self) -> None:
         """Test that concurrent data loading works without issues."""
-        source_manager: Any = FileSystemSourceManager()
+        source_manager: Any = DataSourceManager()
 
         # Create multiple omnidexers to test concurrent loading
         def load_data() -> Any:

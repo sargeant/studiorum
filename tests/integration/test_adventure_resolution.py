@@ -8,8 +8,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from studiorum.core.loaders import FileSystemSourceManager, Omnidexer
+from studiorum.core.loaders import Omnidexer
 from studiorum.core.loaders.base import SourceManager
+from studiorum.core.loaders.data_source_manager import DataSourceManager
 from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.models.content import ContentType
 from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus

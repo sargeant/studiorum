@@ -62,7 +62,7 @@ def _is_full_data_opted_in() -> bool:
 def _has_full_dataset_available(min_file_threshold: int = 50) -> bool:
     """Heuristic check that a full dataset (beyond SRD/test-data) is available.
 
-    Uses file counts via FileSystemSourceManager to avoid expensive data loads.
+    Uses file counts via DataSourceManager to avoid expensive data loads.
     Considers the dataset "full" when overall JSON file counts are well above
     the handful of example files in test-data/ and SRD-only setups.
     """
@@ -85,12 +85,10 @@ def _has_full_dataset_available(min_file_threshold: int = 50) -> bool:
                 if json_count >= min_file_threshold:
                     return True
 
-        # Fallback: probe via FileSystemSourceManager (reads STUDIORUM_* config)
-        from studiorum.core.loaders.source_manager import (
-            FileSystemSourceManager,  # type: ignore
-        )
+        # Fallback: probe via DataSourceManager (reads STUDIORUM_* config)
+        from studiorum.core.loaders.data_source_manager import DataSourceManager
 
-        source_manager = FileSystemSourceManager()
+        source_manager = DataSourceManager()
         data_paths = source_manager.get_data_paths()
 
         # Count across common types
@@ -120,7 +118,7 @@ def requires_full_dataset(
     """Mark test as requiring the full 5e dataset (beyond SRD/test-data).
 
     - Intent: requires STUDIORUM_TEST_FULL_DATA to be set (used by make test-full-data)
-    - Availability: quick heuristic on dataset file counts via FileSystemSourceManager
+    - Availability: quick heuristic on dataset file counts via DataSourceManager
 
     Args:
         required_sources: Deprecated/ignored (kept for compatibility)
