@@ -99,49 +99,17 @@ class TestLaTeXCompiler:
         result = self.compiler._check_engine_availability(LaTeXEngine.LUALATEX)
         assert result is False
 
-    async def test_check_dependencies_success(self) -> None:
-        """Test successful dependency check."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".tex", delete=False) as f:
-            f.write(
-                "\\documentclass{dndbook}\n\\usepackage{dnd}\n\\usepackage{fontspec}\n"
-            )
-            tex_file: Any = Path(f.name)
-
-        try:
-            # Override config to check dependencies
-            self.compiler.config.check_dependencies = True
-            self.compiler.config.required_packages = ["dndbook", "dnd", "fontspec"]
-
-            missing = await self.compiler._check_dependencies(tex_file)
-            assert len(missing) == 0
-        finally:
-            tex_file.unlink()
-
-    async def test_check_dependencies_missing_packages(self) -> None:
-        """Test dependency check with missing packages."""
+    async def test_check_dependencies_returns_empty(self) -> None:
+        """Test dependency check always returns empty (validation deferred to LaTeX)."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".tex", delete=False) as f:
             f.write("\\documentclass{article}\n")
             tex_file: Any = Path(f.name)
 
         try:
-            # Override config to check dependencies
-            self.compiler.config.check_dependencies = True
-            self.compiler.config.required_packages = ["dndbook", "dnd"]
-
             missing = await self.compiler._check_dependencies(tex_file)
-            assert len(missing) == 2
-            assert any("dndbook" in dep for dep in missing)
-            assert any("dnd" in dep for dep in missing)
+            assert len(missing) == 0
         finally:
             tex_file.unlink()
-
-    async def test_check_dependencies_file_error(self) -> None:
-        """Test dependency check with file read error."""
-        nonexistent_file: Any = Path("/nonexistent/file.tex")
-
-        missing = await self.compiler._check_dependencies(nonexistent_file)
-        assert len(missing) == 1
-        assert "Error reading LaTeX file" in missing[0]
 
     def test_needs_additional_pass_rerun_warning(self) -> None:
         """Test detection of need for additional pass from rerun warning."""
@@ -445,13 +413,11 @@ class TestLaTeXCompilerIntegration:
             assert result.error_message is not None
             assert "No compatible LaTeX engines available" in result.error_message
 
-    async def test_compile_with_dependency_error(self) -> None:
-        """Test compilation with dependency check failure."""
-        # Enable dependency checking
+    async def test_compile_skips_dependency_check(self) -> None:
+        """Test compilation skips dependency check (validation deferred to LaTeX)."""
         self.compiler.config.check_dependencies = True
         self.compiler.config.required_packages = ["nonexistent-package"]
 
-        # Mock engine availability
         with patch.object(
             self.compiler, "_check_engine_availability", return_value=True
         ):
@@ -460,9 +426,9 @@ class TestLaTeXCompilerIntegration:
             )
 
             result = await self.compiler.compile_document(latex_content, "test")
-            assert result.success is False
-            assert result.error_message is not None
-            assert "Missing dependencies" in result.error_message
+            assert result.error_message is None or "Missing dependencies" not in (
+                result.error_message or ""
+            )
 
     @patch("subprocess.run")
     async def test_compile_with_engine_fallback(self, mock_run: Any) -> None:
