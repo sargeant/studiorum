@@ -393,7 +393,7 @@ class TokenImageResolver:
         Returns:
             Dictionary with counts of token images, main images, and total creatures
         """
-        stats = {
+        stats: dict[str, int] = {  # nosec B105 - not passwords
             "token_images": 0,
             "main_images": 0,
             "token_sources": 0,
