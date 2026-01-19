@@ -13,13 +13,12 @@ else:
     PILImage = None
 
 # Check for PIL availability
-_pil_available = False
-
 try:
     from PIL import Image
 
     _pil_available = True
 except ImportError:
+    Image = None  # type: ignore[misc,assignment]
     _pil_available = False
 
 # Constant that Pyright can understand is never None

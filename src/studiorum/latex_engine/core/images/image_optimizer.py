@@ -13,13 +13,12 @@ else:
     PILImage = None
 
 # Check for PIL availability
-_pil_available = False
-
 try:
     from PIL import Image
 
     _pil_available = True
 except ImportError:
+    Image = None  # type: ignore[misc,assignment]
     _pil_available = False
 
 # Constant that Pyright can understand is never None
@@ -201,7 +200,7 @@ class ImageOptimizer:
             # Use default configuration
             return self.config
 
-    def _needs_resize(self, img: Image.Image, config: OptimizationConfig) -> bool:
+    def _needs_resize(self, img: PILImage, config: OptimizationConfig) -> bool:
         """Check if image needs resizing.
 
         Args:
@@ -214,9 +213,7 @@ class ImageOptimizer:
         width, height = img.size
         return width > config.max_width or height > config.max_height
 
-    def _resize_image(
-        self, img: Image.Image, config: OptimizationConfig
-    ) -> Image.Image:
+    def _resize_image(self, img: PILImage, config: OptimizationConfig) -> PILImage:
         """Resize image while preserving aspect ratio.
 
         Args:
