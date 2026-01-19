@@ -1,0 +1,160 @@
+<#-- Token sheet template for D&D 5e creatures --#>
+\documentclass[<# paper_size #>paper]{article}
+\usepackage[margin=<# margins #>in]{geometry}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{multicol}
+\usepackage{calc}
+\usepackage{ifthen}
+
+% Memory optimization for large token sheets
+\tikzset{every picture/.style={baseline=(current bounding box.center)}}
+\maxdeadcycles=200
+\usepackage{afterpage}
+
+% Disable page numbers
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+% Grid size constants (1 inch = 1 D&D grid square)
+\newlength{\gridsize}
+\setlength{\gridsize}{1in}
+
+% Token size definitions
+\newlength{\tinysize}\setlength{\tinysize}{0.5\gridsize}
+\newlength{\smallsize}\setlength{\smallsize}{0.75\gridsize}
+\newlength{\mediumsize}\setlength{\mediumsize}{1\gridsize}
+\newlength{\largesize}\setlength{\largesize}{2\gridsize}
+\newlength{\hugesize}\setlength{\hugesize}{3\gridsize}
+\newlength{\gargantuansize}\setlength{\gargantuansize}{4\gridsize}
+
+% Token counter for numbering
+\newcounter{tokencount}
+
+% Token macro
+\newcommand{\StudiorumToken}[4][medium]{%
+  % #1 = size (tiny/small/medium/large/huge/gargantuan)
+  % #2 = image path
+  % #3 = count
+  % #4 = creature name
+  \setcounter{tokencount}{0}%
+  % Set spacing based on size
+  \ifthenelse{\equal{#1}{tiny} \OR \equal{#1}{small} \OR \equal{#1}{medium}}{%
+    \def\tokenspacing{0.1in}%
+  }{%
+    \def\tokenspacing{0.05in}%
+  }%
+  \whiledo{\value{tokencount} < #3}{%
+    \stepcounter{tokencount}%
+    \begin{tikzpicture}[baseline=(current bounding box.center)]
+      % Set token radius based on size
+      \ifthenelse{\equal{#1}{tiny}}{%
+        \def\tokenradius{0.25in}%
+        \def\tokenwidth{0.5in}%
+      }{}%
+      \ifthenelse{\equal{#1}{small}}{%
+        \def\tokenradius{0.375in}%
+        \def\tokenwidth{0.75in}%
+      }{}%
+      \ifthenelse{\equal{#1}{medium}}{%
+        \def\tokenradius{0.5in}%
+        \def\tokenwidth{1in}%
+      }{}%
+      \ifthenelse{\equal{#1}{large}}{%
+        \def\tokenradius{1in}%
+        \def\tokenwidth{2in}%
+      }{}%
+      \ifthenelse{\equal{#1}{huge}}{%
+        \def\tokenradius{1.5in}%
+        \def\tokenwidth{3in}%
+      }{}%
+      \ifthenelse{\equal{#1}{gargantuan}}{%
+        \def\tokenradius{2in}%
+        \def\tokenwidth{4in}%
+      }{}%
+
+      % Only render if image path is provided
+      \ifthenelse{\equal{#2}{}}{%
+        % No image - render placeholder circle with creature name
+        \draw[line width=1pt, gray] (0,0) circle (\tokenradius);
+        \node[align=center, font=\sffamily\tiny, text width=\tokenwidth-0.2in] at (0,0) {#4};
+      }{%
+        % Render image with simpler clipping to reduce memory usage
+        \begin{pgfinterruptboundingbox}
+        \pgfmathsetmacro{\tokenimagewidth}{2.2*\tokenradius/1in}
+        \begin{pgfinterruptpath}
+          \clip (0,0) circle (\tokenradius);
+          \node[inner sep=0pt] at (0,0) {\includegraphics[width=\tokenimagewidth in, keepaspectratio]{#2}};
+        \end{pgfinterruptpath}
+        \end{pgfinterruptboundingbox}
+        \draw[line width=0.5pt] (0,0) circle (\tokenradius);
+      }
+
+      % Add number if count > 1 (size-specific positioning)
+      \ifnum#3>1
+        \ifthenelse{\equal{#1}{tiny}}{%
+          \node[fill=black, text=white, circle, inner sep=1pt, font=\sffamily\bfseries\tiny] at (0.12in, -0.12in) {\thetokencount};%
+        }{}%
+        \ifthenelse{\equal{#1}{small}}{%
+          \node[fill=black, text=white, circle, inner sep=1pt, font=\sffamily\bfseries\scriptsize] at (0.2in, -0.2in) {\thetokencount};%
+        }{}%
+        \ifthenelse{\equal{#1}{medium}}{%
+          \node[fill=black, text=white, circle, inner sep=2pt, font=\sffamily\bfseries\normalsize] at (0.2in, -0.28in) {\thetokencount};%
+        }{}%
+        \ifthenelse{\equal{#1}{large}}{%
+          \node[fill=black, text=white, circle, inner sep=2pt, font=\sffamily\bfseries\small] at (0.6in, -0.6in) {\thetokencount};%
+        }{}%
+        \ifthenelse{\equal{#1}{huge}}{%
+          \node[fill=black, text=white, circle, inner sep=2pt, font=\sffamily\bfseries\normalsize] at (0.9in, -0.9in) {\thetokencount};%
+        }{}%
+        \ifthenelse{\equal{#1}{gargantuan}}{%
+          \node[fill=black, text=white, circle, inner sep=3pt, font=\sffamily\bfseries\large] at (1.2in, -1.2in) {\thetokencount};%
+        }{}%
+      \fi
+
+      % Add cutting guides for small tokens
+      \ifthenelse{\equal{#1}{tiny} \OR \equal{#1}{small}}{%
+        \draw[gray, dashed, very thin] (0,0) circle (0.5in);
+      }{}
+    \end{tikzpicture}%
+    \hspace{\tokenspacing}%
+  }%
+}
+
+\begin{document}
+\pagestyle{empty}
+
+<@ for size, tokens in tokens_by_size.items() @>
+<@ if tokens @>
+\section*{<# size | title #> Creatures}
+
+<@ set columns = column_config.get(size, 1) @>
+<@ if size == "huge" @>
+\setlength{\columnsep}{0.1in}
+<@ endif @>
+<@ if columns > 1 @>
+\begin{multicols}{<# columns #>}
+<@ endif @>
+
+<@ for token in tokens @>
+\StudiorumToken[<# size #>]{<# token.image_path or '' #>}{<# token.count #>}{<# token.creature_name | latex_escape #>}
+<@ if loop.index % 100 == 0 @>
+\relax
+<@ endif @>
+<@ endfor @>
+
+<@ if columns > 1 @>
+\end{multicols}
+<@ endif @>
+<@ if size == "huge" @>
+\setlength{\columnsep}{10pt}
+<@ endif @>
+
+<@ if not loop.last @>
+\clearpage
+<@ endif @>
+<@ endif @>
+<@ endfor @>
+
+\end{document}
