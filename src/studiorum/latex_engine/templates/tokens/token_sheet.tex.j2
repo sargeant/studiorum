@@ -94,22 +94,22 @@
       % Add number if count > 1 (size-specific positioning)
       \ifnum#3>1
         \ifthenelse{\equal{#1}{tiny}}{%
-          \node[fill=black, text=white, circle, inner sep=1pt, font=\sffamily\bfseries\tiny] at (0.12in, -0.12in) {\thetokencount};%
+          \node[fill=black, text=white, circle, inner sep=1pt, font=\sffamily\bfseries\scriptsize] at (0.12in, -0.12in) {\thetokencount};%
         }{}%
         \ifthenelse{\equal{#1}{small}}{%
-          \node[fill=black, text=white, circle, inner sep=1pt, font=\sffamily\bfseries\scriptsize] at (0.2in, -0.2in) {\thetokencount};%
+          \node[fill=black, text=white, circle, inner sep=1pt, font=\sffamily\bfseries\footnotesize] at (0.2in, -0.2in) {\thetokencount};%
         }{}%
         \ifthenelse{\equal{#1}{medium}}{%
           \node[fill=black, text=white, circle, inner sep=2pt, font=\sffamily\bfseries\normalsize] at (0.2in, -0.28in) {\thetokencount};%
         }{}%
         \ifthenelse{\equal{#1}{large}}{%
-          \node[fill=black, text=white, circle, inner sep=2pt, font=\sffamily\bfseries\small] at (0.6in, -0.6in) {\thetokencount};%
+          \node[fill=black, text=white, circle, inner sep=2pt, font=\sffamily\bfseries\large] at (0.6in, -0.6in) {\thetokencount};%
         }{}%
         \ifthenelse{\equal{#1}{huge}}{%
-          \node[fill=black, text=white, circle, inner sep=2pt, font=\sffamily\bfseries\normalsize] at (0.9in, -0.9in) {\thetokencount};%
+          \node[fill=black, text=white, circle, inner sep=3pt, font=\sffamily\bfseries\Large] at (0.9in, -0.9in) {\thetokencount};%
         }{}%
         \ifthenelse{\equal{#1}{gargantuan}}{%
-          \node[fill=black, text=white, circle, inner sep=3pt, font=\sffamily\bfseries\large] at (1.2in, -1.2in) {\thetokencount};%
+          \node[fill=black, text=white, circle, inner sep=4pt, font=\sffamily\bfseries\LARGE] at (1.2in, -1.2in) {\thetokencount};%
         }{}%
       \fi
 
