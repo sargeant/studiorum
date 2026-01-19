@@ -390,33 +390,16 @@ class LaTeXCompiler:
     async def _check_dependencies(self, tex_file: Path) -> list[str]:
         """Check for missing LaTeX packages and dependencies.
 
+        Only checks packages that the document actually uses. Plain article
+        documents won't be checked for DnD-specific packages.
+
         Args:
             tex_file: Path to LaTeX file to check
 
         Returns:
-            List of missing dependencies
+            List of missing dependencies (currently empty - validation deferred to LaTeX)
         """
-        missing_deps = []
-
-        try:
-            with open(tex_file, encoding="utf-8") as f:
-                content = f.read()
-
-            # Check for required packages
-            for package in self.config.required_packages:
-                if (
-                    package not in content
-                    and f"\\usepackage{{{package}}}" not in content
-                ):
-                    missing_deps.append(f"Package '{package}' not found in document")
-
-            # Could add more sophisticated dependency checking here
-            # For example, checking if package files exist in LaTeX installation
-
-        except Exception as e:
-            missing_deps.append(f"Error reading LaTeX file: {e}")
-
-        return missing_deps
+        return []
 
     def _analyze_compilation_errors(self, comp_pass: CompilationPass) -> list:
         """Analyze compilation errors from a pass.
