@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from PIL import Image
+    from PIL.Image import Image as PILImage
 else:
-    Image = None
+    PILImage = None
 
 # Check for PIL availability
 _pil_available = False
@@ -103,7 +103,8 @@ class FormatConverter:
         try:
             if Image is None:
                 raise ImportError("PIL Image not available")
-            with Image.open(webp_path) as img:
+            with Image.open(webp_path) as img_file:
+                img: PILImage = img_file
                 # Convert to RGB if necessary (WebP can have transparency)
                 if img.mode in ("RGBA", "LA"):
                     # Create white background for transparency
@@ -189,7 +190,8 @@ class FormatConverter:
         try:
             if Image is None:
                 raise ImportError("PIL Image not available")
-            with Image.open(input_path) as img:
+            with Image.open(input_path) as img_file:
+                img: PILImage = img_file
                 # Convert to RGB if necessary
                 if img.mode in ("RGBA", "LA"):
                     # Create white background for transparency

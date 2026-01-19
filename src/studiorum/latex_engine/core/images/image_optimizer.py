@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from PIL import Image
+    from PIL.Image import Image as PILImage
 else:
-    Image = None
+    PILImage = None
 
 # Check for PIL availability
 _pil_available = False
@@ -138,7 +138,8 @@ class ImageOptimizer:
         try:
             if Image is None:
                 raise ImportError("PIL Image not available")
-            with Image.open(input_path) as img:
+            with Image.open(input_path) as img_file:
+                img: PILImage = img_file
                 original_size = img.size
                 was_resized = False
                 was_compressed = False
