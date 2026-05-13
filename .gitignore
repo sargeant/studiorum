@@ -131,3 +131,4 @@ scratch/
 .playwright-mcp
 custom_output.tex
 .claude
+scripts/.static-creature-xp.json

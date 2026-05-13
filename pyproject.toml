@@ -103,6 +103,9 @@ llm = [
     # MCP stdio proxy to bridge HTTP MCP servers into stdio for Codex/CLI
     "mcp-proxy>=0.2.0",
 ]
+scripts = [
+    "orjson>=3.11.6",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/studiorum"]
