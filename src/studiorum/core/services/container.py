@@ -4,26 +4,18 @@ This module provides the core container implementation for managing service
 lifecycles, dependencies, and async resources. Designed to support both
 CLI usage (backward compatibility) and MCP server requirements (request isolation).
 
-**CRITICAL PERFORMANCE OPTIMIZATIONS:**
+**Performance optimisations:**
 
-The ServiceContainer implements a dual-cache optimization system that provides
-up to 350,000x performance improvement in CLI and test environments:
+The ServiceContainer implements a dual-cache system that avoids repeated
+asyncio.run() calls in CLI and test environments:
 
-1. **Singleton Cache Optimization**: CLI operations check a dedicated sync cache
-   first, avoiding expensive asyncio.run() calls when services are already cached
+1. Sync singleton cache checked before touching the event loop
+2. Test environments bypass event loop creation entirely
+3. Async-created singletons cross-populate into the sync cache
+4. Dependency resolution stays on the sync path when possible
 
-2. **Test Environment Optimization**: In test environments (PYTEST_CURRENT_TEST),
-   services are created directly using synchronous paths, completely bypassing
-   event loop creation overhead
-
-3. **Cache Cross-Population**: Async-created services are automatically cached
-   in the sync cache for future CLI access, ensuring maximum performance
-
-4. **Direct Sync Resolution**: Dependency resolution maintains sync optimization
-   benefits throughout the entire service tree
-
-These optimizations were critical for achieving acceptable test performance,
-transforming test execution from minutes to milliseconds.
+These optimisations reduced test suite execution from ~20 minutes to ~34 seconds
+(measured August 2025, alongside other async/sync cleanup in the same session).
 
 Key components:
 - ServiceContainer: Full DI container with async support + CLI optimization
@@ -149,8 +141,7 @@ class ServiceContainer:
     - Dependency injection with circular dependency detection
     - Hot-reload infrastructure for configuration changes
     - Request scoping for MCP request isolation
-    - **CRITICAL CLI OPTIMIZATION**: Dual-cache singleton system providing up to 350,000x
-      performance improvement by eliminating asyncio.run() overhead in CLI operations
+    - Dual-cache singleton system avoiding asyncio.run() overhead in CLI operations
 
     Examples:
         Basic usage:
@@ -186,10 +177,7 @@ class ServiceContainer:
         ] = []  # For circular dependency detection
         self._is_closed = False
 
-        # CRITICAL CLI OPTIMIZATION: Separate singleton cache for sync access
-        # Avoids expensive asyncio.run() calls that dominated test execution time
-        # Provides up to 350,000x performance improvement by eliminating event loop overhead
-        # Only used for CLI sync access to singleton services
+        # Sync singleton cache: avoids asyncio.run() for CLI access to singletons
         self._sync_singleton_cache = TypedServiceRegistry()
 
         # Weak references to child containers for cleanup propagation
@@ -299,25 +287,8 @@ class ServiceContainer:
     def get_service_sync(self, protocol: type[T]) -> T:
         """Get service instance synchronously for CLI usage.
 
-        This method provides synchronous access to services for CLI commands
-        that operate in a synchronous context. It implements critical performance
-        optimizations that provide up to 350,000x speedup in test environments:
-
-        **Performance Optimizations:**
-        1. **Singleton Cache Check**: First checks the CLI-specific sync singleton
-           cache to avoid expensive asyncio.run() calls when service is already cached
-        2. **Direct Sync Creation**: In test environments (PYTEST_CURRENT_TEST),
-           uses direct synchronous creation to avoid event loop overhead entirely
-        3. **Cache Propagation**: Automatically caches async-created singletons
-           in the sync cache for future CLI access
-
-        **Critical Optimization Details:**
-        - Checking for existing singletons first avoids the expensive asyncio.run()
-          calls that dominated test execution time (350,000x improvement measured)
-        - Test environments use direct synchronous creation paths that bypass
-          event loop creation entirely, providing massive performance gains
-        - The sync cache serves as a fast-path for CLI operations while maintaining
-          compatibility with async MCP operations
+        Checks the sync singleton cache before falling back to asyncio.run().
+        In test environments, bypasses event loop creation entirely.
 
         Args:
             protocol: Protocol interface to resolve
@@ -330,10 +301,8 @@ class ServiceContainer:
             ServiceNotRegisteredError: If service not registered
             ServiceInitializationError: If service creation fails
         """
-        # OPTIMIZATION: Allow bypass for test environments
-        # In test environments (PYTEST_CURRENT_TEST), we allow sync access from any context
-        # This enables the massive 350,000x performance improvement by using direct
-        # synchronous service creation instead of expensive asyncio.run() calls
+        # In test environments, allow sync access from any context to avoid
+        # event loop overhead
         import os
 
         if not os.getenv("PYTEST_CURRENT_TEST"):
@@ -349,9 +318,7 @@ class ServiceContainer:
                 if "get_service_sync" in str(e):
                     raise
 
-        # CRITICAL OPTIMIZATION: Check CLI singleton cache first
-        # This avoids expensive asyncio.run() calls when service is already cached
-        # Provides up to 350,000x performance improvement in test environments
+        # Check sync singleton cache before touching the event loop
         if self._sync_singleton_cache.contains(protocol):
             cached_instance = self._sync_singleton_cache.get(protocol)
             logger.debug(
@@ -467,10 +434,7 @@ class ServiceContainer:
         Returns:
             Tuple of resolved service instances
 
-        **Performance Impact:**
-        - Maintains sync optimization benefits throughout dependency resolution
-        - Avoids creating event loops during dependency resolution
-        - Critical for achieving the 350,000x performance improvement in tests
+        Resolves dependencies synchronously to avoid event loop overhead.
         """
         if not dependencies:
             return ()
