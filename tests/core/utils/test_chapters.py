@@ -171,3 +171,67 @@ class TestFilterAdventureChapters:
 
         assert filtered.metadata is not None
         assert "chapter_number_map" in filtered.metadata.custom_fields
+
+
+class TestPositionalChapterFallback:
+    """Tests for positional numbering fallback on anthology adventures."""
+
+    @pytest.fixture
+    def anthology_adventure(self):
+        """Adventure whose chapters have no detectable chapter numbers."""
+        from studiorum.core.models.content import Source
+
+        chapters = [
+            Chapter(name="Introduction", entries=["intro"]),
+            Chapter(name="First Story", entries=["story1"]),
+            Chapter(name="Second Story", entries=["story2"]),
+            Chapter(name="Third Story", entries=["story3"]),
+            Chapter(name="Fourth Story", entries=["story4"]),
+        ]
+        return Adventure(
+            name="Test Anthology",
+            source=Source(abbreviation="TEST", name="Test"),
+            contents=chapters,
+        )
+
+    def test_positional_fallback_selects_nth_chapter(self, anthology_adventure):
+        filtered, warnings = filter_adventure_chapters(anthology_adventure, [4])
+        assert len(filtered.contents) == 1
+        assert filtered.contents[0].name == "Fourth Story"
+        assert any("positional numbering" in w for w in warnings)
+
+    def test_positional_fallback_skips_introduction(self, anthology_adventure):
+        # Position 1 maps to the first non-introduction chapter, not the intro
+        filtered, _ = filter_adventure_chapters(anthology_adventure, [1])
+        assert filtered.contents[0].name == "First Story"
+
+    def test_positional_fallback_with_introduction_flag(self, anthology_adventure):
+        filtered, _ = filter_adventure_chapters(
+            anthology_adventure, [4], include_introduction=True
+        )
+        assert [c.name for c in filtered.contents] == [
+            "Introduction",
+            "Fourth Story",
+        ]
+
+    def test_positional_fallback_out_of_range_raises(self, anthology_adventure):
+        with pytest.raises(ValueError, match="No chapters found matching"):
+            filter_adventure_chapters(anthology_adventure, [99])
+
+    def test_positional_fallback_not_used_for_numbered_mix(self):
+        """If any chapter has a real number, fallback must not engage."""
+        from studiorum.core.models.content import Source
+
+        adventure = Adventure(
+            name="Mixed",
+            source=Source(abbreviation="TEST", name="Test"),
+            contents=[
+                Chapter(name="Foreword", entries=["fw"]),
+                Chapter(name="Chapter 1: Real", entries=["c1"]),
+                Chapter(name="Side Story", entries=["ss"]),
+            ],
+        )
+        # Position 2 would point at "Side Story" under positional rules,
+        # but with a real Chapter 1 present we keep strict numbered semantics.
+        with pytest.raises(ValueError, match="No chapters found matching"):
+            filter_adventure_chapters(adventure, [2])

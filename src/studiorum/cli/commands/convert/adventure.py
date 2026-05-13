@@ -58,7 +58,11 @@ def adventure(
     chapters: str | None = typer.Option(
         None,
         "--chapters",
-        help="Chapter numbers to convert (e.g., '1,5,8-9'). Always sorted.",
+        help=(
+            "Chapter numbers to convert (e.g., '1,5,8-9'). Always sorted. "
+            "For anthology adventures with no numbered chapters, numbers refer "
+            "to positional order (skipping introductions)."
+        ),
         rich_help_panel="Content Options",
     ),
     with_introduction: bool = typer.Option(

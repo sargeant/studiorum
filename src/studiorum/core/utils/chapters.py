@@ -107,6 +107,11 @@ def filter_adventure_chapters(
 
     Returns data + warnings (no printing); caller handles display.
 
+    When the adventure has zero detectably-numbered chapters (e.g. anthology
+    adventures with named-only sections), falls back to positional numbering
+    (1..N) over the non-introduction chapters in document order. A warning is
+    emitted so the caller can surface the fallback to the user.
+
     Args:
         adventure: Full adventure object
         chapter_numbers: Sorted list of chapter numbers to include
@@ -130,6 +135,21 @@ def filter_adventure_chapters(
             if chapter_type == ChapterType.INTRODUCTION:
                 introduction_indices.append(idx)
 
+    positional_warning: str | None = None
+    if not chapter_map and adventure.contents:
+        positional_indices = [
+            idx
+            for idx in range(len(adventure.contents))
+            if idx not in introduction_indices
+        ]
+        for position, original_idx in enumerate(positional_indices, start=1):
+            chapter_map[position] = (original_idx, position)
+        if chapter_map:
+            positional_warning = (
+                "No numbered chapters detected; falling back to positional numbering "
+                f"(1..{len(positional_indices)}) based on chapter order."
+            )
+
     filtered_data: list[tuple[int, Chapter, int | None]] = []
     missing_chapters = []
 
@@ -152,6 +172,8 @@ def filter_adventure_chapters(
         )
 
     warnings = []
+    if positional_warning:
+        warnings.append(positional_warning)
     if missing_chapters:
         available = sorted(chapter_map.keys())
         warnings.append(
