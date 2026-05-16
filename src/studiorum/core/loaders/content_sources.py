@@ -603,42 +603,7 @@ class NameListFileSource(BaseContentSource):
         except PermissionError:
             raise PermissionError(f"Cannot read file: {self.file_path}")
 
-        structured_names = []
-        count_pattern = re.compile(r"^(\d+)\s+(.+)$")
-
-        for line_num, line in enumerate(lines, 1):
-            line = line.strip()
-
-            # Skip empty lines and comments
-            if not line or line.startswith("#"):
-                continue
-
-            # Handle inline comments
-            if "#" in line:
-                line = line.split("#", 1)[0].strip()
-                if not line:
-                    continue
-
-            # Parse count (optional, defaults to 1)
-            count = 1
-            remainder = line
-
-            count_match = count_pattern.match(line)
-            if count_match:
-                count = int(count_match.group(1))
-                remainder = count_match.group(2)
-
-            # Parse source (optional, defaults to None)
-            source = None
-            name = remainder
-
-            if "|" in remainder:
-                name_part, source_part = remainder.split("|", 1)
-                name = name_part.strip()
-                source = source_part.strip() if source_part.strip() else None
-
-            if name:  # Only add if we have a non-empty name
-                structured_names.append((count, name, source))
+        structured_names = parse_enhanced_name_lines(lines)
 
         if not structured_names:
             raise ValueError(f"No names found in file: {self.file_path}")
@@ -820,3 +785,62 @@ def create_name_list_source(
 ) -> NameListFileSource:
     """Factory function to create a name list source."""
     return NameListFileSource(file_path, content_type)
+
+
+_ENHANCED_NAME_COUNT_PATTERN = re.compile(r"^(\d+)\s+(.+)$")
+
+
+def parse_enhanced_name_lines(
+    lines: list[str],
+) -> list[tuple[int, str, str | None]]:
+    """Parse enhanced name list lines into (count, name, source) tuples.
+
+    Supports formats:
+    - Simple name: "Goblin"
+    - With count: "3 Goblin"
+    - With source: "Goblin|MM"
+    - With both: "3 Goblin|MM"
+
+    Empty lines and lines starting with '#' are skipped. Inline comments
+    after '#' are stripped. Used by both file-based and stdin-based name
+    list inputs to keep parsing consistent.
+
+    Args:
+        lines: Raw lines from a file or stdin (each may include trailing newline).
+
+    Returns:
+        List of tuples containing (count, name, source).
+    """
+    structured_names: list[tuple[int, str, str | None]] = []
+
+    for line in lines:
+        line = line.strip()
+
+        if not line or line.startswith("#"):
+            continue
+
+        if "#" in line:
+            line = line.split("#", 1)[0].strip()
+            if not line:
+                continue
+
+        count = 1
+        remainder = line
+
+        count_match = _ENHANCED_NAME_COUNT_PATTERN.match(line)
+        if count_match:
+            count = int(count_match.group(1))
+            remainder = count_match.group(2)
+
+        source: str | None = None
+        name = remainder
+
+        if "|" in remainder:
+            name_part, source_part = remainder.split("|", 1)
+            name = name_part.strip()
+            source = source_part.strip() if source_part.strip() else None
+
+        if name:
+            structured_names.append((count, name, source))
+
+    return structured_names

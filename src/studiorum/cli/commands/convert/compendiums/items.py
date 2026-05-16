@@ -556,34 +556,38 @@ def items(
                         f"[blue]ℹ[/blue] Found source specifications for {len(source_info)} items"
                     )
 
-            # Collect from stdin using ContentLoader system
+            # Collect from stdin using enhanced name list parser
             if from_stdin:
-                try:
-                    import sys
+                stdin_command_instance = BaseConvertCommand()
+                stdin_item_data = (
+                    stdin_command_instance.get_enhanced_name_list_from_stdin("item")
+                )
 
-                    if sys.stdin.isatty():
-                        rprint("[red]Error:[/red] No input provided via stdin")
-                        raise typer.Exit(1)
+                stdin_items: list[str] = []
+                stdin_total_count = 0
+                stdin_source_info: dict[str, str] = {}
 
-                    stdin_lines = []
-                    for line in sys.stdin:
-                        line = line.strip()
-                        if line and not line.startswith("#"):
-                            # Handle inline comments
-                            if "#" in line:
-                                line = line.split("#", 1)[0].strip()
-                            if line:
-                                stdin_lines.append(line)
+                for count, name, source in stdin_item_data:
+                    if name not in stdin_items:
+                        stdin_items.append(name)
 
-                    if not stdin_lines:
-                        rprint("[red]Error:[/red] No item names found in stdin")
-                        raise typer.Exit(1)
+                    stdin_total_count += count
 
-                    all_item_names.extend(stdin_lines)
-                    rprint(f"[green]Loaded {len(stdin_lines)} items from stdin[/green]")
-                except KeyboardInterrupt:
-                    rprint("[red]Error:[/red] Input interrupted")
-                    raise typer.Exit(1)
+                    if source:
+                        stdin_source_info[name] = source
+
+                all_item_names.extend(stdin_items)
+                rprint(
+                    f"[green]Loaded {len(stdin_items)} unique items from stdin[/green]"
+                )
+                if stdin_total_count != len(stdin_items):
+                    rprint(
+                        f"[blue]ℹ[/blue] Total item references: {stdin_total_count} (including duplicates)"
+                    )
+                if stdin_source_info:
+                    rprint(
+                        f"[blue]ℹ[/blue] Found source specifications for {len(stdin_source_info)} items"
+                    )
 
             # Parse value range if provided
             min_value, max_value_parsed = None, None

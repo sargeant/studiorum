@@ -405,6 +405,49 @@ class BaseConvertCommand:
             )
             raise typer.Exit(1)
 
+    def get_enhanced_name_list_from_stdin(
+        self, content_type: str
+    ) -> list[tuple[int, str, str | None]]:
+        """Load enhanced name list with count and source information from stdin.
+
+        Mirrors :meth:`get_enhanced_name_list_from_file` but reads from stdin,
+        applying the same ``[count] name[|source]`` parsing rules so the two
+        input modes behave identically.
+
+        Args:
+            content_type: Type of content (for error messages and consistency).
+
+        Returns:
+            List of tuples containing (count, name, source).
+
+        Raises:
+            typer.Exit: If stdin is a TTY or no usable names were found.
+        """
+        import sys
+
+        import typer
+        from rich import print as rprint
+
+        from studiorum.core.loaders.content_sources import parse_enhanced_name_lines
+
+        if sys.stdin.isatty():
+            rprint("[red]Error:[/red] No input provided via stdin")
+            raise typer.Exit(1)
+
+        try:
+            lines = list(sys.stdin)
+        except KeyboardInterrupt:
+            rprint("[red]Error:[/red] Input interrupted")
+            raise typer.Exit(1)
+
+        structured_data = parse_enhanced_name_lines(lines)
+
+        if not structured_data:
+            rprint(f"[red]Error:[/red] No {content_type} names found in stdin")
+            raise typer.Exit(1)
+
+        return structured_data
+
     def validate_and_load_content(
         self, loader: ContentLoader, show_validation: bool = True
     ) -> Any:

@@ -951,37 +951,73 @@ def creatures(
                             f"[blue]ℹ[/blue] Found source specifications for {len(source_info)} creatures"
                         )
 
-            # Collect from stdin using ContentLoader system
+            # Collect from stdin using enhanced name list parser
             if from_stdin:
-                try:
-                    # Use stdin as a temporary name list
-                    import sys
+                stdin_command_instance = BaseConvertCommand()
+                stdin_creature_data = (
+                    stdin_command_instance.get_enhanced_name_list_from_stdin("creature")
+                )
 
-                    if sys.stdin.isatty():
-                        rprint("[red]Error:[/red] No input provided via stdin")
-                        raise typer.Exit(1)
+                if tokens:
+                    # For tokens: preserve count information for template rendering
+                    stdin_creatures: list[str] = []
+                    total_creature_count = 0
 
-                    stdin_lines = []
-                    for line in sys.stdin:
-                        line = line.strip()
-                        if line and not line.startswith("#"):
-                            # Handle inline comments
-                            if "#" in line:
-                                line = line.split("#", 1)[0].strip()
-                            if line:
-                                stdin_lines.append(line)
+                    for count, name, source in stdin_creature_data:
+                        if name not in stdin_creatures:
+                            stdin_creatures.append(name)
+                            creature_counts[name] = count
+                        else:
+                            creature_counts[name] += count
 
-                    if not stdin_lines:
-                        rprint("[red]Error:[/red] No creature names found in stdin")
-                        raise typer.Exit(1)
+                        total_creature_count += count
 
-                    all_creature_names.extend(stdin_lines)
+                        if source:
+                            source_info[name] = source
+
+                    all_creature_names.extend(stdin_creatures)
+
                     rprint(
-                        f"[green]Loaded {len(stdin_lines)} creatures from stdin[/green]"
+                        f"[green]Loaded {len(stdin_creatures)} unique creatures from stdin[/green]"
                     )
-                except KeyboardInterrupt:
-                    rprint("[red]Error:[/red] Input interrupted")
-                    raise typer.Exit(1)
+                    rprint(
+                        f"[blue]ℹ[/blue] Total tokens to generate: {total_creature_count}"
+                    )
+                    if source_info:
+                        rprint(
+                            f"[blue]ℹ[/blue] Found source specifications for {len(source_info)} creatures"
+                        )
+                else:
+                    # For statblocks: deduplicate by name+source combination
+                    stdin_creatures = []
+                    total_creature_count = 0
+                    stdin_unique_combinations: set[tuple[str, str]] = set()
+
+                    for count, name, source in stdin_creature_data:
+                        combination_key = (name, source or "default")
+
+                        if combination_key not in stdin_unique_combinations:
+                            stdin_unique_combinations.add(combination_key)
+                            stdin_creatures.append(name)
+
+                            if source:
+                                source_info[name] = source
+
+                        total_creature_count += count
+
+                    all_creature_names.extend(stdin_creatures)
+
+                    rprint(
+                        f"[green]Loaded {len(stdin_creatures)} unique creatures from stdin[/green]"
+                    )
+                    if total_creature_count != len(stdin_creatures):
+                        rprint(
+                            f"[blue]ℹ[/blue] Total creature references: {total_creature_count} (deduplicated for statblocks)"
+                        )
+                    if source_info:
+                        rprint(
+                            f"[blue]ℹ[/blue] Found source specifications for {len(source_info)} creatures"
+                        )
 
             # Parse CR range if provided
             min_cr_parsed, max_cr_parsed = None, None

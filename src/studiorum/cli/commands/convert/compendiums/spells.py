@@ -554,36 +554,38 @@ def spells(
                         f"[blue]ℹ[/blue] Found source specifications for {len(source_info)} spells"
                     )
 
-            # Collect from stdin using ContentLoader system
+            # Collect from stdin using enhanced name list parser
             if from_stdin:
-                try:
-                    import sys
+                stdin_command_instance = BaseConvertCommand()
+                stdin_spell_data = (
+                    stdin_command_instance.get_enhanced_name_list_from_stdin("spell")
+                )
 
-                    if sys.stdin.isatty():
-                        rprint("[red]Error:[/red] No input provided via stdin")
-                        raise typer.Exit(1)
+                stdin_spells: list[str] = []
+                stdin_total_count = 0
+                stdin_source_info: dict[str, str] = {}
 
-                    stdin_lines = []
-                    for line in sys.stdin:
-                        line = line.strip()
-                        if line and not line.startswith("#"):
-                            # Handle inline comments
-                            if "#" in line:
-                                line = line.split("#", 1)[0].strip()
-                            if line:
-                                stdin_lines.append(line)
+                for count, name, source in stdin_spell_data:
+                    if name not in stdin_spells:
+                        stdin_spells.append(name)
 
-                    if not stdin_lines:
-                        rprint("[red]Error:[/red] No spell names found in stdin")
-                        raise typer.Exit(1)
+                    stdin_total_count += count
 
-                    all_spell_names.extend(stdin_lines)
+                    if source:
+                        stdin_source_info[name] = source
+
+                all_spell_names.extend(stdin_spells)
+                rprint(
+                    f"[green]Loaded {len(stdin_spells)} unique spells from stdin[/green]"
+                )
+                if stdin_total_count != len(stdin_spells):
                     rprint(
-                        f"[green]Loaded {len(stdin_lines)} spells from stdin[/green]"
+                        f"[blue]ℹ[/blue] Total spell references: {stdin_total_count} (including duplicates)"
                     )
-                except KeyboardInterrupt:
-                    rprint("[red]Error:[/red] Input interrupted")
-                    raise typer.Exit(1)
+                if stdin_source_info:
+                    rprint(
+                        f"[blue]ℹ[/blue] Found source specifications for {len(stdin_source_info)} spells"
+                    )
 
             # Parse level range if provided
             min_level, max_level_parsed = None, None
