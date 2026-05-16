@@ -217,28 +217,29 @@ class CreatureCollector:
                     )
                     result.add_unresolved(name, suggestions)
             else:
-                # Use original logic for creatures without specific sources
+                # No per-creature source specified: pick the first matching
+                # source in priority order (the order the user passed --sources,
+                # or the configured defaults). Only one creature is added per
+                # name to avoid duplicate statblocks when the same creature
+                # appears in multiple enabled sources (e.g. MM and XMM).
                 matches = self.omnidexer.find_all(creature_type, name)
 
                 if matches:
-                    # Filter by sources (now always specified, either from parameter or default)
-                    filtered_matches: list[Creature] = []
-                    for creature in matches:
-                        if isinstance(creature, Creature) and self._matches_sources(
-                            creature, sources
-                        ):
-                            filtered_matches.append(creature)
-                    creature_matches = filtered_matches
+                    creature_matches = [
+                        creature
+                        for creature in matches
+                        if isinstance(creature, Creature)
+                        and self._matches_sources(creature, sources)
+                    ]
 
-                    # Add all matching creatures
-                    for creature in creature_matches:
+                    chosen = self._select_preferred_match(creature_matches, sources)
+
+                    if chosen is not None:
                         source_abbrev = None
-                        if hasattr(creature.source, "abbreviation"):
-                            source_abbrev = creature.source.abbreviation
-                        result.add_creature(creature, source_abbrev)
-
-                    # If no matches after source filtering, treat as unresolved
-                    if sources and not creature_matches:
+                        if hasattr(chosen.source, "abbreviation"):
+                            source_abbrev = chosen.source.abbreviation
+                        result.add_creature(chosen, source_abbrev)
+                    elif sources:
                         suggestions = self._find_creature_suggestions(name, sources)
                         result.add_unresolved(name, suggestions)
                 else:
@@ -790,6 +791,42 @@ class CreatureCollector:
         """Check if creature has bonus action abilities."""
         # Check for bonus actions in action list or separate bonus field
         return bool(getattr(creature, "bonus", None))
+
+    def _select_preferred_match(
+        self, matches: list[Creature], sources: list[str] | None
+    ) -> Creature | None:
+        """Pick the highest-priority match by source order.
+
+        Sources earlier in the ``sources`` list win, so a user passing
+        ``--sources xmm,mm`` gets the XMM version when both XMM and MM
+        define a creature, and falls back to MM only if XMM is absent.
+
+        Args:
+            matches: Creatures that already passed source filtering.
+            sources: Ordered list of acceptable source abbreviations.
+
+        Returns:
+            The preferred creature, or ``None`` if ``matches`` is empty.
+        """
+        if not matches:
+            return None
+
+        if not sources:
+            return matches[0]
+
+        priority = {src.upper(): index for index, src in enumerate(sources)}
+
+        def sort_key(creature: Creature) -> int:
+            abbrev = ""
+            if hasattr(creature.source, "abbreviation"):
+                abbrev = creature.source.abbreviation
+            elif isinstance(creature.source, dict):
+                abbrev = creature.source.get("abbreviation", "")
+            elif isinstance(creature.source, str):
+                abbrev = creature.source
+            return priority.get(abbrev.upper(), len(priority))
+
+        return min(matches, key=sort_key)
 
     def _matches_sources(self, creature: Creature, target_sources: list[str]) -> bool:
         """Check if creature source matches target sources.
