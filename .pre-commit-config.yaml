@@ -37,3 +37,9 @@ repos:
         entry: scripts/pre-commit-compliance.sh
         language: script
         files: \.(py|md|yml|yaml|toml)$
+      - id: lint-imports
+        name: import-linter
+        entry: uv run lint-imports --no-logo
+        language: system
+        pass_filenames: false
+        files: ^(src/.*\.py|pyproject\.toml)$
