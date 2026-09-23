@@ -48,7 +48,7 @@ dependencies = [
     "pillow>=11.3.0",
     "aiohttp>=3.12.15",
     "watchdog>=6.0.0,<7.0.0",
-    "fastmcp>=2.11.3",
+    "fastmcp>=3,<4",
     "logfire>=0.54.0",
 ]
 
@@ -337,7 +337,6 @@ ignore = [
 "tests/integration/test_source_discovery.py" = ["B007", "PERF102", "PTH123", "SIM117"]
 "tests/latex_engine/core/images/test_integration.py" = ["B007", "SIM117"]
 "tests/latex_engine/core/images/test_layout_analyzer.py" = ["B007"]
-"tests/mcp/test_fastmcp_integration.py" = ["SIM118"]
 "tests/mcp/tools/test_config_tools.py" = ["SIM117"]
 "tests/performance/test_content_loading_performance.py" = ["T201"]
 "tests/performance/test_creature_collection_performance.py" = ["PERF401", "T201"]
