@@ -133,3 +133,4 @@ custom_output.tex
 .claude
 scripts/.static-creature-xp.json
 .import_linter_cache/
+!tests/e2e/__snapshots__/**/*.tex

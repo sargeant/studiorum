@@ -1,0 +1,257 @@
+% Book template for D&D 5e adventures and sourcebooks
+% Uses dndbook document class with structured content support
+
+% Base LaTeX template for D&D 5e documents using DND-5e-LaTeX-Template
+% This template provides the foundation for all D&D-style documents with structured content
+
+\documentclass[letterpaper, 11pt, bg=full, twocolumn, stats=modern]{dndbook}
+
+% DND-5e-LaTeX-Template provides most styling automatically
+% Only include additional packages if needed
+
+% Additional packages for enhanced functionality
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{makeidx}
+
+% Additional packages for book layout
+\usepackage{multicol}
+\usepackage{wrapfig}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\usepackage{titlesec}
+
+% Image support packages
+\usepackage{graphicx}
+\usepackage{subcaption}  % For subfigure environments in image galleries
+\usepackage{calc}  % For width calculations in galleries
+
+% Float management for appendices with creatures
+\usepackage{afterpage}
+\usepackage{placeins}
+
+% DND book-specific environments
+\tcbuselibrary{breakable}
+
+\title{Test Adventure}
+\date{\today}
+
+% Enable automatic numbering for chapters only, not sections
+\setcounter{secnumdepth}{0}
+
+% Disable text justification but preserve paragraph indentation
+\raggedright
+\raggedbottom
+% Restore paragraph indentation after \raggedright resets it
+\setlength{\parindent}{0.8em}
+
+% Hyperlink configuration
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=black,
+    citecolor=black,
+    filecolor=black,
+    bookmarks=true,
+    bookmarksopen=true,
+    bookmarksnumbered=true,
+    pdfsubject={D&D 5e Content},
+    pdfkeywords={D&D, 5e, RPG, tabletop, }
+}
+
+% Enhanced chapter and section styling for books
+% DND-5e-LaTeX-Template provides all styling automatically
+
+% Configure section numbering depth for books
+
+% Studiorum Image Helpers — simple, explicit commands
+% Load required packages locally so templates don't need to manage them.
+\RequirePackage{graphicx}
+\RequirePackage{xparse}
+\RequirePackage{caption}
+
+% Inline (non-floating) image block
+% Usage: \StudiorumImageInline[<width fraction>]{file}{caption}[label]
+\NewDocumentCommand{\StudiorumImageInline}{ s o m m o }{%%
+  \par\medskip
+  \noindent\centering
+  \IfNoValueTF{#2}{%%
+    \includegraphics[width=\linewidth]{#3}%%
+  }{%%
+    \includegraphics[width=#2\linewidth]{#3}%%
+  }%%
+  \IfBooleanF{#1}{%%
+    \par\smallskip
+    \captionof{figure}{#4}%%
+    \IfNoValueF{#5}{\label{#5}}%%
+  }%%
+  \par\medskip
+}
+
+% Standard floating figure
+% Usage: \StudiorumImageFloat[<width fraction>]{file}{caption}[label]
+\NewDocumentCommand{\StudiorumImageFloat}{ s o m m o }{%%
+  
+\begin{figure}[htbp]
+    \centering
+    \IfNoValueTF{#2}{%%
+      \includegraphics[width=\linewidth]{#3}%%
+    }{%%
+      \includegraphics[width=#2\linewidth]{#3}%%
+    }%%
+    \IfBooleanF{#1}{%%
+      \caption{#4}%%
+      \IfNoValueF{#5}{\label{#5}}%%
+    }%%
+  \end{figure}
+%%
+}
+
+% Wide (two-column spanning when applicable)
+% Usage: \StudiorumImageWide[<width fraction>]{file}{caption}[label]
+\NewDocumentCommand{\StudiorumImageWide}{ s o m m o }{%%
+  \ifdim\columnwidth=\textwidth
+    
+\begin{figure}[htbp]
+      \centering
+      \IfNoValueTF{#2}{%%
+        \includegraphics[width=\linewidth]{#3}%%
+      }{%%
+        \includegraphics[width=#2\linewidth]{#3}%%
+      }%%
+      \IfBooleanF{#1}{%%
+        \caption{#4}%%
+        \IfNoValueF{#5}{\label{#5}}%%
+      }%%
+    \end{figure}
+%%
+  \else
+    
+\begin{figure*}[tp]
+      \centering
+      \IfNoValueTF{#2}{%%
+        \includegraphics[width=\textwidth]{#3}%%
+      }{%%
+        \includegraphics[width=#2\textwidth]{#3}%%
+      }%%
+      \IfBooleanF{#1}{%%
+        \caption{#4}%%
+        \IfNoValueF{#5}{\label{#5}}%%
+      }%%
+    \end{figure*}
+%%
+  \fi
+}
+
+% Full-page (dedicated page; fits within text block)
+% Usage: \StudiorumImageFullpage[<width fraction>]{file}{caption}[label]
+\NewDocumentCommand{\StudiorumImageFullpage}{ s o m m o }{%%
+  \clearpage
+  
+\begin{figure}[p]
+    \centering
+    \IfNoValueTF{#2}{%%
+      \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{#3}%%
+    }{%%
+      \includegraphics[width=#2\textwidth,height=\textheight,keepaspectratio]{#3}%%
+    }%%
+    \IfBooleanF{#1}{%%
+      \caption{#4}%%
+      \IfNoValueF{#5}{\label{#5}}%%
+    }%%
+  \end{figure}
+
+  \clearpage
+}
+
+% Full-page bleed (fills the physical page; may distort aspect ratio)
+% Usage: \StudiorumImageFullpageBleed{file}{caption}[label]
+\NewDocumentCommand{\StudiorumImageFullpageBleed}{ s o m m o }{%%
+  \clearpage
+  
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\paperwidth,height=\paperheight]{#3}%%
+    \IfBooleanF{#1}{%%
+      \caption{#4}%%
+      \IfNoValueF{#5}{\label{#5}}%%
+    }%%
+  \end{figure}
+
+  \clearpage
+}
+
+% No-caption convenience aliases
+\NewDocumentCommand{\StudiorumImageInlineNoCaption}{ o m }{\StudiorumImageInline*[#1]{#2}{}}
+\NewDocumentCommand{\StudiorumImageFloatNoCaption}{ o m }{\StudiorumImageFloat*[#1]{#2}{}}
+\NewDocumentCommand{\StudiorumImageWideNoCaption}{ o m }{\StudiorumImageWide*[#1]{#2}{}}
+\NewDocumentCommand{\StudiorumImageFullpageNoCaption}{ o m }{\StudiorumImageFullpage*[#1]{#2}{}}
+\NewDocumentCommand{\StudiorumImageFullpageBleedNoCaption}{ m }{\StudiorumImageFullpageBleed*{#1}{}}
+
+\begin{document}
+
+\frontmatter
+
+% Title page
+\maketitle
+\thispagestyle{empty}
+\clearpage
+
+% Table of Contents in frontmatter
+\tableofcontents
+\clearpage
+
+\mainmatter
+
+\chapter{The Beginning}\label{ch:the-beginning-1-1}
+
+The party finds themselves in a small village plagued by mysterious events.
+Local villagers speak of strange lights emanating from an ancient repository.
+\subsection{The Village}
+
+A quiet farming community with a dark secret.
+
+The village of Testbrook sits nestled in a peaceful valley, surrounded by rolling hills and ancient oak trees.
+
+This small settlement serves as the starting point for many testing adventures, providing a safe haven for adventurers.
+% Table: Notable Village NPCs
+\begin{DndTable}[header={Notable Village NPCs}]{lll}
+Name & Role & Personality \\
+Tessa Testkeeper & Tavern Owner & Friendly and welcoming to all travelers \\
+Bob Builder & Village Carpenter & Methodical and precise in his work \\
+Sage Validator & Village Elder & Wise and thorough in decision-making \\
+Quinn Query & Merchant & Always asking questions about new goods \\
+\end{DndTable}
+\begin{DndReadAloud}
+As you approach the village, you notice the carefully maintained buildings and well-tended gardens. The sound of hammering from the carpenter's workshop mingles with laughter from the tavern. This is clearly a place where attention to detail is valued.
+\end{DndReadAloud}
+
+\section{The Quest}\label{sec:the-quest-2}
+
+\section{The Journey}\label{sec:the-journey-3}
+
+\chapter{The Repository}\label{ch:the-repository-4-2}
+
+The ancient repository holds forgotten knowledge and dangerous artifacts.
+Strange magical energies permeate the structure.
+\subsection{Approaching the Repository}
+
+The Repository of Bugs appears as a crystalline structure that seems to shift and flicker between different architectural styles.
+
+Strange energy patterns dance across its surface, and the air around it hums with barely contained power.
+\subsection{Interior Chambers}
+
+The main entrance displays scrolling text in various programming languages.
+
+Shimmering energy fields test visitors' knowledge and intent.
+
+Glowing crystals show the current stability level of the repository.
+\subsection{The Core}
+
+At the heart of the repository lies the Core, a swirling vortex of pure logic and data.
+
+This is where the party must restore stability to prevent a catastrophic system failure.
+
+\end{document}

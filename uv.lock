@@ -3349,6 +3349,7 @@ dev = [
     { name = "ruff" },
     { name = "semver" },
     { name = "starlette" },
+    { name = "syrupy" },
     { name = "types-psutil" },
     { name = "types-pyyaml" },
 ]
@@ -3418,6 +3419,7 @@ dev = [
     { name = "ruff", specifier = ">=0.12.2,<1.0.0" },
     { name = "semver", specifier = ">=3.0.4,<4.0.0" },
     { name = "starlette", specifier = ">=0.47.2,<1.0.0" },
+    { name = "syrupy", specifier = ">=6.1.1" },
     { name = "types-psutil", specifier = ">=7.0.0.20250601" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20250516" },
 ]
@@ -3425,6 +3427,18 @@ images = [{ name = "pillow", specifier = ">=9.0.0" }]
 llm = [{ name = "mcp-proxy", specifier = ">=0.2.0" }]
 scripts = [{ name = "orjson", specifier = ">=3.11.6" }]
 xml = [{ name = "lxml", specifier = ">=4.9.0" }]
+
+[[package]]
+name = "syrupy"
+version = "6.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/74/2c/8ffc1414d1951895d0d5b7dc83c0b079ebc48c3bf27ffbb0064646367500/syrupy-6.1.1.tar.gz", hash = "sha256:7e584a8df4ede6dd3c1c44a77f9edc46186b6767a73dea6f0083044946839a59", size = 109705, upload-time = "2026-09-13T20:25:21.599Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2c/b5/bf2a8a335a6a813869dd482cedbcde252f582b5afbfe50eb78ec09962800/syrupy-6.1.1-py3-none-any.whl", hash = "sha256:6ac9ac6a42d70ae44156f5f157a9563b9bb8cc96dcf9364327f330463bff889a", size = 63436, upload-time = "2026-09-13T20:25:20.294Z" },
+]
 
 [[package]]
 name = "tomli"
