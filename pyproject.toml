@@ -301,7 +301,6 @@ ignore = [
 "tests/core/references/test_cross_reference_manager.py" = ["B007", "PERF102"]
 "tests/core/sources/test_github.py" = ["SIM117"]
 "tests/core/test_async_request_context.py" = ["S110", "SIM105", "SIM117"]
-"tests/fixtures/factories.py" = ["RET504"]
 "tests/integration/test_adventure_conversion.py" = ["SIM102"]
 "tests/integration/test_adventure_resolution.py" = ["PTH123", "T201"]
 "tests/integration/test_adventure_resolution_no_duplicates.py" = ["PTH123"]
@@ -390,32 +389,23 @@ testpaths = ["tests"]
 markers = [
     # Speed-based marks (for selective running)
     "fast: marks tests as fast (<1s execution, unit tests)",
-    "medium: marks tests as medium (1-10s execution, integration tests)",
     "slow: marks tests as slow (>10s execution, full system tests)",
 
     # Component-based marks (for focused testing)
     "core: marks tests for core models, loaders, and registry",
     "rendering: marks tests for LaTeX rendering and template processing",
     "cli: marks tests for command-line interface",
-    "mcp: marks tests for Model Context Protocol (MCP) server functionality",
     "integration: marks tests as integration tests (cross-component)",
 
     # Data dependency marks (for environment handling)
     "requires_data: marks tests that need 5etools data sources",
     "requires_latex: marks tests that need LaTeX installation",
-    "needs_latex: marks tests that require LaTeX installation and perform real compilation",
-    "latex_required: marks tests that require LaTeX installation",
-    "network: marks tests that require network access",
 
     # Quality marks (for CI pipeline control)
-    "property_based: marks tests using Hypothesis property testing",
     "performance: marks tests that benchmark performance",
-    "security: marks tests that validate security aspects",
-    "benchmark: marks tests that run detailed benchmarks",
 
     # Special marks
     "ci_broken: marks tests that fail in CI environment (skipped in CI)",
-    "stress: marks tests as stress tests for validation",
     "xdist_incompatible: marks tests that hang with pytest-xdist (run sequentially)",
     "latex_compilation: marks tests that require LaTeX compilation",
 ]

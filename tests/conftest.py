@@ -25,9 +25,6 @@ from studiorum.core.text.tag_resolver import TagResolver  # type: ignore
 # Import the test helper for consistent setup
 from tests.test_helpers import reset_test_environment
 
-# Import the profiler plugin to ensure it's discovered by pytest
-pytest_plugins = ["scripts.test_profiler"]
-
 
 @pytest.fixture(autouse=True)
 def _reset_global_state() -> None:
