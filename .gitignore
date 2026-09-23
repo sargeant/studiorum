@@ -134,3 +134,6 @@ custom_output.tex
 scripts/.static-creature-xp.json
 .import_linter_cache/
 !tests/e2e/__snapshots__/**/*.tex
+
+# Generated adventure art (large PNGs, reproducible from plan.json)
+art/**/*.png
