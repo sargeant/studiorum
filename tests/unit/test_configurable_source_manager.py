@@ -1,7 +1,7 @@
 """Tests for UnifiedSourceManager content type detection."""
 
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 

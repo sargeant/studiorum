@@ -1,7 +1,5 @@
 """Helper functions for data-dependent tests."""
 
-from typing import Any
-
 import pytest
 
 

@@ -11,7 +11,6 @@ from unittest.mock import Mock, patch
 import pytest
 
 from studiorum.core.models.creatures import Creature
-from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
 from tests.test_helpers import reset_test_environment
 
 
@@ -111,8 +110,8 @@ class TestCreatureLaTeXRendering:
         """Test LaTeX generation for creature stat blocks."""
         # Setup mocks
         mock_tag_resolver = Mock()
-        mock_tag_resolver.process_text.side_effect = (
-            lambda text: text.replace("{@atk mw}", "Melee Weapon Attack:")
+        mock_tag_resolver.process_text.side_effect = lambda text: (
+            text.replace("{@atk mw}", "Melee Weapon Attack:")
             .replace("{@hit 11}", "+11")
             .replace("{@h}", "Hit: ")
             .replace("{@damage 1d8}", "1d8")

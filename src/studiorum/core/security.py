@@ -8,7 +8,6 @@ executable paths (Bandit B607).
 import shutil
 import sys
 from pathlib import Path
-from typing import Optional
 
 from studiorum.core.logging import get_logger
 
@@ -80,14 +79,13 @@ def get_platform_file_opener() -> str:
     """
     if sys.platform == "darwin":  # macOS
         return get_safe_executable("open")
-    elif sys.platform.startswith("linux"):  # Linux
+    if sys.platform.startswith("linux"):  # Linux
         return get_safe_executable("xdg-open")
-    elif sys.platform == "win32":  # Windows
+    if sys.platform == "win32":  # Windows
         # Windows uses cmd /c start which requires special handling
         cmd_path = get_safe_executable("cmd")
         return cmd_path
-    else:
-        raise ExecutableNotFoundError(f"file_opener_for_{sys.platform}")
+    raise ExecutableNotFoundError(f"file_opener_for_{sys.platform}")
 
 
 def get_latex_executable(engine: str = "pdflatex") -> str:

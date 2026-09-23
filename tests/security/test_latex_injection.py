@@ -4,7 +4,6 @@ This test suite validates that all user-provided content is properly escaped
 to prevent LaTeX code injection attacks.
 """
 
-import pytest
 from hypothesis import given, strategies as st
 
 from studiorum.core.latex_utils import escape_latex_text

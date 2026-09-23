@@ -5,8 +5,6 @@ in the actual 5etools dataset to ensure robust handling of all variations.
 """
 
 import re
-from typing import Any
-from unittest.mock import Mock, patch
 
 import pytest
 

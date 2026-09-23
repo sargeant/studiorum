@@ -15,11 +15,7 @@ from pydantic import BaseModel, Field
 from studiorum.core.logging import get_logger
 from studiorum.core.result import Error, Result, Success
 from studiorum.latex_engine.core.images.placement_models import (
-    ContentContext,
     ContentType,
-    ImageCharacteristic,
-    ImageMetadata,
-    OptimizationTarget,
 )
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -625,12 +621,11 @@ class ItemImageIntegration:
                 f"    \\caption{{{title}}}\n"
                 f"\\end{{figure}}"
             )
-        else:
-            return (
-                f"\\begin{{center}}\n"
-                f"    \\includegraphics[width={width}]{{{image_path}}}\n"
-                f"\\end{{center}}"
-            )
+        return (
+            f"\\begin{{center}}\n"
+            f"    \\includegraphics[width={width}]{{{image_path}}}\n"
+            f"\\end{{center}}"
+        )
 
     def _create_basic_item_gallery(
         self,

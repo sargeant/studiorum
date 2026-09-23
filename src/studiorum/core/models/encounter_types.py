@@ -8,7 +8,7 @@ Used throughout the encounter building pipeline for type-safe mathematical opera
 and clear separation between different numeric concepts.
 """
 
-from typing import Any, NewType
+from typing import NewType
 
 from pydantic import BaseModel, Field
 
@@ -70,12 +70,11 @@ class PartyComposition(BaseModel):
         """
         if self.size <= 2:
             return 1.5  # Encounters are harder for small parties
-        elif self.size >= 7:
+        if self.size >= 7:
             return 0.5  # Encounters are easier for large parties
-        elif self.size >= 5:
+        if self.size >= 5:
             return 0.75  # Encounters are somewhat easier
-        else:
-            return 1.0  # Standard difficulty for 3-4 characters
+        return 1.0  # Standard difficulty for 3-4 characters
 
 
 class EncounterDifficulty(BaseModel):
@@ -180,12 +179,11 @@ class EncounterBudget(BaseModel):
         """
         if actual_xp <= self.base_xp_budget * 0.5:
             return "trivial"
-        elif actual_xp <= self.base_xp_budget:
+        if actual_xp <= self.base_xp_budget:
             return self.difficulty
-        elif actual_xp <= self.base_xp_budget * 1.5:
+        if actual_xp <= self.base_xp_budget * 1.5:
             return "hard" if self.difficulty == "medium" else "deadly"
-        else:
-            return "overwhelming"
+        return "overwhelming"
 
 
 class EncounterConstraints(CreatureFilterCriteria):

@@ -11,7 +11,6 @@ from studiorum.cli.commands.convert.compendiums.creatures import (
     creatures as convert_creatures,
 )
 from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.creatures import Creature
 from studiorum.core.models.spells import Spell
 from studiorum.core.references.content_tracker import ContentTracker
 from tests.test_helpers import reset_test_environment

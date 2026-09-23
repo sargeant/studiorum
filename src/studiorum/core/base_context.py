@@ -91,7 +91,6 @@ class Context(BaseModel, ABC):
     @abstractmethod
     def content_type(self) -> str:
         """The content type this context is associated with."""
-        pass
 
     @property
     def source_info(self) -> dict[str, Any]:

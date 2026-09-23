@@ -314,7 +314,6 @@ def _format_file_size(size_bytes: int) -> str:
     """Format file size in human readable format."""
     if size_bytes < BYTES_PER_KB:
         return f"{size_bytes} B"
-    elif size_bytes < BYTES_PER_MB:
+    if size_bytes < BYTES_PER_MB:
         return f"{size_bytes / BYTES_PER_KB:.1f} KB"
-    else:
-        return f"{size_bytes / BYTES_PER_MB:.1f} MB"
+    return f"{size_bytes / BYTES_PER_MB:.1f} MB"

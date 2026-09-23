@@ -10,7 +10,7 @@ import asyncio
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from studiorum.core.logging import get_logger
 from studiorum.core.result import Error, Result, Success
@@ -363,16 +363,15 @@ class EnhancedImagePlacer(ImagePlacer):
                         "falling back to base placement"
                     )
                     return super().place_image(image_path, image_entry, context_hint)
-                else:
-                    # Convert enhanced result to base result
-                    enhanced = enhanced_result.unwrap()
-                    return PlacementResult(
-                        latex_command=enhanced.latex_command,
-                        placement=enhanced.placement,
-                        size_spec=enhanced.size_spec,
-                        requires_packages=enhanced.requires_packages,
-                        caption=enhanced.caption,
-                    )
+                # Convert enhanced result to base result
+                enhanced = enhanced_result.unwrap()
+                return PlacementResult(
+                    latex_command=enhanced.latex_command,
+                    placement=enhanced.placement,
+                    size_spec=enhanced.size_spec,
+                    requires_packages=enhanced.requires_packages,
+                    caption=enhanced.caption,
+                )
             finally:
                 loop.close()
 
@@ -533,8 +532,7 @@ class EnhancedImagePlacer(ImagePlacer):
             and content_context.content_type != ContentType.UNKNOWN
         ):
             return create_specialized_strategy(content_context.content_type)
-        else:
-            return self.content_aware_strategy or ContentAwarePlacementStrategy()
+        return self.content_aware_strategy or ContentAwarePlacementStrategy()
 
     async def _analyze_layout_impact(
         self, decision: Any, page_context: PageContext
@@ -566,14 +564,13 @@ class EnhancedImagePlacer(ImagePlacer):
             if self.enhanced_config.optimization_target == OptimizationTarget.DIGITAL:
                 result = self.output_optimizer.optimize_for_digital(image_metadata)
                 return result.is_success()
-            elif self.enhanced_config.optimization_target == OptimizationTarget.PRINT:
+            if self.enhanced_config.optimization_target == OptimizationTarget.PRINT:
                 result = self.output_optimizer.optimize_for_print(image_metadata)
                 return result.is_success()
-            else:
-                hybrid_result = self.output_optimizer.create_hybrid_optimization(
-                    image_metadata
-                )
-                return hybrid_result.is_success()
+            hybrid_result = self.output_optimizer.create_hybrid_optimization(
+                image_metadata
+            )
+            return hybrid_result.is_success()
 
         except Exception as e:
             logger.error(f"Output optimization failed: {str(e)}")
@@ -638,15 +635,14 @@ class EnhancedImagePlacer(ImagePlacer):
             if content_type == "item":
                 # Item images should be smaller and not dominate the layout
                 return "0.6\\columnwidth"
-            elif content_type == "spell":
+            if content_type == "spell":
                 # Spell images also conservative sizing
                 return "0.7\\columnwidth"
-            elif content_type == "creature":
+            if content_type == "creature":
                 # Creature images can be larger but still within column
                 return "0.9\\columnwidth"
-            else:
-                # General content in two-column layout
-                return "0.8\\columnwidth"
+            # General content in two-column layout
+            return "0.8\\columnwidth"
 
         # Single column or full-width layouts (fallback)
         return "0.8\\textwidth"
@@ -679,15 +675,14 @@ class EnhancedImagePlacer(ImagePlacer):
             if content_type == "item":
                 # Item images: constrain both width and height to prevent page overflow
                 return "width=0.6\\columnwidth,height=0.2\\textheight,keepaspectratio"
-            elif content_type == "spell":
+            if content_type == "spell":
                 # Spell images: conservative sizing with height constraint
                 return "width=0.7\\columnwidth,height=0.25\\textheight,keepaspectratio"
-            elif content_type == "creature":
+            if content_type == "creature":
                 # Creature images: larger but still constrained
                 return "width=0.9\\columnwidth,height=0.3\\textheight,keepaspectratio"
-            else:
-                # General content in two-column layout
-                return "width=0.8\\columnwidth,height=0.3\\textheight,keepaspectratio"
+            # General content in two-column layout
+            return "width=0.8\\columnwidth,height=0.3\\textheight,keepaspectratio"
 
         # Single column or full-width layouts (fallback)
         return "width=0.8\\textwidth,height=0.4\\textheight,keepaspectratio"

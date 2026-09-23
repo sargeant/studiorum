@@ -197,20 +197,19 @@ class TestContentOrganizer:
                     )
 
                     return ContentType("spell")
-                elif isinstance(content, MockCreature):
+                if isinstance(content, MockCreature):
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("creature")
-                elif isinstance(content, MockItem):
+                if isinstance(content, MockItem):
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("item")
-                else:
-                    raise ValueError("Unknown type")
+                raise ValueError("Unknown type")
 
             mock_from_content.side_effect = side_effect
 
@@ -494,12 +493,11 @@ class TestContentOrganizerIntegration:
 
                 if isinstance(content, MockSpell):
                     return ContentType("spell")
-                elif isinstance(content, MockCreature):
+                if isinstance(content, MockCreature):
                     return ContentType("creature")
-                elif isinstance(content, MockItem):
+                if isinstance(content, MockItem):
                     return ContentType("item")
-                else:
-                    return ContentType("feat")
+                return ContentType("feat")
 
             mock_from_content.side_effect = side_effect
 

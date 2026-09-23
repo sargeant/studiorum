@@ -25,22 +25,14 @@ from studiorum.core.error_types import (
     MCPError,
     MCPErrorCode,
     MCPException,
-    ProcessingError,
 )
 from studiorum.core.logging import get_logger
 from studiorum.core.models.content import Source
-from studiorum.core.result import Result
 from studiorum.core.services.protocols import OmnidexerProtocol
 
 from .models import (
-    CharacterAnalysisRequest,
-    CharacterAnalysisResponse,
-    CharacterProgressionData,
-    ClassFeatureData,
     FeatAnalysis,
-    LevelProgressionAnalysis,
     MulticlassOption,
-    SpellProgressionData,
 )
 
 logger = get_logger(__name__)
@@ -157,27 +149,24 @@ class CharacterProgressionTools:
                     )
 
                 return response
-            else:
-                # Handle error case - result is Error type
-                from studiorum.core.result import Error as ResultError
+            # Handle error case - result is Error type
+            from studiorum.core.result import Error as ResultError
 
-                if isinstance(result, ResultError):
-                    error = result.error
-                    # Convert MCPError to ContentNotFoundError if needed
-                    if isinstance(error, ContentNotFoundError):
-                        raise ContentNotFoundExceptionError(error)
-                    else:
-                        raise ContentNotFoundExceptionError(
-                            ContentNotFoundError(
-                                message=f"Character progression analysis failed: {error}"
-                            )
-                        )
-                else:
-                    raise ContentNotFoundExceptionError(
-                        ContentNotFoundError(
-                            message="Unknown error in character progression analysis"
-                        )
+            if isinstance(result, ResultError):
+                error = result.error
+                # Convert MCPError to ContentNotFoundError if needed
+                if isinstance(error, ContentNotFoundError):
+                    raise ContentNotFoundExceptionError(error)
+                raise ContentNotFoundExceptionError(
+                    ContentNotFoundError(
+                        message=f"Character progression analysis failed: {error}"
                     )
+                )
+            raise ContentNotFoundExceptionError(
+                ContentNotFoundError(
+                    message="Unknown error in character progression analysis"
+                )
+            )
 
         except Exception as e:
             duration_ms = (time.time() - start_time) * 1000
@@ -487,10 +476,9 @@ class CharacterProgressionTools:
             if time.time() - cache_time < self.cache_duration:
                 # Cache stores dict[str, Any] values based on _cache_result signature
                 return cast(dict[str, Any], self._cache[cache_key])
-            else:
-                # Remove expired entry
-                self._cache.pop(cache_key, None)
-                self._cache_ttl.pop(cache_key, None)
+            # Remove expired entry
+            self._cache.pop(cache_key, None)
+            self._cache_ttl.pop(cache_key, None)
         return None
 
     def _cache_result(self, cache_key: str, result: dict[str, Any]) -> None:

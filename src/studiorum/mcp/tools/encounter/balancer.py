@@ -10,10 +10,9 @@ adjustment while maintaining performance targets and DMG compliance.
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, cast
+from typing import Any
 
 from studiorum.core.logging import get_logger
-from studiorum.core.models.creatures import Creature
 from studiorum.core.models.encounter_types import (
     XP,
     EncounterConstraints,
@@ -23,7 +22,6 @@ from studiorum.core.models.encounter_types import (
 )
 from studiorum.core.services.encounter_collector import (
     EncounterCollector,
-    EncounterCreature,
     EncounterGenerationResult,
 )
 from studiorum.mcp.tools.encounter.budget import EncounterBudgetCalculator
@@ -311,17 +309,16 @@ class EncounterBalancer:
 
         if optimization_goal == OptimizationGoal.TACTICAL_VARIETY:
             return self._optimize_tactical_variety(encounter, party, constraints)
-        elif optimization_goal == OptimizationGoal.ACTION_ECONOMY:
+        if optimization_goal == OptimizationGoal.ACTION_ECONOMY:
             return self._optimize_action_economy(encounter, party, constraints)
-        elif optimization_goal == OptimizationGoal.ENVIRONMENTAL_FIT:
+        if optimization_goal == OptimizationGoal.ENVIRONMENTAL_FIT:
             return self._optimize_environmental_fit(encounter, constraints)
-        elif optimization_goal == OptimizationGoal.NARRATIVE_FLOW:
+        if optimization_goal == OptimizationGoal.NARRATIVE_FLOW:
             return self._optimize_narrative_flow(encounter, constraints)
-        elif optimization_goal == OptimizationGoal.RESOURCE_DRAIN:
+        if optimization_goal == OptimizationGoal.RESOURCE_DRAIN:
             return self._optimize_resource_drain(encounter, party, constraints)
-        else:
-            logger.warning(f"Unknown optimization goal: {optimization_goal}")
-            return None
+        logger.warning(f"Unknown optimization goal: {optimization_goal}")
+        return None
 
     def _analyze_xp_accuracy(self, actual_xp: XP, target_xp: XP) -> float:
         """Analyze XP accuracy against target."""
@@ -370,16 +367,15 @@ class EncounterBalancer:
         # Ideal action ratio is around 1.0-1.5 (slightly favoring enemies)
         if 1.0 <= action_ratio <= 1.5:
             return 1.0
-        elif 0.8 <= action_ratio < 1.0:
+        if 0.8 <= action_ratio < 1.0:
             return 0.9  # Slightly party favored
-        elif 1.5 < action_ratio <= 2.0:
+        if 1.5 < action_ratio <= 2.0:
             return 0.8  # Moderately enemy favored
-        elif 0.5 <= action_ratio < 0.8:
+        if 0.5 <= action_ratio < 0.8:
             return 0.6  # Significantly party favored
-        elif 2.0 < action_ratio <= 3.0:
+        if 2.0 < action_ratio <= 3.0:
             return 0.5  # Significantly enemy favored
-        else:
-            return 0.2  # Extremely imbalanced
+        return 0.2  # Extremely imbalanced
 
     def _analyze_narrative_alignment(
         self, encounter: EncounterGenerationResult, narrative_context: dict[str, Any]

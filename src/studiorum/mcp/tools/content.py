@@ -27,11 +27,8 @@ from ...core.error_types import (
     MCPError,
     MCPErrorCode,
     MCPException,
-    ProcessingError,
 )
 from ...core.models.content import BaseContent
-from ...core.result import Result
-from ...core.services.protocols import OmnidexerProtocol
 
 logger = get_logger(__name__)
 
@@ -139,26 +136,23 @@ class PerformantContentSearcher:
                         return await self._search_spells_async(
                             query, sources, filters, limit, offset, ctx
                         )
-                    elif content_type == "creatures":
+                    if content_type == "creatures":
                         return await self._search_creatures_async(
                             query, sources, filters, limit, offset, ctx
                         )
-                    elif content_type == "items":
+                    if content_type == "items":
                         return await self._search_items_async(
                             query, sources, filters, limit, offset, ctx
                         )
-                    elif content_type == "adventures":
+                    if content_type == "adventures":
                         return await self._search_adventures_async(
                             query, sources, filters, limit, offset, ctx
                         )
-                    elif content_type == "books":
+                    if content_type == "books":
                         return await self._search_books_async(
                             query, sources, filters, limit, offset, ctx
                         )
-                    else:
-                        raise ContentNotFoundError(
-                            f"Unknown content type: {content_type}"
-                        )
+                    raise ContentNotFoundError(f"Unknown content type: {content_type}")
 
             # Apply timeout wrapper
             result = await asyncio.wait_for(perform_search(), timeout=timeout_seconds)
@@ -237,23 +231,22 @@ class PerformantContentSearcher:
             # Apply pagination
             end_idx = offset + limit
             return spells[offset:end_idx]
-        else:
-            from ...core.result import Error as ResultError
+        from ...core.result import Error as ResultError
 
-            if isinstance(result, ResultError):
-                error_msg = (
-                    result.error.message
-                    if hasattr(result.error, "message")
-                    else str(result.error)
-                )
-            else:
-                error_msg = "Unknown error"
-            content_error = ContentNotFoundError(
-                message=f"Spell search failed: {error_msg}",
-                error_code=MCPErrorCode.CONTENT_NOT_FOUND,
-                category=ErrorCategory.USER_ERROR,
+        if isinstance(result, ResultError):
+            error_msg = (
+                result.error.message
+                if hasattr(result.error, "message")
+                else str(result.error)
             )
-            raise ContentNotFoundExceptionError(content_error)
+        else:
+            error_msg = "Unknown error"
+        content_error = ContentNotFoundError(
+            message=f"Spell search failed: {error_msg}",
+            error_code=MCPErrorCode.CONTENT_NOT_FOUND,
+            category=ErrorCategory.USER_ERROR,
+        )
+        raise ContentNotFoundExceptionError(content_error)
 
     async def _search_creatures_async(
         self,
@@ -279,23 +272,22 @@ class PerformantContentSearcher:
             # Apply pagination
             end_idx = offset + limit
             return creatures[offset:end_idx]
-        else:
-            from ...core.result import Error as ResultError
+        from ...core.result import Error as ResultError
 
-            if isinstance(result, ResultError):
-                error_msg = (
-                    result.error.message
-                    if hasattr(result.error, "message")
-                    else str(result.error)
-                )
-            else:
-                error_msg = "Unknown error"
-            content_error = ContentNotFoundError(
-                message=f"Creature search failed: {error_msg}",
-                error_code=MCPErrorCode.CONTENT_NOT_FOUND,
-                category=ErrorCategory.USER_ERROR,
+        if isinstance(result, ResultError):
+            error_msg = (
+                result.error.message
+                if hasattr(result.error, "message")
+                else str(result.error)
             )
-            raise ContentNotFoundExceptionError(content_error)
+        else:
+            error_msg = "Unknown error"
+        content_error = ContentNotFoundError(
+            message=f"Creature search failed: {error_msg}",
+            error_code=MCPErrorCode.CONTENT_NOT_FOUND,
+            category=ErrorCategory.USER_ERROR,
+        )
+        raise ContentNotFoundExceptionError(content_error)
 
     async def _search_items_async(
         self,
@@ -322,23 +314,22 @@ class PerformantContentSearcher:
             # Apply pagination
             end_idx = offset + limit
             return items[offset:end_idx]
-        else:
-            from ...core.result import Error as ResultError
+        from ...core.result import Error as ResultError
 
-            if isinstance(result, ResultError):
-                error_msg = (
-                    result.error.message
-                    if hasattr(result.error, "message")
-                    else str(result.error)
-                )
-            else:
-                error_msg = "Unknown error"
-            content_error = ContentNotFoundError(
-                message=f"Item search failed: {error_msg}",
-                error_code=MCPErrorCode.CONTENT_NOT_FOUND,
-                category=ErrorCategory.USER_ERROR,
+        if isinstance(result, ResultError):
+            error_msg = (
+                result.error.message
+                if hasattr(result.error, "message")
+                else str(result.error)
             )
-            raise ContentNotFoundExceptionError(content_error)
+        else:
+            error_msg = "Unknown error"
+        content_error = ContentNotFoundError(
+            message=f"Item search failed: {error_msg}",
+            error_code=MCPErrorCode.CONTENT_NOT_FOUND,
+            category=ErrorCategory.USER_ERROR,
+        )
+        raise ContentNotFoundExceptionError(content_error)
 
     async def _search_adventures_async(
         self,
@@ -366,23 +357,22 @@ class PerformantContentSearcher:
             # Apply pagination
             end_idx = offset + limit
             return adventures[offset:end_idx]
-        else:
-            from ...core.result import Error as ResultError
+        from ...core.result import Error as ResultError
 
-            if isinstance(result, ResultError):
-                error_msg = (
-                    result.error.message
-                    if hasattr(result.error, "message")
-                    else str(result.error)
-                )
-            else:
-                error_msg = "Unknown error"
-            content_error = ContentNotFoundError(
-                message=f"Adventure search failed: {error_msg}",
-                error_code=MCPErrorCode.CONTENT_NOT_FOUND,
-                category=ErrorCategory.USER_ERROR,
+        if isinstance(result, ResultError):
+            error_msg = (
+                result.error.message
+                if hasattr(result.error, "message")
+                else str(result.error)
             )
-            raise ContentNotFoundExceptionError(content_error)
+        else:
+            error_msg = "Unknown error"
+        content_error = ContentNotFoundError(
+            message=f"Adventure search failed: {error_msg}",
+            error_code=MCPErrorCode.CONTENT_NOT_FOUND,
+            category=ErrorCategory.USER_ERROR,
+        )
+        raise ContentNotFoundExceptionError(content_error)
 
     async def _search_books_async(
         self,
@@ -410,23 +400,22 @@ class PerformantContentSearcher:
             # Apply pagination
             end_idx = offset + limit
             return books[offset:end_idx]
-        else:
-            from ...core.result import Error as ResultError
+        from ...core.result import Error as ResultError
 
-            if isinstance(result, ResultError):
-                error_msg = (
-                    result.error.message
-                    if hasattr(result.error, "message")
-                    else str(result.error)
-                )
-            else:
-                error_msg = "Unknown error"
-            content_error = ContentNotFoundError(
-                message=f"Book search failed: {error_msg}",
-                error_code=MCPErrorCode.CONTENT_NOT_FOUND,
-                category=ErrorCategory.USER_ERROR,
+        if isinstance(result, ResultError):
+            error_msg = (
+                result.error.message
+                if hasattr(result.error, "message")
+                else str(result.error)
             )
-            raise ContentNotFoundExceptionError(content_error)
+        else:
+            error_msg = "Unknown error"
+        content_error = ContentNotFoundError(
+            message=f"Book search failed: {error_msg}",
+            error_code=MCPErrorCode.CONTENT_NOT_FOUND,
+            category=ErrorCategory.USER_ERROR,
+        )
+        raise ContentNotFoundExceptionError(content_error)
 
     def _apply_spell_filters(
         self, spells: list[BaseContent], filters: dict[str, Any]
@@ -542,8 +531,7 @@ class PerformantContentSearcher:
                 # Handle fractional CR like "1/4"
                 parts = cr_value.split("/")
                 return float(parts[0]) / float(parts[1])
-            else:
-                return float(cr_value)
+            return float(cr_value)
 
         return 0.0
 
@@ -573,10 +561,9 @@ class PerformantContentSearcher:
             cache_time = self._cache_ttl.get(cache_key, 0)
             if time.time() - cache_time < self.cache_duration:
                 return self._cache[cache_key]
-            else:
-                # Remove expired entry
-                self._cache.pop(cache_key, None)
-                self._cache_ttl.pop(cache_key, None)
+            # Remove expired entry
+            self._cache.pop(cache_key, None)
+            self._cache_ttl.pop(cache_key, None)
         return None
 
     def _cache_result(self, cache_key: str, result: ContentSearchResult) -> None:

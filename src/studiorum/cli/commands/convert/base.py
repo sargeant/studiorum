@@ -1,7 +1,7 @@
 """Base classes and mixins for convert commands."""
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import typer
 
@@ -475,7 +475,7 @@ class BaseConvertCommand:
                     for error in result.errors:
                         rprint(f"  - {error}")
                     raise ValueError(f"Content source validation failed: {source_name}")
-                elif result.warnings:
+                if result.warnings:
                     rprint(f"[yellow]Warnings for {source_name}:[/yellow]")
                     for warning in result.warnings:
                         rprint(f"  - {warning}")

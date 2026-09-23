@@ -84,11 +84,9 @@ class SpellComponent(BaseModel):
     @classmethod
     def parse_material(cls, v: Any) -> bool | str:
         """Handle both boolean and string material components."""
-        if isinstance(v, bool):
+        if isinstance(v, bool) or isinstance(v, str):
             return v
-        elif isinstance(v, str):
-            return v
-        elif isinstance(v, dict) and "text" in v:
+        if isinstance(v, dict) and "text" in v:
             return str(v["text"])
         return bool(v)
 
@@ -103,11 +101,11 @@ class SpellDuration(BaseModel):
     def __str__(self) -> str:
         if self.type == "instant":
             return "Instantaneous"
-        elif self.type == "permanent":
+        if self.type == "permanent":
             return "Permanent"
-        elif self.type == "special":
+        if self.type == "special":
             return "Special"
-        elif self.duration:
+        if self.duration:
             amount = self.duration.amount
             unit = self.duration.type
             duration_str = f"{amount} {unit}"
@@ -151,18 +149,17 @@ class SpellRange(BaseModel):
                     return "Touch"
                 return f"{amount} {dist_type}"
             return "Touch"
-        elif self.type == "self":
+        if self.type == "self":
             if self.distance:
                 area_type = self.distance.type
                 amount = self.distance.amount or 0
                 return f"Self ({amount}-foot {area_type})"
             return "Self"
-        elif self.type == "sight":
+        if self.type == "sight":
             return "Sight"
-        elif self.type == "unlimited":
+        if self.type == "unlimited":
             return "Unlimited"
-        else:
-            return self.type.title()
+        return self.type.title()
 
 
 @content_type(
@@ -390,14 +387,13 @@ class Spell(BaseContent):
         """Get formatted spell level text."""
         if self.level == 0:
             return f"{self.school} cantrip"
-        elif self.level == 1:
+        if self.level == 1:
             return f"1st-level {self.school.lower()}"
-        elif self.level == 2:
+        if self.level == 2:
             return f"2nd-level {self.school.lower()}"
-        elif self.level == 3:
+        if self.level == 3:
             return f"3rd-level {self.school.lower()}"
-        else:
-            return f"{self.level}th-level {self.school.lower()}"
+        return f"{self.level}th-level {self.school.lower()}"
 
     def get_casting_time_text(self) -> str:
         """Get formatted casting time text."""
@@ -432,16 +428,14 @@ class Spell(BaseContent):
         if self.saving_throw:
             if len(self.saving_throw) == 1:
                 return f"{self.saving_throw[0].title()} saving throw"
-            else:
-                formatted_saves = [save.title() for save in self.saving_throw]
-                return f"{', '.join(formatted_saves)} saving throw"
-        elif self.spell_attack:
+            formatted_saves = [save.title() for save in self.saving_throw]
+            return f"{', '.join(formatted_saves)} saving throw"
+        if self.spell_attack:
             if "ranged" in self.spell_attack:
                 return "ranged spell attack"
-            elif "melee" in self.spell_attack:
+            if "melee" in self.spell_attack:
                 return "melee spell attack"
-            else:
-                return "spell attack"
+            return "spell attack"
         return ""
 
     def get_damage_text(self) -> str:
@@ -543,8 +537,7 @@ class Spell(BaseContent):
         if self.source.abbreviation == "XPHB":
             if self.level == 0:
                 return "Cantrip Upgrade"
-            else:
-                return "Using a Higher-Level Spell Slot"
+            return "Using a Higher-Level Spell Slot"
         return "At Higher Levels"
 
     def is_modern_rules(self) -> bool:

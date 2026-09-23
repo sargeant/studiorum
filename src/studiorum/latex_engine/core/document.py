@@ -13,7 +13,7 @@ from studiorum.core.models.document_metadata import (
     DocumentType,
 )
 from studiorum.core.services.appendix_generator import AppendixFlags, AppendixGenerator
-from studiorum.core.types import LaTeXConfig, RenderContextDict
+from studiorum.core.types import LaTeXConfig
 from studiorum.renderers.base import DocumentRenderer, RenderingError
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -481,10 +481,10 @@ This content type is not yet fully supported by the rendering system.
         # Check if content looks like a book entry
         if isinstance(content, str):
             return True  # Raw text entries from book chapters
-        elif isinstance(content, dict):
+        if isinstance(content, dict):
             # Dict entries with typical book entry structure
             return any(key in content for key in ["type", "entries", "name"])
-        elif hasattr(content, "entries") and hasattr(content, "document_type"):
+        if hasattr(content, "entries") and hasattr(content, "document_type"):
             # Section objects from nested entries that contain book content
             return bool(getattr(content, "document_type", None) == "book")
 
@@ -515,7 +515,7 @@ This content type is not yet fully supported by the rendering system.
         # Check if content looks like an adventure entry
         if isinstance(content, str):
             return True  # Raw text entries from adventure chapters
-        elif isinstance(content, dict):
+        if isinstance(content, dict):
             # Dict entries with typical adventure entry structure
             has_adventure_keys = any(
                 key in content for key in ["type", "entries", "name"]
@@ -524,7 +524,7 @@ This content type is not yet fully supported by the rendering system.
                 f"Adventure entry detection for {content.get('name', 'unnamed')}: {has_adventure_keys}, keys: {list(content.keys())}"
             )
             return has_adventure_keys
-        elif hasattr(content, "entries") and hasattr(content, "name"):
+        if hasattr(content, "entries") and hasattr(content, "name"):
             # Chapter objects from adventure content (Pydantic models)
             logger.debug(
                 f"Adventure chapter detected: {getattr(content, 'name', 'unnamed')}"
@@ -555,9 +555,8 @@ This content type is not yet fully supported by the rendering system.
             if tag_resolver:
                 result = tag_resolver.process_text(content, context)
                 return str(result)
-            else:
-                return self._escape_latex(content)
-        elif isinstance(content, dict):
+            return self._escape_latex(content)
+        if isinstance(content, dict):
             # Process dict entry - use same approach as book rendering
             try:
                 logger.debug(
@@ -633,17 +632,15 @@ This content type is not yet fully supported by the rendering system.
             if tag_resolver:
                 result = tag_resolver.process_text(content, context)
                 return str(result)
-            else:
-                return self._escape_latex(content)
-        elif isinstance(content, dict):
+            return self._escape_latex(content)
+        if isinstance(content, dict):
             # Process dict entry
             return processor.process_entry_dict(content, context)
-        elif hasattr(content, "entries"):
+        if hasattr(content, "entries"):
             # Process Section object - render its entries
             processed_entries = processor.process_entries(content.entries, context)
             return "\n\n".join(processed_entries)
-        else:
-            return str(content)
+        return str(content)
 
     def _create_compilation_config(
         self, config: LaTeXConfig | dict[str, Any] | None = None
@@ -814,8 +811,7 @@ This content type is not yet fully supported by the rendering system.
             if not appendix_sections:
                 logger.info("No appendices generated (no tracked content found)")
                 return document
-            else:
-                logger.info(f"Generated {len(appendix_sections)} appendix sections")
+            logger.info(f"Generated {len(appendix_sections)} appendix sections")
 
             # Insert appendices before \end{document}
             # Find the position to insert appendices

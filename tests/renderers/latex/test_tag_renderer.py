@@ -1,7 +1,5 @@
 """Tests for LaTeX tag rendering (formatting only)."""
 
-from unittest.mock import Mock
-
 import pytest
 
 from studiorum.core.models.content import ContentType, Source

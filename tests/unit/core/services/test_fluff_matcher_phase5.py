@@ -1,12 +1,12 @@
 """Tests for Phase 5 FluffMatcher enhancements."""
 
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import pytest
 
 from studiorum.core.models.content import Source
 from studiorum.core.models.creatures import Creature
-from studiorum.core.models.fluff import CreatureFluff, FluffEntry, FluffImage
+from studiorum.core.models.fluff import CreatureFluff, FluffEntry
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
 from studiorum.core.services.fluff_matcher import FluffMatcher

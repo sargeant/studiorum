@@ -4,7 +4,7 @@ This module provides conversion utilities to migrate from the original dataclass
 implementations to the new Pydantic models while maintaining API compatibility.
 """
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .balancer import (

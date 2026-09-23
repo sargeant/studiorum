@@ -11,9 +11,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from studiorum.core.base_context import BaseContext
 
@@ -116,7 +116,6 @@ class ReferenceParser[T](ABC):
         Returns:
             List of extracted references
         """
-        pass
 
     @abstractmethod
     def can_parse(self, text: str) -> bool:
@@ -128,13 +127,11 @@ class ReferenceParser[T](ABC):
         Returns:
             True if this parser can extract references from the text
         """
-        pass
 
     @property
     @abstractmethod
     def supported_content_type(self) -> type[T]:
         """The content type this parser handles."""
-        pass
 
 
 class ReferenceResolver[T](ABC):
@@ -157,7 +154,6 @@ class ReferenceResolver[T](ABC):
         Returns:
             The resolved content object, or None if not found
         """
-        pass
 
     @abstractmethod
     def format_reference(
@@ -178,13 +174,11 @@ class ReferenceResolver[T](ABC):
         Returns:
             Formatted reference string
         """
-        pass
 
     @property
     @abstractmethod
     def supported_content_type(self) -> type[T]:
         """The content type this resolver handles."""
-        pass
 
 
 class ReferenceCache:
@@ -452,4 +446,3 @@ def reset_reference_manager() -> None:
     """
     # This function is maintained for backward compatibility
     # but the actual reset is handled by the service container
-    pass

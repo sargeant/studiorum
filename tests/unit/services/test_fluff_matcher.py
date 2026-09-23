@@ -2,8 +2,6 @@
 
 from unittest.mock import Mock
 
-import pytest
-
 from studiorum.core.models.content import Source
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.fluff import CreatureFluff, ItemFluff, SpellFluff

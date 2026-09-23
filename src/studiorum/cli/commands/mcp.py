@@ -25,7 +25,7 @@ import os
 import signal
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -35,7 +35,7 @@ from rich.text import Text
 from studiorum.core.logging import StudiorumLogger, get_logger
 
 from ...core.config.unified_config import get_app_config
-from ...mcp.server import create_mcp_server, get_mcp_app, list_registered_tools
+from ...mcp.server import create_mcp_server, list_registered_tools
 
 logger = get_logger(__name__)
 console = Console()

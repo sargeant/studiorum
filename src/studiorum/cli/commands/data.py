@@ -30,7 +30,6 @@ from rich.table import Table
 from studiorum.cli.services import get_cli_source_manager
 from studiorum.core.config import get_app_config
 from studiorum.core.logging import get_logger
-from studiorum.core.services.protocols import SourceManagerProtocol
 
 logger = get_logger(__name__)
 console = Console()
@@ -88,14 +87,13 @@ def _save_config(config: dict[str, Any]) -> None:
     def convert_to_serializable(obj: Any) -> Any:
         if isinstance(obj, Path):
             return str(obj)
-        elif hasattr(obj, "value"):  # Handle Enum objects
+        if hasattr(obj, "value"):  # Handle Enum objects
             return obj.value
-        elif isinstance(obj, dict):
+        if isinstance(obj, dict):
             return {key: convert_to_serializable(value) for key, value in obj.items()}
-        elif isinstance(obj, list):
+        if isinstance(obj, list):
             return [convert_to_serializable(item) for item in obj]
-        else:
-            return obj
+        return obj
 
     clean_config = convert_to_serializable(config)
 
@@ -317,7 +315,6 @@ def add_homebrew(
     try:
         from studiorum.core.config.data_sources import (
             DataSourceType,
-            ExtensionDataSourceConfig,
         )
 
         # Validate path exists

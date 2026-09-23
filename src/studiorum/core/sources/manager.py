@@ -162,7 +162,7 @@ class ContentSourceManager:
             await self.github_manager.ensure_repository(source)
             return self.github_manager.list_content_files(source)
 
-        elif source.type == SourceType.DIRECTORY:
+        if source.type == SourceType.DIRECTORY:
             if not source.path:
                 return []
 
@@ -180,7 +180,7 @@ class ContentSourceManager:
                     pass
                 return []
 
-            elif path.is_dir():
+            if path.is_dir():
                 # Find all JSON files in directory
                 json_files = []
                 for json_file in path.rglob("*.json"):
@@ -192,12 +192,10 @@ class ContentSourceManager:
                         continue
                 return sorted(json_files)
 
-            else:
-                return []
-
-        else:
-            logger.warning(f"Unsupported source type: {source.type}")
             return []
+
+        logger.warning(f"Unsupported source type: {source.type}")
+        return []
 
     def _get_source_files_sync(self, source: ContentSource) -> list[Path]:
         """Get list of content files from a source synchronously.
@@ -235,7 +233,7 @@ class ContentSourceManager:
                     pass
                 return []
 
-            elif path.is_dir():
+            if path.is_dir():
                 # Find all JSON files in directory
                 json_files = []
                 for json_file in path.rglob("*.json"):
@@ -247,8 +245,7 @@ class ContentSourceManager:
                         continue
                 return sorted(json_files)
 
-            else:
-                return []
+            return []
 
         else:
             logger.warning(f"Unsupported source type: {source.type}")

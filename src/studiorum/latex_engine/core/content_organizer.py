@@ -321,10 +321,9 @@ class ContentOrganizer:
             # Handle both dict and object formats for name
             if hasattr(x, "name"):
                 return str(x.name).lower()
-            elif isinstance(x, dict):
+            if isinstance(x, dict):
                 return str(x.get("name", "unnamed")).lower()
-            else:
-                return "unnamed"
+            return "unnamed"
 
         return sorted(content, key=get_name)
 
@@ -342,12 +341,9 @@ class ContentOrganizer:
             level = content.level
             if level == 0:
                 return "Cantrips"
-            elif level <= 3:
+            if level <= 3 or level <= 6:
                 return f"Level {level} Spells"
-            elif level <= 6:
-                return f"Level {level} Spells"
-            else:
-                return f"Level {level}+ Spells"
+            return f"Level {level}+ Spells"
 
         # Handle creatures by CR
         if hasattr(content, "cr"):
@@ -358,24 +354,22 @@ class ContentOrganizer:
             if isinstance(cr, str):
                 if "/" in cr:
                     return f"CR {cr}"
-                else:
-                    try:
-                        cr_num = float(cr)
-                    except ValueError:
-                        return "CR Unknown"
+                try:
+                    cr_num = float(cr)
+                except ValueError:
+                    return "CR Unknown"
             else:
                 cr_num = float(cr) if cr else 0
 
             if cr_num < 1:
                 return "CR 0-1/2"
-            elif cr_num <= 4:
+            if cr_num <= 4:
                 return "CR 1-4"
-            elif cr_num <= 10:
+            if cr_num <= 10:
                 return "CR 5-10"
-            elif cr_num <= 16:
+            if cr_num <= 16:
                 return "CR 11-16"
-            else:
-                return "CR 17+"
+            return "CR 17+"
 
         return "Miscellaneous"
 

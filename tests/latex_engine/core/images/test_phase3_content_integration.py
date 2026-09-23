@@ -9,15 +9,12 @@ This test module covers:
 
 from __future__ import annotations
 
-import asyncio
-from pathlib import Path
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
 from studiorum.core.models.entry_types import GalleryEntry
-from studiorum.core.result import Error, Success
+from studiorum.core.result import Success
 from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
 from studiorum.latex_engine.core.images.gallery_processor import (
     GalleryConfig,
@@ -26,18 +23,15 @@ from studiorum.latex_engine.core.images.gallery_processor import (
     ProcessedGallery,
 )
 from studiorum.latex_engine.core.images.image_processor import (
-    ImageProcessingConfig,
     ImageProcessor,
 )
 from studiorum.latex_engine.core.images.integration.bestiary import (
     BestiaryImageIntegration,
     BestiaryImageResult,
     BestiaryIntegrationConfig,
-    CreatureImageMetadata,
 )
 from studiorum.latex_engine.core.images.integration.items import (
     ItemImageIntegration,
-    ItemImageMetadata,
     ItemImageResult,
     ItemIntegrationConfig,
 )

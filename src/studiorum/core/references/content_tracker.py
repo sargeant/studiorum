@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field, field_validator
 
-from ..models.content import ContentType
-
 
 class TrackedContent(BaseModel):
     """Represents a piece of tracked content."""

@@ -8,17 +8,15 @@ Tests maintain the required reset_test_environment() pattern for parallel execut
 and include both unit tests and integration scenarios.
 """
 
-from typing import Any
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from pydantic import ValidationError
 
-from studiorum.core.error_types import ContentNotFoundError, MCPException
+from studiorum.core.error_types import MCPException
 from studiorum.core.models.encounter_types import (
     XP,
     EncounterConstraints,
-    EnvironmentalModifiers,
     PartyComposition,
 )
 from studiorum.mcp.tools.encounter.budget import calculate_encounter_budget

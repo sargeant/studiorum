@@ -12,7 +12,6 @@ from studiorum.core.entry_registry import ValidationMode
 from studiorum.core.exceptions import EntryProcessingWarning
 from studiorum.core.models.content import Source
 from studiorum.core.parsers.entry_parser import EntryParser
-from studiorum.core.result import Error, Success
 from tests.test_helpers import reset_test_environment
 
 

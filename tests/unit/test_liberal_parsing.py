@@ -9,8 +9,6 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-import pytest
-
 from studiorum.core.loaders.fluff_loader import FluffDataLoader  # type: ignore
 from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from studiorum.core.models.content import ContentType  # type: ignore

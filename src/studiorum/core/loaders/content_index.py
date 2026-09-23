@@ -3,7 +3,6 @@
 import asyncio
 import hashlib
 import json
-import time
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
@@ -206,10 +205,9 @@ class FastContentIndex:
         # Handle different source formats
         if isinstance(source, dict):
             return str(source.get("abbreviation", source.get("source", "Unknown")))
-        elif isinstance(source, str):
+        if isinstance(source, str):
             return source
-        else:
-            return str(source)
+        return str(source)
 
     def _extract_search_terms(
         self, item: dict[str, Any], content_type: ContentType
@@ -382,12 +380,11 @@ class FastContentIndex:
 
             if name_lower == query_lower:
                 return (100, meta.name)
-            elif query_lower in name_lower:
+            if query_lower in name_lower:
                 return (50, meta.name)
-            elif name_lower.startswith(query_lower):
+            if name_lower.startswith(query_lower):
                 return (75, meta.name)
-            else:
-                return (1, meta.name)
+            return (1, meta.name)
 
         results.sort(key=relevance_score, reverse=True)
         return results[:limit]

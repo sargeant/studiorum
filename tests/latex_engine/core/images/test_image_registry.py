@@ -7,10 +7,9 @@ batch processing, and statistics generation.
 from __future__ import annotations
 
 import asyncio
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 

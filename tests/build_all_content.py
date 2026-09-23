@@ -54,10 +54,9 @@ import argparse
 import sys
 import tempfile
 import traceback
-from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from studiorum.cli.commands.convert import resolve_content_or_file
 from studiorum.core.loaders.omnidexer import Omnidexer
@@ -197,10 +196,9 @@ class ContentBuilder:
                 with open(output_file, "w", encoding="utf-8") as f:
                     f.write(result)
                 return True
-            else:
-                if self.verbose and not self.summary_only:
-                    print(f"    No LaTeX content generated for {content_id}")
-                return False
+            if self.verbose and not self.summary_only:
+                print(f"    No LaTeX content generated for {content_id}")
+            return False
 
         except Exception as e:
             if self.verbose and not self.summary_only:

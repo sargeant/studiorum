@@ -60,18 +60,18 @@ class TestContentSourceManager:
     @pytest.fixture
     def manager(self: Any, mock_config: Any) -> Generator[Any, None, None]:
         """Create ContentSourceManager with mocked dependencies."""
-        with patch(
-            "studiorum.core.sources.manager.get_content_config",
-            return_value=mock_config,
+        with (
+            patch(
+                "studiorum.core.sources.manager.get_content_config",
+                return_value=mock_config,
+            ),
+            patch("studiorum.core.sources.manager.GitHubSourceManager") as mock_github,
         ):
-            with patch(
-                "studiorum.core.sources.manager.GitHubSourceManager"
-            ) as mock_github:
-                mock_github_instance: Any = Mock(spec=GitHubSourceManager)
-                mock_github.return_value = mock_github_instance
-                manager: Any = ContentSourceManager()
-                manager.github_manager = mock_github_instance
-                yield manager
+            mock_github_instance: Any = Mock(spec=GitHubSourceManager)
+            mock_github.return_value = mock_github_instance
+            manager: Any = ContentSourceManager()
+            manager.github_manager = mock_github_instance
+            yield manager
 
     # Initialization Tests
     def test_init_with_config(self, mock_config: Any) -> None:
@@ -88,13 +88,15 @@ class TestContentSourceManager:
         mock_config: Any = Mock(spec=ContentConfiguration)
         mock_config.cache_dir = Path("/tmp/cache")
 
-        with patch(
-            "studiorum.core.sources.manager.get_content_config",
-            return_value=mock_config,
+        with (
+            patch(
+                "studiorum.core.sources.manager.get_content_config",
+                return_value=mock_config,
+            ),
+            patch("studiorum.core.sources.manager.GitHubSourceManager"),
         ):
-            with patch("studiorum.core.sources.manager.GitHubSourceManager"):
-                manager: Any = ContentSourceManager()
-                assert manager.config == mock_config
+            manager: Any = ContentSourceManager()
+            assert manager.config == mock_config
 
     # Source Availability Tests
     @pytest.mark.asyncio
@@ -272,14 +274,16 @@ class TestContentSourceManager:
         """Test build_content_index handling exceptions."""
         mock_config.get_enabled_sources.return_value = [github_source]
 
-        with patch.object(
-            manager, "_get_source_files", side_effect=Exception("Test error")
+        with (
+            patch.object(
+                manager, "_get_source_files", side_effect=Exception("Test error")
+            ),
+            patch("studiorum.core.sources.manager.logger") as mock_logger,
         ):
-            with patch("studiorum.core.sources.manager.logger") as mock_logger:
-                await manager.build_content_index()
+            await manager.build_content_index()
 
-                assert manager._content_index[github_source.name] == []
-                mock_logger.error.assert_called()
+            assert manager._content_index[github_source.name] == []
+            mock_logger.error.assert_called()
 
     # Source Files Discovery Tests
     @pytest.mark.asyncio
@@ -545,14 +549,16 @@ class TestContentSourceManager:
         """Test update_source with failure."""
         mock_config.get_source_by_name.return_value = github_source
 
-        with patch.object(
-            manager, "_ensure_github_source", side_effect=Exception("Update failed")
+        with (
+            patch.object(
+                manager, "_ensure_github_source", side_effect=Exception("Update failed")
+            ),
+            patch("studiorum.core.sources.manager.logger") as mock_logger,
         ):
-            with patch("studiorum.core.sources.manager.logger") as mock_logger:
-                result = await manager.update_source(github_source.name)
+            result = await manager.update_source(github_source.name)
 
-                assert result is False
-                mock_logger.error.assert_called()
+            assert result is False
+            mock_logger.error.assert_called()
 
     # Source Removal Tests
     @pytest.mark.asyncio
@@ -707,25 +713,27 @@ class TestContentSourceManagerIntegration:
         config.get_source_by_name.return_value = source
 
         # Test manager
-        with patch(
-            "studiorum.core.sources.manager.get_content_config", return_value=config
+        with (
+            patch(
+                "studiorum.core.sources.manager.get_content_config", return_value=config
+            ),
+            patch("studiorum.core.sources.manager.GitHubSourceManager"),
         ):
-            with patch("studiorum.core.sources.manager.GitHubSourceManager"):
-                manager: Any = ContentSourceManager()
+            manager: Any = ContentSourceManager()
 
-                # Test source ensuring
-                await manager.ensure_all_sources()
+            # Test source ensuring
+            await manager.ensure_all_sources()
 
-                # Test index building
-                await manager.build_content_index()
+            # Test index building
+            await manager.build_content_index()
 
-                # Verify results
-                files = manager.get_source_files("test")
-                assert len(files) == 2
-                assert any(f.name == "core.json" for f in files)
-                assert any(f.name == "items.json" for f in files)
+            # Verify results
+            files = manager.get_source_files("test")
+            assert len(files) == 2
+            assert any(f.name == "core.json" for f in files)
+            assert any(f.name == "items.json" for f in files)
 
-                # Test pattern matching
-                spell_files = manager.get_files_by_pattern("core")
-                assert "test" in spell_files
-                assert len(spell_files["test"]) == 1
+            # Test pattern matching
+            spell_files = manager.get_files_by_pattern("core")
+            assert "test" in spell_files
+            assert len(spell_files["test"]) == 1

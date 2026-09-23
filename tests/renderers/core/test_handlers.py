@@ -1,28 +1,23 @@
 """Tests for core tag handlers with consolidated business logic."""
 
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import pytest
 
 from studiorum.core.models.content import ContentType
 from studiorum.renderers.core.handlers import (
     AdventureTagHandler,
-    BackgroundTagHandler,
     BaseTagHandler,
     BookTagHandler,
-    ClassTagHandler,
     ConditionTagHandler,
     CreatureTagHandler,
-    FeatTagHandler,
     ItemTagHandler,
-    RaceTagHandler,
     SpellTagHandler,
     get_default_core_handlers,
 )
 from studiorum.renderers.core.interfaces import (
     FormatStyle,
     RenderingContext,
-    TagValidationError,
 )
 from tests.test_helpers import reset_test_environment
 

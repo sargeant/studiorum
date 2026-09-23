@@ -7,7 +7,7 @@ These models maintain API compatibility with the original dataclass implementati
 while adding field validation and JSON serialization capabilities.
 """
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -333,7 +333,7 @@ class EnvironmentalProfile(BaseModel):
             if isinstance(type_data, dict):
                 extracted_type = type_data.get("type", "unknown")
                 return str(extracted_type).lower() if extracted_type else "unknown"
-            elif isinstance(type_data, str):
+            if isinstance(type_data, str):
                 return type_data.lower()
         return "unknown"
 
@@ -633,6 +633,6 @@ class ThematicProfile(BaseModel):
             if isinstance(type_data, dict):
                 extracted_type = type_data.get("type", "unknown")
                 return str(extracted_type).lower() if extracted_type else "unknown"
-            elif isinstance(type_data, str):
+            if isinstance(type_data, str):
                 return type_data.lower()
         return "unknown"

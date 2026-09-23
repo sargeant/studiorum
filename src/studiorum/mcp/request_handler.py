@@ -31,9 +31,8 @@ from ..core.error_types import (
     MCPError,
     MCPErrorCode,
     MCPException,
-    ProcessingError,
 )
-from ..core.result import Error, Result, Success
+from ..core.result import Error
 from ..core.services.protocols import OmnidexerProtocol
 from .async_service_bridge import (
     MCPServiceContext,
@@ -279,21 +278,20 @@ class ModernMCPRequestHandler:
                 "sources_used": ctx.sources,
                 "query": query,
             }
+        # Type narrowing: if not success, it must be Error type
+        if not isinstance(result, Error):
+            # This should never happen given the Result[T, E] pattern
+            error = ContentNotFoundError(message="Unexpected result type")
         else:
-            # Type narrowing: if not success, it must be Error type
-            if not isinstance(result, Error):
-                # This should never happen given the Result[T, E] pattern
-                error = ContentNotFoundError(message="Unexpected result type")
-            else:
-                error = result.error
-            await ctx.add_async_error(error)
-            ctx.record_cache_miss()
-            return {
-                "spells": [],
-                "error": error.message,
-                "suggestions": error.suggestions or [],
-                "query": query,
-            }
+            error = result.error
+        await ctx.add_async_error(error)
+        ctx.record_cache_miss()
+        return {
+            "spells": [],
+            "error": error.message,
+            "suggestions": error.suggestions or [],
+            "query": query,
+        }
 
     async def _handle_search_creatures_async(
         self, params: dict[str, Any], ctx: AsyncRequestContext
@@ -331,21 +329,20 @@ class ModernMCPRequestHandler:
                 "sources_used": ctx.sources,
                 "query": query,
             }
+        # Type narrowing: if not success, it must be Error type
+        if not isinstance(result, Error):
+            # This should never happen given the Result[T, E] pattern
+            error = ContentNotFoundError(message="Unexpected result type")
         else:
-            # Type narrowing: if not success, it must be Error type
-            if not isinstance(result, Error):
-                # This should never happen given the Result[T, E] pattern
-                error = ContentNotFoundError(message="Unexpected result type")
-            else:
-                error = result.error
-            await ctx.add_async_error(error)
-            ctx.record_cache_miss()
-            return {
-                "creatures": [],
-                "error": error.message,
-                "suggestions": error.suggestions or [],
-                "query": query,
-            }
+            error = result.error
+        await ctx.add_async_error(error)
+        ctx.record_cache_miss()
+        return {
+            "creatures": [],
+            "error": error.message,
+            "suggestions": error.suggestions or [],
+            "query": query,
+        }
 
     async def _handle_search_content_async(
         self, params: dict[str, Any], ctx: AsyncRequestContext
@@ -392,22 +389,21 @@ class ModernMCPRequestHandler:
                 "sources_used": ctx.sources,
                 "query": query,
             }
+        # Type narrowing: if not success, it must be Error type
+        if not isinstance(result, Error):
+            # This should never happen given the Result[T, E] pattern
+            error = ContentNotFoundError(message="Unexpected result type")
         else:
-            # Type narrowing: if not success, it must be Error type
-            if not isinstance(result, Error):
-                # This should never happen given the Result[T, E] pattern
-                error = ContentNotFoundError(message="Unexpected result type")
-            else:
-                error = result.error
-            await ctx.add_async_error(error)
-            ctx.record_cache_miss()
-            return {
-                "content": [],
-                "error": error.message,
-                "suggestions": error.suggestions or [],
-                "content_type": content_type,
-                "query": query,
-            }
+            error = result.error
+        await ctx.add_async_error(error)
+        ctx.record_cache_miss()
+        return {
+            "content": [],
+            "error": error.message,
+            "suggestions": error.suggestions or [],
+            "content_type": content_type,
+            "query": query,
+        }
 
     async def _handle_resolve_adventure_async(
         self, params: dict[str, Any], ctx: AsyncRequestContext
@@ -468,21 +464,20 @@ class ModernMCPRequestHandler:
             ctx.record_cache_hit()
             return response_data
 
+        # Type narrowing: if not success, it must be Error type
+        if not isinstance(result, Error):
+            # This should never happen given the Result[T, E] pattern
+            error = ContentNotFoundError(message="Unexpected result type")
         else:
-            # Type narrowing: if not success, it must be Error type
-            if not isinstance(result, Error):
-                # This should never happen given the Result[T, E] pattern
-                error = ContentNotFoundError(message="Unexpected result type")
-            else:
-                error = result.error
-            await ctx.add_async_error(error)
-            ctx.record_cache_miss()
-            return {
-                "adventure": None,
-                "error": error.message,
-                "suggestions": error.suggestions or [],
-                "name": adventure_name,
-            }
+            error = result.error
+        await ctx.add_async_error(error)
+        ctx.record_cache_miss()
+        return {
+            "adventure": None,
+            "error": error.message,
+            "suggestions": error.suggestions or [],
+            "name": adventure_name,
+        }
 
     async def _handle_resolve_book_async(
         self, params: dict[str, Any], ctx: AsyncRequestContext
@@ -531,15 +526,14 @@ class ModernMCPRequestHandler:
                 "source": book.source.abbreviation if hasattr(book, "source") else None,
                 "name": book_name,
             }
-        else:
-            error = ContentNotFoundError(message=f"Book '{book_name}' not found")
-            await ctx.add_async_error(error)
-            ctx.record_cache_miss()
-            return {
-                "book": None,
-                "error": error.message,
-                "name": book_name,
-            }
+        error = ContentNotFoundError(message=f"Book '{book_name}' not found")
+        await ctx.add_async_error(error)
+        ctx.record_cache_miss()
+        return {
+            "book": None,
+            "error": error.message,
+            "name": book_name,
+        }
 
     async def _handle_character_progression_async(
         self, params: dict[str, Any], ctx: AsyncRequestContext
@@ -579,21 +573,20 @@ class ModernMCPRequestHandler:
                 "level": current_level,
                 "subclass": subclass,
             }
+        # Type narrowing: if not success, it must be Error type
+        if not isinstance(result, Error):
+            # This should never happen given the Result[T, E] pattern
+            error = ContentNotFoundError(message="Unexpected result type")
         else:
-            # Type narrowing: if not success, it must be Error type
-            if not isinstance(result, Error):
-                # This should never happen given the Result[T, E] pattern
-                error = ContentNotFoundError(message="Unexpected result type")
-            else:
-                error = result.error
-            await ctx.add_async_error(error)
-            ctx.record_cache_miss()
-            return {
-                "progression": None,
-                "error": error.message,
-                "class": character_class,
-                "level": current_level,
-            }
+            error = result.error
+        await ctx.add_async_error(error)
+        ctx.record_cache_miss()
+        return {
+            "progression": None,
+            "error": error.message,
+            "class": character_class,
+            "level": current_level,
+        }
 
     async def _handle_list_adventures_async(
         self, params: dict[str, Any], ctx: AsyncRequestContext
@@ -975,9 +968,9 @@ class ModernMCPRequestHandler:
         from .tools.rules import search_rules_intelligent
 
         query = params.get("query", "")
-        rule_types = params.get("rule_types", None)
-        sources = params.get("sources", None)
-        complexity_filter = params.get("complexity_filter", None)
+        rule_types = params.get("rule_types")
+        sources = params.get("sources")
+        complexity_filter = params.get("complexity_filter")
         include_relationships = params.get("include_relationships", True)
         limit = params.get("limit", 20)
 
@@ -1344,7 +1337,6 @@ class ModernMCPRequestHandler:
         This demonstrates how the bridge simplifies MCP tool implementation
         by providing high-level helpers and automatic error handling.
         """
-        from .async_service_bridge import MCPServiceContext
 
         query = params.get("query", "")
         sources = params.get("sources")
@@ -1364,7 +1356,6 @@ class ModernMCPRequestHandler:
         self, params: dict[str, Any], ctx: MCPServiceContext
     ) -> dict[str, Any]:
         """Handle creature search using bridge patterns."""
-        from .async_service_bridge import MCPServiceContext
 
         query = params.get("query", "")
         sources = params.get("sources")
@@ -1384,7 +1375,6 @@ class ModernMCPRequestHandler:
         self, params: dict[str, Any], ctx: MCPServiceContext
     ) -> dict[str, Any]:
         """Handle adventure resolution using bridge patterns."""
-        from .async_service_bridge import MCPServiceContext
 
         adventure_name = params.get("adventure_name", "")
 
@@ -1411,18 +1401,16 @@ class ModernMCPRequestHandler:
                 else None,
                 "name": adventure_name,
             }
-        else:
-            return {
-                "adventure": None,
-                "error": f"Adventure '{adventure_name}' not found",
-                "name": adventure_name,
-            }
+        return {
+            "adventure": None,
+            "error": f"Adventure '{adventure_name}' not found",
+            "name": adventure_name,
+        }
 
     async def _handle_resolve_book_bridge(
         self, params: dict[str, Any], ctx: MCPServiceContext
     ) -> dict[str, Any]:
         """Handle book resolution using bridge patterns."""
-        from .async_service_bridge import MCPServiceContext
 
         book_name = params.get("book_name", "")
 
@@ -1452,12 +1440,11 @@ class ModernMCPRequestHandler:
                 "source": book.get("source"),
                 "name": book_name,
             }
-        else:
-            return {
-                "book": None,
-                "error": f"Book '{book_name}' not found",
-                "name": book_name,
-            }
+        return {
+            "book": None,
+            "error": f"Book '{book_name}' not found",
+            "name": book_name,
+        }
 
     async def get_bridge_metrics(self) -> dict[str, Any]:
         """Get performance metrics from the service bridge.

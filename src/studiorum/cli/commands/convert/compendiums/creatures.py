@@ -4,7 +4,7 @@ import asyncio
 import os
 from enum import Enum
 from pathlib import Path
-from typing import Any, Protocol, Union
+from typing import Any, Protocol
 
 import typer
 from rich import print as rprint
@@ -17,11 +17,8 @@ from studiorum.cli.config_factory import (
 from studiorum.cli.display_manager import display_manager
 from studiorum.cli.utils import get_omnidexer, get_tag_resolver
 from studiorum.core.config.latex_config import LaTeXConfig
-from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.logging import get_logger
-from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Creature
-from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.renderers.core.interfaces import RenderingContext
 
 from ..base import AppendixMixin, BaseConvertCommand
@@ -70,7 +67,7 @@ def _sort_creatures(
 
         return sorted(creatures, key=cr_sort_key)
 
-    elif sort_mode == CreatureSortMode.TYPE:
+    if sort_mode == CreatureSortMode.TYPE:
         # Sort by creature type, then by name
         def type_sort_key(creature: Creature) -> tuple[str, str]:
             type_str = "unknown"
@@ -83,7 +80,7 @@ def _sort_creatures(
 
         return sorted(creatures, key=type_sort_key)
 
-    elif sort_mode == CreatureSortMode.GROUP:
+    if sort_mode == CreatureSortMode.GROUP:
         # Sort by first group name (if any), then by name
         def group_sort_key(creature: Creature) -> tuple[str, str]:
             group_name = "ungrouped"
@@ -97,7 +94,7 @@ def _sort_creatures(
 
         return sorted(creatures, key=group_sort_key)
 
-    elif sort_mode == CreatureSortMode.SIZE:
+    if sort_mode == CreatureSortMode.SIZE:
         # Sort by size, then by name
         size_order = {
             "tiny": 0,
@@ -117,7 +114,7 @@ def _sort_creatures(
 
         return sorted(creatures, key=size_sort_key)
 
-    elif sort_mode == CreatureSortMode.ALIGNMENT:
+    if sort_mode == CreatureSortMode.ALIGNMENT:
         # Sort by alignment, then by name
         def alignment_sort_key(creature: Creature) -> tuple[str, str]:
             alignment_str = "unknown"
@@ -130,9 +127,9 @@ def _sort_creatures(
 
         return sorted(creatures, key=alignment_sort_key)
 
-    else:  # CreatureSortMode.NAME
-        # Sort alphabetically by name
-        return sorted(creatures, key=lambda c: c.name.lower())
+    # CreatureSortMode.NAME
+    # Sort alphabetically by name
+    return sorted(creatures, key=lambda c: c.name.lower())
 
 
 def _combine_bestiary_and_appendix(bestiary_latex: str, appendix_latex: str) -> str:
@@ -142,9 +139,8 @@ def _combine_bestiary_and_appendix(bestiary_latex: str, appendix_latex: str) -> 
         # Insert appendix before \end{document}
         parts = bestiary_latex.rsplit("\\end{document}", 1)
         return f"{parts[0]}\n\n{appendix_latex}\n\n\\end{{document}}{parts[1]}"
-    else:
-        # Fallback: append appendix
-        return f"{bestiary_latex}\n\n{appendix_latex}"
+    # Fallback: append appendix
+    return f"{bestiary_latex}\n\n{appendix_latex}"
 
 
 def _render_bestiary(
@@ -1415,7 +1411,7 @@ def creatures(
                             actual_fluff_count = len(
                                 [
                                     k
-                                    for k in creature_fluff_map.keys()
+                                    for k in creature_fluff_map
                                     if not k.endswith("_images")
                                 ]
                             )

@@ -6,7 +6,6 @@ from unittest.mock import Mock, patch
 import pytest
 
 from studiorum.core.entry_registry import ValidationMode
-from studiorum.core.error_types import ProcessingError, create_processing_error
 from studiorum.core.exceptions import EntryProcessingWarning
 from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
 from studiorum.renderers.core.interfaces import RenderingContext

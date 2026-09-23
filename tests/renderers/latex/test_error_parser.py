@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from studiorum.core.error_types import ErrorCategory, ErrorSeverity
+from studiorum.core.error_types import ErrorSeverity
 from studiorum.latex_engine.utils.error_parser import (  # type: ignore
     LaTeXError,
     LaTeXErrorCategory,

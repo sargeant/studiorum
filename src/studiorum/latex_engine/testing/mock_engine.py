@@ -2,13 +2,11 @@
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Optional
 
 from studiorum.renderers.core.interfaces import RenderingContext
 
 from ..config.compilation import CompilationResult, LaTeXEngine
 from ..core.document import LaTeXDocumentRenderer
-from ..core.interfaces import LaTeXEngineProtocol
 
 
 class MockLaTeXEngine:

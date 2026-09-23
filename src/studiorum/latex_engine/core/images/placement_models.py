@@ -7,7 +7,6 @@ optimization configurations.
 
 from __future__ import annotations
 
-import time
 from enum import Enum
 from pathlib import Path
 from typing import Any, Protocol

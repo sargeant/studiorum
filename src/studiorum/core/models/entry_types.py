@@ -6,9 +6,9 @@ that appear in 5e content, replacing the generic dict[str, Any] pattern
 with type-safe, validated structures.
 """
 
-from typing import Annotated, Any, Literal, Union
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Discriminator, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class BaseEntry(BaseModel):
@@ -252,33 +252,32 @@ def create_entry(data: str | dict[str, Any]) -> Entry:
     # Map entry types to their classes - handle each case explicitly for proper typing
     if entry_type == "text":
         return TextEntry.model_validate(data)
-    elif entry_type == "action":
+    if entry_type == "action":
         return ActionEntry.model_validate(data)
-    elif entry_type == "table":
+    if entry_type == "table":
         return TableEntry.model_validate(data)
-    elif entry_type == "list":
+    if entry_type == "list":
         return ListEntry.model_validate(data)
-    elif entry_type == "inset":
+    if entry_type == "inset":
         return InsetEntry.model_validate(data)
-    elif entry_type == "entries":
+    if entry_type == "entries":
         return EntriesEntry.model_validate(data)
-    elif entry_type == "options":
+    if entry_type == "options":
         return OptionsEntry.model_validate(data)
-    elif entry_type == "variant":
+    if entry_type == "variant":
         return VariantEntry.model_validate(data)
-    elif entry_type == "quote":
+    if entry_type == "quote":
         return QuoteEntry.model_validate(data)
-    elif entry_type == "image":
+    if entry_type == "image":
         return ImageEntry.model_validate(data)
-    elif entry_type == "item":
+    if entry_type == "item":
         return ItemEntry.model_validate(data)
-    elif entry_type == "spell":
+    if entry_type == "spell":
         return SpellEntry.model_validate(data)
-    elif entry_type == "creature":
+    if entry_type == "creature":
         return CreatureEntry.model_validate(data)
-    else:
-        # Use GenericEntry for unknown types
-        return GenericEntry.model_validate(data)
+    # Use GenericEntry for unknown types
+    return GenericEntry.model_validate(data)
 
 
 def validate_entries(entries: list[str | dict[str, Any]]) -> list[Entry]:

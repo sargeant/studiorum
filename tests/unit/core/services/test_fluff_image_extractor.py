@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 
 from studiorum.core.models.content import Source
-from studiorum.core.models.fluff import BaseFluff, FluffEntry, FluffImage
+from studiorum.core.models.fluff import BaseFluff
 from studiorum.core.services.fluff_image_extractor import (
     FluffImageExtractor,
     FluffImageInfo,

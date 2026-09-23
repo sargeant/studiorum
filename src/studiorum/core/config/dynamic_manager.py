@@ -56,9 +56,7 @@ Examples:
 from __future__ import annotations
 
 import asyncio
-import threading
-from collections.abc import AsyncIterator, Callable
-from contextlib import asynccontextmanager
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 from uuid import uuid4
@@ -70,7 +68,7 @@ from watchdog.events import FileSystemEventHandler
 from studiorum.core.logging import get_logger
 
 if TYPE_CHECKING:
-    from watchdog.observers import Observer
+    pass
 
 from ..error_types import ConfigurationError, ErrorCategory, ErrorSeverity, MCPErrorCode
 from ..result import Error, Result, Success, is_error_result
@@ -623,17 +621,16 @@ class ConfigurationManager:
 
         if isinstance(data, Path):
             return str(data)
-        elif isinstance(data, Enum):
+        if isinstance(data, Enum):
             return data.value
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             return {
                 key: self._convert_paths_to_strings(value)
                 for key, value in data.items()
             }
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return [self._convert_paths_to_strings(item) for item in data]
-        else:
-            return data
+        return data
 
 
 # Global configuration manager instance

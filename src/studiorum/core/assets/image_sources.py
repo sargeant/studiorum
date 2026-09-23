@@ -20,8 +20,7 @@ import subprocess  # nosec B404 # Required for Git operations with proper valida
 import time
 from enum import Enum
 from pathlib import Path
-from typing import Annotated, Any, Literal, Union
-from urllib.parse import urlparse
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -871,25 +870,24 @@ class ImageSourceRegistry:
             return await self._resolve_from_git_source(
                 image_path, source_info, cache_key
             )
-        elif source_info.config.source_type == ImageSourceType.LOCAL_DIR:
+        if source_info.config.source_type == ImageSourceType.LOCAL_DIR:
             return await self._resolve_from_local_source(
                 image_path, source_info, cache_key
             )
-        elif source_info.config.source_type == ImageSourceType.HTTP_API:
+        if source_info.config.source_type == ImageSourceType.HTTP_API:
             return await self._resolve_from_http_source(
                 image_path, source_info, cache_key
             )
-        elif source_info.config.source_type == ImageSourceType.S3_BUCKET:
+        if source_info.config.source_type == ImageSourceType.S3_BUCKET:
             return await self._resolve_from_s3_source(
                 image_path, source_info, cache_key
             )
-        else:
-            return Error(
-                create_image_resolution_error(
-                    image_path=image_path,
-                    message=f"Unsupported source type: {source_info.config.source_type}",
-                )
+        return Error(
+            create_image_resolution_error(
+                image_path=image_path,
+                message=f"Unsupported source type: {source_info.config.source_type}",
             )
+        )
 
     async def _resolve_from_git_source(
         self, image_path: str, source_info: ImageSourceInfo, cache_key: str

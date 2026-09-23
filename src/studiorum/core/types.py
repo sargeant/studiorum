@@ -343,7 +343,6 @@ class SectionEntry(EntryDict, total=False):
     """Section entry structure."""
 
     # Inherits type, name, entries, id, page from EntryDict
-    pass
 
 
 class TableEntry(EntryDict, total=False):
@@ -358,14 +357,12 @@ class InsetEntry(EntryDict, total=False):
     """Inset/sidebar entry structure."""
 
     # type is typically "inset" or "insetReadaloud"
-    pass
 
 
 class NestedEntriesEntry(EntryDict, total=False):
     """Nested entries structure (variant rules, subsections)."""
 
     # type is typically "entries"
-    pass
 
 
 class ParsingStatistics(TypedDict):

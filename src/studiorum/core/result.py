@@ -44,7 +44,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, TypeGuard, TypeVar
 
 if TYPE_CHECKING:
-    from typing import Self
+    pass
 
 T = TypeVar("T")  # Success value type
 E = TypeVar("E")  # Error type

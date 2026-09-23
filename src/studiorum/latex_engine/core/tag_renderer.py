@@ -24,7 +24,6 @@ class LaTeXTagRenderer:
 
     def __init__(self) -> None:
         """Initialize the LaTeX renderer."""
-        pass
 
     def render(self, result: TagResolutionResult) -> str:
         """Render a tag resolution result to LaTeX-formatted string.
@@ -37,16 +36,15 @@ class LaTeXTagRenderer:
         """
         if isinstance(result, str):
             return self._escape_latex(result)
-        elif isinstance(result, ContentReference):
+        if isinstance(result, ContentReference):
             return self._render_content_reference(result)
-        elif isinstance(result, FormattingNode):
+        if isinstance(result, FormattingNode):
             return self._render_formatting_node(result)
-        elif isinstance(result, SpecialTag):
+        if isinstance(result, SpecialTag):
             return self._render_special_tag(result)
-        else:
-            logger.warning(f"Unknown tag result type: {type(result)}")
-            # Fallback to string representation for unexpected types
-            return str(result)
+        logger.warning(f"Unknown tag result type: {type(result)}")
+        # Fallback to string representation for unexpected types
+        return str(result)
 
     def _render_content_reference(self, ref: ContentReference) -> str:
         """Render a content reference with appropriate LaTeX formatting.
@@ -115,48 +113,47 @@ class LaTeXTagRenderer:
 
         if node.format_type == FormatType.BOLD:
             return f"\\textbf{{{content}}}"
-        elif node.format_type == FormatType.ITALIC:
+        if node.format_type == FormatType.ITALIC:
             return f"\\textit{{{content}}}"
-        elif node.format_type == FormatType.MONOSPACE:
+        if node.format_type == FormatType.MONOSPACE:
             return f"\\texttt{{{content}}}"
-        elif node.format_type == FormatType.EMPHASIS:
+        if node.format_type == FormatType.EMPHASIS:
             return f"\\emph{{{content}}}"
-        elif node.format_type == FormatType.SMALL_CAPS:
+        if node.format_type == FormatType.SMALL_CAPS:
             return f"\\textsc{{{content}}}"
-        else:
-            logger.warning(f"Unknown format type: {node.format_type}")
-            return content
+        logger.warning(f"Unknown format type: {node.format_type}")
+        return content
 
     def _render_special_tag(self, tag: SpecialTag) -> str:
         """Render special tags with custom LaTeX formatting."""
         if tag.tag_type == "hit":
             # Attack bonus: +5
             return f"+{tag.effective_value}"
-        elif tag.tag_type == "dc":
+        if tag.tag_type == "dc":
             # Difficulty class: DC 15
             return f"DC {tag.effective_value}"
-        elif tag.tag_type == "note":
+        if tag.tag_type == "note":
             # Notes in parentheses
             return f"({self._escape_latex(tag.effective_value)})"
-        elif tag.tag_type == "chance":
+        if tag.tag_type == "chance":
             # Percentage with escaped %
             return f"{tag.effective_value}\\%"
-        elif tag.tag_type == "coinflip":
+        if tag.tag_type == "coinflip":
             # Always 50%
             return "50\\%"
-        elif tag.tag_type == "recharge":
+        if tag.tag_type == "recharge":
             # Recharge notation
             return f"(Recharge {tag.effective_value})"
-        elif tag.tag_type == "dice":
+        if tag.tag_type == "dice":
             # Dice expression: 1d8 + 2
             return self._escape_latex(tag.effective_value)
-        elif tag.tag_type == "filter":
+        if tag.tag_type == "filter":
             # Filter tags should render their display text in print documents
             return self._escape_latex(tag.effective_value)
-        elif tag.tag_type == "loader":
+        if tag.tag_type == "loader":
             # Loader tags are UI elements - omitted in print
             return ""
-        elif tag.tag_type == "link":
+        if tag.tag_type == "link":
             # Hyperlink tags: {@link Title | URL}
             url = tag.metadata.get("url", "") if tag.metadata else ""
             if url:
@@ -167,12 +164,10 @@ class LaTeXTagRenderer:
                     url.replace("#", "\\#").replace("%", "\\%").replace("&", "\\&")
                 )
                 return f"\\href{{{escaped_url}}}{{{escaped_title}}}"
-            else:
-                # No URL provided, just render the title
-                return self._escape_latex(tag.effective_value)
-        else:
-            logger.debug(f"Unknown special tag type: {tag.tag_type}")
+            # No URL provided, just render the title
             return self._escape_latex(tag.effective_value)
+        logger.debug(f"Unknown special tag type: {tag.tag_type}")
+        return self._escape_latex(tag.effective_value)
 
     def _escape_latex(self, text: str) -> str:
         """Escape special LaTeX characters and Unicode characters in text."""

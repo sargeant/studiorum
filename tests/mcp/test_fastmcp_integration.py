@@ -14,27 +14,22 @@ Key Test Areas:
 
 from __future__ import annotations
 
-import asyncio
 import time
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from studiorum.mcp.registry import (
     ToolRegistry,
     get_tool_registry,
-    list_registered_tools as registry_list_tools,
     validate_tool_registry,
 )
 from studiorum.mcp.server import (
     create_mcp_server,
     get_mcp_app,
     list_registered_tools,
-    mcp,
 )
 from studiorum.mcp.tools.content import (
-    PerformantContentSearcher,
     get_content_searcher,
     search_content_performant,
 )

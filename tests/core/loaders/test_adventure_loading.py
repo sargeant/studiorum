@@ -4,8 +4,6 @@ import json
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-import pytest
-
 from studiorum.core.loaders.json_loader import JsonDataLoader
 from studiorum.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment

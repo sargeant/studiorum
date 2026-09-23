@@ -2,10 +2,8 @@
 
 from unittest.mock import Mock, patch
 
-import pytest
-
-from studiorum.core.models.content import BaseContent, ContentType
-from studiorum.core.registry import content_type, initialize_content_types
+from studiorum.core.models.content import BaseContent
+from studiorum.core.registry import content_type
 
 
 class TestRegistryIntegration:

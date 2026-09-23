@@ -223,7 +223,7 @@ class TestImagePlacer:
         )
 
         assert (
-            "\\marginpar{\\includegraphics[width=0.2\\textwidth]{test.png}}" == command
+            command == "\\marginpar{\\includegraphics[width=0.2\\textwidth]{test.png}}"
         )
 
     def test_generate_full_width_command(self):

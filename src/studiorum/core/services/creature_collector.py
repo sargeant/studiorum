@@ -615,9 +615,8 @@ class CreatureCollector:
         if isinstance(cr_data, dict):
             # Handle dictionary format: {'cr': '24', 'xpLair': 75000}
             return str(cr_data.get("cr", "varies"))
-        else:
-            # Handle simple formats: string, int, float
-            return str(cr_data)
+        # Handle simple formats: string, int, float
+        return str(cr_data)
 
     def _parse_cr_value(self, cr_string: str) -> float | None:
         """Parse CR values including fractions: '1/4', '1/2', '0', '10', 'varies'."""
@@ -644,12 +643,12 @@ class CreatureCollector:
             min_cr_str = cr_string.replace("+", "")
             min_cr = self._parse_cr_value(min_cr_str)
             return (min_cr if min_cr is not None else 0.0, 30.0)  # Max CR in 5e
-        elif "<" in cr_string:
+        if "<" in cr_string:
             # Handle "<1" format
             max_cr_str = cr_string.replace("<", "")
             max_cr = self._parse_cr_value(max_cr_str)
             return (0.0, max_cr if max_cr is not None else 30.0)
-        elif "-" in cr_string:
+        if "-" in cr_string:
             # Handle "1/4-5" format
             min_str, max_str = cr_string.split("-", 1)
             min_cr = self._parse_cr_value(min_str)
@@ -658,10 +657,9 @@ class CreatureCollector:
                 min_cr if min_cr is not None else 0.0,
                 max_cr if max_cr is not None else 30.0,
             )
-        else:
-            # Single CR value
-            cr = self._parse_cr_value(cr_string)
-            return (cr if cr is not None else 0.0, cr if cr is not None else 30.0)
+        # Single CR value
+        cr = self._parse_cr_value(cr_string)
+        return (cr if cr is not None else 0.0, cr if cr is not None else 30.0)
 
     def _extract_base_ac(self, ac_data: Any) -> int:
         """Extract base AC value from 5e.tools AC data structure."""
@@ -670,11 +668,10 @@ class CreatureCollector:
             first_ac = ac_data[0]
             if isinstance(first_ac, dict):
                 return int(first_ac.get("ac", 0))
-            else:
-                return int(first_ac)
-        elif isinstance(ac_data, dict):
+            return int(first_ac)
+        if isinstance(ac_data, dict):
             return int(ac_data.get("ac", 0))
-        elif isinstance(ac_data, int | str):
+        if isinstance(ac_data, int | str):
             try:
                 return int(ac_data)
             except ValueError:
@@ -687,7 +684,7 @@ class CreatureCollector:
             # Try "average" field first, then "special"
             if "average" in hp_data:
                 return int(hp_data["average"])
-            elif "special" in hp_data:
+            if "special" in hp_data:
                 # Try to parse numbers from special text
                 import re
 

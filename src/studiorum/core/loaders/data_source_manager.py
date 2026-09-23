@@ -531,7 +531,7 @@ class DataSourceManager(SourceManager):
             creature_type = None
             creature_fluff_type = None
 
-            for ct in content_patterns.keys():
+            for ct in content_patterns:
                 if ct.value == "creature":
                     creature_type = ct
                 elif ct.value == "creatureFluff":

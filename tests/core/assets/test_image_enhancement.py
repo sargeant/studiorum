@@ -4,10 +4,9 @@ This module tests the new ImageSourceRegistry and enhanced ImageManager
 with multi-source support, Git repository integration, and backward compatibility.
 """
 
-import asyncio
 import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 

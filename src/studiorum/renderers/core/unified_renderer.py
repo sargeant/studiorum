@@ -200,24 +200,23 @@ class AdaptiveRenderer:
                 self.hyperlink_manager,
                 self.content_tracker,
             )
-        elif output_format.lower() == "html":
+        if output_format.lower() == "html":
             return StandardUnifiedRenderer.create_html_renderer(
                 self.core_handlers,
                 self.hyperlink_manager,
                 self.content_tracker,
             )
-        elif output_format.lower() == "markdown":
+        if output_format.lower() == "markdown":
             return StandardUnifiedRenderer.create_markdown_renderer(
                 self.core_handlers,
                 self.content_tracker,
             )
-        else:
-            logger.warning(f"Unknown output format '{output_format}', using LaTeX")
-            return StandardUnifiedRenderer.create_latex_renderer(
-                self.core_handlers,
-                self.hyperlink_manager,
-                self.content_tracker,
-            )
+        logger.warning(f"Unknown output format '{output_format}', using LaTeX")
+        return StandardUnifiedRenderer.create_latex_renderer(
+            self.core_handlers,
+            self.hyperlink_manager,
+            self.content_tracker,
+        )
 
 
 class EnhancementPipelineBuilder:

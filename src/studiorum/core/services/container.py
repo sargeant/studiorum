@@ -30,20 +30,11 @@ from __future__ import annotations
 
 import asyncio
 import weakref
-from collections.abc import Awaitable
-from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 from uuid import uuid4
 
-from studiorum.core.error_types import (
-    ErrorCategory,
-    ErrorSeverity,
-    MCPErrorCode,
-    ServiceError,
-)
 from studiorum.core.logging import get_logger
-from studiorum.core.result import Error, Result, Success
 
 from .lifecycle import AsyncServiceFactory, ServiceDescriptor, ServiceLifecycle
 from .protocols import AsyncResourceProtocol, ConfigurableServiceProtocol
@@ -268,17 +259,16 @@ class ServiceContainer:
 
             if descriptor.lifecycle == ServiceLifecycle.SINGLETON:
                 return await self._get_singleton_instance(protocol, descriptor)
-            elif descriptor.lifecycle == ServiceLifecycle.SCOPED:
+            if descriptor.lifecycle == ServiceLifecycle.SCOPED:
                 return await self._get_scoped_instance(protocol, descriptor)
-            elif descriptor.lifecycle == ServiceLifecycle.TRANSIENT:
+            if descriptor.lifecycle == ServiceLifecycle.TRANSIENT:
                 return await self._create_instance(descriptor)
-            elif descriptor.lifecycle == ServiceLifecycle.ASYNC_RESOURCE:
+            if descriptor.lifecycle == ServiceLifecycle.ASYNC_RESOURCE:
                 return await self._get_async_resource_instance(protocol, descriptor)
-            elif descriptor.lifecycle == ServiceLifecycle.HOT_RELOADABLE:
+            if descriptor.lifecycle == ServiceLifecycle.HOT_RELOADABLE:
                 # Hot-reloadable services are typically singleton with reload capability
                 return await self._get_singleton_instance(protocol, descriptor)
-            else:
-                raise ValueError(f"Unknown lifecycle: {descriptor.lifecycle}")
+            raise ValueError(f"Unknown lifecycle: {descriptor.lifecycle}")
 
         finally:
             if self._resolution_stack and self._resolution_stack[-1] == protocol:
@@ -337,21 +327,20 @@ class ServiceContainer:
         # Handle different lifecycle types synchronously
         if descriptor.lifecycle == ServiceLifecycle.SINGLETON:
             return self._get_singleton_instance_sync(protocol, descriptor)
-        elif descriptor.lifecycle == ServiceLifecycle.SCOPED:
+        if descriptor.lifecycle == ServiceLifecycle.SCOPED:
             return self._get_scoped_instance_sync(protocol, descriptor)
-        elif descriptor.lifecycle == ServiceLifecycle.TRANSIENT:
+        if descriptor.lifecycle == ServiceLifecycle.TRANSIENT:
             return self._create_instance_sync(descriptor)
-        elif descriptor.lifecycle == ServiceLifecycle.ASYNC_RESOURCE:
+        if descriptor.lifecycle == ServiceLifecycle.ASYNC_RESOURCE:
             # Async resources cannot be created synchronously
             raise RuntimeError(
                 f"ASYNC_RESOURCE service {protocol.__name__} requires async context. "
                 f"CLI should use sync service registration to avoid this error."
             )
-        elif descriptor.lifecycle == ServiceLifecycle.HOT_RELOADABLE:
+        if descriptor.lifecycle == ServiceLifecycle.HOT_RELOADABLE:
             # Hot-reloadable services are typically singleton
             return self._get_singleton_instance_sync(protocol, descriptor)
-        else:
-            raise ValueError(f"Unknown lifecycle: {descriptor.lifecycle}")
+        raise ValueError(f"Unknown lifecycle: {descriptor.lifecycle}")
 
     def _get_singleton_instance_sync(
         self, protocol: type[T], descriptor: ServiceDescriptor
@@ -684,10 +673,9 @@ class ServiceContainer:
         # For callable factories, dispatch based on signature requirements
         if len(descriptor.dependencies) > 0:
             return await self._call_factory_with_dependencies(factory, deps)
-        elif descriptor.requires_container():
+        if descriptor.requires_container():
             return await self._call_factory_with_container(factory)
-        else:
-            return await self._call_simple_factory(factory)
+        return await self._call_simple_factory(factory)
 
     async def _call_factory_with_dependencies(
         self, factory: Any, deps: tuple[Any, ...]
@@ -695,22 +683,19 @@ class ServiceContainer:
         """Call factory function with dependency arguments."""
         if asyncio.iscoroutinefunction(factory):
             return await factory(*deps)
-        else:
-            return factory(*deps)
+        return factory(*deps)
 
     async def _call_factory_with_container(self, factory: Any) -> Any:
         """Call factory function with container argument."""
         if asyncio.iscoroutinefunction(factory):
             return await factory(self)
-        else:
-            return factory(self)
+        return factory(self)
 
     async def _call_simple_factory(self, factory: Any) -> Any:
         """Call factory function with no arguments."""
         if asyncio.iscoroutinefunction(factory):
             return await factory()
-        else:
-            return factory()
+        return factory()
 
     async def _create_instance_with_dependencies(
         self, descriptor: ServiceDescriptor, deps: tuple[Any, ...]

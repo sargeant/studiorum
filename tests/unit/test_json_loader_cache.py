@@ -2,11 +2,9 @@
 
 import json
 from pathlib import Path
-from unittest.mock import call, patch
+from unittest.mock import patch
 
-import pytest
-
-from studiorum.core.cache import CacheManager, get_cache
+from studiorum.core.cache import get_cache
 from studiorum.core.loaders.json_loader import JsonDataLoader
 from studiorum.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment
@@ -39,7 +37,6 @@ class TestJsonLoaderCache:
     def teardown_method(self) -> None:
         """Clear cache after each test."""
         # Cache is already reset by reset_test_environment() in setup_method
-        pass
 
     def test_cache_hit_on_second_load(self, tmp_path: Path) -> None:
         """Test that second load uses cache."""

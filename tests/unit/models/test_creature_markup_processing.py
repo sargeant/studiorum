@@ -4,9 +4,7 @@ These tests focus on how creature abilities and descriptions handle
 5etools markup tags like {@atk}, {@damage}, {@spell}, etc.
 """
 
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import Mock, patch
 
 from studiorum.cli.services import get_cli_template_service
 from studiorum.core.models.creatures import Ability, ArmorClass, Creature
@@ -108,7 +106,7 @@ class TestCreatureMarkupProcessing:
             # Mock the CLI service to return our mock tag resolver
             mock_get_tag_resolver.return_value = mock_tag_resolver
             processed_ac = ac.get_processed_ac_text()
-            assert "17 (natural armor, shield) (19 with mage armor)" == processed_ac
+            assert processed_ac == "17 (natural armor, shield) (19 with mage armor)"
 
     def test_senses_markup_processing(self):
         """Test processing of 5etools markup in creature senses."""

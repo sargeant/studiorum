@@ -265,10 +265,9 @@ class Psionic(BaseContent):
 
         if min_cost is None and max_cost is None:
             return "No cost"
-        elif min_cost == max_cost:
+        if min_cost == max_cost:
             return f"{min_cost} psi points"
-        else:
-            return f"{min_cost}-{max_cost} psi points"
+        return f"{min_cost}-{max_cost} psi points"
 
     def get_concentration_duration(self) -> str | None:
         """Get concentration duration if applicable."""
@@ -320,8 +319,7 @@ class Psionic(BaseContent):
         # Handle both string and enum values for robustness
         if isinstance(self.order, PsionicOrder):
             return self.order.value.lower() == order.lower()
-        else:
-            return str(self.order).lower() == order.lower()
+        return str(self.order).lower() == order.lower()
 
     def get_complexity_rating(self) -> str:
         """Get complexity rating based on modes, submodes, and requirements."""
@@ -341,10 +339,9 @@ class Psionic(BaseContent):
 
         if complexity_score <= 2:
             return "Simple"
-        elif complexity_score <= 5:
+        if complexity_score <= 5:
             return "Moderate"
-        else:
-            return "Complex"
+        return "Complex"
 
     def get_psionic_summary(self) -> str:
         """Get a summary description of this psionic."""

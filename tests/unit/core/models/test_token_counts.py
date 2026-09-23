@@ -3,9 +3,7 @@
 from pathlib import Path
 from unittest.mock import Mock
 
-import pytest
-
-from studiorum.core.models.tokens import TokenData, TokenSheet
+from studiorum.core.models.tokens import TokenSheet
 
 
 class TestTokenSheetCounts:

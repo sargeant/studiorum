@@ -19,9 +19,8 @@ from collections import defaultdict
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from pathlib import Path
 from typing import Any, TypeVar
 from uuid import uuid4
 
@@ -29,13 +28,8 @@ import logfire
 from pydantic import BaseModel, Field
 
 from studiorum.core.logging.logger import get_logger
-from studiorum.core.result import Error, Result, Success
 from studiorum.latex_engine.core.images.placement_models import (
-    ContentContext,
     ContentType,
-    ImageMetadata,
-    PlacementDecision,
-    ProcessedImage,
 )
 
 logger = get_logger(__name__)
@@ -776,34 +770,33 @@ def observe_image_processing(
                     return result
 
             return async_wrapper  # type: ignore[return-value]
-        else:
 
-            @functools.wraps(func)
-            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-                # Extract context information
-                resolved_content_type = (
-                    content_type
-                    or (extract_content_type and extract_content_type(args))
-                    or ContentType.UNKNOWN
-                )
-                resolved_content_id = extract_content_id and extract_content_id(args)
-                resolved_metadata = extract_metadata and extract_metadata(args)
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            # Extract context information
+            resolved_content_type = (
+                content_type
+                or (extract_content_type and extract_content_type(args))
+                or ContentType.UNKNOWN
+            )
+            resolved_content_id = extract_content_id and extract_content_id(args)
+            resolved_metadata = extract_metadata and extract_metadata(args)
 
-                with track_image_operation(
-                    stage=stage,
-                    content_type=resolved_content_type,
-                    content_id=resolved_content_id,
-                    metadata=resolved_metadata,
-                ) as tracking:
-                    result = func(*args, **kwargs)
+            with track_image_operation(
+                stage=stage,
+                content_type=resolved_content_type,
+                content_id=resolved_content_id,
+                metadata=resolved_metadata,
+            ) as tracking:
+                result = func(*args, **kwargs)
 
-                    # Extract confidence if available
-                    if hasattr(result, "confidence"):
-                        tracking["set_confidence"](result.confidence)
+                # Extract confidence if available
+                if hasattr(result, "confidence"):
+                    tracking["set_confidence"](result.confidence)
 
-                    return result
+                return result
 
-            return sync_wrapper  # type: ignore[return-value]
+        return sync_wrapper  # type: ignore[return-value]
 
     return decorator
 

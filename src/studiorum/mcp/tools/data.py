@@ -19,12 +19,6 @@ from typing import Any, Literal
 from studiorum.core.logging import get_logger
 
 from ...core.context import AsyncRequestContext
-from ...core.error_types import (
-    ErrorCategory,
-    MCPError,
-    MCPErrorCode,
-)
-from ...core.result import Error, Result, Success
 from ...core.services.protocols import SourceManagerProtocol
 
 logger = get_logger(__name__)
@@ -151,7 +145,7 @@ async def manage_data_sources(
                 },
             }
 
-        elif action == "status":
+        if action == "status":
             # Get detailed status information
             stats = manager.get_source_statistics()
 
@@ -184,7 +178,7 @@ async def manage_data_sources(
                 },
             }
 
-        elif action == "add_primary":
+        if action == "add_primary":
             if not source:
                 return {"error": "Source path required for add_primary action"}
 
@@ -217,7 +211,7 @@ async def manage_data_sources(
                 },
             }
 
-        elif action == "add_homebrew":
+        if action == "add_homebrew":
             if not source:
                 return {"error": "Source path required for add_homebrew action"}
 
@@ -246,7 +240,7 @@ async def manage_data_sources(
                 },
             }
 
-        elif action == "add_url":
+        if action == "add_url":
             if not source:
                 return {"error": "URL required for add_url action"}
 
@@ -277,7 +271,7 @@ async def manage_data_sources(
                 },
             }
 
-        elif action == "remove":
+        if action == "remove":
             if not name:
                 return {"error": "Repository name required for remove action"}
 
@@ -293,8 +287,7 @@ async def manage_data_sources(
                 },
             }
 
-        else:
-            return {"error": f"Unknown action: {action}"}
+        return {"error": f"Unknown action: {action}"}
 
     except Exception as e:
         duration_ms = (time.time() - start_time) * 1000

@@ -280,11 +280,13 @@ class TestRichProgressReporter:
 
     def test_rich_reporter_unavailable(self) -> None:
         """Test rich reporter when rich is not available."""
-        with patch(
-            "studiorum.latex_engine.utils.progress_tracker.RICH_AVAILABLE", False
+        with (
+            patch(
+                "studiorum.latex_engine.utils.progress_tracker.RICH_AVAILABLE", False
+            ),
+            pytest.raises(ImportError, match="Rich library not available"),
         ):
-            with pytest.raises(ImportError, match="Rich library not available"):
-                RichProgressReporter()
+            RichProgressReporter()
 
 
 @pytest.mark.rendering

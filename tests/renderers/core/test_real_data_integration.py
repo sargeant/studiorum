@@ -109,12 +109,11 @@ class TestRealDataIntegration:
         # Extract content array based on structure
         if content_type in data:
             return data[content_type][:limit]
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return data[:limit]
-        elif "data" in data:
+        if "data" in data:
             return data["data"][:limit]
-        else:
-            return []
+        return []
 
     def create_tag_node(self, content: dict[str, Any], tag_type: str) -> TagNode:
         """Create a TagNode from content data."""
@@ -455,7 +454,6 @@ class TestRealDataPerformance:
 
     def test_concurrent_rendering_safety(self):
         """Test that concurrent rendering is safe."""
-        import threading
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
         # Load test data

@@ -4,8 +4,6 @@ These tests focus on proper formatting of creature stat block text,
 including alignment processing, size abbreviations, and complex text structures.
 """
 
-import pytest
-
 from studiorum.core.models.creatures import Creature, CreatureType
 from tests.test_helpers import reset_test_environment
 
@@ -488,19 +486,19 @@ class TestCreatureTextValidation:
 
         # Test comma-separated formatting
         senses = creature.get_formatted_senses()
-        assert "darkvision 60 ft., passive Perception 12" == senses
+        assert senses == "darkvision 60 ft., passive Perception 12"
 
         languages = creature.get_formatted_languages()
-        assert "Common, Elvish, telepathy 120 ft." == languages
+        assert languages == "Common, Elvish, telepathy 120 ft."
 
         resistances = creature.get_formatted_resistances()
-        assert "fire; cold" == resistances
+        assert resistances == "fire; cold"
 
         immunities = creature.get_formatted_immunities()
-        assert "poison" == immunities
+        assert immunities == "poison"
 
         conditions = creature.get_formatted_condition_immunities()
-        assert "charmed, frightened" == conditions
+        assert conditions == "charmed, frightened"
 
     def test_numeric_formatting_consistency(self):
         """Test consistent formatting of numeric values."""

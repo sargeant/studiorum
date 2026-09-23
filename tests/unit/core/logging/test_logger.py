@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from collections.abc import Generator
 from typing import Any
-from unittest.mock import patch
 
 import pytest
 from logfire import LogfireLoggingHandler

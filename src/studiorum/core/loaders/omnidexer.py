@@ -4,12 +4,10 @@ import hashlib
 from collections import defaultdict
 from datetime import timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 if TYPE_CHECKING:
     from ..protocols.progress import ProgressCallback
-    from ..services.container import ServiceContainer
-    from ..services.protocols import SourceManagerProtocol
     from .content_merger import ContentMerger
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -953,10 +951,9 @@ class Omnidexer:
         return cast(BaseContent | None, result)
 
     @cached(
-        key_func=lambda self,
-        content_type,
-        name,
-        source: f"omnidexer:find:{content_type.value}:{name}:{source or 'any'}:deep={self.enable_deep_indexing}",
+        key_func=lambda self, content_type, name, source: (
+            f"omnidexer:find:{content_type.value}:{name}:{source or 'any'}:deep={self.enable_deep_indexing}"
+        ),
         ttl=timedelta(hours=1),  # Cache for 1 hour
     )
     def _find_cached(
@@ -973,13 +970,12 @@ class Omnidexer:
             lookup_key = f"{name}|{source}".lower()
             entry = type_index.get(lookup_key)
             return entry.content if entry else None
-        else:
-            # Search all sources for this name
-            name_lower = name.lower()
-            for lookup_key, entry in type_index.items():
-                if lookup_key.startswith(f"{name_lower}|"):
-                    return entry.content
-            return None
+        # Search all sources for this name
+        name_lower = name.lower()
+        for lookup_key, entry in type_index.items():
+            if lookup_key.startswith(f"{name_lower}|"):
+                return entry.content
+        return None
 
     def find_by_hash(self, hash_id: str) -> BaseContent | None:
         """Find content by unique hash identifier."""
@@ -1036,10 +1032,9 @@ class Omnidexer:
         return cast(list[BaseContent], result)
 
     @cached(
-        key_func=lambda self,
-        query,
-        content_type,
-        limit: f"omnidexer:search:{query}:{content_type.value if content_type else 'all'}:{limit}:deep={self.enable_deep_indexing}",
+        key_func=lambda self, query, content_type, limit: (
+            f"omnidexer:search:{query}:{content_type.value if content_type else 'all'}:{limit}:deep={self.enable_deep_indexing}"
+        ),
         ttl=timedelta(minutes=30),  # Cache for 30 minutes
     )
     def _search_cached(

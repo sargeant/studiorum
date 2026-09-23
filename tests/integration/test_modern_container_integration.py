@@ -5,7 +5,6 @@ using lightweight mocks to avoid heavy data loading operations.
 """
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -16,7 +15,6 @@ from studiorum.core.services.container import (
 from studiorum.core.services.lifecycle import ServiceLifecycle
 from studiorum.core.services.protocols import (
     AsyncResourceProtocol,
-    ConfigurableServiceProtocol,
     OmnidexerProtocol,
     ServiceProtocol,
     TagResolverProtocol,

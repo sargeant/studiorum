@@ -74,7 +74,7 @@ class TestCreatureRealDataIntegration:
         # Test basic stat block
         assert goblin.name == "Goblin"
         assert goblin.get_enhanced_cr_text() == "1/4 (50 XP)"
-        assert "Small humanoid, neutral evil" == goblin.get_size_type_alignment()
+        assert goblin.get_size_type_alignment() == "Small humanoid, neutral evil"
 
         # Test ability scores and modifiers
         assert goblin.get_ability_modifier(goblin.strength) == -1  # STR 8 = -1
@@ -157,7 +157,7 @@ class TestCreatureRealDataIntegration:
         # Test basic properties
         assert dragon.name == "Ancient Red Dragon"
         assert dragon.get_enhanced_cr_text() == "24 (62,000 XP)"
-        assert "Gargantuan dragon, chaotic evil" == dragon.get_size_type_alignment()
+        assert dragon.get_size_type_alignment() == "Gargantuan dragon, chaotic evil"
 
         # Test legendary actions
         assert dragon.legendary is not None

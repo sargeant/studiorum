@@ -299,27 +299,26 @@ class ObservableImageService:
                     return result
 
             return async_observable_wrapper
-        else:
 
-            @functools.wraps(method)
-            def sync_observable_wrapper(*args: Any, **kwargs: Any) -> Any:
-                with track_image_operation(
-                    stage=stage,
-                    content_type=ContentType.UNKNOWN,  # Could be extracted from args
-                    metadata={
-                        "method": method_name,
-                        "service": type(self._wrapped).__name__,
-                    },
-                ) as tracking:
-                    result = method(*args, **kwargs)
+        @functools.wraps(method)
+        def sync_observable_wrapper(*args: Any, **kwargs: Any) -> Any:
+            with track_image_operation(
+                stage=stage,
+                content_type=ContentType.UNKNOWN,  # Could be extracted from args
+                metadata={
+                    "method": method_name,
+                    "service": type(self._wrapped).__name__,
+                },
+            ) as tracking:
+                result = method(*args, **kwargs)
 
-                    # Extract metadata from result if available
-                    if hasattr(result, "__len__"):
-                        tracking["add_metadata"]("result_count", len(result))
+                # Extract metadata from result if available
+                if hasattr(result, "__len__"):
+                    tracking["add_metadata"]("result_count", len(result))
 
-                    return result
+                return result
 
-            return sync_observable_wrapper
+        return sync_observable_wrapper
 
 
 # Service factory for creating observable service wrappers
@@ -374,7 +373,6 @@ def register_enhanced_image_services(container: Any) -> None:
     Args:
         container: Modern service container for registration
     """
-    from studiorum.core.services.image_services import register_image_services
     from studiorum.core.services.protocols import (
         EnhancedImagePlacerProtocol,
         GalleryProcessorProtocol,

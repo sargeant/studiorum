@@ -6,9 +6,8 @@ These tests verify the new 'data' command group that replaces the deprecated
 
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app

@@ -499,9 +499,8 @@ class TestCLIIntegrationEnhancedFeatures:
                             mock_spell.source = Mock()
                             mock_spell.source.abbreviation = source
                             mock_spell.level = 1  # Default level
-                            mock_spell.__lt__ = (
-                                lambda self, other: self.name.lower()
-                                < other.name.lower()
+                            mock_spell.__lt__ = lambda self, other: (
+                                self.name.lower() < other.name.lower()
                             )
                             return mock_spell
 
@@ -663,9 +662,8 @@ class TestCLIIntegrationEnhancedFeatures:
                             mock_spell.source = Mock()
                             mock_spell.source.abbreviation = source
                             mock_spell.level = 1  # Default level
-                            mock_spell.__lt__ = (
-                                lambda self, other: self.name.lower()
-                                < other.name.lower()
+                            mock_spell.__lt__ = lambda self, other: (
+                                self.name.lower() < other.name.lower()
                             )
                             return mock_spell
 

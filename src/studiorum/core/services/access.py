@@ -10,17 +10,13 @@ dependency injection while maintaining backward compatibility.
 from __future__ import annotations
 
 import asyncio
-import concurrent.futures
-import threading
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from studiorum.core.logging import get_logger
-from studiorum.core.result import Error, Result, Success
 
 if TYPE_CHECKING:
     from studiorum.core.config.unified_config import ApplicationConfig
     from studiorum.core.interfaces import ContentTypeRegistry
-    from studiorum.core.services.container import ServiceContainer
 
 from .protocols import (
     CacheProtocol,

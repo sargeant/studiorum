@@ -1,6 +1,5 @@
 """Comprehensive tests for Pydantic tag types models."""
 
-from typing import Any
 from unittest.mock import Mock
 
 import pytest

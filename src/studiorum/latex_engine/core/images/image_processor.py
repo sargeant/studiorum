@@ -242,8 +242,7 @@ class ImageProcessor:
             if image_file_path.exists():
                 logger.debug(f"Found image at configured directory: {image_file_path}")
                 return image_file_path
-            else:
-                logger.debug(f"Image not found at: {image_file_path}")
+            logger.debug(f"Image not found at: {image_file_path}")
 
             # Common 5etools-img layout uses an 'img' subdirectory at the repo root
             img_prefixed_path = base_dir / "img" / image_path
@@ -422,14 +421,13 @@ class ImageProcessor:
 
             if in_gallery:
                 return f"\\includegraphics[{width_spec}]{{{image_path}}}"
-            elif title:
+            if title:
                 return f"""\\begin{{figure}}[htbp]
     \\centering
     \\includegraphics[{width_spec}]{{{image_path}}}
     \\caption{{{title}}}
 \\end{{figure}}"""
-            else:
-                return f"\\includegraphics[{width_spec}]{{{image_path}}}"
+            return f"\\includegraphics[{width_spec}]{{{image_path}}}"
 
     def _generate_studiorum_image_macro(
         self,
@@ -513,15 +511,14 @@ class ImageProcessor:
                 # Item images should be smaller and not dominate the layout
                 # Constrain both width and height to prevent page overflow
                 return "width=0.6\\columnwidth,height=0.2\\textheight,keepaspectratio"
-            elif content_type == "spell":
+            if content_type == "spell":
                 # Spell images also conservative sizing
                 return "width=0.7\\columnwidth,height=0.25\\textheight,keepaspectratio"
-            elif content_type == "creature":
+            if content_type == "creature":
                 # Creature images can be larger but still within column
                 return "width=0.9\\columnwidth,height=0.3\\textheight,keepaspectratio"
-            else:
-                # General content in two-column layout
-                return "width=0.8\\columnwidth,height=0.3\\textheight,keepaspectratio"
+            # General content in two-column layout
+            return "width=0.8\\columnwidth,height=0.3\\textheight,keepaspectratio"
 
         # Single column or full-width layouts
         return "width=0.8\\textwidth,height=0.4\\textheight,keepaspectratio"
@@ -583,16 +580,13 @@ class ImageProcessor:
         """
         if isinstance(href, str):
             return href
-        elif isinstance(href, dict):
+        if isinstance(href, dict):
             # Handle 5etools href structure: {"type": "internal", "path": "..."}
-            if href.get("type") == "internal" and "path" in href:
+            if href.get("type") == "internal" and "path" in href or "path" in href:
                 return href["path"]
-            # Handle other possible href structures
-            elif "path" in href:
-                return href["path"]
-            elif "href" in href:
+            if "href" in href:
                 return href["href"]
-            elif "url" in href:
+            if "url" in href:
                 return href["url"]
 
         # If we can't extract a path, return empty string

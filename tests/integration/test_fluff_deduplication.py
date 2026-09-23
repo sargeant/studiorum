@@ -1,7 +1,5 @@
 """Integration tests for fluff deduplication functionality."""
 
-import pytest
-
 from studiorum.core.models.content import Source
 from studiorum.core.models.fluff import CreatureFluff
 from studiorum.core.references.content_tracker import ContentTracker

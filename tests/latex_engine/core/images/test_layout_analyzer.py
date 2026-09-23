@@ -4,10 +4,6 @@ This module tests the advanced layout analysis system including page space
 analysis, page break prediction, and image sequence optimization.
 """
 
-from pathlib import Path
-
-import pytest
-
 from studiorum.latex_engine.core.images.image_placer import ImagePlacement, ImageSize
 from studiorum.latex_engine.core.images.layout_analyzer import (
     LayoutAnalyzer,

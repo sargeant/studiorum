@@ -125,7 +125,7 @@ class TestContentPlaceholderRegression:
         def mock_render_content_item(item, context):
             if isinstance(item, str):
                 return item
-            elif isinstance(item, dict):
+            if isinstance(item, dict):
                 return f"[Rendered: {item.get('name', 'Unknown')}]"
             return ""
 
@@ -193,14 +193,14 @@ class TestContentPlaceholderRegression:
         def mock_render_content_item(item, context):
             if isinstance(item, str):
                 return item
-            elif isinstance(item, dict):
+            if isinstance(item, dict):
                 if item.get("type") == "insetReadaloud":
                     return (
                         "\\begin{DndReadAloud}\n"
                         + str(item.get("entries", [])[0])
                         + "\n\\end{DndReadAloud}"
                     )
-                elif item.get("type") == "section":
+                if item.get("type") == "section":
                     return f"\\section{{{item.get('name', 'Unknown')}}}\n{item.get('entries', [''])[0]}"
             return ""
 

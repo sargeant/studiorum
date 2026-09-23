@@ -1,6 +1,3 @@
-import re
-from pathlib import Path
-
 from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
 from studiorum.renderers.core.interfaces import RenderingContext
 

@@ -17,38 +17,20 @@ from __future__ import annotations
 
 import json
 import tempfile
-from datetime import datetime
 from pathlib import Path
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
-from uuid import uuid4
+from unittest.mock import patch
 
 import pytest
-from pydantic import ValidationError
 
 from studiorum.core.config.unified_config import (
     ApplicationConfig,
-    CompilationConfig,
-    ContentConfig,
-    LaTeXDocumentConfig,
-    LaTeXEngineConfig,
-    LaTeXRenderingConfig,
-    LoggingConfig,
-    MCPConfig,
-    PathsConfig,
-    ProcessingConfig,
-    RenderingConfig,
-    ValidationConfig,
 )
 from studiorum.core.context import AsyncRequestContext
 from studiorum.core.error_types import (
-    ConfigurationError,
     ErrorCategory,
     MCPError,
     MCPErrorCode,
-    ValidationError as DnDValidationError,
 )
-from studiorum.core.result import Error, Result, Success
 from studiorum.mcp.tools.config import (
     ConfigurationResponse,
     PresetInfo,
@@ -123,15 +105,15 @@ class TestUtilityFunctions:
 
     def test_ensure_presets_dir(self) -> None:
         """Test preset directory creation."""
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch(
-                "studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir) / "presets"
-            ):
-                presets_dir = _ensure_presets_dir()
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            patch("studiorum.mcp.tools.config._PRESETS_DIR", Path(tmp_dir) / "presets"),
+        ):
+            presets_dir = _ensure_presets_dir()
 
-                assert presets_dir.exists()
-                assert presets_dir.is_dir()
-                assert presets_dir.name == "presets"
+            assert presets_dir.exists()
+            assert presets_dir.is_dir()
+            assert presets_dir.name == "presets"
 
     def test_get_current_config_dict(self) -> None:
         """Test configuration serialization."""

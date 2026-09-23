@@ -7,7 +7,7 @@ for modern MCP and CLI usage patterns.
 import asyncio
 import difflib
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Optional, Protocol, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -366,27 +366,26 @@ class ContentResolver:
                         )
                     )
                 return Success(result.content)
+            # Convert resolution result to error
+            if result.status == ResolutionStatus.NO_MATCH:
+                error = ContentNotFoundError(
+                    message=f"Adventure '{abbreviation}' not found",
+                    suggestions=result.suggestions,
+                )
+            elif result.status == ResolutionStatus.MULTIPLE_MATCHES:
+                match_names = [match.name for match in result.matches[:5]]
+                error = ContentNotFoundError(
+                    message=f"Multiple adventures found for '{abbreviation}'. Found: {', '.join(match_names)}",
+                    suggestions=match_names,
+                )
             else:
-                # Convert resolution result to error
-                if result.status == ResolutionStatus.NO_MATCH:
-                    error = ContentNotFoundError(
-                        message=f"Adventure '{abbreviation}' not found",
-                        suggestions=result.suggestions,
-                    )
-                elif result.status == ResolutionStatus.MULTIPLE_MATCHES:
-                    match_names = [match.name for match in result.matches[:5]]
-                    error = ContentNotFoundError(
-                        message=f"Multiple adventures found for '{abbreviation}'. Found: {', '.join(match_names)}",
-                        suggestions=match_names,
-                    )
-                else:
-                    error = ContentNotFoundError(
-                        message=f"Adventure resolution failed for '{abbreviation}'"
-                    )
+                error = ContentNotFoundError(
+                    message=f"Adventure resolution failed for '{abbreviation}'"
+                )
 
-                if self.context:
-                    await self.context.add_async_error(error)
-                return Error(error)
+            if self.context:
+                await self.context.add_async_error(error)
+            return Error(error)
 
         except Exception as e:
             error = ContentNotFoundError(message=f"Adventure resolution failed: {e}")
@@ -431,10 +430,9 @@ class ContentResolver:
 
                     concrete_omnidexer = cast(Omnidexer, self.omnidexer)
                     return concrete_omnidexer.search(query, ct)
-                else:
-                    # Fallback to protocol interface
-                    results = self.omnidexer.search(query)
-                    return cast(list[BaseContent], results)
+                # Fallback to protocol interface
+                results = self.omnidexer.search(query)
+                return cast(list[BaseContent], results)
 
             search_results = await asyncio.get_event_loop().run_in_executor(
                 None, search_with_type
@@ -490,18 +488,17 @@ class ContentResolver:
 
             if result.status == ResolutionStatus.EXACT_MATCH or result.spells:
                 return Success(result.spells)
-            else:
-                suggestions = []
-                for name, name_suggestions in result.suggestions.items():
-                    suggestions.extend(name_suggestions)
+            suggestions = []
+            for name, name_suggestions in result.suggestions.items():
+                suggestions.extend(name_suggestions)
 
-                error = ContentNotFoundError(
-                    message=f"Spells not found: {', '.join(result.unresolved_names)}",
-                    suggestions=suggestions[:10],  # Limit suggestions
-                )
-                if self.context:
-                    await self.context.add_async_error(error)
-                return Error(error)
+            error = ContentNotFoundError(
+                message=f"Spells not found: {', '.join(result.unresolved_names)}",
+                suggestions=suggestions[:10],  # Limit suggestions
+            )
+            if self.context:
+                await self.context.add_async_error(error)
+            return Error(error)
 
         except Exception as e:
             error = ContentNotFoundError(message=f"Spell resolution failed: {e}")
@@ -537,26 +534,25 @@ class ContentResolver:
                         )
                     )
                 return Success(result.content)
+            if result.status == ResolutionStatus.NO_MATCH:
+                error = ContentNotFoundError(
+                    message=f"Book '{abbreviation}' not found",
+                    suggestions=result.suggestions,
+                )
+            elif result.status == ResolutionStatus.MULTIPLE_MATCHES:
+                matches = [match.name for match in result.matches[:5]]
+                error = ContentNotFoundError(
+                    message=f"Multiple books found for '{abbreviation}'",
+                    suggestions=[f"Be more specific. Found: {', '.join(matches)}"],
+                )
             else:
-                if result.status == ResolutionStatus.NO_MATCH:
-                    error = ContentNotFoundError(
-                        message=f"Book '{abbreviation}' not found",
-                        suggestions=result.suggestions,
-                    )
-                elif result.status == ResolutionStatus.MULTIPLE_MATCHES:
-                    matches = [match.name for match in result.matches[:5]]
-                    error = ContentNotFoundError(
-                        message=f"Multiple books found for '{abbreviation}'",
-                        suggestions=[f"Be more specific. Found: {', '.join(matches)}"],
-                    )
-                else:
-                    error = ContentNotFoundError(
-                        message=f"Book resolution failed for '{abbreviation}'"
-                    )
+                error = ContentNotFoundError(
+                    message=f"Book resolution failed for '{abbreviation}'"
+                )
 
-                if self.context:
-                    await self.context.add_async_error(error)
-                return Error(error)
+            if self.context:
+                await self.context.add_async_error(error)
+            return Error(error)
 
         except Exception as e:
             error = ContentNotFoundError(message=f"Book resolution failed: {e}")
@@ -624,7 +620,7 @@ class ContentResolver:
                 content=resolved_content,
                 query=abbreviation,
             )
-        elif len(exact_matches) > 1:
+        if len(exact_matches) > 1:
             # Try to resolve ambiguity by preferring non-versioned content
             preferred_match = self._select_preferred_match(exact_matches)
             if preferred_match:
@@ -678,7 +674,7 @@ class ContentResolver:
                     content=resolved_content,
                     query=abbreviation,
                 )
-            elif len(fuzzy_matches) > 1:
+            if len(fuzzy_matches) > 1:
                 return ContentResolutionResult(
                     status=ResolutionStatus.MULTIPLE_MATCHES,
                     matches=fuzzy_matches,
@@ -725,7 +721,7 @@ class ContentResolver:
             versioned_2014 = [
                 match
                 for match in matches
-                if "(2014)" in match.name or "Player's Handbook (2014)" == match.name
+                if "(2014)" in match.name or match.name == "Player's Handbook (2014)"
             ]
             if versioned_2014:
                 return versioned_2014[0]
@@ -744,7 +740,7 @@ class ContentResolver:
 
         if len(non_versioned) == 1:
             return non_versioned[0]
-        elif len(non_versioned) > 1:
+        if len(non_versioned) > 1:
             # Multiple non-versioned matches, use shorter name as tiebreaker
             return min(non_versioned, key=lambda x: len(x.name))
 

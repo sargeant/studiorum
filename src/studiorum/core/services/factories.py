@@ -20,7 +20,7 @@ Service Factories:
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from studiorum.core.error_types import (
     ConfigurationError,
@@ -35,9 +35,7 @@ from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.result import Error, Result, Success
 
 from .protocols import (
-    AsyncResourceProtocol,
     CacheProtocol,
-    ConfigurableServiceProtocol,
     ConfigurationProtocol,
     ContentAttributionProtocol,
     ContentFactoryProtocol,
@@ -54,8 +52,6 @@ from .protocols import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable
-
     from studiorum.cli.display_manager import DisplayManager
     from studiorum.core.cache import CacheManager
     from studiorum.core.config.unified_config import ApplicationConfig
@@ -521,8 +517,7 @@ def create_omnidexer_service_sync(
 
             if self._omnidexer is not None and hasattr(self._omnidexer, "find"):
                 return self._omnidexer.find(content_type, name, source)
-            else:
-                return None
+            return None
 
         def find_all(self, content_type: ContentType, name: str) -> list[BaseContent]:
             """Find all content matching type and name across all sources."""
@@ -535,8 +530,7 @@ def create_omnidexer_service_sync(
 
             if self._omnidexer is not None and hasattr(self._omnidexer, "find_all"):
                 return self._omnidexer.find_all(content_type, name)
-            else:
-                return []
+            return []
 
         async def ensure_sources_ready(self) -> None:
             """Ensure all content sources are loaded and ready."""
@@ -748,8 +742,7 @@ async def create_omnidexer_service(
 
             if self._omnidexer is not None and hasattr(self._omnidexer, "find"):
                 return self._omnidexer.find(content_type, name, source)
-            else:
-                return None
+            return None
 
         def find_all(self, content_type: ContentType, name: str) -> list[BaseContent]:
             """Find all content matching type and name across all sources."""
@@ -760,9 +753,8 @@ async def create_omnidexer_service(
             # Delegate to the concrete omnidexer
             if self._omnidexer is not None and hasattr(self._omnidexer, "find_all"):
                 return self._omnidexer.find_all(content_type, name)
-            else:
-                # Fallback implementation
-                return []
+            # Fallback implementation
+            return []
 
         async def ensure_sources_ready(self) -> None:
             """Ensure all content sources are loaded and ready."""
@@ -943,7 +935,6 @@ def create_content_type_registry_service() -> ContentTypeRegistryProtocol:
 
         def __init__(self) -> None:
             from studiorum.core.interfaces import ContentTypeRegistry
-            from studiorum.core.models.content import ContentType
 
             self._legacy_registry = ContentTypeRegistry()
             # Register default content types
@@ -955,8 +946,6 @@ def create_content_type_registry_service() -> ContentTypeRegistryProtocol:
         def _initialize_default_types(self) -> None:
             """Initialize default content type registrations."""
             try:
-                from studiorum.core.models.content import ContentType
-
                 # The legacy registry will be populated by the system initialization
                 # This service provides protocol compliance without duplicating state
                 logger.debug("ContentTypeRegistry service initialized")
@@ -1162,7 +1151,6 @@ def create_entry_registry_service() -> EntryTypeRegistryProtocol:
                 raise RuntimeError("EntryTypeRegistry not initialized")
             # EntryTypeRegistry doesn't have register methods - it's for validation
             # This is a placeholder implementation
-            pass
 
         def get_entry_processor(self, entry_type: str) -> type | None:
             """Get processor for an entry type."""
@@ -1221,7 +1209,6 @@ async def create_reference_manager_service(
                 raise RuntimeError("ReferenceManager not initialized")
             # ReferenceManager doesn't have add_reference method - create a simple reference
             # This is a placeholder implementation
-            pass
 
         def resolve_reference(self, source: str, ref_type: str) -> list[str]:
             """Resolve references from a source."""

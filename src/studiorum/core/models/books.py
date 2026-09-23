@@ -40,10 +40,9 @@ class BookMetadata(BaseModel):
 
         if len(self.author) == 1:
             return self.author[0]
-        elif len(self.author) == 2:
+        if len(self.author) == 2:
             return f"{self.author[0]} and {self.author[1]}"
-        else:
-            return f"{', '.join(self.author[:-1])}, and {self.author[-1]}"
+        return f"{', '.join(self.author[:-1])}, and {self.author[-1]}"
 
     def get_formatted_date(self) -> str:
         """Get formatted publication date."""
@@ -147,7 +146,7 @@ class Book(BaseContent):
         """Get formatted authors text."""
         if self.metadata:
             return self.metadata.get_authors_text()
-        elif self.author:
+        if self.author:
             return BookMetadata(
                 id=None,
                 published=None,

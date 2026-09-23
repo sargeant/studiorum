@@ -248,7 +248,6 @@ class TestComponentIntegration:
     def test_strategy_with_layout_analyzer(self):
         """Test strategy working with layout analyzer."""
         from studiorum.latex_engine.core.images.placement_models import (
-            ContentContext,
             ContentType,
             PageContext,
         )

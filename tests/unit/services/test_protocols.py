@@ -114,11 +114,10 @@ class TestServiceProtocols:
 
             def find(self, content_type: object, name: str, source: str | None = None):
                 """Find content by type, name, and optionally source - mock implementation."""
-                return None
+                return
 
             def set_progress_callback(self, callback) -> None:
                 """Set progress callback - mock implementation."""
-                pass
 
         service = MockOmnidexer()
         assert isinstance(service, ServiceProtocol)

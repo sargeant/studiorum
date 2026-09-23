@@ -1,8 +1,7 @@
 """Copy reference resolver for 5etools _copy templates."""
 
-import copy
 import re
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ..loaders.omnidexer import Omnidexer
@@ -36,15 +35,16 @@ class CopyResolver:
                     needs_resolution = False
                     # Check in __pydantic_extra__ first (proper way for pydantic models)
                     if (
-                        hasattr(item, "__pydantic_extra__")
-                        and item.__pydantic_extra__
-                        and item.__pydantic_extra__.get("_needsCopyResolution")
-                    ):
-                        needs_resolution = True
-                    # Fallback to direct attribute check
-                    elif hasattr(item, "_needsCopyResolution") or (
-                        hasattr(item, "__dict__")
-                        and item.__dict__.get("_needsCopyResolution")
+                        (
+                            hasattr(item, "__pydantic_extra__")
+                            and item.__pydantic_extra__
+                            and item.__pydantic_extra__.get("_needsCopyResolution")
+                        )
+                        or hasattr(item, "_needsCopyResolution")
+                        or (
+                            hasattr(item, "__dict__")
+                            and item.__dict__.get("_needsCopyResolution")
+                        )
                     ):
                         needs_resolution = True
 
@@ -146,9 +146,8 @@ class CopyResolver:
                 f"Could not find copy source {source_name}|{source_source} for {item_name} (exact lookup failed)"
             )
             return None
-        else:
-            logger.warning(f"Invalid copy reference format for {item_name}")
-            return None
+        logger.warning(f"Invalid copy reference format for {item_name}")
+        return None
 
     def _try_exact_lookup(self, source_name: str, source_source: str) -> Any | None:
         """Try exact lookup across content types."""

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from collections import defaultdict
-from typing import Any, TypedDict
+from typing import TypedDict
 
 from pydantic import ValidationError
 
@@ -183,14 +183,13 @@ class ValidationErrorTracker:
 
         if "field required" in error_str or "missing" in error_str:
             return "missing_required_fields"
-        elif "input should be a valid" in error_str or "parsing" in error_str:
+        if "input should be a valid" in error_str or "parsing" in error_str:
             return "type_validation_errors"
-        elif "unable to parse" in error_str or "parsing" in error_str:
+        if "unable to parse" in error_str or "parsing" in error_str:
             return "parsing_errors"
-        elif "unknown" in error_str or "unrecognized" in error_str:
+        if "unknown" in error_str or "unrecognized" in error_str:
             return "unknown_structure_errors"
-        else:
-            return "other_errors"
+        return "other_errors"
 
     def _extract_field_path(self, error: ValidationError) -> str:
         """Extract the field path from a validation error.
@@ -263,20 +262,20 @@ class ValidationErrorTracker:
             if content_type == "spell":
                 if "level" in field_path:
                     return "Add 'level' field (0 for cantrips, 1-9 for spells)"
-                elif "school" in field_path:
+                if "school" in field_path:
                     return "Add 'school' field (A=Abjuration, C=Conjuration, D=Divination, E=Enchantment, V=Evocation, I=Illusion, N=Necromancy, T=Transmutation)"
-                elif "components" in field_path:
+                if "components" in field_path:
                     return "Add 'components' object with v/s/m properties (e.g., {'v': true, 's': true})"
             elif content_type == "creature":
                 if "alignment" in field_path:
                     return "Add 'alignment' array (e.g., ['L', 'G'] for Lawful Good, or ['N'] for Neutral)"
-                elif "ac" in field_path:
+                if "ac" in field_path:
                     return "Add 'ac' field as integer or object with armor details"
 
         elif "input should be a valid" in error_str:
             if "integer" in error_str:
                 return f"Ensure {field_path} is a numeric value, not a string"
-            elif "boolean" in error_str:
+            if "boolean" in error_str:
                 return f"Ensure {field_path} is true/false, not a string"
 
         return None

@@ -4,8 +4,6 @@ Provides Pydantic models for the 2024 weapon mastery system that defines
 special techniques and abilities for weapon users.
 """
 
-from typing import Any
-
 from pydantic import Field
 
 from ..registry import content_type
@@ -121,12 +119,11 @@ class ItemMastery(BaseContent):
         """Determine the type of mastery based on its effects."""
         if self.is_attack_mastery():
             return "Attack"
-        elif self.is_defensive_mastery():
+        if self.is_defensive_mastery():
             return "Defensive"
-        elif self.is_utility_mastery():
+        if self.is_utility_mastery():
             return "Utility"
-        else:
-            return "General"
+        return "General"
 
     def get_description(self) -> str | None:
         """Get a description of the mastery from entries."""

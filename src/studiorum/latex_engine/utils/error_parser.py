@@ -228,13 +228,17 @@ class LaTeXErrorParser:
                 ),
                 "severity": ErrorSeverity.ERROR,
                 "category": LaTeXErrorCategory.FONT_ERROR,
-                "extract": lambda m: "Fontspec package not available - requires XeLaTeX or LuaLaTeX",
+                "extract": lambda m: (
+                    "Fontspec package not available - requires XeLaTeX or LuaLaTeX"
+                ),
             },
             {
                 "pattern": re.compile(r"! LaTeX Error: File `fontspec\.sty' not found"),
                 "severity": ErrorSeverity.ERROR,
                 "category": LaTeXErrorCategory.MISSING_PACKAGE,
-                "extract": lambda m: "Fontspec package not installed or not available with current engine",
+                "extract": lambda m: (
+                    "Fontspec package not installed or not available with current engine"
+                ),
             },
             {
                 "pattern": re.compile(r"LaTeX Warning: (.+)"),

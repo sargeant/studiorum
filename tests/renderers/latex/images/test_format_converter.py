@@ -113,8 +113,7 @@ class TestFormatConverter:
             # First call is for original file size, second for converted
             if mock_stat.call_count == 1:
                 return Mock(st_size=1000)
-            else:
-                return Mock(st_size=800)
+            return Mock(st_size=800)
 
         mock_stat.side_effect = stat_side_effect
 
@@ -287,10 +286,12 @@ class TestFormatConverterWithoutPIL:
 
     def test_init_without_pil(self):
         """Test initialization when PIL is not available."""
-        with patch.dict("sys.modules", {"PIL": None}):
-            with patch(
+        with (
+            patch.dict("sys.modules", {"PIL": None}),
+            patch(
                 "studiorum.latex_engine.core.images.format_converter.PIL_AVAILABLE",
                 False,
-            ):
-                with pytest.raises(ImportError, match="Pillow is required"):
-                    FormatConverter()
+            ),
+            pytest.raises(ImportError, match="Pillow is required"),
+        ):
+            FormatConverter()

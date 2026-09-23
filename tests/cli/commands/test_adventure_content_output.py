@@ -527,124 +527,126 @@ class TestAdventureContentOutput:
 
     def test_adventure_output_directory_creation(self):
         """Test that output directories are created automatically."""
-        with patch(
-            "studiorum.cli.commands.convert.adventure.get_content_list_writer"
-        ) as mock_get_writer:
-            with patch(
+        with (
+            patch(
+                "studiorum.cli.commands.convert.adventure.get_content_list_writer"
+            ) as mock_get_writer,
+            patch(
                 "studiorum.cli.commands.convert.adventure.get_omnidexer"
-            ) as mock_get_omnidexer:
+            ) as mock_get_omnidexer,
+            patch(
+                "studiorum.cli.commands.convert.adventure.get_tag_resolver"
+            ) as mock_tag_resolver,
+        ):
+            # Setup mocks
+            mock_omnidexer = Mock()
+            mock_omnidexer.get_adventure.return_value = {
+                "name": "Test Adventure",
+                "source": "TEST",
+                "data": [],
+            }
+            mock_get_omnidexer.return_value = mock_omnidexer
+            mock_tag_resolver.return_value = Mock()
+
+            # Mock ContentListWriter
+            mock_writer = Mock()
+            mock_writer.write_content_list.return_value = Mock(unwrap=lambda: 1)
+            mock_get_writer.return_value = mock_writer
+
+            with patch(
+                "studiorum.cli.commands.convert.adventure.create_latex_engine"
+            ) as mock_create_engine:
+                mock_engine = Mock()
+                mock_engine.render_document.return_value = "Mock LaTeX output"
+                mock_create_engine.return_value = mock_engine
+
                 with patch(
-                    "studiorum.cli.commands.convert.adventure.get_tag_resolver"
-                ) as mock_tag_resolver:
-                    # Setup mocks
-                    mock_omnidexer = Mock()
-                    mock_omnidexer.get_adventure.return_value = {
-                        "name": "Test Adventure",
-                        "source": "TEST",
-                        "data": [],
-                    }
-                    mock_get_omnidexer.return_value = mock_omnidexer
-                    mock_tag_resolver.return_value = Mock()
+                    "studiorum.cli.commands.convert.adventure.ContentTracker"
+                ) as mock_tracker_class:
+                    mock_tracker = self.create_mock_content_tracker()
+                    mock_tracker_class.return_value = mock_tracker
 
-                    # Mock ContentListWriter
-                    mock_writer = Mock()
-                    mock_writer.write_content_list.return_value = Mock(unwrap=lambda: 1)
-                    mock_get_writer.return_value = mock_writer
+                    adventure_file = self.create_test_adventure_file()
+                    output_file = self.temp_dir / "adventure.tex"
 
-                    with patch(
-                        "studiorum.cli.commands.convert.adventure.create_latex_engine"
-                    ) as mock_create_engine:
-                        mock_engine = Mock()
-                        mock_engine.render_document.return_value = "Mock LaTeX output"
-                        mock_create_engine.return_value = mock_engine
+                    # Use nested directory that doesn't exist
+                    spells_output = self.temp_dir / "output" / "lists" / "spells.txt"
 
-                        with patch(
-                            "studiorum.cli.commands.convert.adventure.ContentTracker"
-                        ) as mock_tracker_class:
-                            mock_tracker = self.create_mock_content_tracker()
-                            mock_tracker_class.return_value = mock_tracker
+                    result = self.runner.invoke(
+                        app,
+                        [
+                            "convert",
+                            "adventure",
+                            str(adventure_file),
+                            "--output",
+                            str(output_file),
+                            "--output-spells",
+                            str(spells_output),
+                        ],
+                    )
 
-                            adventure_file = self.create_test_adventure_file()
-                            output_file = self.temp_dir / "adventure.tex"
+                    assert result.exit_code == 0
 
-                            # Use nested directory that doesn't exist
-                            spells_output = (
-                                self.temp_dir / "output" / "lists" / "spells.txt"
-                            )
-
-                            result = self.runner.invoke(
-                                app,
-                                [
-                                    "convert",
-                                    "adventure",
-                                    str(adventure_file),
-                                    "--output",
-                                    str(output_file),
-                                    "--output-spells",
-                                    str(spells_output),
-                                ],
-                            )
-
-                            assert result.exit_code == 0
-
-                            # Verify the path was passed to ContentListWriter
-                            # (ContentListWriter itself handles directory creation)
-                            call_args = mock_writer.write_content_list.call_args
-                            assert call_args[1]["output_path"] == spells_output
+                    # Verify the path was passed to ContentListWriter
+                    # (ContentListWriter itself handles directory creation)
+                    call_args = mock_writer.write_content_list.call_args
+                    assert call_args[1]["output_path"] == spells_output
 
     def test_adventure_no_content_output_options(self):
         """Test adventure conversion without any content output options (normal behavior)."""
-        with patch(
-            "studiorum.cli.commands.convert.adventure.get_content_list_writer"
-        ) as mock_get_writer:
-            with patch(
+        with (
+            patch(
+                "studiorum.cli.commands.convert.adventure.get_content_list_writer"
+            ) as mock_get_writer,
+            patch(
                 "studiorum.cli.commands.convert.adventure.get_omnidexer"
-            ) as mock_get_omnidexer:
+            ) as mock_get_omnidexer,
+            patch(
+                "studiorum.cli.commands.convert.adventure.get_tag_resolver"
+            ) as mock_tag_resolver,
+        ):
+            # Setup mocks
+            mock_omnidexer = Mock()
+            mock_omnidexer.get_adventure.return_value = {
+                "name": "Test Adventure",
+                "source": "TEST",
+                "data": [],
+            }
+            mock_get_omnidexer.return_value = mock_omnidexer
+            mock_tag_resolver.return_value = Mock()
+
+            # Mock ContentListWriter (should not be called)
+            mock_writer = Mock()
+            mock_get_writer.return_value = mock_writer
+
+            with patch(
+                "studiorum.cli.commands.convert.adventure.create_latex_engine"
+            ) as mock_create_engine:
+                mock_engine = Mock()
+                mock_engine.render_document.return_value = "Mock LaTeX output"
+                mock_create_engine.return_value = mock_engine
+
                 with patch(
-                    "studiorum.cli.commands.convert.adventure.get_tag_resolver"
-                ) as mock_tag_resolver:
-                    # Setup mocks
-                    mock_omnidexer = Mock()
-                    mock_omnidexer.get_adventure.return_value = {
-                        "name": "Test Adventure",
-                        "source": "TEST",
-                        "data": [],
-                    }
-                    mock_get_omnidexer.return_value = mock_omnidexer
-                    mock_tag_resolver.return_value = Mock()
+                    "studiorum.cli.commands.convert.adventure.ContentTracker"
+                ) as mock_tracker_class:
+                    mock_tracker = self.create_mock_content_tracker()
+                    mock_tracker_class.return_value = mock_tracker
 
-                    # Mock ContentListWriter (should not be called)
-                    mock_writer = Mock()
-                    mock_get_writer.return_value = mock_writer
+                    adventure_file = self.create_test_adventure_file()
+                    output_file = self.temp_dir / "adventure.tex"
 
-                    with patch(
-                        "studiorum.cli.commands.convert.adventure.create_latex_engine"
-                    ) as mock_create_engine:
-                        mock_engine = Mock()
-                        mock_engine.render_document.return_value = "Mock LaTeX output"
-                        mock_create_engine.return_value = mock_engine
+                    result = self.runner.invoke(
+                        app,
+                        [
+                            "convert",
+                            "adventure",
+                            str(adventure_file),
+                            "--output",
+                            str(output_file),
+                        ],
+                    )
 
-                        with patch(
-                            "studiorum.cli.commands.convert.adventure.ContentTracker"
-                        ) as mock_tracker_class:
-                            mock_tracker = self.create_mock_content_tracker()
-                            mock_tracker_class.return_value = mock_tracker
+                    assert result.exit_code == 0
 
-                            adventure_file = self.create_test_adventure_file()
-                            output_file = self.temp_dir / "adventure.tex"
-
-                            result = self.runner.invoke(
-                                app,
-                                [
-                                    "convert",
-                                    "adventure",
-                                    str(adventure_file),
-                                    "--output",
-                                    str(output_file),
-                                ],
-                            )
-
-                            assert result.exit_code == 0
-
-                            # ContentListWriter should not have been called
-                            mock_writer.write_content_list.assert_not_called()
+                    # ContentListWriter should not have been called
+                    mock_writer.write_content_list.assert_not_called()

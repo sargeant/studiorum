@@ -241,17 +241,16 @@ class ContentConfigManager:
 
         if isinstance(data, Path):
             return str(data)
-        elif isinstance(data, Enum):
+        if isinstance(data, Enum):
             return data.value
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             return {
                 key: self._convert_paths_to_strings(value)
                 for key, value in data.items()
             }
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return [self._convert_paths_to_strings(item) for item in data]
-        else:
-            return data
+        return data
 
     def _create_default_config(self) -> ContentConfiguration:
         """Create default configuration with recommended sources."""

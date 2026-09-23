@@ -4,7 +4,7 @@ These tests focus on the core functionality of creature models for generating
 properly formatted stat blocks with ability scores, modifiers, and complex text formatting.
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 

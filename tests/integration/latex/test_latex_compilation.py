@@ -9,11 +9,9 @@ WARNING: These tests are slow and require LaTeX installation.
 They are separate from regular unit tests which use mocking.
 """
 
-import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Optional
 
 import pytest
 

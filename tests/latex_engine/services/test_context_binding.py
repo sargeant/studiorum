@@ -6,7 +6,6 @@ from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.services.factories import (
     create_context_bound_template_service,
     create_latex_formatter_service,
-    create_template_service_with_components,
     create_text_extractor_service,
 )
 from studiorum.latex_engine.services.context_bound_template_service import (
@@ -147,9 +146,9 @@ class TestContextFlowValidation:
                     "latex_formatter": latex_formatter,
                     "tag_resolver": MockTagResolver(),
                     "omnidexer": MockOmnidexer(),
-                    "render_entry_description": lambda self,
-                    entry,
-                    tracker: f"rendered:{entry}",
+                    "render_entry_description": lambda self, entry, tracker: (
+                        f"rendered:{entry}"
+                    ),
                 },
             )(),
             content_tracker=content_tracker,

@@ -31,8 +31,6 @@ class TestRegistryIntegration:
         # Import all content modules before initialization to trigger decorators
         # This ensures decorator registration happens before we test
         from studiorum.core.loaders.content_factory import ContentFactory
-        from studiorum.core.models.creatures import Creature
-        from studiorum.core.models.items import Item
         from studiorum.core.models.spells import Spell
 
         # Initialize the system
@@ -216,11 +214,6 @@ class TestRegistryIntegration:
     def test_system_consistency(self):
         """Test that all systems are consistent with registry data."""
         # Import content modules to trigger decorator registrations
-        from studiorum.core.models.adventures import Adventure
-        from studiorum.core.models.books import Book
-        from studiorum.core.models.creatures import Creature
-        from studiorum.core.models.items import Item
-        from studiorum.core.models.spells import Spell
 
         initialize_content_types()
 

@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from studiorum.core.context import AsyncRequestContext
-from studiorum.core.error_types import ContentNotFoundError, ProcessingError
+from studiorum.core.error_types import ProcessingError
 from studiorum.core.models.rule_types import Action, Condition
 from studiorum.core.result import Error, Success
 from studiorum.mcp.tools.rules import (

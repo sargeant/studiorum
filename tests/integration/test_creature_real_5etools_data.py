@@ -8,7 +8,6 @@ and edge cases found in the actual dataset.
 import os
 import time
 from pathlib import Path
-from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -572,7 +571,7 @@ class TestCreatureOutputQualityValidation:
                     creature.get_ability_modifier(creature.dexterity)
                     # This is a rough check - AC should somewhat correlate with DEX
                     # (allowing for armor, natural armor, etc.)
-                    pass  # Skip detailed AC validation for now
+                    # Skip detailed AC validation for now
             except Exception as e:
                 issues.append(f"AC validation error: {e}")
 

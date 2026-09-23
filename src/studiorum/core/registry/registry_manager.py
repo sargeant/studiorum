@@ -10,7 +10,7 @@ from ..models.content import BaseContent, ContentType
 from .content_type_registry import ContentTypeMetadata
 
 if TYPE_CHECKING:
-    from ..loaders.unified_source_manager import UnifiedSourceManager
+    pass
 
 logger = get_logger(__name__)
 

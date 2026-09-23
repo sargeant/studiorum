@@ -1,7 +1,5 @@
 """Test Phase 4: Specialized Systems content type migration."""
 
-import pytest
-
 from tests.test_helpers import reset_test_environment
 
 

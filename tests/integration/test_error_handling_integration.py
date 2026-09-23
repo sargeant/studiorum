@@ -5,8 +5,6 @@ Tests the complete error handling pipeline from Result pattern through
 logging and backward compatibility.
 """
 
-from typing import Any
-
 import pytest
 from logfire.testing import CaptureLogfire
 from pydantic import BaseModel, Field

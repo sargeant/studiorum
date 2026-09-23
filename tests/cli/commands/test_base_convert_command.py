@@ -11,7 +11,6 @@ from studiorum.cli.commands.convert.base import (
     LaTeXMixin,
 )
 from studiorum.core.error_types import ConfigurationError, MCPException
-from studiorum.core.result import Success
 from tests.test_helpers import reset_test_environment
 
 
@@ -529,8 +528,6 @@ class TestBaseConvertCommandIntegration:
 
         class TestCommand(BaseConvertCommand, LaTeXMixin, AppendixMixin):
             """Test command combining all mixins."""
-
-            pass
 
         command = TestCommand()
 

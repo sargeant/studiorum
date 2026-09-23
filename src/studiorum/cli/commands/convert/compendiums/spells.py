@@ -11,10 +11,7 @@ import typer
 from studiorum.cli.utils import resolve_option
 
 if TYPE_CHECKING:
-    from studiorum.core.interfaces import TagResolver
-    from studiorum.core.references.content_reference_manager import (
-        ContentReferenceManager,
-    )
+    pass
 from rich import print as rprint
 
 from studiorum.cli.config_factory import (
@@ -25,9 +22,8 @@ from studiorum.cli.config_factory import (
 from studiorum.cli.display_manager import display_manager
 from studiorum.cli.utils import get_omnidexer, get_tag_resolver
 from studiorum.core.config.latex_config import LaTeXConfig
-from studiorum.core.config.unified_config import get_app_config
+from studiorum.core.config.unified_config import get_app_config  # noqa: F401
 from studiorum.core.logging import get_logger
-from studiorum.core.models.content import ContentType
 from studiorum.core.models.spells import Spell
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -71,8 +67,7 @@ def _combine_spellbook_and_appendix(
     if "\\end{document}" in spellbook_content:
         main_content, document_end = spellbook_content.rsplit("\\end{document}", 1)
         return f"{main_content}\n\n{appendix_latex}\n\\end{{document}}{document_end}"
-    else:
-        return f"{spellbook_content}\n\n{appendix_latex}"
+    return f"{spellbook_content}\n\n{appendix_latex}"
 
 
 def _render_spellbook(

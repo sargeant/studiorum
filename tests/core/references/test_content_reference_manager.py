@@ -4,8 +4,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from studiorum.core.interfaces import DeepIndexable
-from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.references.content_reference_manager import (
     ContentReference,
     ContentReferenceManager,

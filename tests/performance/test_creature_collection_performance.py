@@ -7,7 +7,7 @@ efficiently and provide good performance for typical use cases.
 import gc
 import os
 import time
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 

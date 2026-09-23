@@ -79,13 +79,11 @@ class ContextBoundTemplateService:
                     else:
                         text_parts.append(str(item))
                 return "\n\n".join(text_parts)
-            else:
-                if isinstance(entry, str):
-                    return entry
-                elif isinstance(entry, dict):
-                    return entry.get("text", entry.get("content", str(entry)))
-                else:
-                    return str(entry)
+            if isinstance(entry, str):
+                return entry
+            if isinstance(entry, dict):
+                return entry.get("text", entry.get("content", str(entry)))
+            return str(entry)
 
     def render_entries(self, entries: list[Any]) -> str:
         """Render multiple entries efficiently with bound context.

@@ -7,8 +7,6 @@ with actual creature data patterns and complexity found in 5etools.
 import gc
 import os
 import time
-from pathlib import Path
-from typing import Any
 
 import pytest
 

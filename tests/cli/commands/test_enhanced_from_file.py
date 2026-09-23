@@ -127,23 +127,23 @@ class TestEnhancedFromFileSupport:
             if content_type == "spell":
                 if "fireball" in name.lower():
                     return [mock_spell_fireball]
-                elif "magic missile" in name.lower():
+                if "magic missile" in name.lower():
                     return [mock_spell_magic_missile]
-                elif "shield" in name.lower():
+                if "shield" in name.lower():
                     return [mock_spell_shield]
-                elif "counterspell" in name.lower():
+                if "counterspell" in name.lower():
                     return [mock_spell_counterspell]
-                elif "haste" in name.lower():
+                if "haste" in name.lower():
                     return [mock_spell_haste]
             elif content_type == "creature":
                 if "goblin" in name.lower():
                     return [mock_creature_goblin]
-                elif "orc" in name.lower():
+                if "orc" in name.lower():
                     return [mock_creature_orc]
             elif content_type == "item":
                 if "longsword" in name.lower():
                     return [mock_item_longsword]
-                elif "shortsword" in name.lower():
+                if "shortsword" in name.lower():
                     return [mock_item_shortsword]
             return []
 

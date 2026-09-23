@@ -1,24 +1,18 @@
 """Tests for Result-based architecture error handling."""
 
-from unittest.mock import Mock, patch
-
-import pytest
-
 from studiorum.core.error_types import (
     ContentLoadingError,
     ContentSourceError,
     ContentValidationError,
     ErrorCategory,
     ErrorSeverity,
-    ReferenceTrackingError,
-    TemplateCompositionError,
     create_content_loading_error,
     create_content_source_error,
     create_content_validation_error,
     create_reference_tracking_error,
     create_template_composition_error,
 )
-from studiorum.core.result import Error, Result, Success
+from studiorum.core.result import Error, Success
 from tests.test_helpers import reset_test_environment
 
 

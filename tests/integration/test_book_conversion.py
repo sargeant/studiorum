@@ -12,22 +12,18 @@ from pathlib import Path
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.resolvers.content_resolver import ContentResolver
 from tests.test_helpers import reset_test_environment
 
 
 def load_all_data_sync(omnidexer):
     """Synchronous wrapper for omnidexer.load_all_data() for testing."""
-    import asyncio
 
     return omnidexer.load_all_data()
 
 
 def resolve_book_sync(resolver, book_id):
     """Synchronous wrapper for resolver.resolve_book() for testing."""
-    import asyncio
 
     return resolver.resolve_book(book_id)
 

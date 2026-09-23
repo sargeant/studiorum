@@ -15,13 +15,7 @@ from pydantic import BaseModel, Field
 from studiorum.core.logging import get_logger
 from studiorum.core.result import Error, Result, Success
 from studiorum.latex_engine.core.images.placement_models import (
-    ContentContext,
     ContentType,
-    DocumentContext,
-    ImageCharacteristic,
-    ImageMetadata,
-    OptimizationTarget,
-    PageContext,
 )
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -461,12 +455,11 @@ class BestiaryImageIntegration:
                 f"    \\caption{{{title}}}\n"
                 f"\\end{{figure}}"
             )
-        else:
-            return (
-                f"\\begin{{center}}\n"
-                f"    \\includegraphics[width={width}]{{{image_path}}}\n"
-                f"\\end{{center}}"
-            )
+        return (
+            f"\\begin{{center}}\n"
+            f"    \\includegraphics[width={width}]{{{image_path}}}\n"
+            f"\\end{{center}}"
+        )
 
     def get_integration_statistics(self) -> dict[str, Any]:
         """Get statistics about integration operations."""

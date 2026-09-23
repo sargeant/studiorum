@@ -1,7 +1,6 @@
 """Adventure conversion command."""
 
 import asyncio
-import json
 import os
 from pathlib import Path
 
@@ -19,10 +18,9 @@ from studiorum.cli.config_factory import (
 )
 from studiorum.cli.display_manager import display_manager
 from studiorum.cli.utils import get_content_list_writer, get_omnidexer, get_tag_resolver
-from studiorum.core.config.unified_config import get_app_config
-from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.config.unified_config import get_app_config  # noqa: F401
+from studiorum.core.models.content import ContentType
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.resolvers import ContentResolutionResult, ContentResolver
 from studiorum.core.result import Error, Success
 from studiorum.latex_engine import create_latex_engine
 from studiorum.renderers.core.interfaces import RenderingContext
@@ -30,7 +28,6 @@ from studiorum.renderers.core.interfaces import RenderingContext
 from .base import BaseConvertCommand
 from .shared import (
     compile_pdf as compile_pdf_async,
-    handle_resolution_result,
     resolve_content_or_file,
 )
 

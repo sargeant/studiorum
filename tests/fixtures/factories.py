@@ -5,7 +5,7 @@ across the entire test suite, reducing duplication and improving maintainability
 """
 
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 
@@ -456,7 +456,7 @@ def make_encounter_creature():
 @pytest.fixture
 def make_encounter_generation_result():
     """Factory for creating EncounterGenerationResult objects."""
-    from studiorum.core.models.encounter_types import XP, EncounterId
+    from studiorum.core.models.encounter_types import EncounterId
     from studiorum.core.services.encounter_collector import EncounterGenerationResult
 
     def _make_encounter_generation_result(

@@ -2,7 +2,6 @@
 
 import os
 from pathlib import Path
-from typing import Any
 
 import typer
 from rich.panel import Panel

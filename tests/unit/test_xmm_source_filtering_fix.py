@@ -2,7 +2,6 @@
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.creature_filters import CreatureFilterCriteria
 from studiorum.core.services.creature_collector import CreatureCollector
 

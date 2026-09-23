@@ -165,14 +165,11 @@ class TestLaTeXCompiler:
 
         # Mock successful checks for LuaLaTeX and XeLaTeX, failed for PDFLaTeX
         def mock_subprocess_run(cmd: Any, **kwargs: Any) -> Any:
-            if cmd[0] == "lualatex":
+            if cmd[0] == "lualatex" or cmd[0] == "xelatex":
                 return Mock(returncode=0)
-            elif cmd[0] == "xelatex":
-                return Mock(returncode=0)
-            elif cmd[0] == "pdflatex":
+            if cmd[0] == "pdflatex":
                 return Mock(returncode=1)
-            else:
-                return Mock(returncode=1)
+            return Mock(returncode=1)
 
         mock_run.side_effect = mock_subprocess_run
 
@@ -203,10 +200,9 @@ class TestLaTeXCompiler:
         def mock_subprocess_run(cmd: Any, **kwargs: Any) -> Any:
             if cmd[0] == "lualatex":
                 return Mock(returncode=0)
-            elif cmd[0] == "kpsewhich":
+            if cmd[0] == "kpsewhich":
                 return Mock(returncode=0)  # DND template available
-            else:
-                return Mock(returncode=1)
+            return Mock(returncode=1)
 
         mock_run.side_effect = mock_subprocess_run
 
@@ -438,10 +434,9 @@ class TestLaTeXCompilerIntegration:
         def mock_availability_check(engine: Any) -> bool:
             if engine == LaTeXEngine.LUALATEX:
                 return False
-            elif engine == LaTeXEngine.XELATEX:
+            if engine == LaTeXEngine.XELATEX:
                 return True
-            else:
-                return False
+            return False
 
         # Mock successful XeLaTeX compilation
         mock_run.return_value = Mock(

@@ -12,8 +12,6 @@ from ..core.interfaces import RenderingContext
 class RenderingError(Exception):
     """Exception raised during rendering operations."""
 
-    pass
-
 
 class BaseRenderer(ABC):
     """Abstract base class for all renderers.
@@ -34,7 +32,6 @@ class BaseRenderer(ABC):
     @abstractmethod
     def output_format(self) -> str:
         """Return the output format this renderer produces (e.g., 'latex', 'html')."""
-        pass
 
     @abstractmethod
     def render(
@@ -52,7 +49,6 @@ class BaseRenderer(ABC):
         Raises:
             RenderingError: If rendering fails
         """
-        pass
 
     def render_to_file(
         self,

@@ -220,9 +220,8 @@ def _format_pydantic_error(error: PydanticValidationError) -> str:
         err = error.errors()[0]
         field = ".".join(str(loc) for loc in err["loc"]) if err["loc"] else "root"
         return f"{field}: {err['msg']}"
-    else:
-        # Multiple errors - create summary
-        return f"{len(error.errors())} validation errors: {error.errors()[0]['msg']}"
+    # Multiple errors - create summary
+    return f"{len(error.errors())} validation errors: {error.errors()[0]['msg']}"
 
 
 def _extract_primary_field(error: PydanticValidationError) -> str | None:
@@ -283,20 +282,18 @@ class ValidationMode:
         """Determine if an error should be raised based on mode."""
         if mode == cls.STRICT:
             return True
-        elif mode == cls.PERMISSIVE:
+        if mode == cls.PERMISSIVE:
             return error.severity in (ErrorSeverity.CRITICAL, ErrorSeverity.ERROR)
-        else:  # SILENT
-            return error.severity == ErrorSeverity.CRITICAL
+        # SILENT
+        return error.severity == ErrorSeverity.CRITICAL
 
     @classmethod
     def should_log(cls, mode: str, error: ValidationError) -> bool:
         """Determine if an error should be logged based on mode."""
-        if mode == cls.STRICT:
+        if mode == cls.STRICT or mode == cls.PERMISSIVE:
             return True
-        elif mode == cls.PERMISSIVE:
-            return True
-        else:  # SILENT
-            return error.severity in (ErrorSeverity.CRITICAL, ErrorSeverity.ERROR)
+        # SILENT
+        return error.severity in (ErrorSeverity.CRITICAL, ErrorSeverity.ERROR)
 
 
 def validate_with_mode[T: BaseModel](

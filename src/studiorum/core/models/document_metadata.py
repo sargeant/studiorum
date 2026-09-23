@@ -156,11 +156,10 @@ class DocumentMetadata(BaseModel):
 
         if len(self.authors) == 1:
             return str(self.authors[0])
-        elif len(self.authors) == 2:
+        if len(self.authors) == 2:
             return f"{self.authors[0]} and {self.authors[1]}"
-        else:
-            author_names = [str(author) for author in self.authors[:-1]]
-            return f"{', '.join(author_names)}, and {self.authors[-1]}"
+        author_names = [str(author) for author in self.authors[:-1]]
+        return f"{', '.join(author_names)}, and {self.authors[-1]}"
 
     def get_formatted_date(self) -> str:
         """Get formatted date for LaTeX."""
@@ -187,8 +186,7 @@ class DocumentMetadata(BaseModel):
         """Get appropriate LaTeX document class for document type."""
         if self.document_type == DocumentType.ARTICLE:
             return "dndarticle"
-        else:
-            return "dndbook"
+        return "dndbook"
 
     def get_recommended_structure(self) -> DocumentStructure:
         """Get recommended structure for document type."""
@@ -206,10 +204,9 @@ class DocumentMetadata(BaseModel):
         """Get maximum section level for document type."""
         if self.document_type == DocumentType.ARTICLE:
             return SectionLevel.SECTION
-        elif self.use_parts:
+        if self.use_parts:
             return SectionLevel.PART
-        else:
-            return SectionLevel.CHAPTER
+        return SectionLevel.CHAPTER
 
 
 class ContentSection(BaseModel):

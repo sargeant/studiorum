@@ -4,14 +4,11 @@ import json
 import tempfile
 from pathlib import Path
 from typing import Any
-from unittest.mock import Mock, patch
 
 import pytest
 
 from studiorum.core.loaders import Omnidexer
 from studiorum.core.loaders.base import SourceManager
-from studiorum.core.loaders.data_source_manager import DataSourceManager
-from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.models.content import ContentType
 from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
 from tests.test_helpers import reset_test_environment
@@ -82,7 +79,6 @@ class TestSourceManager(SourceManager):
 
     async def ensure_sources_ready(self) -> None:
         """Ensure sources are ready (no-op for test)."""
-        pass
 
     def resolve_source(self, source_abbrev: str) -> dict[str, Any] | None:
         """Resolve source abbreviation to full source information."""

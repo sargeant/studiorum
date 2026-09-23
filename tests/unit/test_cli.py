@@ -4,7 +4,6 @@ import json
 from typing import Any
 from unittest.mock import Mock, patch
 
-import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app  # type: ignore

@@ -313,10 +313,9 @@ class LaTeXTemplateConfig(BaseModel):
 
     # Template paths
     template_dir: Path = Field(
-        default_factory=lambda: Path(__file__).parent.parent.parent
-        / "renderers"
-        / "latex"
-        / "templates",
+        default_factory=lambda: (
+            Path(__file__).parent.parent.parent / "renderers" / "latex" / "templates"
+        ),
         description="Directory containing LaTeX templates",
     )
 

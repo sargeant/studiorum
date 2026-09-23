@@ -6,8 +6,6 @@ including showcase layouts with decorative LaTeX elements and chapter openers.
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest

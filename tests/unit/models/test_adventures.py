@@ -51,7 +51,7 @@ class TestAdventureMetadata:
         """Test level range formatting with non-dict level."""
         # AdventureMetadata expects dict for level, but Adventure allows non-dict
         # This test is more relevant for Adventure.get_level_range()
-        pass  # Skip this test as AdventureMetadata enforces dict type
+        # Skip this test as AdventureMetadata enforces dict type
 
 
 class TestAdventure:

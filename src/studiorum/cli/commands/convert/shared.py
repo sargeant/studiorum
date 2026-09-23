@@ -4,7 +4,7 @@
 import subprocess  # nosec B404
 import sys
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 import typer
 from rich import print as rprint
@@ -103,11 +103,9 @@ async def compile_pdf(latex_path: Path, open_file: bool = False) -> None:
             if open_file and pdf_path.exists():
                 try:
                     # Use secure executable path resolution to prevent B607 vulnerabilities
-                    if sys.platform == "darwin":  # macOS
-                        opener = get_platform_file_opener()
-                        subprocess.run([opener, str(pdf_path)], check=True)
-                        rprint(f"[green]✓[/green] Opened PDF: {pdf_path}")
-                    elif sys.platform.startswith("linux"):  # Linux
+                    if sys.platform == "darwin" or sys.platform.startswith(
+                        "linux"
+                    ):  # macOS
                         opener = get_platform_file_opener()
                         subprocess.run([opener, str(pdf_path)], check=True)
                         rprint(f"[green]✓[/green] Opened PDF: {pdf_path}")
@@ -163,7 +161,6 @@ def resolve_content_or_file(
     from studiorum.core.loaders.content_sources import (
         ContentLoader,
         create_file_source,
-        create_omnidexer_source,
     )
 
     # Check if it's a file path
@@ -222,7 +219,7 @@ def handle_resolution_result(
     if result.is_success and result.content:
         return [result.content], f"abbreviation: {query}"
 
-    elif result.suggestions:
+    if result.suggestions:
         content_name = content_type.value
         rprint("[yellow]Did you mean?[/yellow]")
         for suggestion in result.suggestions[:5]:
@@ -232,10 +229,7 @@ def handle_resolution_result(
         )
         raise typer.Exit(1)
 
-    else:
-        content_name = content_type.value
-        rprint(f"[red]Error:[/red] {content_name.title()} '{query}' not found.")
-        rprint(
-            f"Run [bold]studiorum list {content_name}s[/bold] to see available content."
-        )
-        raise typer.Exit(1)
+    content_name = content_type.value
+    rprint(f"[red]Error:[/red] {content_name.title()} '{query}' not found.")
+    rprint(f"Run [bold]studiorum list {content_name}s[/bold] to see available content.")
+    raise typer.Exit(1)

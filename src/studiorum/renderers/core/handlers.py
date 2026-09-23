@@ -7,7 +7,7 @@ that can be enhanced by presentation layers.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from studiorum.core.error_types import ContentValidationError
 from studiorum.core.logging import get_logger
@@ -559,7 +559,6 @@ class DCTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """DC tags don't need appendix tracking."""
-        pass
 
 
 class ChanceTagHandler:
@@ -598,8 +597,7 @@ class ChanceTagHandler:
         # Use display text if provided, otherwise format percentage
         if display_text:
             return display_text
-        else:
-            return f"{percentage} percent"
+        return f"{percentage} percent"
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -628,7 +626,6 @@ class ChanceTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Chance tags don't need appendix tracking."""
-        pass
 
 
 class DiceTagHandler:
@@ -695,7 +692,6 @@ class DiceTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Dice tags don't need appendix tracking."""
-        pass
 
 
 class DamageTagHandler:
@@ -764,7 +760,6 @@ class DamageTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Damage tags don't need appendix tracking."""
-        pass
 
 
 class VariantRuleTagHandler(BaseTagHandler):
@@ -957,7 +952,6 @@ class AbilityTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Ability tags don't need appendix tracking."""
-        pass
 
 
 class SavingThrowTagHandler:
@@ -1026,7 +1020,6 @@ class SavingThrowTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Saving throw tags don't need appendix tracking."""
-        pass
 
 
 class SkillCheckTagHandler:
@@ -1095,7 +1088,6 @@ class SkillCheckTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Skill check tags don't need appendix tracking."""
-        pass
 
 
 class FormattingTagHandler(BaseTagHandler):
@@ -1239,7 +1231,6 @@ class FormattingTagHandler(BaseTagHandler):
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Formatting tags don't need appendix tracking."""
-        pass
 
     def _is_dnd_text(self, text: str) -> bool:
         """Check if text contains game branding references that should use small-caps."""
@@ -1810,8 +1801,7 @@ class ActionSaveFailByTagHandler(BaseTagHandler):
                 format_type=FormatType.ITALIC,
                 content=f"Failure by {amount} or more:",
             )
-        else:
-            return FormattingNode(format_type=FormatType.ITALIC, content="Failure:")
+        return FormattingNode(format_type=FormatType.ITALIC, content="Failure:")
 
 
 class ActionTriggerTagHandler(BaseTagHandler):
@@ -1883,8 +1873,7 @@ class ActionResponseTagHandler(BaseTagHandler):
         response_text = getattr(tag_node, "name", "")
         if "d" in response_text:
             return FormattingNode(format_type=FormatType.ITALIC, content="Response—")
-        else:
-            return FormattingNode(format_type=FormatType.ITALIC, content="Response:")
+        return FormattingNode(format_type=FormatType.ITALIC, content="Response:")
 
 
 class RechargeTagHandler(BaseTagHandler):
@@ -1940,8 +1929,7 @@ class RechargeTagHandler(BaseTagHandler):
         # Check for minimal flag ("m") which removes parentheses
         if "m" in flags:
             return recharge_display
-        else:
-            return f"({recharge_display})"
+        return f"({recharge_display})"
 
 
 class DeityTagHandler(BaseTagHandler):
@@ -2074,13 +2062,11 @@ class NoteTagHandler(BaseTagHandler):
                 return FormattingNode(
                     format_type=FormatType.ITALIC, content=processed_text
                 )
-            else:
-                # No tag resolver - return FormattingNode with raw text
-                from studiorum.core.text.tag_types import FormattingNode, FormatType
+            # No tag resolver - return FormattingNode with raw text
+            from studiorum.core.text.tag_types import FormattingNode, FormatType
 
-                return FormattingNode(format_type=FormatType.ITALIC, content=note_text)
-        else:
-            return ""
+            return FormattingNode(format_type=FormatType.ITALIC, content=note_text)
+        return ""
 
 
 class LinkTagHandler(BaseTagHandler):
@@ -2160,8 +2146,7 @@ class QuickrefTagHandler(BaseTagHandler):
             return FormattingNode(
                 format_type=FormatType.ITALIC, content=content_info.display_text
             )
-        else:
-            return ""
+        return ""
 
 
 class HitYourSpellAttackTagHandler(BaseTagHandler):
@@ -2195,8 +2180,7 @@ class HitYourSpellAttackTagHandler(BaseTagHandler):
         display_text = getattr(tag_node, "display_text", None)
         if display_text and isinstance(display_text, str):
             return str(display_text)
-        else:
-            return "your spell attack modifier"
+        return "your spell attack modifier"
 
 
 class ActionTagHandler(BaseTagHandler):
@@ -2247,10 +2231,9 @@ class AreaTagHandler:
 
         if display_text:
             return str(display_text)
-        elif name:
+        if name:
             return str(name)
-        else:
-            return "[Area]"
+        return "[Area]"
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -2272,7 +2255,6 @@ class AreaTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Area tags don't need appendix tracking."""
-        pass
 
 
 class SkillTagHandler(BaseTagHandler):
@@ -2517,7 +2499,7 @@ class StyleTagHandler:
         # Let the LaTeX renderer handle D&D formatting and escaping properly
         if context.output_format == "latex":
             return self._create_latex_formatting_node(content_text, style_ids)
-        elif context.output_format in ["html", "markdown"]:
+        if context.output_format in ["html", "markdown"]:
             # For HTML, we need to process nested tags first
             if content_text and context.tag_resolver:
                 processed_content = context.tag_resolver.process_text(
@@ -2526,9 +2508,8 @@ class StyleTagHandler:
             else:
                 processed_content = content_text
             return self._apply_html_styling(processed_content, style_ids)
-        else:
-            # Unknown format - return raw content without styling
-            return content_text
+        # Unknown format - return raw content without styling
+        return content_text
 
     def _create_latex_formatting_node(
         self, content: str, style_ids: list[str]
@@ -2546,16 +2527,15 @@ class StyleTagHandler:
             for style_id in style_ids
         ):
             return FormattingNode(format_type=FormatType.SMALL_CAPS, content=content)
-        elif "large" in style_ids:
+        if "large" in style_ids:
             # For styles we can't map to FormatType, return formatted string
             # The LaTeX renderer's anti-double-escaping logic will handle this
             return f"\\large{{{content}}}"
-        elif "small" in style_ids:
+        if "small" in style_ids:
             return f"\\small{{{content}}}"
-        elif "muted" in style_ids:
+        if "muted" in style_ids:
             return f"\\textcolor{{gray}}{{{content}}}"
-        else:
-            return content
+        return content
 
     def _apply_html_styling(self, content: str, style_ids: list[str]) -> str:
         """Apply HTML-specific styling based on style IDs."""
@@ -2581,8 +2561,7 @@ class StyleTagHandler:
         if css_classes:
             class_attr = " ".join(css_classes)
             return f'<span class="{class_attr}">{content}</span>'
-        else:
-            return content
+        return content
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -2604,7 +2583,6 @@ class StyleTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Style tags don't need appendix tracking."""
-        pass
 
 
 class FilterTagHandler:
@@ -2643,7 +2621,6 @@ class FilterTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Filter tags don't need appendix tracking."""
-        pass
 
 
 class ScaleDamageTagHandler:
@@ -2664,10 +2641,9 @@ class ScaleDamageTagHandler:
 
         if display_text:
             return str(display_text)
-        elif name:
+        if name:
             return str(name)
-        else:
-            return "[Scaled Damage]"
+        return "[Scaled Damage]"
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -2689,7 +2665,6 @@ class ScaleDamageTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Scale damage tags don't need appendix tracking."""
-        pass
 
 
 class ScaleDiceTagHandler:
@@ -2710,10 +2685,9 @@ class ScaleDiceTagHandler:
 
         if display_text:
             return str(display_text)
-        elif name:
+        if name:
             return str(name)
-        else:
-            return "[Scaled Dice]"
+        return "[Scaled Dice]"
 
     def extract_content_info(
         self, node: TagNode, context: RenderingContext
@@ -2735,7 +2709,6 @@ class ScaleDiceTagHandler:
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Scale dice tags don't need appendix tracking."""
-        pass
 
 
 class HomebrewTagHandler(BaseTagHandler):
@@ -2783,7 +2756,6 @@ class HomebrewTagHandler(BaseTagHandler):
         self, node: TagNode, context: RenderingContext
     ) -> None:
         """Homebrew tags don't need appendix tracking."""
-        pass
 
 
 # Registry of core handlers for easy access

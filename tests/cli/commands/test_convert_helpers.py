@@ -10,8 +10,6 @@ from typer.testing import CliRunner
 
 from studiorum.cli.main import app
 from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.models.books import Book
-from studiorum.core.models.content import Source
 from studiorum.core.text.tag_resolver import TagResolver
 from tests.test_helpers import reset_test_environment
 

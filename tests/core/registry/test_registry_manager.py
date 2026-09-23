@@ -1,9 +1,6 @@
 """Tests for registry manager functionality."""
 
-from typing import Protocol
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import Mock, patch
 
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.registry.content_type_registry import ContentTypeMetadata
@@ -12,8 +9,6 @@ from studiorum.core.registry.registry_manager import RegistryManager
 
 class MockBaseContent(BaseContent):
     """Mock content class for testing."""
-
-    pass
 
 
 class TestRegistryManager:

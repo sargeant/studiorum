@@ -6,7 +6,6 @@ unknown entry types and validation modes.
 """
 
 import warnings
-from collections import defaultdict
 from enum import Enum
 from typing import Any
 
@@ -405,7 +404,7 @@ class EntryTypeRegistry:
                     parent_name=parent_name,
                 )
                 return Error(error)
-            elif validation_mode == ValidationMode.PERMISSIVE:
+            if validation_mode == ValidationMode.PERMISSIVE:
                 warning_msg = f"Unknown entry type encountered: '{entry_type}'"
                 if source:
                     warning_msg += f" (source: {source})"
@@ -540,19 +539,18 @@ class EntryTypeRegistry:
         # Check specific entry types first
         if entry_type in {"section", "entries", "inset", "variant"}:
             return {"type", "name"}
-        elif entry_type == "table":
+        if entry_type == "table":
             return {"type", "rows"}
-        elif entry_type == "list":
+        if entry_type == "list":
             return {"type", "items"}
-        elif entry_type == "image":
+        if entry_type == "image":
             return {"type", "href"}
 
         # Then check categories for generic handling
         category = self.get_category(entry_type)
         if category == EntryTypeCategory.RECURSIVE:
             return {"type", "entries"}
-        else:
-            return {"type"}
+        return {"type"}
 
     def reset_statistics(self) -> None:
         """Reset processing statistics."""
@@ -612,7 +610,6 @@ def reset_entry_registry() -> None:
     """
     # This function is maintained for backward compatibility
     # but the actual reset is handled by the service container
-    pass
 
 
 # Global singleton instance

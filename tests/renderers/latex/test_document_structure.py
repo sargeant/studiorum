@@ -242,20 +242,19 @@ class TestDocumentStructureBuilder:
                     )
 
                     return ContentType("spell")
-                elif content._content_type == "creature":
+                if content._content_type == "creature":
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("creature")
-                elif content._content_type == "item":
+                if content._content_type == "item":
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("item")
-                else:
-                    raise ValueError("Unknown type")
+                raise ValueError("Unknown type")
 
             mock_from_content.side_effect = side_effect
 
@@ -321,20 +320,19 @@ class TestDocumentStructureBuilder:
                     )
 
                     return ContentType("spell")
-                elif content._content_type == "creature":
+                if content._content_type == "creature":
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("creature")
-                elif content._content_type == "item":
+                if content._content_type == "item":
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("item")
-                else:
-                    raise ValueError("Unknown type")
+                raise ValueError("Unknown type")
 
             mock_from_content.side_effect = side_effect
 

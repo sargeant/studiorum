@@ -13,7 +13,7 @@ All sources provide consistent error handling, validation, and content discovery
 import re
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import Any, Protocol
 
 from pydantic import BaseModel, Field, ValidationError
 
@@ -81,17 +81,14 @@ class BaseContentSource(ABC):
     @abstractmethod
     def get_metadata(self) -> ContentSourceMetadata:
         """Get metadata about this content source."""
-        pass
 
     @abstractmethod
     def validate(self) -> ValidationResult:
         """Validate the content source."""
-        pass
 
     @abstractmethod
     def load(self) -> list[BaseContent]:
         """Load content from the source."""
-        pass
 
     def supports_streaming(self) -> bool:
         """Whether this source supports streaming/lazy loading."""
@@ -476,11 +473,7 @@ class InlineContentSource(BaseContentSource):
                 if (
                     entry.get("type") == "statblock"
                     and self.content_type == ContentType.CREATURE
-                ):
-                    if "data" in entry:
-                        extracted.append(entry["data"])
-                # Look for spell entries
-                elif (
+                ) or (
                     entry.get("type") == "spell"
                     and self.content_type == ContentType.SPELL
                 ):

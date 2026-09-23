@@ -4,12 +4,6 @@ import pytest
 
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import ContentType
-from studiorum.core.models.nested_content import (
-    Inset,
-    Section,
-    Table,
-    VariantRule,
-)
 
 
 @pytest.mark.integration

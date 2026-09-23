@@ -3,10 +3,7 @@
 import asyncio
 import time
 import weakref
-from collections import defaultdict
-from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from typing import Any, cast
 
 from studiorum.core.logging import get_logger
@@ -16,7 +13,7 @@ from ..models.content import BaseContent, ContentType
 from ..optimization.memory_manager import AdaptiveMemoryManager, MemoryConfiguration
 from ..result import Error, Result, Success
 from ..services.access import get_cache
-from ..services.protocols import AsyncResourceProtocol, OmnidexerProtocol
+from ..services.protocols import OmnidexerProtocol
 from .content_index import ContentMetadata, FastContentIndex
 from .omnidexer import Omnidexer  # For compatibility and fallback
 
@@ -289,10 +286,9 @@ class PerformanceOptimizedOmnidexer(OmnidexerProtocol):
             # Cache stores BaseContent objects - validate at runtime
             if isinstance(cached_content, BaseContent):
                 return Success(cached_content)
-            else:
-                # Cache corruption - invalidate entry
-                self.cache.delete(cache_key)
-                logger.warning(f"Invalid cache entry for {cache_key}, removed")
+            # Cache corruption - invalidate entry
+            self.cache.delete(cache_key)
+            logger.warning(f"Invalid cache entry for {cache_key}, removed")
 
         # Try to find in content index first
         metadata_results = self.content_index.search(f"{name}", content_type, 5)

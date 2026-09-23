@@ -1,6 +1,6 @@
 """Tests for content type registry and decorator functionality."""
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -8,7 +8,6 @@ from studiorum.core.models.content import BaseContent
 from studiorum.core.registry.content_type_registry import (
     ContentTypeMetadata,
     ContentTypeRegistry,
-    _registry_instance,
     content_type,
     get_content_type_registry,
 )

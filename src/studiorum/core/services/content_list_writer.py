@@ -6,7 +6,6 @@ This service processes ContentTracker data and writes it to files in the enhance
 
 from __future__ import annotations
 
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -23,8 +22,6 @@ logger = get_logger(__name__)
 
 class ContentListWriterError(Exception):
     """Errors that can occur during content list writing operations."""
-
-    pass
 
 
 class ContentListWriter:

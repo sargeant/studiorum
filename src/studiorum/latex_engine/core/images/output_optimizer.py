@@ -371,17 +371,14 @@ class OutputOptimizer:
         if config.target == OptimizationTarget.DIGITAL:
             if config.preserve_transparency:
                 return "png"
-            elif config.quality_priority < 0.7:
+            if config.quality_priority < 0.7:
                 return "webp"  # Better compression for web
-            else:
-                return "jpg"
-        elif config.target == OptimizationTarget.PRINT:
+            return "jpg"
+        if config.target == OptimizationTarget.PRINT:
             if config.preserve_transparency:
                 return "png"
-            else:
-                return "jpg"  # Good for print, widely supported
-        else:
-            return config.fallback_format
+            return "jpg"  # Good for print, widely supported
+        return config.fallback_format
 
     def _generate_cache_key(
         self, image: ImageMetadata, config: OptimizationConfig
@@ -407,7 +404,6 @@ class OutputOptimizer:
         """Cache the optimization result for future use."""
         # In a real implementation, this would save the processed image
         # and its metadata to the cache directory
-        pass
 
     def _create_optimization_profiles(self) -> dict[str, OptimizationProfile]:
         """Create predefined optimization profiles."""

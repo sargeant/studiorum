@@ -11,10 +11,9 @@ from studiorum.core.config.latex_config import LaTeXConfig, get_default_latex_co
 from studiorum.core.latex_utils import (
     contains_dangerous_latex,
     escape_latex_text,
-    validate_safe_latex,
 )
 from studiorum.core.logging import get_logger
-from studiorum.core.types import LaTeXConfig as LaTeXConfigDict, TemplateData
+from studiorum.core.types import LaTeXConfig as LaTeXConfigDict
 
 from .dnd_template import DNDTemplateManager, check_dnd_template_status
 
@@ -176,10 +175,9 @@ class LaTeXTemplateEngine:
                 cr = float(value)
                 if cr < 1:
                     return f"1/{int(1 / cr)}"
-                elif cr == int(cr):
+                if cr == int(cr):
                     return str(int(cr))
-                else:
-                    return str(cr)
+                return str(cr)
             except (ValueError, TypeError):
                 return str(value)
 
@@ -189,14 +187,13 @@ class LaTeXTemplateEngine:
                 level = int(value)
                 if level == 0:
                     return "Cantrip"
-                elif level == 1:
+                if level == 1:
                     return "1st-level"
-                elif level == 2:
+                if level == 2:
                     return "2nd-level"
-                elif level == 3:
+                if level == 3:
                     return "3rd-level"
-                else:
-                    return f"{level}th-level"
+                return f"{level}th-level"
             except (ValueError, TypeError):
                 return str(value)
 
@@ -323,10 +320,9 @@ class LaTeXTemplateEngine:
             # Fallback to name attribute for dicts or objects
             if isinstance(obj, dict):
                 return obj.get("name", "Unknown")
-            elif hasattr(obj, "name"):
+            if hasattr(obj, "name"):
                 return obj.name
-            else:
-                return str(obj)
+            return str(obj)
 
         # Register filters
         self.env.filters["latex_escape"] = latex_escape

@@ -7,21 +7,14 @@ now delegates to ImageSourceRegistry for multi-source image resolution.
 
 from __future__ import annotations
 
-import asyncio
-import hashlib
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
-
-import aiohttp
-from pydantic import BaseModel, Field
 
 from studiorum.core.assets.image_sources import (
     GitImageSourceConfig,
     HttpApiImageSourceConfig,
     ImageAssetInfo,
     ImageSourceRegistry,
-    ImageSourceType,
 )
 from studiorum.core.config.unified_config import PathsConfig
 from studiorum.core.logging import get_logger

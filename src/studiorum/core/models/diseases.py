@@ -88,8 +88,7 @@ class Disease(BaseContent):
 
         if isinstance(self.cure, str):
             return self.cure
-        elif isinstance(self.cure, dict):
+        if isinstance(self.cure, dict):
             # Handle structured cure information
             return str(self.cure.get("description", "Structured cure information"))
-        else:
-            return str(self.cure)
+        return str(self.cure)

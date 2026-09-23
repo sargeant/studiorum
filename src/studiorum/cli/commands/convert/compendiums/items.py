@@ -16,9 +16,7 @@ from studiorum.cli.config_factory import (
 from studiorum.cli.display_manager import display_manager
 from studiorum.cli.utils import get_omnidexer, get_tag_resolver, resolve_option
 from studiorum.core.config.latex_config import LaTeXConfig
-from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.logging import get_logger
-from studiorum.core.models.content import ContentType
 from studiorum.core.models.items import Item
 from studiorum.renderers.core.interfaces import RenderingContext
 

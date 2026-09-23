@@ -156,12 +156,11 @@ class HyperlinkManager:
         """Apply text formatting based on style."""
         if style.font_style == "bold":
             return f"\\textbf{{{text}}}"
-        elif style.font_style == "italic":
+        if style.font_style == "italic":
             return f"\\textit{{{text}}}"
-        elif style.font_style == "bolditalic":
+        if style.font_style == "bolditalic":
             return f"\\textbf{{\\textit{{{text}}}}}"
-        else:
-            return text
+        return text
 
     def _apply_hyperlink_styling(self, hyperlink: str, style: HyperlinkStyle) -> str:
         """Apply hyperlink-specific styling."""
@@ -212,14 +211,13 @@ class HyperlinkManager:
 
         if ref_type == "nameref":
             return f"\\nameref{{{section_label}}}"
-        elif ref_type == "ref":
+        if ref_type == "ref":
             return f"\\ref{{{section_label}}}"
-        elif ref_type == "pageref":
+        if ref_type == "pageref":
             return f"page \\pageref{{{section_label}}}"
-        elif ref_type == "autoref":
+        if ref_type == "autoref":
             return f"\\autoref{{{section_label}}}"
-        else:
-            return f"\\hyperref[{section_label}]{{{text}}}"
+        return f"\\hyperref[{section_label}]{{{text}}}"
 
     def create_footnote_reference(self, text: str, footnote_id: str) -> str:
         """Create a reference to a footnote."""

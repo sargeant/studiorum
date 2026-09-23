@@ -3,7 +3,6 @@
 import asyncio
 import gc
 import sys
-import time
 import weakref
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -136,12 +135,11 @@ class AdaptiveMemoryManager:
         """Calculate memory pressure level from usage ratio."""
         if usage_ratio >= self.config.critical_threshold:
             return MemoryPressureLevel.CRITICAL
-        elif usage_ratio >= self.config.warning_threshold:
+        if usage_ratio >= self.config.warning_threshold:
             return MemoryPressureLevel.HIGH
-        elif usage_ratio >= 0.5:
+        if usage_ratio >= 0.5:
             return MemoryPressureLevel.MODERATE
-        else:
-            return MemoryPressureLevel.LOW
+        return MemoryPressureLevel.LOW
 
     async def _handle_pressure_change(
         self, new_level: MemoryPressureLevel, usage_ratio: float

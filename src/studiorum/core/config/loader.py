@@ -8,9 +8,8 @@ capabilities for the unified configuration system.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 
 import yaml
 from pydantic import BaseModel, ValidationError
@@ -50,7 +49,6 @@ class ConfigLoader:
 
     def __init__(self) -> None:
         """Initialize the configuration loader."""
-        pass
 
     def load_from_file(
         self, path: Path

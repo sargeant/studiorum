@@ -2,13 +2,11 @@
 
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock
 
 import click
 import pytest
 
 from studiorum.cli.commands.convert.base import BaseConvertCommand
-from studiorum.core.models.content import ContentType
 from tests.test_helpers import reset_test_environment
 
 

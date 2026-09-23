@@ -182,23 +182,22 @@ class ImageOptimizer:
                 max_height=1000,
                 jpeg_quality=90,
             )
-        elif context_hint == "item":
+        if context_hint == "item":
             # Item images are typically smaller
             return OptimizationConfig(
                 max_width=400,
                 max_height=400,
                 jpeg_quality=85,
             )
-        elif context_hint == "chapter-art":
+        if context_hint == "chapter-art":
             # Chapter art can be full resolution
             return OptimizationConfig(
                 max_width=1600,
                 max_height=2000,
                 jpeg_quality=95,
             )
-        else:
-            # Use default configuration
-            return self.config
+        # Use default configuration
+        return self.config
 
     def _needs_resize(self, img: PILImage, config: OptimizationConfig) -> bool:
         """Check if image needs resizing.
@@ -266,15 +265,14 @@ class ImageOptimizer:
                 "optimize": True,
                 "progressive": True,
             }
-        elif format_ext == ".png":
+        if format_ext == ".png":
             return {
                 "format": "PNG",
                 "compress_level": config.png_compression,
                 "optimize": config.optimize_png,
             }
-        else:
-            # Default save options
-            return {"optimize": True}
+        # Default save options
+        return {"optimize": True}
 
     def calculate_optimal_dimensions(
         self, original_size: tuple[int, int], context_hint: str | None = None

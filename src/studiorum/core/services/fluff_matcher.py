@@ -419,10 +419,9 @@ class FluffMatcher:
                 resolved = self._resolve_copy_reference(cast(F, referenced_fluff))
                 self._copy_cache[cache_key] = resolved
                 return cast(F, resolved)
-            else:
-                logger.debug(
-                    f"Referenced fluff not found: {ref_name} ({ref_source}) for {fluff.name}"
-                )
+            logger.debug(
+                f"Referenced fluff not found: {ref_name} ({ref_source}) for {fluff.name}"
+            )
 
         except Exception as e:
             logger.debug(f"Error resolving _copy reference for {fluff.name}: {e}")
