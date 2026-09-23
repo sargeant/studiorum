@@ -201,10 +201,8 @@ ignore = [
 "src/studiorum/core/config/data_sources.py" = ["SIM102", "UP042"]
 "src/studiorum/core/config/loader.py" = ["B904"]
 "src/studiorum/core/config/sources.py" = ["B904", "PTH123", "UP042"]
-"src/studiorum/core/entry_validation.py" = ["B007"]
 "src/studiorum/core/error_types.py" = ["UP042"]
 "src/studiorum/core/latex_utils.py" = ["B007", "RET504", "SIM110"]
-"src/studiorum/core/loaders/content_index.py" = ["PTH123", "S110"]
 "src/studiorum/core/loaders/content_merger.py" = ["PTH123"]
 "src/studiorum/core/loaders/content_sources.py" = ["B904", "PTH123", "S110"]
 "src/studiorum/core/loaders/data_source_manager.py" = ["B007", "PERF102", "SIM102", "SIM118"]
@@ -212,7 +210,6 @@ ignore = [
 "src/studiorum/core/loaders/homebrew_loader.py" = ["PTH123", "SIM118"]
 "src/studiorum/core/loaders/json_loader.py" = ["B007", "PERF102", "PERF401", "PTH123", "SIM102", "SIM110"]
 "src/studiorum/core/loaders/omnidexer.py" = ["B007", "PERF102", "S110", "SIM102"]
-"src/studiorum/core/loaders/performance_omnidexer.py" = ["PERF401", "S110"]
 "src/studiorum/core/logging/image_observability.py" = ["T201", "UP042"]
 "src/studiorum/core/logging/logger.py" = ["T201"]
 "src/studiorum/core/models/adventures.py" = ["PERF402", "SIM102"]
@@ -234,7 +231,6 @@ ignore = [
 "src/studiorum/core/models/spells.py" = ["PERF401", "SIM101", "SIM108"]
 "src/studiorum/core/models/table.py" = ["PERF401"]
 "src/studiorum/core/models/variantrule.py" = ["UP042"]
-"src/studiorum/core/optimization/memory_manager.py" = ["S110", "SIM105"]
 "src/studiorum/core/parsers/creature_input.py" = ["B007", "B904", "PERF401", "RET504"]
 "src/studiorum/core/parsers/item_input.py" = ["B007", "PIE810", "PTH123"]
 "src/studiorum/core/parsers/spell_input.py" = ["B007", "PIE810", "PTH123"]
@@ -285,7 +281,6 @@ ignore = [
 "src/studiorum/latex_engine/core/images/placement_models.py" = ["UP042"]
 "src/studiorum/latex_engine/core/images/registry/adventure_registry.py" = ["PTH123", "RET504"]
 "src/studiorum/latex_engine/core/images/specialized_strategies.py" = ["SIM102"]
-"src/studiorum/latex_engine/core/reference_resolver.py" = ["SIM108"]
 "src/studiorum/latex_engine/core/tag_renderer.py" = ["B007", "PERF102", "RET504"]
 "src/studiorum/latex_engine/core/template_engine.py" = ["PIE810", "RET504"]
 "src/studiorum/latex_engine/utils/error_parser.py" = ["PIE810"]
@@ -570,8 +565,6 @@ ignore_imports = [
     "studiorum.core.loaders.json_loader -> studiorum.core.services.protocols",
     "studiorum.core.loaders.omnidexer -> studiorum.core.services.fluff_matcher",
     "studiorum.core.loaders.omnidexer -> studiorum.core.services.spell_class_lookup",
-    "studiorum.core.loaders.performance_omnidexer -> studiorum.core.services.access",
-    "studiorum.core.loaders.performance_omnidexer -> studiorum.core.services.protocols",
     "studiorum.core.models.adventures -> studiorum.core.loaders.omnidexer",
     "studiorum.core.models.adventures -> studiorum.core.registry",
     "studiorum.core.models.backgrounds -> studiorum.core.registry",
@@ -617,7 +610,6 @@ ignore_imports = [
     "studiorum.core.models.vehicles -> studiorum.core.registry",
     "studiorum.core.references.content_reference_manager -> studiorum.core.loaders.omnidexer",
     "studiorum.core.references.content_reference_manager -> studiorum.core.models.content",
-    "studiorum.core.references.reference_index -> studiorum.core.models.content",
     "studiorum.core.references.spell_references -> studiorum.core.loaders.omnidexer",
     "studiorum.core.references.spell_references -> studiorum.core.models.content",
     "studiorum.core.registry.registry_manager -> studiorum.core.loaders.content_factory",
