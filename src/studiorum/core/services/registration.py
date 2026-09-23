@@ -229,10 +229,4 @@ async def register_modern_services(container: ServiceContainer) -> None:
 
     register_encounter_services(container)
 
-    # Image processing services (Phase 4 - Service Integration)
-    # Register after core services are available
-    from .image_services import register_image_services
-
-    register_image_services(container)
-
     logger.info("Modern service registration completed successfully")

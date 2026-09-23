@@ -185,7 +185,6 @@ ignore = [
 "src/studiorum/cli/commands/convert/compendiums/creatures.py" = ["B904", "PTH123", "UP042"]
 "src/studiorum/cli/commands/convert/compendiums/items.py" = ["B904", "PTH123", "UP042"]
 "src/studiorum/cli/commands/convert/compendiums/spells.py" = ["B904", "PTH123", "SIM108", "UP042"]
-"src/studiorum/cli/commands/convert/image_enhanced.py" = ["RET504"]
 "src/studiorum/cli/commands/convert/shared.py" = ["B904", "PTH123"]
 "src/studiorum/cli/commands/convert/supplement.py" = ["B904", "PTH123", "SIM102"]
 "src/studiorum/cli/commands/data.py" = ["B904", "PTH123", "RET504"]
@@ -210,7 +209,6 @@ ignore = [
 "src/studiorum/core/loaders/homebrew_loader.py" = ["PTH123", "SIM118"]
 "src/studiorum/core/loaders/json_loader.py" = ["B007", "PERF102", "PERF401", "PTH123", "SIM102", "SIM110"]
 "src/studiorum/core/loaders/omnidexer.py" = ["B007", "PERF102", "S110", "SIM102"]
-"src/studiorum/core/logging/image_observability.py" = ["T201", "UP042"]
 "src/studiorum/core/logging/logger.py" = ["T201"]
 "src/studiorum/core/models/adventures.py" = ["PERF402", "SIM102"]
 "src/studiorum/core/models/books.py" = ["PERF402"]
@@ -249,10 +247,8 @@ ignore = [
 "src/studiorum/core/services/fluff_deduplicator.py" = ["UP042"]
 "src/studiorum/core/services/fluff_image_extractor.py" = ["SIM102"]
 "src/studiorum/core/services/fluff_matcher.py" = ["PERF401", "RET504", "SIM105"]
-"src/studiorum/core/services/image_factories/image_factory.py" = ["RET504"]
 "src/studiorum/core/services/item_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
 "src/studiorum/core/services/lifecycle.py" = ["B007", "PERF102", "PERF401"]
-"src/studiorum/core/services/observability_integration.py" = ["PIE790"]
 "src/studiorum/core/services/spell_class_lookup.py" = ["PERF401", "SIM118"]
 "src/studiorum/core/services/spell_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103", "SIM110"]
 "src/studiorum/core/services/token_image_resolver.py" = ["B007", "PERF401"]
@@ -275,11 +271,8 @@ ignore = [
 "src/studiorum/latex_engine/core/images/content_aware_strategy.py" = ["SIM102"]
 "src/studiorum/latex_engine/core/images/image_placer.py" = ["UP042"]
 "src/studiorum/latex_engine/core/images/image_processor.py" = ["RET504"]
-"src/studiorum/latex_engine/core/images/integration/adventure.py" = ["B007", "PERF102"]
-"src/studiorum/latex_engine/core/images/integration/bestiary.py" = ["B007", "PERF402"]
 "src/studiorum/latex_engine/core/images/layout_analyzer.py" = ["RET504", "SIM102"]
 "src/studiorum/latex_engine/core/images/placement_models.py" = ["UP042"]
-"src/studiorum/latex_engine/core/images/registry/adventure_registry.py" = ["PTH123", "RET504"]
 "src/studiorum/latex_engine/core/images/specialized_strategies.py" = ["SIM102"]
 "src/studiorum/latex_engine/core/tag_renderer.py" = ["B007", "PERF102", "RET504"]
 "src/studiorum/latex_engine/core/template_engine.py" = ["PIE810", "RET504"]
@@ -311,7 +304,6 @@ ignore = [
 "tests/cli/commands/test_enhanced_from_file.py" = ["T201"]
 "tests/cli/commands/test_setup_commands.py" = ["T201"]
 "tests/cli/test_config_integration.py" = ["SIM117"]
-"tests/core/logging/test_image_observability.py" = ["B007"]
 "tests/core/references/test_cross_reference_manager.py" = ["B007", "PERF102"]
 "tests/core/sources/test_github.py" = ["SIM117"]
 "tests/core/test_async_request_context.py" = ["S110", "SIM105", "SIM117"]
@@ -490,8 +482,6 @@ layers = [
 ]
 ignore_imports = [
     "studiorum.cli.commands.mcp -> studiorum.mcp.server",
-    "studiorum.core.assets.image_manager -> studiorum.renderers.core.interfaces",
-    "studiorum.core.logging.image_observability -> studiorum.latex_engine.core.images.placement_models",
     "studiorum.core.models.creatures -> studiorum.cli.services",
     "studiorum.core.models.creatures -> studiorum.latex_engine.core.entry_processor",
     "studiorum.core.models.creatures -> studiorum.latex_engine.services.template_service",
@@ -512,26 +502,7 @@ ignore_imports = [
     "studiorum.core.services.factories -> studiorum.latex_engine.services.protocols",
     "studiorum.core.services.factories -> studiorum.latex_engine.services.template_service",
     "studiorum.core.services.factories -> studiorum.renderers.core.interfaces",
-    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images",
-    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.enhanced_image_placer",
-    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.gallery_processor",
-    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.integration.adventure",
-    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.integration.bestiary",
-    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.integration.items",
-    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.layout_analyzer",
-    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.output_optimizer",
-    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.registry.adventure_registry",
     "studiorum.core.services.item_collector -> studiorum.cli.config_factory",
-    "studiorum.core.services.observability_integration -> studiorum.latex_engine.core.images.placement_models",
-    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.enhanced_image_placer",
-    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.gallery_processor",
-    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.integration.adventure",
-    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.integration.bestiary",
-    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.integration.items",
-    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.layout_analyzer",
-    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.output_optimizer",
-    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.placement_models",
-    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.registry.adventure_registry",
     "studiorum.core.services.protocols -> studiorum.renderers.core.interfaces",
     "studiorum.core.services.spell_collector -> studiorum.cli.config_factory",
     "studiorum.core.services.token_image_resolver -> studiorum.latex_engine.core.images.format_converter",

@@ -68,11 +68,6 @@ from .image_placer import (
     PlacementResult,
 )
 from .image_processor import ImageProcessingConfig, ImageProcessor
-from .integration import (
-    AdventureImageIntegration,
-    BestiaryImageIntegration,
-    ItemImageIntegration,
-)
 from .layout_analyzer import (
     LayoutAnalyzer,
     LayoutConstraints,
@@ -92,7 +87,6 @@ from .placement_models import (
     PageContext,
     PlacementDecision,
 )
-from .registry import AdventureImageRegistry, BatchResult, ImageCatalog, RegistryStats
 from .specialized_strategies import (
     AdventurePlacementStrategy,
     BestiaryPlacementStrategy,
@@ -102,14 +96,7 @@ from .specialized_strategies import (
 )
 
 __all__ = [
-    # Phase 3 content integration and registry
-    "AdventureImageIntegration",
-    "BestiaryImageIntegration",
-    "ItemImageIntegration",
-    "AdventureImageRegistry",
-    "ImageCatalog",
-    "BatchResult",
-    "RegistryStats",
+    # Gallery processing
     "GalleryProcessor",
     "GalleryConfig",
     "GalleryLayout",
@@ -162,8 +149,6 @@ __all__ = [
     "create_output_optimizer",
     "analyze_and_place_image",
     "create_content_context_from_hint",
-    "create_adventure_integration",
-    "create_image_registry",
 ]
 
 
@@ -326,84 +311,3 @@ def create_content_context_from_hint(
         context.update(additional_context)
 
     return context
-
-
-def create_adventure_integration(
-    image_processor: ImageProcessor | None = None,
-    enhanced_placer: EnhancedImagePlacer | None = None,
-    config: dict[str, Any] | None = None,
-) -> AdventureImageIntegration:
-    """Create adventure image integration with default components.
-
-    Args:
-        image_processor: Optional custom image processor
-        enhanced_placer: Optional custom enhanced placer
-        config: Optional configuration overrides
-
-    Returns:
-        Configured AdventureImageIntegration instance
-    """
-    from .content_aware_strategy import ContentAwarePlacementStrategy
-    from .gallery_processor import GalleryProcessor
-    from .integration.adventure import AdventureIntegrationConfig
-
-    # Create components if not provided
-    if image_processor is None:
-        image_processor = ImageProcessor()
-
-    if enhanced_placer is None:
-        enhanced_placer = create_enhanced_placer()
-
-    # Create content-aware strategy
-    content_aware_strategy = ContentAwarePlacementStrategy()
-
-    # Create gallery processor
-    gallery_processor = GalleryProcessor()
-
-    # Create configuration
-    integration_config = AdventureIntegrationConfig(**(config or {}))
-
-    return AdventureImageIntegration(
-        image_processor=image_processor,
-        enhanced_placer=enhanced_placer,
-        content_aware_strategy=content_aware_strategy,
-        gallery_processor=gallery_processor,
-        config=integration_config,
-    )
-
-
-def create_image_registry(
-    image_processor: ImageProcessor | None = None,
-    storage_path: Path | None = None,
-) -> AdventureImageRegistry:
-    """Create adventure image registry with default components.
-
-    Args:
-        image_processor: Optional custom image processor
-        storage_path: Optional custom storage path for registry data
-
-    Returns:
-        Configured AdventureImageRegistry instance
-    """
-    from pathlib import Path
-
-    from studiorum.core.assets.image_manager import ImageManager
-    from studiorum.core.assets.image_sources import ImageSourceRegistry
-
-    # Create components if not provided
-    if image_processor is None:
-        image_processor = ImageProcessor()
-
-    # Create placeholder components (these would be injected via DI in production)
-    image_manager = ImageManager(default_sources=True)
-    source_registry = ImageSourceRegistry()
-
-    if storage_path is None:
-        storage_path = Path.home() / ".studiorum" / "image_registry"
-
-    return AdventureImageRegistry(
-        image_processor=image_processor,
-        image_manager=image_manager,
-        source_registry=source_registry,
-        registry_storage_path=storage_path,
-    )
