@@ -166,7 +166,7 @@ class RegistryManager:
             new_statblock_tags: dict[str, str] = {}
             for enum_value, meta in metadata.items():
                 if meta.statblock_tags:
-                    # ✅ Always use ContentType constructor for validation (Phase 3 pattern)
+                    # ✅ Always use ContentType constructor for validation
                     try:
                         ContentType(enum_value)
                     except ValueError:

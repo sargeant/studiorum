@@ -51,8 +51,6 @@ from .enhanced_image_placer import (
     EnhancedPlacementResult,
 )
 from .format_converter import FormatConverter
-
-# Phase 3 content integration and registry imports
 from .gallery_processor import (
     GalleryConfig,
     GalleryLayout,

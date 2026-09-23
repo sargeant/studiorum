@@ -60,7 +60,7 @@ class LaTeXTagRenderer:
 
         # For backward compatibility: only format if content was actually resolved
         if ref.is_resolved:
-            # Apply content-type specific formatting using string comparison (Phase 3 migration)
+            # Apply content-type specific formatting using string comparison
             content_type_str = ref.content_type.value if ref.content_type else "unknown"
             if content_type_str in ("creature", "class", "feat"):
                 formatted = f"\\textbf{{{self._escape_latex(display_text)}}}"
@@ -264,7 +264,7 @@ class ContentTypeStyleConfig:
         self.styles = self._build_dynamic_styles()
 
     def _build_dynamic_styles(self) -> dict[ContentType, str]:
-        """Build style mappings from registry metadata (Phase 3 migration).
+        """Build style mappings from registry metadata.
 
         Returns:
             Dictionary mapping ContentType enum instances to style strings
@@ -294,7 +294,7 @@ class ContentTypeStyleConfig:
             registry = get_content_type_registry()
             for enum_value, metadata in registry.get_all().items():
                 try:
-                    # Use ContentType constructor for safe validation (Phase 3 pattern)
+                    # Use ContentType constructor for safe validation
                     content_type = ContentType(enum_value)
                     style = default_styles.get(enum_value, "plain")
                     styles[content_type] = style
