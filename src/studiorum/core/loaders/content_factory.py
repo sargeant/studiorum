@@ -10,6 +10,9 @@ from ..models.content import BaseContent, ContentType
 class ContentFactory:
     """Factory for creating content instances based on content type."""
 
+    # Populated at class level by RegistryManager; copied per instance on first use.
+    _class_map: dict[ContentType, type[BaseContent]] = {}
+
     def __init__(self, registry: "ContentTypeRegistry | None" = None) -> None:
         if registry is None:
             # For backward compatibility, create registry directly
