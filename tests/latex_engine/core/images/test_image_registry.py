@@ -27,14 +27,10 @@ from studiorum.latex_engine.core.images.registry.adventure_registry import (
     ImageCatalogEntry,
     RegistryStats,
 )
-from tests.test_helpers import reset_test_environment
 
 
 class TestImageCatalogEntry:
     """Test ImageCatalogEntry model."""
-
-    def setup_method(self):
-        reset_test_environment()
 
     def test_basic_catalog_entry(self):
         """Test basic catalog entry creation."""
@@ -100,9 +96,6 @@ class TestImageCatalogEntry:
 
 class TestImageCatalog:
     """Test ImageCatalog model."""
-
-    def setup_method(self):
-        reset_test_environment()
 
     def test_empty_catalog_creation(self):
         """Test creating an empty catalog."""
@@ -171,9 +164,6 @@ class TestImageCatalog:
 class TestBatchProcessingJob:
     """Test BatchProcessingJob model."""
 
-    def setup_method(self):
-        reset_test_environment()
-
     def test_pending_job(self):
         """Test pending batch processing job."""
         job = BatchProcessingJob(
@@ -211,9 +201,6 @@ class TestBatchProcessingJob:
 
 class TestBatchResult:
     """Test BatchResult model."""
-
-    def setup_method(self):
-        reset_test_environment()
 
     def test_successful_batch_result(self):
         """Test successful batch processing result."""
@@ -256,9 +243,6 @@ class TestBatchResult:
 class TestRegistryStats:
     """Test RegistryStats model."""
 
-    def setup_method(self):
-        reset_test_environment()
-
     def test_registry_statistics(self):
         """Test registry statistics."""
         stats = RegistryStats(
@@ -288,7 +272,6 @@ class TestAdventureImageRegistry:
     """Test AdventureImageRegistry class."""
 
     def setup_method(self):
-        reset_test_environment()
 
         # Create mock dependencies
         self.mock_processor = Mock()
@@ -642,7 +625,6 @@ class TestAdventureImageRegistryAsync:
     """Test async functionality and concurrency."""
 
     def setup_method(self):
-        reset_test_environment()
 
         self.registry = AdventureImageRegistry(
             image_processor=Mock(),
@@ -713,9 +695,6 @@ class TestAdventureImageRegistryAsync:
 @pytest.mark.requires_data
 class TestAdventureImageRegistryIntegration:
     """Integration tests with realistic data (slower, marked for optional execution)."""
-
-    def setup_method(self):
-        reset_test_environment()
 
     @pytest.mark.asyncio
     async def test_real_adventure_cataloging(self):

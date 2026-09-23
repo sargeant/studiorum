@@ -34,13 +34,6 @@ from studiorum.mcp.tools.rules.rule_search_result import RuleSearchResult
 class TestRulesIntelligence:
     """Test suite for rules intelligence functionality."""
 
-    def setup_method(self) -> None:
-        """Set up test environment for each test method."""
-        # Import and call the test environment reset function
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
     @pytest.fixture
     def mock_omnidexer(self) -> MagicMock:
         """Create a mock omnidexer for testing."""

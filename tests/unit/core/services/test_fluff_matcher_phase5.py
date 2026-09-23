@@ -72,12 +72,6 @@ def sample_creature_fluff():
 class TestFluffMatcherPhase5:
     """Test Phase 5 enhancements to FluffMatcher."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
-
     def test_section_filtering(
         self, mock_omnidexer, sample_creature, sample_creature_fluff
     ):

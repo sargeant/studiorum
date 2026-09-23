@@ -11,7 +11,6 @@ from studiorum.core.models.chapter import Chapter  # type: ignore
 from studiorum.core.models.content import Source  # type: ignore
 from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: ignore
 from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
-from tests.test_helpers import reset_test_environment
 
 
 def compile_document_to_pdf_sync(renderer, books, context):
@@ -36,8 +35,6 @@ class TestBookRenderingIntegration:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         config = {"show_progress": False, "compilation_timeout": 10, "max_passes": 2}
         self.renderer = LaTeXDocumentRenderer(config)
@@ -495,8 +492,6 @@ class TestBookRenderingEntryProcessing:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         config = {"show_progress": False}
         self.renderer = LaTeXDocumentRenderer(config)

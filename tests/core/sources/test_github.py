@@ -10,7 +10,6 @@ import pytest
 
 from studiorum.core.config.sources import ContentSource, SourceType
 from studiorum.core.sources.github import GitHubSourceManager
-from tests.test_helpers import reset_test_environment
 
 
 class TestGitHubSourceManager:
@@ -18,8 +17,6 @@ class TestGitHubSourceManager:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.temp_dir = Path(tempfile.mkdtemp())
         self.cache_dir = self.temp_dir / "cache"
@@ -484,8 +481,6 @@ class TestGitHubSourceManagerEdgeCases:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.temp_dir = Path(tempfile.mkdtemp())
         self.cache_dir = self.temp_dir / "cache"

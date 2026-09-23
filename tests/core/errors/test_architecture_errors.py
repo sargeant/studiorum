@@ -13,15 +13,10 @@ from studiorum.core.error_types import (
     create_template_composition_error,
 )
 from studiorum.core.result import Error, Success
-from tests.test_helpers import reset_test_environment
 
 
 class TestContentSourceError:
     """Test ContentSourceError class."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_init_basic(self):
         """Test basic ContentSourceError initialization."""
@@ -61,10 +56,6 @@ class TestContentSourceError:
 class TestContentValidationError:
     """Test ContentValidationError class."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
-
     def test_init_basic(self):
         """Test basic ContentValidationError initialization."""
         error = create_content_validation_error(
@@ -89,10 +80,6 @@ class TestContentValidationError:
 
 class TestContentLoadingError:
     """Test ContentLoadingError class."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_init_basic(self):
         """Test basic ContentLoadingError initialization."""
@@ -120,10 +107,6 @@ class TestContentLoadingError:
 
 class TestReferenceTrackingError:
     """Test ReferenceTrackingError class."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_init_basic(self):
         """Test basic ReferenceTrackingError initialization."""
@@ -153,10 +136,6 @@ class TestReferenceTrackingError:
 class TestTemplateCompositionError:
     """Test TemplateCompositionError class."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
-
     def test_init_basic(self):
         """Test basic TemplateCompositionError initialization."""
         error = create_template_composition_error(
@@ -184,10 +163,6 @@ class TestTemplateCompositionError:
 
 class TestResultPatternUsage:
     """Test using architecture errors with Result pattern."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_content_source_error_in_result(self):
         """Test ContentSourceError used in Result pattern."""
@@ -222,10 +197,6 @@ class TestResultPatternUsage:
 
 class TestErrorIntegration:
     """Test integration of different error types."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_error_hierarchy(self):
         """Test error type hierarchy."""

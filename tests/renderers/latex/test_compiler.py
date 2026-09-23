@@ -14,7 +14,6 @@ from studiorum.latex_engine.config.compilation import (  # type: ignore
     LaTeXEngine,
 )
 from studiorum.latex_engine.core.compiler import LaTeXCompiler  # type: ignore
-from tests.test_helpers import reset_test_environment
 
 # Ensure async tests work properly
 pytestmark = [pytest.mark.asyncio, pytest.mark.requires_latex]
@@ -26,8 +25,6 @@ class TestLaTeXCompiler:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         # Create config that won't actually try to compile
         self.config = CompilationConfig(
@@ -383,8 +380,6 @@ class TestLaTeXCompilerIntegration:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.config = CompilationConfig(
             show_progress=False,

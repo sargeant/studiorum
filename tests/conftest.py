@@ -24,6 +24,16 @@ from tests.test_helpers import reset_test_environment
 pytest_plugins = ["scripts.test_profiler"]
 
 
+@pytest.fixture(autouse=True)
+def _reset_global_state() -> None:
+    """Give every test fresh containers, registries, caches and config.
+
+    Replaces the reset_test_environment() call that test classes used to repeat
+    in setup_method. It runs before any setup_method.
+    """
+    reset_test_environment(collect_garbage=False)
+
+
 @pytest.fixture
 def event_loop() -> Any:
     """Create an instance of the default event loop for the test session."""

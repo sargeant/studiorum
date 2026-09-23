@@ -16,7 +16,6 @@ from studiorum.latex_engine.core.document_structure import (
     SectionLevel,
 )
 from studiorum.renderers.core.interfaces import RenderingContext
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -25,8 +24,6 @@ class TestContentPlaceholderRegression:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.renderer = LaTeXDocumentRenderer()
         metadata = DocumentMetadata(

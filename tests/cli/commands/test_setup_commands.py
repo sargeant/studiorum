@@ -13,7 +13,6 @@ from studiorum.core.config.sources import (
     ContentSource,
     SourceType,
 )
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.cli
@@ -22,8 +21,6 @@ class TestSetupWizardCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.runner = CliRunner()
         self.temp_dir = Path(tempfile.mkdtemp())
@@ -177,8 +174,6 @@ class TestSetupHelperFunctions:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.temp_dir = Path(tempfile.mkdtemp())
 
@@ -412,8 +407,6 @@ class TestScanContentFunction:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.temp_dir = Path(tempfile.mkdtemp())
 
@@ -492,8 +485,6 @@ class TestCheckSetupCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.runner = CliRunner()
         self.temp_dir = Path(tempfile.mkdtemp())
@@ -588,8 +579,6 @@ class TestResetSetupCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.runner = CliRunner()
         self.mock_config_manager = Mock()
@@ -628,8 +617,6 @@ class TestSetupEdgeCases:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.temp_dir = Path(tempfile.mkdtemp())
         self.mock_config = ContentConfiguration()

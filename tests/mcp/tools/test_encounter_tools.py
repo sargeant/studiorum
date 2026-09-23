@@ -32,15 +32,6 @@ from studiorum.mcp.tools.encounter.tools import (
 class TestEncounterBudgetCalculation:
     """Test encounter budget calculation functionality."""
 
-    def setup_method(self) -> None:
-        """Set up test environment for each test method."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
-        # Note: reset_test_environment() now handles both container systems
-        # via reset_all_containers() for proper parallel execution isolation
-
     def test_basic_budget_calculation(self) -> None:
         """Test basic encounter budget calculation."""
         result = calculate_encounter_budget(
@@ -171,15 +162,6 @@ class TestEncounterBudgetCalculation:
 class TestEncounterConstraints:
     """Test encounter constraint validation and processing."""
 
-    def setup_method(self) -> None:
-        """Set up test environment for each test method."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
-        # Note: reset_test_environment() now handles both container systems
-        # via reset_all_containers() for proper parallel execution isolation
-
     def test_basic_constraints(self) -> None:
         """Test basic encounter constraint creation."""
         constraints = EncounterConstraints(
@@ -239,15 +221,6 @@ class TestEncounterConstraints:
 class TestEnvironmentalProfiles:
     """Test environmental profile functionality."""
 
-    def setup_method(self) -> None:
-        """Set up test environment for each test method."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
-        # Note: reset_test_environment() now handles both container systems
-        # via reset_all_containers() for proper parallel execution isolation
-
     def test_environmental_profile_creation(self) -> None:
         """Test creating environmental profiles."""
         from studiorum.mcp.tools.encounter.themes import create_environmental_profile
@@ -292,15 +265,6 @@ class TestEnvironmentalProfiles:
 class TestThematicProfiles:
     """Test thematic profile functionality."""
 
-    def setup_method(self) -> None:
-        """Set up test environment for each test method."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
-        # Note: reset_test_environment() now handles both container systems
-        # via reset_all_containers() for proper parallel execution isolation
-
     def test_thematic_profile_creation(self) -> None:
         """Test creating thematic profiles."""
         from studiorum.mcp.tools.encounter.themes import create_thematic_profile
@@ -340,15 +304,6 @@ class TestThematicProfiles:
 
 class TestMCPToolIntegration:
     """Test MCP tool interface integration."""
-
-    def setup_method(self) -> None:
-        """Set up test environment for each test method."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
-        # Note: reset_test_environment() now handles both container systems
-        # via reset_all_containers() for proper parallel execution isolation
 
     @pytest.mark.asyncio
     async def test_creature_search_placeholder(self) -> None:
@@ -445,15 +400,6 @@ class TestMCPToolIntegration:
 class TestPartyComposition:
     """Test party composition calculations."""
 
-    def setup_method(self) -> None:
-        """Set up test environment for each test method."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
-        # Note: reset_test_environment() now handles both container systems
-        # via reset_all_containers() for proper parallel execution isolation
-
     def test_basic_party_composition(self) -> None:
         """Test basic party composition creation."""
         party = PartyComposition(size=4, level=5)
@@ -489,15 +435,6 @@ class TestPartyComposition:
 @pytest.mark.integration
 class TestEncounterServiceIntegration:
     """Integration tests for encounter services (requires service container)."""
-
-    def setup_method(self) -> None:
-        """Set up test environment for each test method."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
-        # Note: reset_test_environment() now handles both container systems
-        # via reset_all_containers() for proper parallel execution isolation
 
     def test_service_registration(self) -> None:
         """Test encounter service registration in container."""

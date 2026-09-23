@@ -8,7 +8,6 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.commands.convert import app
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.cli
@@ -17,8 +16,6 @@ class TestConvertCommandsWithReducedMocking:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.runner = CliRunner()
         self.test_data_dir = Path(__file__).parent.parent.parent.parent / "test-data"

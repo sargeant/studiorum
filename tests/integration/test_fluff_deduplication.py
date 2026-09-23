@@ -12,12 +12,6 @@ from studiorum.core.services.fluff_deduplicator import (
 class TestFluffDeduplication:
     """Test fluff deduplication with realistic dragon lair scenarios."""
 
-    def setup_method(self) -> None:
-        """Reset service container for each test."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
     def create_test_dragon_lair_fluff(
         self, creature_name: str, source_abbrev: str = "MM"
     ) -> CreatureFluff:

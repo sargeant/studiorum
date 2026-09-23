@@ -13,16 +13,11 @@ from studiorum.cli.commands.convert.compendiums.creatures import (
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.spells import Spell
 from studiorum.core.references.content_tracker import ContentTracker
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.integration
 class TestCreaturesSpellsCommand:
     """Test creatures command with --spells flag functionality."""
-
-    def setup_method(self) -> None:
-        """Reset test environment."""
-        reset_test_environment()
 
     def test_combine_bestiary_and_appendix_helper(self):
         """Test the _combine_bestiary_and_appendix helper function."""

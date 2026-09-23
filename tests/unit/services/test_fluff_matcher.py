@@ -8,7 +8,6 @@ from studiorum.core.models.fluff import CreatureFluff, ItemFluff, SpellFluff
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
 from studiorum.core.services.fluff_matcher import FluffMatcher
-from tests.test_helpers import reset_test_environment
 
 
 class TestFluffMatcher:
@@ -16,7 +15,6 @@ class TestFluffMatcher:
 
     def setup_method(self) -> None:
         """Set up test environment for each test."""
-        reset_test_environment()
         self.mock_omnidexer = Mock()
         self.matcher = FluffMatcher(self.mock_omnidexer)
 

@@ -9,14 +9,10 @@ from unittest.mock import Mock, patch
 from studiorum.cli.services import get_cli_template_service
 from studiorum.core.models.creatures import Ability, ArmorClass, Creature
 from studiorum.core.references.content_tracker import ContentTracker
-from tests.test_helpers import reset_test_environment
 
 
 class TestCreatureMarkupProcessing:
     """Test 5etools markup processing in creature abilities and descriptions."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_ability_name_markup_processing(self):
         """Test processing of 5etools markup in ability names."""
@@ -494,9 +490,6 @@ class TestCreatureMarkupProcessing:
 
 class TestCreatureMarkupEdgeCases:
     """Test edge cases and error handling in markup processing."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_empty_entry_processing(self):
         """Test processing of empty or None entries."""

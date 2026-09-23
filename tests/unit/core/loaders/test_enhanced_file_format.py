@@ -7,7 +7,6 @@ import pytest
 
 from studiorum.core.loaders.content_sources import NameListFileSource
 from studiorum.core.models.content import ContentType
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.fast
@@ -16,7 +15,6 @@ class TestEnhancedFileFormatParsing:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        reset_test_environment()
         self.temp_dir = Path(tempfile.mkdtemp())
 
     def teardown_method(self) -> None:

@@ -27,7 +27,6 @@ class TestEnvironmentVariables:
         """Set up test environment with clean state."""
         # Reset both app config and service container for isolation
         reset_app_config()
-        ServiceContainer.reset_global_instance()
         # Store original environment state
         self._original_env: dict[str, str | None] = {}
 
@@ -631,7 +630,6 @@ class TestEnvironmentVariableIntegration:
     def setup_method(self) -> None:
         """Set up test environment."""
         reset_app_config()
-        ServiceContainer.reset_global_instance()
         self._original_env: dict[str, str | None] = {}
 
     def teardown_method(self) -> None:

@@ -11,15 +11,10 @@ from studiorum.cli.commands.convert.base import (
     LaTeXMixin,
 )
 from studiorum.core.error_types import ConfigurationError, MCPException
-from tests.test_helpers import reset_test_environment
 
 
 class TestBaseConvertCommand:
     """Test BaseConvertCommand class."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_init(self):
         """Test BaseConvertCommand initialization."""
@@ -265,10 +260,6 @@ class TestBaseConvertCommand:
 class TestLaTeXMixin:
     """Test LaTeXMixin class."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
-
     def test_get_latex_parameters_basic(self):
         """Test basic LaTeX parameter generation."""
         mixin = LaTeXMixin()
@@ -357,10 +348,6 @@ class TestLaTeXMixin:
 class TestAppendixMixin:
     """Test AppendixMixin class."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
-
     def test_init(self):
         """Test AppendixMixin initialization."""
         mixin = AppendixMixin()
@@ -448,10 +435,6 @@ class TestAppendixMixin:
 @pytest.mark.integration
 class TestBaseConvertCommandIntegration:
     """Integration tests for BaseConvertCommand architecture."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     @patch("studiorum.cli.commands.convert.base.get_app_config")
     @patch("studiorum.core.config.sources.get_content_config")

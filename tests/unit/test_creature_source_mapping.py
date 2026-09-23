@@ -16,9 +16,6 @@ class TestCreatureSourceMapping:
 
     def setup_method(self):
         """Set up test fixtures."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
 
         # Create mock omnidexer
         self.mock_omnidexer = Mock()

@@ -6,15 +6,10 @@ from tempfile import NamedTemporaryFile
 
 from studiorum.core.loaders.json_loader import JsonDataLoader
 from studiorum.core.models.content import ContentType
-from tests.test_helpers import reset_test_environment
 
 
 class TestMetadataContentDetection:
     """Test metadata vs content file detection logic."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
 
     def test_detect_adventure_metadata_file(self) -> None:
         """Test detection of adventure metadata files (adventures.json)."""

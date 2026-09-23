@@ -8,7 +8,6 @@ import pytest
 from studiorum.core.assets.image_manager import ImageManager
 from studiorum.core.config.unified_config import PathsConfig
 from studiorum.renderers.core.interfaces import RenderingContext
-from tests.test_helpers import reset_test_environment
 
 
 class TestImageManager:
@@ -16,7 +15,6 @@ class TestImageManager:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
 
         self.paths_config = Mock(spec=PathsConfig)
         self.paths_config.build_path = Path("/tmp/build")

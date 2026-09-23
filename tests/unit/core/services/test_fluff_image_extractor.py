@@ -102,12 +102,6 @@ class TestFluffImageInfo:
 class TestFluffImageExtractor:
     """Test FluffImageExtractor service."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
-
     def test_extract_from_images_field(self, mock_omnidexer, sample_fluff_with_images):
         """Test extracting images from the dedicated images field."""
         extractor = FluffImageExtractor(mock_omnidexer)

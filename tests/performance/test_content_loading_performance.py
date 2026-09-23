@@ -19,12 +19,6 @@ from studiorum.core.resolvers.content_resolver import ContentResolver
 class TestContentLoadingPerformance:
     """Test performance of content loading system."""
 
-    def setup_method(self) -> None:
-        """Reset environment before each test for proper isolation."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
     @pytest.mark.slow
     @pytest.mark.requires_data
     def test_omnidexer_loading_performance(self):

@@ -9,12 +9,6 @@ from studiorum.core.registry import content_type
 class TestRegistryIntegration:
     """Test integration of registry system with existing components."""
 
-    def setup_method(self) -> None:
-        """Reset registry for each test."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
     def test_content_type_decorator_registers_successfully(self):
         """Test that content type decorator works end-to-end."""
         # Test the decorator mechanism without polluting the global registry

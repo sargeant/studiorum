@@ -12,14 +12,10 @@ These tests ensure 5etools parity for creature text generation and template rend
 """
 
 from studiorum.core.models.creatures import Ability, Creature
-from tests.test_helpers import reset_test_environment
 
 
 class TestCreaturePronounHelpers:
     """Test pronoun helper methods for named vs generic creatures."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_pronouns_named_creature(self):
         """Test pronouns for named creatures (isNamedCreature=True)."""
@@ -107,9 +103,6 @@ class TestCreaturePronounHelpers:
 
 class TestCreatureShortNameHelpers:
     """Test short name formatting for different cases."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_short_name_named_creature_no_prefix(self):
         """Test that named creatures don't get 'the' prefix."""
@@ -276,9 +269,6 @@ class TestCreatureShortNameHelpers:
 class TestCreatureSectionHeaderHelpers:
     """Test section header accessor methods."""
 
-    def setup_method(self) -> None:
-        reset_test_environment()
-
     def test_get_section_header_existing(self):
         """Test getting custom header for an existing section."""
         creature_data = {
@@ -363,9 +353,6 @@ class TestCreatureSectionHeaderHelpers:
 
 class TestCreatureLegendaryActionsHeaderHelpers:
     """Test legendary actions header generation."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_legendary_actions_header_no_legendary_actions(self):
         """Test that creatures without legendary actions return None."""
@@ -659,9 +646,6 @@ class TestCreatureLegendaryActionsHeaderHelpers:
 
 class TestCreatureHelpersIntegration:
     """Integration tests combining multiple helper methods."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_helpers_work_together_named_creature(self):
         """Test that all helper methods work together for named creature."""

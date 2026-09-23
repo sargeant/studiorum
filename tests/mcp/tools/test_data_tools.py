@@ -16,12 +16,6 @@ from studiorum.mcp.tools.data import manage_data_sources
 class TestDataSourcesMCPTool:
     """Test the manage_data_sources MCP tool."""
 
-    def setup_method(self):
-        """Set up test environment."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
-
     @pytest.mark.asyncio
     async def test_list_action(self):
         """Test listing data repositories via MCP."""
@@ -296,12 +290,6 @@ class TestDataSourcesMCPTool:
 
 class TestSourceAttributionMCPTool:
     """Test the manage_source_attribution MCP tool."""
-
-    def setup_method(self):
-        """Set up test environment."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
 
     @pytest.mark.asyncio
     async def test_list_sources(self):

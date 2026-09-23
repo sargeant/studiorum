@@ -189,10 +189,13 @@ class TestEnhancedImageManager:
         self.manager = ImageManager(self.paths_config)
 
     def test_initialization(self):
-        """Test that ImageManager initializes with default sources."""
-        # Should have registry with sources
-        registry = self.manager.get_registry()
-        sources = registry.list_sources()
+        """Test that ImageManager registers no network sources by default."""
+        assert self.manager.get_registry().list_sources() == []
+
+    def test_initialization_with_default_sources(self):
+        """Test that ImageManager registers the 5etools sources when asked."""
+        manager = ImageManager(self.paths_config, default_sources=True)
+        sources = manager.get_registry().list_sources()
         assert len(sources) > 0
 
         # Should include Git and HTTP API sources

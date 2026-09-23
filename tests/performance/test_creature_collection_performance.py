@@ -14,7 +14,6 @@ import pytest
 from studiorum.core.models.creature_filters import CreatureFilterCriteria
 from studiorum.core.models.creatures import Creature
 from studiorum.core.services.creature_collector import CreatureCollector
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.performance
@@ -24,7 +23,6 @@ class TestCreatureCollectionPerformance:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
 
         # Create mock omnidexer with performance data
         self.mock_omnidexer = Mock()
@@ -404,10 +402,6 @@ class TestCreatureCollectionPerformance:
 @pytest.mark.performance
 class TestCreatureProcessingBenchmarks:
     """Benchmark tests for creature processing operations."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_creature_stat_block_generation_performance(self):
         """Test performance of generating creature stat blocks."""

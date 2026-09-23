@@ -9,7 +9,6 @@ from unittest.mock import Mock, patch
 import pytest
 
 from studiorum.core.models.creatures import Creature
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.requires_data
@@ -17,10 +16,6 @@ from tests.test_helpers import reset_test_environment
 @pytest.mark.slow
 class TestCreatureRealDataIntegration:
     """Test creature functionality with real 5etools data patterns."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_real_goblin_data_processing(self):
         """Test processing of real goblin data from 5etools."""

@@ -45,7 +45,6 @@ from studiorum.mcp.tools.config import (
     save_user_preferences,
     update_configuration,
 )
-from tests.test_helpers import reset_test_environment
 
 
 class TestConfigurationResponse:
@@ -99,10 +98,6 @@ class TestPresetInfo:
 class TestUtilityFunctions:
     """Test utility functions."""
 
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
-
     def test_ensure_presets_dir(self) -> None:
         """Test preset directory creation."""
         with (
@@ -137,10 +132,6 @@ class TestUtilityFunctions:
 
 class TestGetConfiguration:
     """Test get_configuration tool."""
-
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
 
     @pytest.mark.asyncio
     async def test_get_configuration_success(self) -> None:
@@ -194,10 +185,6 @@ class TestGetConfiguration:
 
 class TestUpdateConfiguration:
     """Test update_configuration tool."""
-
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
 
     @pytest.mark.asyncio
     async def test_update_configuration_simple(self) -> None:
@@ -314,10 +301,6 @@ class TestUpdateConfiguration:
 class TestConfigurePaperLayout:
     """Test configure_paper_layout tool."""
 
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
-
     @pytest.mark.asyncio
     async def test_configure_paper_layout_a4_default(self) -> None:
         """Test A4 paper layout configuration with defaults."""
@@ -429,10 +412,6 @@ class TestConfigurePaperLayout:
 class TestConfigureSpellbookGeneration:
     """Test configure_spellbook_generation tool."""
 
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
-
     @pytest.mark.asyncio
     async def test_configure_spellbook_generation_defaults(self) -> None:
         """Test spellbook generation with default settings."""
@@ -523,10 +502,6 @@ class TestConfigureSpellbookGeneration:
 
 class TestConfigureEncounterPrinting:
     """Test configure_encounter_printing tool."""
-
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
 
     @pytest.mark.asyncio
     async def test_configure_encounter_printing_defaults(self) -> None:
@@ -627,10 +602,6 @@ class TestConfigureEncounterPrinting:
 
 class TestAddContentSource:
     """Test add_content_source tool."""
-
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
 
     @pytest.mark.asyncio
     async def test_add_content_source_append(self) -> None:
@@ -740,10 +711,6 @@ class TestAddContentSource:
 class TestSaveUserPreferences:
     """Test save_user_preferences tool."""
 
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
-
     @pytest.mark.asyncio
     async def test_save_user_preferences_success(self) -> None:
         """Test successful preset saving."""
@@ -849,10 +816,6 @@ class TestSaveUserPreferences:
 
 class TestLoadUserPreferences:
     """Test load_user_preferences tool."""
-
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
 
     @pytest.mark.asyncio
     async def test_load_user_preferences_success(self) -> None:
@@ -1006,10 +969,6 @@ class TestLoadUserPreferences:
 class TestNaturalLanguageScenarios:
     """Test natural language configuration scenarios."""
 
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
-
     @pytest.mark.asyncio
     async def test_scenario_set_sources_to_srd_only(self) -> None:
         """Test 'Set sources to SRD only' scenario."""
@@ -1154,10 +1113,6 @@ class TestNaturalLanguageScenarios:
 class TestAsyncRequestContextIntegration:
     """Test integration with AsyncRequestContext."""
 
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
-
     @pytest.mark.asyncio
     async def test_context_isolation(self) -> None:
         """Test that context provides proper configuration isolation."""
@@ -1254,10 +1209,6 @@ class TestAsyncRequestContextIntegration:
 
 class TestErrorHandlingAndValidation:
     """Test comprehensive error handling and validation."""
-
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
 
     @pytest.mark.asyncio
     async def test_invalid_paper_size(self) -> None:

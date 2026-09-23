@@ -23,7 +23,6 @@ from studiorum.renderers.core.handlers import get_default_core_handlers
 from studiorum.renderers.core.interfaces import RenderingContext
 from studiorum.renderers.core.unified_renderer import StandardUnifiedRenderer
 from tests.test_data_helpers import requires_full_dataset
-from tests.test_helpers import reset_test_environment
 
 pytestmark = pytest.mark.requires_data
 
@@ -36,8 +35,6 @@ class TestRealDataIntegration:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         """Set up test environment with real data."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         # Optional path to full dataset for direct file reads when needed
         env_path = os.getenv("STUDIORUM_FULL_DATA_PATH", "")
@@ -383,8 +380,6 @@ class TestRealDataPerformance:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         """Set up performance testing environment."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         # Prefer explicit env var, then fallback to app config
         env_path = os.getenv("STUDIORUM_FULL_DATA_PATH", "")

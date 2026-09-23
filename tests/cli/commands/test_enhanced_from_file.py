@@ -8,7 +8,6 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.cli
@@ -17,7 +16,6 @@ class TestEnhancedFromFileSupport:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        reset_test_environment()
         self.runner = CliRunner()
         self.temp_dir = Path(tempfile.mkdtemp())
 

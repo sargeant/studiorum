@@ -31,7 +31,7 @@ def reset_all_containers() -> None:
     logger.debug("Modern async container system no longer used")
 
 
-def reset_test_environment() -> None:
+def reset_test_environment(*, collect_garbage: bool = True) -> None:
     """Reset the entire test environment for complete isolation.
 
     This function provides a standardized way to reset all global state
@@ -108,8 +108,10 @@ def reset_test_environment() -> None:
         initialize_content_types()
         logger.debug("Content type registry initialized")
 
-        # 8. Force garbage collection to clean up any lingering objects
-        gc.collect()
+        # 8. Force garbage collection to clean up any lingering objects. The
+        # per-test autouse fixture skips this: it costs ~30 ms a call.
+        if collect_garbage:
+            gc.collect()
 
         logger.debug("Test environment reset completed")
 

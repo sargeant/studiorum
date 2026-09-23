@@ -7,7 +7,6 @@ import click
 import pytest
 
 from studiorum.cli.commands.convert.base import BaseConvertCommand
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.fast
@@ -16,7 +15,6 @@ class TestBaseEnhancedFileSupport:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        reset_test_environment()
         self.base_command = BaseConvertCommand()
         self.temp_dir = Path(tempfile.mkdtemp())
 

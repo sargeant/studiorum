@@ -13,7 +13,6 @@ from pathlib import Path
 import pytest
 
 from studiorum.core.resolvers.content_resolver import ContentResolver
-from tests.test_helpers import reset_test_environment
 
 
 def load_all_data_sync(omnidexer):
@@ -31,13 +30,6 @@ def resolve_book_sync(resolver, book_id):
 @pytest.mark.integration
 class TestBookConversion:
     """Test book conversion functionality for regression."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
-
-        # Note: reset_test_environment() now handles both container systems
-        # via reset_all_containers() for proper parallel execution isolation
 
     def _get_test_env(self) -> dict[str, str]:
         """Get environment with test configuration override."""

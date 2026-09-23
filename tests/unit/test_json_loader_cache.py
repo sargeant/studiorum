@@ -7,16 +7,10 @@ from unittest.mock import patch
 from studiorum.core.cache import get_cache
 from studiorum.core.loaders.json_loader import JsonDataLoader
 from studiorum.core.models.content import ContentType
-from tests.test_helpers import reset_test_environment
 
 
 class TestJsonLoaderCache:
     """Tests for JsonDataLoader caching."""
-
-    def setup_method(self) -> None:
-        """Clear cache before each test."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""

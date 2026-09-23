@@ -4,17 +4,10 @@ import pytest
 
 from studiorum.core.models.content import ContentType
 from studiorum.core.registry import initialize_content_types
-from tests.test_helpers import reset_test_environment
 
 
 class TestRegistryIntegration:
     """Integration tests for the complete content type registry system."""
-
-    def setup_method(self) -> None:
-        """Setup for each test."""
-        # For integration tests, we need proper initialization
-        # Use the standardized test environment reset
-        reset_test_environment()
 
     def test_full_system_initialization(self):
         """Test that the full registry initialization process works."""

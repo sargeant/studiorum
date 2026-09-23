@@ -14,12 +14,6 @@ class MockBaseContent(BaseContent):
 class TestRegistryManager:
     """Test RegistryManager functionality."""
 
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
     def test_apply_registrations_calls_all_updates(self):
         """Test that apply_registrations calls all update methods."""
         manager = RegistryManager()

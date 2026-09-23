@@ -11,7 +11,6 @@ from unittest.mock import Mock, patch
 import pytest
 
 from studiorum.core.models.creatures import Creature
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.integration
@@ -20,7 +19,6 @@ class TestCreatureLaTeXRendering:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
 
         # Create comprehensive creature test data
         self.test_creature_data = {
@@ -476,10 +474,6 @@ class TestCreatureLaTeXRendering:
 class TestCreatureLaTeXCompilation:
     """Test LaTeX compilation integration for creature documents."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
-
     def test_creature_latex_compilation_mock(self):
         """Test LaTeX compilation structure for creature documents."""
         # Create test LaTeX content
@@ -564,10 +558,6 @@ class TestCreatureRenderingParityPhase3:
     4. Structured headers rendering via smart_render_entry
     5. Empty sections handling
     """
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     @patch("studiorum.cli.main.get_tag_resolver")
     @patch("studiorum.cli.main.get_omnidexer")

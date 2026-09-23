@@ -5,14 +5,10 @@ including alignment processing, size abbreviations, and complex text structures.
 """
 
 from studiorum.core.models.creatures import Creature, CreatureType
-from tests.test_helpers import reset_test_environment
 
 
 class TestCreatureSizeFormatting:
     """Test creature size abbreviation to full name conversion."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_size_abbreviation_conversion(self):
         """Test conversion of 5etools size abbreviations to full names."""
@@ -102,9 +98,6 @@ class TestCreatureSizeFormatting:
 
 class TestCreatureAlignmentFormatting:
     """Test creature alignment abbreviation processing and formatting."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_simple_alignment_abbreviations(self):
         """Test conversion of simple alignment abbreviations."""
@@ -241,9 +234,6 @@ class TestCreatureAlignmentFormatting:
 class TestCreatureTypeFormatting:
     """Test creature type formatting with subtypes and tags."""
 
-    def setup_method(self) -> None:
-        reset_test_environment()
-
     def test_simple_creature_type(self):
         """Test simple creature type without subtypes."""
         creature_type = CreatureType(type="humanoid")
@@ -289,9 +279,6 @@ class TestCreatureTypeFormatting:
 
 class TestCreatureStatBlockIntegration:
     """Test complete stat block text generation."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_complete_stat_block_header(self):
         """Test complete creature header line (size, type, alignment)."""
@@ -420,9 +407,6 @@ class TestCreatureStatBlockIntegration:
 
 class TestCreatureTextValidation:
     """Test validation of creature text fields and formats."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_empty_fields_handling(self):
         """Test handling of empty or None text fields."""

@@ -16,17 +16,11 @@ from studiorum.latex_engine.core.tag_renderer import (
     ContentTypeStyleConfig,
     LaTeXTagRenderer,
 )
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
 class TestLaTeXTagRenderer:
     """Tests for LaTeX tag rendering without semantic resolution concerns."""
-
-    def setup_method(self) -> None:
-        """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""
@@ -313,11 +307,6 @@ class TestLaTeXTagRenderer:
 class TestContentTypeStyleConfig:
     """Tests for content type styling configuration."""
 
-    def setup_method(self) -> None:
-        """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
-
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""
         try:
@@ -365,11 +354,6 @@ class TestContentTypeStyleConfig:
 @pytest.mark.rendering
 class TestConfigurableLaTeXTagRenderer:
     """Tests for configurable LaTeX tag renderer."""
-
-    def setup_method(self) -> None:
-        """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""

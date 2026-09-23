@@ -12,12 +12,6 @@ from studiorum.cli.commands.convert.compendiums.spells import spells
 class TestCLIFluffPhase5Integration:
     """Integration tests for Phase 5 CLI enhancements."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
-
     @patch("studiorum.cli.commands.convert.compendiums.creatures.get_omnidexer")
     @patch("studiorum.cli.commands.convert.compendiums.creatures.display_manager")
     def test_creatures_with_fluff_sections(

@@ -5,7 +5,6 @@ import pytest
 from studiorum.cli.main import get_omnidexer
 from studiorum.core.models.content import ContentType
 from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
-from tests.test_helpers import reset_test_environment
 
 # Tests converted to sync after async removal migration
 
@@ -13,13 +12,6 @@ from tests.test_helpers import reset_test_environment
 @pytest.mark.integration
 class TestBookResolution:
     """Test book resolution with dual-file architecture using real data."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
-
-        # Note: reset_test_environment() now handles both container systems
-        # via reset_all_containers() for proper parallel execution isolation
 
     def test_omnidexer_loads_book_with_enriched_content(self):
         """Test that omnidexer loads books with enriched content from dual-file architecture."""

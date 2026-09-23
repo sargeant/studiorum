@@ -36,14 +36,10 @@ from studiorum.latex_engine.core.images.integration.items import (
     ItemIntegrationConfig,
 )
 from studiorum.renderers.core.interfaces import RenderingContext
-from tests.test_helpers import reset_test_environment
 
 
 class TestGalleryEntry:
     """Test the GalleryEntry Pydantic model."""
-
-    def setup_method(self):
-        reset_test_environment()
 
     def test_gallery_entry_creation(self):
         """Test creating a gallery entry with proper validation."""
@@ -97,7 +93,6 @@ class TestGalleryProcessor:
     """Test the GalleryProcessor functionality."""
 
     def setup_method(self):
-        reset_test_environment()
         self.mock_image_processor = Mock(spec=ImageProcessor)
         self.config = GalleryConfig()
         self.processor = GalleryProcessor(
@@ -316,7 +311,6 @@ class TestRecursiveEntryProcessorGallery:
     """Test gallery processing integration in RecursiveEntryProcessor."""
 
     def setup_method(self):
-        reset_test_environment()
         self.mock_image_processor = Mock(spec=ImageProcessor)
         self.processor = RecursiveEntryProcessor(
             image_processor=self.mock_image_processor
@@ -395,7 +389,6 @@ class TestBestiaryImageIntegration:
     """Test bestiary-specific image integration."""
 
     def setup_method(self):
-        reset_test_environment()
         self.config = BestiaryIntegrationConfig()
         self.mock_image_processor = Mock(spec=ImageProcessor)
         self.mock_enhanced_placer = AsyncMock()
@@ -608,7 +601,6 @@ class TestItemImageIntegration:
     """Test item-specific image integration."""
 
     def setup_method(self):
-        reset_test_environment()
         self.config = ItemIntegrationConfig()
         self.mock_image_processor = Mock(spec=ImageProcessor)
         self.mock_gallery_processor = Mock()
@@ -901,7 +893,6 @@ class TestPhase3Integration:
     """Integration tests for Phase 3 components working together."""
 
     def setup_method(self):
-        reset_test_environment()
         self.mock_image_processor = Mock(spec=ImageProcessor)
         self.context = RenderingContext(
             output_format="latex",

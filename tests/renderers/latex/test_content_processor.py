@@ -17,7 +17,6 @@ from studiorum.latex_engine.core.content_processor import (  # type: ignore
     SpellProcessor,
 )
 from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -26,8 +25,6 @@ class TestSpellProcessor:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.processor = SpellProcessor()
         self.context = Mock(spec=RenderingContext)
@@ -212,8 +209,6 @@ class TestCreatureProcessor:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.processor = CreatureProcessor()
         self.context = Mock(spec=RenderingContext)
@@ -419,8 +414,6 @@ class TestItemProcessor:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.processor = ItemProcessor()
         self.context = Mock(spec=RenderingContext)

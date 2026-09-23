@@ -9,7 +9,6 @@ from studiorum.latex_engine.core.images.format_converter import (
     ConversionResult,
     FormatConverter,
 )
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -45,8 +44,6 @@ class TestFormatConverter:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.converter = FormatConverter()
 
@@ -208,8 +205,6 @@ class TestFormatConverterSync:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.converter = FormatConverter()
 

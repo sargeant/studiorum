@@ -12,7 +12,6 @@ from studiorum.core.entry_registry import ValidationMode
 from studiorum.core.exceptions import EntryProcessingWarning
 from studiorum.core.models.content import Source
 from studiorum.core.parsers.entry_parser import EntryParser
-from tests.test_helpers import reset_test_environment
 
 
 class TestEntryParserEnhanced:
@@ -20,8 +19,6 @@ class TestEntryParserEnhanced:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.source = Source(
             name="Test Source",

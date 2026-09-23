@@ -15,12 +15,6 @@ from studiorum.core.services.appendix_generator import AppendixFlags, AppendixGe
 class TestAppendixCreatureSpells:
     """Test that creature spell references are captured in appendix generation."""
 
-    def setup_method(self) -> None:
-        """Reset test environment."""
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
     def test_creature_appendix_captures_spell_references(self):
         """Test that rendering creatures for appendix captures {@spell} references."""
         # Create mock spells

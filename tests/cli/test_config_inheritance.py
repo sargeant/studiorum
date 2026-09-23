@@ -19,7 +19,6 @@ from studiorum.cli.config_factory import (
     get_with_index_default,
 )
 from studiorum.core.config.unified_config import get_app_config, reset_app_config
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.cli
@@ -28,8 +27,6 @@ class TestCliConfigInheritance:
 
     def setup_method(self) -> None:
         """Reset config before each test."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         reset_app_config()
 

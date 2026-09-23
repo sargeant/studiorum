@@ -10,16 +10,11 @@ import pytest
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.models.content import ContentType
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.integration
 class TestSourceDiscovery:
     """Test comprehensive source discovery and file separation."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
 
     def test_books_metadata_vs_content_separation(self) -> None:
         """Test that books follow the same metadata/content pattern as adventures."""

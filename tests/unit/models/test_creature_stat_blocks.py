@@ -19,14 +19,10 @@ from studiorum.core.models.creatures import (
     Speed,
 )
 from studiorum.core.references.content_tracker import ContentTracker
-from tests.test_helpers import reset_test_environment
 
 
 class TestCreatureStatBlockRendering:
     """Test creature stat block rendering functionality."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_ability_score_modifier_calculation(self):
         """Test calculation of ability score modifiers."""
@@ -383,9 +379,6 @@ class TestCreatureStatBlockRendering:
 class TestCreatureAbilities:
     """Test creature abilities (traits, actions, etc.) processing."""
 
-    def setup_method(self) -> None:
-        reset_test_environment()
-
     def test_ability_text_extraction(self):
         """Test text extraction from complex ability structures."""
         # Simple string entry
@@ -453,9 +446,6 @@ class TestCreatureAbilities:
 
 class TestCreatureLayoutDecisions:
     """Test creature layout decision logic."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_full_width_layout_legendary_actions(self):
         """Test that creatures with legendary actions require full width."""
@@ -549,9 +539,6 @@ class TestCreatureLayoutDecisions:
 
 class TestCreatureValidation:
     """Test creature data validation and edge cases."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_minimal_creature_validation(self):
         """Test validation of minimal creature data."""

@@ -28,10 +28,6 @@ def load_all_data_sync(omnidexer: Omnidexer) -> dict[str, int]:
 class TestIndexEntry:
     """Tests for IndexEntry class."""
 
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
-
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""
         try:
@@ -63,10 +59,6 @@ class TestIndexEntry:
 
 class TestOmnidexer:
     """Tests for Omnidexer class."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
 
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""
@@ -242,10 +234,6 @@ class TestOmnidexer:
 
 class TestDeepIndexing:
     """Tests for DeepIndexable protocol and deep indexing functionality."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
 
     def teardown_method(self) -> None:
         """Clear cache after each test using service container."""

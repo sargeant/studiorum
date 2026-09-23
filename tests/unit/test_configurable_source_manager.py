@@ -7,15 +7,10 @@ import pytest
 
 from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.models.content import ContentType
-from tests.test_helpers import reset_test_environment
 
 
 class TestUnifiedSourceManager:
     """Test unified source manager functionality."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
 
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""
