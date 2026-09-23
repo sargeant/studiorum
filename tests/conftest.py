@@ -1,8 +1,13 @@
 """Pytest configuration and fixtures."""
 
 import asyncio
+import os
 from pathlib import Path
 from typing import Any
+
+# Typer forces a Rich terminal when GITHUB_ACTIONS is set, which puts ANSI codes
+# into CliRunner output. It reads this at import, so set it before the CLI loads.
+os.environ.setdefault("_TYPER_FORCE_DISABLE_TERMINAL", "1")
 
 import pytest
 
