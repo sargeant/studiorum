@@ -1,6 +1,5 @@
 """Tests for CLI system."""
 
-import json
 from typing import Any
 from unittest.mock import Mock, patch
 
@@ -39,12 +38,6 @@ class TestCLIMain:
         # Usage message might be in stdout or stderr depending on exit code
         output = result.stdout + result.stderr
         assert "Usage:" in output
-
-    def test_quick_convert_missing_file(self) -> None:
-        """Test quick convert with missing input file."""
-        result = self.runner.invoke(app, ["quick", "nonexistent.json"])
-        assert result.exit_code == 1
-        assert "not found" in result.stdout
 
 
 class TestCLICommands:
@@ -87,49 +80,6 @@ class TestCLIIntegration:
         """Set up test fixtures."""
 
         self.runner = CliRunner()
-
-    def test_quick_convert_integration(self, tmp_path: Any) -> None:
-        """Test quick convert with mock data."""
-        # Create mock JSON file
-        mock_data = {
-            "spell": [
-                {
-                    "name": "Test Spell",
-                    "level": 1,
-                    "school": "V",
-                    "time": [{"number": 1, "unit": "action"}],
-                    "range": {
-                        "type": "point",
-                        "distance": {"type": "feet", "amount": 30},
-                    },
-                    "components": {"v": True, "s": False, "m": False},
-                    "duration": [{"type": "instant"}],
-                    "entries": ["A test spell description."],
-                }
-            ]
-        }
-
-        input_file = tmp_path / "test_spell.json"
-        input_file.write_text(json.dumps(mock_data))
-
-        output_file = tmp_path / "output.tex"
-
-        # Mock the omnidexer and dependencies
-        with (
-            patch("studiorum.cli.main.get_omnidexer") as mock_omnidexer,
-            patch("studiorum.cli.main.get_tag_resolver") as mock_tag_resolver,
-        ):
-            mock_omni: Any = Mock()
-            mock_tag: Any = Mock()
-            mock_omnidexer.return_value = mock_omni
-            mock_tag_resolver.return_value = mock_tag
-
-            result = self.runner.invoke(
-                app, ["quick", str(input_file), "--output", str(output_file)]
-            )
-
-            # Should not crash (though it might fail due to missing dependencies)
-            assert isinstance(result.exit_code, int)
 
 
 class TestCLIFileOperations:

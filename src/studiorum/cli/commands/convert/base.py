@@ -7,9 +7,6 @@ import typer
 
 from studiorum.cli.config_factory import (
     get_compile_pdf_default,
-    get_document_class_default,
-    get_fonts_default,
-    get_with_images_default,
 )
 from studiorum.core.config.sources import get_content_config
 from studiorum.core.config.unified_config import get_app_config
@@ -489,139 +486,6 @@ class BaseConvertCommand:
         return content_items
 
 
-class LaTeXMixin:
-    """Mixin for LaTeX-specific parameters."""
-
-    @staticmethod
-    def get_latex_parameter_definitions() -> dict[str, Any]:
-        """Return LaTeX parameter definitions."""
-        return {
-            "with_images": typer.Option(
-                get_with_images_default(),
-                "--images/--no-images",
-                help="Include images",
-                rich_help_panel="Visual Styling",
-            ),
-            "document_class": typer.Option(
-                get_document_class_default(),
-                "--document-class",
-                help="LaTeX document class (dndbook, dndarticle)",
-                rich_help_panel="Document Layout",
-            ),
-            "paper": typer.Option(
-                None,
-                "--paper",
-                help="Paper size (letter, a4, a5)",
-                rich_help_panel="Document Layout",
-            ),
-            "fonts": typer.Option(
-                get_fonts_default(),
-                "--fonts",
-                help="Font package to use (wotc, dmsguild)",
-                rich_help_panel="Visual Styling",
-            ),
-            "no_outline": typer.Option(
-                None,
-                "--no-outline",
-                help="Disable document outline",
-                rich_help_panel="Visual Styling",
-            ),
-            "font_size": typer.Option(
-                None,
-                "--font-size",
-                help="Base font size (10pt, 11pt, 12pt)",
-                rich_help_panel="Visual Styling",
-            ),
-            "background": typer.Option(
-                None,
-                "--background",
-                "--bg",
-                help="Background style (full, none, print)",
-                rich_help_panel="Visual Styling",
-            ),
-            "high_contrast": typer.Option(
-                None,
-                "--high-contrast",
-                help="Use high contrast mode",
-                rich_help_panel="Visual Styling",
-            ),
-            "two_column": typer.Option(
-                None,
-                "--two-column/--one-column",
-                help="Use two-column layout",
-                rich_help_panel="Document Layout",
-            ),
-            "justified": typer.Option(
-                None,
-                "--justified/--not-justified",
-                help="Justify text columns",
-                rich_help_panel="Document Layout",
-            ),
-            "statblock": typer.Option(
-                None,
-                "--statblock",
-                help="Statblock style (2014/classic/2024/modern)",
-                rich_help_panel="Visual Styling",
-            ),
-        }
-
-    def get_latex_parameters(self, config: dict[str, Any]) -> dict[str, Any]:
-        """Get LaTeX parameters from config (instance method)."""
-        params = {
-            "paper_size": config.get("paper_size", "letterpaper"),
-            "title": config.get("title"),
-            "author": config.get("author"),
-            "margin_top": config.get("margin_top", "1in"),
-            "margin_bottom": config.get("margin_bottom", "1in"),
-            "margin_left": config.get("margin_left", "1in"),
-            "margin_right": config.get("margin_right", "1in"),
-        }
-
-        # Handle fonts
-        main_font = config.get("main_font")
-        sans_font = config.get("sans_font")
-        mono_font = config.get("mono_font")
-
-        if main_font or sans_font or mono_font:
-            params["use_custom_fonts"] = True
-            params["main_font"] = main_font
-            params["sans_font"] = sans_font
-            params["mono_font"] = mono_font
-        else:
-            params["use_custom_fonts"] = False
-
-        return params
-
-    def get_latex_context_parameters(self, config: dict[str, Any]) -> dict[str, Any]:
-        """Get LaTeX parameters from config for context."""
-        return self.get_latex_parameters(config)
-
-    def prepare_latex_context(
-        self, config: dict[str, Any], content: list[Any]
-    ) -> dict[str, Any]:
-        """Prepare LaTeX context from config and content."""
-        context = self.get_latex_context_parameters(config)
-        context["content"] = content
-        context["show_title_page"] = self.should_include_title_page(config)
-        context["include_toc"] = self.should_include_toc(config, content)
-        return context
-
-    def should_include_title_page(self, config: dict[str, Any]) -> bool:
-        """Determine if title page should be included."""
-        title = config.get("title")
-        return bool(title and title.strip())
-
-    def should_include_toc(self, config: dict[str, Any], content: list[Any]) -> bool:
-        """Determine if table of contents should be included."""
-        # Check explicit config first
-        include_toc = config.get("include_toc")
-        if include_toc is not None:
-            return bool(include_toc)
-
-        # Default: include TOC for multiple items
-        return len(content) > 1
-
-
 class AppendixMixin:
     """Mixin for appendix generation functionality with unified reference tracking."""
 
@@ -736,12 +600,3 @@ class AppendixMixin:
         for content in content_items:
             if isinstance(content, DeepIndexable):
                 reference_manager.track_deep_index_references(content, context)
-
-
-# Helper functions for parameter combinations
-def get_all_convert_parameters() -> dict[str, Any]:
-    """Get all convert command parameters combined."""
-    params = {}
-    params.update(BaseConvertCommand.get_common_parameters())
-    params.update(LaTeXMixin.get_latex_parameter_definitions())
-    return params
