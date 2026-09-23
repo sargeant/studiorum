@@ -474,8 +474,7 @@ class CreatureCollectionResult(BaseModel):
                 if "/" in cr_str:
                     num, den = cr_str.split("/")
                     return (float(num) / float(den), cr_str)
-                else:
-                    return (float(cr_str), cr_str)
+                return (float(cr_str), cr_str)
             except (ValueError, ZeroDivisionError):
                 return (999.0, cr_str)  # Put unknown CRs at the end
 

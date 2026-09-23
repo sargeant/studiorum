@@ -8,7 +8,7 @@ from studiorum.core.logging import get_logger
 from ..loaders.omnidexer import Omnidexer
 from ..models.content import ContentType
 from ..models.item_filters import ItemCollectionResult, ItemFilterCriteria
-from ..models.items import Item, ItemRarity, ItemType
+from ..models.items import Item
 
 logger = get_logger(__name__)
 
@@ -481,13 +481,12 @@ class ItemCollector:
 
             if unit in ["gp", "gold"]:
                 return float(amount)
-            elif unit in ["sp", "silver"]:
+            if unit in ["sp", "silver"]:
                 return float(amount) / 10
-            elif unit in ["cp", "copper"]:
+            if unit in ["cp", "copper"]:
                 return float(amount) / 100
-            else:
-                # Unknown unit, assume GP
-                return float(amount)
+            # Unknown unit, assume GP
+            return float(amount)
 
         return None
 

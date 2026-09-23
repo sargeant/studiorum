@@ -7,12 +7,11 @@ It eliminates the need for manual bridges between systems.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
 
-from ..interfaces import DeepIndexable
-from ..models.content import BaseContent, ContentType
+from ..models.content import BaseContent
 from .content_tracker import ContentTracker, TrackedContent
 
 if TYPE_CHECKING:

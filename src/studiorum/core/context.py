@@ -22,7 +22,6 @@ from datetime import datetime
 from typing import (
     TYPE_CHECKING,
     Any,
-    Generic,
     Protocol,
     TypeVar,
     cast,
@@ -36,9 +35,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from studiorum.core.logging import get_logger
 
 from .error_types import (
-    ContentNotFoundError,
     MCPError,
-    ProcessingError,
 )
 
 # Legacy exception import removed in Phase 3
@@ -49,9 +46,7 @@ from .services.protocols import (
     AsyncResourceProtocol,
     ConfigurationProtocol,
     ContentFactoryProtocol,
-    DisplayManagerProtocol,
     OmnidexerProtocol,
-    ReferenceManagerProtocol,
     ServiceProtocol,
     TagResolverProtocol,
 )
@@ -207,7 +202,6 @@ class AsyncRequestContext(BaseModel):
         """Initialize all async resources in the container."""
         # Get all async resources from container for tracking
         # This would be implemented based on the container's API
-        pass
 
     async def get_service(self, protocol: type[T]) -> T:
         """Get service with protocol validation and caching.

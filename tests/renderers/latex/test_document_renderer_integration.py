@@ -13,7 +13,6 @@ from studiorum.latex_engine.config.compilation import (  # type: ignore
 )
 from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: ignore
 from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
-from tests.test_helpers import reset_test_environment
 
 # Apply async mark to the entire module
 pytestmark = pytest.mark.asyncio
@@ -32,8 +31,6 @@ class TestLaTeXDocumentRendererIntegration:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         config = {"show_progress": False, "compilation_timeout": 10, "max_passes": 2}
         self.renderer = LaTeXDocumentRenderer(config)
@@ -217,29 +214,31 @@ class TestLaTeXDocumentRendererIntegration:
         )
 
         # Mock the heavy rendering operations to improve test performance
-        with patch.object(
-            self.renderer,
-            "render_document",
-            return_value="\\documentclass{article}\\begin{document}Test\\end{document}",
-        ):
-            with patch.object(
+        with (
+            patch.object(
+                self.renderer,
+                "render_document",
+                return_value="\\documentclass{article}\\begin{document}Test\\end{document}",
+            ),
+            patch.object(
                 self.renderer.compiler,
                 "compile_document",
                 return_value=mock_result,
                 new_callable=AsyncMock,
-            ) as mock_compile:
-                result = await self.renderer.compile_document_to_pdf(
-                    content_items, context=context
-                )
+            ) as mock_compile,
+        ):
+            result = await self.renderer.compile_document_to_pdf(
+                content_items, context=context
+            )
 
-                assert result.success is True
-                assert result.passes_completed == 3
-                assert result.output_file == Path("/tmp/document.pdf")
+            assert result.success is True
+            assert result.passes_completed == 3
+            assert result.output_file == Path("/tmp/document.pdf")
 
-                # Check compiler was called correctly
-                args = mock_compile.call_args[0]
-                assert isinstance(args[0], str)  # LaTeX source
-                assert args[1] == "Test Compendium"  # output name from context
+            # Check compiler was called correctly
+            args = mock_compile.call_args[0]
+            assert isinstance(args[0], str)  # LaTeX source
+            assert args[1] == "Test Compendium"  # output name from context
 
     async def test_compile_document_to_pdf_with_output_path(self) -> None:
         """Test compiling multiple content items with output path."""
@@ -255,29 +254,31 @@ class TestLaTeXDocumentRendererIntegration:
         )
 
         # Mock the heavy rendering operations to improve test performance
-        with patch.object(
-            self.renderer,
-            "render_document",
-            return_value="\\documentclass{article}\\begin{document}Test\\end{document}",
-        ):
-            with patch.object(
+        with (
+            patch.object(
+                self.renderer,
+                "render_document",
+                return_value="\\documentclass{article}\\begin{document}Test\\end{document}",
+            ),
+            patch.object(
                 self.renderer.compiler,
                 "compile_document",
                 return_value=mock_result,
                 new_callable=AsyncMock,
-            ):
-                with patch.object(Path, "rename") as mock_rename:
-                    with patch.object(Path, "mkdir") as mock_mkdir:
-                        result = await self.renderer.compile_document_to_pdf(
-                            content_items, output_path=output_path
-                        )
+            ),
+            patch.object(Path, "rename") as mock_rename,
+        ):
+            with patch.object(Path, "mkdir") as mock_mkdir:
+                result = await self.renderer.compile_document_to_pdf(
+                    content_items, output_path=output_path
+                )
 
-                        assert result.success is True
-                        assert result.output_file == output_path
+                assert result.success is True
+                assert result.output_file == output_path
 
-                        # Check that file was moved to target location
-                        mock_mkdir.assert_called_once()
-                        mock_rename.assert_called_once_with(output_path)
+                # Check that file was moved to target location
+                mock_mkdir.assert_called_once()
+                mock_rename.assert_called_once_with(output_path)
 
     async def test_compile_document_to_pdf_failure(self) -> None:
         """Test compilation failure handling."""
@@ -292,22 +293,24 @@ class TestLaTeXDocumentRendererIntegration:
         )
 
         # Mock the heavy rendering operations to improve test performance
-        with patch.object(
-            self.renderer,
-            "render_document",
-            return_value="\\documentclass{article}\\begin{document}Test\\end{document}",
-        ):
-            with patch.object(
+        with (
+            patch.object(
+                self.renderer,
+                "render_document",
+                return_value="\\documentclass{article}\\begin{document}Test\\end{document}",
+            ),
+            patch.object(
                 self.renderer.compiler,
                 "compile_document",
                 return_value=mock_result,
                 new_callable=AsyncMock,
-            ):
-                result = await self.renderer.compile_document_to_pdf(content_items)
+            ),
+        ):
+            result = await self.renderer.compile_document_to_pdf(content_items)
 
-                assert result.success is False
-                assert result.error_message == "Package not found"
-                assert result.passes_completed == 0
+            assert result.success is False
+            assert result.error_message == "Package not found"
+            assert result.passes_completed == 0
 
     def test_validate_latex_environment(self) -> None:
         """Test LaTeX environment validation."""

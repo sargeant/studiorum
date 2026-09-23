@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 
 from studiorum.core.models.content import Source
-from studiorum.core.models.fluff import BaseFluff, FluffEntry, FluffImage
+from studiorum.core.models.fluff import BaseFluff
 from studiorum.core.services.fluff_image_extractor import (
     FluffImageExtractor,
     FluffImageInfo,
@@ -101,12 +101,6 @@ class TestFluffImageInfo:
 
 class TestFluffImageExtractor:
     """Test FluffImageExtractor service."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
 
     def test_extract_from_images_field(self, mock_omnidexer, sample_fluff_with_images):
         """Test extracting images from the dedicated images field."""

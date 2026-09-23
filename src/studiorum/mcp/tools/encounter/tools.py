@@ -8,10 +8,9 @@ All tools maintain <500ms performance targets and provide comprehensive
 error handling with meaningful suggestions.
 """
 
-from typing import Any, cast
+from typing import Any
 
 from studiorum.core.error_types import (
-    ContentNotFoundError,
     ErrorCategory,
     ErrorSeverity,
     MCPError,
@@ -19,19 +18,8 @@ from studiorum.core.error_types import (
     MCPException,
 )
 from studiorum.core.logging import get_logger
-from studiorum.core.models.encounter_types import (
-    XP,
-    EncounterConstraints,
-    EnvironmentalModifiers,
-    PartyComposition,
-)
-from studiorum.core.result import Error, Result, Success
 from studiorum.mcp.tools.encounter.balancer import rebalance_encounter
 from studiorum.mcp.tools.encounter.budget import calculate_encounter_budget
-from studiorum.mcp.tools.encounter.themes import (
-    create_environmental_profile,
-    create_thematic_profile,
-)
 
 logger = get_logger(__name__)
 

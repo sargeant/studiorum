@@ -6,8 +6,6 @@ including showcase layouts with decorative LaTeX elements and chapter openers.
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -20,14 +18,10 @@ from studiorum.latex_engine.core.images.gallery_processor import (
     ProcessedGallery,
 )
 from studiorum.renderers.core.interfaces import RenderingContext
-from tests.test_helpers import reset_test_environment
 
 
 class TestGalleryConfigDecorative:
     """Test enhanced GalleryConfig with decorative options."""
-
-    def setup_method(self):
-        reset_test_environment()
 
     def test_decorative_config_defaults(self):
         """Test decorative configuration defaults."""
@@ -75,7 +69,6 @@ class TestGalleryProcessorDecorative:
     """Test enhanced GalleryProcessor with decorative elements."""
 
     def setup_method(self):
-        reset_test_environment()
 
         # Create processor with decorative elements enabled
         self.config = GalleryConfig(
@@ -287,7 +280,6 @@ class TestChapterOpenerShowcase:
     """Test chapter opener showcase functionality."""
 
     def setup_method(self):
-        reset_test_environment()
 
         self.config = GalleryConfig(
             chapter_opener_enhancements=True,
@@ -470,9 +462,6 @@ class TestChapterOpenerShowcase:
 class TestDecorativeElementIntegration:
     """Test integration of decorative elements across gallery layouts."""
 
-    def setup_method(self):
-        reset_test_environment()
-
     def test_decorative_elements_in_grid_layout(self):
         """Test that decorative elements don't interfere with grid layout."""
         config = GalleryConfig(enable_decorative_elements=True)
@@ -593,9 +582,6 @@ class TestDecorativeElementIntegration:
 @pytest.mark.requires_data
 class TestGalleryDecorativeIntegration:
     """Integration tests for decorative gallery functionality (slower, marked for optional execution)."""
-
-    def setup_method(self):
-        reset_test_environment()
 
     def test_realistic_adventure_gallery_with_decorations(self):
         """Test realistic adventure gallery with full decorative elements."""

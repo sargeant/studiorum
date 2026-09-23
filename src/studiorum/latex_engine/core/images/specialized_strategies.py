@@ -9,10 +9,8 @@ upon the ContentAwarePlacementStrategy but with specialized logic for:
 
 from __future__ import annotations
 
-from typing import Any
-
 from studiorum.core.logging import get_logger
-from studiorum.core.result import Error, Result, Success
+from studiorum.core.result import Result, Success
 from studiorum.latex_engine.core.images.content_aware_strategy import (
     ContentAwarePlacementStrategy,
     PlacementWeights,

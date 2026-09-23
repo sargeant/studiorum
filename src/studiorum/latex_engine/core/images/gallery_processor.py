@@ -8,7 +8,6 @@ collections of images with intelligent layout strategies.
 from __future__ import annotations
 
 from enum import Enum
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 from pydantic import BaseModel, Field
@@ -176,8 +175,7 @@ class GalleryProcessor:
 
                 if isinstance(latex_result, ErrorType):
                     return Error(latex_result.error)
-                else:
-                    return Error("Unknown error in latex generation")
+                return Error("Unknown error in latex generation")
 
             latex_command = latex_result.unwrap()
 
@@ -295,13 +293,12 @@ class GalleryProcessor:
                 f"    \\caption{{{title}}}\n"
                 f"\\end{{subfigure}}"
             )
-        else:
-            return (
-                f"\\begin{{subfigure}}{{{width_spec}}}\n"
-                f"    \\centering\n"
-                f"    \\includegraphics[width=\\textwidth]{{{image_path}}}\n"
-                f"\\end{{subfigure}}"
-            )
+        return (
+            f"\\begin{{subfigure}}{{{width_spec}}}\n"
+            f"    \\centering\n"
+            f"    \\includegraphics[width=\\textwidth]{{{image_path}}}\n"
+            f"\\end{{subfigure}}"
+        )
 
     def _generate_gallery_latex(
         self,
@@ -316,20 +313,19 @@ class GalleryProcessor:
                 return self._generate_grid_layout(
                     processed_images, gallery_entry, context
                 )
-            elif layout == GalleryLayout.SHOWCASE:
+            if layout == GalleryLayout.SHOWCASE:
                 return self._generate_showcase_layout(
                     processed_images, gallery_entry, context
                 )
-            elif layout == GalleryLayout.SEQUENTIAL:
+            if layout == GalleryLayout.SEQUENTIAL:
                 return self._generate_sequential_layout(
                     processed_images, gallery_entry, context
                 )
-            elif layout == GalleryLayout.COMPARISON:
+            if layout == GalleryLayout.COMPARISON:
                 return self._generate_comparison_layout(
                     processed_images, gallery_entry, context
                 )
-            else:
-                return Error(f"Unsupported layout: {layout}")
+            return Error(f"Unsupported layout: {layout}")
 
         except Exception as e:
             return Error(f"LaTeX generation failed: {str(e)}")

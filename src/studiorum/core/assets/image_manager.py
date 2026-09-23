@@ -7,21 +7,14 @@ now delegates to ImageSourceRegistry for multi-source image resolution.
 
 from __future__ import annotations
 
-import asyncio
-import hashlib
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
-
-import aiohttp
-from pydantic import BaseModel, Field
 
 from studiorum.core.assets.image_sources import (
     GitImageSourceConfig,
     HttpApiImageSourceConfig,
     ImageAssetInfo,
     ImageSourceRegistry,
-    ImageSourceType,
 )
 from studiorum.core.config.unified_config import PathsConfig
 from studiorum.core.logging import get_logger
@@ -36,11 +29,16 @@ class ImageManager:
     Delegates to ImageSourceRegistry for enhanced image resolution capabilities.
     """
 
-    def __init__(self, paths_config: PathsConfig | None = None) -> None:
+    def __init__(
+        self, paths_config: PathsConfig | None = None, *, default_sources: bool = False
+    ) -> None:
         """Initialise the image manager.
 
         Args:
             paths_config: Path configuration
+            default_sources: Register the network-backed 5etools image sources
+                (a GitHub clone plus two HTTP fallbacks). Off by default so that
+                constructing a manager never touches the network.
         """
         self.paths_config = paths_config or PathsConfig()
         self.cache_dir = self.paths_config.build_path / "images"
@@ -49,8 +47,8 @@ class ImageManager:
         # Initialize registry system
         self._registry = ImageSourceRegistry(cache_dir=self.cache_dir)
 
-        # Auto-configure default sources
-        self._configure_default_sources()
+        if default_sources:
+            self._configure_default_sources()
 
         logger.info(f"Initialised ImageManager with registry (cache: {self.cache_dir})")
 

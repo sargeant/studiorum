@@ -48,7 +48,7 @@ dependencies = [
     "pillow>=11.3.0",
     "aiohttp>=3.12.15",
     "watchdog>=6.0.0,<7.0.0",
-    "fastmcp>=2.11.3",
+    "fastmcp>=3,<4",
     "logfire>=0.54.0",
 ]
 
@@ -95,6 +95,8 @@ dev = [
     "mkdocstrings-python>=1.17.0",
     "deadcode>=2.4.1",
     "pyright>=1.1.400",
+    "import-linter>=2.15",
+    "syrupy>=6.1.1",
 ]
 
 images = ["Pillow>=9.0.0"]
@@ -125,23 +127,27 @@ select = [
     # "ASYNC", # asyncio-related checks
     "B",  # flake8-bugbear
     "C4", # flake8-comprehensions
+    "RET",  # flake8-return
+    "PIE",  # flake8-pie
+    "SIM",  # flake8-simplify
+    "PTH",  # flake8-use-pathlib
+    "PERF", # perflint
+    "ISC",  # flake8-implicit-str-concat
+    "S110", # try-except-pass
+    "S112", # try-except-continue
+    "T201", # print
     # "S",     # flake8-bandit
     # "FBT",   # flake8-boolean-trap
     # "N",     # pep8-naming
     # "DTZ",   # flake8-datetimez
     # "EXE",   # flake8-executable
-    # "ISC",   # flake8-implicit-str-concat
     # "LOG",   # flake8-logging
     # "G",     # flake8-logging-format
     # "INP",   # flake8-no-pep420
     # "PYI",   # flake8-pyi
     # "PT",    # flake8-pytest-style
     # "Q",     # flake8-quotes
-    # "RET",   # flake8-return
     # "SLF",   # flake8-self
-    # "SIM",   # flake8-simplify
-    # "PTH",   # flake8-pathlib
-    # "PERF",  # flake8-performance
     # "DOC",   # pydoclint
     # "D",     # docstring checks
     # "PLE",   # pylint-like checks
@@ -152,11 +158,7 @@ select = [
 
 ]
 ignore = [
-    "E722",    # bare except clause
     "B008",    # function calls in argument defaults (common in typer CLI apps)
-    "B904",    # raise from within except without explicit exception chaining
-    "B007",    # unused loop variables
-    "F401",    # unused imports (will clean up separately)
     "C401",    # generator expression improvements
     "C414",    # unnecessary list calls
     "C417",    # unnecessary map usage
@@ -166,6 +168,205 @@ ignore = [
     "S101",    # use of assert in tests
     "E501",    # line too long
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/**" = ["T201"]  # command-line scripts print by design
+
+# Existing debt, generated on 2026-09-24 when the RET, PIE, SIM, PTH, PERF, ISC,
+# S110, S112 and T201 rules were enabled and F401, B007, B904 and E722 unignored.
+# Only safe auto-fixes were applied. Fix a file, then delete its entry.
+"src/studiorum/cli/commands/cache.py" = ["SIM102"]
+"src/studiorum/cli/commands/config.py" = ["B904", "PTH123"]
+"src/studiorum/cli/commands/convert/__init__.py" = ["F401"]
+"src/studiorum/cli/commands/convert/adventure.py" = ["B904", "PTH123"]
+"src/studiorum/cli/commands/convert/base.py" = ["B904", "RET504"]
+"src/studiorum/cli/commands/convert/book.py" = ["B904", "PTH123"]
+"src/studiorum/cli/commands/convert/bulk.py" = ["B904", "PTH123"]
+"src/studiorum/cli/commands/convert/compendiums/creatures.py" = ["B904", "PTH123", "UP042"]
+"src/studiorum/cli/commands/convert/compendiums/items.py" = ["B904", "PTH123", "UP042"]
+"src/studiorum/cli/commands/convert/compendiums/spells.py" = ["B904", "PTH123", "SIM108", "UP042"]
+"src/studiorum/cli/commands/convert/image_enhanced.py" = ["RET504"]
+"src/studiorum/cli/commands/convert/shared.py" = ["B904", "PTH123"]
+"src/studiorum/cli/commands/convert/supplement.py" = ["B904", "PTH123", "SIM102"]
+"src/studiorum/cli/commands/data.py" = ["B904", "PTH123", "RET504"]
+"src/studiorum/cli/commands/info.py" = ["B904", "PTH123"]
+"src/studiorum/cli/commands/list_content.py" = ["B904"]
+"src/studiorum/cli/commands/mcp.py" = ["B904", "SIM105"]
+"src/studiorum/cli/commands/setup.py" = ["B904"]
+"src/studiorum/cli/commands/stats.py" = ["B904"]
+"src/studiorum/cli/main.py" = ["B904", "PTH123"]
+"src/studiorum/cli/services.py" = ["RET504"]
+"src/studiorum/core/api.py" = ["RET504", "SIM102"]
+"src/studiorum/core/assets/image_sources.py" = ["PIE810", "PTH123", "SIM103", "SIM110", "SIM117", "UP042"]
+"src/studiorum/core/config/data_sources.py" = ["SIM102", "UP042"]
+"src/studiorum/core/config/loader.py" = ["B904"]
+"src/studiorum/core/config/observability_config.py" = ["SIM103"]
+"src/studiorum/core/config/sources.py" = ["B904", "PTH123", "UP042"]
+"src/studiorum/core/entry_validation.py" = ["B007"]
+"src/studiorum/core/error_types.py" = ["UP042"]
+"src/studiorum/core/latex_utils.py" = ["B007", "RET504", "SIM110"]
+"src/studiorum/core/loaders/content_index.py" = ["PTH123", "S110"]
+"src/studiorum/core/loaders/content_merger.py" = ["PTH123"]
+"src/studiorum/core/loaders/content_sources.py" = ["B904", "PTH123", "S110"]
+"src/studiorum/core/loaders/data_source_manager.py" = ["B007", "PERF102", "SIM102", "SIM118"]
+"src/studiorum/core/loaders/fluff_loader.py" = ["PTH123"]
+"src/studiorum/core/loaders/homebrew_loader.py" = ["PTH123", "SIM118"]
+"src/studiorum/core/loaders/json_loader.py" = ["B007", "PERF102", "PERF401", "PTH123", "SIM102", "SIM110"]
+"src/studiorum/core/loaders/omnidexer.py" = ["B007", "PERF102", "S110", "SIM102"]
+"src/studiorum/core/loaders/performance_omnidexer.py" = ["PERF401", "S110"]
+"src/studiorum/core/logging/image_observability.py" = ["T201", "UP042"]
+"src/studiorum/core/logging/logger.py" = ["T201"]
+"src/studiorum/core/models/adventures.py" = ["PERF402", "SIM102"]
+"src/studiorum/core/models/books.py" = ["PERF402"]
+"src/studiorum/core/models/chapter.py" = ["UP042"]
+"src/studiorum/core/models/charoptiontype.py" = ["RET504", "UP042"]
+"src/studiorum/core/models/content.py" = ["UP042"]
+"src/studiorum/core/models/creature_filters.py" = ["B904", "SIM102", "UP042"]
+"src/studiorum/core/models/creatures.py" = ["B007", "PERF102", "RET504", "SIM102"]
+"src/studiorum/core/models/document_metadata.py" = ["UP042"]
+"src/studiorum/core/models/facilities.py" = ["SIM110"]
+"src/studiorum/core/models/fluff.py" = ["PERF401"]
+"src/studiorum/core/models/item_filters.py" = ["PERF401", "SIM102"]
+"src/studiorum/core/models/itemmastery.py" = ["PERF401", "SIM110"]
+"src/studiorum/core/models/itemproperties.py" = ["RET504"]
+"src/studiorum/core/models/items.py" = ["PERF401", "UP042"]
+"src/studiorum/core/models/processors.py" = ["PERF402", "SIM108"]
+"src/studiorum/core/models/psionic.py" = ["UP042"]
+"src/studiorum/core/models/spells.py" = ["PERF401", "SIM101", "SIM108"]
+"src/studiorum/core/models/table.py" = ["PERF401"]
+"src/studiorum/core/models/variantrule.py" = ["UP042"]
+"src/studiorum/core/optimization/memory_manager.py" = ["S110", "SIM105"]
+"src/studiorum/core/parsers/creature_input.py" = ["B007", "B904", "PERF401", "RET504"]
+"src/studiorum/core/parsers/item_input.py" = ["B007", "PIE810", "PTH123"]
+"src/studiorum/core/parsers/spell_input.py" = ["B007", "PIE810", "PTH123"]
+"src/studiorum/core/references/content_reference_manager.py" = ["S110"]
+"src/studiorum/core/registry/content_type_registry.py" = ["B904"]
+"src/studiorum/core/registry/registry_manager.py" = ["F401"]
+"src/studiorum/core/resolvers/content_resolver.py" = ["B007", "PERF102", "PERF401", "RET504"]
+"src/studiorum/core/resolvers/copy_resolver.py" = ["B007", "PERF102"]
+"src/studiorum/core/security.py" = ["RET504"]
+"src/studiorum/core/services/container.py" = ["B007"]
+"src/studiorum/core/services/content_list_writer.py" = ["SIM118"]
+"src/studiorum/core/services/creature_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
+"src/studiorum/core/services/encounter_collector.py" = ["SIM102"]
+"src/studiorum/core/services/encounter_services.py" = ["B904"]
+"src/studiorum/core/services/factories.py" = ["PTH123"]
+"src/studiorum/core/services/fluff_deduplicator.py" = ["UP042"]
+"src/studiorum/core/services/fluff_image_extractor.py" = ["SIM102"]
+"src/studiorum/core/services/fluff_matcher.py" = ["PERF401", "RET504", "SIM105"]
+"src/studiorum/core/services/image_factories/image_factory.py" = ["RET504"]
+"src/studiorum/core/services/item_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
+"src/studiorum/core/services/lifecycle.py" = ["B007", "PERF102", "PERF401"]
+"src/studiorum/core/services/observability_integration.py" = ["PIE790"]
+"src/studiorum/core/services/spell_class_lookup.py" = ["PERF401", "SIM118"]
+"src/studiorum/core/services/spell_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103", "SIM110"]
+"src/studiorum/core/services/token_image_resolver.py" = ["B007", "PERF401"]
+"src/studiorum/core/sources/github.py" = ["B904"]
+"src/studiorum/core/text/tag_parser.py" = ["B904", "PTH123"]
+"src/studiorum/core/text/tag_types.py" = ["UP042"]
+"src/studiorum/core/text/text_extractor.py" = ["PERF401", "SIM102"]
+"src/studiorum/core/unified_references.py" = ["UP042"]
+"src/studiorum/core/utils/chapters.py" = ["B904", "SIM102"]
+"src/studiorum/core/validation/error_tracker.py" = ["RET504"]
+"src/studiorum/core/validation/strictness.py" = ["UP042"]
+"src/studiorum/latex_engine/config/compilation.py" = ["PERF401"]
+"src/studiorum/latex_engine/core/compiler.py" = ["PERF401"]
+"src/studiorum/latex_engine/core/content_organizer.py" = ["B007", "PERF102"]
+"src/studiorum/latex_engine/core/content_processor.py" = ["PERF401", "RET504", "SIM101"]
+"src/studiorum/latex_engine/core/dnd_template.py" = ["PERF401"]
+"src/studiorum/latex_engine/core/document.py" = ["RET504", "SIM102"]
+"src/studiorum/latex_engine/core/document_structure.py" = ["B007", "PERF102", "RET504", "SIM102"]
+"src/studiorum/latex_engine/core/entry_processor.py" = ["RET504", "SIM103"]
+"src/studiorum/latex_engine/core/images/content_aware_strategy.py" = ["SIM102"]
+"src/studiorum/latex_engine/core/images/image_placer.py" = ["UP042"]
+"src/studiorum/latex_engine/core/images/image_processor.py" = ["RET504"]
+"src/studiorum/latex_engine/core/images/integration/adventure.py" = ["B007", "PERF102"]
+"src/studiorum/latex_engine/core/images/integration/bestiary.py" = ["B007", "PERF402"]
+"src/studiorum/latex_engine/core/images/layout_analyzer.py" = ["RET504", "SIM102"]
+"src/studiorum/latex_engine/core/images/placement_models.py" = ["UP042"]
+"src/studiorum/latex_engine/core/images/registry/adventure_registry.py" = ["PTH123", "RET504"]
+"src/studiorum/latex_engine/core/images/specialized_strategies.py" = ["SIM102"]
+"src/studiorum/latex_engine/core/reference_resolver.py" = ["SIM108"]
+"src/studiorum/latex_engine/core/tag_renderer.py" = ["B007", "PERF102", "RET504"]
+"src/studiorum/latex_engine/core/template_engine.py" = ["PIE810", "RET504"]
+"src/studiorum/latex_engine/utils/error_parser.py" = ["PIE810"]
+"src/studiorum/latex_engine/utils/progress_tracker.py" = ["E722", "SIM102", "T201"]
+"src/studiorum/mcp/registry.py" = ["B904"]
+"src/studiorum/mcp/request_handler.py" = ["RET504"]
+"src/studiorum/mcp/server.py" = ["B904", "RET504"]
+"src/studiorum/mcp/tools/character/progression.py" = ["B904"]
+"src/studiorum/mcp/tools/content.py" = ["B904"]
+"src/studiorum/mcp/tools/data.py" = ["PERF401"]
+"src/studiorum/mcp/tools/encounter/budget.py" = ["B904"]
+"src/studiorum/mcp/tools/encounter/themes.py" = ["B007", "B904", "SIM102"]
+"src/studiorum/mcp/tools/encounter/themes_pydantic.py" = ["SIM102"]
+"src/studiorum/mcp/tools/encounter/tools.py" = ["B904"]
+"src/studiorum/mcp/tools/rules/enhanced_cross_reference_manager.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
+"src/studiorum/mcp/tools/rules/rule_intelligence_service.py" = ["PERF401", "RET504"]
+"src/studiorum/mcp/tools/rules/rule_search_result.py" = ["PERF401"]
+"src/studiorum/mcp/tools/rules/tools.py" = ["B904"]
+"src/studiorum/renderers/core/enhancers.py" = ["RET504", "SIM103"]
+"src/studiorum/renderers/core/handlers.py" = ["RET504", "SIM102"]
+"src/studiorum/renderers/core/interfaces.py" = ["UP042"]
+"tests/build_all_content.py" = ["PTH123", "T201"]
+"tests/cli/commands/test_base_convert_command.py" = ["SIM117"]
+"tests/cli/commands/test_cli_integration_enhanced_features.py" = ["SIM117"]
+"tests/cli/commands/test_convert_adventures.py" = ["PTH103", "T201"]
+"tests/cli/commands/test_convert_latex_options.py" = ["T201"]
+"tests/cli/commands/test_convert_spells.py" = ["PTH103"]
+"tests/cli/commands/test_enhanced_from_file.py" = ["T201"]
+"tests/cli/commands/test_setup_commands.py" = ["T201"]
+"tests/cli/test_config_integration.py" = ["SIM117"]
+"tests/core/config/test_workflow_config.py" = ["B007", "PERF102"]
+"tests/core/logging/test_image_observability.py" = ["B007"]
+"tests/core/references/test_cross_reference_manager.py" = ["B007", "PERF102"]
+"tests/core/sources/test_github.py" = ["SIM117"]
+"tests/core/test_async_request_context.py" = ["S110", "SIM105", "SIM117"]
+"tests/fixtures/factories.py" = ["RET504"]
+"tests/integration/test_adventure_conversion.py" = ["SIM102"]
+"tests/integration/test_adventure_resolution.py" = ["PTH123", "T201"]
+"tests/integration/test_adventure_resolution_no_duplicates.py" = ["PTH123"]
+"tests/integration/test_book_conversion.py" = ["SIM102"]
+"tests/integration/test_creature_edge_cases_real_data.py" = ["E722", "PERF401", "S110", "T201"]
+"tests/integration/test_creature_real_5etools_data.py" = ["SIM102", "T201"]
+"tests/integration/test_data_source_refactor.py" = ["T201"]
+"tests/integration/test_error_handling_integration.py" = ["B007"]
+"tests/integration/test_full_dataset_validation.py" = ["PERF401", "T201"]
+"tests/integration/test_modern_container_integration.py" = ["RET504", "SIM117"]
+"tests/integration/test_real_book_deep_indexing.py" = ["T201"]
+"tests/integration/test_source_discovery.py" = ["B007", "PERF102", "PTH123", "SIM117"]
+"tests/latex_engine/core/images/test_integration.py" = ["B007", "SIM117"]
+"tests/latex_engine/core/images/test_layout_analyzer.py" = ["B007"]
+"tests/mcp/tools/test_config_tools.py" = ["SIM117"]
+"tests/performance/test_content_loading_performance.py" = ["T201"]
+"tests/performance/test_creature_collection_performance.py" = ["PERF401", "T201"]
+"tests/performance/test_creature_real_data_benchmarks.py" = ["E722", "PERF401", "S110", "T201"]
+"tests/performance/test_creature_scale_benchmarks.py" = ["B007", "T201"]
+"tests/performance/test_enhanced_file_performance.py" = ["B007", "PERF401"]
+"tests/performance/test_tag_system_benchmark.py" = ["PERF401"]
+"tests/property_based/test_content_stateful.py" = ["PERF401", "SIM118"]
+"tests/property_based/test_creature_properties.py" = ["B007", "S110"]
+"tests/property_based/test_spell_properties.py" = ["SIM102"]
+"tests/renderers/core/test_real_data_integration.py" = ["PTH123"]
+"tests/renderers/latex/test_compiler.py" = ["SIM103"]
+"tests/renderers/latex/test_content_placeholder_regression.py" = ["B007"]
+"tests/renderers/latex/test_dnd_template.py" = ["B007", "PERF102", "RET503"]
+"tests/renderers/latex/test_document_renderer_integration.py" = ["SIM117"]
+"tests/renderers/latex/test_entry_processor_errors.py" = ["S110"]
+"tests/renderers/latex/test_performance_benchmarks.py" = ["PERF401", "T201"]
+"tests/renderers/latex/test_progress_tracker.py" = ["SIM117"]
+"tests/test_data_helpers.py" = ["RET504"]
+"tests/unit/core/services/test_fluff_matcher_phase5.py" = ["RET504"]
+"tests/unit/core/services/test_token_image_resolver.py" = ["SIM117"]
+"tests/unit/models/test_creature_stat_blocks.py" = ["PERF401"]
+"tests/unit/test_books.py" = ["B007"]
+"tests/unit/test_configurable_source_manager.py" = ["B007", "PERF102", "SIM118"]
+"tests/unit/test_content_source_manager.py" = ["SIM117"]
+"tests/unit/test_creature_filtering_collection.py" = ["T201"]
+"tests/unit/test_data_validation_stress.py" = ["T201"]
+"tests/unit/test_liberal_parsing.py" = ["T201"]
+"tests/unit/test_model_validation_edge_cases.py" = ["B007", "S110", "T201"]
+"tests/unit/test_omnidexer.py" = ["B007", "PERF102", "SIM117"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["studiorum"]
@@ -275,3 +476,165 @@ skips = ["B603"]
 # - B607: Already resolved via studiorum.core.security module (0 remaining)
 
 exclude_dirs = ["/tests/", "/scripts/"]
+
+[tool.importlinter]
+root_package = "studiorum"
+
+# Dependencies point down: core is the bottom layer. The ignore_imports lists were
+# generated on 2026-09-24 (722f688) from every import that broke the contract then.
+# They record existing debt, so the check passes today and any new inversion fails.
+# Remove entries as the inversions are fixed; a stale entry is itself an error.
+
+[[tool.importlinter.contracts]]
+id = "layers"
+name = "Layers: cli and mcp above latex_engine above renderers above core"
+type = "layers"
+layers = [
+    "studiorum.cli | studiorum.mcp",
+    "studiorum.latex_engine",
+    "studiorum.renderers",
+    "studiorum.core",
+]
+ignore_imports = [
+    "studiorum.cli.commands.mcp -> studiorum.mcp.server",
+    "studiorum.core.assets.image_manager -> studiorum.renderers.core.interfaces",
+    "studiorum.core.logging.image_observability -> studiorum.latex_engine.core.images.placement_models",
+    "studiorum.core.models.creatures -> studiorum.cli.services",
+    "studiorum.core.models.creatures -> studiorum.latex_engine.core.entry_processor",
+    "studiorum.core.models.creatures -> studiorum.latex_engine.services.template_service",
+    "studiorum.core.models.creatures -> studiorum.renderers.core.interfaces",
+    "studiorum.core.models.items -> studiorum.cli.services",
+    "studiorum.core.models.items -> studiorum.latex_engine.services.template_service",
+    "studiorum.core.models.processors -> studiorum.latex_engine.core.entry_processor",
+    "studiorum.core.models.processors -> studiorum.renderers.core.interfaces",
+    "studiorum.core.models.spells -> studiorum.cli.services",
+    "studiorum.core.models.spells -> studiorum.latex_engine.services.template_service",
+    "studiorum.core.registry.registry_manager -> studiorum.latex_engine.core.entry_processor",
+    "studiorum.core.services.appendix_generator -> studiorum.cli.config_factory",
+    "studiorum.core.services.creature_collector -> studiorum.cli.config_factory",
+    "studiorum.core.services.factories -> studiorum.cli.display_manager",
+    "studiorum.core.services.factories -> studiorum.latex_engine.formatters.latex_formatter",
+    "studiorum.core.services.factories -> studiorum.latex_engine.formatters.protocols",
+    "studiorum.core.services.factories -> studiorum.latex_engine.services.context_bound_template_service",
+    "studiorum.core.services.factories -> studiorum.latex_engine.services.protocols",
+    "studiorum.core.services.factories -> studiorum.latex_engine.services.template_service",
+    "studiorum.core.services.factories -> studiorum.renderers.core.interfaces",
+    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images",
+    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.enhanced_image_placer",
+    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.gallery_processor",
+    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.integration.adventure",
+    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.integration.bestiary",
+    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.integration.items",
+    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.layout_analyzer",
+    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.output_optimizer",
+    "studiorum.core.services.image_factories.image_factory -> studiorum.latex_engine.core.images.registry.adventure_registry",
+    "studiorum.core.services.item_collector -> studiorum.cli.config_factory",
+    "studiorum.core.services.observability_integration -> studiorum.latex_engine.core.images.placement_models",
+    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.enhanced_image_placer",
+    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.gallery_processor",
+    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.integration.adventure",
+    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.integration.bestiary",
+    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.integration.items",
+    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.layout_analyzer",
+    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.output_optimizer",
+    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.placement_models",
+    "studiorum.core.services.protocols -> studiorum.latex_engine.core.images.registry.adventure_registry",
+    "studiorum.core.services.protocols -> studiorum.renderers.core.interfaces",
+    "studiorum.core.services.spell_collector -> studiorum.cli.config_factory",
+    "studiorum.core.services.token_image_resolver -> studiorum.latex_engine.core.images.format_converter",
+    "studiorum.core.text.tag_resolver -> studiorum.renderers.core.handlers",
+    "studiorum.core.text.tag_resolver -> studiorum.renderers.core.interfaces",
+    "studiorum.core.text.tag_resolver -> studiorum.renderers.core.unified_renderer",
+    "studiorum.latex_engine.core.entry_renderers -> studiorum.cli.services",
+    "studiorum.latex_engine.core.template_engine -> studiorum.cli.services",
+    "studiorum.latex_engine.utils.progress_tracker -> studiorum.cli.display_manager",
+    "studiorum.renderers.core.interfaces -> studiorum.latex_engine.core.tag_renderer",
+]
+
+[[tool.importlinter.contracts]]
+id = "core-acyclic"
+name = "core sub-packages are acyclic"
+type = "acyclic_siblings"
+ancestors = ["studiorum.core"]
+ignore_imports = [
+    "studiorum.core.base_context -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.config.unified_config -> studiorum.core.assets.image_sources",
+    "studiorum.core.context -> studiorum.core.services.container",
+    "studiorum.core.context -> studiorum.core.services.factories",
+    "studiorum.core.context -> studiorum.core.services.lifecycle",
+    "studiorum.core.context -> studiorum.core.services.protocols",
+    "studiorum.core.context -> studiorum.core.services.registration",
+    "studiorum.core.entry_registry -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.interfaces -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.interfaces -> studiorum.core.models.content",
+    "studiorum.core.loaders.data_source_manager -> studiorum.core.services.access",
+    "studiorum.core.loaders.json_loader -> studiorum.core.services.access",
+    "studiorum.core.loaders.json_loader -> studiorum.core.services.protocols",
+    "studiorum.core.loaders.omnidexer -> studiorum.core.services.fluff_matcher",
+    "studiorum.core.loaders.omnidexer -> studiorum.core.services.spell_class_lookup",
+    "studiorum.core.loaders.performance_omnidexer -> studiorum.core.services.access",
+    "studiorum.core.loaders.performance_omnidexer -> studiorum.core.services.protocols",
+    "studiorum.core.models.adventures -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.models.adventures -> studiorum.core.registry",
+    "studiorum.core.models.backgrounds -> studiorum.core.registry",
+    "studiorum.core.models.baseitems -> studiorum.core.registry",
+    "studiorum.core.models.books -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.models.books -> studiorum.core.registry",
+    "studiorum.core.models.charoption -> studiorum.core.registry",
+    "studiorum.core.models.charoptiontype -> studiorum.core.registry",
+    "studiorum.core.models.classes -> studiorum.core.registry",
+    "studiorum.core.models.creatures -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.models.creatures -> studiorum.core.registry",
+    "studiorum.core.models.cults -> studiorum.core.registry",
+    "studiorum.core.models.decks -> studiorum.core.registry",
+    "studiorum.core.models.deities -> studiorum.core.registry",
+    "studiorum.core.models.diseases -> studiorum.core.registry",
+    "studiorum.core.models.facilities -> studiorum.core.registry",
+    "studiorum.core.models.feats -> studiorum.core.registry",
+    "studiorum.core.models.fluff -> studiorum.core.registry",
+    "studiorum.core.models.itemmastery -> studiorum.core.registry",
+    "studiorum.core.models.itemproperties -> studiorum.core.registry",
+    "studiorum.core.models.items -> studiorum.core.loaders.json_loader",
+    "studiorum.core.models.items -> studiorum.core.registry",
+    "studiorum.core.models.legendarygroup -> studiorum.core.registry",
+    "studiorum.core.models.magicvariant -> studiorum.core.registry",
+    "studiorum.core.models.objects -> studiorum.core.registry",
+    "studiorum.core.models.optional_features -> studiorum.core.registry",
+    "studiorum.core.models.processors -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.models.processors -> studiorum.core.models.creatures",
+    "studiorum.core.models.processors -> studiorum.core.models.items",
+    "studiorum.core.models.psionic -> studiorum.core.registry",
+    "studiorum.core.models.races -> studiorum.core.registry",
+    "studiorum.core.models.recipes -> studiorum.core.registry",
+    "studiorum.core.models.rewards -> studiorum.core.registry",
+    "studiorum.core.models.rule_types -> studiorum.core.registry",
+    "studiorum.core.models.spells -> studiorum.core.models.processors",
+    "studiorum.core.models.spells -> studiorum.core.registry",
+    "studiorum.core.models.subclasses -> studiorum.core.registry",
+    "studiorum.core.models.subraces -> studiorum.core.registry",
+    "studiorum.core.models.table -> studiorum.core.registry",
+    "studiorum.core.models.tokens -> studiorum.core.services.token_image_resolver",
+    "studiorum.core.models.traps -> studiorum.core.registry",
+    "studiorum.core.models.variantrule -> studiorum.core.registry",
+    "studiorum.core.models.vehicles -> studiorum.core.registry",
+    "studiorum.core.references.content_reference_manager -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.references.content_reference_manager -> studiorum.core.models.content",
+    "studiorum.core.references.reference_index -> studiorum.core.models.content",
+    "studiorum.core.references.spell_references -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.references.spell_references -> studiorum.core.models.content",
+    "studiorum.core.registry.registry_manager -> studiorum.core.loaders.content_factory",
+    "studiorum.core.registry.registry_manager -> studiorum.core.loaders.data_source_manager",
+    "studiorum.core.registry.registry_manager -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.registry.registry_manager -> studiorum.core.loaders.unified_source_manager",
+    "studiorum.core.registry.registry_manager -> studiorum.core.registry.content_type_registry",
+    "studiorum.core.resolvers.content_resolver -> studiorum.core.loaders.content_merger",
+    "studiorum.core.resolvers.content_resolver -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.resolvers.content_resolver -> studiorum.core.services.item_collector",
+    "studiorum.core.resolvers.content_resolver -> studiorum.core.services.protocols",
+    "studiorum.core.resolvers.content_resolver -> studiorum.core.services.spell_collector",
+    "studiorum.core.resolvers.copy_resolver -> studiorum.core.loaders.omnidexer",
+    "studiorum.core.services.factories -> studiorum.core.services.container",
+    "studiorum.core.services.lifecycle -> studiorum.core.services.container",
+    "studiorum.core.text.tag_types -> studiorum.core.models.content",
+    "studiorum.core.unified_references -> studiorum.core.models.content",
+]

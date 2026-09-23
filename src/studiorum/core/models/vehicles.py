@@ -7,7 +7,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from ..registry import content_type
-from .content import BaseContent, Source
+from .content import BaseContent
 
 
 class VehicleArmor(BaseModel):

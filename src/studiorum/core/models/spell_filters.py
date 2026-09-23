@@ -1,6 +1,6 @@
 """Spell filtering models for advanced spell collection and filtering."""
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field, field_validator
 

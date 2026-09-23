@@ -17,7 +17,6 @@ from studiorum.latex_engine.core.entry_renderers import (
     SpellEntryRenderer,
 )
 from studiorum.renderers.core.interfaces import RenderingContext
-from tests.test_helpers import reset_test_environment
 
 
 def _has_unresolved_tags(s: str) -> bool:
@@ -28,10 +27,6 @@ def _has_unresolved_tags(s: str) -> bool:
 @pytest.mark.rendering
 class TestNoUnresolvedTags:
     """Ensure rendered entries do not contain unresolved tags."""
-
-    def setup_method(self) -> None:
-        """Reset environment for isolation and predictable configuration."""
-        reset_test_environment()
 
     def test_spell_no_unresolved_tags(self) -> None:
         from studiorum.core.models.spells import Spell

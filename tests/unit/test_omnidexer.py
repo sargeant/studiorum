@@ -3,8 +3,6 @@
 from pathlib import Path
 from typing import Any
 
-import pytest
-
 from studiorum.core.loaders.data_source_manager import DataSourceManager
 from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from studiorum.core.loaders.omnidexer import IndexEntry, Omnidexer  # type: ignore
@@ -23,17 +21,12 @@ def load_all_data_sync(omnidexer: Omnidexer) -> dict[str, int]:
     This eliminates async/sync boundary race conditions in tests while
     preserving the async interface for production CLI usage.
     """
-    import asyncio
 
     return omnidexer.load_all_data()
 
 
 class TestIndexEntry:
     """Tests for IndexEntry class."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
 
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""
@@ -66,10 +59,6 @@ class TestIndexEntry:
 
 class TestOmnidexer:
     """Tests for Omnidexer class."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
 
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""
@@ -245,10 +234,6 @@ class TestOmnidexer:
 
 class TestDeepIndexing:
     """Tests for DeepIndexable protocol and deep indexing functionality."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
 
     def teardown_method(self) -> None:
         """Clear cache after each test using service container."""
@@ -427,7 +412,6 @@ class TestOmnidexerMetadataOnlyLoading:
         """Test that omnidexer only loads metadata files, not content files."""
         from unittest.mock import Mock, patch
 
-        from studiorum.core.loaders.omnidexer import Omnidexer
         from studiorum.core.loaders.unified_source_manager import (
             UnifiedSourceManager,
         )
@@ -495,7 +479,6 @@ class TestOmnidexerMetadataOnlyLoading:
 
         with patch.object(UnifiedSourceManager, "__init__", return_value=None):
             # Mock content patterns to prevent initialization requirement
-            from studiorum.core.models.content import ContentType
 
             mock_content_patterns = {
                 self._get_content_type("adventure"): ["adventures", "adventure-"],

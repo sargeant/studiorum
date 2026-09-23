@@ -31,7 +31,6 @@ class ContentProcessor(ABC):
         Returns:
             Dictionary of processed data
         """
-        pass
 
     @abstractmethod
     def supports_content_type(self, content_type: ContentType) -> bool:
@@ -43,7 +42,6 @@ class ContentProcessor(ABC):
         Returns:
             True if processor supports the content type
         """
-        pass
 
 
 class SpellProcessor(ContentProcessor):
@@ -141,7 +139,7 @@ class SpellProcessor(ContentProcessor):
         """Check if spell has verbal component."""
         if hasattr(spell.components, "verbal"):
             return spell.components.verbal
-        elif isinstance(spell.components, dict):
+        if isinstance(spell.components, dict):
             return spell.components.get("v", False)
         return False
 
@@ -149,7 +147,7 @@ class SpellProcessor(ContentProcessor):
         """Check if spell has somatic component."""
         if hasattr(spell.components, "somatic"):
             return spell.components.somatic
-        elif isinstance(spell.components, dict):
+        if isinstance(spell.components, dict):
             return spell.components.get("s", False)
         return False
 
@@ -173,7 +171,7 @@ class SpellProcessor(ContentProcessor):
         for duration_entry in spell.duration:
             if hasattr(duration_entry, "concentration"):
                 return duration_entry.concentration
-            elif isinstance(duration_entry, dict):
+            if isinstance(duration_entry, dict):
                 return duration_entry.get("concentration", False)
 
         return False
@@ -254,15 +252,14 @@ class CreatureProcessor(ContentProcessor):
         cr_str = str(cr)
         if cr_str == "1/8":
             return 0.125
-        elif cr_str == "1/4":
+        if cr_str == "1/4":
             return 0.25
-        elif cr_str == "1/2":
+        if cr_str == "1/2":
             return 0.5
-        else:
-            try:
-                return float(cr_str)
-            except ValueError:
-                return 0.0
+        try:
+            return float(cr_str)
+        except ValueError:
+            return 0.0
 
     def _get_cr_category(self, cr: Any) -> str:
         """Get CR category for grouping."""
@@ -270,16 +267,15 @@ class CreatureProcessor(ContentProcessor):
 
         if numeric_cr == 0:
             return "Trivial"
-        elif numeric_cr <= 0.5:
+        if numeric_cr <= 0.5:
             return "Low"
-        elif numeric_cr <= 4:
+        if numeric_cr <= 4:
             return "Medium"
-        elif numeric_cr <= 10:
+        if numeric_cr <= 10:
             return "High"
-        elif numeric_cr <= 16:
+        if numeric_cr <= 16:
             return "Epic"
-        else:
-            return "Legendary"
+        return "Legendary"
 
     def _get_size_category(self, size: list[str]) -> str:
         """Get primary size category."""
@@ -303,20 +299,19 @@ class CreatureProcessor(ContentProcessor):
 
         if numeric_cr <= 4:
             return 2
-        elif numeric_cr <= 8:
+        if numeric_cr <= 8:
             return 3
-        elif numeric_cr <= 12:
+        if numeric_cr <= 12:
             return 4
-        elif numeric_cr <= 16:
+        if numeric_cr <= 16:
             return 5
-        elif numeric_cr <= 20:
+        if numeric_cr <= 20:
             return 6
-        elif numeric_cr <= 24:
+        if numeric_cr <= 24:
             return 7
-        elif numeric_cr <= 28:
+        if numeric_cr <= 28:
             return 8
-        else:
-            return 9
+        return 9
 
     def _calculate_ability_modifiers(self, creature: Creature) -> dict[str, int]:
         """Calculate ability modifiers."""
@@ -447,12 +442,11 @@ class ItemProcessor(ContentProcessor):
         """Get broad item category."""
         if item.is_weapon():
             return "Weapon"
-        elif item.is_armor():
+        if item.is_armor():
             return "Armor"
-        elif self._is_magic_item(item):
+        if self._is_magic_item(item):
             return "Magic Item"
-        else:
-            return "Equipment"
+        return "Equipment"
 
     def _get_rarity_tier(self, item: Item) -> str:
         """Get rarity tier for organization."""
@@ -462,14 +456,13 @@ class ItemProcessor(ContentProcessor):
         rarity_str = str(item.rarity).lower()
         if "legendary" in rarity_str:
             return "Legendary"
-        elif "very rare" in rarity_str:
+        if "very rare" in rarity_str:
             return "Very Rare"
-        elif "rare" in rarity_str:
+        if "rare" in rarity_str:
             return "Rare"
-        elif "uncommon" in rarity_str:
+        if "uncommon" in rarity_str:
             return "Uncommon"
-        else:
-            return "Common"
+        return "Common"
 
     def _is_magic_item(self, item: Item) -> bool:
         """Check if item is magical."""
@@ -482,8 +475,7 @@ class ItemProcessor(ContentProcessor):
 
         if isinstance(item.requires_attunement, bool):
             return item.requires_attunement
-        else:
-            return True
+        return True
 
     def _extract_item_properties(self, item: Item) -> list[str]:
         """Extract item properties."""
@@ -520,22 +512,19 @@ class ItemProcessor(ContentProcessor):
             return "Priceless"
 
         try:
-            if isinstance(item.value, int | float):
-                value = float(item.value)
-            elif isinstance(item.value, str):
+            if isinstance(item.value, int | float) or isinstance(item.value, str):
                 value = float(item.value)
             else:
                 return "Unknown"
             if value >= 50000:  # 500+ gp
                 return "Expensive"
-            elif value >= 10000:  # 100+ gp
+            if value >= 10000:  # 100+ gp
                 return "Costly"
-            elif value >= 1000:  # 10+ gp
+            if value >= 1000:  # 10+ gp
                 return "Moderate"
-            elif value >= 100:  # 1+ gp
+            if value >= 100:  # 1+ gp
                 return "Affordable"
-            else:
-                return "Cheap"
+            return "Cheap"
         except (ValueError, TypeError):
             return "Variable"
 
@@ -592,5 +581,4 @@ class ContentProcessorRegistry:
 
         if processor:
             return processor.process(content, context)
-        else:
-            return {}
+        return {}

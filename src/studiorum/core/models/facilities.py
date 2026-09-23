@@ -19,12 +19,11 @@ class FacilityHirelings(BaseModel):
         """Get a formatted hireling count description."""
         if self.exact:
             return str(self.exact)
-        elif self.min and self.max:
+        if self.min and self.max:
             return f"{self.min}-{self.max}"
-        elif self.min:
+        if self.min:
             return f"{self.min}+"
-        else:
-            return "0"
+        return "0"
 
 
 class FacilityPrerequisite(BaseModel):

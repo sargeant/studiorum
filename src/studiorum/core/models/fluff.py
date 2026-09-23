@@ -52,7 +52,7 @@ class FluffEntry(BaseModel):
         """Extract text content from various structures."""
         if isinstance(v, str):
             return v
-        elif isinstance(v, list):
+        if isinstance(v, list):
             # Extract text from list of entries
             text_parts = []
             for item in v:
@@ -67,11 +67,11 @@ class FluffEntry(BaseModel):
                     elif "text" in item:
                         text_parts.append(item["text"])
             return " ".join(text_parts)
-        elif isinstance(v, dict):
+        if isinstance(v, dict):
             # Try to extract text from dict structure
             if "entries" in v:
                 return cls._extract_text_from_entries(v["entries"])
-            elif "text" in v:
+            if "text" in v:
                 return str(v["text"])
         return str(v) if v else ""
 
@@ -142,13 +142,12 @@ class BaseFluff(BaseContent):
                     logger.warning(f"Unexpected error parsing fluff entry {entry}: {e}")
                     continue
             return parsed_entries
-        else:
-            # Single entry
-            try:
-                return [FluffEntry(content=v)]
-            except (ValidationError, TypeError) as e:
-                logger.debug(f"Failed to parse single fluff entry '{v}': {e}")
-                return []
+        # Single entry
+        try:
+            return [FluffEntry(content=v)]
+        except (ValidationError, TypeError) as e:
+            logger.debug(f"Failed to parse single fluff entry '{v}': {e}")
+            return []
 
     @field_validator("images", mode="before")
     @classmethod
@@ -207,8 +206,6 @@ class BaseFluff(BaseContent):
 class SpellFluff(BaseFluff):
     """Fluff content specific to spells."""
 
-    pass
-
 
 @content_type(
     enum_value="creatureFluff",
@@ -218,8 +215,6 @@ class SpellFluff(BaseFluff):
 )
 class CreatureFluff(BaseFluff):
     """Fluff content specific to creatures/monsters."""
-
-    pass
 
 
 @content_type(
@@ -231,8 +226,6 @@ class CreatureFluff(BaseFluff):
 class ItemFluff(BaseFluff):
     """Fluff content specific to items."""
 
-    pass
-
 
 @content_type(
     enum_value="raceFluff",
@@ -242,8 +235,6 @@ class ItemFluff(BaseFluff):
 )
 class RaceFluff(BaseFluff):
     """Fluff content specific to races."""
-
-    pass
 
 
 @content_type(
@@ -255,8 +246,6 @@ class RaceFluff(BaseFluff):
 class FeatFluff(BaseFluff):
     """Fluff content specific to feats."""
 
-    pass
-
 
 @content_type(
     enum_value="classFluff",
@@ -266,8 +255,6 @@ class FeatFluff(BaseFluff):
 )
 class ClassFluff(BaseFluff):
     """Fluff content specific to classes."""
-
-    pass
 
 
 @content_type(
@@ -283,8 +270,6 @@ class ClassFluff(BaseFluff):
 class BackgroundFluff(BaseFluff):
     """Fluff content specific to backgrounds."""
 
-    pass
-
 
 @content_type(
     enum_value="optionalfeatureFluff",
@@ -299,8 +284,6 @@ class BackgroundFluff(BaseFluff):
 class OptionalFeatureFluff(BaseFluff):
     """Fluff content specific to optional features."""
 
-    pass
-
 
 @content_type(
     enum_value="vehicleFluff",
@@ -310,8 +293,6 @@ class OptionalFeatureFluff(BaseFluff):
 )
 class VehicleFluff(BaseFluff):
     """Fluff content specific to vehicles."""
-
-    pass
 
 
 @content_type(
@@ -323,8 +304,6 @@ class VehicleFluff(BaseFluff):
 class ObjectFluff(BaseFluff):
     """Fluff content specific to objects."""
 
-    pass
-
 
 @content_type(
     enum_value="languageFluff",
@@ -335,8 +314,6 @@ class ObjectFluff(BaseFluff):
 class LanguageFluff(BaseFluff):
     """Fluff content specific to languages."""
 
-    pass
-
 
 @content_type(
     enum_value="rewardFluff",
@@ -346,8 +323,6 @@ class LanguageFluff(BaseFluff):
 )
 class RewardFluff(BaseFluff):
     """Fluff content specific to rewards."""
-
-    pass
 
 
 @content_type(
@@ -363,8 +338,6 @@ class RewardFluff(BaseFluff):
 class ConditionDiseaseFluff(BaseFluff):
     """Fluff content specific to conditions and diseases."""
 
-    pass
-
 
 @content_type(
     enum_value="trapHazardFluff",
@@ -374,8 +347,6 @@ class ConditionDiseaseFluff(BaseFluff):
 )
 class TrapHazardFluff(BaseFluff):
     """Fluff content specific to traps and hazards."""
-
-    pass
 
 
 @content_type(
@@ -387,8 +358,6 @@ class TrapHazardFluff(BaseFluff):
 class BastionFluff(BaseFluff):
     """Fluff content specific to bastions."""
 
-    pass
-
 
 @content_type(
     enum_value="recipeFluff",
@@ -399,8 +368,6 @@ class BastionFluff(BaseFluff):
 class RecipeFluff(BaseFluff):
     """Fluff content specific to recipes."""
 
-    pass
-
 
 @content_type(
     enum_value="charoptionFluff",
@@ -410,5 +377,3 @@ class RecipeFluff(BaseFluff):
 )
 class CharoptionFluff(BaseFluff):
     """Fluff content specific to character creation options."""
-
-    pass

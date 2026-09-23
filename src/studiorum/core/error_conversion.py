@@ -23,7 +23,7 @@ from studiorum.core.error_types import (
 
 # Legacy exception imports removed in Phase 3
 # Exception classes are no longer used - only Result patterns
-from studiorum.core.result import Error, Result, Success, is_error_result
+from studiorum.core.result import Result, is_error_result
 
 # Bridge functions removed in Phase 4 - error conversion module now only contains MCP utilities
 

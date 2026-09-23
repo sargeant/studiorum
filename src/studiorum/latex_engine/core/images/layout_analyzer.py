@@ -6,13 +6,11 @@ and optimal image sequencing with page break prediction capabilities.
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 from studiorum.core.logging import get_logger
-from studiorum.core.result import Error, Result, Success
 from studiorum.latex_engine.core.images.image_placer import ImagePlacement, ImageSize
 from studiorum.latex_engine.core.images.placement_models import (
     BreakPoint,
@@ -388,16 +386,15 @@ class LayoutAnalyzer:
         if page_context.current_fill < 0.3:
             # Mostly empty page - large contiguous space
             return [relative_remaining]
-        elif page_context.current_fill < 0.7:
+        if page_context.current_fill < 0.7:
             # Moderately filled - some fragmentation
             return [relative_remaining * 0.6, relative_remaining * 0.4]
-        else:
-            # Mostly full - high fragmentation
-            return [
-                relative_remaining * 0.4,
-                relative_remaining * 0.3,
-                relative_remaining * 0.3,
-            ]
+        # Mostly full - high fragmentation
+        return [
+            relative_remaining * 0.4,
+            relative_remaining * 0.3,
+            relative_remaining * 0.3,
+        ]
 
     def _recommend_image_sizes(
         self, page_context: PageContext, fragments: list[float]

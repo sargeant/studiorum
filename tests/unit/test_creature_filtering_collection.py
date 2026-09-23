@@ -16,16 +16,11 @@ from studiorum.core.models.creature_filters import (
 )
 from studiorum.core.models.creatures import Creature
 from studiorum.core.services.creature_collector import CreatureCollector
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.fast
 class TestCreatureFilterCriteria:
     """Test creature filter criteria validation and behavior."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_basic_filter_criteria_creation(self):
         """Test creation of basic filter criteria."""
@@ -147,7 +142,6 @@ class TestCreatureCollector:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
 
         # Create mock omnidexer
         self.mock_omnidexer = Mock()
@@ -388,10 +382,6 @@ class TestCreatureCollector:
 class TestCreatureCollectionResult:
     """Test creature collection result functionality."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
-
     def test_basic_result_creation(self):
         """Test creation of basic collection result."""
         result = CreatureCollectionResult()
@@ -517,7 +507,6 @@ class TestCreatureFilteringIntegration:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
 
         # Create comprehensive test dataset
         self.test_dataset = self._create_comprehensive_dataset()

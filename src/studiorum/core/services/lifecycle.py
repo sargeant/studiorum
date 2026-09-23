@@ -19,10 +19,8 @@ from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Any,
-    Generic,
     Protocol,
     TypeVar,
-    Union,
     runtime_checkable,
 )
 
@@ -334,8 +332,7 @@ def optimize_lifecycle_for_service(
     if not is_expensive_to_create:
         if supports_hot_reload:
             return ServiceLifecycle.SINGLETON  # Need persistent instance for reload
-        else:
-            return ServiceLifecycle.TRANSIENT
+        return ServiceLifecycle.TRANSIENT
 
     # Default to singleton for other cases
     return ServiceLifecycle.SINGLETON

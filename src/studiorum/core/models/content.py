@@ -141,9 +141,9 @@ class BaseContent(BaseModel):
         """Handle both string and dict source formats for liberal parsing."""
         if isinstance(v, str):
             return {"abbreviation": v, "name": v}
-        elif isinstance(v, dict):
+        if isinstance(v, dict):
             return v
-        elif hasattr(v, "abbreviation") and hasattr(v, "name"):
+        if hasattr(v, "abbreviation") and hasattr(v, "name"):
             # If it's already a Source object, return it as-is
             return v
         # Fallback - convert to string and create dict

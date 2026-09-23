@@ -4,19 +4,12 @@ import json
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-import pytest
-
 from studiorum.core.loaders.json_loader import JsonDataLoader
 from studiorum.core.models.content import ContentType
-from tests.test_helpers import reset_test_environment
 
 
 class TestAdventureLoading:
     """Test cases for adventure loading functionality."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
 
     def test_adventure_data_only_format_loads_entries(self):
         """Test that data-only adventure files load chapter entries correctly.

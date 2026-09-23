@@ -9,7 +9,6 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.cli
@@ -18,7 +17,6 @@ class TestCLIIntegrationEnhancedFeatures:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        reset_test_environment()
         self.runner = CliRunner()
         self.temp_dir = Path(tempfile.mkdtemp())
 
@@ -499,9 +497,8 @@ class TestCLIIntegrationEnhancedFeatures:
                             mock_spell.source = Mock()
                             mock_spell.source.abbreviation = source
                             mock_spell.level = 1  # Default level
-                            mock_spell.__lt__ = (
-                                lambda self, other: self.name.lower()
-                                < other.name.lower()
+                            mock_spell.__lt__ = lambda self, other: (
+                                self.name.lower() < other.name.lower()
                             )
                             return mock_spell
 
@@ -663,9 +660,8 @@ class TestCLIIntegrationEnhancedFeatures:
                             mock_spell.source = Mock()
                             mock_spell.source.abbreviation = source
                             mock_spell.level = 1  # Default level
-                            mock_spell.__lt__ = (
-                                lambda self, other: self.name.lower()
-                                < other.name.lower()
+                            mock_spell.__lt__ = lambda self, other: (
+                                self.name.lower() < other.name.lower()
                             )
                             return mock_spell
 

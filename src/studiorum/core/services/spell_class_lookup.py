@@ -149,20 +149,19 @@ class SpellClassLookupService:
                 if hasattr(spell, "model_copy"):
                     # Pydantic v2 approach
                     return spell.model_copy(update={"classes": class_list})
-                elif hasattr(spell, "copy"):
+                if hasattr(spell, "copy"):
                     # Pydantic v1 approach
                     return spell.copy(update={"classes": class_list})
-                else:
-                    # Last resort: try model_validate with existing data plus classes
-                    spell_dict = (
-                        spell.model_dump()
-                        if hasattr(spell, "model_dump")
-                        else spell.__dict__.copy()
-                    )
-                    spell_dict["classes"] = class_list.model_dump()
+                # Last resort: try model_validate with existing data plus classes
+                spell_dict = (
+                    spell.model_dump()
+                    if hasattr(spell, "model_dump")
+                    else spell.__dict__.copy()
+                )
+                spell_dict["classes"] = class_list.model_dump()
 
-                    spell_class = type(spell)
-                    return spell_class.model_validate(spell_dict)
+                spell_class = type(spell)
+                return spell_class.model_validate(spell_dict)
 
             except Exception as e:
                 logger.debug(

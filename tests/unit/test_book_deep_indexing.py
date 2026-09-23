@@ -1,7 +1,5 @@
 """Tests for book deep indexing functionality."""
 
-import pytest
-
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.books import Book
 from studiorum.core.models.chapter import Chapter

@@ -260,11 +260,10 @@ class StandardizedEntryValidator:
                     suggestions=error.suggestions,
                 )
                 return Error(validation_error)
-            else:
-                # Log warning but continue
-                logger.warning(
-                    f"Unknown entry type '{entry_type}' in {source or 'unknown source'}"
-                )
+            # Log warning but continue
+            logger.warning(
+                f"Unknown entry type '{entry_type}' in {source or 'unknown source'}"
+            )
 
         # Create ValidatedEntry from dictionary
         try:
@@ -347,33 +346,32 @@ def migrate_validation_result(
     """
     if validation_result.success:
         return Success(validation_result.entry)
-    else:
-        # Combine errors and warnings into a single error message
-        error_parts = []
-        if validation_result.errors:
-            error_parts.extend(validation_result.errors)
-        if validation_result.warnings:
-            error_parts.extend(f"Warning: {w}" for w in validation_result.warnings)
+    # Combine errors and warnings into a single error message
+    error_parts = []
+    if validation_result.errors:
+        error_parts.extend(validation_result.errors)
+    if validation_result.warnings:
+        error_parts.extend(f"Warning: {w}" for w in validation_result.warnings)
 
-        message = "; ".join(error_parts) if error_parts else "Validation failed"
+    message = "; ".join(error_parts) if error_parts else "Validation failed"
 
-        # Extract context information
-        context = validation_result.context
-        source = context.source if context else None
-        parent_name = context.parent_name if context else None
-        entry_type = context.entry_type if context else None
+    # Extract context information
+    context = validation_result.context
+    source = context.source if context else None
+    parent_name = context.parent_name if context else None
+    entry_type = context.entry_type if context else None
 
-        error = create_validation_error(
-            message=message,
-            entry_type=entry_type,
-            source=source,
-            parent_name=parent_name,
-            severity=ErrorSeverity.ERROR
-            if validation_result.errors
-            else ErrorSeverity.WARNING,
-        )
+    error = create_validation_error(
+        message=message,
+        entry_type=entry_type,
+        source=source,
+        parent_name=parent_name,
+        severity=ErrorSeverity.ERROR
+        if validation_result.errors
+        else ErrorSeverity.WARNING,
+    )
 
-        return Error(error)
+    return Error(error)
 
 
 def create_compatibility_wrapper(
@@ -417,7 +415,7 @@ def create_compatibility_wrapper(
                     errors=[],
                     context=context,
                 )
-            elif is_error_result(result):
+            if is_error_result(result):
                 error = result.error
                 return ValidationResult(
                     success=False,
@@ -430,17 +428,14 @@ def create_compatibility_wrapper(
                     else [],
                     context=context,
                 )
-            else:
-                # This should not happen, but provide a fallback
-                return ValidationResult(
-                    success=False,
-                    entry=ValidatedEntry(
-                        type="error", content="Unknown validation error"
-                    ),
-                    warnings=[],
-                    errors=["Unknown validation error"],
-                    context=context,
-                )
+            # This should not happen, but provide a fallback
+            return ValidationResult(
+                success=False,
+                entry=ValidatedEntry(type="error", content="Unknown validation error"),
+                warnings=[],
+                errors=["Unknown validation error"],
+                context=context,
+            )
 
     return CompatibilityWrapper(standardized_validator)
 

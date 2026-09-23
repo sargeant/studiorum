@@ -15,17 +15,14 @@ class DataLoader[T: BaseContent](ABC):
     @abstractmethod
     def load(self, path: Path) -> list[T]:
         """Load data from file and return validated content objects."""
-        pass
 
     @abstractmethod
     def get_content_type(self) -> ContentType:
         """Return the content type this loader handles."""
-        pass
 
     @abstractmethod
     def get_model_class(self) -> type[T]:
         """Return the Pydantic model class for validation."""
-        pass
 
 
 class SourceManager(ABC):
@@ -38,7 +35,6 @@ class SourceManager(ABC):
         For adventures and books, this should return only metadata files to prevent
         duplicate loading. Content files are loaded on-demand by ContentResolver.
         """
-        pass
 
     @abstractmethod
     def get_metadata_files(self) -> dict[ContentType, list[Path]]:
@@ -50,7 +46,6 @@ class SourceManager(ABC):
         Returns:
             Dictionary mapping content types to metadata file paths
         """
-        pass
 
     @abstractmethod
     def get_content_files(self) -> dict[ContentType, list[Path]]:
@@ -62,14 +57,11 @@ class SourceManager(ABC):
         Returns:
             Dictionary mapping content types to content file paths
         """
-        pass
 
     @abstractmethod
     def resolve_source(self, source_abbrev: str) -> dict[str, Any] | None:
         """Resolve source abbreviation to full source information."""
-        pass
 
     @abstractmethod
     def get_source_priority(self, source_abbrev: str) -> int:
         """Get priority for a source (lower numbers = higher priority)."""
-        pass

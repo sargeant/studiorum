@@ -16,7 +16,6 @@ from studiorum.core.logging import get_logger
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.encounter_types import (
     XP,
-    ChallengeRating,
     EncounterBudget,
     EncounterDifficulty,
     PartyComposition,
@@ -258,15 +257,13 @@ class EncounterBudgetCalculator:
             cr_float = float(cr_string)
             if cr_float <= 0:
                 return 10
-            elif cr_float <= 30:
+            if cr_float <= 30:
                 # Interpolate for fractional CRs not in table
                 lower_cr = int(cr_float)
                 if lower_cr in cr_to_xp:
                     return cr_to_xp[str(lower_cr)]
-                else:
-                    return 25000  # Default high CR
-            else:
-                return 155000  # Cap at CR 30 equivalent
+                return 25000  # Default high CR
+            return 155000  # Cap at CR 30 equivalent
         except ValueError:
             logger.warning(
                 f"Could not parse CR '{cr_string}' for creature {creature.name}"
@@ -293,16 +290,15 @@ class EncounterBudgetCalculator:
         """
         if creature_count <= 1:
             return 1.0
-        elif creature_count == 2:
+        if creature_count == 2:
             return 1.5
-        elif creature_count <= 6:
+        if creature_count <= 6:
             return 2.0
-        elif creature_count <= 10:
+        if creature_count <= 10:
             return 2.5
-        elif creature_count <= 14:
+        if creature_count <= 14:
             return 3.0
-        else:
-            return 4.0
+        return 4.0
 
     @staticmethod
     def _calculate_composition_modifier(party: PartyComposition) -> float:

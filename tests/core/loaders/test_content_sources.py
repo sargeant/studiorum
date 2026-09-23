@@ -3,20 +3,12 @@
 import json
 import tempfile
 from pathlib import Path
-from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
-from pydantic import ValidationError
 
-from studiorum.core.error_types import (
-    ContentLoadingError,
-    ContentSourceError,
-    ContentValidationError,
-)
 from studiorum.core.loaders.content_sources import (
     ContentLoader,
-    ContentSource,
     ContentSourceMetadata,
     FileContentSource,
     InlineContentSource,
@@ -31,7 +23,6 @@ from studiorum.core.loaders.content_sources import (
     create_stdin_source,
 )
 from studiorum.core.models.content import ContentType
-from tests.test_helpers import reset_test_environment
 
 
 class TestValidationResult:
@@ -83,10 +74,6 @@ class TestContentSourceMetadata:
 
 class TestFileContentSource:
     """Test FileContentSource implementation."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_init(self):
         """Test FileContentSource initialization."""
@@ -298,10 +285,6 @@ class TestFileContentSource:
 class TestOmnidexerContentSource:
     """Test OmnidexerContentSource implementation."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
-
     def test_init(self):
         """Test OmnidexerContentSource initialization."""
         mock_omnidexer = Mock()
@@ -366,10 +349,6 @@ class TestOmnidexerContentSource:
 
 class TestContentLoader:
     """Test ContentLoader unified loader."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_init(self):
         """Test ContentLoader initialization."""
@@ -523,10 +502,6 @@ class TestFactoryFunctions:
 class TestContentSourceIntegration:
     """Integration tests for content sources."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
-
     def test_file_to_loader_integration(self):
         """Test full integration from file source to loader."""
         test_data = {
@@ -621,10 +596,6 @@ class TestContentSourceIntegration:
 
 class TestNameListFileSource:
     """Test NameListFileSource functionality."""
-
-    def setup_method(self):
-        """Reset test environment before each test."""
-        reset_test_environment()
 
     def test_init(self):
         """Test NameListFileSource initialization."""

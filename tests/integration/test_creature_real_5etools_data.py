@@ -8,7 +8,6 @@ and edge cases found in the actual dataset.
 import os
 import time
 from pathlib import Path
-from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -21,7 +20,6 @@ from tests.test_data_helpers import (
     requires_full_dataset,
     requires_minimum_creatures,
 )
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.requires_data
@@ -34,7 +32,6 @@ class TestCreatureReal5etoolsDataIntegration:
 
     def setup_method(self):
         """Set up test fixtures with real data access."""
-        reset_test_environment()
 
         # Optional path to full dataset for direct file reads (if needed by a test)
         env_path = os.getenv("STUDIORUM_FULL_DATA_PATH", "")
@@ -405,7 +402,6 @@ class TestCreatureOutputQualityValidation:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
         self.omnidexer = None
 
     @pytest.fixture(autouse=True)
@@ -572,7 +568,7 @@ class TestCreatureOutputQualityValidation:
                     creature.get_ability_modifier(creature.dexterity)
                     # This is a rough check - AC should somewhat correlate with DEX
                     # (allowing for armor, natural armor, etc.)
-                    pass  # Skip detailed AC validation for now
+                    # Skip detailed AC validation for now
             except Exception as e:
                 issues.append(f"AC validation error: {e}")
 
@@ -596,7 +592,6 @@ class TestCreatureRegressionSuite:
 
     def setup_method(self):
         """Set up regression test fixtures."""
-        reset_test_environment()
         self.omnidexer = None
         self.baseline_creatures = []
 

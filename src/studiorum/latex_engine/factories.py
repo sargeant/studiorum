@@ -1,7 +1,6 @@
 """Factory functions for creating LaTeX engines."""
 
 import os
-from typing import Optional
 
 from studiorum.core.types import LaTeXConfig
 

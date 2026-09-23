@@ -4,8 +4,6 @@ Comprehensive tests validating the conversion utilities that maintain
 API compatibility while adding Pydantic validation and serialization.
 """
 
-from dataclasses import dataclass
-
 import pytest
 from pydantic import ValidationError
 

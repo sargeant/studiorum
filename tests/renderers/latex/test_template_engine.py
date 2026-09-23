@@ -9,7 +9,6 @@ import pytest
 from studiorum.latex_engine.core.template_engine import (
     LaTeXTemplateEngine,  # type: ignore
 )
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -279,8 +278,6 @@ class TestTemplateRendering:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.engine = LaTeXTemplateEngine()
 

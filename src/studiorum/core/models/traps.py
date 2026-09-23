@@ -1,7 +1,5 @@
 """Trap content models for mechanical challenges and dangers."""
 
-from typing import Any
-
 from pydantic import BaseModel, Field
 
 from ..registry import content_type

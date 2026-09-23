@@ -29,9 +29,7 @@ def test_http_resolution_uses_cached_file(tmp_path: Path) -> None:
 
     import asyncio
 
-    result = asyncio.get_event_loop().run_until_complete(
-        registry.resolve_image(image_path)
-    )
+    result = asyncio.run(registry.resolve_image(image_path))
     assert result.is_success()
     asset = result.value  # type: ignore[attr-defined]
     assert asset.local_path == cache_file

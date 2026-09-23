@@ -6,7 +6,7 @@ injected services, enabling request-scoped processing and proper
 separation of concerns.
 """
 
-from typing import TYPE_CHECKING, Any, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from ..error_types import BaseError
 from ..result import Error as Failure, Result, Success
@@ -37,8 +37,7 @@ class ContentProcessingService:
 
         if enrich_content and self.omnidexer:
             return processor.enrich_with_content(self.omnidexer, self.tag_resolver)
-        else:
-            return processor.resolve_tags(self.tag_resolver)
+        return processor.resolve_tags(self.tag_resolver)
 
     def process_spell(self, spell: Spell) -> Result[Spell, BaseError]:
         """Process spell with tag resolution."""
@@ -116,5 +115,4 @@ class ContentProcessingService:
 
         if errors:
             return Failure(errors)
-        else:
-            return Success(processed_items)
+        return Success(processed_items)

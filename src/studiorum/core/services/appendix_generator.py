@@ -9,10 +9,7 @@ from pydantic import BaseModel, Field
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.logging import get_logger
 from studiorum.core.models.chapter import ChapterType
-from studiorum.core.models.creatures import Creature
 from studiorum.core.models.document_metadata import ContentSection, SectionLevel
-from studiorum.core.models.items import Item
-from studiorum.core.models.spells import Spell
 from studiorum.core.references.content_tracker import ContentTracker
 from studiorum.core.services.creature_collector import CreatureCollector
 from studiorum.core.services.item_collector import ItemCollector
@@ -21,7 +18,7 @@ from studiorum.core.services.spell_collector import SpellCollector
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
+    pass
 
 
 class AppendixFlags(BaseModel):

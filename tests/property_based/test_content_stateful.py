@@ -5,7 +5,7 @@ across multiple operations on the content management system.
 """
 
 import pytest
-from hypothesis import assume, given, strategies as st
+from hypothesis import given, strategies as st
 from hypothesis.stateful import Bundle, RuleBasedStateMachine, initialize, rule
 
 from studiorum.core.loaders.omnidexer import Omnidexer

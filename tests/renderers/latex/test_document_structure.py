@@ -18,7 +18,6 @@ from studiorum.latex_engine.core.document_structure import (
     DocumentStructureBuilder,  # type: ignore
 )
 from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
-from tests.test_helpers import reset_test_environment
 
 
 class MockContent(BaseContent):
@@ -203,8 +202,6 @@ class TestDocumentStructureBuilder:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.metadata = DocumentMetadata(
             title="Test Adventure",
@@ -242,20 +239,19 @@ class TestDocumentStructureBuilder:
                     )
 
                     return ContentType("spell")
-                elif content._content_type == "creature":
+                if content._content_type == "creature":
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("creature")
-                elif content._content_type == "item":
+                if content._content_type == "item":
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("item")
-                else:
-                    raise ValueError("Unknown type")
+                raise ValueError("Unknown type")
 
             mock_from_content.side_effect = side_effect
 
@@ -321,20 +317,19 @@ class TestDocumentStructureBuilder:
                     )
 
                     return ContentType("spell")
-                elif content._content_type == "creature":
+                if content._content_type == "creature":
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("creature")
-                elif content._content_type == "item":
+                if content._content_type == "item":
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("item")
-                else:
-                    raise ValueError("Unknown type")
+                raise ValueError("Unknown type")
 
             mock_from_content.side_effect = side_effect
 

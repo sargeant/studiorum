@@ -130,22 +130,21 @@ class ImagePlacer:
         if context_hint == "creature":
             # Creatures often benefit from wrapped placement
             return ImagePlacement.WRAP_RIGHT
-        elif context_hint == "item":
+        if context_hint == "item":
             # Items can be smaller and wrapped
             return ImagePlacement.WRAP_LEFT
-        elif context_hint == "chapter-art":
+        if context_hint == "chapter-art":
             # Chapter art should be prominent
             return ImagePlacement.FULL_WIDTH
-        elif context_hint == "decoration":
+        if context_hint == "decoration":
             # Decorative elements can be in margins
             return (
                 ImagePlacement.MARGIN
                 if self.config.enable_margin_images
                 else ImagePlacement.INLINE
             )
-        else:
-            # Use default placement
-            return self.config.default_placement
+        # Use default placement
+        return self.config.default_placement
 
     def _determine_size_spec(
         self,
@@ -172,17 +171,15 @@ class ImagePlacer:
         if context_hint == "creature":
             if placement in {ImagePlacement.WRAP_LEFT, ImagePlacement.WRAP_RIGHT}:
                 return "0.4\\textwidth"
-            else:
-                return "0.6\\textwidth"
-        elif context_hint == "item":
+            return "0.6\\textwidth"
+        if context_hint == "item":
             return "0.3\\textwidth"
-        elif context_hint == "chapter-art":
+        if context_hint == "chapter-art":
             return "\\textwidth"
-        elif context_hint == "decoration":
+        if context_hint == "decoration":
             return "0.2\\textwidth"
-        else:
-            # Default sizing based on placement
-            return self._default_size_for_placement(placement)
+        # Default sizing based on placement
+        return self._default_size_for_placement(placement)
 
     def _size_hint_to_spec(self, size_hint: str, placement: ImagePlacement) -> str:
         """Convert size hint to LaTeX specification.
@@ -260,18 +257,17 @@ class ImagePlacer:
 
         if placement == ImagePlacement.INLINE:
             return self._generate_inline_command(image_path, size_spec)
-        elif placement in {ImagePlacement.WRAP_LEFT, ImagePlacement.WRAP_RIGHT}:
+        if placement in {ImagePlacement.WRAP_LEFT, ImagePlacement.WRAP_RIGHT}:
             return self._generate_wrap_command(
                 image_path, title, placement, size_spec, label
             )
-        elif placement == ImagePlacement.MARGIN:
+        if placement == ImagePlacement.MARGIN:
             return self._generate_margin_command(image_path, title, size_spec)
-        elif placement == ImagePlacement.FULL_WIDTH:
+        if placement == ImagePlacement.FULL_WIDTH:
             return self._generate_full_width_command(image_path, title, label)
-        else:
-            return self._generate_float_command(
-                image_path, title, placement, size_spec, label
-            )
+        return self._generate_float_command(
+            image_path, title, placement, size_spec, label
+        )
 
     def _generate_inline_command(self, image_path: Path, size_spec: str) -> str:
         """Generate inline image command.
@@ -427,13 +423,12 @@ class ImagePlacer:
         """
         if "id" in image_entry:
             return f"fig:{image_entry['id']}"
-        elif "title" in image_entry:
+        if "title" in image_entry:
             # Create label from title
             title = image_entry["title"].lower()
             label = "".join(c if c.isalnum() else "-" for c in title)
             return f"fig:{label}"
-        else:
-            return None
+        return None
 
     def _get_required_packages(self, placement: ImagePlacement) -> list[str]:
         """Get required LaTeX packages for placement type.
@@ -448,9 +443,7 @@ class ImagePlacer:
 
         if placement in {ImagePlacement.WRAP_LEFT, ImagePlacement.WRAP_RIGHT}:
             packages.append("wrapfig")
-        elif placement == ImagePlacement.FULL_WIDTH:
-            packages.append("float")
-        elif placement in {
+        elif placement == ImagePlacement.FULL_WIDTH or placement in {
             ImagePlacement.FLOAT_HERE,
             ImagePlacement.FLOAT_TOP,
             ImagePlacement.FLOAT_BOTTOM,

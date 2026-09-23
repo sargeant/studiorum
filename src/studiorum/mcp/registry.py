@@ -358,7 +358,7 @@ def sync_registry_with_fastmcp(mcp_server: FastMCP) -> dict[str, Any]:
         import asyncio
 
         async def _get_server_tools() -> dict[str, Any]:
-            return await mcp_server.get_tools()
+            return {tool.name: tool for tool in await mcp_server.list_tools()}
 
         # Run async operation to get server tools
         server_tools_dict = {}
@@ -373,8 +373,7 @@ def sync_registry_with_fastmcp(mcp_server: FastMCP) -> dict[str, Any]:
                     "registry_tools": len(_tool_registry._tools),
                     "server_tools": "unknown",
                 }
-            else:
-                server_tools_dict = loop.run_until_complete(_get_server_tools())
+            server_tools_dict = loop.run_until_complete(_get_server_tools())
         except RuntimeError:
             # No event loop, create one
             server_tools_dict = asyncio.run(_get_server_tools())

@@ -81,14 +81,13 @@ def _convert_objects_to_strings(data: Any) -> Any:
 
     if isinstance(data, Path):
         return str(data)
-    elif isinstance(data, Enum):
+    if isinstance(data, Enum):
         return data.value
-    elif isinstance(data, dict):
+    if isinstance(data, dict):
         return {key: _convert_objects_to_strings(value) for key, value in data.items()}
-    elif isinstance(data, list):
+    if isinstance(data, list):
         return [_convert_objects_to_strings(item) for item in data]
-    else:
-        return data
+    return data
 
 
 def _save_config(config_data: dict[str, Any]) -> None:
@@ -250,29 +249,26 @@ def validate_config(
             console.print("  • Review extension configurations")
 
             raise typer.Exit(1)
-        else:
-            console.print("[green]✅ Configuration is valid![/green]")
+        console.print("[green]✅ Configuration is valid![/green]")
 
-            if verbose:
-                console.print("\n[cyan]Validation Details:[/cyan]")
-                console.print(f"  • SRD enabled: {data_config.srd.enabled}")
-                console.print(
-                    f"  • Primary override: {data_config.primary_override.enabled}"
-                )
-                console.print(
-                    f"  • Extensions: {len(data_config.extensions)} configured"
-                )
-                console.print(
-                    f"  • Active extensions: {len(data_config.get_enabled_extensions())}"
-                )
-                console.print(
-                    f"  • Attribution sources: {len(data_config.source_attribution.custom_sources)}"
-                )
+        if verbose:
+            console.print("\n[cyan]Validation Details:[/cyan]")
+            console.print(f"  • SRD enabled: {data_config.srd.enabled}")
+            console.print(
+                f"  • Primary override: {data_config.primary_override.enabled}"
+            )
+            console.print(f"  • Extensions: {len(data_config.extensions)} configured")
+            console.print(
+                f"  • Active extensions: {len(data_config.get_enabled_extensions())}"
+            )
+            console.print(
+                f"  • Attribution sources: {len(data_config.source_attribution.custom_sources)}"
+            )
 
-                if data_config.get_active_data_sources():
-                    console.print("\n[cyan]Active Data Sources:[/cyan]")
-                    for source in data_config.get_active_data_sources():
-                        console.print(f"  • {source}")
+            if data_config.get_active_data_sources():
+                console.print("\n[cyan]Active Data Sources:[/cyan]")
+                for source in data_config.get_active_data_sources():
+                    console.print(f"  • {source}")
 
     except Exception as e:
         logger.error(f"Error validating configuration: {e}")

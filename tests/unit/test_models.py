@@ -267,14 +267,14 @@ class TestCreature:
         data1["alignment"] = ["L", "G"]
         creature1 = Creature.model_validate(data1)
         alignment_text = creature1._get_alignment_text()
-        assert "lawful good" == alignment_text
+        assert alignment_text == "lawful good"
 
         # Complex alignment with dict
         data2 = base_data.copy()
         data2["alignment"] = [{"alignment": ["N", "E"]}]
         creature2 = Creature.model_validate(data2)
         alignment_text2 = creature2._get_alignment_text()
-        assert "neutral evil" == alignment_text2
+        assert alignment_text2 == "neutral evil"
 
         # Empty alignment
         data3 = base_data.copy()

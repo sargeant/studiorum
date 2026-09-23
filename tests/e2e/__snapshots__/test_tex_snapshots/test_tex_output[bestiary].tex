@@ -1,0 +1,447 @@
+% Bestiary template for D&D 5e creatures with grouping support
+% Uses dndbook document class with structured creature organization
+
+% Base LaTeX template for D&D 5e documents using DND-5e-LaTeX-Template
+% This template provides the foundation for all D&D-style documents with structured content
+
+\documentclass[letterpaper, 11pt, bg=full, twocolumn, stats=modern]{dndbook}
+
+% DND-5e-LaTeX-Template provides most styling automatically
+% Only include additional packages if needed
+
+% Additional packages for enhanced functionality
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{makeidx}
+
+% Additional packages for bestiary layout
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{titlesec}
+
+% Enhanced list environments for creature details
+\tcbuselibrary{breakable}
+
+% Float management for large bestiaries
+\usepackage{afterpage}
+\usepackage{placeins}
+\usepackage{stfloats} % enable bottom placement for double-column floats
+
+\title{Creature Bestiary}
+\date{\today}
+
+% Enable automatic numbering for chapters only, not sections
+\setcounter{secnumdepth}{0}
+
+% Disable text justification but preserve paragraph indentation
+\raggedright
+\raggedbottom
+% Restore paragraph indentation after \raggedright resets it
+\setlength{\parindent}{0.8em}
+
+% Hyperlink configuration
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=black,
+    citecolor=black,
+    filecolor=black,
+    bookmarks=true,
+    bookmarksopen=true,
+    bookmarksnumbered=true,
+    pdftitle={Creature Bestiary},
+    pdfsubject={D&D 5e Content},
+    pdfkeywords={D&D, 5e, RPG, tabletop, }
+}
+
+% Enhanced section styling for bestiary
+% DND-5e-LaTeX-Template provides all styling automatically
+
+% Configure for bestiary structure
+\setcounter{secnumdepth}{0}  % No section numbers for cleaner look
+\setcounter{tocdepth}{2}     % Include subsections in table of contents
+
+% Studiorum Image Helpers — simple, explicit commands
+% Load required packages locally so templates don't need to manage them.
+\RequirePackage{graphicx}
+\RequirePackage{xparse}
+\RequirePackage{caption}
+
+% Inline (non-floating) image block
+% Usage: \StudiorumImageInline[<width fraction>]{file}{caption}[label]
+\NewDocumentCommand{\StudiorumImageInline}{ s o m m o }{%%
+  \par\medskip
+  \noindent\centering
+  \IfNoValueTF{#2}{%%
+    \includegraphics[width=\linewidth]{#3}%%
+  }{%%
+    \includegraphics[width=#2\linewidth]{#3}%%
+  }%%
+  \IfBooleanF{#1}{%%
+    \par\smallskip
+    \captionof{figure}{#4}%%
+    \IfNoValueF{#5}{\label{#5}}%%
+  }%%
+  \par\medskip
+}
+
+% Standard floating figure
+% Usage: \StudiorumImageFloat[<width fraction>]{file}{caption}[label]
+\NewDocumentCommand{\StudiorumImageFloat}{ s o m m o }{%%
+  
+\begin{figure}[htbp]
+    \centering
+    \IfNoValueTF{#2}{%%
+      \includegraphics[width=\linewidth]{#3}%%
+    }{%%
+      \includegraphics[width=#2\linewidth]{#3}%%
+    }%%
+    \IfBooleanF{#1}{%%
+      \caption{#4}%%
+      \IfNoValueF{#5}{\label{#5}}%%
+    }%%
+  \end{figure}
+%%
+}
+
+% Wide (two-column spanning when applicable)
+% Usage: \StudiorumImageWide[<width fraction>]{file}{caption}[label]
+\NewDocumentCommand{\StudiorumImageWide}{ s o m m o }{%%
+  \ifdim\columnwidth=\textwidth
+    
+\begin{figure}[htbp]
+      \centering
+      \IfNoValueTF{#2}{%%
+        \includegraphics[width=\linewidth]{#3}%%
+      }{%%
+        \includegraphics[width=#2\linewidth]{#3}%%
+      }%%
+      \IfBooleanF{#1}{%%
+        \caption{#4}%%
+        \IfNoValueF{#5}{\label{#5}}%%
+      }%%
+    \end{figure}
+%%
+  \else
+    
+\begin{figure*}[tp]
+      \centering
+      \IfNoValueTF{#2}{%%
+        \includegraphics[width=\textwidth]{#3}%%
+      }{%%
+        \includegraphics[width=#2\textwidth]{#3}%%
+      }%%
+      \IfBooleanF{#1}{%%
+        \caption{#4}%%
+        \IfNoValueF{#5}{\label{#5}}%%
+      }%%
+    \end{figure*}
+%%
+  \fi
+}
+
+% Full-page (dedicated page; fits within text block)
+% Usage: \StudiorumImageFullpage[<width fraction>]{file}{caption}[label]
+\NewDocumentCommand{\StudiorumImageFullpage}{ s o m m o }{%%
+  \clearpage
+  
+\begin{figure}[p]
+    \centering
+    \IfNoValueTF{#2}{%%
+      \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{#3}%%
+    }{%%
+      \includegraphics[width=#2\textwidth,height=\textheight,keepaspectratio]{#3}%%
+    }%%
+    \IfBooleanF{#1}{%%
+      \caption{#4}%%
+      \IfNoValueF{#5}{\label{#5}}%%
+    }%%
+  \end{figure}
+
+  \clearpage
+}
+
+% Full-page bleed (fills the physical page; may distort aspect ratio)
+% Usage: \StudiorumImageFullpageBleed{file}{caption}[label]
+\NewDocumentCommand{\StudiorumImageFullpageBleed}{ s o m m o }{%%
+  \clearpage
+  
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\paperwidth,height=\paperheight]{#3}%%
+    \IfBooleanF{#1}{%%
+      \caption{#4}%%
+      \IfNoValueF{#5}{\label{#5}}%%
+    }%%
+  \end{figure}
+
+  \clearpage
+}
+
+% No-caption convenience aliases
+\NewDocumentCommand{\StudiorumImageInlineNoCaption}{ o m }{\StudiorumImageInline*[#1]{#2}{}}
+\NewDocumentCommand{\StudiorumImageFloatNoCaption}{ o m }{\StudiorumImageFloat*[#1]{#2}{}}
+\NewDocumentCommand{\StudiorumImageWideNoCaption}{ o m }{\StudiorumImageWide*[#1]{#2}{}}
+\NewDocumentCommand{\StudiorumImageFullpageNoCaption}{ o m }{\StudiorumImageFullpage*[#1]{#2}{}}
+\NewDocumentCommand{\StudiorumImageFullpageBleedNoCaption}{ m }{\StudiorumImageFullpageBleed*{#1}{}}
+
+\begin{document}
+
+\tableofcontents
+\clearpage
+
+\begin{DndComment}{About This Bestiary}
+This bestiary contains 3 creatures from SRD.
+
+\textbf{Challenge Ratings:} CR 1/4: 1, CR 17: 1, CR {'cr': '21', 'lair': '22'}: 1
+
+\textbf{Creature Types:} Dragon: 1, Humanoid (Goblinoid): 1, Undead: 1
+\end{DndComment}
+
+\vspace{1em}
+
+\section{CR 1/8-1/4}
+
+\vspace{0.5em}
+
+\addcontentsline{toc}{subsection}{Goblin}
+
+\begin{DndMonster}[float=tp]{Goblin}
+\noindent \DndMonsterType{Small humanoid (goblinoid), neutral evil}
+\DndMonsterBasics[
+    armor-class = {15 (\textit{leather armor}, \textit{shield})},
+    hit-points = {7 (2d6)},
+    speed = {30 ft.},
+    initiative = +2
+]
+\DndMonsterAbilityScores[
+    str = 8,
+    dex = 14,
+    con = 10,
+    int = 10,
+    wis = 8,
+    cha = 8,
+]
+
+\DndMonsterDetails[
+    skills = {Stealth +6},
+    senses = {darkvision 60 ft.},
+    languages = {Common, Goblin},
+    challenge = {1/4 (50 XP)}
+]
+
+\DndMonsterSection{Traits}
+\DndMonsterAction{Nimble Escape}
+The goblin can take the Disengage or Hide action as a bonus action on each of its turns.
+
+\DndMonsterSection{Actions}
+\DndMonsterAction{Scimitar}
+Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.
+
+\DndMonsterAction{Shortbow}
+Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage.
+
+% Add source abbreviation at the bottom
+\vspace{2pt}
+\noindent\hfill{\scriptsize\textcolor{gray}{SRD}}
+
+\end{DndMonster}
+
+\vspace{2em}
+
+\FloatBarrier
+
+\section{CR 17-20}
+
+\vspace{0.5em}
+
+\addcontentsline{toc}{subsection}{Adult Red Dragon}
+
+\begin{DndMonster}[float*=tp,width=\textwidth + 8pt, toptitle=0pt, top=1pt]{Adult Red Dragon}
+\vspace*{-1.8\baselineskip}
+
+\begin{multicols}{2}
+\raggedcolumns
+\begingroup
+\setlength{\premulticols}{0pt}
+\setlength{\postmulticols}{0pt}
+\setlength{\multicolsep}{0pt}
+\setlength{\parskip}{0pt}
+\noindent \DndMonsterType{Huge dragon, chaotic evil}
+\DndMonsterBasics[
+    armor-class = {19 (natural armor)},
+    hit-points = {256 (19d12 + 133)},
+    speed = {40 ft., fly 80 ft., climb 40 ft.},
+    initiative = +0
+]
+\DndMonsterAbilityScores[
+    str = 27,
+    dex = 10,
+    con = 25,
+    int = 16,
+    wis = 13,
+    cha = 21,
+    dex save = +6,
+    con save = +13,
+    wis save = +7,
+    cha save = +11
+]
+
+\DndMonsterDetails[
+    skills = {Perception +13, Stealth +6},
+    damage-immunities = {fire},
+    senses = {blindsight 60 ft., darkvision 120 ft.},
+    languages = {Common, Draconic},
+    challenge = {17 (18,000 XP)}
+]
+
+\DndMonsterSection{Traits}
+\DndMonsterAction{Legendary Resistance (3/Day)}
+If the dragon fails a saving throw, it can choose to succeed instead.
+
+\DndMonsterSection{Actions}
+\DndMonsterAction{Multiattack}
+The dragon can use its Frightful Presence. It then makes three attacks: one with its bite and two with its claws.
+
+\DndMonsterAction{Bite}
+Melee Weapon Attack: +14 to hit, reach 10 ft., one target. Hit: 19 (2d10 + 8) piercing damage plus 7 (2d6) fire damage.
+
+\DndMonsterAction{Claw}
+Melee Weapon Attack: +14 to hit, reach 5 ft., one target. Hit: 15 (2d6 + 8) slashing damage.
+
+\DndMonsterAction{Tail}
+Melee Weapon Attack: +14 to hit, reach 15 ft., one target. Hit: 17 (2d8 + 8) bludgeoning damage.
+
+\DndMonsterAction{Frightful Presence}
+Each creature of the dragon's choice that is within 120 feet of the dragon and aware of it must succeed on a DC 19 Wisdom saving throw or become frightened for 1 minute. A creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. If a creature's saving throw is successful or the effect ends for it, the creature is immune to the dragon's Frightful Presence for the next 24 hours.
+
+\DndMonsterAction{Fire Breath (Recharge 5--6)}
+The dragon exhales fire in a 60-foot cone. Each creature in that area must make a DC 21 Dexterity saving throw, taking 63 (18d6) fire damage on a failed save, or half as much damage on a successful one.
+
+\DndMonsterSection{Legendary Actions}
+The Adult Red Dragon can take 3 legendary actions, choosing from the options below. Only one legendary action can be used at a time and only at the end of another creature's turn. The Adult Red Dragon regains spent legendary actions at the start of its turn.
+
+\DndMonsterAction{Detect}
+The dragon makes a Wisdom (\textit{Perception}) check.
+
+\DndMonsterAction{Tail Attack}
+The dragon makes a tail attack.
+
+\DndMonsterAction{Wing Attack (Costs 2 Actions)}
+The dragon beats its wings. Each creature within 10 feet of the dragon must succeed on a DC 22 Dexterity saving throw or take 15 (2d6 + 8) bludgeoning damage and be knocked prone. The dragon can then fly up to half its flying speed.
+
+% Add source abbreviation at the bottom
+\vspace{2pt}
+\noindent\hfill{\scriptsize\textcolor{gray}{SRD}}
+
+\endgroup
+\end{multicols}
+
+\end{DndMonster}
+
+\vspace{2em}
+
+\FloatBarrier
+
+\section{CR 21+}
+
+\vspace{0.5em}
+
+\addcontentsline{toc}{subsection}{Lich}
+
+\begin{DndMonster}[float*=tp,width=\textwidth + 8pt, toptitle=0pt, top=1pt]{Lich}
+\vspace*{-1.8\baselineskip}
+
+\begin{multicols}{2}
+\raggedcolumns
+\begingroup
+\setlength{\premulticols}{0pt}
+\setlength{\postmulticols}{0pt}
+\setlength{\multicolsep}{0pt}
+\setlength{\parskip}{0pt}
+\noindent \DndMonsterType{Medium undead, any evil alignment}
+\DndMonsterBasics[
+    armor-class = {17 (natural armor)},
+    hit-points = {135 (18d8 + 54)},
+    speed = {30 ft.},
+    initiative = +3
+]
+\DndMonsterAbilityScores[
+    str = 11,
+    dex = 16,
+    con = 16,
+    int = 20,
+    wis = 14,
+    cha = 16,
+    con save = +10,
+    int save = +12,
+    wis save = +9,
+]
+
+\DndMonsterDetails[
+    skills = {Arcana +19, History +12, Insight +9, Perception +9},
+    damage-resistances = {cold; lightning; necrotic},
+    damage-immunities = {poison, bludgeoning, piercing, slashing},
+    condition-immunities = {charmed, exhaustion, frightened, paralyzed, poisoned},
+    senses = {truesight 120 ft.},
+    languages = {Common plus up to five other languages},
+    challenge = {21 (33,000 XP) or 22 (41,000 XP) when encountered in lair}
+]
+
+\DndMonsterSection{Traits}
+\DndMonsterAction{Spellcasting}
+The lich is an 18th-level spellcaster. Its spellcasting ability is Intelligence (spell save DC 20, +12 to hit with spell attacks). The lich has the following wizard spells prepared:
+\textbf{Cantrips (at will):} \textit{mage hand}, \textit{prestidigitation}, \textit{ray of frost}
+\textbf{1st level (4 slots):} \textit{detect magic}, \textit{magic missile}, \textit{shield}, \textit{thunderwave}
+\textbf{2nd level (3 slots):} \textit{detect thoughts}, \textit{invisibility}, \textit{Melf's acid arrow}, \textit{mirror image}
+\textbf{3rd level (3 slots):} \textit{animate dead}, \textit{counterspell}, \textit{dispel magic}, \textit{fireball}
+\textbf{4th level (3 slots):} \textit{blight}, \textit{dimension door}
+\textbf{5th level (3 slots):} \textit{cloudkill}, \textit{scrying}
+\textbf{6th level (1 slots):} \textit{disintegrate}, \textit{globe of invulnerability}
+\textbf{7th level (1 slots):} \textit{finger of death}, \textit{plane shift}
+\textbf{8th level (1 slots):} \textit{dominate monster}, \textit{power word stun}
+\textbf{9th level (1 slots):} \textit{power word kill}
+
+\DndMonsterAction{Legendary Resistance (3/Day)}
+If the lich fails a saving throw, it can choose to succeed instead.
+
+\DndMonsterAction{Rejuvenation}
+If it has a phylactery, a destroyed lich gains a new body in 1d10 days, regaining all its hit points and becoming active again. The new body appears within 5 feet of the phylactery.
+
+\DndMonsterAction{Turn Resistance}
+The lich has advantage on saving throws against any effect that turns undead.
+
+\DndMonsterSection{Actions}
+\DndMonsterAction{Paralyzing Touch}
+Melee Spell Attack: +12 to hit, reach 5 ft., one creature. Hit: 10 (3d6) cold damage. The target must succeed on a DC 18 Constitution saving throw or be paralyzed for 1 minute. The target can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success.
+
+\DndMonsterSection{Legendary Actions}
+The Lich can take 3 legendary actions, choosing from the options below. Only one legendary action can be used at a time and only at the end of another creature's turn. The Lich regains spent legendary actions at the start of its turn.
+
+\DndMonsterAction{Cantrip}
+The lich casts a cantrip.
+
+\DndMonsterAction{Paralyzing Touch (Costs 2 Actions)}
+The lich uses its Paralyzing Touch.
+
+\DndMonsterAction{Frightening Gaze (Costs 2 Actions)}
+The lich fixes its gaze on one creature it can see within 10 feet of it. The target must succeed on a DC 18 Wisdom saving throw against this magic or become frightened for 1 minute. The frightened target can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. If a target's saving throw is successful or the effect ends for it, the target is immune to the lich's gaze for the next 24 hours.
+
+\DndMonsterAction{Disrupt Life (Costs 3 Actions)}
+Each non-undead creature within 20 feet of the lich must make a DC 18 Constitution saving throw against this magic, taking 21 (6d6) necrotic damage on a failed save, or half as much damage on a successful one.
+
+% Add source abbreviation at the bottom
+\vspace{2pt}
+\noindent\hfill{\scriptsize\textcolor{gray}{SRD}}
+
+\endgroup
+\end{multicols}
+
+\end{DndMonster}
+
+\FloatBarrier
+
+\end{document}

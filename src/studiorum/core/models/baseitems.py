@@ -135,11 +135,10 @@ class BaseItem(BaseContent):
         """Get the primary category of this item."""
         if self.is_weapon():
             return "Weapon"
-        elif self.is_armor():
+        if self.is_armor():
             return "Armor"
-        elif self.is_shield():
+        if self.is_shield():
             return "Shield"
-        elif self.arrow:
+        if self.arrow:
             return "Ammunition"
-        else:
-            return "Item"
+        return "Item"

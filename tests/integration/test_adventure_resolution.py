@@ -4,17 +4,13 @@ import json
 import tempfile
 from pathlib import Path
 from typing import Any
-from unittest.mock import Mock, patch
 
 import pytest
 
 from studiorum.core.loaders import Omnidexer
 from studiorum.core.loaders.base import SourceManager
-from studiorum.core.loaders.data_source_manager import DataSourceManager
-from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.models.content import ContentType
 from studiorum.core.resolvers.content_resolver import ContentResolver, ResolutionStatus
-from tests.test_helpers import reset_test_environment
 
 # Test uses sync methods only
 
@@ -82,7 +78,6 @@ class TestSourceManager(SourceManager):
 
     async def ensure_sources_ready(self) -> None:
         """Ensure sources are ready (no-op for test)."""
-        pass
 
     def resolve_source(self, source_abbrev: str) -> dict[str, Any] | None:
         """Resolve source abbreviation to full source information."""
@@ -104,8 +99,6 @@ class TestAdventureResolution:
 
     def setup_method(self):
         """Set up test environment with temporary data files."""
-        # Reset global state for complete isolation using service container
-        reset_test_environment()
         # Create temporary directory for test data
         self.temp_dir = tempfile.TemporaryDirectory()
         self.temp_path = Path(self.temp_dir.name)

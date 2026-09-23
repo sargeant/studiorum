@@ -1,6 +1,5 @@
 """Main CLI application for studiorum."""
 
-import asyncio
 import json
 from pathlib import Path
 

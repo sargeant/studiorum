@@ -8,8 +8,7 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -26,14 +25,10 @@ from studiorum.latex_engine.core.images.placement_models import (
     ImageMetadata,
 )
 from studiorum.renderers.core.interfaces import RenderingContext
-from tests.test_helpers import reset_test_environment
 
 
 class TestAdventureIntegrationConfig:
     """Test AdventureIntegrationConfig model."""
-
-    def setup_method(self):
-        reset_test_environment()
 
     def test_default_config(self):
         """Test default configuration values."""
@@ -77,9 +72,6 @@ class TestAdventureIntegrationConfig:
 
 class TestAdventureImageMetadata:
     """Test AdventureImageMetadata model."""
-
-    def setup_method(self):
-        reset_test_environment()
 
     def test_basic_metadata(self):
         """Test basic metadata creation."""
@@ -128,9 +120,6 @@ class TestAdventureImageMetadata:
 class TestAdventureImageResult:
     """Test AdventureImageResult model."""
 
-    def setup_method(self):
-        reset_test_environment()
-
     def test_basic_result(self):
         """Test basic result creation."""
         result = AdventureImageResult(
@@ -176,7 +165,6 @@ class TestAdventureImageIntegration:
     """Test AdventureImageIntegration class."""
 
     def setup_method(self):
-        reset_test_environment()
 
         # Create mock dependencies
         self.mock_processor = Mock()
@@ -513,9 +501,6 @@ class TestAdventureImageIntegration:
 class TestAdventureImageIntegrationAsync:
     """Test async functionality of AdventureImageIntegration."""
 
-    def setup_method(self):
-        reset_test_environment()
-
     @pytest.mark.asyncio
     async def test_async_image_discovery(self):
         """Test async image discovery functionality."""
@@ -585,9 +570,6 @@ class TestAdventureImageIntegrationAsync:
 @pytest.mark.requires_data
 class TestAdventureImageIntegrationWithData:
     """Integration tests with real data (slower, marked for optional execution)."""
-
-    def setup_method(self):
-        reset_test_environment()
 
     @pytest.mark.asyncio
     async def test_real_adventure_processing(self):

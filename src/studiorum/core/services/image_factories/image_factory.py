@@ -11,7 +11,6 @@ Status: Phase 4 - Service Integration
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from studiorum.core.assets.image_sources import ImageSourceRegistry
@@ -34,7 +33,6 @@ from studiorum.latex_engine.core.images.integration.bestiary import (
 from studiorum.latex_engine.core.images.integration.items import ItemImageIntegration
 from studiorum.latex_engine.core.images.layout_analyzer import LayoutAnalyzer
 from studiorum.latex_engine.core.images.output_optimizer import OutputOptimizer
-from studiorum.latex_engine.core.images.placement_models import OptimizationTarget
 from studiorum.latex_engine.core.images.registry.adventure_registry import (
     AdventureImageRegistry,
 )

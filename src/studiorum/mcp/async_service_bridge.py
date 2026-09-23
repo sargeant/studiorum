@@ -18,7 +18,6 @@ convenience layer to reduce boilerplate code in MCP tool implementations.
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, TypeVar
@@ -36,8 +35,7 @@ from ..core.error_types import (
     MCPException,
 )
 from ..core.logging import get_logger
-from ..core.models.content import BaseContent
-from ..core.result import Error, Result, Success
+from ..core.result import Error
 
 logger = get_logger(__name__)
 
@@ -143,20 +141,19 @@ class MCPServiceContext(BaseModel):
                     "sources_used": self.request_context.sources,
                     "query": query,
                 }
-            else:
-                error = (
-                    result.error
-                    if isinstance(result, Error)
-                    else ContentNotFoundError(message="Unexpected result type")
-                )
-                await self.request_context.add_async_error(error)
-                self.request_context.record_cache_miss()
-                return {
-                    "spells": [],
-                    "error": error.message,
-                    "suggestions": getattr(error, "suggestions", []) or [],
-                    "query": query,
-                }
+            error = (
+                result.error
+                if isinstance(result, Error)
+                else ContentNotFoundError(message="Unexpected result type")
+            )
+            await self.request_context.add_async_error(error)
+            self.request_context.record_cache_miss()
+            return {
+                "spells": [],
+                "error": error.message,
+                "suggestions": getattr(error, "suggestions", []) or [],
+                "query": query,
+            }
 
         except Exception as e:
             error = MCPError(
@@ -215,20 +212,19 @@ class MCPServiceContext(BaseModel):
                     "sources_used": self.request_context.sources,
                     "query": query,
                 }
-            else:
-                error = (
-                    result.error
-                    if isinstance(result, Error)
-                    else ContentNotFoundError(message="Unexpected result type")
-                )
-                await self.request_context.add_async_error(error)
-                self.request_context.record_cache_miss()
-                return {
-                    "creatures": [],
-                    "error": error.message,
-                    "suggestions": getattr(error, "suggestions", []) or [],
-                    "query": query,
-                }
+            error = (
+                result.error
+                if isinstance(result, Error)
+                else ContentNotFoundError(message="Unexpected result type")
+            )
+            await self.request_context.add_async_error(error)
+            self.request_context.record_cache_miss()
+            return {
+                "creatures": [],
+                "error": error.message,
+                "suggestions": getattr(error, "suggestions", []) or [],
+                "query": query,
+            }
 
         except Exception as e:
             error = MCPError(
@@ -301,21 +297,20 @@ class MCPServiceContext(BaseModel):
                     "sources_used": self.request_context.sources,
                     "query": query,
                 }
-            else:
-                error = (
-                    result.error
-                    if isinstance(result, Error)
-                    else ContentNotFoundError(message="Unexpected result type")
-                )
-                await self.request_context.add_async_error(error)
-                self.request_context.record_cache_miss()
-                return {
-                    "content": [],
-                    "error": error.message,
-                    "suggestions": getattr(error, "suggestions", []) or [],
-                    "content_type": content_type,
-                    "query": query,
-                }
+            error = (
+                result.error
+                if isinstance(result, Error)
+                else ContentNotFoundError(message="Unexpected result type")
+            )
+            await self.request_context.add_async_error(error)
+            self.request_context.record_cache_miss()
+            return {
+                "content": [],
+                "error": error.message,
+                "suggestions": getattr(error, "suggestions", []) or [],
+                "content_type": content_type,
+                "query": query,
+            }
 
         except MCPException:
             raise
@@ -392,20 +387,19 @@ class MCPServiceContext(BaseModel):
                         logger.warning(f"Failed to generate appendices: {e}")
 
                 return response_data
-            else:
-                error = (
-                    result.error
-                    if isinstance(result, Error)
-                    else ContentNotFoundError(message="Unexpected result type")
-                )
-                await self.request_context.add_async_error(error)
-                self.request_context.record_cache_miss()
-                return {
-                    "adventure": None,
-                    "error": error.message,
-                    "suggestions": getattr(error, "suggestions", []) or [],
-                    "name": adventure_name,
-                }
+            error = (
+                result.error
+                if isinstance(result, Error)
+                else ContentNotFoundError(message="Unexpected result type")
+            )
+            await self.request_context.add_async_error(error)
+            self.request_context.record_cache_miss()
+            return {
+                "adventure": None,
+                "error": error.message,
+                "suggestions": getattr(error, "suggestions", []) or [],
+                "name": adventure_name,
+            }
 
         except MCPException:
             raise

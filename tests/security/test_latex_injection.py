@@ -4,12 +4,10 @@ This test suite validates that all user-provided content is properly escaped
 to prevent LaTeX code injection attacks.
 """
 
-import pytest
 from hypothesis import given, strategies as st
 
 from studiorum.core.latex_utils import escape_latex_text
 from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
-from tests.test_helpers import reset_test_environment
 
 
 class TestLaTeXEscaping:
@@ -121,8 +119,6 @@ class TestTemplateInjectionVulnerabilities:
 
     def setup_method(self):
         """Set up test template engine."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.engine = LaTeXTemplateEngine()
 
@@ -304,8 +300,6 @@ class TestSecureTemplatePatterns:
 
     def setup_method(self):
         """Set up test template engine."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.engine = LaTeXTemplateEngine()
 

@@ -7,8 +7,6 @@ with actual creature data patterns and complexity found in 5etools.
 import gc
 import os
 import time
-from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -20,7 +18,6 @@ from tests.test_data_helpers import (
     requires_full_dataset,
     requires_minimum_creatures,
 )
-from tests.test_helpers import reset_test_environment
 
 # Full dataset required for these benchmarks
 pytestmark = pytest.mark.requires_data
@@ -35,7 +32,6 @@ class TestCreatureRealDataPerformanceBenchmarks:
 
     def setup_method(self):
         """Set up performance test fixtures."""
-        reset_test_environment()
         self.omnidexer = None
         self.all_creatures = []
 

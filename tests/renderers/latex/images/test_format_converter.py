@@ -9,7 +9,6 @@ from studiorum.latex_engine.core.images.format_converter import (
     ConversionResult,
     FormatConverter,
 )
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -45,8 +44,6 @@ class TestFormatConverter:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.converter = FormatConverter()
 
@@ -113,8 +110,7 @@ class TestFormatConverter:
             # First call is for original file size, second for converted
             if mock_stat.call_count == 1:
                 return Mock(st_size=1000)
-            else:
-                return Mock(st_size=800)
+            return Mock(st_size=800)
 
         mock_stat.side_effect = stat_side_effect
 
@@ -209,8 +205,6 @@ class TestFormatConverterSync:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.converter = FormatConverter()
 
@@ -287,10 +281,12 @@ class TestFormatConverterWithoutPIL:
 
     def test_init_without_pil(self):
         """Test initialization when PIL is not available."""
-        with patch.dict("sys.modules", {"PIL": None}):
-            with patch(
+        with (
+            patch.dict("sys.modules", {"PIL": None}),
+            patch(
                 "studiorum.latex_engine.core.images.format_converter.PIL_AVAILABLE",
                 False,
-            ):
-                with pytest.raises(ImportError, match="Pillow is required"):
-                    FormatConverter()
+            ),
+            pytest.raises(ImportError, match="Pillow is required"),
+        ):
+            FormatConverter()

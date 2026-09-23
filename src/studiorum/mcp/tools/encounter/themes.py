@@ -10,13 +10,12 @@ modeling and thematic coherence scoring.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, cast
+from typing import Any
 
 from studiorum.core.logging import get_logger
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.encounter_types import (
     EncounterConstraints,
-    EnvironmentalModifiers,
 )
 from studiorum.core.services.encounter_collector import (
     EncounterCollector,
@@ -241,7 +240,7 @@ class EnvironmentalProfile:
             type_data = creature.type
             if isinstance(type_data, dict):
                 return type_data.get("type", "unknown").lower()
-            elif isinstance(type_data, str):
+            if isinstance(type_data, str):
                 return type_data.lower()
         return "unknown"
 
@@ -463,7 +462,7 @@ class ThematicProfile:
             type_data = creature.type
             if isinstance(type_data, dict):
                 return type_data.get("type", "unknown").lower()
-            elif isinstance(type_data, str):
+            if isinstance(type_data, str):
                 return type_data.lower()
         return "unknown"
 
@@ -697,7 +696,7 @@ class ThematicEncounterGenerator:
             type_data = creature.type
             if isinstance(type_data, dict):
                 return type_data.get("type", "unknown")
-            elif isinstance(type_data, str):
+            if isinstance(type_data, str):
                 return type_data
         return "unknown"
 

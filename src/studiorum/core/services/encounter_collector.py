@@ -8,14 +8,13 @@ providing sophisticated encounter generation capabilities.
 """
 
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any
 
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.logging import get_logger
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.encounter_types import (
     XP,
-    ChallengeRating,
     EncounterConstraints,
     EncounterId,
     EnvironmentalModifiers,

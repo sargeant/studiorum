@@ -20,24 +20,17 @@ from studiorum.core.protocols.progress import ProgressAwareService, ProgressCall
 # Template service protocol defined below with other protocols
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable
     from pathlib import Path
     from typing import Any
 
-    from studiorum.cli.display_manager import DisplayManager
     from studiorum.core.config.unified_config import ApplicationConfig
-    from studiorum.core.entry_registry import EntryTypeRegistry
     from studiorum.core.error_types import ConfigurationError
     from studiorum.core.interfaces import ContentTypeRegistry
-    from studiorum.core.loaders.content_factory import ContentFactory
-    from studiorum.core.loaders.omnidexer import Omnidexer
     from studiorum.core.models.content import BaseContent, ContentType
     from studiorum.core.models.fluff import BaseFluff
     from studiorum.core.protocols.progress import ProgressCallback
     from studiorum.core.references.content_tracker import ContentTracker
     from studiorum.core.result import Result
-    from studiorum.core.text.tag_resolver import TagResolver
-    from studiorum.core.unified_references import ReferenceManager
     from studiorum.renderers.core.interfaces import RenderingContext
 
 

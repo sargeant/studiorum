@@ -287,8 +287,8 @@ class TestContentResolver:
         self, resolver, mock_omnidexer, sample_adventure
     ) -> None:
         """Test resolve_any without content type specified."""
-        mock_omnidexer.get_all_by_type.side_effect = (
-            lambda ct: [sample_adventure] if ct == ContentType("adventure") else []
+        mock_omnidexer.get_all_by_type.side_effect = lambda ct: (
+            [sample_adventure] if ct == ContentType("adventure") else []
         )
 
         result = resolver.resolve_any("cos")

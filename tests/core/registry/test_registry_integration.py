@@ -4,17 +4,10 @@ import pytest
 
 from studiorum.core.models.content import ContentType
 from studiorum.core.registry import initialize_content_types
-from tests.test_helpers import reset_test_environment
 
 
 class TestRegistryIntegration:
     """Integration tests for the complete content type registry system."""
-
-    def setup_method(self) -> None:
-        """Setup for each test."""
-        # For integration tests, we need proper initialization
-        # Use the standardized test environment reset
-        reset_test_environment()
 
     def test_full_system_initialization(self):
         """Test that the full registry initialization process works."""
@@ -31,8 +24,6 @@ class TestRegistryIntegration:
         # Import all content modules before initialization to trigger decorators
         # This ensures decorator registration happens before we test
         from studiorum.core.loaders.content_factory import ContentFactory
-        from studiorum.core.models.creatures import Creature
-        from studiorum.core.models.items import Item
         from studiorum.core.models.spells import Spell
 
         # Initialize the system
@@ -216,11 +207,6 @@ class TestRegistryIntegration:
     def test_system_consistency(self):
         """Test that all systems are consistent with registry data."""
         # Import content modules to trigger decorator registrations
-        from studiorum.core.models.adventures import Adventure
-        from studiorum.core.models.books import Book
-        from studiorum.core.models.creatures import Creature
-        from studiorum.core.models.items import Item
-        from studiorum.core.models.spells import Spell
 
         initialize_content_types()
 

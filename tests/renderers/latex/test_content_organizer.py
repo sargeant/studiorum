@@ -13,7 +13,6 @@ from studiorum.core.models.document_metadata import (  # type: ignore
 from studiorum.latex_engine.core.content_organizer import (
     ContentOrganizer,  # type: ignore
 )
-from tests.test_helpers import reset_test_environment
 
 
 class MockSpell(BaseContent):
@@ -58,8 +57,6 @@ class TestContentOrganizer:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.organizer = ContentOrganizer(DocumentType.BOOK)
 
@@ -197,20 +194,19 @@ class TestContentOrganizer:
                     )
 
                     return ContentType("spell")
-                elif isinstance(content, MockCreature):
+                if isinstance(content, MockCreature):
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("creature")
-                elif isinstance(content, MockItem):
+                if isinstance(content, MockItem):
                     from studiorum.core.models.content import (
                         ContentType,  # type: ignore
                     )
 
                     return ContentType("item")
-                else:
-                    raise ValueError("Unknown type")
+                raise ValueError("Unknown type")
 
             mock_from_content.side_effect = side_effect
 
@@ -494,12 +490,11 @@ class TestContentOrganizerIntegration:
 
                 if isinstance(content, MockSpell):
                     return ContentType("spell")
-                elif isinstance(content, MockCreature):
+                if isinstance(content, MockCreature):
                     return ContentType("creature")
-                elif isinstance(content, MockItem):
+                if isinstance(content, MockItem):
                     return ContentType("item")
-                else:
-                    return ContentType("feat")
+                return ContentType("feat")
 
             mock_from_content.side_effect = side_effect
 

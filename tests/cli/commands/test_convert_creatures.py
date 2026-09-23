@@ -12,7 +12,6 @@ import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.cli
@@ -21,7 +20,6 @@ class TestConvertCreatureCommand:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
         # Disable Rich console formatting for consistent test output
         import os
 
@@ -268,7 +266,6 @@ class TestCreatureCommandValidation:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
         # Disable Rich console formatting for consistent test output
         import os
 

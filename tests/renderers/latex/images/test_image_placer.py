@@ -11,7 +11,6 @@ from studiorum.latex_engine.core.images.image_placer import (
     PlacementConfig,
     PlacementResult,
 )
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -81,8 +80,6 @@ class TestImagePlacer:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.config = PlacementConfig()
         self.placer = ImagePlacer(self.config)
@@ -223,7 +220,7 @@ class TestImagePlacer:
         )
 
         assert (
-            "\\marginpar{\\includegraphics[width=0.2\\textwidth]{test.png}}" == command
+            command == "\\marginpar{\\includegraphics[width=0.2\\textwidth]{test.png}}"
         )
 
     def test_generate_full_width_command(self):

@@ -1,6 +1,6 @@
 """Tests for content type registry and decorator functionality."""
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -8,7 +8,6 @@ from studiorum.core.models.content import BaseContent
 from studiorum.core.registry.content_type_registry import (
     ContentTypeMetadata,
     ContentTypeRegistry,
-    _registry_instance,
     content_type,
     get_content_type_registry,
 )
@@ -74,13 +73,6 @@ class TestContentTypeMetadata:
 
 class TestContentTypeRegistry:
     """Test ContentTypeRegistry functionality."""
-
-    def setup_method(self) -> None:
-        """Reset registry for each test."""
-        from tests.test_helpers import reset_test_environment
-
-        # Use full environment reset to ensure proper initialization
-        reset_test_environment()
 
     def teardown_method(self) -> None:
         """Clean up after tests that may have contaminated global state."""
@@ -394,13 +386,6 @@ class TestContentTypeDecorator:
 
 class TestGetContentTypeRegistry:
     """Test the global registry instance management."""
-
-    def setup_method(self) -> None:
-        """Reset global instance for each test."""
-        from tests.test_helpers import reset_test_environment
-
-        # Use full environment reset to ensure proper initialization
-        reset_test_environment()
 
     def test_singleton_behavior(self):
         """Test that get_content_type_registry returns same instance."""

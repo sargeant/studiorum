@@ -35,11 +35,11 @@ class Chapter(BaseModel):
                 identifier = self.ordinal.get("identifier", "")
                 if ordinal_type == "chapter" and identifier:
                     return f"Chapter {identifier}"
-                elif ordinal_type == "part" and identifier:
+                if ordinal_type == "part" and identifier:
                     return f"Part {identifier}"
-                elif ordinal_type == "appendix" and identifier:
+                if ordinal_type == "appendix" and identifier:
                     return f"Appendix {identifier}"
-                elif identifier:
+                if identifier:
                     return str(identifier)
             return str(self.ordinal)
         return ""
@@ -132,9 +132,9 @@ class Chapter(BaseModel):
             ordinal_type = self.ordinal.get("type", "").lower()
             if ordinal_type == "appendix":
                 return ChapterType.APPENDIX
-            elif ordinal_type == "part":
+            if ordinal_type == "part":
                 return ChapterType.PART
-            elif ordinal_type == "chapter":
+            if ordinal_type == "chapter":
                 return ChapterType.CHAPTER
 
         # Smart content-based detection for 5etools data

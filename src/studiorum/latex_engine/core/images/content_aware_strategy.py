@@ -21,7 +21,6 @@ from studiorum.latex_engine.core.images.placement_models import (
     ContentType,
     DocumentContext,
     ImageCharacteristic,
-    ImageDimensions,
     ImageMetadata,
     OptimizationTarget,
     PageContext,
@@ -228,7 +227,7 @@ class ContentAwarePlacementStrategy(PlacementStrategy):
                 if isinstance(factor, Exception):
                     logger.error(f"Factor analysis {i} failed: {str(factor)}")
                     return Error(f"Factor analysis failed: {str(factor)}")
-                elif isinstance(factor, PlacementFactor):
+                if isinstance(factor, PlacementFactor):
                     valid_factors.append(factor)
 
             # Calculate overall scores for each placement option

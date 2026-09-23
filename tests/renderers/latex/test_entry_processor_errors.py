@@ -6,11 +6,9 @@ from unittest.mock import Mock, patch
 import pytest
 
 from studiorum.core.entry_registry import ValidationMode
-from studiorum.core.error_types import ProcessingError, create_processing_error
 from studiorum.core.exceptions import EntryProcessingWarning
 from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
 from studiorum.renderers.core.interfaces import RenderingContext
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -19,8 +17,6 @@ class TestRecursiveEntryProcessorEnhanced:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.processor = RecursiveEntryProcessor(use_dnd_template=False)
         self.context = Mock(spec=RenderingContext)

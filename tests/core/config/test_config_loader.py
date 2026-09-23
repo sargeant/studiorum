@@ -3,12 +3,10 @@
 import os
 import tempfile
 from pathlib import Path
-from typing import Any
 
-import pytest
 import yaml
 
-from studiorum.core.config.loader import ConfigLoader, ConfigValidationError
+from studiorum.core.config.loader import ConfigLoader
 from studiorum.core.config.unified_config import ApplicationConfig, MCPConfig
 
 

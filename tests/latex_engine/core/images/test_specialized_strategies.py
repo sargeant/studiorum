@@ -4,8 +4,6 @@ This module tests the content-type-specific placement strategies that build
 upon the ContentAwarePlacementStrategy with specialized optimizations.
 """
 
-from pathlib import Path
-
 import pytest
 
 from studiorum.latex_engine.core.images.image_placer import ImagePlacement, ImageSize

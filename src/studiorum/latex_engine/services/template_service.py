@@ -2,21 +2,16 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from studiorum.core.logging import get_logger
 from studiorum.renderers.core.interfaces import RenderingContext
 
 if TYPE_CHECKING:
-    from studiorum.core.loaders.omnidexer import Omnidexer
     from studiorum.core.references.content_tracker import ContentTracker
     from studiorum.core.services.protocols import OmnidexerProtocol, TagResolverProtocol
     from studiorum.core.text.protocols import TextExtractionProtocol
-    from studiorum.core.text.tag_resolver import TagResolver
     from studiorum.latex_engine.formatters.protocols import LaTeXFormattingProtocol
-    from studiorum.latex_engine.services.context_bound_template_service import (
-        ContextBoundTemplateService,
-    )
     from studiorum.latex_engine.services.protocols import ContextBoundTemplateProtocol
 
 logger = get_logger(__name__)

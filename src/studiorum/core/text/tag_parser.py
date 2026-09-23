@@ -34,7 +34,6 @@ from .tag_ast import (
     RechargeTagNode,
     SenseTagNode,
     SkillTagNode,
-    SourceTrackingNode,
     SpellTagNode,
     StatusTagNode,
     TagNode,
@@ -242,7 +241,7 @@ class TagASTTransformer(Transformer):
         escaped = str(children[0])
         if escaped == "\\|":
             return "|"
-        elif escaped == "\\}":
+        if escaped == "\\}":
             return "}"
         return escaped
 
@@ -293,7 +292,7 @@ class TagASTTransformer(Transformer):
             return AdventureTagNode(display_text, adventure_source, None, chapter_page)
 
         # Book tags have similar structure: {displayText|source|page}
-        elif tag_type == "book":
+        if tag_type == "book":
             display_text = name  # First part is display text for books
             book_source = source
             book_page = (
@@ -302,33 +301,33 @@ class TagASTTransformer(Transformer):
             return BookTagNode(display_text, book_source, book_page)
 
         # Content reference tags (use standard structure)
-        elif tag_type == "creature":
+        if tag_type == "creature":
             return CreatureTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "spell":
+        if tag_type == "spell":
             return SpellTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "item":
+        if tag_type == "item":
             return ItemTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "class":
+        if tag_type == "class":
             return ClassTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "race":
+        if tag_type == "race":
             return RaceTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "background":
+        if tag_type == "background":
             return BackgroundTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "feat":
+        if tag_type == "feat":
             return FeatTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "condition":
+        if tag_type == "condition":
             return ConditionTagNode(name)
-        elif tag_type == "skill":
+        if tag_type == "skill":
             return SkillTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "action":
+        if tag_type == "action":
             return ActionTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "status":
+        if tag_type == "status":
             return StatusTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "sense":
+        if tag_type == "sense":
             return SenseTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "hazard":
+        if tag_type == "hazard":
             return HazardTagNode(name, source, final_display_text_nodes, page)
-        elif tag_type == "variantrule":
+        if tag_type == "variantrule":
             # Variantrule tags follow _TagPipedDisplayTextThird pattern:
             # Use third parameter as clean display text if available, otherwise first parameter
             clean_display_text = (
@@ -339,39 +338,39 @@ class TagASTTransformer(Transformer):
             )
 
         # Formatting tags (use display text if available, otherwise first part)
-        elif tag_type in ("bold", "b"):
+        if tag_type in ("bold", "b"):
             content_nodes = display_text_nodes if display_text_nodes else name_nodes
             return BoldTagNode(content_nodes)
-        elif tag_type in ("italic", "i"):
+        if tag_type in ("italic", "i"):
             content_nodes = display_text_nodes if display_text_nodes else name_nodes
             return ItalicTagNode(content_nodes)
 
         # Dice and special tags
-        elif tag_type == "dice":
+        if tag_type == "dice":
             return DiceTagNode(name)
-        elif tag_type == "damage":
+        if tag_type == "damage":
             return DamageTagNode(name)
-        elif tag_type == "hit":
+        if tag_type == "hit":
             return HitTagNode(name)
-        elif tag_type == "dc":
+        if tag_type == "dc":
             return DCTagNode(name)
-        elif tag_type == "chance":
+        if tag_type == "chance":
             # Chance tags can have format: percentage|display text|rollbox name|success text|failure text
             chance_display_text: str | None = (
                 self._nodes_to_text(source_nodes) if source_nodes else None
             )
             return ChanceTagNode(name, chance_display_text)
-        elif tag_type == "recharge":
+        if tag_type == "recharge":
             # Recharge tags can have format: recharge_value|flags
             flags = self._nodes_to_text(source_nodes) if source_nodes else None
             return RechargeTagNode(name, flags)
-        elif tag_type == "filter":
+        if tag_type == "filter":
             # Filter tags can have format: display_text|content_type|filter_criteria
             # We use the first parameter (display_text) as the rendered content
             return FilterTagNode(name)
-        elif tag_type == "loader":
+        if tag_type == "loader":
             return LoaderTagNode(name)
-        elif tag_type == "area":
+        if tag_type == "area":
             # Area tags have format: name|area_id|flags
             area_id = source  # Second part is area_id, not source
             flags = (
@@ -380,7 +379,7 @@ class TagASTTransformer(Transformer):
             return AreaTagNode(name, area_id, flags)
 
         # Ability score tags (preserve display text for modifiers)
-        elif tag_type == "ability":
+        if tag_type == "ability":
             # Ability tags have format: ability_score|modifier
             # We want to preserve the display text (modifier) for rendering
             node = TagNode(tag_type)
@@ -390,7 +389,7 @@ class TagASTTransformer(Transformer):
             )
             return node
 
-        elif tag_type == "savingThrow":
+        if tag_type == "savingThrow":
             # Saving throw tags have format: ability_modifier
             # The name contains the modifier value that should be displayed
             node = TagNode(tag_type)
@@ -398,7 +397,7 @@ class TagASTTransformer(Transformer):
             node.display_text_nodes = final_display_text_nodes or [TextNode(name)]
             return node
 
-        elif tag_type == "skillCheck":
+        if tag_type == "skillCheck":
             # Skill check tags have format: skill_modifier
             # The name contains the skill and modifier value that should be displayed
             node = TagNode(tag_type)
@@ -407,37 +406,37 @@ class TagASTTransformer(Transformer):
             return node
 
         # Attack and combat tags
-        elif tag_type == "atk":
+        if tag_type == "atk":
             # Attack type tags have format: attack_types (e.g., "mw", "rw,ms")
             node = TagNode(tag_type)
             node.name = name  # Contains attack type abbreviations
             return node
 
-        elif tag_type == "atkr":
+        if tag_type == "atkr":
             # Attack roll tags have format: attack_types (e.g., "m", "r", "m,r")
             from studiorum.core.text.tag_ast import AttackRollTagNode
 
             return AttackRollTagNode(name)
 
-        elif tag_type == "h":
+        if tag_type == "h":
             # Hit result tags - simple marker
             from studiorum.core.text.tag_ast import HitResultTagNode
 
             return HitResultTagNode(name)
 
-        elif tag_type == "hit":
+        if tag_type == "hit":
             # Hit bonus tags have format: bonus_value
             node = TagNode(tag_type)
             node.name = name  # Contains hit bonus like "4" or "+2"
             return node
 
-        elif tag_type == "hom":
+        if tag_type == "hom":
             # Hit or miss tags - simple marker
             node = TagNode(tag_type)
             node.name = name  # Usually empty
             return node
 
-        elif tag_type == "hitYourSpellAttack":
+        if tag_type == "hitYourSpellAttack":
             # Hit your spell attack tags - display as spell attack modifier
             from studiorum.core.text.tag_ast import HitYourSpellAttackTagNode
 
@@ -447,50 +446,50 @@ class TagASTTransformer(Transformer):
             return HitYourSpellAttackTagNode(spell_display_text)
 
         # Action and save tags
-        elif tag_type == "actSave":
+        if tag_type == "actSave":
             # Action save tags have format: ability_name
             node = TagNode(tag_type)
             node.name = name  # Contains ability abbreviation like "dex", "con"
             return node
 
-        elif tag_type == "actSaveFail":
+        if tag_type == "actSaveFail":
             # Action save fail tags have format: ordinal (optional)
             node = TagNode(tag_type)
             node.name = name  # Contains ordinal like "2" for "Second Failure"
             return node
 
-        elif tag_type == "actSaveSuccess":
+        if tag_type == "actSaveSuccess":
             # Action save success tags - simple marker
             node = TagNode(tag_type)
             node.name = name  # Usually empty
             return node
 
-        elif tag_type == "actSaveSuccessOrFail":
+        if tag_type == "actSaveSuccessOrFail":
             # Action save success or fail tags - simple marker
             node = TagNode(tag_type)
             node.name = name  # Usually empty
             return node
 
-        elif tag_type == "actSaveFailBy":
+        if tag_type == "actSaveFailBy":
             # Action save fail by amount tags
             node = TagNode(tag_type)
             node.name = name  # Contains failure amount like "5"
             return node
 
-        elif tag_type == "actTrigger":
+        if tag_type == "actTrigger":
             # Action trigger tags - simple marker
             node = TagNode(tag_type)
             node.name = name  # Usually empty
             return node
 
-        elif tag_type == "actResponse":
+        if tag_type == "actResponse":
             # Action response tags have format: flags (optional)
             node = TagNode(tag_type)
             node.name = name  # Contains flags like "d" for em-dash
             return node
 
         # Reference tags
-        elif tag_type == "quickref":
+        if tag_type == "quickref":
             # Quick reference tags have format: text|source|page|section|flags
             node = TagNode(tag_type)
             node.name = name  # Contains reference text
@@ -499,7 +498,7 @@ class TagASTTransformer(Transformer):
                 node.display_text_nodes = final_display_text_nodes
             return node
 
-        elif tag_type == "deity":
+        if tag_type == "deity":
             # Deity reference tags have format: name|pantheon|source|display
             node = TagNode(tag_type)
             node.name = name
@@ -509,7 +508,7 @@ class TagASTTransformer(Transformer):
                 node.display_text_nodes = final_display_text_nodes
             return node
 
-        elif tag_type == "disease":
+        if tag_type == "disease":
             # Disease reference tags have format: name|source|display|page
             node = TagNode(tag_type)
             node.name = name
@@ -519,7 +518,7 @@ class TagASTTransformer(Transformer):
                 node.display_text_nodes = final_display_text_nodes
             return node
 
-        elif tag_type == "table":
+        if tag_type == "table":
             # Table reference tags have format: name|source|display|page
             node = TagNode(tag_type)
             node.name = name
@@ -529,13 +528,13 @@ class TagASTTransformer(Transformer):
                 node.display_text_nodes = final_display_text_nodes
             return node
 
-        elif tag_type == "note":
+        if tag_type == "note":
             # Note tags have format: note_text
             node = TagNode(tag_type)
             node.name = name  # Contains note text
             return node
 
-        elif tag_type == "link":
+        if tag_type == "link":
             # Link tags have format: title|url
             node = TagNode(tag_type)
             node.name = name  # Contains title text
@@ -545,7 +544,7 @@ class TagASTTransformer(Transformer):
             return node
 
         # Tarokka and card-specific tags
-        elif tag_type == "card":
+        if tag_type == "card":
             # Card tags have format: card_name|deck|source
             node = TagNode(tag_type)
             node.name = name  # Contains card name
@@ -557,7 +556,7 @@ class TagASTTransformer(Transformer):
                 node.display_text_nodes = [TextNode(name)]
             return node
 
-        elif tag_type == "deck":
+        if tag_type == "deck":
             # Deck tags have format: deck_name|source|display_text
             node = TagNode(tag_type)
             node.name = name  # Contains deck name
@@ -570,7 +569,7 @@ class TagASTTransformer(Transformer):
             return node
 
         # Recipe tags
-        elif tag_type == "recipe":
+        if tag_type == "recipe":
             # Recipe reference tags have format: name|source|display|page
             node = TagNode(tag_type)
             node.name = name
@@ -583,7 +582,7 @@ class TagASTTransformer(Transformer):
             return node
 
         # Reward tags
-        elif tag_type == "reward":
+        if tag_type == "reward":
             # Reward reference tags have format: name|source|display|page
             node = TagNode(tag_type)
             node.name = name
@@ -596,7 +595,7 @@ class TagASTTransformer(Transformer):
             return node
 
         # Scaled damage and dice tags
-        elif tag_type == "scaledamage":
+        if tag_type == "scaledamage":
             # Scale damage tags have format: damage|progression|base_damage
             node = TagNode(tag_type)
             node.name = name  # Contains damage expression like "2d6", "3d8"
@@ -605,7 +604,7 @@ class TagASTTransformer(Transformer):
             node.display_text_nodes = [TextNode(name)]
             return node
 
-        elif tag_type == "scaledice":
+        if tag_type == "scaledice":
             # Scale dice tags have format: dice|progression|base_dice|unit
             node = TagNode(tag_type)
             node.name = name  # Contains dice expression like "5d8"
@@ -615,27 +614,26 @@ class TagASTTransformer(Transformer):
             return node
 
         # Generic fallback - create node with name/display text for automatic passthrough
+        # Check if fallback should be disabled for development/debugging
+        import os
+
+        if os.getenv("STUDIORUM_DISABLE_TAG_FALLBACK"):
+            raise TagParseError(
+                f"Unknown tag type '@{tag_type}' with content '{name}' - "
+                f"no specific handler found (fallback disabled by STUDIORUM_DISABLE_TAG_FALLBACK)"
+            )
+
+        node = TagNode(tag_type)
+        node.name = name  # Store the parsed name for fallback rendering
+
+        # For simple passthrough, always prefer name over additional reference parts
+        # This handles cases like {@quickref difficult terrain||3} where we want
+        # "difficult terrain" (name) not "3" (display text reference)
+        if name:
+            node.display_text_nodes = [TextNode(name)]
         else:
-            # Check if fallback should be disabled for development/debugging
-            import os
-
-            if os.getenv("STUDIORUM_DISABLE_TAG_FALLBACK"):
-                raise TagParseError(
-                    f"Unknown tag type '@{tag_type}' with content '{name}' - "
-                    f"no specific handler found (fallback disabled by STUDIORUM_DISABLE_TAG_FALLBACK)"
-                )
-
-            node = TagNode(tag_type)
-            node.name = name  # Store the parsed name for fallback rendering
-
-            # For simple passthrough, always prefer name over additional reference parts
-            # This handles cases like {@quickref difficult terrain||3} where we want
-            # "difficult terrain" (name) not "3" (display text reference)
-            if name:
-                node.display_text_nodes = [TextNode(name)]
-            else:
-                node.display_text_nodes = []
-            return node
+            node.display_text_nodes = []
+        return node
 
     def _nodes_to_text(self, nodes: list[ASTNode]) -> str:
         """Convert a list of nodes to plain text string."""

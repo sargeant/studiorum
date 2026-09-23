@@ -5,11 +5,8 @@ configuration sections of ApplicationConfig, including deeply nested configurati
 type conversions, error handling, and precedence rules.
 """
 
-import json
 import os
 from pathlib import Path
-from typing import Any
-from unittest.mock import patch
 
 import pytest
 from pydantic import ValidationError
@@ -30,7 +27,6 @@ class TestEnvironmentVariables:
         """Set up test environment with clean state."""
         # Reset both app config and service container for isolation
         reset_app_config()
-        ServiceContainer.reset_global_instance()
         # Store original environment state
         self._original_env: dict[str, str | None] = {}
 
@@ -527,7 +523,7 @@ class TestEnvironmentVariables:
 
         config = ApplicationConfig()
         # Empty string for path should result in None (the default)
-        assert config.paths.data_path is None or config.paths.data_path == Path("")
+        assert config.paths.data_path is None or config.paths.data_path == Path()
 
     def test_case_insensitive_environment_variables(self) -> None:
         """Test that environment variables are case insensitive according to Pydantic settings."""
@@ -634,7 +630,6 @@ class TestEnvironmentVariableIntegration:
     def setup_method(self) -> None:
         """Set up test environment."""
         reset_app_config()
-        ServiceContainer.reset_global_instance()
         self._original_env: dict[str, str | None] = {}
 
     def teardown_method(self) -> None:

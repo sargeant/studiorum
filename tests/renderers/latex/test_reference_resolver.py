@@ -8,7 +8,6 @@ from studiorum.latex_engine.core.reference_resolver import (
     ReferenceContext,
     ReferenceResolver,
 )
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -51,8 +50,6 @@ class TestReferenceResolver:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         # Create mock tag integration
         self.mock_tag_integration = Mock()
@@ -603,8 +600,6 @@ class TestReferenceResolverEdgeCases:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.mock_tag_integration = Mock()
         self.resolver = ReferenceResolver(self.mock_tag_integration)

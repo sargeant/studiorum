@@ -4,17 +4,11 @@ These tests focus on proper formatting of creature stat block text,
 including alignment processing, size abbreviations, and complex text structures.
 """
 
-import pytest
-
 from studiorum.core.models.creatures import Creature, CreatureType
-from tests.test_helpers import reset_test_environment
 
 
 class TestCreatureSizeFormatting:
     """Test creature size abbreviation to full name conversion."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_size_abbreviation_conversion(self):
         """Test conversion of 5etools size abbreviations to full names."""
@@ -104,9 +98,6 @@ class TestCreatureSizeFormatting:
 
 class TestCreatureAlignmentFormatting:
     """Test creature alignment abbreviation processing and formatting."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_simple_alignment_abbreviations(self):
         """Test conversion of simple alignment abbreviations."""
@@ -243,9 +234,6 @@ class TestCreatureAlignmentFormatting:
 class TestCreatureTypeFormatting:
     """Test creature type formatting with subtypes and tags."""
 
-    def setup_method(self) -> None:
-        reset_test_environment()
-
     def test_simple_creature_type(self):
         """Test simple creature type without subtypes."""
         creature_type = CreatureType(type="humanoid")
@@ -291,9 +279,6 @@ class TestCreatureTypeFormatting:
 
 class TestCreatureStatBlockIntegration:
     """Test complete stat block text generation."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_complete_stat_block_header(self):
         """Test complete creature header line (size, type, alignment)."""
@@ -423,9 +408,6 @@ class TestCreatureStatBlockIntegration:
 class TestCreatureTextValidation:
     """Test validation of creature text fields and formats."""
 
-    def setup_method(self) -> None:
-        reset_test_environment()
-
     def test_empty_fields_handling(self):
         """Test handling of empty or None text fields."""
         creature_data = {
@@ -488,19 +470,19 @@ class TestCreatureTextValidation:
 
         # Test comma-separated formatting
         senses = creature.get_formatted_senses()
-        assert "darkvision 60 ft., passive Perception 12" == senses
+        assert senses == "darkvision 60 ft., passive Perception 12"
 
         languages = creature.get_formatted_languages()
-        assert "Common, Elvish, telepathy 120 ft." == languages
+        assert languages == "Common, Elvish, telepathy 120 ft."
 
         resistances = creature.get_formatted_resistances()
-        assert "fire; cold" == resistances
+        assert resistances == "fire; cold"
 
         immunities = creature.get_formatted_immunities()
-        assert "poison" == immunities
+        assert immunities == "poison"
 
         conditions = creature.get_formatted_condition_immunities()
-        assert "charmed, frightened" == conditions
+        assert conditions == "charmed, frightened"
 
     def test_numeric_formatting_consistency(self):
         """Test consistent formatting of numeric values."""

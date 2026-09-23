@@ -4,11 +4,9 @@ import json
 from typing import Any
 from unittest.mock import Mock, patch
 
-import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app  # type: ignore
-from tests.test_helpers import reset_test_environment
 
 
 class TestCLIMain:
@@ -16,8 +14,6 @@ class TestCLIMain:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.runner = CliRunner()
 
@@ -56,8 +52,6 @@ class TestCLICommands:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.runner = CliRunner()
 
@@ -91,8 +85,6 @@ class TestCLIIntegration:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.runner = CliRunner()
 
@@ -145,8 +137,6 @@ class TestCLIFileOperations:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.runner = CliRunner()
 
@@ -178,8 +168,6 @@ class TestCLIErrorHandling:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.runner = CliRunner()
 
@@ -210,8 +198,6 @@ class TestCacheSystem:
 
     def setup_method(self) -> None:
         """Set up test fixtures and clear the cache."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         from studiorum.core.cache import CacheManager
 

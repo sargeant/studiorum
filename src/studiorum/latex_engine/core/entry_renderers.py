@@ -7,7 +7,6 @@ from studiorum.core.models.creatures import Creature
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.result import Error, Success
 from studiorum.latex_engine.core.template_engine import LaTeXTemplateEngine
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -26,14 +25,12 @@ class BaseEntryRenderer(ABC):
     @abstractmethod
     def get_template_name(self) -> str:
         """Return the template name for this content type."""
-        pass
 
     @abstractmethod
     def get_template_context(
         self, content: Any, context: RenderingContext
     ) -> dict[str, Any]:
         """Generate template context using model formatting methods."""
-        pass
 
     def render(self, content: Any, context: RenderingContext) -> str:
         """Render content using model formatting and templates."""

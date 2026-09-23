@@ -56,7 +56,7 @@ def parse_cr_range(cr_string: str) -> tuple[float, float]:
             raise ValueError(f"Variable CR not allowed in range: {cr_string}")
         return (min_cr, 30.0)  # Max CR in D&D
 
-    elif "<" in cr_string:
+    if "<" in cr_string:
         # Handle "<1" format
         max_cr_str = cr_string.replace("<", "")
         max_cr = parse_cr_value(max_cr_str)
@@ -64,7 +64,7 @@ def parse_cr_range(cr_string: str) -> tuple[float, float]:
             raise ValueError(f"Variable CR not allowed in range: {cr_string}")
         return (0.0, max_cr)
 
-    elif "-" in cr_string:
+    if "-" in cr_string:
         # Handle "1/4-5" format
         try:
             min_str, max_str = cr_string.split("-", 1)
@@ -105,7 +105,7 @@ def parse_creature_type_data(creature: dict[str, Any]) -> tuple[str, list[str]]:
     if isinstance(type_data, str):
         # Simple string type
         return (type_data.lower(), [])
-    elif isinstance(type_data, dict):
+    if isinstance(type_data, dict):
         # Complex type object: {"type": "humanoid", "tags": ["aarakocra"]}
         main_type = type_data.get("type", "").lower()
         tags = type_data.get("tags", [])

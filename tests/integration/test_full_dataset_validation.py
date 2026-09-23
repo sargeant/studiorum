@@ -17,7 +17,6 @@ from logfire.testing import CaptureLogfire
 from studiorum.core.loaders.data_source_manager import DataSourceManager
 from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
-from studiorum.core.logging import get_logger  # type: ignore
 from studiorum.core.models.content import ContentType  # type: ignore
 from tests.test_data_helpers import requires_full_dataset
 

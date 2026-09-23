@@ -29,7 +29,6 @@ class DocumentRenderer(BaseRenderer):
         Returns:
             Complete rendered document as string
         """
-        pass
 
     @abstractmethod
     def render_document_header(self, context: RenderingContext) -> str:
@@ -41,7 +40,6 @@ class DocumentRenderer(BaseRenderer):
         Returns:
             Document header content
         """
-        pass
 
     @abstractmethod
     def render_document_footer(self, context: RenderingContext) -> str:
@@ -53,7 +51,6 @@ class DocumentRenderer(BaseRenderer):
         Returns:
             Document footer content
         """
-        pass
 
     def render_table_of_contents(
         self, content_items: list[BaseContent], context: RenderingContext

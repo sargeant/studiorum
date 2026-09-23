@@ -395,7 +395,7 @@ def create_image_registry(
         image_processor = ImageProcessor()
 
     # Create placeholder components (these would be injected via DI in production)
-    image_manager = ImageManager()
+    image_manager = ImageManager(default_sources=True)
     source_registry = ImageSourceRegistry()
 
     if storage_path is None:

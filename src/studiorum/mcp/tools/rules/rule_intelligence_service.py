@@ -7,14 +7,12 @@ D&D 5e rule analysis, relationship discovery, and intelligent search.
 
 from __future__ import annotations
 
-import asyncio
 import time
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 from ....core.error_types import (
-    ContentNotFoundError,
     ErrorCategory,
     ErrorSeverity,
     ProcessingError,
@@ -29,7 +27,6 @@ from .enhanced_cross_reference_manager import (
     EnhancedCrossReferenceManager,
     RuleRelationship,
 )
-from .rule_intelligence_protocol import RuleIntelligenceProtocol
 from .rule_search_result import RuleSearchResult, create_rule_search_result
 
 logger = get_logger(__name__)
@@ -608,7 +605,6 @@ class RuleIntelligenceService:
         """Ensure all rule content is loaded into the cross-reference manager."""
         # This would typically load rules from the omnidexer
         # For now, we assume rules are already registered
-        pass
 
     async def _analyze_context_compatibility(
         self, rule_ids: list[str], context: dict[str, Any]

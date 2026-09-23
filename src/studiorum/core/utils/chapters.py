@@ -1,7 +1,6 @@
 """Chapter filtering utilities for adventures and books."""
 
 import re
-from typing import Any
 
 from studiorum.core.models.adventures import Adventure, AdventureMetadata
 from studiorum.core.models.chapter import Chapter, ChapterType

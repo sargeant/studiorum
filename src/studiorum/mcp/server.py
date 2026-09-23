@@ -20,15 +20,14 @@ from fastmcp import FastMCP
 
 from studiorum.core.logging import get_logger
 
-from ..core.context import AsyncRequestContext, async_request_context
+from ..core.context import async_request_context
 from ..core.error_types import (
-    ContentNotFoundError,
     ErrorCategory,
     MCPError,
     MCPErrorCode,
     MCPException,
 )
-from ..core.result import Error as ResultError, Result
+from ..core.result import Error as ResultError
 from .request_handler import ModernMCPRequestHandler
 from .tools.attribution import manage_source_attribution
 from .tools.config import (
@@ -158,16 +157,15 @@ async def get_current_configuration() -> dict[str, Any]:
         if result.is_success():
             config_response = result.unwrap()
             return config_response.model_dump()
-        else:
-            error = result.error if isinstance(result, ResultError) else "Unknown error"
-            logger.error(f"Failed to get configuration: {error}")
-            error_msg = error.message if hasattr(error, "message") else str(error)
-            mcp_error = MCPError(
-                message=f"Configuration retrieval failed: {error_msg}",
-                error_code=MCPErrorCode.CONFIGURATION_ERROR,
-                category=ErrorCategory.SYSTEM_ERROR,
-            )
-            raise MCPException(mcp_error)
+        error = result.error if isinstance(result, ResultError) else "Unknown error"
+        logger.error(f"Failed to get configuration: {error}")
+        error_msg = error.message if hasattr(error, "message") else str(error)
+        mcp_error = MCPError(
+            message=f"Configuration retrieval failed: {error_msg}",
+            error_code=MCPErrorCode.CONFIGURATION_ERROR,
+            category=ErrorCategory.SYSTEM_ERROR,
+        )
+        raise MCPException(mcp_error)
     except Exception as e:
         logger.error(f"Failed to get configuration: {e}")
         mcp_error = MCPError(
@@ -193,16 +191,15 @@ async def update_app_configuration(updates: dict[str, Any]) -> dict[str, Any]:
         if result.is_success():
             config_response = result.unwrap()
             return config_response.model_dump()
-        else:
-            error = result.error if isinstance(result, ResultError) else "Unknown error"
-            logger.error(f"Failed to update configuration: {error}")
-            error_msg = error.message if hasattr(error, "message") else str(error)
-            mcp_error = MCPError(
-                message=f"Configuration update failed: {error_msg}",
-                error_code=MCPErrorCode.CONFIGURATION_ERROR,
-                category=ErrorCategory.SYSTEM_ERROR,
-            )
-            raise MCPException(mcp_error)
+        error = result.error if isinstance(result, ResultError) else "Unknown error"
+        logger.error(f"Failed to update configuration: {error}")
+        error_msg = error.message if hasattr(error, "message") else str(error)
+        mcp_error = MCPError(
+            message=f"Configuration update failed: {error_msg}",
+            error_code=MCPErrorCode.CONFIGURATION_ERROR,
+            category=ErrorCategory.SYSTEM_ERROR,
+        )
+        raise MCPException(mcp_error)
     except Exception as e:
         logger.error(f"Failed to update configuration: {e}")
         mcp_error = MCPError(
@@ -241,16 +238,15 @@ async def configure_for_paper_layout(
         if result.is_success():
             config_response = result.unwrap()
             return config_response.model_dump()
-        else:
-            error = result.error if isinstance(result, ResultError) else "Unknown error"
-            logger.error(f"Failed to configure paper layout: {error}")
-            error_msg = error.message if hasattr(error, "message") else str(error)
-            mcp_error = MCPError(
-                message=f"Paper layout configuration failed: {error_msg}",
-                error_code=MCPErrorCode.CONFIGURATION_ERROR,
-                category=ErrorCategory.SYSTEM_ERROR,
-            )
-            raise MCPException(mcp_error)
+        error = result.error if isinstance(result, ResultError) else "Unknown error"
+        logger.error(f"Failed to configure paper layout: {error}")
+        error_msg = error.message if hasattr(error, "message") else str(error)
+        mcp_error = MCPError(
+            message=f"Paper layout configuration failed: {error_msg}",
+            error_code=MCPErrorCode.CONFIGURATION_ERROR,
+            category=ErrorCategory.SYSTEM_ERROR,
+        )
+        raise MCPException(mcp_error)
     except Exception as e:
         logger.error(f"Failed to configure paper layout: {e}")
         mcp_error = MCPError(
@@ -289,16 +285,15 @@ async def configure_for_spellbook_generation(
         if result.is_success():
             config_response = result.unwrap()
             return config_response.model_dump()
-        else:
-            error = result.error if isinstance(result, ResultError) else "Unknown error"
-            logger.error(f"Failed to configure spellbook generation: {error}")
-            error_msg = error.message if hasattr(error, "message") else str(error)
-            mcp_error = MCPError(
-                message=f"Spellbook configuration failed: {error_msg}",
-                error_code=MCPErrorCode.CONFIGURATION_ERROR,
-                category=ErrorCategory.SYSTEM_ERROR,
-            )
-            raise MCPException(mcp_error)
+        error = result.error if isinstance(result, ResultError) else "Unknown error"
+        logger.error(f"Failed to configure spellbook generation: {error}")
+        error_msg = error.message if hasattr(error, "message") else str(error)
+        mcp_error = MCPError(
+            message=f"Spellbook configuration failed: {error_msg}",
+            error_code=MCPErrorCode.CONFIGURATION_ERROR,
+            category=ErrorCategory.SYSTEM_ERROR,
+        )
+        raise MCPException(mcp_error)
     except Exception as e:
         logger.error(f"Failed to configure spellbook generation: {e}")
         mcp_error = MCPError(
@@ -337,16 +332,15 @@ async def configure_for_encounter_printing(
         if result.is_success():
             config_response = result.unwrap()
             return config_response.model_dump()
-        else:
-            error = result.error if isinstance(result, ResultError) else "Unknown error"
-            logger.error(f"Failed to configure encounter printing: {error}")
-            error_msg = error.message if hasattr(error, "message") else str(error)
-            mcp_error = MCPError(
-                message=f"Encounter printing configuration failed: {error_msg}",
-                error_code=MCPErrorCode.CONFIGURATION_ERROR,
-                category=ErrorCategory.SYSTEM_ERROR,
-            )
-            raise MCPException(mcp_error)
+        error = result.error if isinstance(result, ResultError) else "Unknown error"
+        logger.error(f"Failed to configure encounter printing: {error}")
+        error_msg = error.message if hasattr(error, "message") else str(error)
+        mcp_error = MCPError(
+            message=f"Encounter printing configuration failed: {error_msg}",
+            error_code=MCPErrorCode.CONFIGURATION_ERROR,
+            category=ErrorCategory.SYSTEM_ERROR,
+        )
+        raise MCPException(mcp_error)
     except Exception as e:
         logger.error(f"Failed to configure encounter printing: {e}")
         mcp_error = MCPError(
@@ -387,16 +381,15 @@ async def add_content_source_to_config(
         if result.is_success():
             config_response = result.unwrap()
             return config_response.model_dump()
-        else:
-            error = result.error if isinstance(result, ResultError) else "Unknown error"
-            logger.error(f"Failed to add content sources: {error}")
-            error_msg = error.message if hasattr(error, "message") else str(error)
-            mcp_error = MCPError(
-                message=f"Content source addition failed: {error_msg}",
-                error_code=MCPErrorCode.CONFIGURATION_ERROR,
-                category=ErrorCategory.SYSTEM_ERROR,
-            )
-            raise MCPException(mcp_error)
+        error = result.error if isinstance(result, ResultError) else "Unknown error"
+        logger.error(f"Failed to add content sources: {error}")
+        error_msg = error.message if hasattr(error, "message") else str(error)
+        mcp_error = MCPError(
+            message=f"Content source addition failed: {error_msg}",
+            error_code=MCPErrorCode.CONFIGURATION_ERROR,
+            category=ErrorCategory.SYSTEM_ERROR,
+        )
+        raise MCPException(mcp_error)
     except Exception as e:
         logger.error(f"Failed to add content sources: {e}")
         mcp_error = MCPError(
@@ -427,16 +420,15 @@ async def save_preferences_to_file(
         if result.is_success():
             config_response = result.unwrap()
             return config_response.model_dump()
-        else:
-            error = result.error if isinstance(result, ResultError) else "Unknown error"
-            logger.error(f"Failed to save preferences: {error}")
-            error_msg = error.message if hasattr(error, "message") else str(error)
-            mcp_error = MCPError(
-                message=f"Preference save failed: {error_msg}",
-                error_code=MCPErrorCode.CONFIGURATION_ERROR,
-                category=ErrorCategory.SYSTEM_ERROR,
-            )
-            raise MCPException(mcp_error)
+        error = result.error if isinstance(result, ResultError) else "Unknown error"
+        logger.error(f"Failed to save preferences: {error}")
+        error_msg = error.message if hasattr(error, "message") else str(error)
+        mcp_error = MCPError(
+            message=f"Preference save failed: {error_msg}",
+            error_code=MCPErrorCode.CONFIGURATION_ERROR,
+            category=ErrorCategory.SYSTEM_ERROR,
+        )
+        raise MCPException(mcp_error)
     except Exception as e:
         logger.error(f"Failed to save preferences: {e}")
         mcp_error = MCPError(
@@ -462,16 +454,15 @@ async def load_preferences_from_file(preset_name: str) -> dict[str, Any]:
         if result.is_success():
             config_response = result.unwrap()
             return config_response.model_dump()
-        else:
-            error = result.error if isinstance(result, ResultError) else "Unknown error"
-            logger.error(f"Failed to load preferences: {error}")
-            error_msg = error.message if hasattr(error, "message") else str(error)
-            mcp_error = MCPError(
-                message=f"Preference load failed: {error_msg}",
-                error_code=MCPErrorCode.CONFIGURATION_ERROR,
-                category=ErrorCategory.SYSTEM_ERROR,
-            )
-            raise MCPException(mcp_error)
+        error = result.error if isinstance(result, ResultError) else "Unknown error"
+        logger.error(f"Failed to load preferences: {error}")
+        error_msg = error.message if hasattr(error, "message") else str(error)
+        mcp_error = MCPError(
+            message=f"Preference load failed: {error_msg}",
+            error_code=MCPErrorCode.CONFIGURATION_ERROR,
+            category=ErrorCategory.SYSTEM_ERROR,
+        )
+        raise MCPException(mcp_error)
     except Exception as e:
         logger.error(f"Failed to load preferences: {e}")
         mcp_error = MCPError(
@@ -859,9 +850,8 @@ def list_registered_tools() -> list[str]:
     try:
         if hasattr(mcp, "_tool_manager") and hasattr(mcp._tool_manager, "_tools"):
             return list(mcp._tool_manager._tools.keys())
-        else:
-            logger.warning("FastMCP tool manager not found")
-            return []
+        logger.warning("FastMCP tool manager not found")
+        return []
     except Exception as e:
         logger.warning(f"Could not list registered tools: {e}")
         return []

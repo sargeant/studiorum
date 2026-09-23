@@ -1,6 +1,5 @@
 """Integration tests for Phase 5 CLI fluff features."""
 
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -12,12 +11,6 @@ from studiorum.cli.commands.convert.compendiums.spells import spells
 
 class TestCLIFluffPhase5Integration:
     """Integration tests for Phase 5 CLI enhancements."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
 
     @patch("studiorum.cli.commands.convert.compendiums.creatures.get_omnidexer")
     @patch("studiorum.cli.commands.convert.compendiums.creatures.display_manager")
@@ -222,58 +215,60 @@ class TestCLIFluffPhase5Integration:
             mock_display_manager.update_task = Mock()
 
             # Mock fluff services
-            with patch(
-                "studiorum.core.services.fluff_matcher.FluffMatcher"
-            ) as mock_matcher_class:
-                with patch(
+            with (
+                patch(
+                    "studiorum.core.services.fluff_matcher.FluffMatcher"
+                ) as mock_matcher_class,
+                patch(
                     "studiorum.core.services.fluff_image_extractor.FluffImageExtractor"
-                ) as mock_extractor_class:
-                    mock_matcher = Mock()
-                    mock_extractor = Mock()
+                ) as mock_extractor_class,
+            ):
+                mock_matcher = Mock()
+                mock_extractor = Mock()
 
-                    # Mock fluff with images
-                    from studiorum.core.models.fluff import ItemFluff
-                    from studiorum.core.services.fluff_image_extractor import (
-                        FluffImageInfo,
+                # Mock fluff with images
+                from studiorum.core.models.fluff import ItemFluff
+                from studiorum.core.services.fluff_image_extractor import (
+                    FluffImageInfo,
+                )
+
+                mock_fluff = ItemFluff(
+                    name="Sword of Kas", source=source, entries=[], images=[]
+                )
+
+                mock_image_info = FluffImageInfo(
+                    path="items/sword-of-kas.jpg",
+                    credit="WotC",
+                    source_fluff="Sword of Kas",
+                )
+
+                mock_matcher.match_item_fluff.return_value = mock_fluff
+                mock_extractor.extract_images_from_fluff.return_value = [
+                    mock_image_info
+                ]
+
+                mock_matcher_class.return_value = mock_matcher
+                mock_extractor_class.return_value = mock_extractor
+
+                output_file = tmp_path / "test_items.tex"
+
+                try:
+                    # Test command with image extraction
+                    items(
+                        item_names=["Sword of Kas"],
+                        fluff=True,
+                        with_fluff_images=True,
+                        output_file=output_file,
                     )
 
-                    mock_fluff = ItemFluff(
-                        name="Sword of Kas", source=source, entries=[], images=[]
+                    # Verify that image extractor was called
+                    mock_extractor.extract_images_from_fluff.assert_called_with(
+                        mock_fluff
                     )
 
-                    mock_image_info = FluffImageInfo(
-                        path="items/sword-of-kas.jpg",
-                        credit="WotC",
-                        source_fluff="Sword of Kas",
-                    )
-
-                    mock_matcher.match_item_fluff.return_value = mock_fluff
-                    mock_extractor.extract_images_from_fluff.return_value = [
-                        mock_image_info
-                    ]
-
-                    mock_matcher_class.return_value = mock_matcher
-                    mock_extractor_class.return_value = mock_extractor
-
-                    output_file = tmp_path / "test_items.tex"
-
-                    try:
-                        # Test command with image extraction
-                        items(
-                            item_names=["Sword of Kas"],
-                            fluff=True,
-                            with_fluff_images=True,
-                            output_file=output_file,
-                        )
-
-                        # Verify that image extractor was called
-                        mock_extractor.extract_images_from_fluff.assert_called_with(
-                            mock_fluff
-                        )
-
-                    except Exception as e:
-                        # Expected to fail during rendering
-                        assert "No LaTeX content was generated" in str(e)
+                except Exception as e:
+                    # Expected to fail during rendering
+                    assert "No LaTeX content was generated" in str(e)
 
     def test_fluff_configuration_integration(self):
         """Test that fluff configuration is properly integrated."""

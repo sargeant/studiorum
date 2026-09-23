@@ -6,7 +6,6 @@ import pytest
 
 from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
 from studiorum.renderers.core.interfaces import RenderingContext
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -15,8 +14,6 @@ class TestRecursiveEntryProcessorWithoutDNDTemplate:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.processor = RecursiveEntryProcessor(use_dnd_template=False)
         self.context = RenderingContext(output_format="latex")

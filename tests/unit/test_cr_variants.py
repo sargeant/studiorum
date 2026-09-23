@@ -1,7 +1,5 @@
 """Tests for Challenge Rating variants with XP values (xpLair, xpCoven, etc.)."""
 
-import pytest
-
 from studiorum.core.models.creatures import Creature
 
 

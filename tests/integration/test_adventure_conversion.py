@@ -12,22 +12,17 @@ from pathlib import Path
 
 import pytest
 
-from studiorum.core.loaders.omnidexer import Omnidexer
-from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.resolvers.content_resolver import ContentResolver
-from tests.test_helpers import reset_test_environment
 
 
 def load_all_data_sync(omnidexer):
     """Synchronous wrapper for omnidexer.load_all_data() for testing."""
-    import asyncio
 
     return omnidexer.load_all_data()
 
 
 def resolve_adventure_sync(resolver, adventure_id):
     """Synchronous wrapper for resolver.resolve_adventure() for testing."""
-    import asyncio
 
     return resolver.resolve_adventure(adventure_id)
 
@@ -35,13 +30,6 @@ def resolve_adventure_sync(resolver, adventure_id):
 @pytest.mark.integration
 class TestAdventureConversion:
     """Test end-to-end adventure conversion functionality."""
-
-    def setup_method(self) -> None:
-        """Reset global state for complete isolation using service container."""
-        reset_test_environment()
-
-        # Note: reset_test_environment() now handles both container systems
-        # via reset_all_containers() for proper parallel execution isolation
 
     def _get_test_env(self) -> dict[str, str]:
         """Get environment with test configuration override."""

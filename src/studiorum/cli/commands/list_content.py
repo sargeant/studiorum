@@ -290,10 +290,9 @@ def _format_file_size(size_bytes: int) -> str:
     """Format file size in human readable format."""
     if size_bytes < BYTES_PER_KB:
         return f"{size_bytes} B"
-    elif size_bytes < BYTES_PER_MB:
+    if size_bytes < BYTES_PER_MB:
         return f"{size_bytes / BYTES_PER_KB:.1f} KB"
-    else:
-        return f"{size_bytes / BYTES_PER_MB:.1f} MB"
+    return f"{size_bytes / BYTES_PER_MB:.1f} MB"
 
 
 def _get_content_details(item: Any) -> str:
@@ -304,15 +303,14 @@ def _get_content_details(item: Any) -> str:
 
     if isinstance(item, Spell):
         return f"Level {item.level} {item.school}"
-    elif isinstance(item, Creature):
+    if isinstance(item, Creature):
         size = item.size[0] if item.size else "Medium"
         cr = getattr(item, "cr", "Unknown")
         return f"{size}, CR {cr}"
-    elif isinstance(item, Item):
+    if isinstance(item, Item):
         item_type = getattr(item, "type", "Item")
         rarity = getattr(item, "rarity", None)
         if rarity:
             return f"{item_type}, {rarity}"
         return item_type
-    else:
-        return ""
+    return ""

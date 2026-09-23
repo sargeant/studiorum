@@ -19,7 +19,7 @@ from studiorum.core.error_types import (
     MCPErrorCode,
 )
 from studiorum.core.logging import get_logger
-from studiorum.core.result import Error, Result, is_error_result
+from studiorum.core.result import Result, is_error_result
 
 logger = get_logger(__name__)
 

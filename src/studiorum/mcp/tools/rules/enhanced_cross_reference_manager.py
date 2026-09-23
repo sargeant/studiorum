@@ -19,7 +19,6 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from ....core.error_types import (
-    ErrorCategory,
     ErrorSeverity,
     ProcessingError,
     create_processing_error,
@@ -697,14 +696,13 @@ class EnhancedCrossReferenceManager(CrossReferenceManager):
         """Categorize complexity score into readable categories."""
         if score >= 0.8:
             return "very_high"
-        elif score >= 0.6:
+        if score >= 0.6:
             return "high"
-        elif score >= 0.4:
+        if score >= 0.4:
             return "moderate"
-        elif score >= 0.2:
+        if score >= 0.2:
             return "low"
-        else:
-            return "very_low"
+        return "very_low"
 
     def _get_complexity_factors(self, rule_ref: RuleReference) -> list[str]:
         """Get list of factors contributing to rule complexity."""
@@ -730,9 +728,8 @@ class EnhancedCrossReferenceManager(CrossReferenceManager):
             result, timestamp = self._performance_cache[cache_key]
             if time.time() - timestamp < self._cache_ttl:
                 return result
-            else:
-                # Remove expired cache entry
-                del self._performance_cache[cache_key]
+            # Remove expired cache entry
+            del self._performance_cache[cache_key]
         return None
 
     def _cache_result(self, cache_key: str, result: Any) -> None:

@@ -1,14 +1,11 @@
 """Recursive entry processor for LaTeX rendering of 5etools entry structures."""
 
-import asyncio
 from typing import TYPE_CHECKING, Any
 
 from studiorum.core.entry_registry import ValidationMode, get_registry
 from studiorum.core.error_types import create_processing_error
 from studiorum.core.logging import get_logger
-from studiorum.core.models.content import ContentType
-from studiorum.core.result import Error, Result, Success
-from studiorum.core.types import EntryData, ProcessingContext
+from studiorum.core.result import Error
 from studiorum.renderers.core.interfaces import RenderingContext
 
 from ..utils.unicode_mappings import (
@@ -16,7 +13,7 @@ from ..utils.unicode_mappings import (
     get_unicode_to_latex_mappings,
     get_unmapped_unicode_chars,
 )
-from .images.image_processor import ImageProcessingConfig, ImageProcessor
+from .images.image_processor import ImageProcessor
 
 if TYPE_CHECKING:
     from .images.gallery_processor import GalleryProcessor
@@ -400,8 +397,7 @@ class RecursiveEntryProcessor:
 
         if self.use_dnd_template:
             return f"\\begin{{DndReadAloud}}\n{content}\n\\end{{DndReadAloud}}"
-        else:
-            return f"\\begin{{quotation}}\\em\n{content}\n\\end{{quotation}}"
+        return f"\\begin{{quotation}}\\em\n{content}\n\\end{{quotation}}"
 
     def _process_inset(self, inset: dict[str, Any], context: RenderingContext) -> str:
         """Process a generic inset using DND template environments.
@@ -432,14 +428,12 @@ class RecursiveEntryProcessor:
         if self.use_dnd_template:
             if name:
                 return f"\\begin{{DndSidebar}}{{{self._escape_latex(name)}}}\n{content}\n\\end{{DndSidebar}}"
-            else:
-                return f"\\begin{{DndSidebar}}{{}}\n{content}\n\\end{{DndSidebar}}"
-        else:
-            result = []
-            if name:
-                result.append(f"\\textbf{{{self._escape_latex(name)}}}")
-            result.append(f"\\begin{{quotation}}\n{content}\n\\end{{quotation}}")
-            return "\n\n".join(result)
+            return f"\\begin{{DndSidebar}}{{}}\n{content}\n\\end{{DndSidebar}}"
+        result = []
+        if name:
+            result.append(f"\\textbf{{{self._escape_latex(name)}}}")
+        result.append(f"\\begin{{quotation}}\n{content}\n\\end{{quotation}}")
+        return "\n\n".join(result)
 
     def _process_image(self, image: dict[str, Any], context: RenderingContext) -> str:
         """Process an image entry with enhanced image processing pipeline.
@@ -520,10 +514,9 @@ class RecursiveEntryProcessor:
             if result.is_success():
                 processed_gallery = result.unwrap()
                 return processed_gallery.latex_command
-            else:
-                # Fallback to basic gallery processing
-                logger.warning("Gallery processing failed, using fallback")
-                return self._process_gallery_basic(gallery, context)
+            # Fallback to basic gallery processing
+            logger.warning("Gallery processing failed, using fallback")
+            return self._process_gallery_basic(gallery, context)
 
         except Exception as e:
             logger.error(f"Gallery processing error: {str(e)}, using fallback")
@@ -841,9 +834,8 @@ class RecursiveEntryProcessor:
 
             result.append("\\end{DndTable}")
             return "\n".join(result)
-        else:
-            # Fallback to basic table
-            return self._process_basic_table(table, context)
+        # Fallback to basic table
+        return self._process_basic_table(table, context)
 
     def _process_basic_table(
         self, table: dict[str, Any], context: RenderingContext
@@ -1161,11 +1153,10 @@ class RecursiveEntryProcessor:
 
             if len(attack_types) == 1:
                 return f"{attack_types[0]} Attack Roll: "
-            elif len(attack_types) > 1:
+            if len(attack_types) > 1:
                 return f"{' or '.join(attack_types)} Attack Roll: "
-            else:
-                # Fallback, return original
-                return match.group(0)
+            # Fallback, return original
+            return match.group(0)
 
         # Apply the replacement
         result = re.sub(attack_pattern, replace_abbreviation, text)
@@ -1730,8 +1721,7 @@ class RecursiveEntryProcessor:
 
         if value >= 0:
             return f"+{value}"
-        else:
-            return str(value)
+        return str(value)
 
     def _process_bonus_speed(
         self, bonus_speed: dict[str, Any], context: RenderingContext
@@ -1749,8 +1739,7 @@ class RecursiveEntryProcessor:
 
         if value >= 0:
             return f"+{value} ft."
-        else:
-            return f"{value} ft."
+        return f"{value} ft."
 
     def _process_dice(self, dice: dict[str, Any], context: RenderingContext) -> str:
         """Process a dice entry for dice roll notation.
@@ -1858,8 +1847,7 @@ class RecursiveEntryProcessor:
             processed_entry = self._process_text_with_tags(entry_content, context)
             if roll_text:
                 return f"{roll_text} {processed_entry}"
-            else:
-                return processed_entry
+            return processed_entry
 
         return roll_text
 
@@ -1973,14 +1961,13 @@ class RecursiveEntryProcessor:
             return self._render_statblock_content(
                 resolved_content, name, context, style
             )
-        else:
-            # Fallback: render just the name as a header (current behavior)
-            logger.warning(
-                f"Could not resolve statblock reference: {tag} '{name}' from {source}"
-            )
-            section_cmd = self._get_section_command(self._depth, context)
-            processed_name = self._process_text_with_tags(name, context)
-            return f"\\{section_cmd}{{{processed_name}}}"
+        # Fallback: render just the name as a header (current behavior)
+        logger.warning(
+            f"Could not resolve statblock reference: {tag} '{name}' from {source}"
+        )
+        section_cmd = self._get_section_command(self._depth, context)
+        processed_name = self._process_text_with_tags(name, context)
+        return f"\\{section_cmd}{{{processed_name}}}"
 
     def _resolve_statblock_reference(
         self, tag: str, name: str, source: str, context: RenderingContext
@@ -2030,11 +2017,10 @@ class RecursiveEntryProcessor:
                     if hasattr(resolved_content, "model_dump"):
                         content_dict = resolved_content.model_dump()
                         return dict(content_dict) if content_dict else None
-                    elif hasattr(resolved_content, "__dict__"):
+                    if hasattr(resolved_content, "__dict__"):
                         content_dict = resolved_content.__dict__
                         return dict(content_dict) if content_dict else None
-                    else:
-                        return {"name": name, "entries": [str(resolved_content)]}
+                    return {"name": name, "entries": [str(resolved_content)]}
             except Exception as e:
                 logger.warning(
                     f"Error resolving statblock reference {tag} '{name}': {e}"
@@ -2067,11 +2053,10 @@ class RecursiveEntryProcessor:
             if style == "inset":
                 # For inset style, render just the processed name inline
                 return self._process_text_with_tags(name, context)
-            else:
-                # For regular style, render name as section header
-                section_cmd = self._get_section_command(self._depth, context)
-                processed_name = self._process_text_with_tags(name, context)
-                return f"\\{section_cmd}{{{processed_name}}}"
+            # For regular style, render name as section header
+            section_cmd = self._get_section_command(self._depth, context)
+            processed_name = self._process_text_with_tags(name, context)
+            return f"\\{section_cmd}{{{processed_name}}}"
 
         # Process the entries
         processed_entries = self.process_entries(entries, context)
@@ -2084,17 +2069,15 @@ class RecursiveEntryProcessor:
             if self.use_dnd_template:
                 # Use DND inset styling
                 return f"\\begin{{DndSidebar}}{{{processed_name}}}\\n{content_text}\\n\\end{{DndSidebar}}"
-            else:
-                # Use basic bold name + content
-                return f"\\textbf{{{processed_name}}}\\n\\n{content_text}"
-        else:
-            # Regular style: add section header for the statblock
-            section_cmd = self._get_section_command(self._depth, context)
-            processed_name = self._process_text_with_tags(name, context)
-            header = f"\\{section_cmd}{{{processed_name}}}"
+            # Use basic bold name + content
+            return f"\\textbf{{{processed_name}}}\\n\\n{content_text}"
+        # Regular style: add section header for the statblock
+        section_cmd = self._get_section_command(self._depth, context)
+        processed_name = self._process_text_with_tags(name, context)
+        header = f"\\{section_cmd}{{{processed_name}}}"
 
-            # Combine header with content
-            return f"{header}\n\n{content_text}"
+        # Combine header with content
+        return f"{header}\n\n{content_text}"
 
     def get_processing_statistics(self) -> dict[str, Any]:
         """Get processing statistics for this processor instance.

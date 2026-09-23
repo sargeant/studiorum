@@ -1,7 +1,5 @@
 """Unit tests for FluffDeduplicator service."""
 
-import pytest
-
 from studiorum.core.models.content import Source
 from studiorum.core.models.fluff import BaseFluff, FluffEntry
 from studiorum.core.references.content_tracker import ContentTracker

@@ -4,28 +4,17 @@ This module tests the new MCP tools for data repository management
 from Package 3 implementation.
 """
 
-from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
 from studiorum.core.context import AsyncRequestContext
-from studiorum.core.services.protocols import (
-    ContentAttributionProtocol,
-    SourceManagerProtocol,
-)
 from studiorum.mcp.tools.attribution import manage_source_attribution
 from studiorum.mcp.tools.data import manage_data_sources
 
 
 class TestDataSourcesMCPTool:
     """Test the manage_data_sources MCP tool."""
-
-    def setup_method(self):
-        """Set up test environment."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
 
     @pytest.mark.asyncio
     async def test_list_action(self):
@@ -302,12 +291,6 @@ class TestDataSourcesMCPTool:
 class TestSourceAttributionMCPTool:
     """Test the manage_source_attribution MCP tool."""
 
-    def setup_method(self):
-        """Set up test environment."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
-
     @pytest.mark.asyncio
     async def test_list_sources(self):
         """Test listing source attributions via MCP."""
@@ -468,8 +451,7 @@ class TestSourceAttributionMCPTool:
         def mock_resolve_source(abbrev):
             if abbrev in ["PHB", "MM"]:
                 return {"name": f"Official {abbrev}", "official": True}
-            else:
-                return {"name": f"Homebrew {abbrev}", "official": False}
+            return {"name": f"Homebrew {abbrev}", "official": False}
 
         mock_attribution.resolve_source.side_effect = mock_resolve_source
 

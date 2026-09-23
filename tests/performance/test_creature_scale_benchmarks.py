@@ -7,7 +7,6 @@ to ensure the creature processing pipeline scales appropriately.
 import gc
 import os
 import time
-from typing import Any
 from unittest.mock import Mock, patch
 
 import psutil
@@ -16,9 +15,7 @@ import pytest
 from studiorum.core.models.creature_filters import CreatureFilterCriteria
 from studiorum.core.models.creatures import Creature
 from studiorum.core.services.creature_collector import CreatureCollector
-from studiorum.latex_engine.core.document import LaTeXDocumentRenderer
 from studiorum.renderers.core.interfaces import RenderingContext
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.performance
@@ -29,7 +26,6 @@ class TestCreatureDatasetScaling:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
 
         # Track process for memory monitoring
         self.process = psutil.Process(os.getpid())
@@ -454,7 +450,6 @@ class TestMemoryUsageValidation:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
 
         self.process = psutil.Process(os.getpid())
 
@@ -746,10 +741,6 @@ class TestMemoryUsageValidation:
 @pytest.mark.slow
 class TestRenderingPerformanceScale:
     """Test rendering performance with large creature datasets."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_rendering_scalability_stress_test(self):
         """Stress test rendering performance with multiple creatures."""

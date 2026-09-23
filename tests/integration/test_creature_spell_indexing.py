@@ -12,11 +12,6 @@ from studiorum.core.references import SpellReferenceParser
 class TestCreatureSpellIndexing:
     """Test creature spell indexing functionality."""
 
-    def setup_method(self) -> None:
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
-
     def test_creature_implements_deep_indexable(self):
         """Test that Creature implements DeepIndexable protocol."""
         # Create a minimal creature
@@ -243,11 +238,6 @@ class TestCreatureSpellIndexing:
 @pytest.mark.integration
 class TestCreatureDeepIndexingIntegration:
     """Test full deep indexing integration with mock omnidexer."""
-
-    def setup_method(self) -> None:
-        from tests.test_helpers import reset_test_environment
-
-        reset_test_environment()
 
     def test_creature_deep_indexing_with_mock_omnidexer(self):
         """Test that creature deep indexing works with a mock omnidexer."""

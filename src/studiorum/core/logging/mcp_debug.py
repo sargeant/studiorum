@@ -13,10 +13,9 @@ from contextlib import contextmanager
 from datetime import datetime
 from logging import FileHandler
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import logfire
-from logfire import LogfireLoggingHandler
 
 
 class MCPDebugLogger:

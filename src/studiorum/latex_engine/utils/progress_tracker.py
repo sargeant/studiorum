@@ -216,7 +216,6 @@ class SimpleProgressReporter:
     def update_pass_progress(self, progress: float, status: str) -> None:
         """Update progress within current pass."""
         # Simple reporter doesn't show sub-pass progress
-        pass
 
     def finish_pass(self, success: bool, duration: float) -> None:
         """Finish current pass."""
@@ -238,27 +237,21 @@ class NoProgressReporter:
 
     def start_compilation(self, engine: str, total_passes: int) -> None:
         """Start compilation tracking."""
-        pass
 
     def start_pass(self, pass_number: int, description: str) -> None:
         """Start a compilation pass."""
-        pass
 
     def update_pass_progress(self, progress: float, status: str) -> None:
         """Update progress within current pass."""
-        pass
 
     def finish_pass(self, success: bool, duration: float) -> None:
         """Finish current pass."""
-        pass
 
     def finish_compilation(self, success: bool, total_duration: float) -> None:
         """Finish compilation."""
-        pass
 
     def show_error(self, message: str) -> None:
         """Display an error message."""
-        pass
 
 
 class CompilationProgress(BaseModel):
@@ -321,10 +314,9 @@ class ProgressTracker:
         """
         if style == "rich" and RICH_AVAILABLE:
             return RichProgressReporter(console)
-        elif style == "simple":
+        if style == "simple":
             return SimpleProgressReporter()
-        else:
-            return NoProgressReporter()
+        return NoProgressReporter()
 
     @contextmanager
     def compilation(self, engine: str, total_passes: int) -> Any:

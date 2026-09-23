@@ -100,7 +100,6 @@ class TestDNDTemplateManager:
         def mock_find_side_effect(filename: Any) -> Any:
             if filename == "dndbook.cls":
                 return Path("/usr/local/texlive/dndbook.cls")
-            pass
 
         mock_find.side_effect = mock_find_side_effect
 

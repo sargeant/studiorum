@@ -5,19 +5,14 @@ automatically across thousands of generated test cases.
 """
 
 import pytest
-from hypothesis import assume, example, given, settings, strategies as st
+from hypothesis import example, given, settings, strategies as st
 from hypothesis.strategies import composite
 
 from studiorum.cli.services import get_cli_template_service
 from studiorum.core.models.spells import (
-    ClassReference,
-    DistanceDetails,
-    DurationDetails,
     Spell,
-    SpellClassList,
     SpellComponent,
     SpellDuration,
-    SpellRange,
     SpellTime,
 )
 from studiorum.core.references.content_tracker import ContentTracker

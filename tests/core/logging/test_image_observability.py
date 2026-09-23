@@ -9,16 +9,14 @@ from __future__ import annotations
 
 import asyncio
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from studiorum.core.logging.image_observability import (
-    AsyncResourceMonitor,
     CacheMetrics,
     CacheOperation,
     ImageProcessingMetrics,
-    ImageProcessingObserver,
     ImageProcessingResult,
     ImageProcessingStage,
     ProgressReporter,
@@ -239,13 +237,15 @@ class TestContextManagers:
 
     def test_track_image_operation_failure(self) -> None:
         """Test sync context manager for failed operation."""
-        with pytest.raises(ValueError):
-            with track_image_operation(
+        with (
+            pytest.raises(ValueError),
+            track_image_operation(
                 stage=ImageProcessingStage.OPTIMIZATION,
                 content_type=ContentType.ADVENTURE,
-            ) as tracking:
-                tracking["set_confidence"](0.5)
-                raise ValueError("Test error")
+            ) as tracking,
+        ):
+            tracking["set_confidence"](0.5)
+            raise ValueError("Test error")
 
         observer = get_image_observer()
         stats = observer.get_statistics()

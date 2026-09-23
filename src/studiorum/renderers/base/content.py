@@ -1,7 +1,6 @@
 """Content-specific renderer interface."""
 
 from abc import abstractmethod
-from typing import Any
 
 from ...core.models.content import BaseContent, ContentType
 from ..core.interfaces import RenderingContext
@@ -19,7 +18,6 @@ class ContentRenderer(BaseRenderer):
     @abstractmethod
     def supported_content_types(self) -> set[ContentType]:
         """Return set of content types this renderer supports."""
-        pass
 
     @abstractmethod
     def render_content(self, content: BaseContent, context: RenderingContext) -> str:
@@ -32,7 +30,6 @@ class ContentRenderer(BaseRenderer):
         Returns:
             Rendered content as string
         """
-        pass
 
     def can_render(self, content: BaseContent) -> bool:
         """Check if this renderer can handle the given content.

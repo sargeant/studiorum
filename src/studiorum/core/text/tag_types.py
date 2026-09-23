@@ -11,7 +11,7 @@ from ..base_context import ServiceContext
 from ..models.content import BaseContent, ContentType
 
 if TYPE_CHECKING:
-    from ..loaders.omnidexer import Omnidexer
+    pass
 
 
 class FormatType(str, Enum):

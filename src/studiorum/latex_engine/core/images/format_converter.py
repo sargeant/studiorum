@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 if TYPE_CHECKING:
     from PIL.Image import Image as PILImage
@@ -141,12 +141,11 @@ class FormatConverter:
 
         if suffix == ".webp":
             return self.convert_webp_to_png(image_path, output_dir)
-        elif suffix in {".png", ".jpg", ".jpeg", ".pdf"}:
+        if suffix in {".png", ".jpg", ".jpeg", ".pdf"}:
             # Already LaTeX compatible
             return None
-        else:
-            # Unknown format - try to convert to PNG
-            return self._convert_unknown_format(image_path, output_dir)
+        # Unknown format - try to convert to PNG
+        return self._convert_unknown_format(image_path, output_dir)
 
     def _convert_unknown_format(
         self, image_path: Path, output_dir: Path | None = None

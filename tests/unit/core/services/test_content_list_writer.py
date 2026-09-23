@@ -12,7 +12,6 @@ from studiorum.core.services.content_list_writer import (
     ContentListWriter,
     ContentListWriterError,
 )
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.fast
@@ -21,7 +20,6 @@ class TestContentListWriter:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        reset_test_environment()
         self.writer = ContentListWriter()
         self.temp_dir = Path(tempfile.mkdtemp())
 

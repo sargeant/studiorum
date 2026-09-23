@@ -6,7 +6,6 @@ business logic from presentation concerns in tag rendering.
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
@@ -17,7 +16,6 @@ if TYPE_CHECKING:
 
 # Import these directly to avoid forward reference issues
 from studiorum.core.models.content import ContentType
-from studiorum.core.references.content_tracker import ContentTracker
 
 
 class FormatStyle(str, Enum):
@@ -364,15 +362,14 @@ class UnifiedTagRenderer:
 
                     latex_renderer = LaTeXTagRenderer()
                     return latex_renderer.render(result)
-                elif isinstance(result, str):
+                if isinstance(result, str):
                     # Direct string result - apply format-specific escaping
                     if context.output_format == "latex":
                         from studiorum.core.latex_utils import escape_latex_text
 
                         return escape_latex_text(result)
-                    else:
-                        # For other formats, return as-is (HTML, markdown, etc.)
-                        return result
+                    # For other formats, return as-is (HTML, markdown, etc.)
+                    return result
 
             # Step 1: Extract core content information (business logic)
             content_info = core_handler.extract_content_info(node, context)

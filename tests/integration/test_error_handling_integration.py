@@ -5,8 +5,6 @@ Tests the complete error handling pipeline from Result pattern through
 logging and backward compatibility.
 """
 
-from typing import Any
-
 import pytest
 from logfire.testing import CaptureLogfire
 from pydantic import BaseModel, Field
@@ -23,7 +21,6 @@ from studiorum.core.error_types import (
 from studiorum.core.logging import get_logger
 from studiorum.core.model_validation import validate_model, validate_required_field
 from studiorum.core.result import Error, Result, Success, collect_results, try_result
-from tests.test_helpers import reset_test_environment
 
 
 class TestModel(BaseModel):
@@ -42,11 +39,6 @@ class TestErrorHandlingIntegration:
     def setup_log_capture(self, capfire: CaptureLogfire) -> None:
         """Set up log capture for each test."""
         self.capfire = capfire
-
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
     def get_log_output(self) -> str:
         """Get captured log output from Logfire spans."""

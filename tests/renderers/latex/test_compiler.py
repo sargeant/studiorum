@@ -14,7 +14,6 @@ from studiorum.latex_engine.config.compilation import (  # type: ignore
     LaTeXEngine,
 )
 from studiorum.latex_engine.core.compiler import LaTeXCompiler  # type: ignore
-from tests.test_helpers import reset_test_environment
 
 # Ensure async tests work properly
 pytestmark = [pytest.mark.asyncio, pytest.mark.requires_latex]
@@ -26,8 +25,6 @@ class TestLaTeXCompiler:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         # Create config that won't actually try to compile
         self.config = CompilationConfig(
@@ -165,14 +162,11 @@ class TestLaTeXCompiler:
 
         # Mock successful checks for LuaLaTeX and XeLaTeX, failed for PDFLaTeX
         def mock_subprocess_run(cmd: Any, **kwargs: Any) -> Any:
-            if cmd[0] == "lualatex":
+            if cmd[0] == "lualatex" or cmd[0] == "xelatex":
                 return Mock(returncode=0)
-            elif cmd[0] == "xelatex":
-                return Mock(returncode=0)
-            elif cmd[0] == "pdflatex":
+            if cmd[0] == "pdflatex":
                 return Mock(returncode=1)
-            else:
-                return Mock(returncode=1)
+            return Mock(returncode=1)
 
         mock_run.side_effect = mock_subprocess_run
 
@@ -203,10 +197,9 @@ class TestLaTeXCompiler:
         def mock_subprocess_run(cmd: Any, **kwargs: Any) -> Any:
             if cmd[0] == "lualatex":
                 return Mock(returncode=0)
-            elif cmd[0] == "kpsewhich":
+            if cmd[0] == "kpsewhich":
                 return Mock(returncode=0)  # DND template available
-            else:
-                return Mock(returncode=1)
+            return Mock(returncode=1)
 
         mock_run.side_effect = mock_subprocess_run
 
@@ -387,8 +380,6 @@ class TestLaTeXCompilerIntegration:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.config = CompilationConfig(
             show_progress=False,
@@ -438,10 +429,9 @@ class TestLaTeXCompilerIntegration:
         def mock_availability_check(engine: Any) -> bool:
             if engine == LaTeXEngine.LUALATEX:
                 return False
-            elif engine == LaTeXEngine.XELATEX:
+            if engine == LaTeXEngine.XELATEX:
                 return True
-            else:
-                return False
+            return False
 
         # Mock successful XeLaTeX compilation
         mock_run.return_value = Mock(

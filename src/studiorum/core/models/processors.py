@@ -197,8 +197,7 @@ class CreatureProcessor:
         """Process creature with provided services (implements ModelProcessorProtocol)."""
         if omnidexer:
             return self.enrich_with_content(omnidexer, tag_resolver)
-        else:
-            return self.resolve_tags(tag_resolver)
+        return self.resolve_tags(tag_resolver)
 
 
 class SpellProcessor:

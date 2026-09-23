@@ -25,27 +25,14 @@ from studiorum.core.logging import get_logger
 
 from ...core.config.unified_config import (
     ApplicationConfig,
-    CompilationConfig,
-    ContentConfig,
-    LaTeXDocumentConfig,
-    LaTeXEngineConfig,
-    LaTeXRenderingConfig,
-    LoggingConfig,
-    MCPConfig,
-    PathsConfig,
-    ProcessingConfig,
-    RenderingConfig,
-    ValidationConfig,
     get_app_config,
     set_app_config,
 )
 from ...core.context import AsyncRequestContext
 from ...core.error_types import (
-    ConfigurationError,
     ErrorCategory,
     MCPError,
     MCPErrorCode,
-    ValidationError as DnDValidationError,
 )
 from ...core.result import Error, Result, Success
 

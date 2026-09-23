@@ -4,8 +4,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from studiorum.core.interfaces import DeepIndexable
-from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.references.content_reference_manager import (
     ContentReference,
     ContentReferenceManager,
@@ -13,7 +11,6 @@ from studiorum.core.references.content_reference_manager import (
     ReferenceTrackingTagResolver,
 )
 from studiorum.core.references.content_tracker import TrackedContent
-from tests.test_helpers import reset_test_environment
 
 
 class TestReferenceSource:
@@ -82,10 +79,6 @@ class TestContentReference:
 
 class TestContentReferenceManager:
     """Test ContentReferenceManager class."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_init(self):
         """Test ContentReferenceManager initialization."""
@@ -385,10 +378,6 @@ class TestContentReferenceManager:
 class TestReferenceTrackingTagResolver:
     """Test ReferenceTrackingTagResolver wrapper."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
-
     def test_init(self):
         """Test ReferenceTrackingTagResolver initialization."""
         mock_tag_resolver = Mock()
@@ -482,10 +471,6 @@ class TestReferenceTrackingTagResolver:
 @pytest.mark.integration
 class TestContentReferenceManagerIntegration:
     """Integration tests for ContentReferenceManager."""
-
-    def setup_method(self):
-        """Set up test fixtures."""
-        reset_test_environment()
 
     def test_full_reference_tracking_workflow(self):
         """Test complete reference tracking workflow."""

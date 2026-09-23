@@ -9,8 +9,6 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-import pytest
-
 from studiorum.core.loaders.fluff_loader import FluffDataLoader  # type: ignore
 from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from studiorum.core.models.content import ContentType  # type: ignore
@@ -19,15 +17,10 @@ from studiorum.core.models.items import Item  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
 
 # Import test helpers
-from tests.test_helpers import reset_test_environment
 
 
 class TestLiberalParsing:
     """Test liberal parsing capabilities."""
-
-    def setup_method(self) -> None:
-        """Set up test environment for each test."""
-        reset_test_environment()
 
     def _get_content_type(self, type_name: str) -> ContentType:
         """Get ContentType safely, falling back to static enum members."""

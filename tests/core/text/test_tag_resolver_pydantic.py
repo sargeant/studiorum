@@ -1,11 +1,8 @@
 """Comprehensive tests for TagResolver Pydantic model."""
 
-from collections.abc import Callable
-from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
-from pydantic import ValidationError
 
 from studiorum.core.text.tag_parser import TagParseError, TagParser
 from studiorum.core.text.tag_resolver import TagResolver

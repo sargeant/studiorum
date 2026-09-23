@@ -11,7 +11,6 @@ from studiorum.core.models.chapter import Chapter  # type: ignore
 from studiorum.core.models.content import Source  # type: ignore
 from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: ignore
 from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
-from tests.test_helpers import reset_test_environment
 
 
 def compile_document_to_pdf_sync(renderer, books, context):
@@ -36,8 +35,6 @@ class TestBookRenderingIntegration:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         config = {"show_progress": False, "compilation_timeout": 10, "max_passes": 2}
         self.renderer = LaTeXDocumentRenderer(config)
@@ -370,36 +367,36 @@ class TestBookRenderingIntegration:
             output_file=Path("/tmp/test_book.pdf"),
         )
 
-        with patch.object(
-            self.renderer.template_engine,
-            "check_dnd_template_availability",
-            return_value=True,
-        ):
-            with patch.object(
+        with (
+            patch.object(
+                self.renderer.template_engine,
+                "check_dnd_template_availability",
+                return_value=True,
+            ),
+            patch.object(
                 self.renderer.compiler,
                 "compile_document",
                 return_value=mock_result,
                 new_callable=AsyncMock,
-            ) as mock_compile:
-                result = compile_document_to_pdf_sync(
-                    self.renderer, [simple_book], context
-                )
+            ) as mock_compile,
+        ):
+            result = compile_document_to_pdf_sync(self.renderer, [simple_book], context)
 
-                assert result.success is True
-                assert result.output_file == Path("/tmp/test_book.pdf")
+            assert result.success is True
+            assert result.output_file == Path("/tmp/test_book.pdf")
 
-                # Check that LaTeX was generated and passed to compiler
-                mock_compile.assert_called_once()
-                compile_args = mock_compile.call_args[0]
-                latex_source = compile_args[0]
+            # Check that LaTeX was generated and passed to compiler
+            mock_compile.assert_called_once()
+            compile_args = mock_compile.call_args[0]
+            latex_source = compile_args[0]
 
-                # Verify LaTeX contains book content
-                assert isinstance(latex_source, str)
-                assert len(latex_source) > 100
-                assert (
-                    "Player's Handbook" in latex_source
-                    or "Compilation Test" in latex_source
-                )
+            # Verify LaTeX contains book content
+            assert isinstance(latex_source, str)
+            assert len(latex_source) > 100
+            assert (
+                "Player's Handbook" in latex_source
+                or "Compilation Test" in latex_source
+            )
 
     def test_book_rendering_with_custom_context(self, simple_book: Any) -> None:
         """Test book rendering with custom render context options."""
@@ -495,8 +492,6 @@ class TestBookRenderingEntryProcessing:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         config = {"show_progress": False}
         self.renderer = LaTeXDocumentRenderer(config)

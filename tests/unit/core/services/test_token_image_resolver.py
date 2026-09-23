@@ -2,21 +2,13 @@
 
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import Mock, patch
 
 from studiorum.core.services.token_image_resolver import TokenImageResolver
 
 
 class TestTokenImageResolver:
     """Test token image resolver functionality."""
-
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
 
     def test_initialization_with_pil_available(self) -> None:
         """Test resolver initialization when PIL is available."""

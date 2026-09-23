@@ -7,7 +7,6 @@ atmospheric illustrations, building on the Phase 2 ContentAwarePlacementStrategy
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -16,14 +15,9 @@ from pydantic import BaseModel, Field
 from studiorum.core.logging import get_logger
 from studiorum.core.result import Error, Result, Success
 from studiorum.latex_engine.core.images.placement_models import (
-    ContentContext,
-    ContentType,
-    DocumentContext,
     ImageCharacteristic,
     ImageDimensions,
     ImageMetadata,
-    OptimizationTarget,
-    PageContext,
 )
 from studiorum.renderers.core.interfaces import RenderingContext
 
@@ -605,16 +599,15 @@ class AdventureImageIntegration:
             for keyword in ["introduction", "prologue", "beginning"]
         ):
             return "opening"
-        elif any(
+        if any(
             keyword in chapter_name for keyword in ["dungeon", "tomb", "lair", "cavern"]
         ):
             return "dungeon"
-        elif any(
+        if any(
             keyword in chapter_name for keyword in ["conclusion", "epilogue", "finale"]
         ):
             return "conclusion"
-        else:
-            return "narrative"
+        return "narrative"
 
     def _extract_chapter_entities(
         self, entries: list[dict[str, Any]], metadata: dict[str, Any]

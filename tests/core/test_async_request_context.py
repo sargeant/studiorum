@@ -2,7 +2,6 @@
 
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
-from uuid import uuid4
 
 import pytest
 
@@ -17,9 +16,7 @@ from studiorum.core.context import (
 )
 from studiorum.core.error_types import ContentNotFoundError
 from studiorum.core.services.protocols import (
-    ConfigurationProtocol,
     OmnidexerProtocol,
-    TagResolverProtocol,
 )
 
 

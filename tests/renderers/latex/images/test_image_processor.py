@@ -1,7 +1,7 @@
 """Tests for the image processor core functionality."""
 
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from pydantic import ValidationError
@@ -12,7 +12,6 @@ from studiorum.latex_engine.core.images.image_processor import (
     ProcessedImage,
 )
 from studiorum.renderers.core.interfaces import RenderingContext
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -95,8 +94,6 @@ class TestImageProcessor:
 
     def setup_method(self):
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.config = ImageProcessingConfig(
             enable_webp_conversion=True,
@@ -267,8 +264,6 @@ class TestImageProcessorIntegration:
 
     def setup_method(self):
         """Set up integration test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.processor = ImageProcessor()
         self.context = RenderingContext(

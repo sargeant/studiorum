@@ -89,7 +89,7 @@ class ArmorClass(BaseModel):
     def __str__(self) -> str:
         if self.special:
             return self.special
-        elif self.ac is not None:
+        if self.ac is not None:
             result = str(self.ac)
             if self.from_:
                 sources = ", ".join(self.from_)
@@ -97,8 +97,7 @@ class ArmorClass(BaseModel):
             if self.condition:
                 result += f" {self.condition}"
             return result
-        else:
-            return "Unknown"
+        return "Unknown"
 
     def get_processed_ac_text(self, tag_resolver: "TagResolver | None" = None) -> str:
         """Get armor class text with 5e.tools markup processed for LaTeX.
@@ -167,14 +166,13 @@ class HitPoints(BaseModel):
     def __str__(self) -> str:
         if self.special:
             return self.special
-        elif self.average is not None and self.formula:
+        if self.average is not None and self.formula:
             return f"{self.average} ({self.formula})"
-        elif self.average is not None:
+        if self.average is not None:
             return str(self.average)
-        elif self.formula:
+        if self.formula:
             return self.formula
-        else:
-            return "Unknown"
+        return "Unknown"
 
 
 class Speed(BaseModel):
@@ -247,7 +245,7 @@ class CreatureType(BaseModel):
                 from_attributes=from_attributes,
                 context=context,
             )
-        elif isinstance(obj, dict):
+        if isinstance(obj, dict):
             # If dict doesn't have 'type' key but has other recognizable keys,
             # wrap the entire dict as the type
             if "type" not in obj and ("choose" in obj or "special" in obj):
@@ -340,7 +338,6 @@ class Ability(BaseModel):
             from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
             # Get services for proper tag processing
             omnidexer = get_cli_omnidexer()
@@ -367,8 +364,7 @@ class Ability(BaseModel):
                 # Convert name to entry format and process
                 processed_entries = processor.process_entries([self.name], context)
                 return "\n".join(processed_entries)
-            else:
-                return ""
+            return ""
 
         except Exception:
             # Fallback to original name if processing fails
@@ -438,7 +434,6 @@ class Spellcasting(BaseModel):
             from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
             from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
             from ...renderers.core.interfaces import RenderingContext
-            from ..services.protocols import OmnidexerProtocol, TagResolverProtocol
 
             # Get services for proper tag processing
             omnidexer = get_cli_omnidexer()
@@ -465,8 +460,7 @@ class Spellcasting(BaseModel):
                 # Convert name to entry format and process
                 processed_entries = processor.process_entries([self.name], context)
                 return "\n".join(processed_entries)
-            else:
-                return ""
+            return ""
 
         except Exception:
             # Fallback to original name if processing fails
@@ -585,12 +579,11 @@ class Creature(BaseContent):
         """Parse creature type from various formats."""
         if isinstance(v, str):
             return CreatureType(type=v)  # type: ignore[call-arg]
-        elif isinstance(v, dict):
+        if isinstance(v, dict):
             if "type" in v:
                 return CreatureType.model_validate(v)
-            else:
-                # Handle choice format and other dict structures
-                return CreatureType(type=v)  # type: ignore[call-arg]
+            # Handle choice format and other dict structures
+            return CreatureType(type=v)  # type: ignore[call-arg]
         return v
 
     @field_validator("ac", mode="before")
@@ -607,7 +600,7 @@ class Creature(BaseContent):
                 else:
                     result.append(item)
             return result
-        elif isinstance(v, int):
+        if isinstance(v, int):
             return [ArmorClass(ac=v)]  # type: ignore[call-arg]
         return v
 
@@ -741,8 +734,7 @@ class Creature(BaseContent):
         if isinstance(self.size, list):
             sizes = [SIZE_ABV_TO_FULL.get(s, s) for s in self.size]
             return ", ".join(sizes)
-        else:
-            return SIZE_ABV_TO_FULL.get(str(self.size), str(self.size))
+        return SIZE_ABV_TO_FULL.get(str(self.size), str(self.size))
 
     def _get_alignment_text(self) -> str:
         """Get formatted alignment text with 5etools compatibility."""
@@ -776,7 +768,7 @@ class Creature(BaseContent):
                 if isinstance(alignment_item, dict):
                     if alignment_item.get("special"):
                         return str(alignment_item["special"])
-                    elif "choose" in alignment_item:
+                    if "choose" in alignment_item:
                         # Handle choose format: {"choose": [["L", "G"], ["L", "N"]]}
                         # Use the first choice for simplicity
                         choose_options = alignment_item["choose"]
@@ -800,31 +792,31 @@ class Creature(BaseContent):
         # 5etools alignment processing logic
         if len(align_list) == 1:
             return str(ALIGNMENT_ABV_TO_FULL.get(align_list[0], align_list[0].lower()))
-        elif len(align_list) == 2:
+        if len(align_list) == 2:
             # Pair like ["L", "G"] -> "lawful good"
             return " ".join(
                 ALIGNMENT_ABV_TO_FULL.get(a) or a.lower() for a in align_list
             )
-        elif len(align_list) == 3:
+        if len(align_list) == 3:
             if "NX" in align_list and "NY" in align_list and "N" in align_list:
                 return "any neutral alignment"
         elif len(align_list) == 4:
             if "L" not in align_list and "NX" not in align_list:
                 return "any chaotic alignment"
-            elif "G" not in align_list and "NY" not in align_list:
+            if "G" not in align_list and "NY" not in align_list:
                 return "any evil alignment"
-            elif "C" not in align_list and "NX" not in align_list:
+            if "C" not in align_list and "NX" not in align_list:
                 return "any lawful alignment"
-            elif "E" not in align_list and "NY" not in align_list:
+            if "E" not in align_list and "NY" not in align_list:
                 return "any good alignment"
         elif len(align_list) == 5:
             if "G" not in align_list:
                 return "any non-good alignment"
-            elif "E" not in align_list:
+            if "E" not in align_list:
                 return "any non-evil alignment"
-            elif "L" not in align_list:
+            if "L" not in align_list:
                 return "any non-lawful alignment"
-            elif "C" not in align_list:
+            if "C" not in align_list:
                 return "any non-chaotic alignment"
 
         # Fallback - just join the converted abbreviations
@@ -899,20 +891,19 @@ class Creature(BaseContent):
             ncr = _numeric_cr(self.cr)
             if ncr <= 4:
                 return 2
-            elif ncr <= 8:
+            if ncr <= 8:
                 return 3
-            elif ncr <= 12:
+            if ncr <= 12:
                 return 4
-            elif ncr <= 16:
+            if ncr <= 16:
                 return 5
-            elif ncr <= 20:
+            if ncr <= 20:
                 return 6
-            elif ncr <= 24:
+            if ncr <= 24:
                 return 7
-            elif ncr <= 28:
+            if ncr <= 28:
                 return 8
-            else:
-                return 9
+            return 9
 
         # If initiative is a simple number, treat as override
         if isinstance(init_data, int | float):
@@ -954,13 +945,12 @@ class Creature(BaseContent):
         """Get formatted challenge rating text."""
         if self.cr is None:
             return "Unknown"
-        elif isinstance(self.cr, dict):
+        if isinstance(self.cr, dict):
             if "special" in self.cr:
                 return str(self.cr["special"])
-            elif "cr" in self.cr:
+            if "cr" in self.cr:
                 return str(self.cr["cr"])
-            else:
-                return "Unknown"
+            return "Unknown"
         return str(self.cr)
 
     def get_formatted_saving_throws(self) -> str | None:
@@ -1028,14 +1018,13 @@ class Creature(BaseContent):
         # 5e proficiency bonus progression
         if creature_level >= 17:
             return 6
-        elif creature_level >= 13:
+        if creature_level >= 13:
             return 5
-        elif creature_level >= 9:
+        if creature_level >= 9:
             return 4
-        elif creature_level >= 5:
+        if creature_level >= 5:
             return 3
-        else:
-            return 2
+        return 2
 
     def _evaluate_pb_expression(self, expression: str, creature_level: int) -> int:
         """Evaluate a proficiency bonus expression like '3 plus PB' or '+2 plus PB'.
@@ -1070,17 +1059,15 @@ class Creature(BaseContent):
                 import ast
 
                 return int(ast.literal_eval(expr))
-            else:
-                raise ValueError(f"Invalid PB expression: {expression}")
+            raise ValueError(f"Invalid PB expression: {expression}")
         except Exception:
             # Fallback: try to extract base number and add PB
             base_match = re.search(r"([+\-]?\d+)", expression)
             if base_match:
                 base = int(base_match.group(1))
                 return base + pb
-            else:
-                # If we can't parse it, just return the PB
-                return pb
+            # If we can't parse it, just return the PB
+            return pb
 
     def get_save_value_with_level(
         self, ability: str, creature_level: int
@@ -1156,8 +1143,7 @@ class Creature(BaseContent):
 
         try:
             # Try to get tag resolver from service container
-            from ...cli.services import get_cli_omnidexer, get_cli_tag_resolver
-            from ..text.tag_resolver import TagResolver
+            from ...cli.services import get_cli_tag_resolver
 
             tag_resolver = get_cli_tag_resolver()
 
@@ -1167,12 +1153,10 @@ class Creature(BaseContent):
                 return processor._process_senses_with_tag_resolver(
                     self.senses, tag_resolver
                 )
-            else:
-                # Fallback to basic tag processing
-                if isinstance(self.senses, str):
-                    return tag_resolver.process_text(self.senses)
-                else:
-                    return str(self.senses)
+            # Fallback to basic tag processing
+            if isinstance(self.senses, str):
+                return tag_resolver.process_text(self.senses)
+            return str(self.senses)
 
         except Exception:
             # Fallback to formatted senses with basic tag stripping
@@ -1324,8 +1308,7 @@ class Creature(BaseContent):
                 else:
                     condition_parts.append(str(condition))
             return ", ".join(condition_parts)
-        else:
-            return str(self.conditionImmune)
+        return str(self.conditionImmune)
 
     def _format_condition_immunity_dict(self, condition_dict: dict) -> str:
         """Format a complex condition immunity dictionary."""
@@ -1348,8 +1331,7 @@ class Creature(BaseContent):
             condition_text = ", ".join(conditions)
             if note:
                 return f"{condition_text} {note}"
-            else:
-                return condition_text
+            return condition_text
 
         return ""
 
@@ -1459,13 +1441,11 @@ class Creature(BaseContent):
             # Join variants with " or "
             if variants:
                 return " or ".join(variants)
-            else:
-                return "0 (10 XP)"
+            return "0 (10 XP)"
 
         # Handle simple string/int format
-        else:
-            cr_value = str(self.cr)
-            return format_cr_with_xp(cr_value)
+        cr_value = str(self.cr)
+        return format_cr_with_xp(cr_value)
 
     def get_deep_index_entries(self, omnidexer: "Omnidexer") -> list[BaseContent]:
         """Extract spell references from creature traits and actions."""

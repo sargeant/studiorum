@@ -127,26 +127,25 @@ class LaTeXCompiler:
         if last_result:
             last_result.total_time = time.time() - start_time
             return last_result
-        else:
-            # Provide informative error message about compatibility
-            all_engines = [self.config.primary_engine] + self.config.fallback_engines
-            if not compatible_engines:
-                error_msg = (
-                    f"No engines compatible with required packages {self.config.required_packages}. "
-                    f"Available engines: {[e.value for e in all_engines]}"
-                )
-            else:
-                error_msg = f"No compatible LaTeX engines available: {[e.value for e in engines_to_try]}"
-
-            return CompilationResult(
-                success=False,
-                engine_used=engines_to_try[0]
-                if engines_to_try
-                else self.config.primary_engine,
-                passes_completed=0,
-                total_time=time.time() - start_time,
-                error_message=error_msg,
+        # Provide informative error message about compatibility
+        all_engines = [self.config.primary_engine] + self.config.fallback_engines
+        if not compatible_engines:
+            error_msg = (
+                f"No engines compatible with required packages {self.config.required_packages}. "
+                f"Available engines: {[e.value for e in all_engines]}"
             )
+        else:
+            error_msg = f"No compatible LaTeX engines available: {[e.value for e in engines_to_try]}"
+
+        return CompilationResult(
+            success=False,
+            engine_used=engines_to_try[0]
+            if engines_to_try
+            else self.config.primary_engine,
+            passes_completed=0,
+            total_time=time.time() - start_time,
+            error_message=error_msg,
+        )
 
     async def _compile_with_engine(
         self, engine: LaTeXEngine, tex_file: Path, work_dir: Path
@@ -319,14 +318,13 @@ class LaTeXCompiler:
         """
         if pass_num == 1:
             return "Initial compilation"
-        elif pass_num == 2:
+        if pass_num == 2:
             return "Cross-references and citations"
-        elif pass_num == 3:
+        if pass_num == 3:
             return "Table of contents"
-        elif pass_num == 4:
+        if pass_num == 4:
             return "Index and final formatting"
-        else:
-            return f"Additional pass {pass_num}"
+        return f"Additional pass {pass_num}"
 
     def _needs_additional_pass(self, stdout: str, work_dir: Path) -> bool:
         """Check if additional compilation pass is needed.

@@ -14,7 +14,6 @@ from studiorum.core.models.content import Source  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
 from studiorum.latex_engine.core.document import LaTeXDocumentRenderer  # type: ignore
 from studiorum.renderers.core.interfaces import RenderingContext  # type: ignore
-from tests.test_helpers import reset_test_environment
 
 
 def compile_document_to_pdf_sync(renderer, documents, context):
@@ -39,8 +38,6 @@ class TestRenderingPerformance:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         config = {"show_progress": False, "compilation_timeout": 30, "max_passes": 2}
         self.renderer = LaTeXDocumentRenderer(config)
@@ -421,7 +418,6 @@ class TestRenderingPerformance:
     @pytest.mark.slow
     def test_compilation_performance_integration(self, sample_spell: Any) -> None:
         """Test end-to-end performance including compilation."""
-        import asyncio
 
         import pytest
 
@@ -449,29 +445,31 @@ class TestRenderingPerformance:
             output_file=Path("/tmp/perf_test.pdf"),
         )
 
-        with patch.object(
-            self.renderer.template_engine,
-            "check_dnd_template_availability",
-            return_value=True,
-        ):
-            with patch.object(
+        with (
+            patch.object(
+                self.renderer.template_engine,
+                "check_dnd_template_availability",
+                return_value=True,
+            ),
+            patch.object(
                 self.renderer.compiler,
                 "compile_document",
                 return_value=mock_result,
                 new_callable=AsyncMock,
-            ):
-                # Measure end-to-end performance
-                context = RenderingContext(
-                    output_format="latex",
-                    metadata={"title": "Compilation Performance Test"},
+            ),
+        ):
+            # Measure end-to-end performance
+            context = RenderingContext(
+                output_format="latex",
+                metadata={"title": "Compilation Performance Test"},
+            )
+            start_time = time.perf_counter()
+            for _ in range(10):
+                result = compile_document_to_pdf_sync(
+                    self.renderer, [sample_spell], context
                 )
-                start_time = time.perf_counter()
-                for _ in range(10):
-                    result = compile_document_to_pdf_sync(
-                        self.renderer, [sample_spell], context
-                    )
-                    assert result.success is True
-                end_time = time.perf_counter()
+                assert result.success is True
+            end_time = time.perf_counter()
 
         total_time = end_time - start_time
         avg_time_per_compile = total_time / 10

@@ -5,8 +5,6 @@ in the actual 5etools dataset to ensure robust handling of all variations.
 """
 
 import re
-from typing import Any
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -14,7 +12,6 @@ from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Creature
 from studiorum.core.services.creature_collector import CreatureCollector
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.requires_data
@@ -24,7 +21,6 @@ class TestCreatureEdgeCasesRealData:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
         self.omnidexer = None
         self.loaded_creatures = []
 
@@ -570,7 +566,6 @@ class TestCreatureCollectionEdgeCases:
 
     def setup_method(self):
         """Set up test fixtures."""
-        reset_test_environment()
         self.omnidexer = None
 
     @pytest.fixture(autouse=True)

@@ -95,13 +95,13 @@ class SpellReferenceParser:
             # Format: "spell name"
             name = parts[0]
             return SpellReference(name=name, original_tag=f"{{@spell {tag_content}}}")
-        elif len(parts) == 2:
+        if len(parts) == 2:
             # Format: "spell name|source"
             name, source = parts
             return SpellReference(
                 name=name, source=source, original_tag=f"{{@spell {tag_content}}}"
             )
-        elif len(parts) == 3:
+        if len(parts) == 3:
             # Format: "spell name|source|display text"
             name, source, display_text = parts
             return SpellReference(
@@ -110,21 +110,20 @@ class SpellReferenceParser:
                 display_text=display_text,
                 original_tag=f"{{@spell {tag_content}}}",
             )
-        else:
-            logger.warning(
-                f"Unexpected spell reference format with {len(parts)} parts: {tag_content}"
-            )
-            # Use first three parts and ignore the rest
-            spell_name = parts[0]
-            spell_source = parts[1] if len(parts) > 1 else None
-            spell_display_text = parts[2] if len(parts) > 2 else None
+        logger.warning(
+            f"Unexpected spell reference format with {len(parts)} parts: {tag_content}"
+        )
+        # Use first three parts and ignore the rest
+        spell_name = parts[0]
+        spell_source = parts[1] if len(parts) > 1 else None
+        spell_display_text = parts[2] if len(parts) > 2 else None
 
-            return SpellReference(
-                name=spell_name,
-                source=spell_source,
-                display_text=spell_display_text,
-                original_tag=f"{{@spell {tag_content}}}",
-            )
+        return SpellReference(
+            name=spell_name,
+            source=spell_source,
+            display_text=spell_display_text,
+            original_tag=f"{{@spell {tag_content}}}",
+        )
 
 
 class SpellReferenceResolver:

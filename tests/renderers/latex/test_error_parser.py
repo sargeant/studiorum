@@ -4,13 +4,12 @@ from typing import Any
 
 import pytest
 
-from studiorum.core.error_types import ErrorCategory, ErrorSeverity
+from studiorum.core.error_types import ErrorSeverity
 from studiorum.latex_engine.utils.error_parser import (  # type: ignore
     LaTeXError,
     LaTeXErrorCategory,
     LaTeXErrorParser,
 )
-from tests.test_helpers import reset_test_environment
 
 
 @pytest.mark.rendering
@@ -150,8 +149,6 @@ class TestLaTeXErrorParser:
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        # Reset global state for complete isolation
-        reset_test_environment()
 
         self.parser = LaTeXErrorParser()
 

@@ -4,7 +4,6 @@ This module contains tests to validate that the data loading system
 can handle all available data without warnings or unknown data structures.
 """
 
-import asyncio
 import os
 from collections.abc import Generator
 from typing import Any
@@ -16,7 +15,6 @@ from studiorum.cli.services import get_cli_template_service
 from studiorum.core.loaders.data_source_manager import DataSourceManager
 from studiorum.core.loaders.json_loader import JsonDataLoader  # type: ignore
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
-from studiorum.core.logging import get_logger  # type: ignore
 from studiorum.core.models.content import ContentType  # type: ignore
 from studiorum.core.references.content_tracker import ContentTracker
 

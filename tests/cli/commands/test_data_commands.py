@@ -6,9 +6,8 @@ These tests verify the new 'data' command group that replaces the deprecated
 
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-import pytest
 from typer.testing import CliRunner
 
 from studiorum.cli.main import app
@@ -19,9 +18,6 @@ class TestDataCommands:
 
     def setup_method(self):
         """Set up test environment."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
 
         self.runner = CliRunner()
         self.temp_dir = Path(tempfile.mkdtemp())
@@ -283,9 +279,6 @@ class TestDeprecatedSourcesCommands:
 
     def setup_method(self):
         """Set up test environment."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
 
         self.runner = CliRunner()
 
@@ -341,9 +334,6 @@ class TestCLIIntegration:
 
     def setup_method(self):
         """Set up test environment."""
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
 
         self.runner = CliRunner()
 

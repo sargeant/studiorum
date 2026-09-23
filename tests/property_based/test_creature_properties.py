@@ -439,7 +439,7 @@ class TestCreatureInvariants:
 
         # Speed types should be valid
         valid_movement_types = {"walk", "fly", "swim", "burrow", "climb"}
-        for movement_type in speed.keys():
+        for movement_type in speed:
             assert movement_type in valid_movement_types
 
     @given(valid_senses())

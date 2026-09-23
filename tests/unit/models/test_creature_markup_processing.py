@@ -4,21 +4,15 @@ These tests focus on how creature abilities and descriptions handle
 5etools markup tags like {@atk}, {@damage}, {@spell}, etc.
 """
 
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import Mock, patch
 
 from studiorum.cli.services import get_cli_template_service
 from studiorum.core.models.creatures import Ability, ArmorClass, Creature
 from studiorum.core.references.content_tracker import ContentTracker
-from tests.test_helpers import reset_test_environment
 
 
 class TestCreatureMarkupProcessing:
     """Test 5etools markup processing in creature abilities and descriptions."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_ability_name_markup_processing(self):
         """Test processing of 5etools markup in ability names."""
@@ -108,7 +102,7 @@ class TestCreatureMarkupProcessing:
             # Mock the CLI service to return our mock tag resolver
             mock_get_tag_resolver.return_value = mock_tag_resolver
             processed_ac = ac.get_processed_ac_text()
-            assert "17 (natural armor, shield) (19 with mage armor)" == processed_ac
+            assert processed_ac == "17 (natural armor, shield) (19 with mage armor)"
 
     def test_senses_markup_processing(self):
         """Test processing of 5etools markup in creature senses."""
@@ -496,9 +490,6 @@ class TestCreatureMarkupProcessing:
 
 class TestCreatureMarkupEdgeCases:
     """Test edge cases and error handling in markup processing."""
-
-    def setup_method(self) -> None:
-        reset_test_environment()
 
     def test_empty_entry_processing(self):
         """Test processing of empty or None entries."""

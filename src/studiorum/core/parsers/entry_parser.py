@@ -1,9 +1,9 @@
 """Parsers for extracting nested content from adventure and book entries."""
 
 from collections.abc import Iterator
-from typing import Any, Union
+from typing import Any
 
-from studiorum.core.error_types import create_processing_error, create_validation_error
+from studiorum.core.error_types import create_processing_error
 from studiorum.core.logging import get_logger
 from studiorum.core.result import Error, Result, Success
 

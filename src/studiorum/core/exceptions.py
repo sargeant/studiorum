@@ -19,5 +19,3 @@ class EntryProcessingWarning(UserWarning):
     that uses warnings.warn() for non-fatal issues. New code should
     prefer Result[T, E] patterns with appropriate severity levels.
     """
-
-    pass

@@ -12,7 +12,6 @@ from typing import Any
 
 from ....core.context import AsyncRequestContext
 from ....core.error_types import (
-    ContentNotFoundError,
     ErrorCategory,
     MCPError,
     MCPErrorCode,
@@ -20,7 +19,7 @@ from ....core.error_types import (
     ProcessingError,
 )
 from ....core.logging import get_logger
-from ....core.result import Error, Result, Success
+from ....core.result import Error
 from ....core.services.protocols import OmnidexerProtocol
 from ....core.text.tag_resolver import TagResolver
 from .rule_intelligence_service import RuleIntelligenceConfig, RuleIntelligenceService
@@ -47,9 +46,6 @@ async def _get_rule_intelligence_service(
 
         # Create service with default config
         config = RuleIntelligenceConfig()
-        from typing import cast
-
-        from studiorum.core.loaders.omnidexer import Omnidexer
 
         _rule_intelligence_service = RuleIntelligenceService(
             omnidexer=omnidexer,
@@ -136,14 +132,13 @@ async def find_rule_cross_references(
                         category=ErrorCategory.USER_ERROR,
                     )
                 )
-            else:
-                raise MCPException(
-                    MCPError(
-                        message=f"Cross-reference lookup failed: {error}",
-                        error_code=MCPErrorCode.PROCESSING_ERROR,
-                        category=ErrorCategory.PROCESSING,
-                    )
+            raise MCPException(
+                MCPError(
+                    message=f"Cross-reference lookup failed: {error}",
+                    error_code=MCPErrorCode.PROCESSING_ERROR,
+                    category=ErrorCategory.PROCESSING,
                 )
+            )
 
         cross_ref_data = result.unwrap()
 
@@ -284,14 +279,13 @@ async def validate_rule_combination(
                         category=ErrorCategory.USER_ERROR,
                     )
                 )
-            else:
-                raise MCPException(
-                    MCPError(
-                        message=f"Rule combination validation failed: {error}",
-                        error_code=MCPErrorCode.PROCESSING_ERROR,
-                        category=ErrorCategory.PROCESSING,
-                    )
+            raise MCPException(
+                MCPError(
+                    message=f"Rule combination validation failed: {error}",
+                    error_code=MCPErrorCode.PROCESSING_ERROR,
+                    category=ErrorCategory.PROCESSING,
                 )
+            )
 
         validation_data = result.unwrap()
 
@@ -465,14 +459,13 @@ async def search_rules_intelligent(
                         category=ErrorCategory.USER_ERROR,
                     )
                 )
-            else:
-                raise MCPException(
-                    MCPError(
-                        message=f"Intelligent rule search failed: {error}",
-                        error_code=MCPErrorCode.PROCESSING_ERROR,
-                        category=ErrorCategory.PROCESSING,
-                    )
+            raise MCPException(
+                MCPError(
+                    message=f"Intelligent rule search failed: {error}",
+                    error_code=MCPErrorCode.PROCESSING_ERROR,
+                    category=ErrorCategory.PROCESSING,
                 )
+            )
 
         search_result = result.unwrap()
 
@@ -597,14 +590,13 @@ async def get_rule_suggestions(
                         category=ErrorCategory.USER_ERROR,
                     )
                 )
-            else:
-                raise MCPException(
-                    MCPError(
-                        message=f"Rule suggestion generation failed: {error}",
-                        error_code=MCPErrorCode.PROCESSING_ERROR,
-                        category=ErrorCategory.PROCESSING,
-                    )
+            raise MCPException(
+                MCPError(
+                    message=f"Rule suggestion generation failed: {error}",
+                    error_code=MCPErrorCode.PROCESSING_ERROR,
+                    category=ErrorCategory.PROCESSING,
                 )
+            )
 
         suggestions = result.unwrap()
 

@@ -326,7 +326,7 @@ class Adventure(BaseContent):
         """Get formatted level range."""
         if self.metadata:
             return self.metadata.get_level_range()
-        elif self.level:
+        if self.level:
             return AdventureMetadata(
                 id=None,
                 published=None,

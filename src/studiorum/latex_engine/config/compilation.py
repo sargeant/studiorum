@@ -6,7 +6,7 @@ from typing import Any, TypedDict, Unpack
 
 from pydantic import BaseModel, Field, field_validator
 
-from studiorum.core.security import ExecutableNotFoundError, get_latex_executable
+from studiorum.core.security import get_latex_executable
 
 # Engine-Package Compatibility Matrix
 # Defines which LaTeX packages are supported by each engine
@@ -247,9 +247,8 @@ class CompilationConfig(BaseModel):
         # First pass often takes longer
         if pass_number == 1:
             return self.timeout_seconds
-        else:
-            # Subsequent passes are usually faster
-            return min(self.timeout_seconds // 2, 60)
+        # Subsequent passes are usually faster
+        return min(self.timeout_seconds // 2, 60)
 
     @classmethod
     def for_mode(
@@ -415,11 +414,10 @@ class CompilationResult(BaseModel):
                 f"Compilation successful using {self.engine_used.value} "
                 f"({self.passes_completed} passes, {self.total_time:.1f}s)"
             )
-        else:
-            return (
-                f"Compilation failed using {self.engine_used.value}: "
-                f"{self.error_message or 'Unknown error'}"
-            )
+        return (
+            f"Compilation failed using {self.engine_used.value}: "
+            f"{self.error_message or 'Unknown error'}"
+        )
 
 
 class CompilationPass(BaseModel):

@@ -71,12 +71,12 @@ class TextExtractor:
                     if text:  # Only add non-empty text
                         parts.append(text)
                 return "\n\n".join(parts)
-            elif "text" in entry:
+            if "text" in entry:
                 # Include name if present for named text entries
                 if "name" in entry and entry["name"]:
                     return f"{entry['name']} {entry['text']}"
                 return entry["text"]
-            elif "items" in entry and isinstance(entry["items"], list):
+            if "items" in entry and isinstance(entry["items"], list):
                 # Handle list items including itemSub entries
                 parts = []
                 for item in entry["items"]:
@@ -97,7 +97,7 @@ class TextExtractor:
                 # Join itemSub entries with line breaks between items, but name+description on same line
                 return " ".join(parts) if len(parts) <= 1 else "\n\n".join(parts)
             # (handled above) specific 'item' type cases
-            elif "entries" in entry and isinstance(entry["entries"], list):
+            if "entries" in entry and isinstance(entry["entries"], list):
                 # Handle entries list
                 parts = []
                 for e in entry["entries"]:
@@ -280,12 +280,12 @@ class TextExtractor:
                     if text:  # Only add non-empty text
                         parts.append(text)
                 return " ".join(parts)
-            elif "text" in entry:
+            if "text" in entry:
                 # Include name if present for named text entries
                 if "name" in entry and entry["name"]:
                     return f"{entry['name']} {entry['text']}"
                 return entry["text"]
-            elif "items" in entry and isinstance(entry["items"], list):
+            if "items" in entry and isinstance(entry["items"], list):
                 # Handle list items including itemSub entries
                 parts = []
                 for item in entry["items"]:
@@ -306,7 +306,7 @@ class TextExtractor:
                 # Join itemSub entries with line breaks between items, but name+description on same line
                 return " ".join(parts) if len(parts) <= 1 else "\n\n".join(parts)
             # (handled above) specific 'item' type cases
-            elif "entries" in entry and isinstance(entry["entries"], list):
+            if "entries" in entry and isinstance(entry["entries"], list):
                 # Handle entries list
                 parts = []
                 for e in entry["entries"]:

@@ -269,8 +269,7 @@ class TokenImageResolver:
                 # Remove the WebP version to save space
                 cached_webp_path.unlink(missing_ok=True)
                 return converted_path
-            else:
-                return cached_webp_path
+            return cached_webp_path
 
         except Exception as e:
             logger.warning(f"Failed to download external token from {url}: {e}")
@@ -449,17 +448,15 @@ class TokenImageResolver:
             if converted_path:
                 logger.debug(f"Converted WebP to PNG: {converted_path}")
                 return converted_path
-            else:
-                # Look for PNG equivalent as fallback
-                png_path = image_path.with_suffix(".png")
-                if png_path.exists():
-                    logger.debug(f"Using PNG equivalent: {png_path}")
-                    return png_path
-                else:
-                    logger.warning(
-                        f"WebP conversion failed and no PNG equivalent found: {image_path}"
-                    )
-                    return image_path
+            # Look for PNG equivalent as fallback
+            png_path = image_path.with_suffix(".png")
+            if png_path.exists():
+                logger.debug(f"Using PNG equivalent: {png_path}")
+                return png_path
+            logger.warning(
+                f"WebP conversion failed and no PNG equivalent found: {image_path}"
+            )
+            return image_path
 
         return image_path
 

@@ -103,7 +103,7 @@ async def manage_source_attribution(
                 },
             }
 
-        elif action == "resolve":
+        if action == "resolve":
             if not abbreviation:
                 return {"error": "Source abbreviation required for resolve action"}
 
@@ -136,20 +136,19 @@ async def manage_source_attribution(
                         "target_met": duration_ms < 100.0,
                     },
                 }
-            else:
-                return {
-                    "abbreviation": abbreviation,
-                    "name": f"Unknown source: {abbreviation}",
-                    "priority": priority,  # Default priority
-                    "official": False,
-                    "found": False,
-                    "performance": {
-                        "duration_ms": duration_ms,
-                        "target_met": duration_ms < 100.0,
-                    },
-                }
+            return {
+                "abbreviation": abbreviation,
+                "name": f"Unknown source: {abbreviation}",
+                "priority": priority,  # Default priority
+                "official": False,
+                "found": False,
+                "performance": {
+                    "duration_ms": duration_ms,
+                    "target_met": duration_ms < 100.0,
+                },
+            }
 
-        elif action == "set_priority":
+        if action == "set_priority":
             if not abbreviation:
                 return {"error": "Source abbreviation required for set_priority action"}
             if priority is None:
@@ -175,7 +174,7 @@ async def manage_source_attribution(
                 },
             }
 
-        elif action == "info":
+        if action == "info":
             sources = attribution.get_all_sources()
 
             # Count official vs unofficial sources
@@ -203,8 +202,7 @@ async def manage_source_attribution(
                 },
             }
 
-        else:
-            return {"error": f"Unknown action: {action}"}
+        return {"error": f"Unknown action: {action}"}
 
     except Exception as e:
         duration_ms = (time.time() - start_time) * 1000

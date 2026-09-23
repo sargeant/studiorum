@@ -5,9 +5,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-from studiorum.core.models.document_metadata import DocumentMetadata
 from studiorum.renderers.core.interfaces import RenderingContext
 
 

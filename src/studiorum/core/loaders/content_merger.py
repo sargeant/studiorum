@@ -1,7 +1,6 @@
 """Content merger for combining metadata and content files."""
 
 import json
-import re
 import time
 from collections import OrderedDict
 from pathlib import Path
@@ -15,9 +14,6 @@ from ..types import (
     CacheMetadata,
     CacheStats,
     ContentFileData,
-    ContentSection,
-    MergedContent,
-    MetadataEntry,
 )
 
 logger = get_logger(__name__)
@@ -154,12 +150,11 @@ class ContentMerger:
         # Build filename based on content type
         if content_type == ContentType.ADVENTURE:
             return f"adventure-{normalized_id}.json"
-        elif content_type == ContentType.BOOK:
+        if content_type == ContentType.BOOK:
             return f"book-{normalized_id}.json"
-        else:
-            raise ValueError(
-                f"Unsupported content type for filename normalization: {content_type}"
-            )
+        raise ValueError(
+            f"Unsupported content type for filename normalization: {content_type}"
+        )
 
     def merge_metadata_content(
         self,

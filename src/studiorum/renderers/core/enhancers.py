@@ -78,14 +78,14 @@ class LaTeXFormatEnhancer:
         """Apply LaTeX formatting based on format style."""
         if format_style == FormatStyle.BOLD:
             return f"\\textbf{{{text}}}"
-        elif format_style == FormatStyle.ITALIC:
+        if format_style == FormatStyle.ITALIC:
             return f"\\textit{{{text}}}"
-        elif format_style == FormatStyle.MONOSPACE:
+        if format_style == FormatStyle.MONOSPACE:
             return f"\\texttt{{{text}}}"
-        elif format_style == FormatStyle.EMPHASIS:
+        if format_style == FormatStyle.EMPHASIS:
             return f"\\emph{{{text}}}"
-        else:  # PLAIN
-            return text
+        # PLAIN
+        return text
 
     def _add_page_reference(self, text: str, page: str, content_type: Any) -> str:
         """Add page reference in the appropriate format."""
@@ -102,10 +102,9 @@ class LaTeXFormatEnhancer:
 
         if content_type_str in ("adventure", "contenttype.adventure"):
             return f"{text} (p. {page})"
-        elif content_type_str in ("book", "contenttype.book"):
+        if content_type_str in ("book", "contenttype.book"):
             return f"{text}, p. {page}"
-        else:
-            return f"{text} (p. {page})"
+        return f"{text} (p. {page})"
 
     def _should_include_page_reference(self, content_type: Any, page: str) -> bool:
         """Determine if page references should be included for this content type.
@@ -130,12 +129,11 @@ class LaTeXFormatEnhancer:
         if content_type_str in ("adventure", "contenttype.adventure"):
             # Adventures: include page references except for page "1"
             return page != "1"
-        elif content_type_str in ("book", "contenttype.book"):
+        if content_type_str in ("book", "contenttype.book"):
             # Books: include ALL page references, even page "1"
             return True
-        else:
-            # All other content types: no page references
-            return False
+        # All other content types: no page references
+        return False
 
     def _escape_latex(self, text: str) -> str:
         """Escape LaTeX special characters."""
@@ -213,12 +211,11 @@ class HyperlinkEnhancer:
         if hasattr(content_type, "value"):
             # Handle ContentType enum
             return str(content_type.value).lower()
-        elif hasattr(content_type, "name"):
+        if hasattr(content_type, "name"):
             # Handle ContentType enum with name attribute
             return str(content_type.name).lower()
-        else:
-            # Handle string or other types
-            return str(content_type).lower()
+        # Handle string or other types
+        return str(content_type).lower()
 
     def _generate_ref_id(self, content_info: ContentReferenceInfo) -> str:
         """Generate a reference ID for cross-referencing."""
@@ -229,8 +226,7 @@ class HyperlinkEnhancer:
         if content_info.source:
             source_sanitized = content_info.source.lower().replace(" ", "-")
             return f"{content_type_str}:{name_sanitized}:{source_sanitized}"
-        else:
-            return f"{content_type_str}:{name_sanitized}"
+        return f"{content_type_str}:{name_sanitized}"
 
 
 class ContentTrackerEnhancer:
@@ -296,12 +292,11 @@ class ContentTrackerEnhancer:
         if hasattr(content_type, "value"):
             # Handle ContentType enum
             return str(content_type.value).lower()
-        elif hasattr(content_type, "name"):
+        if hasattr(content_type, "name"):
             # Handle ContentType enum with name attribute
             return str(content_type.name).lower()
-        else:
-            # Handle string or other types
-            return str(content_type).lower()
+        # Handle string or other types
+        return str(content_type).lower()
 
 
 class ValidationEnhancer:
@@ -363,12 +358,11 @@ class ValidationEnhancer:
         if hasattr(content_type, "value"):
             # Handle ContentType enum
             return str(content_type.value).lower()
-        elif hasattr(content_type, "name"):
+        if hasattr(content_type, "name"):
             # Handle ContentType enum with name attribute
             return str(content_type.name).lower()
-        else:
-            # Handle string or other types
-            return str(content_type).lower()
+        # Handle string or other types
+        return str(content_type).lower()
 
 
 def create_latex_enhancement_pipeline() -> list[TagHandlerEnhancer]:

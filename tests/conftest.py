@@ -1,8 +1,13 @@
 """Pytest configuration and fixtures."""
 
 import asyncio
+import os
 from pathlib import Path
 from typing import Any
+
+# Typer forces a Rich terminal when GITHUB_ACTIONS is set, which puts ANSI codes
+# into CliRunner output. It reads this at import, so set it before the CLI loads.
+os.environ.setdefault("_TYPER_FORCE_DISABLE_TERMINAL", "1")
 
 import pytest
 
@@ -13,18 +18,25 @@ from studiorum.core.config.sources import (  # type: ignore
 )
 from studiorum.core.loaders.data_source_manager import DataSourceManager
 from studiorum.core.loaders.omnidexer import Omnidexer  # type: ignore
-from studiorum.core.loaders.unified_source_manager import (
-    UnifiedSourceManager,  # type: ignore
-)
 from studiorum.core.models.creatures import Creature  # type: ignore
 from studiorum.core.models.spells import Spell  # type: ignore
 from studiorum.core.text.tag_resolver import TagResolver  # type: ignore
 
 # Import the test helper for consistent setup
-from tests.test_helpers import reset_test_environment, setup_test_with_registry
+from tests.test_helpers import reset_test_environment
 
 # Import the profiler plugin to ensure it's discovered by pytest
 pytest_plugins = ["scripts.test_profiler"]
+
+
+@pytest.fixture(autouse=True)
+def _reset_global_state() -> None:
+    """Give every test fresh containers, registries, caches and config.
+
+    Replaces the reset_test_environment() call that test classes used to repeat
+    in setup_method. It runs before any setup_method.
+    """
+    reset_test_environment(collect_garbage=False)
 
 
 @pytest.fixture
@@ -195,7 +207,6 @@ def loaded_omnidexer(
     temp_data_dir: Any, sample_spell_data: Any, sample_creature_data: Any
 ) -> Omnidexer:
     """Create an omnidexer with loaded test data."""
-    import asyncio
     import json
 
     # Use full reset sequence for complete isolation
@@ -254,7 +265,6 @@ def make_omnidexer():
         spell_data: list[dict[str, Any]] = None,
         creature_data: list[dict[str, Any]] = None,
     ) -> Omnidexer:
-        import asyncio
         import json
 
         if temp_data_dir is None:
@@ -304,9 +314,7 @@ def make_tag_resolver():
 @pytest.fixture
 def test_data_omnidexer() -> Omnidexer:
     """Omnidexer using test-data and srd-data sources."""
-    import asyncio
     import os
-    import uuid
 
     # Set test configuration environment variable BEFORE resetting containers
     # This ensures the config is loaded from the correct file

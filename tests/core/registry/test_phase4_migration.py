@@ -1,16 +1,8 @@
 """Test Phase 4: Specialized Systems content type migration."""
 
-import pytest
-
-from tests.test_helpers import reset_test_environment
-
 
 class TestPhase4Migration:
     """Test Phase 4 specialized systems content types."""
-
-    def setup_method(self) -> None:
-        """Set up test environment."""
-        reset_test_environment()
 
     def test_trap_content_type_registration(self) -> None:
         """Test that Trap content type is registered."""

@@ -296,25 +296,24 @@ class Item(BaseContent):
             # Handle "M|XPHB" format
             abbreviation = type_str.split("|")[0]
             return type_mappings.get(abbreviation, type_str)
-        else:
-            # Handle simple "M" or "INS" format
-            return type_mappings.get(type_str, type_str)
+        # Handle simple "M" or "INS" format
+        return type_mappings.get(type_str, type_str)
 
     def get_category_text(self) -> str:
         """Get item category text (Staff, Wand, etc.)."""
         if getattr(self, "staff", None):
             return "Staff"
-        elif getattr(self, "wand", None):
+        if getattr(self, "wand", None):
             return "Wand"
-        elif getattr(self, "rod", None):
+        if getattr(self, "rod", None):
             return "Rod"
-        elif getattr(self, "potion", None):
+        if getattr(self, "potion", None):
             return "Potion"
-        elif getattr(self, "scroll", None):
+        if getattr(self, "scroll", None):
             return "Scroll"
-        elif getattr(self, "wondrous", None):
+        if getattr(self, "wondrous", None):
             return "Wondrous item"
-        elif getattr(self, "tattoo", None):
+        if getattr(self, "tattoo", None):
             return "Tattoo"
         return ""
 
@@ -389,25 +388,21 @@ class Item(BaseContent):
                 remainder = copper_value % 100
                 if remainder == 0:
                     return f"{gp:,} gp" if gp > 1 else "1 gp"
-                else:
-                    return f"{gp} gp, {remainder} cp"
-            elif copper_value >= 10:
+                return f"{gp} gp, {remainder} cp"
+            if copper_value >= 10:
                 sp = copper_value // 10
                 remainder = copper_value % 10
                 if remainder == 0:
                     return f"{sp} sp"
-                else:
-                    return f"{sp} sp, {remainder} cp"
-            else:
-                return f"{copper_value} cp"
-        elif isinstance(self.value, ValueDetails):
+                return f"{sp} sp, {remainder} cp"
+            return f"{copper_value} cp"
+        if isinstance(self.value, ValueDetails):
             # Handle structured value format
             if self.value.unit:
                 return f"{self.value.amount} {self.value.unit}"
-            else:
-                # Convert to standard currency format
-                return self._format_currency_value(self.value.amount)
-        elif isinstance(self.value, dict):
+            # Convert to standard currency format
+            return self._format_currency_value(self.value.amount)
+        if isinstance(self.value, dict):
             # Handle legacy complex value format
             return str(self.value)
 
@@ -512,12 +507,11 @@ class Item(BaseContent):
 
         if rarity_text and attunement_text:
             return f"{rarity_text} {attunement_text}"
-        elif rarity_text:
+        if rarity_text:
             return rarity_text
-        elif attunement_text:
+        if attunement_text:
             return attunement_text
-        else:
-            return ""
+        return ""
 
     def get_attunement_text(self) -> str:
         """Get formatted attunement requirements."""
@@ -526,10 +520,9 @@ class Item(BaseContent):
 
         if isinstance(self.requires_attunement, bool):
             return "(requires attunement)"
-        elif isinstance(self.requires_attunement, str):
+        if isinstance(self.requires_attunement, str):
             return f"(requires attunement {self.requires_attunement})"
-        else:
-            return "(requires attunement)"
+        return "(requires attunement)"
 
     def get_ac_text(self) -> str:
         """Get formatted AC text for armor items."""
@@ -598,7 +591,7 @@ class Item(BaseContent):
                 charge_text += f" (recharges {self.recharge})"
 
             return charge_text
-        elif isinstance(self.charges, ChargeDetails):
+        if isinstance(self.charges, ChargeDetails):
             # Handle structured charge format
             charge_text = (
                 f"{self.charges.charges} charge"
@@ -610,7 +603,7 @@ class Item(BaseContent):
                 charge_text += f" (recharges {self.charges.recharge})"
 
             return charge_text
-        elif isinstance(self.charges, dict):
+        if isinstance(self.charges, dict):
             # Handle legacy complex charge structures
             if "charges" in self.charges:
                 charges_val = self.charges["charges"]
@@ -624,10 +617,8 @@ class Item(BaseContent):
                     charge_text += f" (recharges {self.charges['recharge']})"
 
                 return charge_text
-            else:
-                return str(self.charges)
-        else:
             return str(self.charges)
+        return str(self.charges)
 
     def _format_currency_value(self, amount: int | float) -> str:
         """Format numeric value as currency."""
@@ -639,17 +630,14 @@ class Item(BaseContent):
             remainder = copper_value % 100
             if remainder == 0:
                 return f"{gp:,} gp" if gp > 1 else "1 gp"
-            else:
-                return f"{gp} gp, {remainder} cp"
-        elif copper_value >= 10:
+            return f"{gp} gp, {remainder} cp"
+        if copper_value >= 10:
             sp = copper_value // 10
             remainder = copper_value % 10
             if remainder == 0:
                 return f"{sp} sp"
-            else:
-                return f"{sp} sp, {remainder} cp"
-        else:
-            return f"{copper_value} cp"
+            return f"{sp} sp, {remainder} cp"
+        return f"{copper_value} cp"
 
     def _get_type_metadata(self, type_str: str) -> dict[str, Any] | None:
         """Get type metadata for item type resolution."""

@@ -138,9 +138,8 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     ):
                         logger.debug(f"Skipping malformed index file: {path}")
                         return []
-                    else:
-                        # Re-raise the original error for other files
-                        raise e
+                    # Re-raise the original error for other files
+                    raise e
 
             # Extract content based on file structure
             content_list = self._extract_content(data, path)
@@ -276,12 +275,11 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     # Content files should not be loaded as separate adventures during bulk loading
                     # They will be merged with metadata during enrichment
                     return []
-                else:
-                    logger.debug(
-                        "Processing adventure content file directly (backwards compatibility)"
-                    )
-                    # For direct loading, process content files as adventures
-                    return self._process_adventure_content_file(data)
+                logger.debug(
+                    "Processing adventure content file directly (backwards compatibility)"
+                )
+                # For direct loading, process content files as adventures
+                return self._process_adventure_content_file(data)
 
             # Handle mixed format (metadata + data in same file)
             if "data" in data and isinstance(data["data"], list):
@@ -296,7 +294,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 if isinstance(adventure_data, list):
                     return adventure_data
                 return []
-            elif "adventureData" in data:
+            if "adventureData" in data:
                 # Handle adventure data format
                 adventure_data = data["adventureData"]
                 if isinstance(adventure_data, list) and adventure_data:
@@ -304,7 +302,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
             return []
 
-        elif self._content_type.value == "book":
+        if self._content_type.value == "book":
             # Handle both metadata files (books.json) and content files (book-*.json)
 
             # Check if this is a metadata file (books.json) and process it
@@ -327,7 +325,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 if isinstance(book_data, list):
                     return book_data
                 return []
-            elif "bookData" in data:
+            if "bookData" in data:
                 # Handle book data format
                 book_data = data["bookData"]
                 if isinstance(book_data, list) and book_data:
@@ -353,62 +351,62 @@ class JsonDataLoader(DataLoader[BaseContent]):
             if isinstance(spell_data, list):
                 return spell_data
             return []
-        elif self._content_type.value == "creature" and "monster" in data:
+        if self._content_type.value == "creature" and "monster" in data:
             monster_data = data["monster"]
             if isinstance(monster_data, list):
                 return monster_data
             return []
-        elif self._content_type.value == "item" and "item" in data:
+        if self._content_type.value == "item" and "item" in data:
             item_data = data["item"]
             if isinstance(item_data, list):
                 return item_data
             return []
-        elif self._content_type.value == "feat" and "feat" in data:
+        if self._content_type.value == "feat" and "feat" in data:
             feat_data = data["feat"]
             if isinstance(feat_data, list):
                 return feat_data
             return []
-        elif self._content_type.value == "race" and "race" in data:
+        if self._content_type.value == "race" and "race" in data:
             race_data = data["race"]
             if isinstance(race_data, list):
                 return race_data
             return []
-        elif self._content_type.value == "background" and "background" in data:
+        if self._content_type.value == "background" and "background" in data:
             background_data = data["background"]
             if isinstance(background_data, list):
                 return background_data
             return []
-        elif self._content_type.value == "class" and "class" in data:
+        if self._content_type.value == "class" and "class" in data:
             class_data = data["class"]
             if isinstance(class_data, list):
                 return class_data
             return []
-        elif self._content_type.value == "variantrule" and "variantrule" in data:
+        if self._content_type.value == "variantrule" and "variantrule" in data:
             variant_rule_data = data["variantrule"]
             if isinstance(variant_rule_data, list):
                 return variant_rule_data
             return []
-        elif self._content_type.value == "action" and "action" in data:
+        if self._content_type.value == "action" and "action" in data:
             action_data = data["action"]
             if isinstance(action_data, list):
                 return action_data
             return []
-        elif self._content_type.value == "condition" and "condition" in data:
+        if self._content_type.value == "condition" and "condition" in data:
             condition_data = data["condition"]
             if isinstance(condition_data, list):
                 return condition_data
             return []
-        elif self._content_type.value == "sense" and "sense" in data:
+        if self._content_type.value == "sense" and "sense" in data:
             sense_data = data["sense"]
             if isinstance(sense_data, list):
                 return sense_data
             return []
-        elif self._content_type.value == "hazard" and "hazard" in data:
+        if self._content_type.value == "hazard" and "hazard" in data:
             hazard_data = data["hazard"]
             if isinstance(hazard_data, list):
                 return hazard_data
             return []
-        elif self._content_type.value == "status" and "status" in data:
+        if self._content_type.value == "status" and "status" in data:
             status_data = data["status"]
             if isinstance(status_data, list):
                 return status_data
@@ -710,10 +708,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
                             f"Loaded {items_loaded} base items from {base_path}"
                         )
                         break
-                    else:
-                        logger.warning(
-                            f"No baseitem or itemType arrays found in {base_path}"
-                        )
+                    logger.warning(
+                        f"No baseitem or itemType arrays found in {base_path}"
+                    )
 
                 except Exception as e:
                     logger.warning(f"Failed to load base items from {base_path}: {e}")
@@ -783,10 +780,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
                     f"Resolved simple _copy inheritance for {item.get('name', 'unknown')} from {copy_source_key}"
                 )
                 return resolved_item
-            else:
-                logger.warning(
-                    f"Could not resolve base item _copy reference: {copy_source_key} for item {item.get('name', 'unknown')}"
-                )
+            logger.warning(
+                f"Could not resolve base item _copy reference: {copy_source_key} for item {item.get('name', 'unknown')}"
+            )
 
         # For complex copy references (creature-to-creature, _mod, _templates),
         # mark for post-loading resolution
@@ -1387,7 +1383,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
         if self._settings.validation.strictness == "strict":
             # In strict mode, re-raise the validation error
             raise error
-        elif self._settings.validation.strictness == "lenient":
+        if self._settings.validation.strictness == "lenient":
             # In lenient mode, only record error but don't log
             self._error_tracker.record_error(error, context)
             return

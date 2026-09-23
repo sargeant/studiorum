@@ -2,7 +2,7 @@
 
 import pytest
 
-from studiorum.core.models.adventures import Adventure, AdventureMetadata
+from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.chapter import Chapter
 from studiorum.core.utils.chapters import (
     extract_chapter_number,
