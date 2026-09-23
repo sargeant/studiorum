@@ -19,7 +19,6 @@ These optimisations reduced test suite execution from ~20 minutes to ~34 seconds
 
 Key components:
 - ServiceContainer: Full DI container with async support + CLI optimization
-- RequestScopedContainer: Isolated container for MCP requests
 - Service resolution with dependency injection + performance optimization
 - Async resource management and cleanup
 - Hot-reload infrastructure
@@ -30,9 +29,7 @@ from __future__ import annotations
 
 import asyncio
 import weakref
-from datetime import datetime
 from typing import TYPE_CHECKING, Any, TypeVar, cast
-from uuid import uuid4
 
 from studiorum.core.logging import get_logger
 
@@ -728,17 +725,6 @@ class ServiceContainer:
             )
             raise ServiceInitializationError(descriptor.protocol, e) from e
 
-    async def create_request_scope(self) -> RequestScopedContainer:
-        """Create isolated container for MCP request handling.
-
-        Returns:
-            Request-scoped container with service isolation
-        """
-        if self._is_closed:
-            raise RuntimeError("Cannot create request scope from closed container")
-
-        return RequestScopedContainer(parent=self)
-
     async def reload_configuration(self, new_config: ApplicationConfig) -> None:
         """Hot-reload configuration for all hot-reloadable services.
 
@@ -1159,125 +1145,3 @@ class ServiceContainer:
             hot_reloadable=False,
             cleanup_priority=CleanupPriority.INFRASTRUCTURE,
         )
-
-
-class RequestScopedContainer(ServiceContainer):
-    """Request-scoped container for MCP request isolation.
-
-    Provides complete isolation for MCP requests while inheriting
-    singleton services from the parent container. Automatically
-    cleans up when used as an async context manager.
-
-    Examples:
-        >>> async with await container.create_request_scope() as request_scope:
-        ...     tag_resolver = await request_scope.get_service(TagResolverProtocol)
-        ...     # Process request with isolated services
-        # Automatic cleanup when context exits
-    """
-
-    def __init__(self, parent: ServiceContainer) -> None:
-        """Initialize request-scoped container.
-
-        Args:
-            parent: Parent container for singleton service resolution
-        """
-        super().__init__(parent=parent)
-        self._request_id = str(uuid4())
-        self._created_at = datetime.now()
-
-        logger.debug(f"Created request-scoped container {self._request_id}")
-
-    @property
-    def request_id(self) -> str:
-        """Get unique request identifier.
-
-        Returns:
-            UUID string for this request scope
-        """
-        return self._request_id
-
-    @property
-    def created_at(self) -> datetime:
-        """Get creation timestamp.
-
-        Returns:
-            Datetime when this request scope was created
-        """
-        return self._created_at
-
-    async def __aenter__(self) -> RequestScopedContainer:
-        """Enter async context manager."""
-        return self
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: object,
-    ) -> None:
-        """Exit async context manager with cleanup."""
-        await self.cleanup()
-
-    def __repr__(self) -> str:
-        """Return string representation of request container."""
-        status = "closed" if self._is_closed else "open"
-        age = datetime.now() - self._created_at
-
-        return (
-            f"RequestScopedContainer(id={self._request_id[:8]}, "
-            f"status={status}, age={age.total_seconds():.1f}s)"
-        )
-
-
-# Utility functions for container management
-
-
-async def create_mcp_request_container(
-    base_config: ApplicationConfig, request_overrides: dict | None = None
-) -> RequestScopedContainer:
-    """Create MCP request container with configuration overrides.
-
-    Args:
-        base_config: Base application configuration
-        request_overrides: Request-specific configuration overrides
-
-    Returns:
-        Request-scoped container with configuration overrides
-
-    Examples:
-        >>> async with await create_mcp_request_container(
-        ...     base_config,
-        ...     {"content": {"sources": ["SRD"]}}
-        ... ) as container:
-        ...     omnidexer = await container.get_service(OmnidexerProtocol)
-    """
-    # Get global container (will be enhanced DefaultServiceContainer)
-    global_container = ServiceContainer.get_global_instance()
-
-    # Check if it has the create_request_scope method
-    if not hasattr(global_container, "create_request_scope"):
-        raise RuntimeError("Global container does not support request scoping")
-
-    # Create request scope - cast needed for legacy global container compatibility
-    request_container_raw = await global_container.create_request_scope()
-    request_container = cast(RequestScopedContainer, request_container_raw)
-
-    # Apply request-specific configuration overrides if provided
-    if request_overrides:
-        from .factories import create_configuration_service
-        from .protocols import ConfigurationProtocol
-
-        # Create config with overrides
-        config_with_overrides = base_config.model_copy(update=request_overrides)
-
-        # Override configuration service for this request
-        async def config_factory() -> ConfigurationProtocol:
-            return await create_configuration_service(config_with_overrides)
-
-        request_container.register_service(
-            cast(type, ConfigurationProtocol),
-            config_factory,
-            lifecycle=ServiceLifecycle.SINGLETON,
-        )
-
-    return request_container
