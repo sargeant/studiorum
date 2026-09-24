@@ -37,6 +37,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from studiorum.core.assets.format_converter import FormatConverter
 from studiorum.core.result import Error
 
 # Phase 2 intelligent placement system imports
@@ -50,7 +51,6 @@ from .enhanced_image_placer import (
     EnhancedPlacementConfig,
     EnhancedPlacementResult,
 )
-from .format_converter import FormatConverter
 from .gallery_processor import (
     GalleryConfig,
     GalleryLayout,

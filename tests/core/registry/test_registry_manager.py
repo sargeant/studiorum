@@ -25,7 +25,6 @@ class TestRegistryManager:
             _update_omnidexer=Mock(),
             _update_content_factory=Mock(),
             _update_content_type_resolver=Mock(),
-            _update_entry_processor=Mock(),
         ):
             manager.apply_registrations(metadata)
 
@@ -33,7 +32,6 @@ class TestRegistryManager:
             manager._update_omnidexer.assert_called_once_with(metadata)
             manager._update_content_factory.assert_called_once_with(metadata)
             manager._update_content_type_resolver.assert_called_once_with(metadata)
-            manager._update_entry_processor.assert_called_once_with(metadata)
 
     def test_update_source_manager(self):
         """Test updating source manager patterns."""
@@ -230,137 +228,3 @@ class TestRegistryManager:
         ):
             # Should not raise, just log warning
             manager._update_content_type_resolver({})
-
-    def test_update_entry_processor_with_statblock_tags(self):
-        """Test updating entry processor statblock mappings."""
-        manager = RegistryManager()
-
-        # Use existing enum value
-        metadata = {
-            "background": ContentTypeMetadata(
-                enum_value="background",
-                model_class=MockBaseContent,
-                file_patterns=["test"],
-                statblock_tags=["testTag", "test"],
-            )
-        }
-
-        # Create mock class with statblock_tags attribute
-        mock_processor_class = Mock()
-        mock_processor_class.statblock_tags = {}
-
-        with patch(
-            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
-            mock_processor_class,
-        ):
-            manager._update_entry_processor(metadata)
-
-            # Check that statblock tags were replaced
-            expected_tags = {
-                "testTag": "BACKGROUND",
-                "test": "BACKGROUND",
-            }
-            assert mock_processor_class.statblock_tags == expected_tags
-
-    def test_update_entry_processor_with_private_attr(self):
-        """Test updating entry processor with private _statblock_tags attribute."""
-        manager = RegistryManager()
-
-        # Use existing enum value
-        metadata = {
-            "feat": ContentTypeMetadata(
-                enum_value="feat",
-                model_class=MockBaseContent,
-                file_patterns=["test"],
-                statblock_tags=["testTag"],
-            )
-        }
-
-        # Create mock class with only private _statblock_tags attribute
-        mock_processor_class = Mock()
-        # No public statblock_tags, but has private _statblock_tags
-        delattr(mock_processor_class, "statblock_tags") if hasattr(
-            mock_processor_class, "statblock_tags"
-        ) else None
-        mock_processor_class._statblock_tags = {}
-
-        with patch(
-            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
-            mock_processor_class,
-        ):
-            manager._update_entry_processor(metadata)
-
-            # Check that private attribute was updated
-            assert mock_processor_class._statblock_tags == {"testTag": "FEAT"}
-
-    def test_update_entry_processor_creates_attribute(self):
-        """Test that entry processor creates _statblock_tags if it doesn't exist."""
-        manager = RegistryManager()
-
-        # Use existing enum value
-        metadata = {
-            "class": ContentTypeMetadata(
-                enum_value="class",
-                model_class=MockBaseContent,
-                file_patterns=["test"],
-                statblock_tags=["testTag"],
-            )
-        }
-
-        # Create mock class with no statblock_tags attributes at all
-        mock_processor_class = Mock()
-        delattr(mock_processor_class, "statblock_tags") if hasattr(
-            mock_processor_class, "statblock_tags"
-        ) else None
-        delattr(mock_processor_class, "_statblock_tags") if hasattr(
-            mock_processor_class, "_statblock_tags"
-        ) else None
-
-        with patch(
-            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
-            mock_processor_class,
-        ):
-            manager._update_entry_processor(metadata)
-
-            # Check that private attribute was created
-            assert hasattr(mock_processor_class, "_statblock_tags")
-            assert mock_processor_class._statblock_tags == {"testTag": "CLASS"}
-
-    def test_update_entry_processor_no_statblock_tags(self):
-        """Test updating entry processor when no statblock tags in metadata."""
-        manager = RegistryManager()
-
-        # Use existing enum value with no statblock tags
-        metadata = {
-            "vehicle": ContentTypeMetadata(
-                enum_value="vehicle",
-                model_class=MockBaseContent,
-                file_patterns=["test"],
-                statblock_tags=None,
-            )
-        }
-
-        # Create mock class with existing statblock_tags
-        mock_processor_class = Mock()
-        mock_processor_class.statblock_tags = {"existing": "tag"}
-
-        with patch(
-            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
-            mock_processor_class,
-        ):
-            manager._update_entry_processor(metadata)
-
-            # Check that existing tags were cleared but no new ones added
-            assert mock_processor_class.statblock_tags == {}
-
-    def test_update_entry_processor_import_error(self):
-        """Test handling of import error in entry processor update."""
-        manager = RegistryManager()
-
-        # Patch the actual import location to raise ImportError
-        with patch(
-            "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor",
-            side_effect=ImportError,
-        ):
-            # Should not raise, just log warning
-            manager._update_entry_processor({})

@@ -113,18 +113,6 @@ class TestRegistryIntegration:
         assert "spell" in patterns[ContentType.SPELL]
         assert "spells" in patterns[ContentType.SPELL]
 
-    def test_entry_processor_has_statblock_tags(self):
-        """Test that RecursiveEntryProcessor has statblock tags after initialization."""
-        initialize_content_types()
-
-        from studiorum.latex_engine.core.entry_processor import RecursiveEntryProcessor
-
-        # Check that statblock tags are populated
-        tags = getattr(RecursiveEntryProcessor, "_statblock_tags", {})
-        assert tags  # Should not be empty
-        assert "action" in tags
-        assert "condition" in tags
-
     def test_all_migrated_content_types_registered(self):
         """Test that all migrated content types are properly registered."""
         initialize_content_types()

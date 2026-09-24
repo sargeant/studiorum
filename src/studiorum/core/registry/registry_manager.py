@@ -34,9 +34,6 @@ class RegistryManager:
         # 4. Update content type resolver
         self._update_content_type_resolver(metadata)
 
-        # 5. Update entry processor (for statblock tags)
-        self._update_entry_processor(metadata)
-
     def _update_source_manager(self, metadata: dict[str, ContentTypeMetadata]) -> None:
         """Replace source manager patterns with registry-based patterns."""
         try:
@@ -153,44 +150,4 @@ class RegistryManager:
         except ImportError:
             logger.warning(
                 "ContentTypeResolver not available for registration replacement"
-            )
-
-    def _update_entry_processor(self, metadata: dict[str, ContentTypeMetadata]) -> None:
-        """Replace entry processor statblock mappings with registry-based ones."""
-        try:
-            # The correct class name is RecursiveEntryProcessor, not EntryProcessor
-            from ...latex_engine.core.entry_processor import RecursiveEntryProcessor
-
-            # Replace the entire statblock mappings
-            # Maps statblock tag -> ContentType enum name string (as expected by entry processor)
-            new_statblock_tags: dict[str, str] = {}
-            for enum_value, meta in metadata.items():
-                if meta.statblock_tags:
-                    # ✅ Always use ContentType constructor for validation
-                    try:
-                        ContentType(enum_value)
-                    except ValueError:
-                        # Skip test-only registrations that aren't valid enum members
-                        logger.debug(f"Skipping test-only content type: {enum_value}")
-                        continue
-
-                    enum_name = enum_value.upper()  # Convert to enum name string
-                    for tag in meta.statblock_tags:
-                        new_statblock_tags[tag] = enum_name
-
-            # Try different possible attribute names for statblock mappings
-            if hasattr(RecursiveEntryProcessor, "statblock_tags"):
-                RecursiveEntryProcessor.statblock_tags = new_statblock_tags  # type: ignore[attr-defined]
-            elif hasattr(RecursiveEntryProcessor, "_statblock_tags"):
-                RecursiveEntryProcessor._statblock_tags = new_statblock_tags  # type: ignore[attr-defined]
-            else:
-                # Add the attribute if it doesn't exist
-                RecursiveEntryProcessor._statblock_tags = new_statblock_tags  # type: ignore[attr-defined]
-
-            logger.debug(
-                f"Replaced statblock tags with {len(new_statblock_tags)} registry-based mappings"
-            )
-        except ImportError:
-            logger.warning(
-                "RecursiveEntryProcessor not available for statblock tags replacement"
             )
