@@ -1,5 +1,6 @@
 """Copy reference resolver for 5etools _copy templates."""
 
+import copy
 import re
 from typing import TYPE_CHECKING, Any
 
@@ -230,11 +231,6 @@ class CopyResolver:
                         f"Updated omnidexer index for {item_name} ({content_type})"
                     )
 
-                    # Clear cache for this specific item to ensure fresh lookups
-                    self._clear_omnidexer_cache_for_item(
-                        item_name, source_abbrev, content_type
-                    )
-
                 else:
                     logger.debug(
                         f"Lookup key {lookup_key} not found in {content_type} index"
@@ -245,35 +241,6 @@ class CopyResolver:
         except Exception as e:
             item_name = getattr(resolved_item, "name", "unknown")
             logger.warning(f"Failed to update omnidexer index for {item_name}: {e}")
-
-    def _clear_omnidexer_cache_for_item(
-        self, name: str, source: str, content_type: ContentType
-    ) -> None:
-        """Clear omnidexer cache entries for a specific item.
-
-        The omnidexer uses @cached decorator on _find_cached, so we need to
-        clear the cache to ensure updated items are returned.
-        """
-        try:
-            from ..cache import CacheManager
-
-            # The cache key format matches the one in omnidexer._find_cached
-            cache_key_exact = f"omnidexer:find:{content_type.value}:{name}:{source}:deep={self._omnidexer.enable_deep_indexing}"
-            cache_key_any = f"omnidexer:find:{content_type.value}:{name}:any:deep={self._omnidexer.enable_deep_indexing}"
-
-            cache = CacheManager.get_instance()
-
-            # Clear both exact and 'any' source lookups
-            if cache_key_exact in cache:
-                del cache[cache_key_exact]
-                logger.debug(f"Cleared cache for {name}|{source}")
-
-            if cache_key_any in cache:
-                del cache[cache_key_any]
-                logger.debug(f"Cleared cache for {name}|any")
-
-        except Exception as e:
-            logger.warning(f"Failed to clear cache for {name}: {e}")
 
     def _apply_copy_resolution_direct(
         self,
@@ -326,12 +293,14 @@ class CopyResolver:
             "hasToken",
         }
 
-        # Copy source properties (main creature stats)
+        # Copy source properties (main creature stats). Deep copies, because the
+        # _mod transformations below edit lists and entries in place and must not
+        # reach the source creature.
         for field in source_fields:
             if hasattr(source_item, field):
                 source_value = getattr(source_item, field)
                 if source_value is not None:
-                    setattr(target_item, field, source_value)
+                    setattr(target_item, field, copy.deepcopy(source_value))
 
         # Preserve target properties (specific overrides)
         # These are already set on target_item, so no action needed

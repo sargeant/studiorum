@@ -215,30 +215,3 @@ class TestCacheSystem:
         assert "total_entries" in stats
         assert "total_size_mb" in stats
         assert stats["total_entries"] >= 1
-
-    def test_cached_decorator(self) -> None:
-        """Test cached function decorator."""
-        from studiorum.core.cache import cached
-
-        call_count = 0
-
-        @cached(key_func=lambda x: f"test_func:{x}")
-        def expensive_function(x: Any) -> Any:
-            nonlocal call_count
-            call_count += 1
-            return x * 2
-
-        # First call
-        result1: Any = expensive_function(5)
-        assert result1 == 10
-        assert call_count == 1
-
-        # Second call should use cache
-        result2: Any = expensive_function(5)
-        assert result2 == 10
-        assert call_count == 1  # Should not increment
-
-        # Different argument should call function
-        result3: Any = expensive_function(10)
-        assert result3 == 20
-        assert call_count == 2

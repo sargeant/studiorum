@@ -1,8 +1,6 @@
 """Unified caching system for improved performance, using diskcache."""
 
 import os
-from collections.abc import Callable
-from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -68,47 +66,3 @@ class CacheManager:
 def get_cache() -> Cache:
     """Get the global cache instance."""
     return CacheManager.get_instance()
-
-
-def cached(
-    key_func: Callable[..., str] | None = None,
-    ttl: timedelta | None = None,
-) -> Callable[..., Any]:
-    """
-    Decorator for caching function results using diskcache.
-
-    Args:
-        key_func: Function to generate a cache key from the decorated
-                  function's arguments. If None, a default key is generated.
-        ttl: Cache time-to-live. Converts timedelta to seconds for diskcache.
-
-    Example:
-        @cached(lambda name, source: f"spell:{name}:{source}", ttl=timedelta(hours=1))
-        def find_spell(name, source):
-            # Expensive operation
-            return "some_spell_data"
-    """
-
-    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            # Generate cache key
-            if key_func:
-                key = key_func(*args, **kwargs)
-            else:
-                # Default key from function name and args
-                key = f"{func.__name__}:{hash((args, tuple(sorted(kwargs.items()))))}"
-
-            # Convert timedelta to seconds for diskcache's 'expire'
-            expire = ttl.total_seconds() if ttl else None
-
-            # Use the memoize pattern manually
-            cache = get_cache()
-            result = cache.get(key)
-            if result is None:
-                result = func(*args, **kwargs)
-                cache.set(key, result, expire=expire)
-            return result
-
-        return wrapper
-
-    return decorator

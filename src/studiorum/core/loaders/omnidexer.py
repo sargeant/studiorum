@@ -2,7 +2,6 @@
 
 import hashlib
 from collections import defaultdict
-from datetime import timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
@@ -12,7 +11,6 @@ if TYPE_CHECKING:
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from ..cache import cached
 from ..interfaces import DeepIndexable
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
@@ -946,20 +944,6 @@ class Omnidexer:
         self, content_type: ContentType, name: str, source: str | None = None
     ) -> BaseContent | None:
         """Find content by type, name, and optionally source."""
-        # Use cached version with proper type annotation
-        result = self._find_cached(content_type, name, source)
-        return cast(BaseContent | None, result)
-
-    @cached(
-        key_func=lambda self, content_type, name, source: (
-            f"omnidexer:find:{content_type.value}:{name}:{source or 'any'}:deep={self.enable_deep_indexing}"
-        ),
-        ttl=timedelta(hours=1),  # Cache for 1 hour
-    )
-    def _find_cached(
-        self, content_type: ContentType, name: str, source: str | None = None
-    ) -> BaseContent | None:
-        """Cached implementation of find."""
         if content_type not in self._by_type:
             return None
 
@@ -1026,21 +1010,7 @@ class Omnidexer:
     def search(
         self, query: str, content_type: ContentType | None = None, limit: int = 50
     ) -> list[BaseContent]:
-        """Search for content by name (fuzzy matching)."""
-        # Use cached version with proper type annotation
-        result = self._search_cached(query, content_type, limit)
-        return cast(list[BaseContent], result)
-
-    @cached(
-        key_func=lambda self, query, content_type, limit: (
-            f"omnidexer:search:{query}:{content_type.value if content_type else 'all'}:{limit}:deep={self.enable_deep_indexing}"
-        ),
-        ttl=timedelta(minutes=30),  # Cache for 30 minutes
-    )
-    def _search_cached(
-        self, query: str, content_type: ContentType | None = None, limit: int = 50
-    ) -> list[BaseContent]:
-        """Cached implementation of search."""
+        """Search for content by name (substring match)."""
         query_lower = query.lower()
         results = []
 
