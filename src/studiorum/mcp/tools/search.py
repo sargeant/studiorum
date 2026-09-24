@@ -9,7 +9,9 @@ from fastmcp.dependencies import Depends
 from pydantic import Field
 
 from studiorum.core.loaders import item_types
+from studiorum.core.loaders.omnidexer import parse_uid
 from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.models.content_models import content_type_of
 from studiorum.core.models.creature_filters import CreatureFilterCriteria
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.item_filters import ItemFilterCriteria
@@ -99,14 +101,25 @@ def split_srd[T: BaseContent](
 
 def drop_reprinted[T: BaseContent](found: Sequence[T]) -> list[T]:
     """Leave out entries whose reprint (5etools' reprintedAs) is also in ``found``."""
-    present = {(c.name.lower(), c.source.abbreviation.lower()) for c in found}
+    present = {key for c in found for key in _keys(c)}
     return [c for c in found if not (_reprints(c) & present)]
+
+
+def _keys(content: BaseContent) -> set[tuple[str, str]]:
+    """What a reprint uid can call this entry: its name, or a subclass's short name."""
+    source = content.source.abbreviation.lower()
+    names = {content.name, str(getattr(content, "short_name", "") or "")}
+    return {(n.lower(), source) for n in names if n}
 
 
 def _reprints(content: BaseContent) -> set[tuple[str, str]]:
     found = getattr(content, "reprinted_as", None) or getattr(
         content, "reprintedAs", None
     )
+    try:
+        ctype = content_type_of(content)
+    except ValueError:
+        return set()
     keys = set()
     for reprint in found if isinstance(found, list) else []:
         uid = (
@@ -114,9 +127,10 @@ def _reprints(content: BaseContent) -> set[tuple[str, str]]:
             if isinstance(reprint, dict)
             else getattr(reprint, "uid", reprint)
         )
-        name, _, rest = str(uid).partition("|")
-        if rest:
-            keys.add((name.lower(), rest.split("|")[0].lower()))
+        fields = parse_uid(ctype, str(uid)) or {}
+        first = next(iter(fields.values()), None)
+        if first and fields.get("source"):
+            keys.add((str(first).lower(), str(fields["source"]).lower()))
     return keys
 
 
