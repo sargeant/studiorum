@@ -7,8 +7,11 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import Mock
 
+from studiorum.core.models.creature_filters import CreatureFilterCriteria
+from studiorum.core.models.creatures import Creature
 from studiorum.core.models.spell_filters import SpellFilterCriteria
 from studiorum.core.models.spells import Spell
+from studiorum.core.services.creature_collector import CreatureCollector
 from studiorum.core.services.spell_collector import SpellCollector
 
 SRD_DATA = Path(__file__).parents[3] / "srd-data"
@@ -38,3 +41,20 @@ def test_ritual_filters_spells() -> None:
 
     assert [s.name for s in rituals] == ["Alarm"]
     assert [s.name for s in others] == ["Fireball"]
+
+
+def test_type_filter_reads_a_type_with_tags() -> None:
+    creatures = [
+        Creature.model_validate(e)
+        for e in _entries(
+            SRD_DATA / "bestiary" / "bestiary-srd.json",
+            "monster",
+            {"Goblin", "Young Red Dragon"},
+        )
+    ]
+    collector = CreatureCollector(_omnidexer(creatures))
+
+    criteria = CreatureFilterCriteria(creature_types=["humanoid"])
+    found = collector.collect_creatures(criteria).creatures
+
+    assert [c.name for c in found] == ["Goblin"]
