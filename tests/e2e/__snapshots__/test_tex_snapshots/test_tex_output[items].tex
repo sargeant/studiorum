@@ -73,9 +73,9 @@
   \par\medskip
   \noindent\centering
   \IfNoValueTF{#2}{%%
-    \includegraphics[width=\linewidth]{#3}%%
+    \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
   }{%%
-    \includegraphics[width=#2\linewidth]{#3}%%
+    \includegraphics[width=#2\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
   }%%
   \IfBooleanF{#1}{%%
     \par\smallskip
@@ -92,9 +92,9 @@
 \begin{figure}[htbp]
     \centering
     \IfNoValueTF{#2}{%%
-      \includegraphics[width=\linewidth]{#3}%%
+      \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
     }{%%
-      \includegraphics[width=#2\linewidth]{#3}%%
+      \includegraphics[width=#2\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
     }%%
     \IfBooleanF{#1}{%%
       \caption{#4}%%
@@ -112,9 +112,9 @@
 \begin{figure}[htbp]
       \centering
       \IfNoValueTF{#2}{%%
-        \includegraphics[width=\linewidth]{#3}%%
+        \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
       }{%%
-        \includegraphics[width=#2\linewidth]{#3}%%
+        \includegraphics[width=#2\linewidth,height=0.45\textheight,keepaspectratio]{#3}%%
       }%%
       \IfBooleanF{#1}{%%
         \caption{#4}%%
@@ -127,9 +127,9 @@
 \begin{figure*}[tp]
       \centering
       \IfNoValueTF{#2}{%%
-        \includegraphics[width=\textwidth]{#3}%%
+        \includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{#3}%%
       }{%%
-        \includegraphics[width=#2\textwidth]{#3}%%
+        \includegraphics[width=#2\textwidth,height=0.45\textheight,keepaspectratio]{#3}%%
       }%%
       \IfBooleanF{#1}{%%
         \caption{#4}%%
