@@ -69,14 +69,16 @@ The search tools return short summaries (name, source, level or challenge rating
 
 `get_content` returns an entry as Markdown: a creature as a statblock, and spells, items, classes and subclasses in their own layouts, with tags reduced to their text. Pass `format="json"` for the 5etools data instead. `references` lists what the entry's text links to, such as the items a creature carries, for further `get_content` calls. A class lists its features with their 5etools uids, such as `Spell Mastery|Wizard|XPHB|18`; pass one as the name with `content_type="classFeature"` (or `subclassFeature`) to read it. Without a `source`, `get_content` returns the latest edition. Specific magic items such as +3 Plate Armor are built from 5etools' generic variants, as the 5etools site builds them.
 
-`list_publications` and the reading tools have no SRD filter, because 5etools doesn't mark books and adventures that way.
+`search_content` gives a `uid` and a `detail` where a name and source repeat, such as the Celtic and Forgotten Realms Silvanus in the PHB; pass the uid as `get_content`'s name to pick one.
+
+`list_publications` gives each book or adventure's `id` and the `source` its content carries. They differ for some, such as `PS-X` and `PSX`, and `sources` filters take either. `list_publications` and the reading tools have no SRD filter, because 5etools doesn't mark books and adventures that way.
 
 ### Reading books and adventures
 
 `get_content` doesn't return books or adventures, which run to hundreds of thousands of characters. Read them a section at a time:
 
-1. `get_table_of_contents` takes an id from `list_publications` (such as `LMoP`), or the full name, and lists its chapters with their sections' ids and their size in characters. A section that the adventure's text nests inside a chapter is listed beside it, as the 5etools site shows it. A section that holds nothing but statblocks lists them in `statblocks`, so you can go straight to `get_content`. `depth` lists more levels of sections, and `section_id` lists the sections inside one section.
-2. `read_section` returns one chapter or section as Markdown, with the ids of its subsections. Tags such as `{@creature goblin|MM}` become their text ("goblin"), and a statblock becomes a line naming the creature, which `get_content` returns in full. A page holds up to 24,000 characters. A longer section comes in pages (`page`, `pages`), and a subsection too long for a page is left as a pointer to read on its own. `references` lists what the page links to: content for `get_content`, and other sections by id.
+1. `get_table_of_contents` takes an id from `list_publications` (such as `LMoP`), or the full name, and lists its chapters with their sections' ids and their size in characters. A section that holds nothing but statblocks lists them in `statblocks`, so you can go straight to `get_content`. `depth` lists more levels of sections, and `section_id` lists the sections inside one section.
+2. `read_section` returns one chapter or section as Markdown, with the ids of its subsections. Tags such as `{@creature goblin|MM}` become their text ("goblin"), and a statblock becomes a line naming the creature, which `get_content` returns in full. A page holds up to 24,000 characters. A longer section comes in pages (`page`, `pages`), and a subsection too long for a page is left as a pointer to read on its own. `references` lists what the page links to: content for `get_content`, other sections by id, and other books and adventures by publication id.
 3. `search_publication` finds the sections that mention something, with a breadcrumb path and a snippet. Every word must appear in a section's name or its own text; sections named for the words come first, then the rest in book order.
 
 ### Encounters
