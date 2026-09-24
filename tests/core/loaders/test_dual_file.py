@@ -72,6 +72,7 @@ def test_books_take_their_chapters_from_the_text() -> None:
         "source": "B",
         "author": "Someone",
         "published": "2020-01-01",
+        "group": "setting",
         "contents": [{"name": "Ignored header"}],
     }
     text = {"data": [_section("One", "First.", page=3), _section("Two", "Second.")]}
@@ -83,6 +84,7 @@ def test_books_take_their_chapters_from_the_text() -> None:
         "source": "B",
         "id": "B",
         "published": "2020-01-01",
+        "group": "setting",
         "contents": [
             {"name": "One", "entries": ["First."], "page": 3},
             {"name": "Two", "entries": ["Second."]},

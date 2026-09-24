@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-_BOOK_KEYS = ("published", "isbn", "image", "tags")
+_BOOK_KEYS = ("published", "group", "isbn", "image", "tags")
 
 
 def merge_metadata_content(
