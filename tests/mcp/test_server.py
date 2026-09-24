@@ -165,3 +165,11 @@ async def test_all_content_changes_the_srd_default(
     assert names(await call("search_spells", srd_only=True)) == ["Alarm", "Fireball"]
     result = await call("get_content", content_type="spell", name="Hellfire Orb")
     assert result["srd"] is False
+
+
+@pytest.mark.asyncio
+async def test_searches_leave_out_reprinted_entries() -> None:
+    latest = await call("search_spells", query="alarm")
+    assert [(r["name"], r["source"]) for r in latest["results"]] == [("Alarm", "XPHB")]
+    both = await call("search_spells", query="alarm", latest_only=False)
+    assert [r["source"] for r in both["results"]] == ["SRD", "XPHB"]

@@ -82,10 +82,14 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         SRD_DATA / "spells" / "spells-srd.json", "spell", {"Fireball", "Alarm"}
     )
     fireball = next(s for s in spells if s["name"] == "Fireball")
+    alarm = next(s for s in spells if s["name"] == "Alarm")
+    # The SRD Alarm reprinted in the XPHB
+    alarm_2024 = {**alarm, "source": "XPHB"}
+    alarm["reprintedAs"] = ["Alarm|XPHB"]
     _write(tmp_path / "spells" / "index.json", {"SRD": "spells-srd.json"})
     _write(
         tmp_path / "spells" / "spells-srd.json",
-        {"spell": [*spells, _not_srd(fireball, "Hellfire Orb")]},
+        {"spell": [*spells, alarm_2024, _not_srd(fireball, "Hellfire Orb")]},
     )
 
     creatures = _pick(

@@ -57,6 +57,10 @@ Sources = Annotated[
     list[str] | None, Field(description="Source abbreviations, e.g. ['XPHB']")
 ]
 Limit = Annotated[int, Field(ge=1, le=100)]
+LatestOnly = Annotated[
+    bool,
+    Field(description="Leave out entries reprinted in a later book (PHB for XPHB)"),
+]
 
 
 def _given(**filters: Any) -> dict[str, Any]:
@@ -73,13 +77,36 @@ def _all[T: BaseContent](
 
 
 def _narrow[T: BaseContent](
-    found: Sequence[T], query: str | None, srd_only: bool
+    found: Sequence[T], query: str | None, srd_only: bool, latest_only: bool
 ) -> list[T]:
     needle = (query or "").lower()
-    return sorted(
-        (c for c in found if needle in c.name.lower() and (c.is_srd or not srd_only)),
-        key=lambda c: (c.name.lower(), c.source.abbreviation),
+    kept = [c for c in found if needle in c.name.lower() and (c.is_srd or not srd_only)]
+    if latest_only:
+        kept = drop_reprinted(kept)
+    return sorted(kept, key=lambda c: (c.name.lower(), c.source.abbreviation))
+
+
+def drop_reprinted[T: BaseContent](found: Sequence[T]) -> list[T]:
+    """Leave out entries whose reprint (5etools' reprintedAs) is also in ``found``."""
+    present = {(c.name.lower(), c.source.abbreviation.lower()) for c in found}
+    return [c for c in found if not (_reprints(c) & present)]
+
+
+def _reprints(content: BaseContent) -> set[tuple[str, str]]:
+    found = getattr(content, "reprinted_as", None) or getattr(
+        content, "reprintedAs", None
     )
+    keys = set()
+    for reprint in found if isinstance(found, list) else []:
+        uid = (
+            reprint.get("uid")
+            if isinstance(reprint, dict)
+            else getattr(reprint, "uid", reprint)
+        )
+        name, _, rest = str(uid).partition("|")
+        if rest:
+            keys.add((name.lower(), rest.split("|")[0].lower()))
+    return keys
 
 
 async def search_spells(
@@ -93,6 +120,7 @@ async def search_spells(
     concentration: bool | None = None,
     sources: Sources = None,
     srd_only: SrdOnly = None,
+    latest_only: LatestOnly = True,
     limit: Limit = 20,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
@@ -114,7 +142,7 @@ async def search_spells(
         if filters
         else _all(services, ContentType.SPELL, Spell)
     )
-    spells = _narrow(found, query, srd_only)
+    spells = _narrow(found, query, srd_only, latest_only)
     return SpellResults(
         total=len(spells),
         results=[
@@ -139,6 +167,7 @@ async def search_creatures(
     ] = None,
     sources: Sources = None,
     srd_only: SrdOnly = None,
+    latest_only: LatestOnly = True,
     limit: Limit = 20,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
@@ -158,7 +187,7 @@ async def search_creatures(
         if filters
         else _all(services, ContentType.CREATURE, Creature)
     )
-    creatures = _narrow(found, query, srd_only)
+    creatures = _narrow(found, query, srd_only, latest_only)
     return CreatureResults(
         total=len(creatures),
         results=[
@@ -181,6 +210,7 @@ async def search_items(
     requires_attunement: bool | None = None,
     sources: Sources = None,
     srd_only: SrdOnly = None,
+    latest_only: LatestOnly = True,
     limit: Limit = 20,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
@@ -200,7 +230,7 @@ async def search_items(
         if filters
         else _all(services, ContentType.ITEM, Item)
     )
-    items = _narrow(found, query, srd_only)
+    items = _narrow(found, query, srd_only, latest_only)
     return ItemResults(
         total=len(items),
         results=[
