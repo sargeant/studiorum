@@ -204,3 +204,15 @@ class SectionMatches(BaseModel):
     publication: str
     total: int = Field(description="Matches before the limit")
     results: list[SectionMatch]
+
+
+class ContentSummary(BaseModel):
+    name: str
+    source: str
+    srd: bool
+
+
+class ContentResults(Filtered):
+    type: str
+    total: int = Field(description="Matches before the limit")
+    results: list[ContentSummary]

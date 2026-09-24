@@ -38,6 +38,7 @@ async def test_the_server_lists_its_tools() -> None:
         "search_creatures",
         "search_items",
         "search_rules",
+        "search_content",
         "get_content",
         "list_publications",
         "calculate_encounter_budget",
@@ -280,3 +281,13 @@ async def test_searches_page_and_report_the_srd_mode() -> None:
         False,
         True,
     )
+
+
+@pytest.mark.asyncio
+async def test_search_content_finds_any_type_by_name() -> None:
+    feats = await call("search_content", content_type="feat", query="grap")
+    assert names(feats) == ["Grappler"]
+    features = await call("search_content", content_type="classFeature", query="arcane")
+    assert "Arcane Recovery" in names(features)
+    nothing = await call("search_content", content_type="deity", query="annam")
+    assert (nothing["total"], nothing["hidden_by_srd"]) == (0, 0)

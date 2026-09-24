@@ -15,8 +15,21 @@ from studiorum.mcp import markdown
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import not_found
 from studiorum.mcp.layouts import to_markdown
-from studiorum.mcp.models import ContentEntry, Publication, Publications, Reference
-from studiorum.mcp.tools.search import drop_reprinted
+from studiorum.mcp.models import (
+    ContentEntry,
+    ContentResults,
+    ContentSummary,
+    Publication,
+    Publications,
+    Reference,
+)
+from studiorum.mcp.tools.search import (
+    LatestOnly,
+    Limit,
+    Offset,
+    drop_reprinted,
+    split_srd,
+)
 from studiorum.services import Services
 
 # Adventures and books are read by section, not whole.
@@ -166,6 +179,42 @@ def find_one(
             f"{matches[0].name} ({found}) is not in the SRD; pass srd_only=false."
         )
     return (drop_reprinted(allowed) or allowed)[0]
+
+
+async def search_content(
+    content_type: EntryType,
+    query: Annotated[
+        str, Field(min_length=1, description="Text the name must contain")
+    ],
+    srd_only: SrdOnly = None,
+    latest_only: LatestOnly = True,
+    limit: Limit = 20,
+    offset: Offset = 0,
+    default_srd: bool = Depends(srd_default),
+    services: Services = Depends(get_services),
+) -> ContentResults:
+    """Find entries of any type get_content reads by name, e.g. deities, feats, races."""
+    srd_only = default_srd if srd_only is None else srd_only
+    needle = query.lower()
+    named = [
+        c
+        for c in services.omnidexer.get_all_by_type(ContentType(content_type))
+        if needle in c.name.lower()
+    ]
+    kept, hidden = split_srd(named, srd_only, latest_only)
+    kept.sort(
+        key=lambda c: (c.name.lower() != needle, c.name.lower(), c.source.abbreviation)
+    )
+    return ContentResults(
+        type=content_type,
+        srd_only=srd_only,
+        hidden_by_srd=hidden,
+        total=len(kept),
+        results=[
+            ContentSummary(name=c.name, source=c.source.abbreviation, srd=c.is_srd)
+            for c in kept[offset : offset + limit]
+        ],
+    )
 
 
 async def list_publications(
