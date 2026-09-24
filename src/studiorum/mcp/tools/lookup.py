@@ -11,7 +11,7 @@ from pydantic import Field
 from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.books import Book
 from studiorum.core.models.content import BaseContent, ContentType
-from studiorum.mcp.deps import get_services
+from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.errors import not_found
 from studiorum.mcp.models import ContentEntry, Publication, Publications
 from studiorum.services import Services
@@ -44,12 +44,12 @@ async def get_content(
     source: Annotated[
         str | None, Field(description="Source abbreviation; else the first match")
     ] = None,
-    srd_only: Annotated[
-        bool, Field(description="Only content 5etools marks as in the 2014 or 5.2 SRD")
-    ] = True,
+    srd_only: SrdOnly = None,
+    default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> ContentEntry:
     """One entry in full (a statblock, a spell's text), found by type and name."""
+    srd_only = default_srd if srd_only is None else srd_only
     entry = find_one(services, content_type, name, source, srd_only)
     return ContentEntry(
         type=content_type,

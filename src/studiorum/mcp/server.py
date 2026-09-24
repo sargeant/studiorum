@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from typing import Any
 
 from fastmcp import FastMCP
@@ -22,11 +23,21 @@ from studiorum.mcp.tools.search import search_creatures, search_items, search_sp
 from studiorum.services import build_services
 
 
+@dataclass
+class ServerOptions:
+    """Set by `studiorum mcp run` before the server starts."""
+
+    all_content: bool = False
+
+
+options = ServerOptions()
+
+
 @asynccontextmanager
 async def lifespan(server: FastMCP[Any]) -> AsyncIterator[dict[str, Any]]:
     services = build_services(get_app_config())
     services.omnidexer  # noqa: B018 - load before the first call, not during it
-    yield {"services": services}
+    yield {"services": services, "srd_only": not options.all_content}
 
 
 mcp: FastMCP[Any] = FastMCP(

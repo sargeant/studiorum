@@ -19,7 +19,7 @@ from studiorum.core.models.spells import Spell
 from studiorum.core.services.creature_collector import CreatureCollector
 from studiorum.core.services.item_collector import ItemCollector
 from studiorum.core.services.spell_collector import SpellCollector
-from studiorum.mcp.deps import get_services
+from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.models import (
     CreatureResults,
     CreatureSummary,
@@ -55,9 +55,6 @@ Rarity = Literal[
 Query = Annotated[str | None, Field(description="Text the name must contain")]
 Sources = Annotated[
     list[str] | None, Field(description="Source abbreviations, e.g. ['XPHB']")
-]
-SrdOnly = Annotated[
-    bool, Field(description="Only content 5etools marks as in the 2014 or 5.2 SRD")
 ]
 Limit = Annotated[int, Field(ge=1, le=100)]
 
@@ -95,11 +92,13 @@ async def search_spells(
     ritual: bool | None = None,
     concentration: bool | None = None,
     sources: Sources = None,
-    srd_only: SrdOnly = True,
+    srd_only: SrdOnly = None,
     limit: Limit = 20,
+    default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> SpellResults:
     """Find spells by name, level, school, class list, ritual or concentration."""
+    srd_only = default_srd if srd_only is None else srd_only
     filters = _given(
         levels=[level] if level is not None else None,
         schools=[school] if school else None,
@@ -139,11 +138,13 @@ async def search_creatures(
         str | None, Field(description="e.g. dragon, humanoid, undead")
     ] = None,
     sources: Sources = None,
-    srd_only: SrdOnly = True,
+    srd_only: SrdOnly = None,
     limit: Limit = 20,
+    default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> CreatureResults:
     """Find creatures by name, challenge rating range and creature type."""
+    srd_only = default_srd if srd_only is None else srd_only
     filters = _given(
         min_cr=cr_min,
         max_cr=cr_max,
@@ -179,11 +180,13 @@ async def search_items(
     magic_only: bool = False,
     requires_attunement: bool | None = None,
     sources: Sources = None,
-    srd_only: SrdOnly = True,
+    srd_only: SrdOnly = None,
     limit: Limit = 20,
+    default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> ItemResults:
     """Find items by name, rarity, attunement, or magic items only."""
+    srd_only = default_srd if srd_only is None else srd_only
     filters = _given(
         rarities=[rarity] if rarity else None,
         magic_only=magic_only or None,

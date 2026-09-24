@@ -152,3 +152,16 @@ async def test_list_publications() -> None:
 def test_entry_types_are_content_types() -> None:
     for name in get_args(EntryType):
         ContentType(name)
+
+
+@pytest.mark.asyncio
+async def test_all_content_changes_the_srd_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from studiorum.mcp.server import options
+
+    monkeypatch.setattr(options, "all_content", True)
+    assert names(await call("search_spells")) == ["Alarm", "Fireball", "Hellfire Orb"]
+    assert names(await call("search_spells", srd_only=True)) == ["Alarm", "Fireball"]
+    result = await call("get_content", content_type="spell", name="Hellfire Orb")
+    assert result["srd"] is False

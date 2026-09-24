@@ -13,7 +13,7 @@ from studiorum.core import encounter
 from studiorum.core.encounter import Rules
 from studiorum.core.models.content import ContentType
 from studiorum.core.models.creatures import Creature
-from studiorum.mcp.deps import get_services
+from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.models import (
     CreatureSuggestions,
     EncounterBudget,
@@ -22,7 +22,7 @@ from studiorum.mcp.models import (
     SuggestedCreature,
 )
 from studiorum.mcp.tools.lookup import find_one
-from studiorum.mcp.tools.search import SrdOnly, type_name
+from studiorum.mcp.tools.search import type_name
 from studiorum.services import Services
 
 PartyLevels = Annotated[
@@ -74,10 +74,12 @@ async def rate_encounter(
     party_levels: PartyLevels,
     creatures: Annotated[list[CreatureCount], Field(min_length=1)],
     rules: RulesChoice = "2024",
-    srd_only: SrdOnly = True,
+    srd_only: SrdOnly = None,
+    default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> EncounterRating:
     """How hard a group of creatures is for a party: total and adjusted XP, and difficulty."""
+    srd_only = default_srd if srd_only is None else srd_only
     rated: list[RatedCreature] = []
     for wanted in creatures:
         found = find_one(services, "creature", wanted.name, wanted.source, srd_only)
@@ -119,8 +121,9 @@ async def suggest_creatures(
         str | None, Field(description="e.g. dragon, humanoid, undead")
     ] = None,
     rules: RulesChoice = "2024",
-    srd_only: SrdOnly = True,
+    srd_only: SrdOnly = None,
     limit: Annotated[int, Field(ge=1, le=100)] = 20,
+    default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> CreatureSuggestions:
     """Creatures that, `count` at a time, make an encounter of this difficulty, strongest first.
@@ -128,6 +131,7 @@ async def suggest_creatures(
     Environments are the ones 5etools tags creatures with. Check a mixed group
     with rate_encounter.
     """
+    srd_only = default_srd if srd_only is None else srd_only
     try:
         low, high = encounter.xp_range(difficulty, party_levels, rules)
     except ValueError as e:
