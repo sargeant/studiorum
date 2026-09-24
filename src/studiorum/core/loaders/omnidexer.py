@@ -389,7 +389,7 @@ class Omnidexer:
     def _match_uid(
         self, content_type: ContentType, fields: UidFields
     ) -> BaseContent | None:
-        if content_type == ContentType.SUBCLASS:
+        if content_type in _UID_FIRST:
             candidates = list(self._by_type.get(content_type, {}).values())
         else:
             candidates = self._named(content_type, fields["name"] or "")
@@ -538,6 +538,11 @@ _IDENTITY: dict[ContentType, tuple[str, ...]] = {
 # The parts of a uid after the name, with 5etools' default for each part left
 # empty (DataUtil.class.unpackUid*); a callable default reads an earlier part
 UidFields = dict[str, str | None]
+# Types whose uid starts with something other than the name
+_UID_FIRST = {
+    ContentType.SUBCLASS: "shortName",
+    ContentType.ITEM_PROPERTY: "abbreviation",
+}
 _Default = str | Callable[[UidFields], str | None] | None
 _UID_LAYOUTS: dict[ContentType, tuple[tuple[str, _Default], ...]] = {
     ContentType.CLASS_FEATURE: (
@@ -566,12 +571,13 @@ _UID_LAYOUTS: dict[ContentType, tuple[tuple[str, _Default], ...]] = {
 def parse_uid(content_type: ContentType, uid: str) -> UidFields | None:
     """The fields a 5etools uid names, by their 5etools names.
 
-    A subclass uid starts with the short name ("Alchemist|Artificer|EFA|EFA").
+    A subclass uid starts with the short name ("Alchemist|Artificer|EFA|EFA")
+    and an item property's with its abbreviation ("2H|XPHB").
     """
     parts = [p.strip() for p in uid.split("|")]
     if not parts[0]:
         return None
-    first = "shortName" if content_type == ContentType.SUBCLASS else "name"
+    first = _UID_FIRST.get(content_type, "name")
     fields: UidFields = {first: parts[0]}
     layout = _UID_LAYOUTS.get(content_type, (("source", None),))
     for i, (key, default) in enumerate(layout, start=1):

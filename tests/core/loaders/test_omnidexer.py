@@ -333,3 +333,22 @@ def test_a_reprint_tagged_as_another_type_is_not_aliased(tmp_path: Path) -> None
     omnidexer = _load(tmp_path)
 
     assert omnidexer.find(ContentType.OPTIONALFEATURE, "Archery", "XPHB") is None
+
+
+def test_an_item_property_reprint_is_read_by_abbreviation(tmp_path: Path) -> None:
+    def prop(source: str, **extra: object) -> dict[str, Any]:
+        entry = {"type": "entries", "name": "Two-Handed", "entries": [source]}
+        return {"abbreviation": "2H", "source": source, "entries": [entry], **extra}
+
+    old = prop("PHB", reprintedAs=["2H|XPHB"])
+    _write(tmp_path / "items-base.json", {"itemProperty": [old, prop("XPHB")]})
+
+    omnidexer = _load(tmp_path)
+
+    assert [
+        (p.name, p.source.abbreviation)
+        for p in omnidexer.get_all_by_type(ContentType.ITEM_PROPERTY)
+    ] == [("Two-Handed", "PHB"), ("Two-Handed", "XPHB")]
+    found = omnidexer.find_uid(ContentType.ITEM_PROPERTY, "2H|XPHB")
+    assert found is not None
+    assert found.entries[0].entries == ["XPHB"]  # type: ignore[attr-defined]
