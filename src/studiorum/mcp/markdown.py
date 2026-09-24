@@ -9,6 +9,13 @@ from __future__ import annotations
 from typing import Any
 
 from studiorum.core.logging import get_logger
+from studiorum.core.text.tags import (
+    display_part,
+    is_tag,
+    split_by_pipe,
+    split_by_tags,
+    split_tag,
+)
 
 logger = get_logger(__name__)
 
@@ -19,22 +26,6 @@ _ABILITIES = {
     "int": "Intelligence",
     "wis": "Wisdom",
     "cha": "Charisma",
-}
-# Tags whose display text is the first part, and which part it is for the rest
-_FIRST_PART = {
-    "5etools", "5etoolsImg", "5etoolsAudio", "adventure", "book", "filter",
-    "footnote", "link", "loader", "color", "highlight", "help", "note", "tip",
-    "code", "kbd", "sup", "sub", "style", "font", "s", "strike", "s2",
-    "strikeDouble", "u", "underline", "u2", "underlineDouble", "comic",
-    "comicH1", "comicH2", "comicH3", "comicH4", "comicNote",
-}  # fmt: skip
-_DISPLAY_PART = {
-    "card": 3,
-    "deity": 3,
-    "subclass": 4,
-    "quickref": 4,
-    "classFeature": 5,
-    "subclassFeature": 7,
 }
 _FIXED = {
     "h": "*Hit:* ",
@@ -49,59 +40,14 @@ _FIXED = {
 }
 
 
-def split_by_tags(text: str) -> list[str]:
-    """Plain runs and whole ``{@tag ...}`` runs, nested tags kept inside their parent."""
-    out: list[str] = []
-    current, depth, i = "", 0, 0
-    while i < len(text):
-        char = text[i]
-        if char == "{" and text[i + 1 : i + 2] in ("@", "="):
-            if depth == 0:
-                if current:
-                    out.append(current)
-                current = ""
-            depth += 1
-            current += text[i : i + 2]
-            i += 2
-            continue
-        current += char
-        if char == "}" and depth and (depth := depth - 1) == 0:
-            out.append(current)
-            current = ""
-        i += 1
-    if current:
-        out.append(current)
-    return out
-
-
-def split_by_pipe(text: str) -> list[str]:
-    """Split a tag's arguments on ``|``, leaving pipes inside nested tags alone."""
-    out: list[str] = []
-    current, depth = "", 0
-    for i, char in enumerate(text):
-        if char == "{" and text[i + 1 : i + 2] == "@":
-            depth += 1
-        elif char == "}" and depth:
-            depth -= 1
-        elif char == "|" and not depth and text[i - 1 : i] != "\\":
-            out.append(current)
-            current = ""
-            continue
-        current += char
-    if current:
-        out.append(current)
-    return out
-
-
 def strip_tags(text: str) -> str:
     """``The {@creature goblin|MM}`` becomes ``The goblin``, recursively."""
     if "{@" not in text:
         return text
     out = []
     for part in split_by_tags(text):
-        if part.startswith("{@") and part.endswith("}"):
-            tag, _, args = part[2:-1].partition(" ")
-            out.append(strip_tags(_display(tag, args)))
+        if is_tag(part):
+            out.append(strip_tags(_display(*split_tag(part))))
         else:
             out.append(part)
     return "".join(out)
@@ -120,8 +66,6 @@ def _display(tag: str, args: str) -> str:
         return f"**{first}**"
     if tag in ("i", "italic"):
         return f"*{first}*"
-    if tag in _FIRST_PART:
-        return first
     if tag in ("damage", "dice", "autodice"):
         return second or first.replace(";", "/")
     if tag in ("d20", "hit", "initiative"):
@@ -150,8 +94,7 @@ def _display(tag: str, args: str) -> str:
     if tag == "area":
         flags = parts[2] if len(parts) > 2 else ""
         return first if "x" in flags else f"{'A' if 'u' in flags else 'a'}rea {first}"
-    index = _DISPLAY_PART.get(tag, 2)
-    return parts[index] if len(parts) > index and parts[index] else first
+    return display_part(tag, parts)
 
 
 def _attack(codes: str) -> str:
@@ -333,9 +276,9 @@ def references(value: Any) -> list[dict[str, str]]:
 
     def text(s: str) -> None:
         for part in split_by_tags(s):
-            if not (part.startswith("{@") and part.endswith("}")):
+            if not is_tag(part):
                 continue
-            tag, _, args = part[2:-1].partition(" ")
+            tag, args = split_tag(part)
             parts = split_by_pipe(args) or [""]
             if tag in _CONTENT_TAGS and parts[0]:
                 kind, default = _CONTENT_TAGS[tag]
