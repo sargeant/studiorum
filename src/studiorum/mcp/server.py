@@ -11,6 +11,11 @@ from fastmcp.server.middleware.logging import LoggingMiddleware
 from fastmcp.server.middleware.timing import TimingMiddleware
 
 from studiorum.core.config.unified_config import get_app_config
+from studiorum.mcp.tools.encounter import (
+    calculate_encounter_budget,
+    rate_encounter,
+    suggest_creatures,
+)
 from studiorum.mcp.tools.lookup import get_content, list_publications
 from studiorum.mcp.tools.search import search_creatures, search_items, search_spells
 from studiorum.services import build_services
@@ -44,5 +49,8 @@ for tool in (
     search_items,
     get_content,
     list_publications,
+    calculate_encounter_budget,
+    rate_encounter,
+    suggest_creatures,
 ):
     mcp.tool(tool)

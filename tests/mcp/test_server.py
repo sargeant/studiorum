@@ -39,6 +39,9 @@ async def test_the_server_lists_its_tools() -> None:
         "search_items",
         "get_content",
         "list_publications",
+        "calculate_encounter_budget",
+        "rate_encounter",
+        "suggest_creatures",
     }
     # Depends parameters stay out of the schema
     assert "services" not in tools["search_spells"].inputSchema["properties"]

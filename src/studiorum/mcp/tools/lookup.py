@@ -10,7 +10,7 @@ from pydantic import Field
 
 from studiorum.core.models.adventures import Adventure
 from studiorum.core.models.books import Book
-from studiorum.core.models.content import ContentType
+from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.mcp.deps import get_services
 from studiorum.mcp.errors import not_found
 from studiorum.mcp.models import ContentEntry, Publication, Publications
@@ -50,6 +50,25 @@ async def get_content(
     services: Services = Depends(get_services),
 ) -> ContentEntry:
     """One entry in full (a statblock, a spell's text), found by type and name."""
+    entry = find_one(services, content_type, name, source, srd_only)
+    return ContentEntry(
+        type=content_type,
+        name=entry.name,
+        source=entry.source.abbreviation,
+        srd=entry.is_srd,
+        data=entry.model_dump(mode="json", by_alias=True, exclude_none=True)
+        | {"source": entry.source.abbreviation},
+    )
+
+
+def find_one(
+    services: Services,
+    content_type: str,
+    name: str,
+    source: str | None,
+    srd_only: bool,
+) -> BaseContent:
+    """The first entry with this type, name and source; a ToolError if none is allowed."""
     omnidexer = services.omnidexer
     ctype = ContentType(content_type)
     matches = [
@@ -66,15 +85,7 @@ async def get_content(
         raise ToolError(
             f"{matches[0].name} ({found}) is not in the SRD; pass srd_only=false."
         )
-    entry = allowed[0]
-    return ContentEntry(
-        type=content_type,
-        name=entry.name,
-        source=entry.source.abbreviation,
-        srd=entry.is_srd,
-        data=entry.model_dump(mode="json", by_alias=True, exclude_none=True)
-        | {"source": entry.source.abbreviation},
-    )
+    return allowed[0]
 
 
 async def list_publications(

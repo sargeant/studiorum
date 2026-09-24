@@ -166,7 +166,7 @@ async def search_creatures(
                 source=c.source.abbreviation,
                 srd=c.is_srd,
                 cr=c.get_cr_text(),
-                type=_creature_type(c),
+                type=type_name(c),
             )
             for c in creatures[:limit]
         ],
@@ -213,7 +213,8 @@ async def search_items(
     )
 
 
-def _creature_type(creature: Creature) -> str:
+def type_name(creature: Creature) -> str:
+    """The creature's type name, e.g. humanoid."""
     kind = creature.type
     if isinstance(kind, str):
         return kind
