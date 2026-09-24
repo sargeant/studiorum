@@ -62,7 +62,6 @@ if TYPE_CHECKING:
     from studiorum.core.references.content_tracker import ContentTracker
     from studiorum.core.services.container import ServiceContainer
     from studiorum.core.text.protocols import TextExtractionProtocol
-    from studiorum.core.text.tag_resolver import TagResolver
     from studiorum.core.unified_references import ReferenceManager
     from studiorum.latex_engine.formatters.protocols import LaTeXFormattingProtocol
     from studiorum.latex_engine.services.protocols import (
@@ -70,6 +69,7 @@ if TYPE_CHECKING:
         TemplateServiceProtocol,
     )
     from studiorum.renderers.core.interfaces import RenderingContext
+    from studiorum.renderers.core.tag_resolver import TagResolver
 
 logger = get_logger(__name__)
 
@@ -864,7 +864,7 @@ def create_tag_resolver_service(
         def _initialize_resolver(self) -> None:
             """Initialize tag resolver with current config."""
             try:
-                from studiorum.core.text.tag_resolver import TagResolver
+                from studiorum.renderers.core.tag_resolver import TagResolver
 
                 # Get the underlying omnidexer instance
                 omnidexer_instance = getattr(self._omnidexer, "_omnidexer", None)

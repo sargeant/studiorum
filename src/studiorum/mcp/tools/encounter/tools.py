@@ -10,6 +10,7 @@ error handling with meaningful suggestions.
 
 from typing import Any
 
+from studiorum.core.encounter.budget import calculate_encounter_budget
 from studiorum.core.error_types import (
     ErrorCategory,
     ErrorSeverity,
@@ -19,7 +20,6 @@ from studiorum.core.error_types import (
 )
 from studiorum.core.logging import get_logger
 from studiorum.mcp.tools.encounter.balancer import rebalance_encounter
-from studiorum.mcp.tools.encounter.budget import calculate_encounter_budget
 
 logger = get_logger(__name__)
 

@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 from studiorum.cli.services import get_cli_template_service
 from studiorum.core.models.creatures import Ability, ArmorClass, Creature
 from studiorum.core.references.content_tracker import ContentTracker
+from studiorum.latex_engine.core import model_text
 
 
 class TestCreatureMarkupProcessing:
@@ -25,21 +26,16 @@ class TestCreatureMarkupProcessing:
         mock_tag_resolver = Mock()
         mock_tag_resolver.process_text.return_value = "Fire Breath (Recharge 5-6)"
 
-        with (
-            patch(
-                "studiorum.cli.services.get_cli_tag_resolver"
-            ) as mock_get_tag_resolver,
-            patch(
-                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
-            ) as mock_processor_class,
-        ):
-            # Mock the CLI service to return our mock tag resolver
-            mock_get_tag_resolver.return_value = mock_tag_resolver
+        with patch(
+            "studiorum.latex_engine.core.model_text.RecursiveEntryProcessor"
+        ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = ["Fire Breath (Recharge 5-6)"]
             mock_processor_class.return_value = mock_processor
 
-            processed_name = ability.get_processed_name()
+            processed_name = model_text.ability_name_text(
+                ability, None, mock_tag_resolver
+            )
             assert processed_name == "Fire Breath (Recharge 5-6)"
 
     def test_ability_description_markup_processing(self):
@@ -96,13 +92,8 @@ class TestCreatureMarkupProcessing:
             "{@item shield}", "shield"
         ).replace("{@spell mage armor}", "mage armor")
 
-        with patch(
-            "studiorum.cli.services.get_cli_tag_resolver"
-        ) as mock_get_tag_resolver:
-            # Mock the CLI service to return our mock tag resolver
-            mock_get_tag_resolver.return_value = mock_tag_resolver
-            processed_ac = ac.get_processed_ac_text()
-            assert processed_ac == "17 (natural armor, shield) (19 with mage armor)"
+        processed_ac = model_text.armor_class_text(ac, mock_tag_resolver)
+        assert processed_ac == "17 (natural armor, shield) (19 with mage armor)"
 
     def test_senses_markup_processing(self):
         """Test processing of 5etools markup in creature senses."""
@@ -134,23 +125,18 @@ class TestCreatureMarkupProcessing:
         # Mock the entry processor for senses
         mock_tag_resolver = Mock()
 
-        with (
-            patch(
-                "studiorum.cli.services.get_cli_tag_resolver"
-            ) as mock_get_tag_resolver,
-            patch(
-                "studiorum.latex_engine.core.entry_processor.RecursiveEntryProcessor"
-            ) as mock_processor_class,
-        ):
-            # Mock the CLI service to return our mock tag resolver
-            mock_get_tag_resolver.return_value = mock_tag_resolver
+        with patch(
+            "studiorum.latex_engine.core.model_text.RecursiveEntryProcessor"
+        ) as mock_processor_class:
             mock_processor = Mock()
             mock_processor.process_entries.return_value = [
                 "darkvision 60 ft., blindsight 30 ft., passive Perception 15"
             ]
             mock_processor_class.return_value = mock_processor
 
-            processed_senses = creature.get_processed_senses()
+            processed_senses = model_text.creature_senses_text(
+                creature, mock_tag_resolver
+            )
             assert "darkvision 60 ft." in processed_senses
             assert "blindsight 30 ft." in processed_senses
             assert "passive Perception 15" in processed_senses
@@ -170,8 +156,8 @@ class TestCreatureMarkupProcessing:
             "studiorum.cli.services.get_cli_tag_resolver",
             side_effect=Exception("CLI service error"),
         ):
-            # Should fall back to original name
-            fallback_name = ability.get_processed_name()
+            # With no tag resolver the name stays raw
+            fallback_name = model_text.ability_name_text(ability, None, None)
             assert fallback_name == "Spell Attack {@spell magic missile}"
 
             # Should fall back to simple text extraction
@@ -466,10 +452,17 @@ class TestCreatureMarkupProcessing:
             mock_processor_class.return_value = mock_processor
 
             # Test name processing
-            mock_processor.process_entries.return_value = [
-                "Breath Weapon (Recharge 5-6)"
-            ]
-            processed_name = ability.get_processed_name()
+            with patch(
+                "studiorum.latex_engine.core.model_text.RecursiveEntryProcessor"
+            ) as mock_name_processor_class:
+                mock_name_processor = Mock()
+                mock_name_processor.process_entries.return_value = [
+                    "Breath Weapon (Recharge 5-6)"
+                ]
+                mock_name_processor_class.return_value = mock_name_processor
+                processed_name = model_text.ability_name_text(
+                    ability, None, mock_tag_resolver
+                )
             assert "Recharge 5-6" in processed_name
 
             # Test description processing

@@ -4,10 +4,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..error_types import BaseError
-    from ..result import Result
-    from ..text.tag_resolver import TagResolver
-    from .processors import ItemProcessor
+    pass
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -408,23 +405,6 @@ class Item(BaseContent):
 
         return str(self.value)
 
-    def get_text(self) -> str:
-        """Get item text using modern template service APIs."""
-        from ...cli.services import get_cli_template_service
-        from ...core.references.content_tracker import ContentTracker
-        from ...latex_engine.services.template_service import TemplateService
-
-        template_service = get_cli_template_service()
-        content_tracker = ContentTracker()
-        # Cast to concrete implementation to access bind_context
-        concrete_service = (
-            template_service
-            if isinstance(template_service, TemplateService)
-            else template_service
-        )
-        bound_service = concrete_service.bind_context(content_tracker)  # type: ignore[attr-defined]
-        return bound_service.render_entry(self.entries)
-
     # Legacy method get_description_text removed - access .entries directly and use RecursiveEntryProcessor
 
     @staticmethod
@@ -657,16 +637,3 @@ class Item(BaseContent):
         if type_metadata and "entries" in type_metadata and type_metadata["entries"]:
             return [str(entry) for entry in type_metadata["entries"]]
         return []
-
-    def get_processor(self) -> "ItemProcessor":
-        """Get processor for this item that can work with services."""
-        from .processors import ItemProcessor
-
-        return ItemProcessor(self)
-
-    def resolve_tags_with_service(
-        self, tag_resolver: "TagResolver"
-    ) -> "Result[Item, BaseError]":
-        """Resolve tags using provided tag resolver service."""
-        processor = self.get_processor()
-        return processor.resolve_tags(tag_resolver)

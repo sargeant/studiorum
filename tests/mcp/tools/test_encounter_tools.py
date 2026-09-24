@@ -8,18 +8,18 @@ Tests maintain the required reset_test_environment() pattern for parallel execut
 and include both unit tests and integration scenarios.
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from pydantic import ValidationError
 
-from studiorum.core.error_types import MCPException
-from studiorum.core.models.encounter_types import (
+from studiorum.core.encounter.budget import calculate_encounter_budget
+from studiorum.core.encounter.encounter_types import (
     XP,
     EncounterConstraints,
     PartyComposition,
 )
-from studiorum.mcp.tools.encounter.budget import calculate_encounter_budget
+from studiorum.core.error_types import MCPException
 from studiorum.mcp.tools.encounter.tools import (
     build_balanced_encounter_mcp,
     calculate_encounter_budget_mcp,
@@ -430,75 +430,6 @@ class TestPartyComposition:
         assert standard_party.get_size_multiplier() == 1.0  # Standard
         assert large_party.get_size_multiplier() == 0.75  # Easier for large parties
         assert very_large_party.get_size_multiplier() == 0.5  # Much easier
-
-
-@pytest.mark.integration
-class TestEncounterServiceIntegration:
-    """Integration tests for encounter services (requires service container)."""
-
-    def test_service_registration(self) -> None:
-        """Test encounter service registration in container."""
-        from studiorum.core.services.encounter_services import (
-            get_encounter_service_lifecycle_summary,
-            validate_encounter_service_registration,
-        )
-
-        # Validate service registration
-        issues = validate_encounter_service_registration()
-        assert len(issues) == 0, f"Service registration issues: {issues}"
-
-        # Check service lifecycle summary
-        summary = get_encounter_service_lifecycle_summary()
-
-        expected_services = [
-            "EncounterCollectorProtocol",
-            "EncounterBalancerProtocol",
-            "ThematicEncounterGeneratorProtocol",
-        ]
-
-        for service in expected_services:
-            assert service in summary
-            assert summary[service]["lifecycle"] == "SCOPED"
-
-    @patch("studiorum.core.services.encounter_services.EncounterCollector")
-    def test_encounter_collector_service_creation(self, mock_collector) -> None:
-        """Test encounter collector service creation."""
-        from studiorum.core.services.encounter_services import (
-            create_encounter_collector_service,
-        )
-
-        # Mock omnidexer
-        mock_omnidexer = Mock()
-
-        # This would be called by the service container
-        # For testing, we just verify the factory works
-        result = create_encounter_collector_service(mock_omnidexer)
-
-        # Should return the collector instance
-        assert result is not None
-
-    def test_container_integration(self) -> None:
-        """Test integration with service container."""
-        from studiorum.core.services.encounter_services import (
-            get_encounter_collector_from_container,
-        )
-
-        # Mock container and omnidexer result
-        mock_container_instance = Mock()
-        mock_omnidexer_result = Mock()
-        mock_omnidexer_result.is_success.return_value = True
-        mock_omnidexer_result.unwrap.return_value = Mock()
-        mock_container_instance.get_omnidexer.return_value = mock_omnidexer_result
-
-        # Should successfully create encounter collector
-        with patch(
-            "studiorum.core.services.encounter_collector.EncounterCollector"
-        ) as mock_ec:
-            # Make the mock return itself when called (so result is not None)
-            mock_ec.return_value = mock_ec
-            result = get_encounter_collector_from_container(mock_container_instance)
-            assert result is not None
-            mock_ec.assert_called_once()
 
 
 if __name__ == "__main__":

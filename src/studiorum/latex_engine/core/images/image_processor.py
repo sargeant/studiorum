@@ -13,7 +13,8 @@ from studiorum.renderers.core.interfaces import RenderingContext
 logger = get_logger(__name__)
 
 if TYPE_CHECKING:
-    from .format_converter import FormatConverter
+    from studiorum.core.assets.format_converter import FormatConverter
+
     from .image_optimizer import ImageOptimizer
     from .image_placer import ImagePlacer
 
@@ -283,7 +284,7 @@ class ImageProcessor:
         # Initialize format converter lazily
         if self._format_converter is None:
             try:
-                from .format_converter import FormatConverter
+                from studiorum.core.assets.format_converter import FormatConverter
 
                 self._format_converter = FormatConverter()
             except ImportError:

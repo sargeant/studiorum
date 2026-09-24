@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from studiorum.core.text.tag_resolver import TagResolver
+from studiorum.renderers.core.tag_resolver import TagResolver
 
 
 class TestTagSystemPerformance:

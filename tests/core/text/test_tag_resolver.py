@@ -12,7 +12,7 @@ from studiorum.core.text.tag_ast import (  # type: ignore
     TextNode,
 )
 from studiorum.core.text.tag_parser import TagParser  # type: ignore
-from studiorum.core.text.tag_resolver import TagResolver  # type: ignore
+from studiorum.renderers.core.tag_resolver import TagResolver  # type: ignore
 
 
 class MockTagNode:

@@ -6,11 +6,10 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from studiorum.core.logging import get_logger
+from studiorum.core.text.tag_parser import TagParseError, TagParser
 from studiorum.renderers.core.handlers import get_default_core_handlers
 from studiorum.renderers.core.interfaces import RenderingContext, TagHandler
 from studiorum.renderers.core.unified_renderer import StandardUnifiedRenderer
-
-from .tag_parser import TagParseError, TagParser
 
 logger = get_logger(__name__)
 

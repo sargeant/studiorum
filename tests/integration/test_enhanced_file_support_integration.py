@@ -226,7 +226,7 @@ class TestEnhancedFileSupportIntegration:
 
     @patch("studiorum.cli.commands.convert.compendiums.spells.get_omnidexer")
     @patch("studiorum.cli.commands.convert.compendiums.spells.get_tag_resolver")
-    @patch("studiorum.cli.config_factory.get_default_sources")
+    @patch("studiorum.core.config.unified_config.get_default_sources")
     def test_content_list_to_spells_conversion_workflow(
         self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer
     ):
@@ -316,7 +316,7 @@ class TestEnhancedFileSupportIntegration:
 
     @patch("studiorum.cli.commands.convert.compendiums.creatures.get_omnidexer")
     @patch("studiorum.cli.commands.convert.compendiums.creatures.get_tag_resolver")
-    @patch("studiorum.cli.config_factory.get_default_sources")
+    @patch("studiorum.core.config.unified_config.get_default_sources")
     def test_content_list_to_creatures_conversion_workflow(
         self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer
     ):
@@ -421,7 +421,7 @@ class TestEnhancedFileSupportIntegration:
 
     @patch("studiorum.cli.commands.convert.compendiums.items.get_omnidexer")
     @patch("studiorum.cli.commands.convert.compendiums.items.get_tag_resolver")
-    @patch("studiorum.cli.config_factory.get_default_sources")
+    @patch("studiorum.core.config.unified_config.get_default_sources")
     def test_content_list_to_items_conversion_workflow(
         self, mock_get_default_sources, mock_tag_resolver, mock_get_omnidexer
     ):

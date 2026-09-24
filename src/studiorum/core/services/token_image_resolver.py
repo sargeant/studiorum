@@ -3,12 +3,12 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from studiorum.core.config.unified_config import get_app_config
-from studiorum.core.logging import get_logger
-from studiorum.latex_engine.core.images.format_converter import (
+from studiorum.core.assets.format_converter import (
     PIL_AVAILABLE,
     FormatConverter,
 )
+from studiorum.core.config.unified_config import get_app_config
+from studiorum.core.logging import get_logger
 
 if TYPE_CHECKING:
     from ..models.creatures import Creature

@@ -16,7 +16,7 @@ from studiorum.core.logging import get_logger
 from studiorum.core.logging.logger import setup_logging
 from studiorum.core.result import is_error_result
 from studiorum.core.services.access import get_app_config
-from studiorum.core.text.tag_resolver import TagResolver
+from studiorum.renderers.core.tag_resolver import TagResolver
 
 logger = get_logger(__name__)
 

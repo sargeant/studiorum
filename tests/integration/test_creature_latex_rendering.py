@@ -11,6 +11,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from studiorum.core.models.creatures import Creature
+from studiorum.latex_engine.core import model_text
 
 
 @pytest.mark.integration
@@ -182,7 +183,13 @@ class TestCreatureLaTeXRendering:
             mock_processor_class.return_value = mock_processor
 
             trait = creature.trait[0]
-            processed_name = trait.get_processed_name()
+            with patch(
+                "studiorum.latex_engine.core.model_text.RecursiveEntryProcessor",
+                mock_processor_class,
+            ):
+                processed_name = model_text.ability_name_text(
+                    trait, mock_omnidexer, mock_tag_resolver
+                )
             from studiorum.cli.utils import get_omnidexer
             from studiorum.core.references.content_tracker import ContentTracker
             from studiorum.latex_engine.core.entry_processor import (
