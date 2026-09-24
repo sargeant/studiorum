@@ -22,7 +22,13 @@ from studiorum.mcp.models import (
     SuggestedCreature,
 )
 from studiorum.mcp.tools.lookup import find_one
-from studiorum.mcp.tools.search import LatestOnly, reprint_uids, split_srd, type_name
+from studiorum.mcp.tools.search import (
+    LatestOnly,
+    Offset,
+    reprint_uids,
+    split_srd,
+    type_name,
+)
 from studiorum.services import Services
 
 PartyLevels = Annotated[
@@ -146,6 +152,7 @@ async def suggest_creatures(
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
     limit: Annotated[int, Field(ge=1, le=100)] = 20,
+    offset: Offset = 0,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> CreatureSuggestions:
@@ -182,6 +189,7 @@ async def suggest_creatures(
     fits = [f for f in fits if id(f[1]) in set(map(id, kept))]
     fits.sort(key=lambda f: (-f[0], f[1].name.lower(), f[1].source.abbreviation))
     return CreatureSuggestions(
+        srd_only=srd_only,
         hidden_by_srd=hidden,
         rules=rules,
         difficulty=difficulty,
@@ -198,7 +206,7 @@ async def suggest_creatures(
                 type=type_name(c),
                 environment=_environments(c),
             )
-            for xp, c in fits[:limit]
+            for xp, c in fits[offset : offset + limit]
         ],
     )
 

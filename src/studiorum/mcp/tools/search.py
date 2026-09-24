@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from typing import Annotated, Any, Literal
 
 from fastmcp.dependencies import Depends
+from fastmcp.exceptions import ToolError
 from pydantic import Field
 
 from studiorum.core.loaders.omnidexer import parse_uid
@@ -54,11 +55,16 @@ Rarity = Literal[
     "unknown",
     "unknown (magic)",
 ]
+CREATURE_TYPES = {
+    "aberration", "beast", "celestial", "construct", "dragon", "elemental", "fey",
+    "fiend", "giant", "humanoid", "monstrosity", "ooze", "plant", "undead",
+}  # fmt: skip
 Query = Annotated[str | None, Field(description="Text the name must contain")]
 Sources = Annotated[
     list[str] | None, Field(description="Source abbreviations, e.g. ['XPHB']")
 ]
 Limit = Annotated[int, Field(ge=1, le=100)]
+Offset = Annotated[int, Field(ge=0, description="Skip this many matches, to page")]
 LatestOnly = Annotated[
     bool,
     Field(description="Leave out entries reprinted in a later book (PHB for XPHB)"),
@@ -150,11 +156,20 @@ async def search_spells(
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
     limit: Limit = 20,
+    offset: Offset = 0,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> SpellResults:
     """Find spells by name, level, school, class list, ritual or concentration."""
     srd_only = default_srd if srd_only is None else srd_only
+    if spell_class:
+        classes = sorted(
+            {c.name for c in services.omnidexer.get_all_by_type(ContentType.CLASS)}
+        )
+        if spell_class.lower() not in {c.lower() for c in classes}:
+            raise ToolError(
+                f"No class named '{spell_class}'. Classes: {', '.join(classes)}."
+            )
     filters = _given(
         levels=[level] if level is not None else None,
         schools=[school] if school else None,
@@ -172,6 +187,7 @@ async def search_spells(
     )
     spells, hidden = _narrow(found, query, srd_only, latest_only)
     return SpellResults(
+        srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(spells),
         results=[
@@ -182,7 +198,7 @@ async def search_spells(
                 level=s.level,
                 school=s.school.lower(),
             )
-            for s in spells[:limit]
+            for s in spells[offset : offset + limit]
         ],
     )
 
@@ -198,11 +214,18 @@ async def search_creatures(
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
     limit: Limit = 20,
+    offset: Offset = 0,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> CreatureResults:
     """Find creatures by name, challenge rating range and creature type."""
     srd_only = default_srd if srd_only is None else srd_only
+    if cr_min is not None and cr_max is not None and cr_min > cr_max:
+        raise ToolError(f"cr_min ({cr_min:g}) is more than cr_max ({cr_max:g}).")
+    if creature_type and creature_type.lower() not in CREATURE_TYPES:
+        raise ToolError(
+            f"No creature type '{creature_type}'. Types: {', '.join(sorted(CREATURE_TYPES))}."
+        )
     filters = _given(
         min_cr=cr_min,
         max_cr=cr_max,
@@ -218,6 +241,7 @@ async def search_creatures(
     )
     creatures, hidden = _narrow(found, query, srd_only, latest_only)
     return CreatureResults(
+        srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(creatures),
         results=[
@@ -228,7 +252,7 @@ async def search_creatures(
                 cr=c.get_cr_text(),
                 type=type_name(c),
             )
-            for c in creatures[:limit]
+            for c in creatures[offset : offset + limit]
         ],
     )
 
@@ -242,6 +266,7 @@ async def search_items(
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
     limit: Limit = 20,
+    offset: Offset = 0,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> ItemResults:
@@ -262,6 +287,7 @@ async def search_items(
     )
     items, hidden = _narrow(found, query, srd_only, latest_only)
     return ItemResults(
+        srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(items),
         results=[
@@ -272,7 +298,7 @@ async def search_items(
                 type=item_kind(i.model_dump(by_alias=True)) or None,
                 rarity=str(i.rarity) if i.rarity is not None else None,
             )
-            for i in items[:limit]
+            for i in items[offset : offset + limit]
         ],
     )
 

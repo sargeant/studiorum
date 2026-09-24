@@ -116,6 +116,9 @@ async def search_publication(
         Field(min_length=2, description="Words to find in a section's name or text"),
     ],
     limit: Annotated[int, Field(ge=1, le=50)] = 10,
+    offset: Annotated[
+        int, Field(ge=0, description="Skip this many matches, to page")
+    ] = 0,
     services: Services = Depends(get_services),
 ) -> SectionMatches:
     """Find the sections of a book or adventure that mention something, for read_section.
@@ -143,7 +146,9 @@ async def search_publication(
         (named if all(w in name for w in words) else mentioned).append(match)
     found = named + mentioned
     return SectionMatches(
-        publication=_pub_id(pub), total=len(found), results=found[:limit]
+        publication=_pub_id(pub),
+        total=len(found),
+        results=found[offset : offset + limit],
     )
 
 

@@ -11,7 +11,7 @@ from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
 from studiorum.mcp.markdown import render, snippet
 from studiorum.mcp.models import RuleResults, RuleSummary
-from studiorum.mcp.tools.search import LatestOnly, Limit, split_srd
+from studiorum.mcp.tools.search import LatestOnly, Limit, Offset, split_srd
 from studiorum.services import Services
 
 RuleType = Literal["action", "condition", "status", "variantrule", "sense"]
@@ -25,6 +25,7 @@ async def search_rules(
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
     limit: Limit = 10,
+    offset: Offset = 0,
     default_srd: bool = Depends(srd_default),
     services: Services = Depends(get_services),
 ) -> RuleResults:
@@ -56,6 +57,7 @@ async def search_rules(
     found = [f for f in found if id(f[3]) in set(map(id, kept))]
     found.sort(key=lambda f: (f[0], f[3].name.lower(), f[3].source.abbreviation))
     return RuleResults(
+        srd_only=srd_only,
         hidden_by_srd=hidden,
         total=len(found),
         results=[
@@ -66,6 +68,6 @@ async def search_rules(
                 srd=rule.is_srd,
                 snippet=snippet(text, words),
             )
-            for _, kind, text, rule in found[:limit]
+            for _, kind, text, rule in found[offset : offset + limit]
         ],
     )

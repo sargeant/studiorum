@@ -32,6 +32,7 @@ class ItemSummary(BaseModel):
 
 
 class Filtered(BaseModel):
+    srd_only: bool = Field(True, description="Whether this call kept to the SRD")
     hidden_by_srd: int = Field(
         0,
         description="Matches left out because they aren't SRD; srd_only=false shows them",

@@ -253,3 +253,30 @@ async def test_feats_keep_their_prerequisites() -> None:
     assert "**Prerequisite** Strength 13" in grappler["text"]
     raw = await call("get_content", content_type="feat", name="Grappler", format="json")
     assert raw["data"]["prerequisite"] == [{"ability": [{"str": 13}]}]
+
+
+@pytest.mark.asyncio
+async def test_bad_filters_say_what_is_wrong() -> None:
+    with pytest.raises(ToolError, match=r"cr_min \(5\) is more than cr_max \(1\)"):
+        await call("search_creatures", cr_min=5, cr_max=1)
+    with pytest.raises(ToolError, match="No creature type 'robot'. Types: aberration"):
+        await call("search_creatures", creature_type="robot")
+    with pytest.raises(ToolError, match="No class named 'pilot'. Classes: Wizard"):
+        await call("search_spells", spell_class="pilot")
+
+
+@pytest.mark.asyncio
+async def test_searches_page_and_report_the_srd_mode() -> None:
+    first = await call("search_creatures", srd_only=False, limit=2)
+    second = await call("search_creatures", srd_only=False, limit=2, offset=2)
+    assert first["total"] == second["total"] == 5
+    assert names(first) + names(second) == [
+        "Acolyte",
+        "Goblin",
+        "Goblin Minion",
+        "Goblin Sneak",
+    ]
+    assert (first["srd_only"], (await call("search_spells"))["srd_only"]) == (
+        False,
+        True,
+    )
