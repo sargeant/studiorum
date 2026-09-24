@@ -45,6 +45,7 @@ dependencies = [
     "jinja2>=3.0.0,<4.0.0",
     "lark>=1.2.2,<2.0.0",
     "diskcache>=5.6.3,<6.0.0",
+    "platformdirs>=4.0.0,<5.0.0",
     "pillow>=11.3.0",
     "aiohttp>=3.12.15",
     "watchdog>=6.0.0,<7.0.0",
@@ -392,7 +393,6 @@ markers = [
     "slow: marks tests as slow (>10s execution, full system tests)",
 
     # Component-based marks (for focused testing)
-    "core: marks tests for core models, loaders, and registry",
     "rendering: marks tests for LaTeX rendering and template processing",
     "cli: marks tests for command-line interface",
     "integration: marks tests as integration tests (cross-component)",

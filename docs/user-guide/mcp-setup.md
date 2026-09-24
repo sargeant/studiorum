@@ -8,11 +8,11 @@ description: Set up studiorum as an MCP server for AI agent integration
 !!! warning "Experimental"
     This is highly unstable and needs testing. The CLI is the primary interface for now.
 
-Studiorum includes a Model Context Protocol (MCP) server that enables AI agents to convert D&D 5e content dynamically. This allows agents to generate PDFs, look up creatures, spells, and more.
+Studiorum includes a Model Context Protocol (MCP) server that enables AI agents to convert 5e content dynamically. This allows agents to generate PDFs, look up creatures, spells, and more.
 
 ## What is MCP?
 
-The Model Context Protocol enables AI applications to integrate with external tools and data sources. Studiorum's MCP server provides AI agents with access to the complete D&D 5e dataset and conversion capabilities.
+The Model Context Protocol enables AI applications to integrate with external tools and data sources. Studiorum's MCP server provides AI agents with access to the complete 5e dataset and conversion capabilities.
 
 ## Installation
 
@@ -389,4 +389,3 @@ If content lookups fail:
 
 - **[CLI Reference](cli-reference.md)**: Learn all available commands
 - **[Developer Guide](../developer-guide/index.md)**: Build custom MCP tools
-- **[API Reference](../developer-guide/api/index.md)**: Integration patterns

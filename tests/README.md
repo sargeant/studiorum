@@ -56,41 +56,34 @@ This directory contains a comprehensive test suite designed to stress test data 
 
 ## Running Tests
 
+`make test` runs the unit tests below against `test-data/` and `srd-data/`. The tests marked `requires_data` skip unless the full 5etools data set is configured.
+
 ### Quick Tests (Unit tests only)
 ```bash
-# Run quick validation tests
-python scripts/run_validation_stress_tests.py --quick
-
 # Run specific test file
-uv run python -m pytest tests/unit/test_model_validation_edge_cases.py -v
+uv run pytest tests/unit/test_model_validation_edge_cases.py -v
 
 # Run liberal parsing tests
-uv run python -m pytest tests/unit/test_liberal_parsing.py -v
+uv run pytest tests/unit/test_liberal_parsing.py -v
 ```
 
 ### Full Stress Tests (Including slow integration tests)
 ```bash
-# Run all validation stress tests
-python scripts/run_validation_stress_tests.py
+# Run everything that needs the full data set (reads .env.dev)
+make test-full-data
 
 # Run with coverage
-python scripts/run_validation_stress_tests.py --coverage --verbose
+STUDIORUM_TEST_FULL_DATA=1 uv run --env-file .env.dev pytest -m requires_data --cov=studiorum
 
-# Run only integration tests
-uv run python -m pytest tests/integration/ -v -m slow
-```
-
-### Generate Validation Report
-```bash
-# Generate comprehensive validation report
-uv run python scripts/generate_validation_report.py
+# Run only slow integration tests
+uv run pytest tests/integration/ -v -m slow
 ```
 
 ## Test Markers
 
 - `@pytest.mark.slow` - Marks tests that take significant time (integration tests)
 - `@pytest.mark.integration` - Integration tests that test end-to-end functionality
-- `@pytest.mark.stress` - Stress tests for validation
+- `@pytest.mark.requires_data` - Needs the full 5etools data set
 
 ## Validation Thresholds
 

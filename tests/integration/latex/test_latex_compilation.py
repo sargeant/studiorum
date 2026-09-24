@@ -292,7 +292,7 @@ class TestCLILaTeXIntegration:
         import os
 
         env = os.environ.copy()
-        env["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
+        env["STUDIORUM_CONFIG_FILE"] = "tests/test-config.yaml"
         return env
 
     def test_cli_book_to_pdf_compilation(self):

@@ -24,7 +24,7 @@ uv sync
 make test
 
 # Run type checking
-make typecheck
+make check
 ```
 
 ### Development Workflow
@@ -57,7 +57,7 @@ Follow conventional commits format: `<type>(<scope>): <description>`
 ## Testing
 
 - Unit tests: `make test`
-- Integration tests: `make test-integration` (requires 5etools data)
+- Integration tests: `uv run pytest -m integration` (requires 5etools data)
 - LaTeX tests: `make test-latex-integration` (requires LaTeX)
 
 Tests must pass before PR acceptance. New features require corresponding tests.

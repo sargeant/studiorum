@@ -31,6 +31,7 @@
 build/
 
 # Documentation build artifacts
+docs/user-guide/cli-reference.md
 docs/_build/
 docs/_static/
 docs/.doctrees/
@@ -84,14 +85,14 @@ Thumbs.db
 
 # Generated reports
 validation_report.json
-validation_report.txt.coverage
+validation_report.txt
 coverage.xml
 .coverage
 .coverage.*
 test-quality-report.txt
 tests/performance_metrics.json
 tests/performance_baseline.json
-test-report.xml
+test-results.xml
 
 # AI tools
 .claude/
@@ -127,13 +128,9 @@ docs/_build/
 test*.tex
 debug-loading.tex
 site/
-scratch/
 .playwright-mcp
 custom_output.tex
 .claude
 scripts/.static-creature-xp.json
 .import_linter_cache/
 !tests/e2e/__snapshots__/**/*.tex
-
-# Generated adventure art (large PNGs, reproducible from plan.json)
-art/**/*.png

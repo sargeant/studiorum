@@ -97,7 +97,9 @@ def isolated_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Pa
         monkeypatch.delenv(name)
     monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
     monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("STUDIORUM_CONFIG_FILE", str(REPO_ROOT / "test-config.yaml"))
+    monkeypatch.setenv(
+        "STUDIORUM_CONFIG_FILE", str(REPO_ROOT / "tests" / "test-config.yaml")
+    )
     monkeypatch.setenv("STUDIORUM_DISABLE_PRIMARY_OVERRIDE", "true")
     monkeypatch.chdir(REPO_ROOT)
     # The .tex output does not need the DND LaTeX class installed, only
