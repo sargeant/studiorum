@@ -17,9 +17,9 @@ import time
 from typing import Any, Literal
 
 from studiorum.core.logging import get_logger
+from studiorum.mcp.api import ModernContextualAPI
+from studiorum.mcp.context import AsyncRequestContext, async_request_context
 
-from ...core.api import ModernContextualAPI
-from ...core.context import AsyncRequestContext, async_request_context
 from ...core.error_types import (
     ContentNotFoundError,
     ContentNotFoundExceptionError,

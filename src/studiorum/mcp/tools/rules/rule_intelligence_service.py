@@ -18,10 +18,11 @@ from ....core.error_types import (
     ProcessingError,
     create_processing_error,
 )
+from ....core.loaders.omnidexer import Omnidexer
 from ....core.logging import get_logger
+from ....core.models.content import ContentType
 from ....core.models.rule_types import Action, Condition, Hazard, Sense, Status
 from ....core.result import Error, Result, Success
-from ....core.services.protocols import OmnidexerProtocol
 from ....renderers.core.tag_resolver import TagResolver
 from .enhanced_cross_reference_manager import (
     EnhancedCrossReferenceManager,
@@ -68,12 +69,12 @@ class RuleIntelligenceService:
     """Rule intelligence service with enhanced analysis capabilities.
 
     This service provides intelligent analysis of 5e rules using existing
-    infrastructure components like the TagResolver and OmnidexerProtocol.
+    infrastructure components like the TagResolver and Omnidexer.
     """
 
     def __init__(
         self,
-        omnidexer: OmnidexerProtocol,
+        omnidexer: Omnidexer,
         tag_resolver: TagResolver,
         config: RuleIntelligenceConfig | None = None,
     ) -> None:
@@ -312,23 +313,9 @@ class RuleIntelligenceService:
 
             for rule_type in search_types:
                 try:
-                    # Use omnidexer async search
-                    search_result = await self.omnidexer.search_content_async(
-                        query=query,
-                        content_type=rule_type,
-                        limit=actual_limit,
+                    content = self.omnidexer.search(
+                        query, ContentType(rule_type), actual_limit
                     )
-
-                    if hasattr(search_result, "unwrap") and hasattr(
-                        search_result, "is_success"
-                    ):
-                        content = (
-                            search_result.unwrap() if search_result.is_success() else []
-                        )
-                    else:
-                        content = (
-                            search_result if isinstance(search_result, list) else []
-                        )
 
                     rule_content.extend(content)
 

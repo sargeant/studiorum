@@ -13,6 +13,9 @@ from dataclasses import dataclass, field
 from functools import cached_property
 
 from studiorum.core.config.unified_config import ApplicationConfig
+from studiorum.core.loaders.content_attribution_manager import (
+    ContentAttributionManager,
+)
 from studiorum.core.loaders.omnidexer import Omnidexer
 from studiorum.core.loaders.unified_source_manager import UnifiedSourceManager
 from studiorum.core.logging import get_logger
@@ -82,6 +85,10 @@ class Services:
     @cached_property
     def content_list_writer(self) -> ContentListWriter:
         return ContentListWriter()
+
+    @cached_property
+    def content_attribution(self) -> ContentAttributionManager:
+        return ContentAttributionManager()
 
 
 def build_services(config: ApplicationConfig) -> Services:

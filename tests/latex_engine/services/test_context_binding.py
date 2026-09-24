@@ -3,11 +3,8 @@
 import pytest
 
 from studiorum.core.references.content_tracker import ContentTracker
-from studiorum.core.services.factories import (
-    create_context_bound_template_service,
-    create_latex_formatter_service,
-    create_text_extractor_service,
-)
+from studiorum.core.text.text_extractor import TextExtractor
+from studiorum.latex_engine.formatters.latex_formatter import LaTeXFormatter
 from studiorum.latex_engine.services.context_bound_template_service import (
     ContextBoundTemplateService,
 )
@@ -90,7 +87,7 @@ class TestContextBinding:
 
     def test_context_binding_factory(self, mock_template_service, content_tracker):
         """Test the factory function for creating context-bound services."""
-        bound_service = create_context_bound_template_service(
+        bound_service = ContextBoundTemplateService(
             mock_template_service, content_tracker
         )
 
@@ -123,8 +120,8 @@ class TestContextFlowValidation:
     def test_context_flows_through_bound_service(self, content_tracker):
         """Test that context flows correctly through bound service operations."""
         # Create real services for integration testing
-        text_extractor = create_text_extractor_service()
-        latex_formatter = create_latex_formatter_service()
+        text_extractor = TextExtractor()
+        latex_formatter = LaTeXFormatter()
 
         # Create a minimal mock for dependencies
         class MockTagResolver:

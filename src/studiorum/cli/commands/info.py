@@ -1,7 +1,5 @@
 """Info command for studiorum CLI."""
 
-from typing import cast
-
 import typer
 from rich import print as rprint
 from rich.panel import Panel
@@ -13,7 +11,6 @@ from studiorum.core.models.creatures import Creature
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
 from studiorum.core.resolvers import ContentResolver
-from studiorum.core.services.protocols import OmnidexerProtocol
 
 app: typer.Typer = typer.Typer(help="Show detailed information about content")
 console = display_manager.console
@@ -66,7 +63,7 @@ def show_content_info(
                 )
 
             # Create resolver for abbreviation lookup
-            resolver = ContentResolver(cast(OmnidexerProtocol, omnidexer))
+            resolver = ContentResolver(omnidexer)
             content_item = None
 
             # First try abbreviation-based lookup for adventures and books

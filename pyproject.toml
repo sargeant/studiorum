@@ -190,12 +190,9 @@ ignore = [
 "src/studiorum/cli/commands/setup.py" = ["B904"]
 "src/studiorum/cli/commands/stats.py" = ["B904"]
 "src/studiorum/cli/main.py" = ["B904", "PTH123"]
-"src/studiorum/cli/services.py" = ["RET504"]
-"src/studiorum/core/api.py" = ["RET504", "SIM102"]
+"src/studiorum/mcp/api.py" = ["RET504", "SIM102"]
 "src/studiorum/core/assets/image_sources.py" = ["PIE810", "PTH123", "SIM103", "SIM110", "SIM117", "UP042"]
 "src/studiorum/core/config/data_sources.py" = ["SIM102", "UP042"]
-"src/studiorum/core/config/loader.py" = ["B904"]
-"src/studiorum/core/config/sources.py" = ["B904", "PTH123", "UP042"]
 "src/studiorum/core/error_types.py" = ["UP042"]
 "src/studiorum/core/latex_utils.py" = ["B007", "RET504", "SIM110"]
 "src/studiorum/core/loaders/content_merger.py" = ["PTH123"]
@@ -220,7 +217,6 @@ ignore = [
 "src/studiorum/core/models/itemmastery.py" = ["PERF401", "SIM110"]
 "src/studiorum/core/models/itemproperties.py" = ["RET504"]
 "src/studiorum/core/models/items.py" = ["PERF401", "UP042"]
-"src/studiorum/core/models/processors.py" = ["PERF402", "SIM108"]
 "src/studiorum/core/models/psionic.py" = ["UP042"]
 "src/studiorum/core/models/spells.py" = ["PERF401", "SIM101", "SIM108"]
 "src/studiorum/core/models/table.py" = ["PERF401"]
@@ -234,16 +230,13 @@ ignore = [
 "src/studiorum/core/resolvers/content_resolver.py" = ["B007", "PERF102", "PERF401", "RET504"]
 "src/studiorum/core/resolvers/copy_resolver.py" = ["B007", "PERF102"]
 "src/studiorum/core/security.py" = ["RET504"]
-"src/studiorum/core/services/container.py" = ["B007"]
 "src/studiorum/core/services/content_list_writer.py" = ["SIM118"]
 "src/studiorum/core/services/creature_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
 "src/studiorum/core/services/encounter_collector.py" = ["SIM102"]
-"src/studiorum/core/services/factories.py" = ["PTH123"]
 "src/studiorum/core/services/fluff_deduplicator.py" = ["UP042"]
 "src/studiorum/core/services/fluff_image_extractor.py" = ["SIM102"]
 "src/studiorum/core/services/fluff_matcher.py" = ["PERF401", "RET504", "SIM105"]
 "src/studiorum/core/services/item_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
-"src/studiorum/core/services/lifecycle.py" = ["B007", "PERF102", "PERF401"]
 "src/studiorum/core/services/spell_class_lookup.py" = ["PERF401", "SIM118"]
 "src/studiorum/core/services/spell_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103", "SIM110"]
 "src/studiorum/core/services/token_image_resolver.py" = ["B007", "PERF401"]
@@ -251,7 +244,6 @@ ignore = [
 "src/studiorum/core/text/tag_parser.py" = ["B904", "PTH123"]
 "src/studiorum/core/text/tag_types.py" = ["UP042"]
 "src/studiorum/core/text/text_extractor.py" = ["PERF401", "SIM102"]
-"src/studiorum/core/unified_references.py" = ["UP042"]
 "src/studiorum/core/utils/chapters.py" = ["B904", "SIM102"]
 "src/studiorum/core/validation/error_tracker.py" = ["RET504"]
 "src/studiorum/core/validation/strictness.py" = ["UP042"]
@@ -298,7 +290,6 @@ ignore = [
 "tests/cli/test_config_integration.py" = ["SIM117"]
 "tests/core/references/test_cross_reference_manager.py" = ["B007", "PERF102"]
 "tests/core/sources/test_github.py" = ["SIM117"]
-"tests/core/test_async_request_context.py" = ["S110", "SIM105", "SIM117"]
 "tests/integration/test_adventure_conversion.py" = ["SIM102"]
 "tests/integration/test_adventure_resolution.py" = ["PTH123", "T201"]
 "tests/integration/test_adventure_resolution_no_duplicates.py" = ["PTH123"]
@@ -308,7 +299,6 @@ ignore = [
 "tests/integration/test_data_source_refactor.py" = ["T201"]
 "tests/integration/test_error_handling_integration.py" = ["B007"]
 "tests/integration/test_full_dataset_validation.py" = ["PERF401", "T201"]
-"tests/integration/test_modern_container_integration.py" = ["RET504", "SIM117"]
 "tests/integration/test_real_book_deep_indexing.py" = ["T201"]
 "tests/integration/test_source_discovery.py" = ["B007", "PERF102", "PTH123", "SIM117"]
 "tests/latex_engine/core/images/test_integration.py" = ["B007", "SIM117"]
@@ -464,15 +454,6 @@ layers = [
 ]
 ignore_imports = [
     "studiorum.cli.commands.mcp -> studiorum.mcp.server",
-    "studiorum.core.services.factories -> studiorum.cli.display_manager",
-    "studiorum.core.services.factories -> studiorum.latex_engine.formatters.latex_formatter",
-    "studiorum.core.services.factories -> studiorum.latex_engine.formatters.protocols",
-    "studiorum.core.services.factories -> studiorum.latex_engine.services.context_bound_template_service",
-    "studiorum.core.services.factories -> studiorum.latex_engine.services.protocols",
-    "studiorum.core.services.factories -> studiorum.latex_engine.services.template_service",
-    "studiorum.core.services.factories -> studiorum.renderers.core.interfaces",
-    "studiorum.core.services.factories -> studiorum.renderers.core.tag_resolver",
-    "studiorum.core.services.protocols -> studiorum.renderers.core.interfaces",
     "studiorum.latex_engine.utils.progress_tracker -> studiorum.cli.display_manager",
     "studiorum.renderers.core.interfaces -> studiorum.latex_engine.core.tag_renderer",
 ]
@@ -485,16 +466,9 @@ ancestors = ["studiorum.core"]
 ignore_imports = [
     "studiorum.core.base_context -> studiorum.core.loaders.omnidexer",
     "studiorum.core.config.unified_config -> studiorum.core.assets.image_sources",
-    "studiorum.core.context -> studiorum.core.services.container",
-    "studiorum.core.context -> studiorum.core.services.factories",
-    "studiorum.core.context -> studiorum.core.services.lifecycle",
-    "studiorum.core.context -> studiorum.core.services.protocols",
-    "studiorum.core.context -> studiorum.core.services.registration",
     "studiorum.core.entry_registry -> studiorum.core.loaders.omnidexer",
     "studiorum.core.interfaces -> studiorum.core.loaders.omnidexer",
     "studiorum.core.interfaces -> studiorum.core.models.content",
-    "studiorum.core.loaders.json_loader -> studiorum.core.services.access",
-    "studiorum.core.loaders.json_loader -> studiorum.core.services.protocols",
     "studiorum.core.loaders.omnidexer -> studiorum.core.services.fluff_matcher",
     "studiorum.core.loaders.omnidexer -> studiorum.core.services.spell_class_lookup",
     "studiorum.core.models.adventures -> studiorum.core.loaders.omnidexer",
@@ -548,11 +522,7 @@ ignore_imports = [
     "studiorum.core.resolvers.content_resolver -> studiorum.core.loaders.content_merger",
     "studiorum.core.resolvers.content_resolver -> studiorum.core.loaders.omnidexer",
     "studiorum.core.resolvers.content_resolver -> studiorum.core.services.item_collector",
-    "studiorum.core.resolvers.content_resolver -> studiorum.core.services.protocols",
     "studiorum.core.resolvers.content_resolver -> studiorum.core.services.spell_collector",
     "studiorum.core.resolvers.copy_resolver -> studiorum.core.loaders.omnidexer",
-    "studiorum.core.services.factories -> studiorum.core.services.container",
-    "studiorum.core.services.lifecycle -> studiorum.core.services.container",
     "studiorum.core.text.tag_types -> studiorum.core.models.content",
-    "studiorum.core.unified_references -> studiorum.core.models.content",
 ]

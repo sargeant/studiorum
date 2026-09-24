@@ -15,9 +15,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from studiorum.core.logging import get_logger
-
-from ...core.context import AsyncRequestContext
-from ...core.services.protocols import ContentAttributionProtocol
+from studiorum.mcp.context import AsyncRequestContext
 
 logger = get_logger(__name__)
 
@@ -65,7 +63,7 @@ async def manage_source_attribution(
 
     try:
         # Get the content attribution service
-        attribution = await context.get_service(ContentAttributionProtocol)  # type: ignore[type-abstract] # Protocol type token - see TYPES.md
+        attribution = context.services.content_attribution
 
         if action == "list":
             # Get all known source abbreviations

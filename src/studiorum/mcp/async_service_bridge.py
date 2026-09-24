@@ -25,7 +25,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ..core.context import AsyncRequestContext, async_request_context
+from studiorum.mcp.context import AsyncRequestContext, async_request_context
+
 from ..core.error_types import (
     ContentNotFoundError,
     ErrorCategory,
@@ -115,7 +116,7 @@ class MCPServiceContext(BaseModel):
             MCPException: If search fails
         """
         try:
-            from ..core.api import ModernContextualAPI
+            from studiorum.mcp.api import ModernContextualAPI
 
             if sources:
                 self.request_context.sources.extend(sources)
@@ -186,7 +187,7 @@ class MCPServiceContext(BaseModel):
             MCPException: If search fails
         """
         try:
-            from ..core.api import ModernContextualAPI
+            from studiorum.mcp.api import ModernContextualAPI
 
             if sources:
                 self.request_context.sources.extend(sources)
@@ -259,7 +260,7 @@ class MCPServiceContext(BaseModel):
             MCPException: If search fails or content_type is invalid
         """
         try:
-            from ..core.api import ModernContextualAPI
+            from studiorum.mcp.api import ModernContextualAPI
 
             if not content_type:
                 raise MCPException(
@@ -343,7 +344,7 @@ class MCPServiceContext(BaseModel):
             MCPException: If adventure resolution fails
         """
         try:
-            from ..core.api import ModernContextualAPI
+            from studiorum.mcp.api import ModernContextualAPI
 
             if not adventure_name:
                 raise MCPException(
@@ -428,13 +429,12 @@ class MCPServiceContext(BaseModel):
         """
         try:
             from ..core.models.content import ContentType
-            from ..core.services.protocols import OmnidexerProtocol
 
             if sources:
                 self.request_context.sources.extend(sources)
 
             # Get omnidexer through service container
-            omnidexer = await self.request_context.get_service(OmnidexerProtocol)  # type: ignore[type-abstract]
+            omnidexer = self.request_context.services.omnidexer
             self.request_context.record_async_operation()
 
             # Get books by content type
@@ -476,20 +476,6 @@ class MCPServiceContext(BaseModel):
             )
             await self.request_context.add_async_error(error)
             raise MCPException(error) from e
-
-    # Service access methods (delegated to AsyncRequestContext)
-
-    async def get_service(self, protocol: type[T]) -> T:
-        """
-        Get service from the underlying request context.
-
-        Args:
-            protocol: Service protocol type to get
-
-        Returns:
-            Service instance implementing the protocol
-        """
-        return await self.request_context.get_service(protocol)  # type: ignore[type-var]
 
     # Context properties and utilities
 

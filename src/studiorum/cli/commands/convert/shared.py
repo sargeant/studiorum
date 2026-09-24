@@ -4,7 +4,7 @@
 import subprocess  # nosec B404
 import sys
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import typer
 from rich import print as rprint
@@ -16,7 +16,6 @@ from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.protocols.progress import ProgressCallback
 from studiorum.core.resolvers import ContentResolutionResult, ContentResolver
 from studiorum.core.security import ExecutableNotFoundError, get_platform_file_opener
-from studiorum.core.services.protocols import OmnidexerProtocol
 from studiorum.latex_engine.config.compilation import CompilationConfig, LaTeXEngine
 from studiorum.latex_engine.core.compiler import LaTeXCompiler
 
@@ -199,7 +198,7 @@ def resolve_content_or_file(
 
     # Try to resolve as abbreviation using omnidexer with progress
     omnidexer = get_services().load_omnidexer(progress_callback)
-    resolver = ContentResolver(cast(OmnidexerProtocol, omnidexer))
+    resolver = ContentResolver(omnidexer)
 
     if content_type == ContentType.ADVENTURE:
         result = resolver.resolve_adventure(source)

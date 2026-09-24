@@ -8,29 +8,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def reset_all_containers() -> None:
-    """Reset all container systems (legacy and modern) for complete test isolation.
-
-    This function handles the transition period where both old and new container
-    systems may be in use. It ensures all container state is properly cleaned up
-    for parallel test execution.
-    """
-    try:
-        # Reset legacy container system
-        from studiorum.core.services.container import ServiceContainer
-
-        ServiceContainer.reset_global_instance()
-        logger.debug("Legacy service container reset")
-    except ImportError:
-        logger.debug("Legacy container system not available")
-    except Exception as e:
-        logger.warning(f"Failed to reset legacy container: {e}")
-
-    # Note: Modern async container system was removed in favor of direct instantiation
-    # No longer need to reset async container for test isolation
-    logger.debug("Modern async container system no longer used")
-
-
 def reset_test_environment(*, collect_garbage: bool = True) -> None:
     """Reset the entire test environment for complete isolation.
 
@@ -63,10 +40,12 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
         reset_app_config()
         logger.debug("App configuration reset with primary override disabled for tests")
 
-        # 1. Reset both container systems (legacy and modern)
-        # Do this first to create fresh instances
-        reset_all_containers()
-        logger.debug("All service containers reset")
+        # 1. Forget Services built outside a CLI invocation
+        from studiorum.cli.context import reset_services
+        from studiorum.mcp.context import reset_mcp_services
+
+        reset_services()
+        reset_mcp_services()
 
         # 2. Reset the content type registry instance (preserves decorator registrations)
         from studiorum.core.registry.content_type_registry import (
@@ -82,18 +61,10 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
         reset_global_registry()
         logger.debug("Entry type registry global instance reset")
 
-        # 3. ContentFactory is now managed by the DI container
-        # It gets reset when the container is reset, so no manual reset needed
-
         # 4. Reset disk-based cache
         from studiorum.core.cache import CacheManager
 
         CacheManager.reset()
-
-        # 5. Reset CLI-specific globals
-        from studiorum.cli.main import reset_cli_globals
-
-        reset_cli_globals()
 
         # 7. Initialize the content type registry (critical for all systems)
         # This MUST happen LAST to ensure the interface registry is populated after all resets
