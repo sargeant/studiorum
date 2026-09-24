@@ -8,7 +8,6 @@ if TYPE_CHECKING:
 
 from pydantic import BaseModel, Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
@@ -95,12 +94,6 @@ class ArmorData(BaseModel):
     armor_type: str | None = Field(None, alias="armorType", description="Armor type")
 
 
-@content_type(
-    enum_value="item",
-    file_patterns=["item", "items", "magicitem"],
-    statblock_tags=["item"],
-    loader_type="json",
-)
 class Item(BaseContent):
     """Represents a 5e item."""
 

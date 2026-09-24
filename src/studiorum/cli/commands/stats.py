@@ -10,6 +10,7 @@ from rich.table import Table
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.content import ContentType
+from studiorum.core.models.content_models import content_type_of
 
 app: typer.Typer = typer.Typer(help="Show content statistics and analysis")
 console = display_manager.console
@@ -277,7 +278,7 @@ def show_source_stats() -> None:
                 content_types: dict[str, int] = {}
                 for item in source_items:
                     try:
-                        ct = ContentType.from_content(item).value
+                        ct = content_type_of(item).value
                         content_types[ct] = content_types.get(ct, 0) + 1
                     except ValueError:
                         # Handle unknown content types (like BaseFluff)

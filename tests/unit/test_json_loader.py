@@ -59,7 +59,7 @@ class TestJsonDataLoaderBook:
                     "name": "Introduction",
                     "page": 5,
                     "entries": [
-                        "The Dungeons & Dragons roleplaying game is about storytelling in worlds of swords and sorcery.",
+                        "The 5e roleplaying game is about storytelling in worlds of swords and sorcery.",
                         {
                             "type": "insetReadaloud",
                             "entries": ["Sample read-aloud text."],
@@ -196,7 +196,7 @@ class TestJsonDataLoaderBookIntegration:
                     "name": "Introduction",
                     "page": 5,
                     "entries": [
-                        "Welcome to D&D!",
+                        "Welcome to 5e!",
                         {
                             "type": "insetReadaloud",
                             "entries": ["Sample read-aloud text"],
@@ -240,10 +240,9 @@ class TestJsonDataLoaderBookIntegration:
         assert book_item["data"][1]["name"] == "Character Creation"
 
         # Create the actual Book object
-        from studiorum.core.loaders.content_factory import ContentFactory
+        from studiorum.core.models.content_models import create_content
 
-        factory = ContentFactory()
-        book = factory.create_content(book_item, self._get_content_type("book"))
+        book = create_content(book_item, self._get_content_type("book"))
 
         # Verify the book structure
         assert book.name == "Test Book"  # From our test data
@@ -254,7 +253,7 @@ class TestJsonDataLoaderBookIntegration:
         intro_chapter = book.contents[0]
         assert intro_chapter.name == "Introduction"
         assert len(intro_chapter.entries) == 2  # This should now work!
-        assert intro_chapter.entries[0] == "Welcome to D&D!"
+        assert intro_chapter.entries[0] == "Welcome to 5e!"
         assert isinstance(intro_chapter.entries[1], dict)
 
         # Check second chapter

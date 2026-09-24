@@ -1,6 +1,6 @@
 """Advanced content preprocessing for enhanced LaTeX rendering.
 
-This module provides content processors that prepare D&D content for rendering
+This module provides content processors that prepare 5e content for rendering
 by extracting, organizing, and transforming data structures for optimal output.
 """
 
@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.models.content_models import content_type_of
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
@@ -576,7 +577,7 @@ class ContentProcessorRegistry:
         Returns:
             Processed content data
         """
-        content_type = ContentType.from_content(content)
+        content_type = content_type_of(content)
         processor = self.get_processor(content_type)
 
         if processor:

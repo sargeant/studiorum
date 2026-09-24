@@ -6,17 +6,10 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
 
-@content_type(
-    enum_value="legendarygroup",
-    file_patterns=["legendarygroup", "legendarygroups"],
-    loader_type="json",
-    statblock_tags=["legendarygroup"],
-)
 class LegendaryGroup(BaseContent):
     """Legendary group model for creature lair actions and regional effects.
 

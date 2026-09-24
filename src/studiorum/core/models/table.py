@@ -6,17 +6,10 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
 
-@content_type(
-    enum_value="table",
-    file_patterns=["table", "tables"],
-    loader_type="json",
-    statblock_tags=["table"],
-)
 class Table(BaseContent):
     """Table model for structured tabular data.
 
@@ -243,12 +236,6 @@ class Table(BaseContent):
         return self.table_include.get("name")
 
 
-@content_type(
-    enum_value="tableGroup",
-    file_patterns=["tableGroup", "tablegroups", "tables"],
-    loader_type="json",
-    statblock_tags=["tableGroup"],
-)
 class TableGroup(BaseContent):
     """A collection of related tables grouped together.
 

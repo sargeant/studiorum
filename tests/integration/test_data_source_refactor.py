@@ -56,18 +56,6 @@ class TestDataSourceRefactorIntegration:
 
             reset_cli_globals()
 
-            # Reset content type registry
-            from studiorum.core.registry.content_type_registry import (
-                reset_content_type_registry,
-            )
-
-            reset_content_type_registry()
-
-            # Force re-initialization of content types after reset
-            from studiorum.core.registry import initialize_content_types
-
-            initialize_content_types()
-
         except Exception as e:
             # Don't let reset failures break tests
             import warnings

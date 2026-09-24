@@ -7,6 +7,7 @@ from rich.panel import Panel
 from studiorum.cli.context import get_services
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.models.content_models import content_type_of
 from studiorum.core.models.creatures import Creature
 from studiorum.core.models.items import Item
 from studiorum.core.models.spells import Spell
@@ -205,7 +206,7 @@ def show_file_info(
 def _display_content_details(item: BaseContent) -> None:
     """Display detailed information about a content item."""
 
-    content_type = ContentType.from_content(item)
+    content_type = content_type_of(item)
 
     # Basic info panel
     basic_info = f"""

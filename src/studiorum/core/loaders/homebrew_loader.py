@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 from studiorum.core.models.content import ContentType
-from studiorum.core.registry.registry_manager import RegistryManager
 
 from .json_loader import JsonDataLoader
 
@@ -59,7 +58,6 @@ class HomebrewMultiTypeLoader:
     def __init__(self) -> None:
         """Initialize the homebrew multi-type loader."""
         self._loaders: dict[ContentType, JsonDataLoader] = {}
-        self._registry_manager = RegistryManager()
 
     def _get_loader(self, content_type: ContentType) -> JsonDataLoader:
         """Get or create a loader for the specified content type."""

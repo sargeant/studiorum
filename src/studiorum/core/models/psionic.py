@@ -7,7 +7,6 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
@@ -33,12 +32,6 @@ class PsionicOrder(str, Enum):
     UNKNOWN = "unknown"
 
 
-@content_type(
-    enum_value="psionic",
-    file_patterns=["psionic", "psionics"],
-    loader_type="json",
-    statblock_tags=["psionic"],
-)
 class Psionic(BaseContent):
     """Psionic model for psionic disciplines, talents, and powers.
 

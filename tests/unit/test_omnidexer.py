@@ -478,16 +478,7 @@ class TestOmnidexerMetadataOnlyLoading:
         ]
 
         with patch.object(UnifiedSourceManager, "__init__", return_value=None):
-            # Mock content patterns to prevent initialization requirement
-
-            mock_content_patterns = {
-                self._get_content_type("adventure"): ["adventures", "adventure-"],
-                self._get_content_type("book"): ["books", "book-"],
-                self._get_content_type("spell"): ["spells"],
-            }
-
             source_manager = UnifiedSourceManager()
-            source_manager.__class__.content_patterns = mock_content_patterns
             source_manager.content_manager = Mock()
             source_manager.content_manager._index_built = True
             source_manager.content_manager.get_all_content_files = Mock(

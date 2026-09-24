@@ -22,6 +22,99 @@ from .base import SourceManager
 
 logger = get_logger(__name__)
 
+# Filename and directory fragments that assign a discovered file to a type.
+FILE_PATTERNS: dict[ContentType, list[str]] = {
+    ContentType("adventure"): ["adventure", "adventures"],
+    ContentType("book"): ["book", "books"],
+    ContentType("creature"): ["bestiary", "monster", "creatures"],
+    ContentType("item"): ["item", "items", "magicitem"],
+    ContentType("spell"): ["spell", "spells"],
+    ContentType("background"): ["background", "backgrounds"],
+    ContentType("baseitem"): ["baseitem", "baseitems", "items-base"],
+    ContentType("charoption"): ["charoption", "charcreationoptions"],
+    ContentType("charoptiontype"): ["charoptiontype", "charoptiontypes"],
+    ContentType("classFeature"): ["classFeature", "classfeature"],
+    ContentType("subclassFeature"): ["subclassFeature", "subclassfeature"],
+    ContentType("class"): ["class", "classes"],
+    ContentType("cult"): ["cult", "cults", "cultsboons"],
+    ContentType("boon"): ["boon", "boons", "cultsboons"],
+    ContentType("deck"): ["deck", "decks"],
+    ContentType("deity"): ["deity", "deities"],
+    ContentType("disease"): ["disease", "diseases", "conditionsdiseases"],
+    ContentType("facility"): ["facility", "facilities", "bastions"],
+    ContentType("feat"): ["feat", "feats"],
+    ContentType("fluff"): ["fluff"],
+    ContentType("spellFluff"): [
+        "spellFluff",
+        "spell-fluff",
+        "fluff-spell",
+        "fluff-spells",
+        "spells",
+    ],
+    ContentType("creatureFluff"): ["fluff-bestiary", "creatureFluff", "creature-fluff"],
+    ContentType("itemFluff"): ["fluff-items", "itemFluff", "item-fluff"],
+    ContentType("raceFluff"): ["fluff-races", "raceFluff", "race-fluff"],
+    ContentType("featFluff"): ["fluff-feats", "featFluff", "feat-fluff"],
+    ContentType("classFluff"): ["fluff-class", "classFluff", "class-fluff"],
+    ContentType("backgroundFluff"): [
+        "fluff-backgrounds",
+        "backgroundFluff",
+        "background-fluff",
+    ],
+    ContentType("optionalfeatureFluff"): [
+        "optionalfeatureFluff",
+        "optionalfeature-fluff",
+        "fluff-optionalfeatures",
+    ],
+    ContentType("vehicleFluff"): ["vehicleFluff", "vehicle-fluff", "fluff-vehicles"],
+    ContentType("objectFluff"): ["objectFluff", "object-fluff", "fluff-objects"],
+    ContentType("languageFluff"): [
+        "languageFluff",
+        "language-fluff",
+        "fluff-languages",
+    ],
+    ContentType("rewardFluff"): ["rewardFluff", "reward-fluff", "fluff-rewards"],
+    ContentType("conditionDiseaseFluff"): [
+        "conditionDiseaseFluff",
+        "condition-disease-fluff",
+        "fluff-conditionsdiseases",
+    ],
+    ContentType("trapHazardFluff"): [
+        "trapHazardFluff",
+        "trap-hazard-fluff",
+        "fluff-trapshazards",
+    ],
+    ContentType("bastionFluff"): ["bastionFluff", "bastion-fluff", "fluff-bastions"],
+    ContentType("recipeFluff"): ["recipeFluff", "recipe-fluff", "fluff-recipes"],
+    ContentType("charoptionFluff"): [
+        "charoptionFluff",
+        "charoption-fluff",
+        "fluff-charcreationoptions",
+    ],
+    ContentType("itemMastery"): ["itemMastery", "itemmastery", "items-base"],
+    ContentType("itemProperty"): ["itemProperty", "itemproperties", "items-base"],
+    ContentType("legendarygroup"): ["legendarygroup", "legendarygroups"],
+    ContentType("magicvariant"): ["magicvariant", "magicvariants"],
+    ContentType("object"): ["object", "objects"],
+    ContentType("optionalfeature"): ["optionalfeature", "optionalfeatures"],
+    ContentType("psionic"): ["psionic", "psionics"],
+    ContentType("race"): ["race", "races"],
+    ContentType("recipe"): ["recipe", "recipes"],
+    ContentType("reward"): ["reward", "rewards"],
+    ContentType("action"): ["action", "actions", "conditionsdiseases"],
+    ContentType("condition"): ["condition", "conditions", "conditionsdiseases"],
+    ContentType("sense"): ["sense", "senses", "conditionsdiseases"],
+    ContentType("hazard"): ["hazard", "hazards", "conditionsdiseases"],
+    ContentType("status"): ["status", "statuses", "conditionsdiseases"],
+    ContentType("subclass"): ["class", "classes"],
+    ContentType("subrace"): ["race", "races"],
+    ContentType("table"): ["table", "tables"],
+    ContentType("tableGroup"): ["tableGroup", "tablegroups", "tables"],
+    ContentType("trap"): ["trap", "traps", "trapshazards"],
+    ContentType("variantrule"): ["variantrule", "variantrules"],
+    ContentType("vehicle"): ["vehicle", "vehicles"],
+}
+
 
 class DataSourceError(Exception):
     """Base exception for data source operations."""
@@ -228,28 +321,7 @@ class DataSourceManager(SourceManager):
         # Start with metadata files for adventures and books
         data_paths = self.get_metadata_files()
 
-        # Get content patterns from registry manager
-        # Check if content_patterns attribute exists vs is empty
-        if hasattr(self.__class__, "content_patterns"):
-            content_patterns = self.__class__.content_patterns
-            if not content_patterns:
-                # Attribute exists but is empty - this is a misconfiguration
-                return Error(
-                    DataSourceError(
-                        "DataSourceManager content patterns not initialized by registry manager. "
-                        "Ensure initialize_content_types() is called before using DataSourceManager."
-                    )
-                )
-        else:
-            # Attribute doesn't exist - likely a test scenario, fall back gracefully
-            logger.warning(
-                "DataSourceManager content_patterns attribute not set. "
-                "This is normal in test scenarios. Falling back to metadata-only mode."
-            )
-            return Success(data_paths)
-
-        content_patterns = self.__class__.content_patterns
-
+        content_patterns = FILE_PATTERNS
         all_files = self.content_manager.get_all_content_files()
 
         # Track files already assigned to avoid conflicts

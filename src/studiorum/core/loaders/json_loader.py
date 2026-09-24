@@ -14,9 +14,9 @@ from ..cache import get_cache
 from ..config.unified_config import get_app_config
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
+from ..models.content_models import CONTENT_MODELS, create_content
 from ..validation.error_tracker import ValidationErrorTracker
 from .base import DataLoader
-from .content_factory import ContentFactory
 
 logger = get_logger(__name__)
 
@@ -42,16 +42,9 @@ class JsonDataLoader(DataLoader[BaseContent]):
     def __init__(
         self,
         content_type: ContentType,
-        content_factory: ContentFactory | None = None,
         skip_content_files: bool = False,
     ):
         self._content_type = content_type
-        if content_factory is None:
-            from .content_factory import ContentFactory
-
-            # For backward compatibility, create ContentFactory directly
-            content_factory = ContentFactory()
-        self._content_factory = content_factory
         self._error_tracker = ValidationErrorTracker()
         self._settings = get_app_config()
         self._base_items_registry: dict[str, dict[str, Any]] | None = None
@@ -208,9 +201,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
                         item, self._content_type
                     )
                 else:
-                    validated_item = self._content_factory.create_content(
-                        item, self._content_type
-                    )
+                    validated_item = create_content(item, self._content_type)
 
                 validated_content.append(validated_item)
             except ValidationError as e:
@@ -226,7 +217,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
 
     def get_supported_types(self) -> list[ContentType]:
         """Get list of supported content types."""
-        return self._content_factory.get_supported_types()
+        return list(CONTENT_MODELS)
 
     def get_model_class(self) -> type[BaseContent]:
         """Return the base content class for backward compatibility."""
@@ -828,9 +819,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
             placeholder_data.setdefault("cha", 10)
 
         # Create the content object with the placeholder data
-        content_obj = self._content_factory.create_content(
-            placeholder_data, content_type
-        )
+        content_obj = create_content(placeholder_data, content_type)
 
         # Preserve the copy resolution flag and original copy data as extra fields
         if item.get("_needsCopyResolution"):
@@ -1351,9 +1340,7 @@ class JsonDataLoader(DataLoader[BaseContent]):
                 # Ensure source information is present
                 item = self._ensure_source_info(item, path)
 
-                validated_item = self._content_factory.create_content(
-                    item, self._content_type
-                )
+                validated_item = create_content(item, self._content_type)
                 validated_content.append(validated_item)
             except ValidationError as e:
                 # Handle validation error with enhanced error tracking

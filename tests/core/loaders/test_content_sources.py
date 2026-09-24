@@ -180,25 +180,22 @@ class TestFileContentSource:
         try:
             source = FileContentSource(file_path, ContentType.SPELL)
 
-            # Mock the ContentFactory to return mock objects
+            # Make create_content return mock objects
             with patch(
-                "studiorum.core.loaders.content_factory.ContentFactory"
-            ) as mock_factory_class:
-                mock_factory = Mock()
-                mock_factory_class.return_value = mock_factory
-
+                "studiorum.core.loaders.content_sources.create_content"
+            ) as mock_create_content:
                 mock_spell1 = Mock()
                 mock_spell1.name = "Fireball"
                 mock_spell2 = Mock()
                 mock_spell2.name = "Magic Missile"
-                mock_factory.create_content.side_effect = [mock_spell1, mock_spell2]
+                mock_create_content.side_effect = [mock_spell1, mock_spell2]
 
                 content = source.load()
 
                 assert len(content) == 2
                 assert content[0].name == "Fireball"
                 assert content[1].name == "Magic Missile"
-                assert mock_factory.create_content.call_count == 2
+                assert mock_create_content.call_count == 2
         finally:
             file_path.unlink()
 
@@ -221,21 +218,18 @@ class TestFileContentSource:
             source = FileContentSource(file_path)  # No content type specified
 
             with patch(
-                "studiorum.core.loaders.content_factory.ContentFactory"
-            ) as mock_factory_class:
-                mock_factory = Mock()
-                mock_factory_class.return_value = mock_factory
-
+                "studiorum.core.loaders.content_sources.create_content"
+            ) as mock_create_content:
                 mock_spell = Mock()
                 mock_spell.name = "Fireball"
                 mock_creature = Mock()
                 mock_creature.name = "Dragon"
-                mock_factory.create_content.side_effect = [mock_spell, mock_creature]
+                mock_create_content.side_effect = [mock_spell, mock_creature]
 
                 content = source.load()
 
                 assert len(content) == 2
-                assert mock_factory.create_content.call_count == 2
+                assert mock_create_content.call_count == 2
         finally:
             file_path.unlink()
 
@@ -254,26 +248,21 @@ class TestFileContentSource:
 
             # First load should populate cache
             with patch(
-                "studiorum.core.loaders.content_factory.ContentFactory"
-            ) as mock_factory_class:
-                mock_factory = Mock()
-                mock_factory_class.return_value = mock_factory
-
+                "studiorum.core.loaders.content_sources.create_content"
+            ) as mock_create_content:
                 mock_spell = Mock()
                 mock_spell.name = "Test"
-                mock_factory.create_content.return_value = mock_spell
+                mock_create_content.return_value = mock_spell
                 content1 = source.load()
-                first_call_count = mock_factory.create_content.call_count
+                first_call_count = mock_create_content.call_count
 
             # Second load should use cache (no additional create_content calls)
             with patch(
-                "studiorum.core.loaders.content_factory.ContentFactory"
-            ) as mock_factory_class:
-                mock_factory = Mock()
-                mock_factory_class.return_value = mock_factory
-                mock_factory.create_content.return_value = Mock()
+                "studiorum.core.loaders.content_sources.create_content"
+            ) as mock_create_content:
+                mock_create_content.return_value = Mock()
                 content2 = source.load()
-                second_call_count = mock_factory.create_content.call_count
+                second_call_count = mock_create_content.call_count
 
             assert len(content1) == len(content2)
             assert first_call_count > 0
@@ -536,14 +525,11 @@ class TestContentSourceIntegration:
 
             # Load content
             with patch(
-                "studiorum.core.loaders.content_factory.ContentFactory"
-            ) as mock_factory_class:
-                mock_factory = Mock()
-                mock_factory_class.return_value = mock_factory
-
+                "studiorum.core.loaders.content_sources.create_content"
+            ) as mock_create_content:
                 mock_spell = Mock()
                 mock_spell.name = "Test Spell"
-                mock_factory.create_content.return_value = mock_spell
+                mock_create_content.return_value = mock_spell
 
                 content = loader.load_all()
                 assert len(content) == 2
@@ -578,14 +564,11 @@ class TestContentSourceIntegration:
 
             # Load all content
             with patch(
-                "studiorum.core.loaders.content_factory.ContentFactory"
-            ) as mock_factory_class:
-                mock_factory = Mock()
-                mock_factory_class.return_value = mock_factory
-
+                "studiorum.core.loaders.content_sources.create_content"
+            ) as mock_create_content:
                 mock_item = Mock()
                 mock_item.name = "Test Item"
-                mock_factory.create_content.return_value = mock_item
+                mock_create_content.return_value = mock_item
 
                 content = loader.load_all()
                 # 1 from file + 2 from omnidexer

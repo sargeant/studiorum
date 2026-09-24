@@ -37,9 +37,6 @@ class TestDataValidationStress:
         reset_app_config()
 
         # Initialize content type registry
-        from studiorum.core.registry import initialize_content_types
-
-        initialize_content_types()
 
     @pytest.fixture(autouse=True)
     def setup_log_capture(self, capfire: CaptureLogfire) -> Generator[None, None, None]:

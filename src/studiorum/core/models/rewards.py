@@ -4,16 +4,9 @@ from typing import Any
 
 from pydantic import Field
 
-from ..registry import content_type
 from .content import BaseContent
 
 
-@content_type(
-    enum_value="reward",
-    file_patterns=["reward", "rewards"],
-    statblock_tags=["reward"],
-    loader_type="json",
-)
 class Reward(BaseContent):
     """A reward (blessing, charm, etc.)."""
 

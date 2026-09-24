@@ -6,17 +6,10 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry
 
 
-@content_type(
-    enum_value="charoption",
-    file_patterns=["charoption", "charcreationoptions"],
-    loader_type="json",
-    statblock_tags=["charoption"],
-)
 class CharacterOption(BaseContent):
     """Character option model for background variants and similar content.
 

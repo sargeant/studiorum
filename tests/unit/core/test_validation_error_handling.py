@@ -222,7 +222,9 @@ class TestJsonLoaderValidationIntegration:
             loader = JsonDataLoader(ContentType("spell"))
 
             # Simulate validation error during content creation
-            with patch.object(loader._content_factory, "create_content") as mock_create:
+            with patch(
+                "studiorum.core.loaders.json_loader.create_content"
+            ) as mock_create:
                 validation_error = ValidationError.from_exception_data(
                     "TestModel",
                     [
@@ -266,7 +268,7 @@ class TestJsonLoaderValidationIntegration:
 
         loader = JsonDataLoader(ContentType("spell"))
 
-        with patch.object(loader._content_factory, "create_content") as mock_create:
+        with patch("studiorum.core.loaders.json_loader.create_content") as mock_create:
             validation_error = ValidationError.from_exception_data(
                 "TestModel",
                 [

@@ -4,16 +4,9 @@ from typing import Any
 
 from pydantic import Field
 
-from ..registry import content_type
 from .content import BaseContent
 
 
-@content_type(
-    enum_value="object",
-    file_patterns=["object", "objects"],
-    loader_type="json",
-    statblock_tags=["object"],
-)
 class Object(BaseContent):
     """Interactive objects like doors, chests, and magical constructs."""
 

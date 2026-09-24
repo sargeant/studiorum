@@ -4,7 +4,6 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from ..registry import content_type
 from .content import BaseContent
 
 
@@ -36,12 +35,6 @@ class FacilityPrerequisite(BaseModel):
     other: str | None = Field(None, description="Other prerequisites")
 
 
-@content_type(
-    enum_value="facility",
-    file_patterns=["facility", "facilities", "bastions"],
-    loader_type="json",
-    statblock_tags=["facility"],
-)
 class Facility(BaseContent):
     """Bastion facilities for stronghold construction."""
 

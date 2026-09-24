@@ -4,7 +4,6 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
-from ..registry import content_type
 from .content import BaseContent
 
 
@@ -67,12 +66,6 @@ class RecipeServing(BaseModel):
         return base
 
 
-@content_type(
-    enum_value="recipe",
-    file_patterns=["recipe", "recipes"],
-    loader_type="json",
-    statblock_tags=["recipe"],
-)
 class Recipe(BaseContent):
     """Crafting and cooking recipes."""
 

@@ -6,7 +6,6 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from ..registry import content_type
 from .content import BaseContent
 from .entry_types import Entry, validate_entries
 
@@ -20,12 +19,6 @@ class SymbolImage(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
-@content_type(
-    enum_value="deity",
-    file_patterns=["deity", "deities"],
-    statblock_tags=["deity"],
-    loader_type="json",
-)
 class Deity(BaseContent):
     """Gods, pantheons, and divine entities."""
 

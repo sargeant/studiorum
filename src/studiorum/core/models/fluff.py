@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 
 from studiorum.core.logging import get_logger
 
-from ..registry import content_type
 from .content import BaseContent
 
 logger = get_logger(__name__)
@@ -96,12 +95,6 @@ class FluffEntry(BaseModel):
         return " ".join(text_parts)
 
 
-@content_type(
-    enum_value="fluff",
-    file_patterns=["fluff"],
-    statblock_tags=["fluff"],
-    loader_type="fluff",
-)
 class BaseFluff(BaseContent):
     """Base fluff content with liberal parsing."""
 
@@ -191,189 +184,69 @@ class BaseFluff(BaseContent):
         return paths
 
 
-@content_type(
-    enum_value="spellFluff",
-    file_patterns=[
-        "spellFluff",
-        "spell-fluff",
-        "fluff-spell",
-        "fluff-spells",
-        "spells",
-    ],
-    statblock_tags=["spellFluff"],
-    loader_type="fluff",
-)
 class SpellFluff(BaseFluff):
     """Fluff content specific to spells."""
 
 
-@content_type(
-    enum_value="creatureFluff",
-    file_patterns=["fluff-bestiary", "creatureFluff", "creature-fluff"],
-    statblock_tags=["creatureFluff"],
-    loader_type="fluff",
-)
 class CreatureFluff(BaseFluff):
     """Fluff content specific to creatures/monsters."""
 
 
-@content_type(
-    enum_value="itemFluff",
-    file_patterns=["fluff-items", "itemFluff", "item-fluff"],
-    statblock_tags=["itemFluff"],
-    loader_type="fluff",
-)
 class ItemFluff(BaseFluff):
     """Fluff content specific to items."""
 
 
-@content_type(
-    enum_value="raceFluff",
-    file_patterns=["fluff-races", "raceFluff", "race-fluff"],
-    statblock_tags=["raceFluff"],
-    loader_type="fluff",
-)
 class RaceFluff(BaseFluff):
     """Fluff content specific to races."""
 
 
-@content_type(
-    enum_value="featFluff",
-    file_patterns=["fluff-feats", "featFluff", "feat-fluff"],
-    statblock_tags=["featFluff"],
-    loader_type="fluff",
-)
 class FeatFluff(BaseFluff):
     """Fluff content specific to feats."""
 
 
-@content_type(
-    enum_value="classFluff",
-    file_patterns=["fluff-class", "classFluff", "class-fluff"],
-    statblock_tags=["classFluff"],
-    loader_type="fluff",
-)
 class ClassFluff(BaseFluff):
     """Fluff content specific to classes."""
 
 
-@content_type(
-    enum_value="backgroundFluff",
-    file_patterns=[
-        "fluff-backgrounds",
-        "backgroundFluff",
-        "background-fluff",
-    ],
-    statblock_tags=["backgroundFluff"],
-    loader_type="fluff",
-)
 class BackgroundFluff(BaseFluff):
     """Fluff content specific to backgrounds."""
 
 
-@content_type(
-    enum_value="optionalfeatureFluff",
-    file_patterns=[
-        "optionalfeatureFluff",
-        "optionalfeature-fluff",
-        "fluff-optionalfeatures",
-    ],
-    statblock_tags=["optionalfeatureFluff"],
-    loader_type="fluff",
-)
 class OptionalFeatureFluff(BaseFluff):
     """Fluff content specific to optional features."""
 
 
-@content_type(
-    enum_value="vehicleFluff",
-    file_patterns=["vehicleFluff", "vehicle-fluff", "fluff-vehicles"],
-    statblock_tags=["vehicleFluff"],
-    loader_type="fluff",
-)
 class VehicleFluff(BaseFluff):
     """Fluff content specific to vehicles."""
 
 
-@content_type(
-    enum_value="objectFluff",
-    file_patterns=["objectFluff", "object-fluff", "fluff-objects"],
-    statblock_tags=["objectFluff"],
-    loader_type="fluff",
-)
 class ObjectFluff(BaseFluff):
     """Fluff content specific to objects."""
 
 
-@content_type(
-    enum_value="languageFluff",
-    file_patterns=["languageFluff", "language-fluff", "fluff-languages"],
-    statblock_tags=["languageFluff"],
-    loader_type="fluff",
-)
 class LanguageFluff(BaseFluff):
     """Fluff content specific to languages."""
 
 
-@content_type(
-    enum_value="rewardFluff",
-    file_patterns=["rewardFluff", "reward-fluff", "fluff-rewards"],
-    statblock_tags=["rewardFluff"],
-    loader_type="fluff",
-)
 class RewardFluff(BaseFluff):
     """Fluff content specific to rewards."""
 
 
-@content_type(
-    enum_value="conditionDiseaseFluff",
-    file_patterns=[
-        "conditionDiseaseFluff",
-        "condition-disease-fluff",
-        "fluff-conditionsdiseases",
-    ],
-    statblock_tags=["conditionDiseaseFluff"],
-    loader_type="fluff",
-)
 class ConditionDiseaseFluff(BaseFluff):
     """Fluff content specific to conditions and diseases."""
 
 
-@content_type(
-    enum_value="trapHazardFluff",
-    file_patterns=["trapHazardFluff", "trap-hazard-fluff", "fluff-trapshazards"],
-    statblock_tags=["trapHazardFluff"],
-    loader_type="fluff",
-)
 class TrapHazardFluff(BaseFluff):
     """Fluff content specific to traps and hazards."""
 
 
-@content_type(
-    enum_value="bastionFluff",
-    file_patterns=["bastionFluff", "bastion-fluff", "fluff-bastions"],
-    statblock_tags=["bastionFluff"],
-    loader_type="fluff",
-)
 class BastionFluff(BaseFluff):
     """Fluff content specific to bastions."""
 
 
-@content_type(
-    enum_value="recipeFluff",
-    file_patterns=["recipeFluff", "recipe-fluff", "fluff-recipes"],
-    statblock_tags=["recipeFluff"],
-    loader_type="fluff",
-)
 class RecipeFluff(BaseFluff):
     """Fluff content specific to recipes."""
 
 
-@content_type(
-    enum_value="charoptionFluff",
-    file_patterns=["charoptionFluff", "charoption-fluff", "fluff-charcreationoptions"],
-    statblock_tags=["charoptionFluff"],
-    loader_type="fluff",
-)
 class CharoptionFluff(BaseFluff):
     """Fluff content specific to character creation options."""

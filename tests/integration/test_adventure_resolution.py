@@ -24,9 +24,6 @@ class TestSourceManager(SourceManager):
     def get_data_paths(self) -> dict[ContentType, list[Path]]:
         """Return paths to metadata files only."""
         # Ensure registry is initialized before using ContentType
-        from studiorum.core.registry import initialize_content_types
-
-        initialize_content_types()
 
         paths = {}
 

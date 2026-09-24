@@ -5,6 +5,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
+from ..models.content_models import content_type_of
+
 if TYPE_CHECKING:
     from ..protocols.progress import ProgressCallback
     from .content_merger import ContentMerger
@@ -14,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from ..interfaces import DeepIndexable
 from ..logging import get_logger
 from ..models.content import BaseContent, ContentType
+from ..models.content_models import CONTENT_MODELS, FLUFF_TYPES, create_content
 from ..models.fluff import BaseFluff
 from .base import DataLoader, SourceManager
 from .fluff_loader import FluffDataLoader
@@ -156,14 +159,7 @@ class Omnidexer:
         >>> omnidexer = Omnidexer(enable_deep_indexing=True)
         >>> omnidexer.load_all_data()  # doctest: +SKIP
         >>> # Find primary content
-        >>> from ..registry.content_type_resolver import resolve_content_type
-        >>> class_type = resolve_content_type("class")
-        >>> fighter = omnidexer.find(class_type, "Fighter", "PHB")  # doctest: +SKIP
-        >>> # Find nested content (requires deep indexing)
-        >>> feature_type = resolve_content_type("classfeature")
-        >>> action_surge = omnidexer.find(feature_type, "Action Surge", "PHB")  # doctest: +SKIP
-        >>> section_type = resolve_content_type("adventuresection")
-        >>> sections = omnidexer.find_all(section_type)  # doctest: +SKIP
+        >>> fighter = omnidexer.find(ContentType.CLASS, "Fighter", "PHB")  # doctest: +SKIP
     """
 
     def __init__(
@@ -181,12 +177,6 @@ class Omnidexer:
                                 Defaults to True. Disable for performance-critical
                                 applications where nested content discovery is not needed.
         """
-        # Ensure content types are initialized before creating source manager
-        # This prevents warnings about missing content types during initialization
-        from ..registry import initialize_content_types
-
-        initialize_content_types()
-
         # Initialize source manager
         if source_manager is not None:
             self.source_manager = source_manager
@@ -226,9 +216,6 @@ class Omnidexer:
 
         # Register default loaders
         self._register_default_loaders()
-
-    # Content types for each loader type - dynamically resolved from registry
-    # Removed hardcoded tuples in favor of cached dynamic resolution
 
     def _register_default_loaders(self) -> None:
         """Register default data loaders for common content types."""
@@ -547,9 +534,7 @@ class Omnidexer:
                         from studiorum.core.loaders.json_loader import JsonDataLoader
 
                         if isinstance(loader, JsonDataLoader):
-                            enriched_item = loader._content_factory.create_content(
-                                merged_data, content_type
-                            )
+                            enriched_item = create_content(merged_data, content_type)
                         else:
                             # Fallback for other loader types
                             enriched_item = None
@@ -918,7 +903,7 @@ class Omnidexer:
                 for nested_item in nested_content:
                     try:
                         # Determine content type for nested item
-                        nested_type = ContentType.from_content(nested_item)
+                        nested_type = content_type_of(nested_item)
                         # Recursively add nested content (cycle prevention handled above)
                         self._add_to_index(nested_item, nested_type)
                         indexed_count += 1
@@ -1085,40 +1070,12 @@ class Omnidexer:
         )
 
     def _get_json_content_types(self) -> tuple[ContentType, ...]:
-        """Get JSON content types from registry - cached for performance."""
-        from ..registry.content_type_registry import get_content_type_registry
-
-        registry = get_content_type_registry()
-        json_types: list[ContentType] = []
-
-        for enum_value, metadata in registry.get_all().items():
-            if metadata.loader_type == "json":
-                try:
-                    json_types.append(ContentType(enum_value))
-                except ValueError:
-                    # Skip test-only registrations that aren't valid enum members
-                    logger.debug(f"Skipping test-only content type: {enum_value}")
-                    continue
-
-        return tuple(json_types)
+        """Content types loaded by the JSON loader."""
+        return tuple(ct for ct in CONTENT_MODELS if ct not in FLUFF_TYPES)
 
     def _get_fluff_content_types(self) -> tuple[ContentType, ...]:
-        """Get fluff content types from registry - cached for performance."""
-        from ..registry.content_type_registry import get_content_type_registry
-
-        registry = get_content_type_registry()
-        fluff_types: list[ContentType] = []
-
-        for enum_value, metadata in registry.get_all().items():
-            if metadata.loader_type == "fluff":
-                try:
-                    fluff_types.append(ContentType(enum_value))
-                except ValueError:
-                    # Skip test-only registrations that aren't valid enum members
-                    logger.debug(f"Skipping test-only content type: {enum_value}")
-                    continue
-
-        return tuple(fluff_types)
+        """Content types loaded by the fluff loader."""
+        return tuple(ct for ct in CONTENT_MODELS if ct in FLUFF_TYPES)
 
     def get_content_merger(self) -> "ContentMerger | None":
         """Get the shared ContentMerger instance, initializing if needed.

@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field, field_validator
 
 from studiorum.core.logging import get_logger
 
-from ..registry import content_type
 from ..types import (
     AlignmentDict,
     ChallengeRatingDict,
@@ -296,12 +295,6 @@ class Spellcasting(BaseModel):
     )
 
 
-@content_type(
-    enum_value="creature",
-    file_patterns=["bestiary", "monster", "creatures"],
-    statblock_tags=["creature"],
-    loader_type="json",
-)
 class Creature(BaseContent):
     """Represents a 5e creature/monster."""
 

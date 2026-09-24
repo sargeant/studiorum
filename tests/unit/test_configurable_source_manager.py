@@ -35,9 +35,6 @@ class TestUnifiedSourceManager:
     def manager(self):
         """Create a UnifiedSourceManager for testing."""
         # Ensure registry is initialized before creating the manager
-        from tests.test_helpers import setup_test_with_registry
-
-        setup_test_with_registry()
 
         # Create manager without mocking to preserve registry-based content_patterns
         manager = UnifiedSourceManager()

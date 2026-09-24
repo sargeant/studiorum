@@ -225,12 +225,12 @@ class TestDocumentStructureBuilder:
             MockContent("Item 1", "item"),
         ]
 
-        # Mock the ContentType.from_content method
+        # Mock content_type_of
         from unittest.mock import patch
 
         with patch(
-            "studiorum.latex_engine.core.document_structure.ContentType.from_content"
-        ) as mock_from_content:
+            "studiorum.latex_engine.core.document_structure.content_type_of"
+        ) as mock_content_type_of:
 
             def side_effect(content: Any) -> Any:
                 if content._content_type == "spell":
@@ -253,7 +253,7 @@ class TestDocumentStructureBuilder:
                     return ContentType("item")
                 raise ValueError("Unknown type")
 
-            mock_from_content.side_effect = side_effect
+            mock_content_type_of.side_effect = side_effect
 
             organized = self.builder._organize_content_by_type(content_items)  # type: ignore[arg-type]
 
@@ -303,12 +303,12 @@ class TestDocumentStructureBuilder:
             MockContent("Item 1", "item"),
         ]
 
-        # Mock the ContentType.from_content method
+        # Mock content_type_of
         from unittest.mock import patch
 
         with patch(
-            "studiorum.latex_engine.core.document_structure.ContentType.from_content"
-        ) as mock_from_content:
+            "studiorum.latex_engine.core.document_structure.content_type_of"
+        ) as mock_content_type_of:
 
             def side_effect(content: Any) -> Any:
                 if content._content_type == "spell":
@@ -331,7 +331,7 @@ class TestDocumentStructureBuilder:
                     return ContentType("item")
                 raise ValueError("Unknown type")
 
-            mock_from_content.side_effect = side_effect
+            mock_content_type_of.side_effect = side_effect
 
             organized_content = self.builder._organize_content_by_type(content_items)  # type: ignore[arg-type]
 

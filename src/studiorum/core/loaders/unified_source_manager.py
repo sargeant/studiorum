@@ -67,8 +67,6 @@ class UnifiedSourceManager(SourceManager):
 
     async def initialize(self) -> None:
         """Initialize both data source and attribution managers."""
-        # Propagate content patterns before initializing data source manager
-        self._propagate_content_patterns()
         await self._data_source_manager.initialize()
         # ContentAttributionManager doesn't require async initialization
         self._is_initialized = True
@@ -106,8 +104,6 @@ class UnifiedSourceManager(SourceManager):
 
         # In test environments, skip async initialization to avoid event loop issues
         if os.getenv("PYTEST_CURRENT_TEST"):
-            # Propagate content patterns before any initialization work
-            self._propagate_content_patterns()
             # For tests, do the actual initialization work synchronously
             try:
                 # Build content index synchronously for tests
@@ -175,8 +171,6 @@ class UnifiedSourceManager(SourceManager):
         except RuntimeError:
             # No event loop running, try sync initialization first
             try:
-                # Propagate content patterns before sync initialization
-                self._propagate_content_patterns()
                 self._initialize_data_sources_sync()
                 self._is_initialized = True
                 logger.debug("Unified source manager initialized synchronously")
@@ -229,9 +223,6 @@ class UnifiedSourceManager(SourceManager):
         For adventures and books, this returns only metadata files to prevent
         duplicate loading. Content files are loaded on-demand by ContentResolver.
         """
-        # Ensure content_patterns are propagated from the compatibility layer
-        # to the underlying DataSourceManager
-        self._propagate_content_patterns()
         return self._data_source_manager.get_data_paths()
 
     def get_metadata_files(self) -> dict[ContentType, list[Path]]:
@@ -283,21 +274,6 @@ class UnifiedSourceManager(SourceManager):
         """Clear internal caches from both managers to force rebuild."""
         self._data_source_manager.clear_cache()
         self._content_attribution_manager.clear_cache()
-
-    def _propagate_content_patterns(self) -> None:
-        """Propagate content_patterns from the class to the underlying DataSourceManager.
-
-        This ensures backward compatibility with the registry manager pattern
-        where content_patterns is set as a class attribute.
-        """
-        # Check if content_patterns exists on this class (set by registry manager)
-        if hasattr(self.__class__, "content_patterns"):
-            # Propagate to the DataSourceManager class
-            content_patterns = self.__class__.content_patterns
-            self._data_source_manager.__class__.content_patterns = content_patterns  # type: ignore[attr-defined]
-            logger.debug(
-                f"Propagated {len(content_patterns)} content patterns to DataSourceManager"
-            )
 
     # Direct access to component managers for advanced usage
 

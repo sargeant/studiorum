@@ -3,14 +3,14 @@
 from typing import Any
 
 from studiorum.core.models.chapter import ChapterType
-from studiorum.core.models.content import BaseContent, ContentType
+from studiorum.core.models.content import BaseContent
+from studiorum.core.models.content_models import CONTENT_MODELS, content_type_of
 from studiorum.core.models.document_metadata import (
     ContentSection,
     DocumentMetadata,
     DocumentType,
     SectionLevel,
 )
-from studiorum.core.registry import get_content_type_registry
 from studiorum.renderers.core.interfaces import RenderingContext
 
 
@@ -72,7 +72,7 @@ class DocumentStructureBuilder:
 
         for item in content_items:
             try:
-                content_type = ContentType.from_content(item)
+                content_type = content_type_of(item)
                 type_key = content_type.value
             except ValueError:
                 # Fallback for unknown content types
@@ -221,13 +221,12 @@ class DocumentStructureBuilder:
     def _get_content_type_order(self) -> list[str]:
         """Get ordered list of content types for document organization.
 
-        Uses the content type registry.
-        Provides sensible default ordering for document structure.
+                Provides sensible default ordering for document structure.
 
         Returns:
             List of content type strings in preferred display order
         """
-        registry = get_content_type_registry()
+        registered = {content_type.value for content_type in CONTENT_MODELS}
 
         # Preferred ordering for most document types
         # High-level/narrative content first, then reference content
@@ -263,21 +262,13 @@ class DocumentStructureBuilder:
             "object",
         ]
 
-        # Filter to only include content types that exist in registry
-        available_types = []
-        for content_type_str in preferred_order:
-            try:
-                ContentType(content_type_str)  # Validate content type exists
-                if content_type_str in registry.get_all():
-                    available_types.append(content_type_str)
-            except ValueError:
-                # Skip invalid content types
-                continue
-
-        # Add any remaining registered types not in preferred order
-        for content_type_str, metadata in registry.get_all().items():
-            if content_type_str not in available_types:
-                available_types.append(content_type_str)
+        # Preferred types first, then every other type with a model
+        available_types = [t for t in preferred_order if t in registered]
+        available_types += [
+            content_type.value
+            for content_type in CONTENT_MODELS
+            if content_type.value not in available_types
+        ]
 
         return available_types
 
