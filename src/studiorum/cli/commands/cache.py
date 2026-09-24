@@ -1,13 +1,9 @@
 """Cache management commands for the studiorum CLI."""
 
-import os
-from pathlib import Path
-
 import typer
 from rich.panel import Panel
 from rich.progress import BarColumn, Progress, TextColumn
 from rich.prompt import Confirm
-from rich.table import Table
 
 from studiorum.cli.display_manager import display_manager
 from studiorum.core.cache import CacheManager
@@ -94,109 +90,3 @@ def clear(
     # Report results
     console.print("[green]✅ Cache cleared successfully![/green]")
     console.print(f"[dim]Freed {size_mb:.1f} MB of disk space[/dim]")
-
-
-@app.command()
-def doctor() -> None:
-    """Check cache health and provide recommendations."""
-
-    console.print("[bold]🔍 Cache Health Check[/bold]\n")
-
-    checks = []
-
-    # Check 1: Directory exists and is writable
-    try:
-        cache = CacheManager.get_instance()
-        cache_dir = Path(cache.directory)
-
-        if cache_dir.exists() and cache_dir.is_dir():
-            if os.access(cache_dir, os.W_OK):
-                checks.append(
-                    (
-                        "Directory Access",
-                        "✅",
-                        "Cache directory is accessible and writable",
-                    )
-                )
-            else:
-                checks.append(
-                    (
-                        "Directory Access",
-                        "❌",
-                        f"Cache directory is not writable: {cache_dir}",
-                    )
-                )
-        else:
-            checks.append(
-                (
-                    "Directory Access",
-                    "❌",
-                    f"Cache directory does not exist: {cache_dir}",
-                )
-            )
-    except Exception as e:
-        checks.append(("Directory Access", "❌", f"Error accessing cache: {e}"))
-
-    # Check 2: Database integrity
-    try:
-        stats = CacheManager.get_stats()
-        entries = stats["total_entries"]
-        checks.append(
-            (
-                "Database Integrity",
-                "✅",
-                f"Cache database is healthy ({entries:,} entries)",
-            )
-        )
-    except Exception as e:
-        checks.append(("Database Integrity", "❌", f"Cache database error: {e}"))
-
-    # Check 3: Disk usage
-    try:
-        stats = CacheManager.get_stats()
-        usage_pct = stats["total_size_mb"] / stats["max_size_mb"] * 100
-
-        if usage_pct > 90:
-            checks.append(
-                (
-                    "Disk Usage",
-                    "⚠️",
-                    f"Cache is {usage_pct:.1f}% full - consider clearing",
-                )
-            )
-        elif usage_pct > 70:
-            checks.append(
-                ("Disk Usage", "⚠️", f"Cache is {usage_pct:.1f}% full - monitor usage")
-            )
-        else:
-            checks.append(
-                ("Disk Usage", "✅", f"Cache usage is healthy ({usage_pct:.1f}%)")
-            )
-    except Exception as e:
-        checks.append(("Disk Usage", "❌", f"Could not check disk usage: {e}"))
-
-    # Display results
-    table = Table(title="Health Check Results")
-    table.add_column("Check", style="cyan")
-    table.add_column("Status", justify="center")
-    table.add_column("Details", style="dim")
-
-    for check_name, status, details in checks:
-        table.add_row(check_name, status, details)
-
-    console.print(table)
-
-    # Recommendations
-    error_count = sum(1 for _, status, _ in checks if status == "❌")
-    warning_count = sum(1 for _, status, _ in checks if status == "⚠️")
-
-    if error_count > 0:
-        console.print(
-            f"\n[red]❌ {error_count} error(s) found. Cache may not be working properly.[/red]"
-        )
-    elif warning_count > 0:
-        console.print(
-            f"\n[yellow]⚠️ {warning_count} warning(s) found. Consider taking action.[/yellow]"
-        )
-    else:
-        console.print("\n[green]✅ All checks passed! Cache is healthy.[/green]")

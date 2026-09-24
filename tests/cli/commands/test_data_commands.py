@@ -50,13 +50,6 @@ class TestDataCommands:
         assert "Scanning data repositories" in result.stdout
         assert "Scan complete" in result.stdout
 
-    def test_data_check_command(self):
-        """Test data check command validates configuration."""
-        result = self.runner.invoke(app, ["data", "check"])
-        assert result.exit_code == 0
-        assert "Checking repository configurations" in result.stdout
-        assert "Service Check" in result.stdout
-
     @patch("pathlib.Path.exists", return_value=True)
     @patch("pathlib.Path.is_dir", return_value=True)
     @patch("studiorum.cli.commands.data._get_config_file_path")
@@ -347,9 +340,6 @@ class TestCLIIntegration:
         assert result.exit_code == 0
 
         result = self.runner.invoke(app, ["data", "scan"])
-        assert result.exit_code == 0
-
-        result = self.runner.invoke(app, ["data", "check"])
         assert result.exit_code == 0
 
     def test_error_handling_shows_user_friendly_messages(self):

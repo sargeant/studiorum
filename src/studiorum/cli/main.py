@@ -32,6 +32,7 @@ Studiorum - 5e content processing toolkit
   [cyan]config[/cyan]    Manage configuration settings
   [cyan]convert[/cyan]   Convert content to LaTeX/PDF
   [cyan]info[/cyan]      Get information about content
+  [cyan]doctor[/cyan]    Check configuration, data sources and cache
 
 Use 'studiorum COMMAND --help' for detailed help on any command.
 """,
@@ -121,6 +122,7 @@ try:
     from studiorum.cli.commands.config import config_app
     from studiorum.cli.commands.convert import app as convert_app
     from studiorum.cli.commands.data import data_app
+    from studiorum.cli.commands.doctor import doctor
     from studiorum.cli.commands.info import app as info_app
     from studiorum.cli.commands.list_content import app as list_app
     from studiorum.cli.commands.mcp import mcp_app
@@ -137,6 +139,7 @@ try:
     app.add_typer(info_app, name="info")
     app.add_typer(setup_app, name="setup")
     app.add_typer(stats_app, name="stats")
+    app.command("doctor")(doctor)
 except ImportError as e:
     # If command imports fail, the CLI will not have these commands available
     # This is acceptable as it indicates a serious installation issue
