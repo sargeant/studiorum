@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import Field
 
-from .content import BaseContent
+from .content import BaseContent, Reprint
 
 
 class Action(BaseContent):
@@ -36,7 +36,7 @@ class Condition(BaseContent):
     basic_rules: bool | None = Field(
         None, alias="basicRules", description="Available in Basic Rules"
     )
-    reprinted_as: list[str] = Field(
+    reprinted_as: list[str | Reprint] = Field(
         default_factory=list, alias="reprintedAs", description="Reprinted as references"
     )
 
@@ -54,7 +54,7 @@ class Sense(BaseContent):
     basic_rules: bool | None = Field(
         None, alias="basicRules", description="Available in Basic Rules"
     )
-    reprinted_as: list[str] = Field(
+    reprinted_as: list[str | Reprint] = Field(
         default_factory=list, alias="reprintedAs", description="Reprinted as references"
     )
 
@@ -86,7 +86,7 @@ class Status(BaseContent):
     basic_rules: bool | None = Field(
         None, alias="basicRules", description="Available in Basic Rules"
     )
-    reprinted_as: list[str] = Field(
+    reprinted_as: list[str | Reprint] = Field(
         default_factory=list, alias="reprintedAs", description="Reprinted as references"
     )
 

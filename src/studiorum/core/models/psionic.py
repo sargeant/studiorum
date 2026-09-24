@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from .content import BaseContent
+from .content import BaseContent, Reprint
 from .entry_types import Entry
 
 
@@ -68,7 +68,7 @@ class Psionic(BaseContent):
         description="Other sources that reference this psionic",
         alias="otherSources",
     )
-    reprinted_as: list[str] | None = Field(
+    reprinted_as: list[str | Reprint] | None = Field(
         None, description="Reprints of this psionic", alias="reprintedAs"
     )
 

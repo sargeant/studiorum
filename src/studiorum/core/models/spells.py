@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 from pydantic import BaseModel, Field, field_validator
 
-from .content import BaseContent
+from .content import BaseContent, Reprint
 from .entry_types import Entry, validate_entries
 
 
@@ -231,7 +231,7 @@ class Spell(BaseContent):
     basic_rules_2024: bool | None = Field(
         None, alias="basicRules2024", description="Is 2024 basic rules content"
     )
-    reprinted_as: list[str] | None = Field(
+    reprinted_as: list[str | Reprint] | None = Field(
         None, alias="reprintedAs", description="Reprint references"
     )
     subschools: list[str] | None = Field(

@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .content import BaseContent
+from .content import BaseContent, Reprint
 from .entry_types import Entry, validate_entries
 
 
@@ -76,7 +76,7 @@ class OptionalFeature(BaseContent):
         alias="isClassFeatureVariant",
         description="Whether this is a class feature variant",
     )
-    reprinted_as: list[dict[str, str]] | None = Field(
+    reprinted_as: list[str | Reprint] | None = Field(
         None, alias="reprintedAs", description="Later reprints of this feature"
     )
     entries: list[Entry] = Field(..., description="Feature description and rules")

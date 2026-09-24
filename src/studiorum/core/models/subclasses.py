@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .content import BaseContent
+from .content import BaseContent, Reprint
 from .entry_types import Entry, validate_entries
 
 
@@ -74,7 +74,7 @@ class Subclass(BaseContent):
     copy_metadata: CopyMetadata | None = Field(
         None, alias="_copy", description="Copy/inheritance metadata"
     )
-    reprinted_as: list[dict[str, str]] | None = Field(
+    reprinted_as: list[str | Reprint] | None = Field(
         None, alias="reprintedAs", description="Later reprints of this subclass"
     )
     entries: list[Entry] = Field(
