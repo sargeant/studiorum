@@ -12,7 +12,6 @@ from studiorum.renderers.context import RenderingContext
 if TYPE_CHECKING:
     from studiorum.core.loaders.omnidexer import Omnidexer
     from studiorum.core.references.content_tracker import ContentTracker
-    from studiorum.core.text.protocols import TextExtractionProtocol
     from studiorum.latex_engine.formatters.protocols import LaTeXFormattingProtocol
     from studiorum.latex_engine.services.protocols import ContextBoundTemplateProtocol
     from studiorum.renderers.tags import TagResolver
@@ -23,13 +22,12 @@ logger = get_logger(__name__)
 class TemplateService:
     """Template service for orchestrating entry processing with component injection.
 
-    This service coordinates TextExtractor, TagResolver, and LaTeXFormatter
+    This service coordinates the TagResolver and LaTeXFormatter
     components to provide clean entry rendering without parameter threading.
     """
 
     def __init__(
         self,
-        text_extractor: TextExtractionProtocol,
         latex_formatter: LaTeXFormattingProtocol,
         tag_resolver: TagResolver,
         omnidexer: Omnidexer,
@@ -37,12 +35,10 @@ class TemplateService:
         """Initialize the template service with injected components.
 
         Args:
-            text_extractor: Component for extracting text from entries
             latex_formatter: Component for LaTeX formatting
             tag_resolver: Tag resolver service for processing tags
             omnidexer: Omnidexer service for content resolution
         """
-        self.text_extractor = text_extractor
         self.latex_formatter = latex_formatter
         self.tag_resolver = tag_resolver
         self.omnidexer = omnidexer

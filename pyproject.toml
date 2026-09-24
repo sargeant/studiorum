@@ -220,7 +220,6 @@ ignore = [
 "src/studiorum/core/services/spell_class_lookup.py" = ["PERF401", "SIM118"]
 "src/studiorum/core/services/spell_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103", "SIM110"]
 "src/studiorum/core/sources/github.py" = ["B904"]
-"src/studiorum/core/text/text_extractor.py" = ["PERF401", "SIM102"]
 "src/studiorum/core/utils/chapters.py" = ["B904", "SIM102"]
 "src/studiorum/core/validation/error_tracker.py" = ["RET504"]
 "src/studiorum/core/validation/strictness.py" = ["UP042"]
