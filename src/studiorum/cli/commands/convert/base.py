@@ -8,7 +8,6 @@ import typer
 from studiorum.cli.config_factory import (
     get_compile_pdf_default,
 )
-from studiorum.core.config.sources import get_content_config
 from studiorum.core.config.unified_config import get_app_config
 from studiorum.core.loaders.content_sources import (
     ContentLoader,
@@ -33,16 +32,6 @@ class BaseConvertCommand:
         omnidexer = get_omnidexer()
         self._content_reference_manager = ContentReferenceManager(omnidexer)
 
-    def _safe_getattr(self, obj: Any, attr_path: str) -> Any:
-        """Safely get nested attribute, returning None if any part is missing."""
-        try:
-            result = obj
-            for attr in attr_path.split("."):
-                result = getattr(result, attr)
-            return result
-        except AttributeError:
-            return None
-
     @staticmethod
     def get_common_parameters() -> dict[str, Any]:
         """Return common parameter definitions."""
@@ -59,9 +48,8 @@ class BaseConvertCommand:
         }
 
     def apply_config_hierarchy(self, **cli_args: Any) -> dict[str, Any]:
-        """Apply configuration hierarchy: CLI args > user config > app defaults."""
+        """Apply configuration hierarchy: CLI args > app config."""
         app_config = get_app_config()
-        user_config = get_content_config()
 
         # Extract CLI values
         paper = cli_args.get("paper")
@@ -84,109 +72,61 @@ class BaseConvertCommand:
 
         # Apply hierarchy for each configuration option
         actual_config = {
-            "paper_size": (
-                paper
-                or self._safe_getattr(user_config, "latex.paper_size")
-                or app_config.rendering.latex.document.paper_size
-            ),
-            "fonts": (
-                fonts
-                or self._safe_getattr(user_config, "latex.fonts")
-                or app_config.rendering.latex.document.fonts
-            ),
+            "paper_size": (paper or app_config.rendering.latex.document.paper_size),
+            "fonts": (fonts or app_config.rendering.latex.document.fonts),
             "main_font": (
-                main_font
-                or self._safe_getattr(user_config, "latex.fonts.main_font")
-                or None  # No specific main_font in app config structure
+                main_font or None  # No specific main_font in app config structure
             ),
             "sans_font": (
-                sans_font
-                or self._safe_getattr(user_config, "latex.fonts.sans_font")
-                or None  # No specific sans_font in app config structure
+                sans_font or None  # No specific sans_font in app config structure
             ),
             "mono_font": (
-                mono_font
-                or self._safe_getattr(user_config, "latex.fonts.mono_font")
-                or None  # No specific mono_font in app config structure
+                mono_font or None  # No specific mono_font in app config structure
             ),
             "title": (
-                title
-                or self._safe_getattr(user_config, "latex.title")
-                or None  # No title in app config document structure
+                title or None  # No title in app config document structure
             ),
             "author": (
-                author
-                or self._safe_getattr(user_config, "latex.author")
-                or None  # No author in app config document structure
+                author or None  # No author in app config document structure
             ),
             "margin_top": (
-                cli_args.get("margin_top")
-                or self._safe_getattr(user_config, "latex.margin_top")
-                or "1in"  # Default margin
+                cli_args.get("margin_top") or "1in"  # Default margin
             ),
             "margin_bottom": (
-                cli_args.get("margin_bottom")
-                or self._safe_getattr(user_config, "latex.margin_bottom")
-                or "1in"  # Default margin
+                cli_args.get("margin_bottom") or "1in"  # Default margin
             ),
             "margin_left": (
-                cli_args.get("margin_left")
-                or self._safe_getattr(user_config, "latex.margin_left")
-                or "1in"  # Default margin
+                cli_args.get("margin_left") or "1in"  # Default margin
             ),
             "margin_right": (
-                cli_args.get("margin_right")
-                or self._safe_getattr(user_config, "latex.margin_right")
-                or "1in"  # Default margin
+                cli_args.get("margin_right") or "1in"  # Default margin
             ),
-            "output_directory": (
-                output_dir
-                or self._safe_getattr(user_config, "output_directory")
-                or app_config.paths.output_path
-            ),
+            "output_directory": (output_dir or app_config.paths.output_path),
             "background": (
-                background
-                or self._safe_getattr(user_config, "latex.background")
-                or app_config.rendering.latex.document.background
+                background or app_config.rendering.latex.document.background
             ),
             "no_outline": (
                 no_outline
                 if no_outline is not None
-                else self._safe_getattr(user_config, "latex.no_outline")
-                if self._safe_getattr(user_config, "latex.no_outline") is not None
                 else app_config.rendering.latex.document.no_outline
             ),
-            "font_size": (
-                font_size
-                or self._safe_getattr(user_config, "latex.font_size")
-                or app_config.rendering.latex.document.font_size
-            ),
+            "font_size": (font_size or app_config.rendering.latex.document.font_size),
             "high_contrast": (
                 high_contrast
                 if high_contrast is not None
-                else self._safe_getattr(user_config, "latex.high_contrast")
-                if self._safe_getattr(user_config, "latex.high_contrast") is not None
                 else app_config.rendering.latex.document.high_contrast
             ),
             "two_column": (
                 two_column
                 if two_column is not None
-                else self._safe_getattr(user_config, "latex.two_column")
-                if self._safe_getattr(user_config, "latex.two_column") is not None
                 else app_config.rendering.latex.document.two_column
             ),
             "justified": (
                 justified
                 if justified is not None
-                else self._safe_getattr(user_config, "latex.justified")
-                if self._safe_getattr(user_config, "latex.justified") is not None
                 else app_config.rendering.latex.document.justified_text
             ),
-            "statblock": (
-                statblock
-                or self._safe_getattr(user_config, "latex.document.statblock")
-                or app_config.rendering.latex.document.statblock
-            ),
+            "statblock": (statblock or app_config.rendering.latex.document.statblock),
         }
 
         return actual_config

@@ -43,40 +43,8 @@ def _get_config_file_path() -> Path:
 
 
 def _load_config() -> dict[str, Any]:
-    """Load configuration from file to show current state."""
-    try:
-        # Load directly from YAML file like the service container does
-        import yaml
-
-        from studiorum.core.config.unified_config import (
-            ApplicationConfig,
-            get_default_config_path,
-        )
-
-        config_path = get_default_config_path()
-
-        if config_path.exists():
-            # Load YAML file directly
-            with open(config_path, "r") as f:
-                yaml_data = yaml.safe_load(f)
-
-            # Create ApplicationConfig from YAML data to get proper validation
-            config = ApplicationConfig(**yaml_data)
-            return config.model_dump()
-
-        # Fallback to default config if file doesn't exist
-        app_config = get_app_config().model_dump()
-        return app_config
-
-    except Exception:
-        # Fallback structure
-        return {
-            "data_sources": {
-                "srd": {"enabled": True},
-                "primary_override": {"enabled": False},
-                "extensions": [],
-            }
-        }
+    """The loaded configuration as a dictionary."""
+    return get_app_config().model_dump()
 
 
 def _save_config(config: dict[str, Any]) -> None:

@@ -4,21 +4,64 @@ from pathlib import Path
 from typing import Any
 
 import typer
+import yaml
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
 from studiorum.cli.display_manager import display_manager
-from studiorum.core.config.sources import (
+from studiorum.core.config.data_sources import (
+    ContentConfiguration,
     ContentSource,
     SourceType,
-    get_config_manager,
-    get_content_config,
+    default_content_sources,
+)
+from studiorum.core.config.unified_config import (
+    get_app_config,
+    get_default_config_path,
+    set_app_config,
 )
 from studiorum.core.sources import ContentSourceManager
 
 console = display_manager.console
 app: typer.Typer = typer.Typer(help="Setup and configuration wizard")
+
+
+def current_sources() -> ContentConfiguration:
+    """The content sources of the loaded configuration."""
+    return get_app_config().content_configuration()
+
+
+class SourcesFile:
+    """Reads and writes content_sources in the configuration file."""
+
+    def get_config(self) -> ContentConfiguration:
+        return current_sources()
+
+    def update_config(self, config: ContentConfiguration) -> None:
+        path = get_default_config_path()
+        data: dict[str, Any] = {}
+        if path.exists():
+            data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        data["content_sources"] = [
+            source.model_dump(mode="json") for source in config.content_sources
+        ]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            yaml.dump(data, default_flow_style=False, sort_keys=False),
+            encoding="utf-8",
+        )
+        app_config = get_app_config()
+        set_app_config(
+            app_config.model_copy(
+                update={"content_sources": list(config.content_sources)}
+            )
+        )
+
+    def reset_to_defaults(self) -> ContentConfiguration:
+        config = ContentConfiguration(content_sources=default_content_sources())
+        self.update_config(config)
+        return config
 
 
 @app.command("wizard")
@@ -34,7 +77,7 @@ def setup_wizard() -> None:
         )
     )
 
-    config_manager = get_config_manager()
+    config_manager = SourcesFile()
     config = config_manager.get_config()
 
     # Check if already configured
@@ -62,6 +105,7 @@ def setup_wizard() -> None:
 
         if Confirm.ask("Remove existing sources?"):
             config.content_sources.clear()
+            config_manager.update_config(config)
 
     # Setup options
     console.print("\n[bold]Setup Options:[/bold]")
@@ -88,7 +132,7 @@ def setup_wizard() -> None:
         console.print("[bold]studiorum data scan[/bold]")
 
 
-def _setup_defaults(config_manager: Any) -> None:
+def _setup_defaults(config_manager: SourcesFile) -> None:
     """Set up default sources."""
     console.print("\n[cyan]Setting up default sources...[/cyan]")
 
@@ -105,7 +149,7 @@ def _setup_defaults(config_manager: Any) -> None:
     console.print(table)
 
 
-def _setup_custom(config_manager: Any) -> None:
+def _setup_custom(config_manager: SourcesFile) -> None:
     """Set up custom sources."""
     console.print("\n[cyan]Custom setup - Add sources manually[/cyan]")
 
@@ -133,7 +177,7 @@ def _setup_custom(config_manager: Any) -> None:
     config_manager.update_config(config)
 
 
-def _setup_local(config_manager: Any) -> None:
+def _setup_local(config_manager: SourcesFile) -> None:
     """Set up local directory sources only."""
     console.print("\n[cyan]Local setup - Add local directories[/cyan]")
 
@@ -245,7 +289,7 @@ def _scan_content() -> None:
     """Download and scan content."""
     console.print("\n[cyan]Downloading and scanning content...[/cyan]")
 
-    config = get_content_config()
+    config = current_sources()
     source_manager = ContentSourceManager(config)
 
     def _do_scan() -> None:
@@ -283,7 +327,7 @@ def _scan_content() -> None:
 @app.command("check")
 def check_setup() -> None:
     """Check current setup and configuration."""
-    config = get_content_config()
+    config = current_sources()
 
     if not config.content_sources:
         console.print("[red]❌ No content sources configured[/red]")
@@ -343,7 +387,7 @@ def reset_setup() -> None:
         console.print("Reset cancelled.")
         return
 
-    config_manager = get_config_manager()
+    config_manager = SourcesFile()
     config_manager.reset_to_defaults()
 
     console.print("[green]✅ Configuration reset to defaults[/green]")

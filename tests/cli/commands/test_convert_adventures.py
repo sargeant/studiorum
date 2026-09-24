@@ -102,7 +102,6 @@ class TestConvertAdventureCommand:
     @patch("studiorum.cli.commands.convert.adventure.get_omnidexer")
     @patch("studiorum.cli.commands.convert.adventure.get_tag_resolver")
     @patch("studiorum.cli.commands.convert.adventure.get_app_config")
-    @patch("studiorum.core.config.sources.get_content_config")
     @patch(
         "studiorum.core.resolvers.content_resolver.ContentResolver._enrich_content_if_needed"
     )
@@ -115,7 +114,6 @@ class TestConvertAdventureCommand:
         mock_display,
         mock_engine_factory,
         mock_enrich_content,
-        mock_user_config,
         mock_app_config,
         mock_tag_resolver,
         mock_omnidexer,
@@ -173,10 +171,6 @@ class TestConvertAdventureCommand:
         mock_latex.high_contrast = None
         mock_latex.two_column = None
         mock_latex.justified = None
-
-        mock_user_config_obj = Mock()
-        mock_user_config_obj.latex = mock_latex
-        mock_user_config.return_value = mock_user_config_obj
 
         # Mock resolver - no longer needed since we're using the real resolver with mocked omnidexer
         # The ContentResolver will be instantiated with our mocked omnidexer

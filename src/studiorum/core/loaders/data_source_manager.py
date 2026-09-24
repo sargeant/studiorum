@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from ..config.unified_config import ApplicationConfig
 
-from ..config.sources import get_content_config
+from ..config.unified_config import get_app_config
 from ..logging import get_logger
 from ..models.content import ContentType
 from ..result import Error, Result, Success
@@ -63,73 +63,31 @@ class DataSourceManager(SourceManager):
         """Initialize with application configuration.
 
         Args:
-            app_config: Application configuration instance. If None, will load from get_app_config()
-                       for backward compatibility (deprecated).
+            app_config: Application configuration. Defaults to get_app_config().
         """
-        from studiorum.core.logging import get_logger
+        import os
 
-        logger = get_logger(__name__)
-
-        # Handle dependency injection vs backward compatibility
         if app_config is None:
-            # Backward compatibility mode - load from service container
-            from studiorum.core.services.access import get_app_config
-
-            logger.warning(
-                "DataSourceManager initialized without dependency injection. "
-                "Consider using service container for proper configuration management."
-            )
             app_config = get_app_config()
 
-        # Use new data sources configuration if available, fallback to old system
-        try:
-            import os
+        # Tests set this so a developer's primary override cannot leak in
+        disable_primary_override = os.environ.get(
+            "STUDIORUM_DISABLE_PRIMARY_OVERRIDE", ""
+        ).lower() in ("true", "1", "yes")
 
-            # Check if primary override should be disabled for testing
-            disable_primary_override = os.environ.get(
-                "STUDIORUM_DISABLE_PRIMARY_OVERRIDE", ""
-            ).lower() in ("true", "1", "yes")
-
+        data_sources = app_config.data_sources
+        if (
+            data_sources
+            and not disable_primary_override
+            and data_sources.is_primary_enabled()
+        ):
             logger.debug(
-                f"DataSourceManager: Checking data sources config - has data_sources: {app_config.data_sources is not None}"
+                f"DataSourceManager: Using primary override from {data_sources.primary_override.path}"
             )
-
-            if app_config.data_sources and not disable_primary_override:
-                is_primary_enabled = app_config.data_sources.is_primary_enabled()
-                logger.debug(
-                    f"DataSourceManager: Primary override enabled: {is_primary_enabled}"
-                )
-
-                if is_primary_enabled:
-                    # Use new configuration system with primary override
-                    logger.debug(
-                        f"DataSourceManager: Using primary override from {app_config.data_sources.primary_override.path}"
-                    )
-                    self.config = self._create_config_from_new_system(
-                        app_config.data_sources
-                    )
-                else:
-                    # Fallback to old system
-                    logger.debug(
-                        "DataSourceManager: Primary override not enabled, using old system"
-                    )
-                    self.config = get_content_config()
-            else:
-                if disable_primary_override:
-                    logger.debug(
-                        "DataSourceManager: Primary override disabled by environment variable, using old system"
-                    )
-                else:
-                    logger.debug(
-                        "DataSourceManager: No data_sources config found, using old system"
-                    )
-                self.config = get_content_config()
-        except Exception as e:
-            # Fallback to old system if new system fails
-            logger.error(
-                f"DataSourceManager: Error loading new config, falling back to old system: {e}"
-            )
-            self.config = get_content_config()
+            self.config = self._create_config_from_new_system(data_sources)
+        else:
+            logger.debug("DataSourceManager: Using configured content sources")
+            self.config = app_config.content_configuration()
 
         self.content_manager = ContentSourceManager(self.config)
         self._data_paths_cache: dict[ContentType, list[Path]] | None = None
@@ -139,7 +97,11 @@ class DataSourceManager(SourceManager):
         """Create old ContentConfiguration from new DataSourcesConfig."""
         from pathlib import Path
 
-        from ..config.sources import ContentConfiguration, ContentSource, SourceType
+        from ..config.data_sources import (
+            ContentConfiguration,
+            ContentSource,
+            SourceType,
+        )
 
         config = ContentConfiguration()
 

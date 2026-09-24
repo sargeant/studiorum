@@ -95,12 +95,6 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
 
         reset_cli_globals()
 
-        # 6. Reset content configuration manager to use temporary config
-        from studiorum.core.config.sources import reset_config_manager
-
-        reset_config_manager()
-        logger.debug("Configuration manager reset to use temporary config")
-
         # 7. Initialize the content type registry (critical for all systems)
         # This MUST happen LAST to ensure the interface registry is populated after all resets
         from studiorum.core.registry import initialize_content_types

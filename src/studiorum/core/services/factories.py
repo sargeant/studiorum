@@ -167,35 +167,12 @@ def create_configuration_service_sync(
             """Add callback for configuration reload notifications."""
             self._reload_callbacks.append(callback)
 
-    # Get configuration synchronously
     if config_override is not None:
         config = config_override
     else:
-        # Load configuration synchronously for CLI usage
-        from studiorum.core.config.unified_config import (
-            ApplicationConfig,
-            get_default_config_path,
-        )
+        from studiorum.core.config.unified_config import get_app_config
 
-        config_path = get_default_config_path()
-
-        if config_path.exists():
-            # For sync loading, use simple file reading
-            import yaml
-
-            try:
-                with open(config_path, "r", encoding="utf-8") as f:
-                    config_data = yaml.safe_load(f)
-                config = ApplicationConfig.model_validate(config_data)
-                logger.debug(f"Configuration loaded from {config_path}")
-            except Exception as e:
-                # File exists but failed to load, use default with warning
-                config = ApplicationConfig()
-                logger.warning(f"Failed to load config from {config_path}: {e}")
-        else:
-            # No config file, use default
-            config = ApplicationConfig()
-            logger.debug(f"No config file found at {config_path}, using defaults")
+        config = get_app_config()
 
     return ConfigurationService(config)
 
@@ -288,39 +265,12 @@ async def create_configuration_service(
             """Add callback for configuration reload notifications."""
             self._reload_callbacks.append(callback)
 
-    # Get configuration
     if config_override is not None:
         config = config_override
     else:
-        # Load configuration from file using ConfigurationManager
-        from studiorum.core.config.dynamic_manager import ConfigurationManager
-        from studiorum.core.config.unified_config import get_default_config_path
+        from studiorum.core.config.unified_config import get_app_config
 
-        config_path = get_default_config_path()
-        manager = ConfigurationManager(config_path)
-
-        if config_path.exists():
-            # Load from file if it exists
-            result = await manager.load_config_from_file()
-            if result.is_success():
-                config = result.unwrap()
-                logger.debug(f"Configuration loaded from {config_path}")
-            else:
-                # File exists but failed to load, use default with warning
-                from studiorum.core.config.unified_config import ApplicationConfig
-                from studiorum.core.result import Error
-
-                config = ApplicationConfig()
-                if isinstance(result, Error):
-                    logger.warning(
-                        f"Failed to load config from {config_path}: {result.error.message}"
-                    )
-        else:
-            # No config file, use default
-            from studiorum.core.config.unified_config import ApplicationConfig
-
-            config = ApplicationConfig()
-            logger.debug(f"No config file found at {config_path}, using defaults")
+        config = get_app_config()
 
     return ConfigurationService(config)
 

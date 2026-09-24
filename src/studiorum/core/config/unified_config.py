@@ -8,15 +8,34 @@ scattered TypedDict and separate config classes with a hierarchical structure.
 
 from __future__ import annotations
 
+import os
+from contextvars import ContextVar
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+    YamlConfigSettingsSource,
+)
+
+from studiorum.core.config.data_sources import (
+    ContentConfiguration,
+    ContentSource,
+    default_content_sources,
+)
 
 if TYPE_CHECKING:
     from studiorum.core.assets.image_sources import ImageSourceConfig
     from studiorum.core.config.data_sources import DataSourcesConfig
+
+CONFIG_FILE_ENV = "STUDIORUM_CONFIG_FILE"
+
+# The YAML file ApplicationConfig reads, set only while load_config() builds one.
+# Constructing ApplicationConfig directly reads no file: defaults and environment.
+_config_file: ContextVar[Path | None] = ContextVar("_config_file", default=None)
 
 
 class LoggingConfig(BaseModel):
@@ -643,6 +662,10 @@ class ApplicationConfig(BaseSettings):
         default_factory=lambda: None,
         description="Data sources configuration (three-tier model)",
     )
+    content_sources: list[ContentSource] = Field(
+        default_factory=default_content_sources,
+        description="Directory and GitHub sources, used when no primary override is enabled",
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -651,6 +674,30 @@ class ApplicationConfig(BaseSettings):
         env_prefix="STUDIORUM_",
         env_nested_delimiter="__",
     )
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """Precedence: init kwargs, then environment, then the YAML file, then defaults."""
+        sources: tuple[PydanticBaseSettingsSource, ...] = (
+            init_settings,
+            env_settings,
+            dotenv_settings,
+        )
+        config_file = _config_file.get()
+        if config_file is not None:
+            sources += (YamlConfigSettingsSource(settings_cls, yaml_file=config_file),)
+        return sources
+
+    def content_configuration(self) -> ContentConfiguration:
+        """The content sources as the source managers take them."""
+        return ContentConfiguration(content_sources=list(self.content_sources))
 
     def model_post_init(self, __context: Any) -> None:
         """Post-process configuration after parsing."""
@@ -694,33 +741,49 @@ _rebuild_models()
 _app_config: ApplicationConfig | None = None
 
 
-def get_default_config_path() -> Path:
-    """Get the default configuration file path.
+class ConfigFileNotFoundError(FileNotFoundError):
+    """A configuration file was named explicitly but does not exist."""
 
-    Returns:
-        Path to the default configuration file (~/.studiorum/config.yaml)
+
+def get_default_config_path() -> Path:
+    """The configuration file: STUDIORUM_CONFIG_FILE, else ~/.studiorum/config.yaml."""
+    named = os.environ.get(CONFIG_FILE_ENV)
+    if named:
+        return Path(named).expanduser()
+    return Path.home() / ".studiorum" / "config.yaml"
+
+
+def load_config(config_file: Path | None = None) -> ApplicationConfig:
+    """Load the application configuration.
+
+    Reads ``config_file`` if given, else the file ``STUDIORUM_CONFIG_FILE``
+    names, else ``~/.studiorum/config.yaml`` if it exists. Environment
+    variables override the file.
+
+    Raises:
+        ConfigFileNotFoundError: The file was named explicitly (argument or
+            environment variable) and does not exist.
+        pydantic.ValidationError: The file does not match the schema.
     """
-    config_dir = Path.home() / ".studiorum"
-    config_dir.mkdir(parents=True, exist_ok=True)
-    return config_dir / "config.yaml"
+    explicit = config_file is not None or bool(os.environ.get(CONFIG_FILE_ENV))
+    path = config_file.expanduser() if config_file else get_default_config_path()
+    if not path.exists():
+        if explicit:
+            raise ConfigFileNotFoundError(f"Configuration file not found: {path}")
+        return ApplicationConfig()
+
+    token = _config_file.set(path)
+    try:
+        return ApplicationConfig()
+    finally:
+        _config_file.reset(token)
 
 
 def get_app_config() -> ApplicationConfig:
-    """Get the global application configuration instance.
-
-    Loads configuration from file if available, otherwise uses defaults.
-    Environment variables with STUDIORUM_ prefix will override file settings.
-    For advanced configuration management with hot-reload and change notifications,
-    use the ConfigurationManager service through the service container.
-    """
+    """The process-wide configuration, loaded on first use with load_config()."""
     global _app_config
     if _app_config is None:
-        # Always create ApplicationConfig without explicit data first
-        # This ensures environment variables are processed
-        _app_config = ApplicationConfig()
-
-        # If config file exists, we could merge it, but for now
-        # environment variables take precedence over file settings
+        _app_config = load_config()
     return _app_config
 
 
@@ -739,6 +802,3 @@ def set_app_config(config: ApplicationConfig) -> None:
     """Set the global application configuration instance."""
     global _app_config
     _app_config = config
-
-
-# Convenience functions for backward compatibility

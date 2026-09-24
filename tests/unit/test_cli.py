@@ -92,12 +92,14 @@ class TestCLIFileOperations:
 
         self.runner = CliRunner()
 
-    def test_list_files_no_directories(self) -> None:
+    def test_list_files_no_directories(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test list files when no data directories exist."""
-        with patch("pathlib.Path.exists", return_value=False):
-            result = self.runner.invoke(app, ["list", "files"])
-            # Should handle missing directories gracefully
-            assert result.exit_code == 0
+        monkeypatch.chdir(tmp_path)
+        result = self.runner.invoke(app, ["list", "files"])
+        # Should handle missing directories gracefully
+        assert result.exit_code == 0
 
     def test_info_file_nonexistent(self) -> None:
         """Test info command with nonexistent file."""

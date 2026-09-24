@@ -48,7 +48,6 @@ dependencies = [
     "platformdirs>=4.0.0,<5.0.0",
     "pillow>=11.3.0",
     "aiohttp>=3.12.15",
-    "watchdog>=6.0.0,<7.0.0",
     "fastmcp>=3,<4",
     "logfire>=0.54.0",
 ]
@@ -495,7 +494,6 @@ ignore_imports = [
     "studiorum.core.entry_registry -> studiorum.core.loaders.omnidexer",
     "studiorum.core.interfaces -> studiorum.core.loaders.omnidexer",
     "studiorum.core.interfaces -> studiorum.core.models.content",
-    "studiorum.core.loaders.data_source_manager -> studiorum.core.services.access",
     "studiorum.core.loaders.json_loader -> studiorum.core.services.access",
     "studiorum.core.loaders.json_loader -> studiorum.core.services.protocols",
     "studiorum.core.loaders.omnidexer -> studiorum.core.services.fluff_matcher",

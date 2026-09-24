@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from studiorum.core.config.sources import (  # type: ignore
+from studiorum.core.config.data_sources import (  # type: ignore
     ContentConfiguration,
     ContentSource,
     SourceType,
@@ -62,8 +62,8 @@ class TestContentSourceManager:
         """Create ContentSourceManager with mocked dependencies."""
         with (
             patch(
-                "studiorum.core.sources.manager.get_content_config",
-                return_value=mock_config,
+                "studiorum.core.sources.manager.get_app_config",
+                return_value=Mock(content_configuration=Mock(return_value=mock_config)),
             ),
             patch("studiorum.core.sources.manager.GitHubSourceManager") as mock_github,
         ):
@@ -90,8 +90,8 @@ class TestContentSourceManager:
 
         with (
             patch(
-                "studiorum.core.sources.manager.get_content_config",
-                return_value=mock_config,
+                "studiorum.core.sources.manager.get_app_config",
+                return_value=Mock(content_configuration=Mock(return_value=mock_config)),
             ),
             patch("studiorum.core.sources.manager.GitHubSourceManager"),
         ):
@@ -715,7 +715,8 @@ class TestContentSourceManagerIntegration:
         # Test manager
         with (
             patch(
-                "studiorum.core.sources.manager.get_content_config", return_value=config
+                "studiorum.core.sources.manager.get_app_config",
+                return_value=Mock(content_configuration=Mock(return_value=config)),
             ),
             patch("studiorum.core.sources.manager.GitHubSourceManager"),
         ):

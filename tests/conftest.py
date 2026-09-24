@@ -9,9 +9,13 @@ from typing import Any
 # into CliRunner output. It reads this at import, so set it before the CLI loads.
 os.environ.setdefault("_TYPER_FORCE_DISABLE_TERMINAL", "1")
 
+# Tests read tests/test-config.yaml, never the developer's ~/.studiorum/config.yaml.
+# Set before the CLI is imported, since its option defaults are read at import.
+os.environ["STUDIORUM_CONFIG_FILE"] = str(Path(__file__).parent / "test-config.yaml")
+
 import pytest
 
-from studiorum.core.config.sources import (  # type: ignore
+from studiorum.core.config.data_sources import (  # type: ignore
     ContentConfiguration,
     ContentSource,
     SourceType,

@@ -4,12 +4,8 @@ import asyncio
 from pathlib import Path
 from typing import cast
 
-from ..config.sources import (
-    ContentConfiguration,
-    ContentSource,
-    SourceType,
-    get_content_config,
-)
+from ..config.data_sources import ContentConfiguration, ContentSource, SourceType
+from ..config.unified_config import get_app_config
 from ..logging import get_logger
 from .github import GitHubSourceManager
 
@@ -21,7 +17,7 @@ class ContentSourceManager:
 
     def __init__(self, config: ContentConfiguration | None = None):
         """Initialize content source manager."""
-        self.config = config or get_content_config()
+        self.config = config or get_app_config().content_configuration()
         self.github_manager = GitHubSourceManager(self.config.cache_dir)
         self._content_index: dict[str, list[Path]] = {}
         self._index_built = False
