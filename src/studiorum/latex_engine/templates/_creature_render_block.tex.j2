@@ -3,6 +3,7 @@
 
 <@ from "_entry_macros.tex.j2" import smart_render_entry with context @>
 <@ from "_fluff_block.tex.j2" import render_fluff_for_content with context @>
+<@ from "_fluff_images.tex.j2" import render_fluff_images with context @>
 
 <#--
   Helper macros to reduce duplication and improve readability.
@@ -164,6 +165,9 @@
 <#-- Render fluff content before stat block if available --#>
 <@ if rendering_context and rendering_context.metadata and rendering_context.metadata.get('fluff') @>
 <# render_fluff_for_content(creature.name, rendering_context.metadata['fluff'], use_comment=False) #>
+<@ endif @>
+<@ if rendering_context and rendering_context.metadata.get('fluff_images_enabled') @>
+<# render_fluff_images(creature.name) #>
 <@ endif @>
 
 <#-- Resolve common lists safely up-front --#>

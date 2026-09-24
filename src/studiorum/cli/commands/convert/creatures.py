@@ -12,7 +12,14 @@ from studiorum.core.models.creatures import Creature
 from studiorum.renderers.core.interfaces import RenderingContext
 
 from . import options as opt
-from .fluff import Fluff, FluffImages, FluffSections, FluffSources, collect_fluff
+from .fluff import (
+    Fluff,
+    FluffImages,
+    FluffResult,
+    FluffSections,
+    FluffSources,
+    collect_fluff,
+)
 from .options import ConvertOptions, option
 from .run import (
     NameList,
@@ -338,7 +345,7 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
 
             references = ContentReferenceManager(omnidexer=omnidexer)
         tracker = references.get_content_tracker() if references else None
-        fluff_map = _fluff(omnidexer, found, ctx.params, tracker) if fluff else {}
+        found_fluff = _fluff(omnidexer, found, ctx.params, tracker) if fluff else None
         context = RenderingContext(
             output_format="latex",
             omnidexer=omnidexer,
@@ -348,7 +355,8 @@ def creatures(  # nosec B107: "letter" is token_paper_size, not a password
                 "title": _heading(options, creature_types),
                 "include_images": options.images,
                 "template": "bestiary",
-                "fluff": fluff_map,
+                "fluff": found_fluff.fluff if found_fluff else {},
+                "fluff_images": found_fluff.images if found_fluff else {},
                 "fluff_images_enabled": with_fluff_images,
                 "creature_level": creature_level,
             },
@@ -375,7 +383,7 @@ def _heading(options: ConvertOptions, creature_types: list[str] | None) -> str:
 
 def _fluff(
     omnidexer: Any, creatures: list[Creature], params: dict[str, Any], tracker: Any
-) -> dict[str, Any]:
+) -> FluffResult:
     """Fluff by creature name, with shared fluff such as lairs included once."""
     deduplicator = None
     if params["deduplicate_fluff"]:
@@ -395,7 +403,7 @@ def _fluff(
         sources=params["fluff_sources"],
         with_images=params["with_fluff_images"],
         deduplicator=deduplicator,
-    ).fluff
+    )
 
 
 def _collect(omnidexer: Any, params: dict[str, Any], names: NameList) -> Any:

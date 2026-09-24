@@ -66,12 +66,10 @@ def collect_fluff(
     ``kind`` is creature, spell or item. A deduplicator, when given, drops fluff
     already included for another piece of content (for example a shared lair).
     """
-    from studiorum.core.services.fluff_image_extractor import FluffImageExtractor
     from studiorum.core.services.fluff_matcher import FluffMatcher
 
     matcher = FluffMatcher(omnidexer)
     match: Callable[..., Any] = getattr(matcher, f"match_{kind}_fluff")
-    extractor = FluffImageExtractor(omnidexer) if with_images else None
     section_list = split_csv(sections)
     source_list = split_csv(sources, upper=True)
     result = FluffResult()
@@ -95,14 +93,12 @@ def collect_fluff(
                         )
                     else:
                         result.fluff[item.name] = item_fluff
-                        images = (
-                            extractor.extract_images_from_fluff(item_fluff)
-                            if extractor
-                            else []
-                        )
-                        if images:
-                            image_count += len(images)
-                            result.images[item.name] = [img.to_dict() for img in images]
+                        if with_images and item_fluff.images:
+                            image_count += len(item_fluff.images)
+                            result.images[item.name] = [
+                                img.model_dump(exclude_none=True)
+                                for img in item_fluff.images
+                            ]
             except Exception as e:
                 logger.debug(f"Failed to get fluff for {item.name}: {e}", exc_info=True)
             display_manager.update_task(task, completed=i + 1)
@@ -121,7 +117,7 @@ def collect_fluff(
     if source_list:
         rprint(f"[blue]ℹ[/blue] Filtered to sources: {', '.join(source_list)}")
     if image_count:
-        rprint(f"[green]✓[/green] Extracted {image_count} images from fluff content")
+        rprint(f"[green]✓[/green] Found {image_count} images in fluff content")
     if deduplicator:
         duplicates = deduplicator.get_statistics()["duplicate_fluff_detected"]
         rprint(

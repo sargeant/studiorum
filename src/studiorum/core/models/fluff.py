@@ -16,7 +16,10 @@ class FluffImage(BaseModel):
 
     type: str = "image"
     href: dict[str, Any] | None = None
+    title: str | None = None
     credit: str | None = None
+    width: int | None = None
+    height: int | None = None
 
     def get_path(self) -> str | None:
         """Extract image path from nested structure."""

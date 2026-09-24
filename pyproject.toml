@@ -219,7 +219,6 @@ ignore = [
 "src/studiorum/core/services/creature_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
 "src/studiorum/core/services/encounter_collector.py" = ["SIM102"]
 "src/studiorum/core/services/fluff_deduplicator.py" = ["UP042"]
-"src/studiorum/core/services/fluff_image_extractor.py" = ["SIM102"]
 "src/studiorum/core/services/fluff_matcher.py" = ["PERF401", "RET504", "SIM105"]
 "src/studiorum/core/services/item_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
 "src/studiorum/core/services/spell_class_lookup.py" = ["PERF401", "SIM118"]
