@@ -57,7 +57,7 @@ def reset_test_environment(*, collect_garbage: bool = True) -> None:
 
         # Ensure test config is used
         if "STUDIORUM_CONFIG_FILE" not in os.environ:
-            os.environ["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
+            os.environ["STUDIORUM_CONFIG_FILE"] = "tests/test-config.yaml"
 
         # Reset app config to pick up environment changes
         reset_app_config()

@@ -35,7 +35,7 @@ class TestAdventureConversion:
         """Get environment with test configuration override."""
 
         env = os.environ.copy()
-        env["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
+        env["STUDIORUM_CONFIG_FILE"] = "tests/test-config.yaml"
         return env
 
     def test_adventure_conversion_produces_content(self):

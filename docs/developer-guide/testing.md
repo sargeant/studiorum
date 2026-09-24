@@ -200,7 +200,7 @@ def test_creature_name_validation(creature_name):
 def reset_test_environment():
     """Reset environment for testing."""
     import os
-    os.environ['STUDIORUM_CONFIG_FILE'] = 'test-config.yaml'
+    os.environ['STUDIORUM_CONFIG_FILE'] = 'tests/test-config.yaml'
     reset_global_container()
 
 # In tests
@@ -290,7 +290,7 @@ uv run pytest tests/unit/ --durations=10
 
 ```bash
 # Test with specific configuration
-STUDIORUM_CONFIG_FILE=test-config.yaml uv run pytest tests/integration/
+STUDIORUM_CONFIG_FILE=tests/test-config.yaml uv run pytest tests/integration/
 
 # Test with debug logging
 STUDIORUM_LOGGING_LEVEL=DEBUG uv run pytest tests/unit/ -v -s

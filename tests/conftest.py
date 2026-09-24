@@ -331,7 +331,7 @@ def test_data_omnidexer() -> Omnidexer:
 
     # Set test configuration environment variable BEFORE resetting containers
     # This ensures the config is loaded from the correct file
-    os.environ["STUDIORUM_CONFIG_FILE"] = "test-config.yaml"
+    os.environ["STUDIORUM_CONFIG_FILE"] = "tests/test-config.yaml"
 
     # Use full reset sequence for complete isolation
     reset_test_environment()

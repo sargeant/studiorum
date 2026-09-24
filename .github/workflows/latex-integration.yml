@@ -89,7 +89,7 @@ jobs:
         echo "=== DND Template Check ==="
         kpsewhich DND-5e.cls
         echo "=== Test Data Verification ==="
-        export DND5E_CONFIG_FILE=test-config.yaml
+        export STUDIORUM_CONFIG_FILE=tests/test-config.yaml
         uv run studiorum list books
         uv run studiorum list adventures
 
@@ -97,7 +97,7 @@ jobs:
       run: make test-latex-integration
       env:
         # Ensure we use test data configuration
-        DND5E_CONFIG_FILE: test-config.yaml
+        STUDIORUM_CONFIG_FILE: tests/test-config.yaml
 
     - name: Upload compilation artifacts (on failure)
       uses: actions/upload-artifact@v4
