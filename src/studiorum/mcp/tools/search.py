@@ -8,7 +8,6 @@ from typing import Annotated, Any, Literal
 from fastmcp.dependencies import Depends
 from pydantic import Field
 
-from studiorum.core.loaders import item_types
 from studiorum.core.loaders.omnidexer import parse_uid
 from studiorum.core.models.content import BaseContent, ContentType
 from studiorum.core.models.content_models import content_type_of
@@ -22,6 +21,7 @@ from studiorum.core.services.creature_collector import CreatureCollector
 from studiorum.core.services.item_collector import ItemCollector
 from studiorum.core.services.spell_collector import SpellCollector
 from studiorum.mcp.deps import SrdOnly, get_services, srd_default
+from studiorum.mcp.layouts import item_kind
 from studiorum.mcp.models import (
     CreatureResults,
     CreatureSummary,
@@ -177,7 +177,7 @@ async def search_spells(
                 source=s.source.abbreviation,
                 srd=s.is_srd,
                 level=s.level,
-                school=s.school,
+                school=s.school.lower(),
             )
             for s in spells[:limit]
         ],
@@ -266,7 +266,7 @@ async def search_items(
                 name=i.name,
                 source=i.source.abbreviation,
                 srd=i.is_srd,
-                type=item_types.name(str(i.type)) if i.type is not None else None,
+                type=item_kind(i.model_dump(by_alias=True)) or None,
                 rarity=str(i.rarity) if i.rarity is not None else None,
             )
             for i in items[:limit]

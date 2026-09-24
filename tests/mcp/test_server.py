@@ -244,3 +244,11 @@ async def test_get_content_lists_references() -> None:
         ("item", "leather armor"),
         ("item", "shield"),
     }
+
+
+@pytest.mark.asyncio
+async def test_feats_keep_their_prerequisites() -> None:
+    grappler = await call("get_content", content_type="feat", name="Grappler")
+    assert "**Prerequisite** Strength 13" in grappler["text"]
+    raw = await call("get_content", content_type="feat", name="Grappler", format="json")
+    assert raw["data"]["prerequisite"] == [{"ability": [{"str": 13}]}]

@@ -202,6 +202,11 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         },
     )
 
+    _write(
+        tmp_path / "feats.json",
+        {"feat": _pick(SRD_DATA / "feats.json", "feat", {"Grappler"})},
+    )
+
     wizard = json.loads((SRD_DATA / "class" / "class-wizard.json").read_text())
     _write(tmp_path / "class" / "class-wizard.json", wizard)
 

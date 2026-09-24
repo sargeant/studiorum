@@ -39,6 +39,8 @@ def to_markdown(content_type: str, data: Raw) -> str:
         "item": _item,
         "class": _class,
         "subclass": _subclass,
+        "race": _race,
+        "vehicle": _vehicle,
     }.get(content_type, _generic)
     return "\n\n".join(p for p in layout(data, content_type) if p)
 
@@ -86,6 +88,9 @@ def _named_blocks(heading: str, blocks: Any, intro: Any = None) -> str:
             continue
         name = strip_tags(str(block.get("name", "")))
         body = _entries(block.get("entries"), 3)
+        if not name:
+            lines.append(body)
+            continue
         first, _, rest = body.partition("\n\n")
         lines.append(f"***{name}.*** {first}".strip() + (f"\n\n{rest}" if rest else ""))
     return "\n\n".join(line for line in lines if line)
@@ -357,7 +362,7 @@ def _duration(durations: Any) -> str:
 
 
 def _item(data: Raw, _: str) -> list[str]:
-    kind = item_types.name(str(data["type"])) if data.get("type") else ""
+    kind = item_kind(data)
     rarity = data.get("rarity")
     attune = data.get("reqAttune")
     extras = [
@@ -487,13 +492,263 @@ def _subclass(data: Raw, _: str) -> list[str]:
     ]
 
 
+_FEAT_CATEGORIES = {"G": "General", "O": "Origin", "EB": "Epic Boon", "FS": "Fighting Style", "D": "Dragonmark", "DG": "Divine Gift"}  # fmt: skip
+
+
 def _generic(data: Raw, content_type: str) -> list[str]:
     kind = content_type
     if data.get("level") and (data.get("className") or data.get("subclassShortName")):
         owner = data.get("subclassShortName") or data.get("className")
         kind = f"Level {data['level']} {owner} feature"
+    category = str(data.get("category", "")).split(":")[0]
+    if content_type == "feat" and category in _FEAT_CATEGORIES:
+        kind = f"{_FEAT_CATEGORIES[category]} feat"
     return [
         _title(data),
         f"*{kind}* · *{_source(data)}*",
+        "\n".join(
+            line
+            for line in (
+                _line("Prerequisite", _prerequisites(data.get("prerequisite"))),
+                _line("Ability Score Increase", _increases(data.get("ability"))),
+            )
+            if line
+        ),
         _entries(data.get("entries") or data.get("entry")),
     ]
+
+
+def _name_of(ref: Any) -> str:
+    """A uid such as "alert|xphb" or {"name": ...} as a display name."""
+    if isinstance(ref, dict):
+        return strip_tags(str(ref.get("displayEntry") or ref.get("name", "")))
+    parts = str(ref).split("|")
+    return _title_case(parts[2] if len(parts) > 2 and parts[2] else parts[0])
+
+
+def _title_case(text: str) -> str:
+    small = {"a", "an", "and", "as", "at", "for", "in", "of", "on", "or", "the", "to"}
+    words = text.split()
+    return " ".join(
+        w if i and w in small else w[:1].upper() + w[1:] for i, w in enumerate(words)
+    )
+
+
+def _prerequisites(options: Any) -> str:
+    """5etools' prerequisite list: each item is one way to qualify."""
+    if not isinstance(options, list):
+        return ""
+    return " or ".join(t for t in (_prerequisite(o) for o in options) if t)
+
+
+def _prerequisite(req: Any) -> str:
+    if not isinstance(req, dict):
+        return ""
+    parts = []
+    for key, value in req.items():
+        match key:
+            case "level":
+                if isinstance(value, dict):
+                    cls = (value.get("class") or {}).get("name", "")
+                    parts.append(f"Level {value.get('level')} {cls}".strip())
+                else:
+                    parts.append(f"Level {value}")
+            case "ability":
+                parts.append(
+                    " or ".join(
+                        f"{_ABILITY_NAMES.get(a, a)} {n}"
+                        for option in value
+                        for a, n in option.items()
+                    )
+                )
+            case (
+                "race" | "background" | "feat" | "optionalfeature" | "feature" | "item"
+            ):
+                parts.append(" or ".join(_name_of(v) for v in value))
+            case "spell":
+                parts.append(
+                    " or ".join(
+                        strip_tags(str(v.get("entry", "")))
+                        if isinstance(v, dict)
+                        else _title_case(str(v).split("#")[0].split("|")[0])
+                        + (" cantrip" if "#c" in str(v) else "")
+                        for v in value
+                    )
+                )
+            case "proficiency":
+                for prof in value:
+                    parts += [f"Proficiency with {v} {k}" for k, v in prof.items()]
+            case "pact":
+                parts.append(f"Pact of the {value}")
+            case "campaign":
+                parts.append(" or ".join(f"{c} campaign" for c in value))
+            case "spellcasting" | "spellcastingFeature":
+                parts.append("The ability to cast at least one spell")
+            case "spellcasting2020":
+                parts.append("Spellcasting or Pact Magic feature")
+            case "other":
+                parts.append(strip_tags(str(value)))
+            case "otherSummary":
+                parts.append(strip_tags(str(value.get("entrySummary", ""))))
+    return ", ".join(p for p in parts if p)
+
+
+def _increases(options: Any) -> str:
+    """A feat's ability score increases, such as +1 Strength or Dexterity."""
+    parts = []
+    for option in options if isinstance(options, list) else []:
+        if not isinstance(option, dict):
+            continue
+        choose = option.get("choose")
+        if isinstance(choose, dict):
+            names = " or ".join(
+                _ABILITY_NAMES.get(str(a), str(a)) for a in choose.get("from", [])
+            )
+            count = choose.get("count", 1)
+            amount = choose.get("amount", 1)
+            each = f"{count} of " if count > 1 else ""
+            parts.append(f"+{amount} to {each}{names}")
+        parts += [
+            f"+{n} {_ABILITY_NAMES[a]}"
+            for a, n in option.items()
+            if a in _ABILITY_NAMES
+        ]
+        if option.get("max"):
+            parts[-1:] = [f"{parts[-1]} (max {option['max']})"] if parts else []
+    return "; ".join(parts)
+
+
+def _race(data: Raw, _: str) -> list[str]:
+    sizes = data.get("size") or []
+    size = " or ".join(_SIZES.get(str(x), str(x)) for x in sizes)
+    kinds = ", ".join(str(t) for t in data.get("creatureTypes") or []) or "humanoid"
+    speed = data.get("speed")
+    return [
+        _title(data),
+        f"*{' '.join(w for w in (size, kinds) if w)}* · *{_source(data)}*",
+        "\n".join(
+            line
+            for line in (
+                _line(
+                    "Speed", f"{speed} ft." if isinstance(speed, int) else _speed(speed)
+                ),
+                _line("Ability Score Increase", _increases(data.get("ability"))),
+                _line(
+                    "Darkvision",
+                    f"{data['darkvision']} ft." if data.get("darkvision") else "",
+                ),
+            )
+            if line
+        ),
+        _entries(data.get("entries")),
+    ]
+
+
+_VEHICLE_TYPES = {"SHIP": "ship", "SPELLJAMMER": "spelljammer ship", "INFWAR": "infernal war machine", "ELEMENTAL_AIRSHIP": "elemental airship", "OBJECT": "object", "CREATURE": "creature"}  # fmt: skip
+
+
+def _vehicle(data: Raw, _: str) -> list[str]:
+    size = _SIZES.get(str(data.get("size", "")), "")
+    kind = _VEHICLE_TYPES.get(str(data.get("vehicleType")), "vehicle")
+    hull = data.get("hull") or {}
+    hp = data.get("hp") or {}
+    if not isinstance(hp, dict):
+        hp = {"hp": hp}
+    ac = hull.get("ac") or data.get("ac")
+    hit_points = hull.get("hp") or hp.get("hp")
+    threshold = hull.get("dt") or hp.get("dt")
+    speed = data.get("speed")
+    crew = ", ".join(
+        f"{data[k]} {label if data[k] != 1 else one}"
+        for k, label, one in (
+            ("capCrew", "crew", "crew"),
+            ("capPassenger", "passengers", "passenger"),
+            ("capCreature", "creatures", "creature"),
+        )
+        if data.get(k)
+    )
+    cost = data.get("cost")
+    stats = [
+        _line("Armor Class", str(ac) if ac and not isinstance(ac, list) else ""),
+        _line(
+            "Hit Points",
+            f"{hit_points}" + (f" (damage threshold {threshold})" if threshold else "")
+            if hit_points
+            else "",
+        ),
+        _line(
+            "Speed",
+            f"{speed} ft."
+            if isinstance(speed, int)
+            else _speed(speed)
+            if speed
+            else "",
+        ),
+        _line("Dimensions", " by ".join(data.get("dimensions") or [])),
+        _line("Terrain", ", ".join(data.get("terrain") or [])),
+        _line("Capacity", crew),
+        _line("Cargo", _cargo(data)),
+        _line("Cost", f"{cost / 100:,g} gp" if isinstance(cost, int | float) else ""),
+        _line("Immunities", _join(data.get("immune") or [])),
+        _line("Condition Immunities", _join(data.get("conditionImmune") or [])),
+    ]
+    return [
+        _title(data),
+        f"*{' '.join(w for w in (size, kind) if w)}* · *{_source(data)}*",
+        "\n".join(line for line in stats if line),
+        _abilities(data) if any(data.get(a) for a in _ABILITIES) else "",
+        _entries(data.get("entries")),
+        _named_blocks("Traits", data.get("trait")),
+        _named_blocks("Action Stations", data.get("actionStation")),
+        _named_blocks("Actions", data.get("action")),
+        _named_blocks("Reactions", data.get("reaction")),
+        _parts("Control", data.get("control")),
+        _parts("Movement", data.get("movement")),
+        _parts("Weapons", data.get("weapon")),
+    ]
+
+
+def _cargo(data: Raw) -> str:
+    cargo = data.get("capCargo")
+    if not cargo:
+        return ""
+    # Infernal war machines carry pounds; ships, tons
+    return f"{cargo} lb." if data.get("vehicleType") == "INFWAR" else f"{cargo} tons"
+
+
+def _parts(heading: str, parts: Any) -> str:
+    """A ship's control, movement and weapon parts, each with its AC and HP."""
+    if not parts:
+        return ""
+    blocks = [f"## {heading}"]
+    for part in parts:
+        if not isinstance(part, dict):
+            continue
+        stats = ", ".join(
+            f"{label} {part[k]}"
+            for k, label in (("ac", "AC"), ("hp", "HP"), ("dt", "damage threshold"))
+            if part.get(k)
+        )
+        count = f" ({part['count']})" if part.get("count") else ""
+        body = [_entries(part.get("entries"), 3)]
+        body += [
+            f"*{str(mode.get('mode', '')).title()}.* {_entries(mode.get('entries'), 4)}"
+            for mode in part.get("speed") or part.get("locomotion") or []
+            if isinstance(mode, dict)
+        ]
+        body += [
+            f"*{strip_tags(str(a.get('name', '')))}.* {_entries(a.get('entries'), 4)}"
+            for a in part.get("action") or []
+            if isinstance(a, dict)
+        ]
+        title = f"***{strip_tags(str(part.get('name', '')))}{count}.***"
+        blocks.append(" ".join(t for t in (title, f"*{stats}*" if stats else "") if t))
+        blocks += [b for b in body if b]
+    return "\n\n".join(blocks)
+
+
+def item_kind(data: Raw) -> str:
+    """An item's type name; wondrous items have a flag rather than a type."""
+    if data.get("type"):
+        return item_types.name(str(data["type"]))
+    return "Wondrous Item" if data.get("wondrous") else ""
