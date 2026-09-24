@@ -152,3 +152,20 @@ def test_token_href_follows_5etools() -> None:
 
 def test_token_name_is_ascii_without_quotes() -> None:
     assert token_name('Æthelred "the" Méd') == "AEthelred the Med"
+
+
+def test_token_falls_back_to_bestiary_art(resolver: ImageResolver) -> None:
+    assert resolver.image_directory is not None
+    goblin = creature()
+    assert resolver.token(goblin) is None
+
+    write_image(resolver.image_directory / "bestiary/MM/Goblin.webp")
+    art = resolver.token(goblin)
+    write_image(
+        resolver.image_directory / "bestiary/tokens/MM/Goblin.webp", mode="RGBA"
+    )
+    token = resolver.token(goblin)
+
+    assert art is not None
+    assert token is not None
+    assert art != token

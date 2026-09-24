@@ -615,15 +615,16 @@ def _render_tokens(
     columns: dict[str, int],
 ) -> str:
     """Render a printable sheet of creature tokens."""
+    from studiorum.cli.context import get_services
     from studiorum.core.models.tokens import TokenSheet
-    from studiorum.core.services.token_image_resolver import TokenImageResolver
+    from studiorum.latex_engine.core.images.resolve import ImageResolver
     from studiorum.renderers.latex.token_renderer import TokenRenderer
 
     with display_manager.progress("Generating tokens") as _:
         task = display_manager.add_task("[green]Rendering token sheet...", total=None)
         sheet = TokenSheet.from_creatures(
             creatures,
-            TokenImageResolver(),
+            ImageResolver.from_config(get_services().config.image).token,
             default_count=token_count,
             paper_size=paper_size,
             margins=margins,

@@ -119,6 +119,12 @@ class ImageResolver:
         partial.replace(target)
         return target
 
+    def token(self, creature: Creature) -> Path | None:
+        """A creature's token, else its bestiary art, as a LaTeX-readable file."""
+        return self.resolve(token_href(creature)) or self.find(
+            f"bestiary/{creature.source.abbreviation}/{token_name(creature.name)}.webp"
+        )
+
 
 def token_href(creature: Creature) -> str | dict[str, Any]:
     """Where 5etools finds a creature's token (``Renderer.generic.getTokenUrl``)."""

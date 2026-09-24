@@ -33,18 +33,14 @@ class TestTokenSheetCounts:
         self.mock_creature_large.source.abbreviation = "MM"
         self.mock_creature_large.get_cr_text = Mock(return_value="2")
 
-        # Create mock image resolver
-        self.mock_resolver = Mock()
-        self.mock_resolver.resolve_token_image = Mock(
-            return_value=Path("/fake/path.png")
-        )
+        self.token_image = Mock(return_value=Path("/fake/path.png"))
 
     def test_token_sheet_default_counts(self) -> None:
         """Test TokenSheet uses default_count when no creature_counts provided."""
         creatures = [self.mock_creature_small, self.mock_creature_medium]
 
         token_sheet = TokenSheet.from_creatures(
-            creatures, self.mock_resolver, default_count=3
+            creatures, self.token_image, default_count=3
         )
 
         # Verify all tokens use default count
@@ -70,7 +66,7 @@ class TestTokenSheetCounts:
 
         token_sheet = TokenSheet.from_creatures(
             creatures,
-            self.mock_resolver,
+            self.token_image,
             default_count=1,  # Should be ignored in favor of creature_counts
             creature_counts=creature_counts,
         )
@@ -105,7 +101,7 @@ class TestTokenSheetCounts:
 
         token_sheet = TokenSheet.from_creatures(
             creatures,
-            self.mock_resolver,
+            self.token_image,
             default_count=2,
             creature_counts=creature_counts,
         )
@@ -126,7 +122,7 @@ class TestTokenSheetCounts:
 
         token_sheet = TokenSheet.from_creatures(
             creatures,
-            self.mock_resolver,
+            self.token_image,
             default_count=1,
             creature_counts=creature_counts,
         )
@@ -140,7 +136,7 @@ class TestTokenSheetCounts:
 
         token_sheet = TokenSheet.from_creatures(
             creatures,
-            self.mock_resolver,
+            self.token_image,
             default_count=3,
             creature_counts={},  # Empty dict
         )
@@ -153,7 +149,7 @@ class TestTokenSheetCounts:
         creatures = [self.mock_creature_small]
 
         token_sheet = TokenSheet.from_creatures(
-            creatures, self.mock_resolver, default_count=3, creature_counts=None
+            creatures, self.token_image, default_count=3, creature_counts=None
         )
 
         small_tokens = token_sheet.get_tokens_for_size("small")
@@ -165,7 +161,7 @@ class TestTokenSheetCounts:
 
         # Call without creature_counts parameter (backward compatibility)
         token_sheet = TokenSheet.from_creatures(
-            creatures, self.mock_resolver, default_count=2
+            creatures, self.token_image, default_count=2
         )
 
         small_tokens = token_sheet.get_tokens_for_size("small")

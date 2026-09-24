@@ -223,7 +223,6 @@ ignore = [
 "src/studiorum/core/services/item_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103"]
 "src/studiorum/core/services/spell_class_lookup.py" = ["PERF401", "SIM118"]
 "src/studiorum/core/services/spell_collector.py" = ["PERF401", "RET504", "SIM102", "SIM103", "SIM110"]
-"src/studiorum/core/services/token_image_resolver.py" = ["B007", "PERF401"]
 "src/studiorum/core/sources/github.py" = ["B904"]
 "src/studiorum/core/text/tag_parser.py" = ["B904", "PTH123"]
 "src/studiorum/core/text/tag_types.py" = ["UP042"]
@@ -299,7 +298,6 @@ ignore = [
 "tests/renderers/latex/test_progress_tracker.py" = ["SIM117"]
 "tests/test_data_helpers.py" = ["RET504"]
 "tests/unit/core/services/test_fluff_matcher_phase5.py" = ["RET504"]
-"tests/unit/core/services/test_token_image_resolver.py" = ["SIM117"]
 "tests/unit/models/test_creature_stat_blocks.py" = ["PERF401"]
 "tests/unit/test_books.py" = ["B007"]
 "tests/unit/test_configurable_source_manager.py" = ["B007", "PERF102", "SIM118"]
@@ -449,7 +447,6 @@ ignore_imports = [
     "studiorum.core.models.books -> studiorum.core.loaders.omnidexer",
     "studiorum.core.models.creatures -> studiorum.core.loaders.omnidexer",
     "studiorum.core.models.items -> studiorum.core.loaders.item_types",
-    "studiorum.core.models.tokens -> studiorum.core.services.token_image_resolver",
     "studiorum.core.references.content_reference_manager -> studiorum.core.loaders.omnidexer",
     "studiorum.core.references.content_reference_manager -> studiorum.core.models.content",
     "studiorum.core.references.spell_references -> studiorum.core.loaders.omnidexer",
