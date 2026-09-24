@@ -103,3 +103,22 @@ async def test_suggest_creatures() -> None:
 async def test_suggest_creatures_checks_the_rules() -> None:
     with pytest.raises(ToolError, match="2024 difficulties are low, moderate, high"):
         await call("suggest_creatures", party_levels=[3], difficulty="deadly")
+
+
+async def test_rate_encounter_names_every_unknown_creature() -> None:
+    with pytest.raises(ToolError) as e:
+        await call(
+            "rate_encounter",
+            party_levels=[3],
+            creatures=[{"name": "Goblim"}, {"name": "Acolite"}, {"name": "Goblin"}],
+        )
+    assert "No creature named 'Goblim'" in str(e.value)
+    assert "No creature named 'Acolite'. Did you mean: Acolyte" in str(e.value)
+
+
+async def test_suggest_creatures_leaves_out_minions() -> None:
+    # Three creatures at low for one level 1 character: 9 to 16 XP each
+    tiny = {"party_levels": [1], "difficulty": "low", "count": 3, "srd_only": False}
+    assert names(await call("suggest_creatures", **tiny)) == []
+    with_minions = await call("suggest_creatures", **tiny, include_minions=True)
+    assert names(with_minions) == ["Goblin Minion"]

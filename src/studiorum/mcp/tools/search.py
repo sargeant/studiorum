@@ -112,22 +112,25 @@ def _keys(content: BaseContent) -> set[tuple[str, str]]:
     return {(n.lower(), source) for n in names if n}
 
 
-def _reprints(content: BaseContent) -> set[tuple[str, str]]:
+def reprint_uids(content: BaseContent) -> list[str]:
+    """The uids 5etools' reprintedAs names for an entry."""
     found = getattr(content, "reprinted_as", None) or getattr(
         content, "reprintedAs", None
     )
+    return [
+        str(r.get("uid") if isinstance(r, dict) else getattr(r, "uid", r))
+        for r in (found if isinstance(found, list) else [])
+    ]
+
+
+def _reprints(content: BaseContent) -> set[tuple[str, str]]:
     try:
         ctype = content_type_of(content)
     except ValueError:
         return set()
     keys = set()
-    for reprint in found if isinstance(found, list) else []:
-        uid = (
-            reprint.get("uid")
-            if isinstance(reprint, dict)
-            else getattr(reprint, "uid", reprint)
-        )
-        fields = parse_uid(ctype, str(uid)) or {}
+    for uid in reprint_uids(content):
+        fields = parse_uid(ctype, uid) or {}
         first = next(iter(fields.values()), None)
         if first and fields.get("source"):
             keys.add((str(first).lower(), str(fields["source"]).lower()))

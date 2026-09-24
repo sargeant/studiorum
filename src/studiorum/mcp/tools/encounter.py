@@ -22,7 +22,7 @@ from studiorum.mcp.models import (
     SuggestedCreature,
 )
 from studiorum.mcp.tools.lookup import find_one
-from studiorum.mcp.tools.search import LatestOnly, split_srd, type_name
+from studiorum.mcp.tools.search import LatestOnly, reprint_uids, split_srd, type_name
 from studiorum.services import Services
 
 PartyLevels = Annotated[
@@ -81,10 +81,22 @@ async def rate_encounter(
     """How hard a group of creatures is for a party: total and adjusted XP, and difficulty."""
     srd_only = default_srd if srd_only is None else srd_only
     rated: list[RatedCreature] = []
+    problems: list[str] = []
+    notes: list[str] = []
     for wanted in creatures:
-        found = find_one(services, "creature", wanted.name, wanted.source, srd_only)
+        try:
+            found = find_one(services, "creature", wanted.name, wanted.source, srd_only)
+        except ToolError as e:
+            problems.append(str(e))
+            continue
         if not isinstance(found, Creature):
-            raise ToolError(f"{found.name} is not a creature.")
+            problems.append(f"{found.name} is not a creature.")
+            continue
+        notes += [
+            f"{found.name} ({found.source.abbreviation}) was reprinted as {uid}; "
+            "pass its name and source to use that version."
+            for uid in reprint_uids(found)
+        ]
         rated.append(
             RatedCreature(
                 name=found.name,
@@ -95,6 +107,8 @@ async def rate_encounter(
                 count=wanted.count,
             )
         )
+    if problems:
+        raise ToolError(" ".join(problems))
     total = sum((c.xp or 0) * c.count for c in rated)
     factor = encounter.multiplier(sum(c.count for c in rated), len(party_levels), rules)
     adjusted = int(total * factor)
@@ -107,6 +121,7 @@ async def rate_encounter(
         adjusted_xp=adjusted,
         difficulty=encounter.difficulty(adjusted, party_levels, rules),
         budgets=encounter.budgets(party_levels, rules),
+        notes=notes,
     )
 
 
@@ -121,6 +136,13 @@ async def suggest_creatures(
         str | None, Field(description="e.g. dragon, humanoid, undead")
     ] = None,
     rules: RulesChoice = "2024",
+    include_minions: Annotated[
+        bool,
+        Field(
+            description="Include creatures whose XP isn't their CR's, such as "
+            "Flee Mortals minions and retainers"
+        ),
+    ] = False,
     srd_only: SrdOnly = None,
     latest_only: LatestOnly = True,
     limit: Annotated[int, Field(ge=1, le=100)] = 20,
@@ -145,6 +167,8 @@ async def suggest_creatures(
             continue
         xp = encounter.creature_xp(c.cr)
         if xp is None or not each[0] <= xp <= each[1]:
+            continue
+        if not include_minions and xp != encounter.table_xp(c.cr):
             continue
         if creature_type and type_name(c).lower() != creature_type.lower():
             continue

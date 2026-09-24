@@ -77,6 +77,7 @@ async def test_search_creatures_filters() -> None:
     assert names(await call("search_creatures", query="goblin")) == ["Goblin"]
     assert names(await call("search_creatures", query="goblin", srd_only=False)) == [
         "Goblin",
+        "Goblin Minion",
         "Goblin Sneak",
     ]
     quarter = await call("search_creatures", cr_min=0.25, cr_max=0.25)

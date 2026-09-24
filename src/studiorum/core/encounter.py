@@ -63,6 +63,12 @@ def creature_xp(cr: Any) -> int | None:
     return XP_BY_CR.get(str(cr)) if cr is not None else None
 
 
+def table_xp(cr: Any) -> int | None:
+    """XP from the CR table alone, ignoring a ``cr`` dict's own ``xp``."""
+    base = cr.get("cr") if isinstance(cr, dict) else cr
+    return XP_BY_CR.get(str(base)) if base is not None else None
+
+
 def multiplier(creatures: int, party_size: int, rules: Rules) -> float:
     """2014: the multiplier for the creature count, shifted for small and large parties."""
     if rules == "2024" or creatures < 1:

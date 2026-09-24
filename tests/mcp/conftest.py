@@ -112,10 +112,12 @@ def mcp_data(tmp_path: Path) -> Iterator[Path]:
         {"Goblin", "Young Red Dragon", "Acolyte"},
     )
     goblin = next(c for c in creatures if c["name"] == "Goblin")
+    # A Flee Mortals-style minion: CR 1/4, but worth 10 XP
+    minion = _not_srd(goblin, "Goblin Minion") | {"cr": {"cr": "1/4", "xp": 10}}
     _write(tmp_path / "bestiary" / "index.json", {"SRD": "bestiary-srd.json"})
     _write(
         tmp_path / "bestiary" / "bestiary-srd.json",
-        {"monster": [*creatures, _not_srd(goblin, "Goblin Sneak")]},
+        {"monster": [*creatures, _not_srd(goblin, "Goblin Sneak"), minion]},
     )
 
     items = _pick(SRD_DATA / "items.json", "item", {"Amulet of Health", "Ale (mug)"})

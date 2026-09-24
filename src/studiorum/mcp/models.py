@@ -119,6 +119,7 @@ class EncounterRating(BaseModel):
     adjusted_xp: int
     difficulty: str
     budgets: dict[str, int]
+    notes: list[str] = Field(default_factory=list, description="Editions to check")
 
 
 class SuggestedCreature(BaseModel):
