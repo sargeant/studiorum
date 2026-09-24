@@ -50,9 +50,6 @@ class SpellFilterCriteria(BaseModel):
     has_material: bool | None = Field(
         None, description="Filter by material component requirement"
     )
-    no_material: bool = Field(
-        False, description="Exclude spells with material components"
-    )
     concentration: bool | None = Field(
         None, description="Filter by concentration requirement"
     )
@@ -196,10 +193,6 @@ class SpellFilterCriteria(BaseModel):
         ):
             raise ValueError("min_level cannot be greater than max_level")
 
-        # Check conflicting material component filters
-        if self.has_material is True and self.no_material is True:
-            raise ValueError("Cannot require material components and exclude them")
-
         # Validate that at least one filtering criterion is provided
         has_criteria = any(
             [
@@ -211,7 +204,6 @@ class SpellFilterCriteria(BaseModel):
                 self.has_verbal is not None,
                 self.has_somatic is not None,
                 self.has_material is not None,
-                self.no_material is True,
                 self.concentration is not None,
                 self.ritual is not None,
                 self.damage_types is not None,
